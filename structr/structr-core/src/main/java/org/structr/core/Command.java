@@ -46,18 +46,18 @@ public abstract class Command {
 
     protected SecurityContext securityContext = null;
     protected Map<String, Object> arguments = null;
-    protected Command.status status = null;
-    protected Command.exitCode exitCode = null;
+    protected Command.Status status = null;
+    protected Command.ExitCode exitCode = null;
     private final static String ERROR_MESSAGE = "errorMessage";
     private final static String EXIT_CODE = "exitCode";
     private Map<String, Object> exitStatus;
 
-    public enum status {
+    public enum Status {
 
         WAITING, RUNNING, FINISHED
     }
 
-    public enum exitCode {
+    public enum ExitCode {
 
         UNKNOWN, SUCCESS, FAILURE
     }
@@ -112,34 +112,34 @@ public abstract class Command {
     public final Object getArgument(String key) {
         return (this.arguments.get(key));
     }
-
-    public Command.status getStatus() {
-        return status;
-    }
-
-    public void setStatus(final Command.status status) {
-        this.status = status;
-    }
-
-    public Command.exitCode getExitCode() {
-        return (Command.exitCode) exitStatus.get(EXIT_CODE);
-    }
-
-    public void setExitCode(final Command.exitCode exitCode) {
-        if (exitCode != null) {
-            this.exitStatus.put(EXIT_CODE, exitCode);
-        }
-    }
-
-    public String getErrorMessage() {
-        return (String) exitStatus.get("errorMessage");
-    }
-
-    public void setErrorMessage(final String errorMessage) {
-        if (errorMessage != null) {
-            this.exitStatus.put(ERROR_MESSAGE, errorMessage);
-        }
-    }
+//
+//    public Command.Status getStatus() {
+//        return status;
+//    }
+//
+//    public void setStatus(final Command.Status status) {
+//        this.status = status;
+//    }
+//
+//    public Command.ExitCode getExitCode() {
+//        return (Command.ExitCode) exitStatus.get(EXIT_CODE);
+//    }
+//
+//    public void setExitCode(final Command.ExitCode exitCode) {
+//        if (exitCode != null) {
+//            this.exitStatus.put(EXIT_CODE, exitCode);
+//        }
+//    }
+//
+//    public String getErrorMessage() {
+//        return (String) exitStatus.get("errorMessage");
+//    }
+//
+//    public void setErrorMessage(final String errorMessage) {
+//        if (errorMessage != null) {
+//            this.exitStatus.put(ERROR_MESSAGE, errorMessage);
+//        }
+//    }
 
     public void setSecurityContext(SecurityContext securityContext) {
 	    this.securityContext = securityContext;

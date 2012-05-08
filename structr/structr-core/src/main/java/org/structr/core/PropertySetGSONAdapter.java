@@ -279,7 +279,11 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 
 		Object value = null;
 
-		if (type.equals("String")) {
+		if ((type == null) || type.equals("null")) {
+
+			value = valueElement.getAsJsonNull();
+
+		} else if (type.equals("String")) {
 
 			value = valueElement.getAsString();
 
@@ -298,10 +302,6 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 		} else if (type.equals("JsonObject")) {
 
 			value = valueElement.getAsJsonObject();
-
-		} else if ((type == null) || type.equals("null")) {
-
-			value = valueElement.getAsJsonNull();
 
 		} else if (type.equals("Integer")) {
 

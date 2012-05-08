@@ -11,10 +11,10 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.DistanceSearchAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.node.search.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,7 +70,11 @@ public class TypeResource extends SortableResource {
 			if (entityClass == null) {
 
 				// test if key is a known property
-				if (!EntityContext.isKnownProperty(part)) return false;
+				if (!EntityContext.isKnownProperty(part)) {
+
+					return false;
+
+				}
 			}
 		}
 
@@ -89,7 +94,7 @@ public class TypeResource extends SortableResource {
 //                      // test if resource class exists
 			// test moved to checkAndConfigure
 //                      Map cachedEntities = (Map<String, Class>) Services.command(securityContext, GetEntitiesCommand.class).execute();
-//                      
+//
 //                      String normalizedEntityName = EntityContext.normalizeEntityName(rawType);
 //
 //                      if (!cachedEntities.containsKey(normalizedEntityName)) {
@@ -99,17 +104,30 @@ public class TypeResource extends SortableResource {
 //                      }
 //
 //                      entityClass = (Class) cachedEntities.get(normalizedEntityName);
-//                      
+//
 			if (entityClass == null) {
 
 				throw new NotFoundException();
 
 			}
 
-			searchAttributes.add(Search.andExactType(EntityContext.normalizeEntityName(rawType)));
+			
 
-			// searchable attributes from EntityContext
-			hasSearchableAttributes(rawType, request, searchAttributes);
+			// distance search?
+			DistanceSearchAttribute distanceSearch = getDistanceSearch(request);
+
+			if (distanceSearch != null) {
+
+				searchAttributes.add(distanceSearch);
+                                searchAttributes.add(new FilterSearchAttribute(AbstractNode.Key.type.name(), EntityContext.normalizeEntityName(rawType), SearchOperator.AND));
+
+			} else {
+                                
+                                searchAttributes.addAll(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
+
+				// searchable attributes from EntityContext
+				hasSearchableAttributes(rawType, request, searchAttributes);
+			}
 
 			// do search
 			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);

@@ -49,7 +49,7 @@ public class FileHelper {
             match = Magic.getMagicMatch(file, false, true);
             return match.getMimeType();
         } catch (Exception e) {
-            logger.log(Level.SEVERE, null, e);
+            logger.log(Level.WARNING, "Could not determine content type");
         }
 
         return UNKNOWN_MIME_TYPE;

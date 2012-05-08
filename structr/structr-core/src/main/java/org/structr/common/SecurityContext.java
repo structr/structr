@@ -21,17 +21,18 @@
 
 package org.structr.common;
 
-import java.util.Collections;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.auth.AuthenticationException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,8 +41,9 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,43 +61,52 @@ public class SecurityContext {
 
 	//~--- fields ---------------------------------------------------------
 
-	private AccessMode accessMode       = AccessMode.Frontend;
-	private Map<String, Object> attrs   = null;
-	private Authenticator authenticator = null;
-	private HttpServletRequest request  = null;
+	private AccessMode accessMode        = AccessMode.Frontend;
+	private Map<String, Object> attrs    = null;
+	private Authenticator authenticator  = null;
+	private HttpServletRequest request   = null;
+	private HttpServletResponse response = null;
+	private Principal user                    = null;
+	private String password              = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	private SecurityContext(ServletConfig config, HttpServletRequest request, AccessMode accessMode) {
+	/*
+	 * Alternative constructor for stateful context, e.g. WebSocket
+	 */
+	private SecurityContext(Principal user, AccessMode accessMode) {
+
+		this.user       = user;
+		this.accessMode = accessMode;
+	}
+
+	private SecurityContext(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
 
 		this.attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
 		this.accessMode = accessMode;
 		this.request    = request;
+		this.response   = response;
 
 		// the authenticator does not have a security context
 		try {
 			this.authenticator = (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(config);
-			
-		} catch(Throwable t) {
+		} catch (Throwable t) {
 			logger.log(Level.SEVERE, "Could not instantiate security context!");
 		}
 	}
 
 	//~--- methods --------------------------------------------------------
-	public void examineRequest(HttpServletRequest request) throws FrameworkException {
-		this.authenticator.examineRequest(this, request);
+
+	public void examineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+		this.authenticator.examineRequest(this, request, response);
 	}
 
-	public User doLogin(String userName, String password) throws AuthenticationException {
-
-		return authenticator.doLogin(this, request,
-					     userName,
-					     password);
+	public Principal doLogin(String userName, String password) throws AuthenticationException {
+		return authenticator.doLogin(this, request, response, userName, password);
 	}
 
 	public void doLogout() {
-
-		authenticator.doLogout(this, request);
+		authenticator.doLogout(this, request, response);
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -104,28 +115,43 @@ public class SecurityContext {
 		return new SuperUserSecurityContext();
 	}
 
-	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request,
-		AccessMode accessMode) throws FrameworkException {
+	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) throws FrameworkException {
+		return new SecurityContext(config, request, response, accessMode);
+	}
 
-		return new SecurityContext(config,
-					   request,
-					   accessMode);
+	public static SecurityContext getInstance(Principal user, AccessMode accessMode) throws FrameworkException {
+		return new SecurityContext(user, accessMode);
 	}
 
 	public HttpSession getSession() {
 		return request.getSession();
 	}
 
-	public User getUser() {
-		return authenticator.getUser(this, request);
+	public Principal getUser() {
+
+		try {
+
+			if (user == null) {
+
+				user = authenticator.getUser(this, request, response);
+
+			}
+
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "No user found", ex);
+		}
+
+		return user;
 	}
 
 	public String getUserName() {
 
-		User user = getUser();
+		user = getUser();
 
 		if (user != null) {
-			return user.getName();
+
+			return user.getStringProperty(AbstractNode.Key.name);
+
 		}
 
 		return null;
@@ -135,83 +161,10 @@ public class SecurityContext {
 		return (accessMode);
 	}
 
-	public boolean isSuperUser() {
-
-		User user = getUser();
-
-		return ((user != null) && (user instanceof SuperUser));
-	}
-
-	public boolean isAllowed(AccessControllable node, Permission permission) {
-
-		if (isSuperUser()) {
-			return true;
-		}
-
-		boolean isAllowed = false;
-
-		switch (accessMode) {
-
-			case Backend :
-				isAllowed = isAllowedInBackend(node, permission);
-
-				break;
-
-			case Frontend :
-				isAllowed = isAllowedInFrontend(node, permission);
-
-				break;
-		}
-
-		if (node != null) {
-
-			User user = getUser();
-
-			logger.log(Level.FINEST,
-				   "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}",
-				   new Object[] { isAllowed, (user != null)
-				? user.getName()
-				: "null", accessMode, node, permission });
-		}
-
-		return isAllowed;
-	}
-
-	public boolean isVisible(AccessControllable node) {
-
-		boolean ret = false;
-
-		switch (accessMode) {
-
-			case Backend :
-				ret = isVisibleInBackend(node);
-
-				break;
-
-			case Frontend :
-				ret = isVisibleInFrontend(node);
-
-				break;
-		}
-
-		if (node != null) {
-
-			User user = getUser();
-
-			logger.log(Level.FINEST,
-				   "Returning {0} for user {1}, access mode {2}, node {3}",
-				   new Object[] { ret, (user != null)
-						       ? user.getName()
-						       : "null", accessMode, node });
-		}
-
-		return (ret);
-	}
-
 	public StringBuilder getBaseURI() {
 
 		StringBuilder uriBuilder = new StringBuilder(200);
-		
+
 		uriBuilder.append(request.getScheme());
 		uriBuilder.append("://");
 		uriBuilder.append(request.getServerName());
@@ -228,8 +181,71 @@ public class SecurityContext {
 		return attrs.get(key);
 	}
 
-	public void setAttribute(String key, Object value) {
-		attrs.put(key, value);
+	public boolean isSuperUser() {
+
+		user = getUser();
+
+		return ((user != null) && (user instanceof SuperUser));
+	}
+
+	public boolean isAllowed(AccessControllable node, Permission permission) {
+
+		if (isSuperUser()) {
+
+			return true;
+
+		}
+
+		user = getUser();
+
+		// owner is always allowed to do anything with its nodes
+		if ((user != null) && (user.equals(node) || user.equals(node.getOwnerNode()))) {
+
+			return true;
+
+		}
+
+		boolean isAllowed = false;
+
+		switch (accessMode) {
+
+			case Backend :
+				isAllowed = isAllowedInBackend(node, permission);
+
+				break;
+
+			case Frontend :
+				isAllowed = isAllowedInFrontend(node, permission);
+
+				break;
+
+		}
+
+		if (node != null) {
+
+			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, (user != null)
+				? user.getStringProperty(AbstractNode.Key.name)
+				: "null", accessMode, node, permission });
+
+		}
+
+		return isAllowed;
+	}
+
+	public boolean isVisible(AccessControllable node) {
+
+		switch (accessMode) {
+
+			case Backend :
+				return isVisibleInBackend(node);
+
+			case Frontend :
+				return isVisibleInFrontend(node);
+
+			default :
+				return false;
+
+		}
 	}
 
 	// ----- private methods -----
@@ -237,30 +253,40 @@ public class SecurityContext {
 
 		// no node, nothing to see here..
 		if (node == null) {
+
 			return (false);
+
 		}
 
 		// fetch user
-		User user = getUser();
+		user = getUser();
 
 		// anonymous users may not see any nodes in backend
 		if (user == null) {
+
 			return (false);
+
 		}
 
 		// SuperUser may always see the node
 		if (user instanceof SuperUser) {
+
 			return true;
+
 		}
 
 		// non-backend users are not allowed here
 		if (!user.isBackendUser()) {
+
 			return (false);
+
 		}
 
 		// users with read permissions may see the node
 		if (isAllowedInBackend(node, Permission.Read)) {
+
 			return (true);
+
 		}
 
 		// no match, node is not visible
@@ -277,12 +303,16 @@ public class SecurityContext {
 	private boolean isVisibleInFrontend(AccessControllable node) {
 
 		if (node == null) {
+
 			return false;
+
 		}
 
 		// check hidden flag (see STRUCTR-12)
 		if (node.isHidden()) {
+
 			return false;
+
 		}
 
 		boolean visibleByTime = false;
@@ -293,7 +323,9 @@ public class SecurityContext {
 		Date createdDate        = node.getCreatedDate();
 
 		if (createdDate != null) {
+
 			effectiveStartDate = Math.max(createdDate.getTime(), 0L);
+
 		}
 
 		// if no start date for visibility is given,
@@ -316,110 +348,132 @@ public class SecurityContext {
 
 		// public nodes are always visible (constrained by time)
 		if (node.isVisibleToPublicUsers()) {
+
 			return visibleByTime;
+
 		}
 
-		// fetch user
-		User user = getUser();
+		// Ask for user only if node is visible for authenticated users
+		if (node.isVisibleToAuthenticatedUsers()) {
 
-		if (user != null) {
+			// fetch user
+			user = getUser();
 
-			// SuperUser
-			if (user instanceof SuperUser) {
-				return (true);
-			}
+			if (user != null) {
 
-			// frontend user
-			if (user.isFrontendUser()) {
+				// SuperUser
+				if (user instanceof SuperUser) {
 
-				return node.hasPermission(AbstractRelationship.Permission.read.name(),
-							  user);
+					return true;
+
+				}
+
+				// frontend user
+				if (user.isFrontendUser()) {
+
+					boolean hasReadPermission = node.hasPermission(AbstractRelationship.Permission.read.name(), user);
+
+					if (!hasReadPermission) {
+
+						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+					}
+
+					return hasReadPermission;
+
+				}
 			}
 		}
 
-		return (false);
+		return false;
 	}
 
 	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {
 
-		User user = getUser();
+		user = getUser();
 
 		if (node == null) {
+
 			return false;
+
 		}
 
 		// SuperUser has all permissions
 		if ((user != null) && (user instanceof SuperUser)) {
+
 			return true;
+
 		}
 
 		switch (permission) {
 
 			case AccessControl :
 				if (user == null) {
+
 					return false;
+
 				}
 
 				// superuser
 				if (user instanceof SuperUser) {
+
 					return true;
+
 				}
 
 				// node itself
 				if (node.equals(user)) {
+
 					return true;
+
 				}
 
 				AbstractRelationship r = null;
 
 				// owner has always access control
 				if (user.equals(node.getOwnerNode())) {
+
 					return true;
+
 				}
 
 				r = node.getSecurityRelationship(user);
 
 				if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
+
 					return true;
+
 				}
 
 				return false;
 
 			case CreateNode :
-				return node.hasPermission(AbstractRelationship.Permission.createNode.name(),
-							  user);
+				return node.hasPermission(AbstractRelationship.Permission.createNode.name(), user);
 
 			case CreateRelationship :
-				return node.hasPermission(AbstractRelationship.Permission.addRelationship.name(),
-							  user);
+				return node.hasPermission(AbstractRelationship.Permission.addRelationship.name(), user);
 
 			case DeleteNode :
-				return node.hasPermission(AbstractRelationship.Permission.deleteNode.name(),
-							  user);
+				return node.hasPermission(AbstractRelationship.Permission.deleteNode.name(), user);
 
 			case DeleteRelationship :
-				return node.hasPermission(AbstractRelationship.Permission.removeRelationship.name(),
-							  user);
+				return node.hasPermission(AbstractRelationship.Permission.removeRelationship.name(), user);
 
 			case EditProperty :
-				return node.hasPermission(AbstractRelationship.Permission.editProperties.name(),
-							  user);
+				return node.hasPermission(AbstractRelationship.Permission.editProperties.name(), user);
 
 			case Execute :
-				return node.hasPermission(AbstractRelationship.Permission.execute.name(),
-							  user);
+				return node.hasPermission(AbstractRelationship.Permission.execute.name(), user);
 
 			case Read :
-				return node.hasPermission(AbstractRelationship.Permission.read.name(),
-							  user);
+				return node.hasPermission(AbstractRelationship.Permission.read.name(), user);
 
 			case ShowTree :
-				return node.hasPermission(AbstractRelationship.Permission.showTree.name(),
-							  user);
+				return node.hasPermission(AbstractRelationship.Permission.showTree.name(), user);
 
 			case Write :
-				return node.hasPermission(AbstractRelationship.Permission.write.name(),
-							  user);
+				return node.hasPermission(AbstractRelationship.Permission.write.name(), user);
+
 		}
 
 		return (false);
@@ -428,13 +482,17 @@ public class SecurityContext {
 	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
 
 		if (node == null) {
+
 			return false;
+
 		}
 
-		User user = getUser();
+		user = getUser();
 
 		if ((user != null) && (user instanceof SuperUser)) {
+
 			return true;
+
 		}
 
 		switch (permission) {
@@ -445,13 +503,22 @@ public class SecurityContext {
 			// return node.hasPermission(AbstractRelationship.READ_KEY, user);
 			default :
 				return false;
+
 		}
 	}
 
 	//~--- set methods ----------------------------------------------------
 
+	public void setAttribute(String key, Object value) {
+		attrs.put(key, value);
+	}
+
 	public void setAccessMode(AccessMode accessMode) {
 		this.accessMode = accessMode;
+	}
+
+	public void setUser(final Principal user) {
+		this.user = user;
 	}
 
 	//~--- inner classes --------------------------------------------------
@@ -460,10 +527,7 @@ public class SecurityContext {
 	private static class SuperUserSecurityContext extends SecurityContext {
 
 		public SuperUserSecurityContext() {
-
-			super(null,
-			      null,
-			      null);
+			super(null, null, null, null);
 		}
 
 		//~--- get methods --------------------------------------------
@@ -474,7 +538,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public User getUser() {
+		public Principal getUser() {
 			return new SuperUser();
 		}
 

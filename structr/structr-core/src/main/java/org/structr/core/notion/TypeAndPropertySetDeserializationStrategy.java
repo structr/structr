@@ -47,7 +47,7 @@ import org.structr.core.node.NodeAttribute;
  */
 public class TypeAndPropertySetDeserializationStrategy implements DeserializationStrategy {
 
-	private PropertyKey[] propertyKeys = null;
+	protected PropertyKey[] propertyKeys = null;
 
 	//~--- constructors ---------------------------------------------------
 

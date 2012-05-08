@@ -74,9 +74,11 @@ public class Services {
 
 	// Network-related constants
 	public static final String SERVER_IP       = "server.ip";
-	public static final String SERVLET_CONTEXT = "servlet.context";
+	public static final String SERVLET_REAL_ROOT_PATH = "servlet.context";
 	public static final String SMTP_HOST       = "smtp.host";
 	public static final String SMTP_PORT       = "smtp.port";
+	public static final String SMTP_USER       = "smtp.user";
+	public static final String SMTP_PASSWORD   = "smtp.password";
 
 //      public static final String ENTITY_PACKAGES = "entity.packages";
 	public static final String SUPERUSER_PASSWORD     = "superuser.password";
@@ -86,13 +88,14 @@ public class Services {
 	public static final String TCP_PORT           = "tcp.port";
 	public static final String TMP_PATH           = "tmp.path";
 	public static final String UDP_PORT           = "udp.port";
-	private static Map<String, Object> context    = null;
+	private static Map<String, String> context    = null;
 	private static final Logger logger            = Logger.getLogger(Services.class.getName());
 
 //      private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(10, 0.9f, 8);
 	private static final Map<Class, Service> serviceCache    = new ConcurrentHashMap<Class, Service>(10, 0.9f, 8);
 	private static final Set<Class> registeredServiceClasses = new LinkedHashSet<Class>();
 	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<Class>();
+	private static boolean initializationDone = false;
 	private static String appTitle;
 	private static String basePath;
 	private static String configFilePath;
@@ -103,6 +106,8 @@ public class Services {
 	private static String serverIp;
 	private static String smtpHost;
 	private static String smtpPort;
+	private static String smtpUser;
+	private static String smtpPassword;
 	private static String superuserPassword;
 	private static String superuserUsername;
 	private static String tcpPort;
@@ -169,7 +174,7 @@ public class Services {
 		return (command);
 	}
 
-	public static void initialize(Map<String, Object> envContext) {
+	public static void initialize(Map<String, String> envContext) {
 
 		context = envContext;
 		initialize();
@@ -200,6 +205,8 @@ public class Services {
 		udpPort           = getConfigValue(context, Services.UDP_PORT, "57555");
 		smtpHost          = getConfigValue(context, Services.SMTP_HOST, "localhost");
 		smtpPort          = getConfigValue(context, Services.SMTP_PORT, "25");
+		smtpUser          = getConfigValue(context, Services.SMTP_USER, "");
+		smtpPassword      = getConfigValue(context, Services.SMTP_PASSWORD, "");
 		superuserUsername = getConfigValue(context, Services.SUPERUSER_USERNAME, "superadmin");
 		superuserPassword = getConfigValue(context, Services.SUPERUSER_PASSWORD, "");    // intentionally no default password!
 		logger.log(Level.INFO, "Starting services");
@@ -236,6 +243,12 @@ public class Services {
 		EntityContext.init();
 
 		logger.log(Level.INFO, "Initialization complete");
+		
+		initializationDone = true;
+	}
+	
+	public static boolean isInitialized() {
+		return initializationDone;
 	}
 
 	public static void shutdown() {
@@ -293,6 +306,16 @@ public class Services {
 			return context.get(key);
 		}
 		return null;
+	}
+	
+	public static String getConfigurationValue(String key, String defaultValue) {
+		
+		Object value = getConfigurationValue(key);
+		if(value == null) {
+			return defaultValue;
+		}
+
+		return value.toString();
 	}
 	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
@@ -430,6 +453,20 @@ public class Services {
 	}
 
 	/**
+	 * Return the SMTP user for sending out e-mails
+	 */
+	public static String getSmtpUser() {
+		return smtpUser;
+	}
+
+	/**
+	 * Return the SMTP user for sending out e-mails
+	 */
+	public static String getSmtpPassword() {
+		return smtpPassword;
+	}
+
+	/**
 	 * Return the superuser username
 	 */
 	public static String getSuperuserUsername() {
@@ -462,20 +499,19 @@ public class Services {
 		return services;
 	}
 
-	public static Map<String, Object> getContext() {
+	public static Map<String, String> getContext() {
 		return context;
 	}
 
-	public static String getConfigValue(Map<String, Object> context, String key, String defaultValue) {
+	public static String getConfigValue(Map<String, String> context, String key, String defaultValue) {
 
-		Object value = context.get(key);
-		String ret   = defaultValue;
+		String value = StringUtils.strip(context.get(key));
 
 		if (value != null) {
-			ret = value.toString();
+			return value;
 		}
 
-		return (ret);
+		return value;
 	}
 
 	public static String getPath(Path path) {
@@ -579,6 +615,19 @@ public class Services {
 	public static boolean isAvailable(final Class serviceClass) {
 		return configuredServiceClasses.contains(serviceClass);
 	}
+        
+	/**
+	 * Return true if the given service is ready to be used,
+         * means initialized and running.
+	 * 
+	 * @param serviceClass
+	 * @return 
+	 */
+	public static boolean isReady(final Class serviceClass) {
+                Service service = serviceCache.get(serviceClass);
+                return (service != null && service.isRunning());
+                
+	}
 
 	//~--- set methods ----------------------------------------------------
 
@@ -599,7 +648,7 @@ public class Services {
 	 *   return services;
 	 * }
 	 */
-	public static void setContext(final Map<String, Object> envContext) {
+	public static void setContext(final Map<String, String> envContext) {
 		context = envContext;
 	}
 

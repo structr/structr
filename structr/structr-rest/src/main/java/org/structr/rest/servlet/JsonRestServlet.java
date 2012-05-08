@@ -139,7 +139,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				try {
 
-					logger.log(Level.FINE, "Injecting resources from provider {0}", part);
+					logger.log(Level.INFO, "Injecting resources from provider {0}", part);
 
 					Class providerClass       = Class.forName(part);
 					ResourceProvider provider = (ResourceProvider) providerClass.newInstance();
@@ -184,8 +184,13 @@ public class JsonRestServlet extends HttpServlet {
 		this.propertySetAdapter = new PropertySetGSONAdapter(propertyFormat, propertyView, defaultIdProperty);
 
 		// create GSON serializer
-		this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeHierarchyAdapter(FrameworkException.class,
-			new FrameworkExceptionGSONAdapter()).registerTypeAdapter(PropertySet.class, propertySetAdapter).registerTypeAdapter(Result.class, resultGsonAdapter).create();
+		this.gson = new GsonBuilder()
+                        .setPrettyPrinting()
+                        .serializeNulls()
+                        .registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
+                        .registerTypeAdapter(PropertySet.class, propertySetAdapter)
+                        .registerTypeAdapter(Result.class, resultGsonAdapter)
+                        .create();
 
 //		String requestLoggingParameter = this.getInitParameter(SERVLET_PARAMETER_REQUEST_LOGGING);
 //
@@ -235,7 +240,7 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			SecurityContext securityContext = getSecurityContext(request);
+			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
 
@@ -303,7 +308,7 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			SecurityContext securityContext = getSecurityContext(request);
+			SecurityContext securityContext = getSecurityContext(request, response);
 
 			// set default value for property view
 			propertyView.set(defaultPropertyView);
@@ -326,10 +331,10 @@ public class JsonRestServlet extends HttpServlet {
 				Writer writer = response.getWriter();
 
 				gson.toJson(result, writer);
+				response.setStatus(HttpServletResponse.SC_OK);
 				writer.append("\n");    // useful newline
 				writer.flush();
 				writer.close();
-				response.setStatus(HttpServletResponse.SC_OK);
 
 			} else {
 
@@ -338,9 +343,10 @@ public class JsonRestServlet extends HttpServlet {
 				int code = HttpServletResponse.SC_NO_CONTENT;
 
 				response.setStatus(code);
-				response.getWriter().append(jsonError(code, "Result was null!"));
-				response.getWriter().flush();
-				response.getWriter().close();
+				Writer writer = response.getWriter();
+				writer.append(jsonError(code, "Result was null!"));
+				writer.flush();
+				writer.close();
 
 			}
 
@@ -392,7 +398,7 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			SecurityContext securityContext       = getSecurityContext(request);
+			SecurityContext securityContext       = getSecurityContext(request, response);
 			List<Resource> chain        = parsePath(securityContext, request);
 			Resource resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doHead();
@@ -447,7 +453,7 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			SecurityContext securityContext       = getSecurityContext(request);
+			SecurityContext securityContext       = getSecurityContext(request, response);
 			List<Resource> chain        = parsePath(securityContext, request);
 			Resource resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doOptions();
@@ -503,7 +509,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
-			SecurityContext securityContext = getSecurityContext(request);
+			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
 
@@ -586,7 +592,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
-			SecurityContext securityContext = getSecurityContext(request);
+			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
 
@@ -782,7 +788,11 @@ public class JsonRestServlet extends HttpServlet {
 
 					if (combinedConstraint != null) {
 
-						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+						logger.log(Level.FINE, "Combined constraint {0} and {1} to {2}", new Object[] { 
+							firstElement.getClass().getSimpleName(), 
+							secondElement.getClass().getSimpleName(),
+							combinedConstraint.getClass().getSimpleName()
+						} );
 
 						// remove source constraints
 						constraintChain.remove(firstElement);
@@ -1029,12 +1039,12 @@ public class JsonRestServlet extends HttpServlet {
 
 	//~--- get methods ----------------------------------------------------
 
-	private SecurityContext getSecurityContext(HttpServletRequest request) throws FrameworkException {
+	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
+		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 		
 		// let module-specific authenticator examine the request first
-		securityContext.examineRequest(request);
+		securityContext.examineRequest(request, response);
 		
 		return securityContext;
 	}

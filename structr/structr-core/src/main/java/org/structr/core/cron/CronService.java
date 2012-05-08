@@ -19,8 +19,8 @@
 
 package org.structr.core.cron;
 
+import java.util.LinkedList;
 import java.util.Map;
-import java.util.concurrent.DelayQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,7 +48,7 @@ public class CronService extends Thread implements RunnableService {
 	public static final int      NUM_FIELDS        = 6;
 
 	private SecurityContext securityContext   = SecurityContext.getSuperUserInstance();
-	private DelayQueue<CronEntry> cronEntries = new DelayQueue<CronEntry>();
+	private LinkedList<CronEntry> cronEntries = new LinkedList<CronEntry>();
 	private boolean doRun = false;
 
 	public CronService() {
@@ -58,13 +58,25 @@ public class CronService extends Thread implements RunnableService {
 	@Override
 	public void run() {
 		
+		// wait for service layer to be initialized
+		while(!Services.isInitialized()) {
+			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
+		}
+
+		// sleep 5 seconds more
+		try { Thread.sleep(5000); } catch(InterruptedException iex) { }
+
 		while(doRun) {
 
-			try {
-				CronEntry entry = cronEntries.poll(GRANULARITY, GRANULARITY_UNIT);
-				if(entry != null) {
+			// sleep for some time
+			try { Thread.sleep(GRANULARITY_UNIT.toMillis(GRANULARITY)); } catch(InterruptedException iex) { }
+
+			for(CronEntry entry : cronEntries) {
+
+				if(entry.getDelayToNextExecutionInMillis() < GRANULARITY_UNIT.toMillis(GRANULARITY)) {
 					
 					String taskClassName = entry.getName();
+
 					try {
 						Class taskClass = Class.forName(taskClassName);
 						Task task = (Task)taskClass.newInstance();
@@ -72,30 +84,10 @@ public class CronService extends Thread implements RunnableService {
 						logger.log(Level.FINE, "Starting task {0}", taskClassName);
 						Services.command(securityContext, ProcessTaskCommand.class).execute(task);
 
-						// re-insert entry
-						cronEntries.add(entry);
-
-						logger.log(Level.FINEST, "Task {0} re-inserted, queue now contains {1} entries.", new Object[] {  taskClassName, cronEntries.size() } );
-						
-						// wait one step to avoid multiple tasks to be started
-						Thread.sleep(GRANULARITY_UNIT.toMillis(GRANULARITY));
-
 					} catch(Throwable t) {
 						logger.log(Level.WARNING, "Could not start task {0}: {1}", new Object[] { taskClassName, t.getMessage() } );
 					}
-
-				} else {
-
-					logger.log(Level.FINE, "No entry available in queue, queue size: {0}", cronEntries.size());
-
-					CronEntry e = cronEntries.peek();
-					if(e != null) {
-						logger.log(Level.FINEST, "Expiry of next entry: {0}", e.getDelay(TimeUnit.MILLISECONDS));
-					}
 				}
-
-			} catch(InterruptedException irex) {
-				// who's there? :)
 			}
 		}
 	}
@@ -127,7 +119,7 @@ public class CronService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(Map<String, Object> context) {
+	public void initialize(Map<String, String> context) {
 
 		String taskList = Services.getConfigValue(context, TASKS, "");
 		String[] tasks = taskList.split("[ \\t]+");

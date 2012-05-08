@@ -26,18 +26,19 @@ import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.*;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Transformation;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -48,7 +49,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,10 +65,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
-		User user                      = securityContext.getUser();
-		AbstractNode node              = null;
+		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
+		Principal user               = securityContext.getUser();
+		AbstractNode node            = null;
 
 		if (graphDb != null) {
 
@@ -90,7 +90,9 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					Collection<NodeAttribute> c = (Collection) o;
 
 					for (NodeAttribute attr : c) {
+
 						attrs.put(attr.getKey(), attr.getValue());
+
 					}
 
 				} else if (o instanceof NodeAttribute) {
@@ -98,7 +100,9 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					NodeAttribute attr = (NodeAttribute) o;
 
 					attrs.put(attr.getKey(), attr.getValue());
+
 				}
+
 			}
 
 			// Determine node type
@@ -113,7 +117,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			node.unlockReadOnlyPropertiesOnce();
 			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
 			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
-
 			logger.log(Level.FINE, "Node {0} created", node.getId());
 
 //                      EntityContext.getGlobalModificationListener().newNode(securityContext, node.getId());
@@ -127,41 +130,49 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 				// ignore null values at creation
 				if (value != null) {
+
 					node.setProperty(attr.getKey(), value);
+
 				}
+
 			}
 
 			attrs.clear();
 
 			if ((user != null) &&!(user instanceof SuperUser)) {
 
-				RelationClass rel = new RelationClass(null, RelType.OWNS,
-								   Direction.OUTGOING, Cardinality.OneToMany, null, RelationClass.DELETE_NONE);
+				RelationClass rel = new RelationClass(null, RelType.OWNS, Direction.OUTGOING, Cardinality.OneToMany, null, RelationClass.DELETE_NONE);
 
 				rel.createRelationship(securityContext, user, node);
 
 //                              createRel.execute(user, node, RelType.OWNS, true); // avoid duplicates
-				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
+				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getStringProperty(AbstractNode.Key.name));
 
-				Principal principal;
-				Group group = user.getGroupNode();
-
-				if (group != null) {
-					principal = group;
-				} else {
-					principal = user;
-				}
-
-				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(principal,
-									  node, RelType.SECURITY, true);    // avoid duplicates
+				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, true);    // avoid duplicates
 
 				securityRel.setAllowed(AbstractRelationship.Permission.values());
-				logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
+				logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));
 				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(AbstractNode.Key.createdBy.name(),
+				node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
 
-//                              user.getRealName() + " (" + user.getName() + ")", false);
-				user.getProperty(AbstractNode.Key.uuid), false);
+				// Group group = user.getGroupNode();
+				IterableAdapter groups = (IterableAdapter) user.getProperty(Principal.Key.groups);
+
+				if (groups != null) {
+
+					while (groups.iterator().hasNext()) {
+
+						Group group                      = (Group) groups.iterator().next();
+						securityRel = (AbstractRelationship) createRel.execute(group, node, RelType.SECURITY, true);    // avoid duplicates
+
+						securityRel.setAllowed(AbstractRelationship.Permission.values());
+						logger.log(Level.FINEST, "All permissions given to group {0}", group.getName());
+
+					}
+
+				}
+
+
 			}
 
 		}
@@ -172,9 +183,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			node.onNodeCreation();
 
 			// iterate post creation transformations
-			for (Transformation<GraphObject> transformation :
-				EntityContext.getEntityCreationTransformations(node.getClass())) {
+			for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(node.getClass())) {
+
 				transformation.apply(securityContext, node);
+
 			}
 
 			// allow modification listener to examine creation

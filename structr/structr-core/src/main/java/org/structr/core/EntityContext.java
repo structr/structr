@@ -248,12 +248,49 @@ public class EntityContext {
 
 	// ----- property set methods -----
 	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
+		registerPropertySet(type, propertyView, null, propertySet);
+	}
+
+	public static void registerPropertySet(Class type, String propertyView, String[] propertySet) {
+		registerPropertySet(type, propertyView, null, propertySet);
+	}
+
+	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, PropertyKey... propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
 
 		for (PropertyKey property : propertySet) {
 
-			properties.add(property.name());
+			properties.add(((viewPrefix != null)
+					? viewPrefix
+					: "").concat(property.name()));
+
+		}
+
+		// include property sets from superclass
+		Class superClass = type.getSuperclass();
+
+		while ((superClass != null) &&!superClass.equals(Object.class)) {
+
+			Set<String> superProperties = getPropertySet(superClass, propertyView);
+
+			properties.addAll(superProperties);
+
+			// one level up :)
+			superClass = superClass.getSuperclass();
+
+		}
+	}
+
+	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, String[] propertySet) {
+
+		Set<String> properties = getPropertySet(type, propertyView);
+
+		for (String property : propertySet) {
+
+			properties.add(((viewPrefix != null)
+					? viewPrefix
+					: "").concat(property));
 
 		}
 
@@ -333,6 +370,15 @@ public class EntityContext {
 	public static void registerSearchablePropertySet(Class type, String index, PropertyKey... keys) {
 
 		for (PropertyKey key : keys) {
+
+			registerSearchableProperty(type, index, key);
+
+		}
+	}
+
+	public static void registerSearchablePropertySet(Class type, String index, String... keys) {
+
+		for (String key : keys) {
 
 			registerSearchableProperty(type, index, key);
 
@@ -524,6 +570,33 @@ public class EntityContext {
 		return namedRelationClass;
 	}
 
+	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
+
+		Class namedRelationClass = null;
+		Class sourceSuperClass   = sourceType;
+		Class destSuperClass     = destType;
+
+		while ((namedRelationClass == null) &&!sourceSuperClass.equals(Object.class) &&!destSuperClass.equals(Object.class)) {
+
+			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
+
+			// do not check superclass for source type
+			//sourceSuperClass = sourceSuperClass.getSuperclass();
+
+			// one level up
+                        destSuperClass   = destSuperClass.getSuperclass();
+
+		}
+
+		if (namedRelationClass != null) {
+
+			return namedRelationClass;
+
+		}
+
+		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, relType, destType));
+	}
+
 	public static Collection<RelationshipMapping> getNamedRelations() {
 		return globalRelationshipNameMap.values();
 	}
@@ -570,6 +643,19 @@ public class EntityContext {
 			relation  = getRelationClassMapForType(localType).get(destType);
 			localType = localType.getSuperclass();
 
+		}
+
+		if (relation == null) {
+
+			// Check dest type superclasses
+			localType = destType;
+
+			while ((relation == null) &&!localType.equals(Object.class)) {
+
+				relation  = getRelationClassMapForType(sourceType).get(localType);
+				localType = localType.getSuperclass();
+
+			}
 		}
 
 		return relation;
@@ -984,10 +1070,28 @@ public class EntityContext {
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
 
+			Thread t = Thread.currentThread();
+
+			if (!transactionKeyMap.containsKey(t)) {
+
+				return -1L;
+
+			}
+
+			long transactionKey = transactionKeyMap.get(Thread.currentThread());
+
+			// check if node service is ready
+			if (!Services.isReady(NodeService.class)) {
+
+				logger.log(Level.WARNING, "Node service is not ready yet.");
+
+				return transactionKey;
+
+			}
+
 			SecurityContext securityContext  = securityContextMap.get(Thread.currentThread());
 			Command indexNodeCommand         = Services.command(securityContext, IndexNodeCommand.class);
 			Command indexRelationshipCommand = Services.command(securityContext, IndexRelationshipCommand.class);
-			long transactionKey              = transactionKeyMap.get(Thread.currentThread());
 
 			try {
 
@@ -1001,7 +1105,7 @@ public class EntityContext {
 				Set<AbstractNode> createdNodes                              = new LinkedHashSet<AbstractNode>();
 				Set<AbstractRelationship> modifiedRels                      = new LinkedHashSet<AbstractRelationship>();
 				Set<AbstractRelationship> createdRels                       = new LinkedHashSet<AbstractRelationship>();
-				Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
+				//Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
 
 				// 0: notify listeners of beginning commit
 				begin(securityContext, transactionKey, errorBuffer);
@@ -1071,8 +1175,9 @@ public class EntityContext {
 
 //                                      AbstractRelationship relationship = relFactory.createRelationship(securityContext, removedRelProperties.get(rel));
 					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, relationship, removedRelProperties.get(rel));
+					//hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, null, removedRelProperties.get(rel));
 
-					deletedRels.add(relationship);
+					//deletedRels.add(relationship);
 
 				}
 
@@ -1257,13 +1362,13 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject entity, String key, Object oldValue, Object newValue) {
+		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
 
 			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				hasError |= listener.propertyModified(securityContext, transactionKey, errorBuffer, entity, key, oldValue, newValue);
+				hasError |= listener.propertyModified(securityContext, transactionKey, errorBuffer, graphObject, key, oldValue, newValue);
 
 			}
 

@@ -26,13 +26,18 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipExpander;
 
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
+
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.RelType;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,44 +70,84 @@ public class ResourceExpander implements RelationshipExpander {
 		 * resourceId property. If property exists, let TreeMap do the
 		 * sorting for us and return sorted values from map.
 		 */
-		Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
+		Map<Long, Relationship> sortedRelationshipMap = new TreeMap<Long, Relationship>();
 
-		for (Relationship rel : node.getRelationships(RelType.CONTAINS, direction)) {
+		for (final Relationship rel : node.getRelationships(RelType.CONTAINS, direction)) {
 
 			try {
 
-				Integer position = null;
-				Object prop      = null;
+				long position;
+				Object prop = null;
+				final String key;
 
 				// "*" is a wildcard for "matches any resource id"
 				// TOOD: use pattern matching here?
 				if (rel.hasProperty("*")) {
 
 					prop = rel.getProperty("*");
+					key  = "*";
 
 				} else if (rel.hasProperty(resourceId)) {
 
 					prop = rel.getProperty(resourceId);
+					key  = resourceId;
+
+				} else {
+
+					key = null;
 
 				}
 
-				if (prop != null) {
+				if ((key != null) && (prop != null)) {
 
-					if (prop instanceof Integer) {
+					if (prop instanceof Long) {
 
-						position = (Integer) prop;
+						position = (Long) prop;
+
+					} else if (prop instanceof Integer) {
+
+						position = ((Integer) prop).longValue();
 
 					} else if (prop instanceof String) {
 
-						position = Integer.parseInt((String) prop);
+						position = Long.parseLong((String) prop);
 
 					} else {
 
-						throw new java.lang.IllegalArgumentException("Expected Integer or String");
+						throw new java.lang.IllegalArgumentException("Expected Long, Integer or String");
+
+					}
+
+					long originalPos = position;
+
+					// find free slot
+					while (sortedRelationshipMap.containsKey(position)) {
+
+						position++;
 
 					}
 
 					sortedRelationshipMap.put(position, rel);
+
+					if (originalPos != position) {
+
+						final long newPos = position;
+
+						Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+
+							@Override
+							public Object execute() throws FrameworkException {
+
+								rel.setProperty(key, newPos);
+
+								return null;
+							}
+
+						});
+
+					}
+
+					logger.log(Level.FINEST, "Node {0}: Put relationship {1} into map at position {2}", new Object[] { node, rel, position });
 
 				}
 

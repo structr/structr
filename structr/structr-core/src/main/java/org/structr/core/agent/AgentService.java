@@ -34,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -120,7 +121,11 @@ public class AgentService extends Thread implements RunnableService {
 			// sleep a bit waiting for tasks..
 			try {
 				Thread.sleep(10);
-			} catch (Exception ex) {}
+			} catch (Exception ex) {
+
+				logger.log(Level.SEVERE, "Exception happend while sleeping", ex);
+
+			}
 		}
 	}
 
@@ -149,7 +154,7 @@ public class AgentService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(Map<String, Object> context) {}
+	public void initialize(Map<String, String> context) {}
 
 	@Override
 	public void shutdown() {}
@@ -267,9 +272,9 @@ public class AgentService extends Thread implements RunnableService {
 			try {
 				Map<String, Class> agentClassesMap = (Map<String, Class>) Services.command(securityContext, GetAgentsCommand.class).execute();
 
-				for (String className : agentClassesMap.keySet()) {
+				for (Entry classEntry : agentClassesMap.entrySet()) {
 
-					Class supportedAgentClass = agentClassesMap.get(className);
+					Class supportedAgentClass = agentClassesMap.get((String) classEntry.getKey());
 
 					try {
 

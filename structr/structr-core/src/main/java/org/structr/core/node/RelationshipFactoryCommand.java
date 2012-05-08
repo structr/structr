@@ -23,11 +23,8 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.cloud.RelationshipDataContainer;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
@@ -55,7 +52,7 @@ public class RelationshipFactoryCommand extends NodeServiceCommand {
 
                     for (Object o : parameters) {
                         Relationship rel = null;
-                        if (o instanceof AbstractNode) {
+                        if (o instanceof AbstractRelationship) {
                             rel = graphDb.getRelationshipById(((AbstractRelationship) o).getId());
                         } else if (o instanceof Relationship) {
                             rel = (Relationship) o;
@@ -80,10 +77,10 @@ public class RelationshipFactoryCommand extends NodeServiceCommand {
 
                         rel = (Relationship) parameters[0];
                         
-                    } else if (parameters[0] instanceof RelationshipDataContainer) {
-
-                        RelationshipDataContainer relData = (RelationshipDataContainer) parameters[0];
-                        return relFactory.createRelationship(securityContext, relData);
+//                    } else if (parameters[0] instanceof RelationshipDataContainer) {
+//
+//                        RelationshipDataContainer relData = (RelationshipDataContainer) parameters[0];
+//                        return relFactory.createRelationship(securityContext, relData);
 
                     } else {
 

@@ -38,7 +38,17 @@ public class RelationshipNotion extends Notion {
 
 		this.propertyKey = propertyKey;
 	}
+	
+	public RelationshipNotion(PropertyKey propertyKey, boolean createIfNotExisting) {
 
+		super(
+			new PropertySerializationStrategy(propertyKey),
+			new IdDeserializationStrategy(propertyKey, createIfNotExisting)
+		);
+		
+		this.propertyKey = propertyKey;
+	}
+        
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
 		return propertyKey;

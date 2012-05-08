@@ -45,12 +45,12 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
     public void contextInitialized(ServletContextEvent sce) {
         logger.log(Level.INFO, "Servlet context created");
 
-        Map<String, Object> context = new ConcurrentHashMap<String, Object>(20, 0.9f, 8);
+        Map<String, String> context = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
         ServletContext servletContext = sce.getServletContext();
 
         String configFilePath = servletContext.getInitParameter(Services.CONFIG_FILE_PATH);
         context.put(Services.CONFIG_FILE_PATH, configFilePath);
-        context.put(Services.SERVLET_CONTEXT, servletContext);
+        context.put(Services.SERVLET_REAL_ROOT_PATH, servletContext.getRealPath("/"));
 
         try {
             // load config file
@@ -189,16 +189,16 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
             logger.log(Level.FINE, "HTTP session destroyed, cleaning ", servletSessionId);
 
-            Long sessionId = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
-
-            if (sessionId != null) {
-
-		// no security context present
-                SessionMonitor.logActivity(null, sessionId, "Logout");
-
-                // Remove session from internal session management
-                SessionMonitor.unregisterUserSession(sessionId, session.getServletContext());
-            }
+//            Long sessionId = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
+//
+//            if (sessionId != null) {
+//
+//		// no security context present
+//                SessionMonitor.logActivity(null, sessionId, "Logout");
+//
+//                // Remove session from internal session management
+//                SessionMonitor.unregisterUserSession(sessionId, session.getServletContext());
+//            }
 
         }
 

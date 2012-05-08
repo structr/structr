@@ -253,8 +253,8 @@ public class RelationshipFollowingResource extends SortableResource implements E
 				
 				if ((startNode != null) && (endNode != null)) {
 
-					final DirectedRelation directedRelationship = EntityContext.getDirectedRelationship(startNode.getClass(), property);
-					if(directedRelationship != null) {
+					final RelationClass RelationClass = EntityContext.getDirectedRelation(startNode.getClass(), property);
+					if(RelationClass != null) {
 
 						// relationship found!
 						StructrTransaction transaction = new StructrTransaction() {
@@ -262,9 +262,9 @@ public class RelationshipFollowingResource extends SortableResource implements E
 							@Override
 							public Object execute() throws FrameworkException {
 
-								for (StructrRelationship rel : startNode.getRelationships(directedRelationship.getRelType(), directedRelationship.getDirection())) {
+								for (StructrRelationship rel : startNode.getRelationships(RelationClass.getRelType(), RelationClass.getDirection())) {
 
-									switch(directedRelationship.getDirection()) {
+									switch(RelationClass.getDirection()) {
 										
 										case INCOMING:
 											if (rel.getStartNodeId().equals(endNode.getUuid()) && rel.getEndNodeId().equals(startNode.getUuid())) {

@@ -21,8 +21,13 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
+import org.structr.common.PropertyKey;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.Date;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -31,16 +36,7 @@ import org.structr.core.EntityContext;
  * @author amorgner
  *
  */
-public class SuperUser extends User {
-
-	static {
-
-		EntityContext.registerPropertySet(SuperUser.class,
-						  PropertyView.All,
-						  Key.values());
-	}
-
-	//~--- methods --------------------------------------------------------
+public class SuperUser implements Principal {
 
 	@Override
 	public void block() {
@@ -48,16 +44,14 @@ public class SuperUser extends User {
 		// not supported
 	}
 
+	@Override
+	public void removeProperty(String key) throws FrameworkException {}
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public long getId() {
 		return -1L;
-	}
-
-	@Override
-	public String getName() {
-		return "superuser";
 	}
 
 	@Override
@@ -68,6 +62,101 @@ public class SuperUser extends User {
 	@Override
 	public Boolean getBlocked() {
 		return false;
+	}
+
+	@Override
+	public String getEncryptedPassword() {
+		return null;
+	}
+
+	@Override
+	public Object getPropertyForIndexing(String key) {
+		return null;
+	}
+
+	@Override
+	public String getPassword() {
+		return null;
+	}
+
+	@Override
+	public String getConfirmationKey() {
+		return null;
+	}
+
+	@Override
+	public String getSessionId() {
+		return null;
+	}
+
+	@Override
+	public String getType() {
+		return null;
+	}
+
+	@Override
+	public Iterable<String> getPropertyKeys(String propertyView) {
+		return null;
+	}
+
+	@Override
+	public Object getProperty(String key) {
+		return null;
+	}
+
+	@Override
+	public Object getProperty(PropertyKey propertyKey) {
+		return null;
+	}
+
+	@Override
+	public String getStringProperty(String key) {
+		return null;
+	}
+
+	@Override
+	public String getStringProperty(PropertyKey propertyKey) {
+		return null;
+	}
+
+	@Override
+	public Date getDateProperty(String key) {
+		return null;
+	}
+
+	@Override
+	public Date getDateProperty(PropertyKey key) {
+		return null;
+	}
+
+	@Override
+	public boolean getBooleanProperty(String key) throws FrameworkException {
+		return false;
+	}
+
+	@Override
+	public boolean getBooleanProperty(PropertyKey key) throws FrameworkException {
+		return false;
+	}
+
+	@Override
+	public Double getDoubleProperty(String key) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public Double getDoubleProperty(PropertyKey key) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public PropertyKey getDefaultSortKey() {
+		return null;
+	}
+
+	@Override
+	public String getDefaultSortOrder() {
+		return null;
 	}
 
 	@Override
@@ -85,13 +174,12 @@ public class SuperUser extends User {
 		return (true);
 	}
 
-	//~--- set methods ----------------------------------------------------
-
 	@Override
-	public void setName(final String name) {
-
-		// not supported
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return false;
 	}
+
+	//~--- set methods ----------------------------------------------------
 
 	@Override
 	public void setPassword(final String passwordValue) {
@@ -110,4 +198,19 @@ public class SuperUser extends User {
 
 		// not supported
 	}
+
+	@Override
+	public void setConfirmationKey(String value) throws FrameworkException {}
+
+	@Override
+	public void setFrontendUser(boolean isFrontendUser) throws FrameworkException {}
+
+	@Override
+	public void setBackendUser(boolean isBackendUser) throws FrameworkException {}
+
+	@Override
+	public void setProperty(String key, Object value) throws FrameworkException {}
+
+	@Override
+	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
 }

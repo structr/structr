@@ -96,7 +96,7 @@ public class ModuleService implements SingletonService {
 
 	//~--- fields ---------------------------------------------------------
 
-	private ServletContext servletContext  = null;
+	private String servletContextRealRootPath  = null;
 	private Predicate structrPagePredicate = null;
 	private boolean initialized            = false;
 
@@ -257,9 +257,9 @@ public class ModuleService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(Map<String, Object> context) {
+	public void initialize(Map<String, String> context) {
 
-		this.servletContext = (ServletContext) context.get(Services.SERVLET_CONTEXT);
+		this.servletContextRealRootPath = context.get(Services.SERVLET_REAL_ROOT_PATH);
 
 		initializeModules();
 	}
@@ -387,7 +387,7 @@ public class ModuleService implements SingletonService {
 
 		for (String library : libraries) {
 
-			String destinationPath = createResourceFileName(servletContext, "WEB-INF/lib", library);
+			String destinationPath = createResourceFileName(servletContextRealRootPath, "WEB-INF/lib", library);
 
 			try {
 
@@ -417,7 +417,7 @@ public class ModuleService implements SingletonService {
 
 				// deploy class file to WEB-INF/classes
 				String sourcePath      = className.replaceAll("[\\.]+", "/").concat(".class");
-				String destinationFile = createResourceFileName(servletContext, "WEB-INF/classes", sourcePath);
+				String destinationFile = createResourceFileName(servletContextRealRootPath, "WEB-INF/classes", sourcePath);
 
 				logger.log(Level.FINE, "sourcePath: {0}, destinationFile: {1}", new Object[] { sourcePath, destinationFile });
 
@@ -459,7 +459,7 @@ public class ModuleService implements SingletonService {
 
 				// deploy properties file to WEB-INF/classes
 				String sourcePath      = propertiesName.replaceAll("[\\.]+", "/").concat(".properties");
-				String destinationFile = createResourceFileName(servletContext, "WEB-INF/classes", sourcePath);
+				String destinationFile = createResourceFileName(servletContextRealRootPath, "WEB-INF/classes", sourcePath);
 				ZipEntry entry         = zipFile.getEntry(sourcePath);
 
 				if (entry != null) {
@@ -572,7 +572,7 @@ public class ModuleService implements SingletonService {
 
 			for (String resource : resources) {
 
-				String destinationPath = createResourceFileName(servletContext, resource);
+				String destinationPath = createResourceFileName(servletContextRealRootPath, resource);
 
 				try {
 
@@ -608,7 +608,7 @@ public class ModuleService implements SingletonService {
 
 		for (String resource : resources) {
 
-			String destinationPath = createResourceFileName(servletContext, resource);
+			String destinationPath = createResourceFileName(servletContextRealRootPath, resource);
 
 			undeployFile(resource, destinationPath);
 
@@ -620,7 +620,7 @@ public class ModuleService implements SingletonService {
 
 		for (String propertyName : properties) {
 
-			String destinationPath = createResourceFileName(servletContext, propertyName);
+			String destinationPath = createResourceFileName(servletContextRealRootPath, propertyName);
 
 			undeployFile(propertyName, destinationPath);
 
@@ -670,7 +670,7 @@ public class ModuleService implements SingletonService {
 
 			for (String library : libraries) {
 
-				String destinationPath = createResourceFileName(servletContext, "WEB-INF/lib", library);
+				String destinationPath = createResourceFileName(servletContextRealRootPath, "WEB-INF/lib", library);
 
 				undeployFile(library, destinationPath);
 
@@ -691,7 +691,7 @@ public class ModuleService implements SingletonService {
 	 */
 	private Module createModuleIndex(String moduleName) throws IOException {
 
-		String libPath = servletContext.getRealPath("WEB-INF/lib");
+		String libPath = servletContextRealRootPath.concat("/WEB-INF/lib");
 
 		if (libPath == null) {
 
@@ -760,7 +760,7 @@ public class ModuleService implements SingletonService {
 		}
 
 		// add entries from WEB-INF/classes
-		File classesDir = new File(servletContext.getRealPath("/WEB-INF/classes"));
+		File classesDir = new File(servletContextRealRootPath.concat("/WEB-INF/classes"));
 
 		addClassesRecursively(classesDir, classes);
 
@@ -808,16 +808,16 @@ public class ModuleService implements SingletonService {
 	 * Creates an absolute file name for the given resource, located inside the root directory
 	 * of this web application.
 	 *
-	 * @param servletContext the servlet context
+	 * @param realPath the real path
 	 * @param name the name of the resource
 	 *
 	 * @return an absolute path name for the given resource inside the web app root directory
 	 */
-	private String createResourceFileName(ServletContext servletContext, String... pathParts) {
+	private String createResourceFileName(String realPath, String... pathParts) {
 
 		StringBuilder ret = new StringBuilder(100);
 
-		ret.append(servletContext.getRealPath("/"));
+		ret.append(servletContextRealRootPath);
 
 		for (int i = 0; i < pathParts.length; i++) {
 
@@ -829,15 +829,15 @@ public class ModuleService implements SingletonService {
 		return (ret.toString());
 	}
 
-	private String createTargetDir(ServletContext servletContext, String targetDir) {
+	private String createTargetDir(String servletRealRootPath, String targetDir) {
 
-		if (servletContext == null) {
+		if (servletRealRootPath == null) {
 
-			throw new IllegalArgumentException("Null servletContext parameter");
+			throw new IllegalArgumentException("Null servlet real root path parameter");
 
 		}
 
-		String realTargetDir = servletContext.getRealPath("/") + File.separator;
+		String realTargetDir = servletRealRootPath + File.separator;
 
 		if (StringUtils.isNotBlank(targetDir)) {
 
@@ -915,7 +915,7 @@ public class ModuleService implements SingletonService {
 	 */
 	private void undeployFile(String resource, String targetDir) throws IOException {
 
-		String realTargetDir = createTargetDir(servletContext, targetDir);
+		String realTargetDir = createTargetDir(servletContextRealRootPath, targetDir);
 		int index            = resource.lastIndexOf('/');
 		String destination   = resource;
 

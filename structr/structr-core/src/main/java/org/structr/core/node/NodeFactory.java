@@ -21,18 +21,25 @@
 
 package org.structr.core.node;
 
+import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.common.Permission;
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.cloud.FileNodeDataContainer;
-import org.structr.core.cloud.NodeDataContainer;
+import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.module.GetEntityClassCommand;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -42,8 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.GenericNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,7 +62,11 @@ import org.structr.core.entity.GenericNode;
 public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
 	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
+
+	//~--- fields ---------------------------------------------------------
+
 	private SecurityContext securityContext = null;
+
 	//~--- constructors ---------------------------------------------------
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
@@ -90,10 +99,13 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 			} catch (Throwable t) {
 				newNode = null;
 			}
+
 		}
 
 		if (newNode == null) {
+
 			newNode = new GenericNode();
+
 		}
 
 		newNode.init(securityContext, node);
@@ -115,26 +127,61 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 	 * @param publicOnly
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input,
-		final boolean includeDeleted, final boolean publicOnly) throws FrameworkException {
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeleted, final boolean publicOnly) throws FrameworkException {
 
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-		if ((input != null) && input.iterator().hasNext()) {
+		if (input != null && input instanceof SpatialRecordHits) {
 
-			for (Node node : input) {
+			Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
+			GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
-				AbstractNode n                  = createNode(securityContext, node);
-				boolean readableByUser          = securityContext.isAllowed(n, Permission.Read);
+			if (input.iterator().hasNext()) {
 
-				if (readableByUser && (includeDeleted ||!n.isDeleted())
-					&& (n.isVisibleToPublicUsers() ||!publicOnly)) {
-					nodes.add(n);
+				for (Node node : input) {
+
+					AbstractNode n = createNode(securityContext, graphDb.getNodeById((Long) node.getProperty("id")));
+
+					addIfReadable(securityContext, n, nodes, includeDeleted, publicOnly);
+
+					for (AbstractNode nodeAt : getNodesAt(n)) {
+
+						addIfReadable(securityContext, nodeAt, nodes, includeDeleted, publicOnly);
+
+					}
+
 				}
+
 			}
+
+		} else {
+
+			if ((input != null) && input.iterator().hasNext()) {
+
+				for (Node node : input) {
+
+					AbstractNode n = createNode(securityContext, (Node) node);
+
+					addIfReadable(securityContext, n, nodes, includeDeleted, publicOnly);
+
+				}
+
+			}
+
 		}
 
 		return nodes;
+	}
+
+	private void addIfReadable(final SecurityContext securityContext, final AbstractNode n, List<AbstractNode> nodes, final boolean includeDeleted, final boolean publicOnly) {
+
+		boolean readableByUser = securityContext.isAllowed(n, Permission.Read);
+
+		if (readableByUser && (includeDeleted ||!n.isDeleted()) && (n.isVisibleToPublicUsers() ||!publicOnly)) {
+
+			nodes.add(n);
+
+		}
 	}
 
 	/**
@@ -150,22 +197,25 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 	 */
 	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input, final boolean includeDeleted) throws FrameworkException {
 
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
-		User user                       = securityContext.getUser();
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		Principal user                = securityContext.getUser();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
 			for (Node node : input) {
 
-				AbstractNode n         = createNode(securityContext, node);
-				boolean readableByUser = ((user instanceof SuperUser)
-							  || securityContext.isAllowed(n, Permission.Read));
+				AbstractNode n                  = createNode(securityContext, node);
+				boolean readableByUser          = ((user instanceof SuperUser) || securityContext.isAllowed(n, Permission.Read));
 				boolean publicUserAndPublicNode = ((user == null) && n.isVisibleToPublicUsers());
 
 				if ((readableByUser || publicUserAndPublicNode) && (includeDeleted ||!n.isDeleted())) {
+
 					nodes.add(n);
+
 				}
+
 			}
+
 		}
 
 		return nodes;
@@ -217,7 +267,9 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 				AbstractNode n = createNode(securityContext, node);
 
 				nodes.add(n);
+
 			}
+
 		}
 
 		return nodes;
@@ -229,62 +281,85 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 //      }
 	@Override
 	public T adapt(Node s) {
+
 		try {
 			return ((T) createNode(securityContext, s));
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to adapt node", fex);
 		}
+
 		return null;
 	}
 
-	public AbstractNode createNode(final SecurityContext securityContext, final NodeDataContainer data) throws FrameworkException {
+//	public AbstractNode createNode(final SecurityContext securityContext, final NodeDataContainer data) throws FrameworkException {
+//
+//		if (data == null) {
+//
+//			logger.log(Level.SEVERE, "Could not create node: Empty data container.");
+//
+//			return null;
+//
+//		}
+//
+//		Map properties       = data.getProperties();
+//		String nodeType      = properties.containsKey(AbstractNode.Key.type.name())
+//				       ? (String) properties.get(AbstractNode.Key.type.name())
+//				       : null;
+//		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
+//		AbstractNode newNode = null;
+//
+//		if (nodeClass != null) {
+//
+//			try {
+//				newNode = (AbstractNode) nodeClass.newInstance();
+//			} catch (Throwable t) {
+//				newNode = null;
+//			}
+//
+//		}
+//
+//		if (newNode == null) {
+//
+//			newNode = new GenericNode();
+//
+//		}
+//
+//		newNode.init(securityContext, data);
+//		newNode.commit(null);
+//		newNode.onNodeInstantiation();
+//
+//		if (data instanceof FileNodeDataContainer) {
+//
+//			FileNodeDataContainer container = (FileNodeDataContainer) data;
+//			File fileNode                   = (File) newNode;
+//			String relativeFilePath         = newNode.getId() + "_" + System.currentTimeMillis();
+//			String path                     = Services.getFilesPath() + "/" + relativeFilePath;
+//
+//			// rename temporary file to new location etc.
+//			if (container.persistTemporaryFile(path)) {
+//
+//				fileNode.setSize(container.getFileSize());
+//				fileNode.setRelativeFilePath(relativeFilePath);
+//
+//			}
+//
+//		}
+//
+//		return newNode;
+//	}
 
-		if (data == null) {
+	//~--- get methods ----------------------------------------------------
 
-			logger.log(Level.SEVERE, "Could not create node: Empty data container.");
+	private List<AbstractNode> getNodesAt(final AbstractNode locationNode) {
 
-			return null;
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+
+		for (AbstractRelationship rel : locationNode.getRelationships(RelType.IS_AT, Direction.INCOMING)) {
+
+			nodes.add(rel.getStartNode());
+
 		}
 
-		Map properties       = data.getProperties();
-		String nodeType      = properties.containsKey(AbstractNode.Key.type.name())
-				       ? (String) properties.get(AbstractNode.Key.type.name())
-				       : null;
-		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
-		AbstractNode newNode = null;
-
-		if (nodeClass != null) {
-
-			try {
-				newNode = (AbstractNode) nodeClass.newInstance();
-			} catch (Throwable t) {
-				newNode = null;
-			}
-		}
-
-		if (newNode == null) {
-			newNode = new GenericNode();
-		}
-
-		newNode.init(securityContext, data);
-		newNode.commit(null);
-		newNode.onNodeInstantiation();
-
-		if (data instanceof FileNodeDataContainer) {
-
-			FileNodeDataContainer container = (FileNodeDataContainer) data;
-			File fileNode                   = (File) newNode;
-			String relativeFilePath         = newNode.getId() + "_" + System.currentTimeMillis();
-			String path                     = Services.getFilesPath() + "/" + relativeFilePath;
-
-			// rename temporary file to new location etc.
-			if (container.persistTemporaryFile(path)) {
-
-				fileNode.setSize(container.getFileSize());
-				fileNode.setRelativeFilePath(relativeFilePath);
-			}
-		}
-
-		return newNode;
+		return nodes;
 	}
 }

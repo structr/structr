@@ -23,6 +23,7 @@ import org.structr.rest.ResourceProvider;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.structr.common.PropertyView;
 
 /**
  * The default constraint provider for structr.
@@ -53,6 +54,8 @@ public class StructrResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("admin"),		ViewFilterResource.class);		// admin view
 		resourceMap.put(Pattern.compile("all"),			ViewFilterResource.class);		// all view
 		resourceMap.put(Pattern.compile("ids"),			ViewFilterResource.class);		// "ids only" view
+		resourceMap.put(Pattern.compile(PropertyView.Ui),	ViewFilterResource.class);		// ui view
+		resourceMap.put(Pattern.compile(PropertyView.Html),	ViewFilterResource.class);		// html attributes view
 
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterResource.class);	// maintenance parameter
 		resourceMap.put(Pattern.compile("[a-z_]+"),		TypeResource.class);			// any type match

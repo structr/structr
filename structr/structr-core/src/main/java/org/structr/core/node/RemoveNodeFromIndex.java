@@ -100,7 +100,7 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 				} else if (parameters[0] instanceof List) {
 
-					removeNodesFromIndex((List<AbstractNode>) parameters[0]);
+					removeNodesFromAllIndices((List<AbstractNode>) parameters[0]);
 
 				}
 
@@ -116,7 +116,7 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 		return null;
 	}
 
-	private void removeNodesFromIndex(final List<AbstractNode> nodes) {
+	private void removeNodesFromAllIndices(final List<AbstractNode> nodes) {
 
 		for (AbstractNode node : nodes) {
 
@@ -127,9 +127,18 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 	private void removeNodeFromAllIndices(final AbstractNode node) {
 
+		if (node.getStringProperty(AbstractNode.Key.uuid) == null) {
+
+			logger.log(Level.WARNING, "Will not remove node from indices which has no UUID");
+
+			return;
+
+		}                
+                
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
-			indices.get(indexName).remove(node.getNode());
+			Index<Node> index = indices.get(indexName);
+			index.remove(node.getNode());
 
 		}
 	}

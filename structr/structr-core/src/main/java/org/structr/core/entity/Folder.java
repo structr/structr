@@ -23,16 +23,11 @@ package org.structr.core.entity;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.AbstractComponent;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.common.renderer.RenderContext;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.help.Container;
-import org.structr.help.Content;
-import org.structr.help.Paragraph;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,26 +42,23 @@ public class Folder extends AbstractNode {
 
 		EntityContext.registerPropertySet(Folder.class, PropertyView.All, Key.values());
 
-		EntityContext.registerEntityRelation(Folder.class, Folder.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Folder.class, File.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Folder.class, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
-
-//		EntityContext.registerPropertyRelation(Folder.class, Key.folders, Folder.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.OneToMany);
-//		EntityContext.registerPropertyRelation(Folder.class, Key.files, File.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.OneToMany);
-//		EntityContext.registerPropertyRelation(Folder.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+		EntityContext.registerEntityRelation(Folder.class, Folder.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
+		EntityContext.registerEntityRelation(Folder.class, File.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
+		EntityContext.registerEntityRelation(Folder.class, Image.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
+		EntityContext.registerEntityRelation(Folder.class, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
 
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ name, parentFolder, folders, files }
+	public enum Key implements PropertyKey{ name, parentFolder, folders, files, images }
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public boolean renderingAllowed(final RenderContext context) {
-		return false;
-	}
+//	@Override
+//	public boolean renderingAllowed(final RenderContext context) {
+//		return false;
+//	}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -75,13 +67,4 @@ public class Folder extends AbstractNode {
 		return "/images/folder.png";
 	}
 
-	@Override
-	public AbstractComponent getHelpContent() {
-
-		AbstractComponent root = new Container();
-
-		root.add(new Paragraph().add(new Content("This is a Folder node.")));
-
-		return (root);
-	}
 }

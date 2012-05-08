@@ -3,6 +3,7 @@ package org.structr;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
 
 import org.eclipse.jetty.server.Connector;
 
@@ -18,7 +19,11 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import org.structr.context.ApplicationContextListener;
@@ -26,11 +31,15 @@ import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
 
+import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
+
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.File;
 
 import java.util.*;
+
+import javax.servlet.DispatcherType;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,29 +50,49 @@ import java.util.*;
  */
 public class StructrServer {
 
+	public static final String REST_URL = "/structr/rest";
+
+	//~--- methods --------------------------------------------------------
+
 	public static void main(String[] args) throws Exception {
 
-		String appName        = "structr UI 0.4.8";
+		String appName        = "structr UI 0.4.9";
 		String host           = System.getProperty("host", "0.0.0.0");
-		int port              = Integer.parseInt(System.getProperty("port", "8080"));
+		String keyStorePath   = System.getProperty("keyStorePath", "keystore.jks");
+		int httpPort          = Integer.parseInt(System.getProperty("port", "8080"));
+		int httpsPort         = Integer.parseInt(System.getProperty("httpsPort", "8081"));
 		int maxIdleTime       = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
 		int requestHeaderSize = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
+		String contextPath    = System.getProperty("contextPath", "/");
 
 		System.out.println();
-		System.out.println("Starting " + appName + " (host=" + host + ":" + port + ", maxIdleTime=" + maxIdleTime + ", requestHeaderSize=" + requestHeaderSize + ")");
+		System.out.println("Starting " + appName + " (host=" + host + ":" + httpPort + ", maxIdleTime=" + maxIdleTime + ", requestHeaderSize=" + requestHeaderSize + ")");
 		System.out.println();
 
-		Server server                     = new Server(port);
+		Server server                     = new Server(httpPort);
 		HandlerCollection handlers        = new HandlerCollection();
 		ContextHandlerCollection contexts = new ContextHandlerCollection();
 
-		// ServletContextHandler context0    = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		SelectChannelConnector connector0 = new SelectChannelConnector();
+		// setup HTTP connector
+		SslContextFactory factory = new SslContextFactory(keyStorePath);
 
-		connector0.setHost(host);
-		connector0.setPort(port);
-		connector0.setMaxIdleTime(maxIdleTime);
-		connector0.setRequestHeaderSize(requestHeaderSize);
+		factory.setKeyStorePassword("structrKeystore");
+
+		SslSelectChannelConnector httpsConnector = new SslSelectChannelConnector(factory);
+
+		httpsConnector.setHost(host);
+		httpsConnector.setPort(httpsPort);
+		httpsConnector.setMaxIdleTime(maxIdleTime);
+		httpsConnector.setRequestHeaderSize(requestHeaderSize);
+
+		// ServletContextHandler context0    = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		// SelectChannelConnector connector0 = new SelectChannelConnector();
+		SelectChannelConnector httpConnector = new SelectChannelConnector();
+
+		httpConnector.setHost(host);
+		httpConnector.setPort(httpPort);
+		httpConnector.setMaxIdleTime(maxIdleTime);
+		httpConnector.setRequestHeaderSize(requestHeaderSize);
 
 		String basePath = System.getProperty("home", "");
 		File baseDir    = new File(basePath);
@@ -75,8 +104,6 @@ public class StructrServer {
 
 		String modulesPath = basePath + "/modules";
 		File modulesDir    = new File(modulesPath);
-
-		modulesPath = modulesDir.getAbsolutePath();
 
 		if (!modulesDir.exists()) {
 
@@ -105,6 +132,9 @@ public class StructrServer {
 		webapp.setWar(warPath);
 		System.out.println("Using WAR file " + warPath);
 
+		FilterHolder rewriteFilter = webapp.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+
+		// rewriteFilter.setInitParameter("logLevel", "DEBUG");
 		// Strange behaviour of jetty:
 		// If there's a directory with the same name like the WAR file in the same directory,
 		// jetty will extract the classes into this directory and not into 'webapp'.
@@ -114,10 +144,12 @@ public class StructrServer {
 
 		if (directoryWhichMustNotExist.exists()) {
 
-//			System.err.println("Directory " + directoryWhichMustNotExist + " must not exist.");
-//			System.err.println("Delete it or move WAR file to another directory and start from there.");
-//			System.exit(1);
+			System.err.println("Directory " + directoryWhichMustNotExist + " must not exist.");
+
+			// System.err.println("Delete it or move WAR file to another directory and start from there.");
+			// System.exit(1);
 			directoryWhichMustNotExist.delete();
+			System.err.println("Deleted " + directoryWhichMustNotExist);
 
 		}
 
@@ -175,8 +207,8 @@ public class StructrServer {
 			config.add("modules.path = " + basePath + "/modules");
 			config.add("smtp.host = localhost");
 			config.add("smtp.port = 25");
-			config.add("superuser.username = admin");
-			config.add("superuser.password = admin");
+			config.add("superuser.username = superadmin");
+			config.add("superuser.password = " + RandomStringUtils.randomAlphanumeric(12));    // Intentionally, no default password here
 			config.add("configured.services = ModuleService NodeService AgentService");
 
 			// don't start cron service without config file
@@ -188,7 +220,7 @@ public class StructrServer {
 		}
 
 		webapp.setInitParameter("configfile.path", confFile.getAbsolutePath());
-		webapp.setContextPath("/structr");
+		webapp.setContextPath(contextPath);
 		webapp.setParentLoaderPriority(true);
 
 		// JSON REST Servlet
@@ -198,40 +230,38 @@ public class StructrServer {
 
 		initParams.put("RequestLogging", "true");
 		initParams.put("PropertyFormat", "FlatNameValue");
-		initParams.put("ResourceProvider", "org.structr.rest.resource.StructrResourceProvider");
-		initParams.put("Authenticator", "org.structr.core.auth.StructrAuthenticator");
-		initParams.put("DefaultPropertyView", "default");
+		initParams.put("ResourceProvider", "org.structr.web.common.UiResourceProvider");
+
+//              initParams.put("ResourceProvider", "org.structr.rest.resource.StructrResourceProvider");
+		initParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
 		initParams.put("IdProperty", "uuid");
 		holder.setInitParameters(initParams);
-		holder.setInitOrder(1);
-		webapp.addServlet(holder, "/json/*");
-		webapp.addEventListener(new ApplicationContextListener());
+		holder.setInitOrder(2);
+		webapp.addServlet(holder, REST_URL + "/*");
 
 		// HTML Servlet
 		HtmlServlet htmlServlet            = new HtmlServlet();
 		ServletHolder htmlServletHolder    = new ServletHolder(htmlServlet);
 		Map<String, String> htmlInitParams = new HashMap<String, String>();
 
-		htmlInitParams.put("Authenticator", "org.structr.core.auth.StructrAuthenticator");
+		htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
 		htmlInitParams.put("IdProperty", "uuid");
 		htmlServletHolder.setInitParameters(htmlInitParams);
-		htmlServletHolder.setInitOrder(1);
-		webapp.addServlet(htmlServletHolder, "/html/*");
-		webapp.addEventListener(new ApplicationContextListener());
+		htmlServletHolder.setInitOrder(3);
+		webapp.addServlet(htmlServletHolder, "/structr/html/*");
 
 		// WebSocket Servlet
 		WebSocketServlet wsServlet       = new WebSocketServlet();
 		ServletHolder wsServletHolder    = new ServletHolder(wsServlet);
 		Map<String, String> wsInitParams = new HashMap<String, String>();
 
-		wsInitParams.put("Authenticator", "org.structr.core.auth.StructrAuthenticator");
+		wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
 		wsInitParams.put("IdProperty", "uuid");
 		wsServletHolder.setInitParameters(wsInitParams);
-		wsServletHolder.setInitOrder(1);
-		webapp.addServlet(wsServletHolder, "/ws/*");
+		wsServletHolder.setInitOrder(4);
+		webapp.addServlet(wsServletHolder, "/structr/ws/*");
 		webapp.addEventListener(new ApplicationContextListener());
 
-//              webapp.addFilter(UrlRewriteFilter.class, "/json/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 		// enable request logging
 		RequestLogHandler requestLogHandler = new RequestLogHandler();
 		String logPath                      = basePath + "/logs";
@@ -253,17 +283,14 @@ public class StructrServer {
 		requestLog.setExtended(false);
 		requestLog.setLogTimeZone("GMT");
 		requestLogHandler.setRequestLog(requestLog);
-
-//              contexts.setHandlers(new Handler[] { context0, webapp, requestLogHandler });
 		contexts.setHandlers(new Handler[] { webapp, requestLogHandler });
 		handlers.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
 		server.setHandler(handlers);
-		server.setConnectors(new Connector[] { connector0 });
+		server.setConnectors(new Connector[] { httpConnector, httpsConnector });
 		server.setGracefulShutdown(1000);
 		server.setStopAtShutdown(true);
 		System.out.println();
-
-		System.out.println("structr UI:        http://" + host + ":" + port + "/structr");
+		System.out.println("structr UI:        http://" + host + ":" + httpPort + contextPath);
 		System.out.println();
 		server.start();
 		server.join();

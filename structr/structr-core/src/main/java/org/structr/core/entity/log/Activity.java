@@ -26,7 +26,7 @@ import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.LongDateConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -62,7 +62,7 @@ public class Activity extends AbstractNode {
 
 	//~--- fields ---------------------------------------------------------
 
-	private User user;
+	private Principal user;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -102,11 +102,11 @@ public class Activity extends AbstractNode {
 	}
 
 	/**
-	 * User property for logging purposes only
+	 * Principal property for logging purposes only
 	 *
 	 * @return
 	 */
-	public User getUser() {
+	public Principal getUser() {
 		return user;
 	}
 
@@ -137,9 +137,9 @@ public class Activity extends AbstractNode {
 	}
 
 	/**
-	 * User property for logging purposes only
+	 * Principal property for logging purposes only
 	 */
-	public void setUser(final User user) {
+	public void setUser(final Principal user) {
 		this.user = user;
 	}
 }

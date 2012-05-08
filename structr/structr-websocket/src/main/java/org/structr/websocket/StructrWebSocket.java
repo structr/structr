@@ -29,18 +29,12 @@ import org.apache.commons.codec.binary.Base64;
 
 import org.eclipse.jetty.websocket.WebSocket;
 
-import org.structr.common.SecurityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.entity.Principal;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateCommand;
 import org.structr.websocket.command.DeleteCommand;
 import org.structr.websocket.command.GetCommand;
-import org.structr.websocket.command.ListCommand;
 import org.structr.websocket.command.LoginCommand;
 import org.structr.websocket.command.LogoutCommand;
 import org.structr.websocket.command.UpdateCommand;
@@ -51,22 +45,18 @@ import org.structr.websocket.message.MessageBuilder;
 import java.security.SecureRandom;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.File;
-import org.structr.websocket.command.AddCommand;
-import org.structr.websocket.command.ChunkCommand;
-import org.structr.websocket.command.FileUploadHandler;
-import org.structr.websocket.command.LinkCommand;
-import org.structr.websocket.command.RemoveCommand;
-import org.structr.websocket.command.TreeCommand;
+import org.structr.websocket.command.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -86,18 +76,32 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	static {
 
 		// initialize command set
-		addCommand(CreateCommand.class);
-		addCommand(UpdateCommand.class);
-		addCommand(DeleteCommand.class);
-		addCommand(LogoutCommand.class);
-		addCommand(RemoveCommand.class);
+
+		// login and logout
 		addCommand(LoginCommand.class);
-		addCommand(ChunkCommand.class);
-		addCommand(ListCommand.class);
+		addCommand(LogoutCommand.class);
+
+		// get (read) single object
 		addCommand(GetCommand.class);
-		addCommand(AddCommand.class);
+
+		// create a new object
+		addCommand(CreateCommand.class);
+
+		// update an object
+		addCommand(UpdateCommand.class);
+
+		// delete an object
+		addCommand(DeleteCommand.class);
+
+		// remove an object from another (remove relationship)
+		addCommand(RemoveCommand.class);
+
+		// get a chunk (part) of an object
+		addCommand(ChunkCommand.class);
+
+		// render an object tree
 		addCommand(TreeCommand.class);
-		addCommand(LinkCommand.class);
+
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -111,6 +115,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private HttpServletRequest request               = null;
 	private String token                             = null;
 	private String callback                          = null;
+	private SecurityContext securityContext		 = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -206,7 +211,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 					abstractCommand.processMessage(webSocketData);
 
 				} catch(Throwable t) {
-
+					t.printStackTrace(System.out);
 					// send 400 Bad Request
 					send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 				}
@@ -242,7 +247,10 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 			if (isAuthenticated() || "STATUS".equals(message.getCommand())) {
 
 				String msg = gson.toJson(message, WebSocketMessage.class);
-				logger.log(Level.INFO, "############################################################ SENDING \n{0}", msg);
+
+				if ("STATUS".equals(message.getCommand())) {
+					logger.log(Level.INFO, "############################################################ SENDING \n{0}", msg);
+				}
 
 				connection.sendMessage(msg);
 
@@ -288,17 +296,17 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	// ----- private methods -----
 	private void authenticateToken(final String messageToken) {
 
-		User user = getUserForToken(messageToken);
+		Principal user = AuthHelper.getUserForToken(messageToken);
 
 		if (user != null) {
 
 			// TODO: session timeout!
-			this.setAuthenticated(messageToken);
+			this.setAuthenticated(messageToken, user);
 		}
 	}
 
 	// ----- private static methods -----
-	private static final void addCommand(final Class command) {
+	public static final void addCommand(final Class command) {
 
 		try {
 
@@ -325,41 +333,16 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		return request;
 	}
 
-	public User getCurrentUser() {
-		return getUserForToken(token);
+	public Principal getCurrentUser() {
+		return AuthHelper.getUserForToken(token);
+	}
+	
+	public SecurityContext getSecurityContext() {
+		return securityContext;
 	}
 
 	public String getCallback() {
 		return callback;
-	}
-
-	private User getUserForToken(final String messageToken) {
-
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		attrs.add(Search.andExactProperty(User.Key.sessionId, messageToken));
-		attrs.add(Search.andExactType("User"));
-
-		try {
-			// we need to search with a super user security context here..
-			List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
-
-			if (!results.isEmpty()) {
-
-				User user = (User) results.get(0);
-
-				if (user != null && messageToken.equals(user.getProperty(User.Key.sessionId))) {
-
-					return user;
-
-				}
-
-			}
-		} catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "Error while executing SearchNodeCommand", fex);
-		}
-
-		return null;
 	}
 
 	public boolean isAuthenticated() {
@@ -368,7 +351,12 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setAuthenticated(final String token) {
+	public void setAuthenticated(final String token, final Principal user) {
 		this.token = token;
+		try {
+			this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "Could not get security context instance", ex);
+		}
 	}
 }

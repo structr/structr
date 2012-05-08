@@ -110,26 +110,18 @@ public class RelationshipMapping {
 	}
 
 	public Class getEntityClass() {
-		return EntityContext.getNamedRelationClass(sourceType.getSimpleName(), destType.getSimpleName(), relType.name());
+		return EntityContext.getNamedRelationClass(sourceType, destType, relType);
 	}
 
-	public List<AbstractRelationship> getRelationships(AbstractNode obj) throws FrameworkException {
+	public List<AbstractRelationship> getRelationships(GraphObject obj) throws FrameworkException {
+                
+                AbstractNode node = (AbstractNode) obj;
 
 		Class combinedRelType               = getEntityClass();
 		List<AbstractRelationship> relsFilteredByType = new LinkedList<AbstractRelationship>();
 
-		if (!(obj instanceof AbstractNode)) {
-
-			logger.log(Level.SEVERE, "Requested relationships of a non-node object");
-
-			throw new FrameworkException(HttpServletResponse.SC_BAD_REQUEST, new ErrorBuffer());
-
-		}
-
-		AbstractNode node = (AbstractNode) obj;
-
 		// filter relationships for correct combined relationship type
-		for (AbstractRelationship rel : node.getRelationships(relType, getDirectionForType(obj.getStringProperty(AbstractNode.Key.type.name())))) {
+		for (AbstractRelationship rel : node.getRelationships(relType, getDirectionForType(node.getStringProperty(AbstractNode.Key.type.name())))) {
 
 			if (rel.getClass().equals(combinedRelType)) {
 

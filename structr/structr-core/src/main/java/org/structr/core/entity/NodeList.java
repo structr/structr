@@ -832,7 +832,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 				relationshipType);
 
 			rel.setProperty(Key.parent.name(),
-					new Long(getNodeId()));
+					Long.valueOf(getNodeId()));
 
 			return (true);
 		}

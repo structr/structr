@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2011-2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -21,63 +21,62 @@
 
 package org.structr.web.servlet;
 
-import org.apache.commons.io.IOUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.traversal.Evaluation;
-import org.neo4j.graphdb.traversal.Evaluator;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+
+import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
-import org.structr.common.RelType;
-import org.structr.common.ResourceExpander;
+import org.structr.StructrServer;
+import org.structr.common.*;
 import org.structr.common.SecurityContext;
-import org.structr.common.TreeNode;
-import org.structr.core.Command;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Image;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
+import org.structr.web.auth.HttpAuthenticator;
+import org.structr.web.entity.Component;
+import org.structr.web.entity.Condition;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.Resource;
+import org.structr.web.entity.View;
+import org.structr.web.entity.html.HtmlElement;
+
+import org.w3c.tidy.Tidy;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.NodeFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -89,57 +88,139 @@ import org.structr.core.node.NodeFactory;
  * resources, see log during "create" for IDs of the created resources.
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class HtmlServlet extends HttpServlet {
 
-	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
+	private static final Logger logger        = Logger.getLogger(HtmlServlet.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
 	private TraversalDescription desc = null;
-	private boolean edit;
+	private String[] html5VoidTags    = new String[] {
+
+		"area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"
+
+	};
+
+	// area, base, br, col, command, embed, hr, img, input, keygen, link, meta, param, source, track, wbr
+	private boolean edit, tidy;
+	private Gson gson;
 
 	//~--- methods --------------------------------------------------------
+
+	private boolean postToRestUrl(HttpServletRequest request, final String resourcePath, final Map<String, Object> parameters) {
+
+		HttpClient httpClient = new HttpClient();
+		ContentExchange contentExchange;
+		String restUrl = null;
+
+		gson = new GsonBuilder().create();
+
+		try {
+
+			httpClient.start();
+
+			contentExchange = new ContentExchange();
+
+			httpClient.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
+
+			restUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getLocalPort() + StructrServer.REST_URL + "/" + resourcePath;
+
+			contentExchange.setURL(restUrl);
+
+			Buffer buf = new ByteArrayBuffer(gson.toJson(parameters), "UTF-8");
+
+			contentExchange.setRequestContent(buf);
+			contentExchange.setRequestContentType("application/json");
+			contentExchange.setMethod("POST");
+
+			String[] userAndPass = HttpAuthenticator.getUsernameAndPassword(request);
+
+			if ((userAndPass != null) && (userAndPass.length == 2) && (userAndPass[0] != null) && (userAndPass[1] != null)) {
+
+				contentExchange.addRequestHeader("X-User", userAndPass[0]);
+				contentExchange.addRequestHeader("X-Password", userAndPass[1]);
+
+			}
+
+			httpClient.send(contentExchange);
+			contentExchange.waitForDone();
+
+			return contentExchange.isDone();
+
+		} catch (Exception ex) {
+
+			logger.log(Level.WARNING, "Error while POSTing to REST url " + restUrl, ex);
+
+			return false;
+		}
+	}
 
 	@Override
 	public void init() {
 
 		// create prototype traversal description
-		desc = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL);
+		desc = Traversal.description().depthFirst().uniqueness(Uniqueness.RELATIONSHIP_PATH);    // .uniqueness(Uniqueness.NODE_GLOBAL);
 	}
 
 	@Override
 	public void destroy() {}
 
 	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+
+		Map<String, String[]> parameterMap = request.getParameterMap();
+		String path                        = PathHelper.clean(request.getPathInfo());
+
+		// Split by "//"
+		String[] parts      = PathHelper.getParts(path);
+		String resourcePath = parts[parts.length - 1];
+
+		postToRestUrl(request, resourcePath, convert(parameterMap));
+
+		String name = null;
+
+		try {
+
+			name = PathHelper.getParts(path)[0];
+
+			response.sendRedirect("/" + name + "//" + resourcePath);
+
+		} catch (IOException ex) {
+			logger.log(Level.SEVERE, "Could not redirect to " + path, ex);
+		}
+	}
+
+	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		String path = PathHelper.clean(request.getPathInfo());
+
+		logger.log(Level.INFO, "Path info {0}", path);
+
+		String[] urlParts = PathHelper.getParts(path);
+		String searchFor  = null;
+
+		if (urlParts.length > 1) {
+
+			searchFor = StringUtils.substringBefore(urlParts[1], "?");
+
+		}
+
+		String[] pathParts                 = PathHelper.getParts(path);
+		String name                        = PathHelper.getName(pathParts[0]);
+		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
+		Map<String, String[]> parameterMap = request.getParameterMap();
+
+		if ((parameterMap != null) && (parameterMap.size() > 0)) {
+
+			attrs = convertToNodeAttributes(parameterMap);
+
+		}
 
 		edit = false;
-
-		if (request.getParameter("create") != null) {
-
-			try {
-				createTestStructure();
-			} catch(FrameworkException fex) {}
-
-			response.setStatus(HttpServletResponse.SC_CREATED);
-
-			return;
-
-		}
-
-		if (request.getParameter("editor") != null) {
-
-			try {
-				createEditorStructure();
-			} catch(FrameworkException fex) {}
-			response.setStatus(HttpServletResponse.SC_CREATED);
-
-			return;
-
-		}
+		tidy = false;
 
 		if (request.getParameter("edit") != null) {
 
@@ -147,7 +228,32 @@ public class HtmlServlet extends HttpServlet {
 
 		}
 
+		if (request.getParameter("tidy") != null) {
+
+			tidy = true;
+
+		}
+
+		// first part (before "//" is resource path (file etc),
+		// second part is nested component control
+		// store remaining path parts in request
+		for (int i = 1; i < pathParts.length; i++) {
+
+			String[] parts = pathParts[i].split("[/]+");
+
+			for (int j = 0; j < parts.length; j++) {
+
+				// FIXME: index (j) in setAttribute might be
+				// wrong here if we have multiple //-separated
+				// parts!
+				request.setAttribute(parts[j], j);
+			}
+
+		}
+
 		try {
+
+			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 
 			request.setCharacterEncoding("UTF-8");
 
@@ -155,62 +261,33 @@ public class HtmlServlet extends HttpServlet {
 			double start                = System.nanoTime();
 
 			// 1: find entry point (Resource, File or Image)
+			AbstractNode node                 = findEntryPoint(name);
 			Resource resource                 = null;
 			org.structr.core.entity.File file = null;
-			Image image                       = null;
-			String path                       = request.getPathInfo();
 
-			logger.log(Level.INFO, "Path info {0}", path);
+			if (node instanceof Resource) {
 
-			String name = path.substring(path.lastIndexOf("/") + 1);
+				resource = (Resource) node;
 
-			if (name.length() > 0) {
+			} else if (node instanceof org.structr.core.entity.File) {
 
-				logger.log(Level.INFO, "File name {0}", name);
-
-				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-				searchAttrs.add(Search.andExactName(name));
-
-				SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
-
-				group.add(Search.orExactType(Resource.class.getSimpleName()));
-				group.add(Search.orExactType(org.structr.core.entity.File.class.getSimpleName()));
-				group.add(Search.orExactType(Image.class.getSimpleName()));
-				searchAttrs.add(group);
-
-				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false,
-								     searchAttrs);
-
-				logger.log(Level.INFO, "{0} results", results.size());
-
-				if (!results.isEmpty()) {
-
-					AbstractNode node = results.get(0);
-
-					if (node instanceof Resource) {
-
-						resource = (Resource) node;
-
-					} else if (node instanceof org.structr.core.entity.File) {
-
-						file = (org.structr.core.entity.File) node;
-
-					}
-
-				}
+				file = (org.structr.core.entity.File) node;
 
 			}
 
-			if (resource != null) {
+			if ((resource != null) && securityContext.isVisible(resource)) {
 
-				// 2a: do a traversal and collect content
-				String content = getContent(securityContext, resource);
+				String uuid                = resource.getStringProperty(AbstractNode.Key.uuid);
+				final StringBuilder buffer = new StringBuilder(10000);
+
+				getContent(request, uuid, null, buffer, resource, resource, 0, false, searchFor, attrs, null, null);
+
+				String content = buffer.toString();
 				double end     = System.nanoTime();
 
 				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
 
-				String contentType = resource.getContentType();
+				String contentType = resource.getStringProperty(Resource.UiKey.contentType);
 
 				if (contentType != null) {
 
@@ -220,14 +297,27 @@ public class HtmlServlet extends HttpServlet {
 
 					// Default
 					response.setContentType("text/html; charset=utf-8");
+					response.getWriter().append("<!DOCTYPE html>\n");
+				}
+
+				if (tidy) {
+
+					StringWriter tidyOutput = new StringWriter();
+					Tidy tidy               = new Tidy();
+					Properties tidyProps    = new Properties();
+
+					tidyProps.setProperty("indent", "auto");
+					tidy.getConfiguration().addProps(tidyProps);
+					tidy.parse(new StringReader(content), tidyOutput);
+
+					content = tidyOutput.toString();
+
 				}
 
 				// 3: output content
-				response.getWriter().append(content);
-				response.getWriter().flush();
-				response.getWriter().close();
-				response.setStatus(HttpServletResponse.SC_OK);
-			} else if (file != null) {
+				HttpAuthenticator.writeContent(content, response);
+
+			} else if ((file != null) && securityContext.isVisible(file)) {
 
 				// 2b: stream file to response
 				InputStream in     = file.getInputStream();
@@ -250,251 +340,263 @@ public class HtmlServlet extends HttpServlet {
 				out.flush();
 				out.close();
 				response.setStatus(HttpServletResponse.SC_OK);
-			}
+			} else {
 
-		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Exception while processing request", t);
-		}
-	}
+				// Check if security context has set an 401 status
+				if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
 
-	private void createTestStructure() throws FrameworkException {
+					HttpAuthenticator.writeUnauthorized(response);
 
-		Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+				} else {
 
-			@Override
-			public Object execute() throws FrameworkException {
-
-				logger.log(Level.INFO, "Creating test structure..");
-
-				AbstractNode page1 = createNode("Resource", "page1");
-				AbstractNode page2 = createNode("Resource", "page2");
-
-				logger.log(Level.INFO, "Created page1 with id {0}, page2 with id {1}", new Object[] { page1.getId(), page2.getId() });
-
-				// list.js resource
-				AbstractNode listJs        = createNode("Resource", "list.js");
-				AbstractNode listJsContent = createNode("Content", "list", new NodeAttribute("content", readFile("/ge/js/list.js")));
-
-				linkNodes(listJs, listJsContent, listJs.getIdString(), 0);
-
-				// page resource
-				AbstractNode doc    = createNode("Element", "doc", new NodeAttribute("tag", "html"));
-				AbstractNode head   = createNode("Element", "header", new NodeAttribute("tag", "head"));
-				AbstractNode script = createNode("Content", "script",
-								 new NodeAttribute("content", "<script src=\"list.js\" language=\"JavaScript\" type=\"text/javascript\"></script>"));
-				AbstractNode body     = createNode("Element", "body", new NodeAttribute("tag", "body"), new NodeAttribute("onload", "start()"));
-				AbstractNode article1 = createNode("Element", "article1", new NodeAttribute("tag", "div"));
-				AbstractNode article2 = createNode("Element", "article2", new NodeAttribute("tag", "div"));
-				AbstractNode foo      = createNode("Content", "content1", new NodeAttribute("content", "Dies ist Seite 1"), new NodeAttribute("tag", "h1"));
-				AbstractNode bar      = createNode("Content", "content2", new NodeAttribute("content", "Dies ist Seite 2"), new NodeAttribute("tag", "h1"));
-				AbstractNode log      = createNode("Content", "log", new NodeAttribute("tag", "div"));
-
-				// content
-				AbstractNode foo2     = createNode("Content", "content3");
-				String uuid           = foo2.getStringProperty("uuid");
-				StringBuilder content = new StringBuilder();
-
-				content.append("<input type=\"hidden\" name=\"token\" id=\"token\" />");
-				content.append("<script language=\"JavaScript\" type=\"text/javascript\">\n");
-				content.append("function load").append(uuid).append("() {\n");
-				content.append("loadList(\"").append(uuid).append("\", \"User\", function(parent, element) {\n");
-				content.append("parent.innerHTML += (\"<div>\" + element.realName + \"</div>\");\n");
-				content.append("});\n");
-				content.append("}\n");
-				content.append("window.setTimeout(\"load").append(uuid).append("()\", 500);\n");
-				content.append("</script>\n");
-				foo2.setProperty("content", content.toString());
-				foo2.setProperty("tag", "div");
-
-				String idOfPage1 = page1.getIdString();
-				String idOfPage2 = page2.getIdString();
-
-				// page 1
-				linkNodes(page1, doc, idOfPage1, 0);
-				linkNodes(doc, head, idOfPage1, 0);
-				linkNodes(doc, body, idOfPage1, 1);
-				linkNodes(head, script, idOfPage1, 0);
-				linkNodes(body, article1, idOfPage1, 1);
-				linkNodes(article1, foo, idOfPage1, 0);
-				linkNodes(article1, foo2, idOfPage1, 1);
-				linkNodes(body, log, idOfPage1, 2);
-
-				// page 2
-				linkNodes(page2, doc, idOfPage2, 0);
-				linkNodes(doc, head, idOfPage2, 0);
-				linkNodes(doc, body, idOfPage2, 1);
-				linkNodes(head, script, idOfPage2, 0);
-				linkNodes(body, article2, idOfPage2, 1);
-				linkNodes(article2, bar, idOfPage2, 0);
-				linkNodes(body, log, idOfPage2, 2);
-
-				return null;
-			}
-
-		});
-	}
-
-	private void createEditorStructure() throws FrameworkException {
-
-		Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				logger.log(Level.INFO, "Creating test structure..");
-
-				AbstractNode geLibJs      = createNode("Resource", "ge_lib.js");
-				AbstractNode geLibContent = createNode("Content", "ge_lib_content", new NodeAttribute("content", readFile("/ge/js/ge_lib.js")));
-
-				linkNodes(geLibJs, geLibContent, geLibJs.getIdString(), 0);
-
-				AbstractNode geObjJs      = createNode("Resource", "ge_obj.js");
-				AbstractNode geObjContent = createNode("Content", "ge_obj_content", new NodeAttribute("content", readFile("/ge/js/ge_obj.js")));
-
-				linkNodes(geObjJs, geObjContent, geObjJs.getIdString(), 0);
-
-				AbstractNode graphEditorCss        = createNode("Resource", "ge.css");
-				AbstractNode graphEditorCssContent = createNode("Content", "graph_editor_css_content", new NodeAttribute("content", readFile("/ge/css/ge.css")));
-
-				linkNodes(graphEditorCss, graphEditorCssContent, graphEditorCss.getIdString(), 0);
-
-				AbstractNode graphEditorHtml        = createNode("Resource", "ge.html");
-				AbstractNode graphEditorHtmlContent = createNode("Content", "graph_editor_html_content", new NodeAttribute("content", readFile("/ge/ge.html")));
-
-				linkNodes(graphEditorHtml, graphEditorHtmlContent, graphEditorHtml.getIdString(), 0);
-
-				AbstractNode graphEditorJs        = createNode("Resource", "ge.js");
-				AbstractNode graphEditorJsContent = createNode("Content", "graph_editor_js_content", new NodeAttribute("content", readFile("/ge/js/ge.js")));
-
-				linkNodes(graphEditorJs, graphEditorJsContent, graphEditorJs.getIdString(), 0);
-
-				AbstractNode jqueryMousewheelMinJs        = createNode("Resource", "jquery.mousewheel.min.js");
-				AbstractNode jqueryMousewheelMinJsContent = createNode("Content", "jquery_mousewheel_min_js_content",
-										    new NodeAttribute("content", readFile("/ge/js/jquery-mousewheel.min.js")));
-
-				linkNodes(jqueryMousewheelMinJs, jqueryMousewheelMinJsContent, jqueryMousewheelMinJs.getIdString(), 0);
-
-				return null;
-			}
-
-		});
-	}
-
-	private String readFile(String path) {
-
-		StringBuilder content = new StringBuilder();
-
-		try {
-
-			System.out.println(new File(".").getAbsolutePath());
-
-//                      BufferedReader reader = new BufferedReader(new FileReader("/home/axel/NetBeansProjects/structr/structr/structr-web/src/main/resources"
-//                                                      + path));
-			BufferedReader reader = new BufferedReader(new FileReader(getServletContext().getRealPath(path)));
-
-//                      BufferedReader reader = new BufferedReader(new InputStreamReader(getServletContext().getResourceAsStream(path)));
-			String line = null;
-
-			do {
-
-				line = reader.readLine();
-
-				if (line != null) {
-
-					content.append(line);
-					content.append("\n");
+					HttpAuthenticator.writeNotFound(response);
 
 				}
-
-			} while (line != null);
+			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+
+			// logger.log(Level.WARNING, "Exception while processing request", t);
+			HttpAuthenticator.writeInternalServerError(response);
+		}
+	}
+
+	/**
+	 * Convert parameter map so that after conversion, all map values
+	 * are a single String instead of an one-element String[]
+	 *
+	 * @param parameterMap
+	 * @return
+	 */
+	private Map<String, Object> convert(final Map<String, String[]> parameterMap) {
+
+		Map parameters = new HashMap<String, Object>();
+
+		for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
+
+			String[] values = param.getValue();
+			Object val;
+
+			if (values.length == 1) {
+
+				val = values[0];
+
+			} else {
+
+				val = values;
+
+			}
+
+			parameters.put(param.getKey(), val);
+
 		}
 
-		return content.toString();
+		return parameters;
 	}
 
-	private AbstractNode createNode(String type, String name, NodeAttribute... attributes) throws FrameworkException {
+	/**
+	 * Convert parameter map to list of node attributes
+	 *
+	 * @param parameterMap
+	 * @return
+	 */
+	private List<NodeAttribute> convertToNodeAttributes(final Map<String, String[]> parameterMap) {
 
-		SecurityContext context   = SecurityContext.getSuperUserInstance();
-		Command createNodeCommand = Services.command(context, CreateNodeCommand.class);
-		Map<String, Object> attrs = new HashMap<String, Object>();
+		List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
-		attrs.put(AbstractNode.Key.type.name(), type);
-		attrs.put(AbstractNode.Key.name.name(), name);
+		for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
 
-		for (NodeAttribute attr : attributes) {
+			String[] values = param.getValue();
+			Object val;
 
-			attrs.put(attr.getKey(), attr.getValue());
+			if (values.length == 1) {
+
+				val = values[0];
+
+			} else {
+
+				val = values;
+
+			}
+
+			NodeAttribute attr = new NodeAttribute(param.getKey(), val);
+
+			attrs.add(attr);
 
 		}
 
-		AbstractNode node = (AbstractNode) createNodeCommand.execute(attrs);
-
-		logger.log(Level.INFO, "Created node with name {0} and id {1}", new Object[] { node.getName(), node.getId() });
-
-		return node;
+		return attrs;
 	}
 
-	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
+	private AbstractNode findEntryPoint(final String name) throws FrameworkException {
 
-		SecurityContext context  = SecurityContext.getSuperUserInstance();
-		Command createRelCommand = Services.command(context, CreateRelationshipCommand.class);
-		AbstractRelationship rel  = (AbstractRelationship) createRelCommand.execute(startNode, endNode, RelType.CONTAINS);
+		if (name.length() > 0) {
 
-		rel.setProperty(resourceId, index);
+			logger.log(Level.FINE, "File name {0}", name);
 
-		return rel;
+			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+
+			searchAttrs.add(Search.andExactName(name));
+
+			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+
+			group.add(Search.orExactType(Resource.class.getSimpleName()));
+			group.add(Search.orExactType(org.structr.core.entity.File.class.getSimpleName()));
+			group.add(Search.orExactType(Image.class.getSimpleName()));
+			searchAttrs.add(group);
+
+			// Searching for resources needs super user context anyway
+			List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+
+			logger.log(Level.FINE, "{0} results", results.size());
+
+			if (!results.isEmpty()) {
+
+				return results.get(0);
+
+			}
+
+		}
+
+		return null;
 	}
 
-	private void printNodes(StringBuilder buffer, TreeNode root, int depth) {
 
-		AbstractNode node        = root.getData();
-		String content           = null;
-		String tag               = null;
-		AbstractRelationship link = null;
+	private void getContent(HttpServletRequest request, final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode resource, final AbstractNode startNode,
+				final int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) {
 
-		if (node != null) {
+		String localComponentId   = componentId;
+		String content            = null;
+		String tag                = null;
+//		AbstractRelationship link = null;
 
-			if (node instanceof Content) {
+		if (startNode != null) {
 
-				content = node.getStringProperty("content");
+			// If a search class is given, respect search attributes
+			// Filters work with AND
+			String structrClass = startNode.getStringProperty(Component.UiKey.structrclass);
 
-				List<AbstractRelationship> links = node.getOutgoingLinkRelationships();
+			if ((structrClass != null) && structrClass.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
 
-				if ((links != null) &&!links.isEmpty()) {
+				for (NodeAttribute attr : attrs) {
 
-					link = links.get(0);    // first link wins
+					String key = attr.getKey();
+					Object val = attr.getValue();
+
+					if (!val.equals(startNode.getProperty(key))) {
+
+						return;
+
+					}
 
 				}
 
 			}
 
-			if (link != null) {
+			String id = startNode.getStringProperty("uuid");
 
-				buffer.append("<a href=\"").append(link.getEndNode().getName()).append("\">");
+			for (int d = 0; d < depth; d++) {
+
+				System.out.print(" ");
 
 			}
 
-			tag = node.getStringProperty("tag");
+			// System.out.println("id: " + id + " [" + node.getStringProperty("type") + "] " + node.getStringProperty("name") + ", depth: " + depth + ", res: " + resourceId + ", comp: " + componentId);
+			if (startNode instanceof Content) {
 
-			if (tag != null) {
+				content = (((Content) startNode).getPropertyWithVariableReplacement(resource, resourceId, componentId, viewComponent, Content.UiKey.content.name()));
 
-				String onload = node.getStringProperty("onload");
-				String id     = node.getStringProperty("uuid");
+//				List<AbstractRelationship> links = startNode.getOutgoingLinkRelationships();
 
+//				if ((links != null) &&!links.isEmpty()) {
+//
+//					link = links.get(0);    // first link wins
+//
+//				}
+
+			}
+
+			// check for component
+			if (startNode instanceof Component) {
+
+				localComponentId = startNode.getStringProperty(AbstractNode.Key.uuid);
+
+			}
+
+//			if (link != null) {
+//
+//				buffer.append("<a href=\"").append(link.getEndNode().getName()).append("\">");
+//
+//			}
+
+			tag = startNode.getStringProperty("tag");
+
+			// In edit mode, add an artificial 'div' tag around content nodes within body
+			// to make them editable
+			if (edit && inBody && (startNode instanceof Content)) {
+
+				tag = "span";
+				// Instead of adding a div tag, we mark the parent node with
+				// the structr_element_id of this Content node
+				// remove last character in buffer (should be '>')
+				//buffer.delete(buffer.length() - 1, buffer.length());
+				//buffer.append(" structr_content_id=\"").append(id).append("\">");
+			}
+
+			if (StringUtils.isNotBlank(tag)) {
+
+				if (tag.equals("body")) {
+
+					inBody = true;
+
+				}
+
+//                              String onload = node.getStringProperty("onload");
 				buffer.append("<").append(tag);
 
 				if (edit && (id != null)) {
 
-					buffer.append(" structr_id='").append(id).append("'");
+					if (depth == 1) {
+
+						buffer.append(" structr_resource_id='").append(resourceId).append("'");
+
+					}
+
+					if (!(startNode instanceof Content)) {
+
+						buffer.append(" structr_element_id=\"").append(id).append("\"");
+						buffer.append(" structr_type=\"").append(startNode.getType()).append("\"");
+						buffer.append(" structr_name=\"").append(startNode.getName()).append("\"");
+
+					} else {
+                                                buffer.append(" structr_content_id=\"").append(id).append("\"");
+                                        }
 
 				}
 
-				if (onload != null) {
+				if (startNode instanceof HtmlElement) {
 
-					buffer.append(" onload='").append(onload).append("'");
+					HtmlElement htmlElement = (HtmlElement) startNode;
+
+					for (String attribute : EntityContext.getPropertySet(startNode.getClass(), PropertyView.Html)) {
+
+						try {
+
+							String value = htmlElement.getPropertyWithVariableReplacement(resource, resourceId, localComponentId, viewComponent, attribute);
+
+							if ((value != null) && StringUtils.isNotBlank(value)) {
+
+								String key = attribute.substring(PropertyView.Html.length());
+
+								buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+
+							}
+
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+
+					}
 
 				}
 
@@ -507,108 +609,74 @@ public class HtmlServlet extends HttpServlet {
 				buffer.append(content);
 
 			}
-
 		}
 
-		// render children
-		for (TreeNode subNode : root.getChildren()) {
+		// ############################################################################################ BEGIN NEW VIEW TEST
+		// render
+		if (startNode instanceof View) {
 
-			printNodes(buffer, subNode, depth + 1);
+			// fetch list of components from this view and
+			List<GraphObject> components = ((View) startNode).getComponents();
 
+			for (GraphObject component : components) {
+
+				// recursively render children
+				List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, resourceId, localComponentId);
+
+				for (AbstractRelationship rel : rels) {
+
+					if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+
+						AbstractNode subNode = rel.getEndNode();
+
+						getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, (AbstractNode)component, condition);
+
+					}
+
+				}
+			}
+		} else if (startNode instanceof Condition) {
+
+			// recursively render children
+			List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, resourceId, localComponentId);
+			Condition newCondition          = (Condition) startNode;
+
+			for (AbstractRelationship rel : rels) {
+
+				AbstractNode subNode = rel.getEndNode();
+
+				getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
+
+			}
+		} else {
+
+			// recursively render children
+			List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, resourceId, localComponentId);
+
+			for (AbstractRelationship rel : rels) {
+
+				if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+
+					AbstractNode subNode = rel.getEndNode();
+
+					getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
+
+				}
+
+			}
 		}
 
-		// render end tag
-		if (tag != null) {
+		// render end tag, if needed (= if not singleton tags)
+		if (StringUtils.isNotBlank(tag) &&!(ArrayUtils.contains(html5VoidTags, tag))) {
 
 			buffer.append("</").append(tag).append(">");
 
 		}
 
-		if (link != null) {
-
-			buffer.append("</a>");
-
-		}
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	private String getContent(final SecurityContext securityContext, final Resource resource) {
-
-		TraversalDescription localDesc   = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
-		final NodeFactory factory = new NodeFactory(securityContext);
-		final TreeNode root              = new TreeNode(null);
-
-		localDesc = localDesc.evaluator(new Evaluator() {
-
-			@Override
-			public Evaluation evaluate(Path path) {
-
-				Node node = path.endNode();
-
-				if (node.hasProperty(AbstractNode.Key.type.name())) {
-
-					try {
-						String type          = (String) node.getProperty(AbstractNode.Key.type.name());
-						TreeNode newTreeNode = new TreeNode(factory.createNode(securityContext, node, type));
-						Relationship rel     = path.lastRelationship();
-
-						if (rel != null) {
-
-							Node parentNode         = rel.getStartNode();
-							TreeNode parentTreeNode = root.getNode((String) parentNode.getProperty("uuid"));
-
-							if (parentTreeNode == null) {
-
-								root.addChild(newTreeNode);
-								logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, root });
-								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), "root" });
-
-							} else {
-
-								parentTreeNode.addChild(newTreeNode);
-								logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, parentTreeNode });
-								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), parentTreeNode.getData().getName() });
-
-							}
-
-						} else {
-
-							root.addChild(newTreeNode);
-							logger.log(Level.INFO, "Added {0} to root", newTreeNode);
-
-						}
-
-					} catch(FrameworkException fex) {
-						logger.log(Level.WARNING, "Unable to instantiate node", fex);
-					}
-
-					return Evaluation.INCLUDE_AND_CONTINUE;
-
-				} else {
-
-					return Evaluation.EXCLUDE_AND_CONTINUE;
-
-				}
-			}
-
-		});
-
-		// do traversal to retrieve paths
-		for (Node node : localDesc.traverse(resource.getNode()).nodes()) {
-
-			String name = node.hasProperty("name")
-				      ? (String) node.getProperty("name")
-				      : "unknown";
-
-			System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + name);
-
-		}
-
-		StringBuilder buffer = new StringBuilder(10000);    // FIXME: use sensible initial size..
-
-		printNodes(buffer, root, 0);
-
-		return buffer.toString();
+//		if (link != null) {
+//
+//			buffer.append("</a>");
+//
+//		}
 	}
 }

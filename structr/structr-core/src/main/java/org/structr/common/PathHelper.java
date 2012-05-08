@@ -22,8 +22,9 @@
 package org.structr.common;
 
 import org.apache.commons.io.FilenameUtils;
-import org.structr.common.error.FrameworkException;
+import org.apache.commons.lang.StringUtils;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -37,30 +38,66 @@ import org.structr.core.node.FindNodeCommand;
  */
 public class PathHelper {
 
+	private static final String REST_PATH_SEP = "//";
+
+	//~--- fields ---------------------------------------------------------
+
 	private SecurityContext securityContext;
-	
+
+	//~--- constructors ---------------------------------------------------
+
 	public PathHelper(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
-	
+
+	//~--- methods --------------------------------------------------------
+
 	public AbstractNode find(String path) {
 
 		AbstractNode node       = null;
 		Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
 
 		try {
+
 			node = (AbstractNode) findNodeCommand.execute(path);
 
 			// check security context
 			if (securityContext.isVisible(node)) {
+
 				return (node);
+
 			}
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
 		return (null);
+	}
+
+	public static void main(String[] args) {
+
+		String[] input = { "/blog//blog_entries/892fa9194a36427bb87e18641c217d7d/comments" };
+
+		for (int i = 0; i < input.length; i++) {
+
+			System.out.println(input[i]);
+
+			String[] parts = getParts(input[i]);
+
+			for (String part : parts) {
+
+				System.out.println(part);
+
+			}
+
+		}
+	}
+
+	public static String clean(String path) {
+
+		// Remove leading and trailing /
+		return StringUtils.strip(path, "/");
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -76,10 +113,13 @@ public class PathHelper {
 
 		// Both paths are equal
 		if (basePath.equals(targetPath)) {
+
 			return ".";
+
 		}
 
-		if (basePath.equals("/") && targetPath.length() > 1) {
+		if (basePath.equals("/") && (targetPath.length() > 1)) {
+
 			// Base path is root path
 			return targetPath.substring(1);
 		}
@@ -96,10 +136,15 @@ public class PathHelper {
 		for (i = 0; i < length; i++) {
 
 			if (baseAncestors[i].equals(targetAncestors[i])) {
+
 				lastCommonRoot = i;
+
 			} else {
+
 				break;
+
 			}
+
 		}
 
 		// Last common root is the common base path
@@ -111,25 +156,53 @@ public class PathHelper {
 			for (i = lastCommonRoot + 1; i < baseAncestors.length; i++) {
 
 				if (baseAncestors[i].length() > 0) {
+
 					newRelativePath.append("../");
+
 				}
+
 			}
 
 			// How often must we go forth from common root to get to tagret path?
 			for (i = lastCommonRoot + 1; i < targetAncestors.length; i++) {
+
 				newRelativePath.append(targetAncestors[i]).append("/");
+
 			}
 
 			// newRelativePath.append(targetAncestors[targetAncestors.length - 1]);
 			String result = newRelativePath.toString();
 
 			if (result.endsWith("/")) {
+
 				result = result.substring(0, result.length() - 1);
+
 			}
 
 			return result;
+
 		}
 
 		return targetPath;
+	}
+
+	public static String getName(final String pathPart) {
+
+		if (pathPart.contains("/")) {
+
+			return StringUtils.substringAfterLast(pathPart, "/");
+
+		} else {
+
+			return pathPart;
+
+		}
+	}
+
+	public static String[] getParts(String path) {
+
+		path = clean(path);
+
+		return StringUtils.splitByWholeSeparator(path, REST_PATH_SEP);
 	}
 }

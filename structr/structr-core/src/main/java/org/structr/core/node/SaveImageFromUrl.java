@@ -31,7 +31,7 @@ import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * Save image by downloading it from its URL.
@@ -52,7 +52,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
      * </ul>
      * 
      * <ul>
-     * <li>1: User
+     * <li>1: Principal
      * <li>2: URL string
      * <li>3: Parent node
      * </ul>
@@ -64,7 +64,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
     @Override
     public Object execute(Object... parameters) throws FrameworkException {
 
-        User user = null;
+        Principal user = null;
         String urlString = null;
         AbstractNode parentNode = null;
 
@@ -81,8 +81,8 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 
             case 3:
 
-                if (parameters[0] instanceof User) {
-                    user = (User) parameters[0];
+                if (parameters[0] instanceof Principal) {
+                    user = (Principal) parameters[0];
                 }
                 if (parameters[1] instanceof String) {
                     urlString = (String) parameters[1];
@@ -110,7 +110,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 		    new NodeAttribute(AbstractNode.Key.visibleToPublicUsers.name(), true),
                     true);  // Update index
 
-            Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.HAS_CHILD);
+            Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
 
             // Then save image from URL
             refreshImageFromUrl(newImageNode);
@@ -136,7 +136,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
             String relativeFilePath = imageNode.getRelativeFilePath();
             String imageName = url.substring(url.lastIndexOf("/") + 1);
 
-            imageNode.setName(imageName);
+            imageNode.setProperty(AbstractNode.Key.name, imageName);
 
             if (relativeFilePath == null) {
                 relativeFilePath = imageNode.getId() + "_" + System.currentTimeMillis();

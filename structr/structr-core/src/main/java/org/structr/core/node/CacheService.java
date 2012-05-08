@@ -45,7 +45,7 @@ public class CacheService implements SingletonService {
     }
 
     @Override
-    public void initialize(Map<String, Object> context) {
+    public void initialize(Map<String, String> context) {
 
         String dbPath = (String) context.get(Services.DATABASE_PATH);
 

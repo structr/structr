@@ -21,29 +21,60 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
+import org.structr.common.PropertyKey;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 
-//~--- classes ----------------------------------------------------------------
+//~--- interfaces -------------------------------------------------------------
 
 /**
  *
  * @author amorgner
  *
  */
-public abstract class Principal extends AbstractNode {
+public interface Principal extends GraphObject {
 
-	static {
+	public enum Key implements PropertyKey { sessionId, groups }
 
-		EntityContext.registerPropertySet(Principal.class,
-						  PropertyView.All,
-						  Key.values());
-	}
+	public enum UserIndexKey implements PropertyKey{ name, email; }
+
+	//~--- methods --------------------------------------------------------
+
+	public void block() throws FrameworkException;
 
 	//~--- get methods ----------------------------------------------------
 
-	@Override
-	public String getIconSrc() {
-		return "/images/user.png";
-	}
+	public String getEncryptedPassword();
+
+	public Object getPropertyForIndexing(final String key);
+
+	public String getPassword();
+
+	public String getRealName();
+
+	public String getConfirmationKey();
+
+	public Boolean getBlocked();
+
+	public String getSessionId();
+
+	public Boolean isBlocked();
+
+	public boolean isBackendUser();
+
+	public boolean isFrontendUser();
+
+	//~--- set methods ----------------------------------------------------
+
+	public void setPassword(final String passwordValue) throws FrameworkException;
+
+	public void setRealName(final String realName) throws FrameworkException;
+
+	public void setBlocked(final Boolean blocked) throws FrameworkException;
+
+	public void setConfirmationKey(final String value) throws FrameworkException;
+
+	public void setFrontendUser(final boolean isFrontendUser) throws FrameworkException;
+
+	public void setBackendUser(final boolean isBackendUser) throws FrameworkException;
 }

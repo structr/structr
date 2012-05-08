@@ -129,7 +129,7 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 		return statistics;
 	}
 
-	private class LongValueHolder {
+	private static class LongValueHolder {
 		
 		private long value = 0;
 

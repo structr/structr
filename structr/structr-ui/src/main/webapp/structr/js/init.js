@@ -1,0 +1,814 @@
+/* 
+ *  Copyright (C) 2012 Axel Morgner
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**************** config parameter **********************************/
+var rootUrl =     '/structr/rest/';
+var viewRootUrl = '/';
+var wsRoot = '/structr/ws';
+/********************************************************************/
+
+var header, main;
+var debug = false;
+//var onload = [];
+var lastMenuEntry, activeTab;
+var dmp;
+var editorCursor;
+
+$(document).ready(function() {
+
+    dmp = new diff_match_patch()
+    if (debug) console.log('Debug mode');
+    header = $('#header');
+    main = $('#main');
+        
+    //        main.height($(window).height()-header.height());
+
+    //main.height($(window.document).height() - $('#header').height() - 13);
+    $('#import_json').on('click', function() {
+        var jsonArray = $.parseJSON($('#json_input').val());
+        $(jsonArray).each(function(i, json) {
+            //console.log(json);
+            createEntity(json);
+        });
+    //var json = $.parseJSON('{ "test" : "abc" }');
+
+    });
+    $('#loginButton').on('click', function() {
+        var username = $('#usernameField').val();
+        var password = $('#passwordField').val();
+        Structr.doLogin(username, password);
+    });
+    $('#logout_').on('click', function() {
+        Structr.doLogout();
+    });
+
+
+    $('#dashboard_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('dashboard');
+    });
+
+    $('#resources_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('resources');
+        Structr.modules['resources'].onload();
+        _Resources.resize();
+    });
+
+    $('#components_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('components');
+        Structr.modules['components'].onload();
+    });
+
+    $('#elements_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('elements');
+        Structr.modules['elements'].onload();
+    });
+
+    $('#contents_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('contents');
+        Structr.modules['contents'].onload();
+    });
+
+    $('#files_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('files');
+        Structr.modules['files'].onload();
+    });
+
+    $('#usersAndGroups_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('usersAndGroups');
+        Structr.modules['usersAndGroups'].onload();
+    });
+
+    $('#usernameField').keypress(function(e) {
+        if (e.which == 13) {
+            jQuery(this).blur();
+            jQuery('#loginButton').focus().click();
+        }
+    });
+    $('#passwordField').keypress(function(e) {
+        if (e.which == 13) {
+            jQuery(this).blur();
+            jQuery('#loginButton').focus().click();
+        }
+    });
+	
+    Structr.init();
+	
+});
+
+
+var Structr = {
+	
+    modules : {},
+    classes : [],
+    expanded: {},
+	
+    add_icon : 'icon/add.png',
+    delete_icon : 'icon/delete.png',
+    edit_icon : 'icon/pencil.png',
+    expand_icon: 'icon/tree_arrow_right.png',
+    expanded_icon: 'icon/tree_arrow_down.png',
+    link_icon: 'icon/link.png',
+    key_icon: 'icon/key.png',
+
+    reconnect : function() {
+	
+        $.unblockUI({
+            fadeOut: 25
+        });
+
+        Structr.init();
+    //connect();
+    },
+
+    init : function() {
+
+        token = $.cookie('structrSessionToken');
+        user = $.cookie('structrUser');
+        if (debug) console.log('token', token);
+        if (debug) console.log('user', user);
+        
+        $.unblockUI({
+            fadeOut: 25
+        });
+
+        connect();
+	
+        main.empty();
+
+        Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
+        if (debug) console.log('######## Expanded IDs after reload ##########', Structr.expanded);
+        if (debug) console.log('expanded ids', $.cookie('structrTreeExpandedIds'));
+
+        ws.onopen = function() {
+
+            if (debug) console.log('logged in? ' + loggedIn);
+            if (!loggedIn) {
+                if (debug) console.log('no');
+                $('#logout_').html('Login');
+                Structr.login();
+            } else {
+                if (debug) console.log('Current user: ' + user);
+                //            $.cookie("structrUser", username);
+                $('#logout_').html(' Logout <span class="username">' + user + '</span>');
+                //				UsersAndGroups.onload();
+				
+                Structr.loadInitialModule();
+				
+            }
+        }
+
+    },
+
+    login : function(text) {
+
+        main.empty();
+	
+        $('#logout_').html('Login');
+        if (text) $('#errorText').html(text);
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: $('#login'),
+            forceInput: true,
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+        Structr.activateMenuEntry('logout');
+    },
+
+    doLogin : function(username, password) {
+        if (debug) console.log('doLogin ' + username + ' with ' + password);
+        if (send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }')) {
+            user = username;
+            return true;
+        }
+        return false;
+    },
+
+    doLogout : function(text) {
+        if (debug) console.log('doLogout ' + user);
+        //Structr.saveSession();
+        $.cookie('structrSessionToken', '');
+        $.cookie('structrUser', '');
+        if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
+            Structr.clearMain();
+            Structr.login(text);
+            //            var url = window.location.href;
+            //            url = url.substring(0, url.lastIndexOf('#')+1);
+            return true;
+        }
+        return false;
+    },
+
+    loadInitialModule : function() {
+        var browserUrl = window.location.href;
+        var anchor = getAnchorFromUrl(browserUrl);
+        if (debug) console.log('anchor', anchor);
+
+        lastMenuEntry = ((anchor && anchor != 'logout') ? anchor : $.cookie('structrLastMenuEntry'));
+        if (!lastMenuEntry) lastMenuEntry = 'dashboard';
+        {
+            if (debug) console.log('Last menu entry found: ' + lastMenuEntry);
+            Structr.activateMenuEntry(lastMenuEntry);
+            if (debug) console.log(Structr.modules);
+            var module = Structr.modules[lastMenuEntry];
+            if (module) {
+                module.init();
+                module.onload();
+                if (module.resize) module.resize();
+            }
+        }
+    },
+    //
+    //    saveSession : function() {
+    //        alert('saveSession');
+    //
+    //        if (lastMenuEntry && lastMenuEntry != 'logout') {
+    //
+    //            $.cookie('structrLastMenuEntry', lastMenuEntry, {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (debug) console.log('set cookie for active tab', activeTab);
+    //            $.cookie('structrActiveTab', activeTab, {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (resources) $.cookie('structrResourcesVisible', resources.is(':visible'), {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (components) $.cookie('structrComponentsVisible', components.is(':visible'), {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (elements) $.cookie('structrElementsVisible', elements.is(':visible'), {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (contents) $.cookie('structrContentsVisible', contents.is(':visible'), {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (getExpanded()) {
+    //                console.log('storing expanded ids', getExpanded());
+    //                $.cookie('structrTreeExpandedIds', $.toJSON(getExpanded()), {
+    //                    expires: 7,
+    //                    path: '/'
+    //                });
+    //            }
+    //        }
+    //    //console.log('cooke value now: ', $.cookie('structrActiveTab'));
+    //    },
+
+    clearMain : function() {
+        main.empty();
+    },
+
+    confirmation : function(text, callback) {
+        if (text) $('#confirmation .confirmationText').html(text);
+        if (callback) $('#confirmation .yesButton').on('click', function() {
+            callback();
+        });
+        $('#confirmation .noButton').on('click', function() {
+            $.unblockUI({
+                fadeOut: 25
+            });
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: $('#confirmation'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+	
+    },
+
+    info : function(text, callback) {
+        if (text) $('#infoText').html(text);
+        if (callback) $('#okButton').on('click', function() {
+            callback();
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: $('#infoBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+
+    },
+
+    dialog : function(text, callbackOk, callbackCancel) {
+
+        $('#dialogBox .dialogMsg').empty();
+
+        if (text) $('#dialogBox .dialogTitle').html(text);
+        //        if (callbackOk) $('#dialogOkButton').on('click', function() {
+        //            callbackOk();
+        //			$('#dialogBox .dialogText').empty();
+        //			$.unblockUI({ fadeOut: 25 });
+        //        });
+        if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function() {
+            callbackCancel();
+            $('#dialogBox .dialogText').empty();
+            _Resources.reloadPreviews();
+            $.unblockUI({
+                fadeOut: 25
+            });
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: $('#dialogBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+    //        $('.blockUI.blockMsg').center();
+
+    },
+
+    error : function(text, callback) {
+        if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
+        console.log(callback);
+        if (callback) $('#errorBox .okButton').on('click', function() {
+            //callback();
+            console.log(callback);
+			
+            $.unblockUI({
+                fadeOut: 25
+            });
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            message: $('#errorBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+    },
+
+    activateMenuEntry : function(name) {
+        lastMenuEntry = name;
+        $('.menu a').each(function(i,v) {
+            $(this).removeClass('active').addClass('inactive');
+        });
+        var menuEntry = $('#' + name + '_');
+        menuEntry.addClass('active').removeClass('inactive');
+        $('#title').text('structr ' + menuEntry.text());
+        
+        if (lastMenuEntry && lastMenuEntry != 'logout') {
+            $.cookie('structrActiveTab', activeTab, {
+                expires: 7,
+                path: '/'
+            });
+            $.cookie('structrLastMenuEntry', lastMenuEntry, {
+                expires: 7,
+                path: '/'
+            });
+        }
+    },
+	
+    registerModule : function(name, module) {
+        Structr.modules[name] = module;
+        if (debug) console.log('Module ' + name + ' registered');
+    },
+
+    findParent : function(parentId, componentId, resourceId, defaultElement) {
+        var parent = Structr.node(parentId, null, componentId, resourceId);
+        if (debug) console.log('findParent', parentId, componentId, resourceId, defaultElement, parent);
+        if (debug) console.log('findParent: parent element from Structr.node: ', parent);
+        if (!parent) parent = defaultElement;
+        if (debug) console.log('findParent: final parent element: ', parent);
+        return parent;
+    },
+    
+    node : function(id, parentId, componentId, resourceId, position) {
+        var entityElement, parentElement, componentElement, resourceElement;
+
+        if (debug) console.log('Structr.node', id, parentId, componentId, resourceId, position);
+
+        if (id && resourceId && componentId && parentId && (resourceId != parentId) && (resourceId != componentId)) {
+
+            resourceElement = $('.node.' + resourceId + '_');
+            componentElement = $('.node.' + componentId + '_', resourceElement);
+            parentElement = $('.node.' + parentId + '_', componentElement);
+            entityElement = $('.node.' + id + '_', parentElement);
+
+        } else if (id && resourceId && parentId && (resourceId != parentId)) {
+
+            resourceElement = $('.node.' + resourceId + '_');
+            parentElement = $('.node.' + parentId + '_', resourceElement);
+            entityElement = $('.node.' + id + '_', parentElement);
+
+        } else if (id && resourceId && componentId && (resourceId != componentId)) {
+
+            resourceElement = $('.node.' + resourceId + '_');
+            componentElement = $('.node.' + componentId + '_', resourceElement);
+            entityElement = $('.node.' + id + '_', componentElement);
+
+        } else if (id && resourceId) {
+            
+            if (id == resourceId) {
+                entityElement = $('.node.' + resourceId + '_');
+            } else {
+                resourceElement = $('.node.' + resourceId + '_');
+                entityElement = $('.node.' + id + '_', resourceElement);
+            }
+
+        } else if (id && parentId) {
+
+            parentElement = $('.node.' + parentId + '_');
+            entityElement = $('.node.' + id + '_', parentElement);
+
+        } else if (id) {
+
+            entityElement = $('.node.' + id + '_');
+
+        }
+
+        if (entityElement && entityElement.length>1 && position) {
+            return $(entityElement[position]);
+        } else {
+            return entityElement;
+        }
+    },
+    
+    entity : function(id, parentId) {
+        var entityElement = Structr.node(id, parentId);
+        var entity = Structr.entityFromElement(entityElement);
+        return entity;
+    },
+    
+    getClass : function(el) {
+        var c;
+        if (debug) console.log(Structr.classes);
+        $(Structr.classes).each(function(i, cls) {
+            if (debug) console.log('testing class', cls);
+            if (el.hasClass(cls)) {
+                c = cls;
+                if (debug) console.log('found class', cls);
+            }
+        });
+        return c;
+    },
+	
+    entityFromElement : function(element) {
+        
+        var entity = {};
+        entity.id = getId($(element));
+        entity.type = Structr.getClass(element);
+
+        if (debug) console.log(entity.type);
+        entity.name = $('.name_', element).text();
+
+        return entity;
+    }
+};
+
+function swapFgBg(el) {
+    var fg = el.css('color');
+    var bg = el.css('backgroundColor');
+    el.css('color', bg);
+    el.css('backgroundColor', fg);
+
+}
+
+function isImage(contentType) {
+    return (contentType.indexOf('image') > -1);
+}
+
+function plural(type) {
+    if (type.substring(type.length-1, type.length) == 'y') {
+        return type.substring(0, type.length-1) + 'ies';
+    } else {
+        return type + 's';
+    }
+}
+
+function addExpandedNode(id, parentId, resourceId) {
+    if (debug) console.log('addExpandedNode', id, parentId, resourceId);
+    if (!getExpanded()[resourceId]) {
+        getExpanded()[resourceId] = {};
+    }
+    getExpanded()[resourceId][id] = true;
+    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
+        expires: 7, 
+        path: '/'
+    });
+
+}
+
+function removeExpandedNode(id, parentId, resourceId) {
+    if (debug) console.log('removeExpandedNode', id, parentId, resourceId);
+    if (!getExpanded()[resourceId]) {
+        getExpanded()[resourceId] = {};
+    }
+    delete getExpanded()[resourceId][id];
+    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
+        expires: 7, 
+        path: '/'
+    });
+}
+
+function isExpanded(id, parentId, resourceId) {
+    if (debug) console.log('isExpanded', id, parentId, resourceId);
+    var expRes = getExpanded()[resourceId];
+    if (!expRes) {
+        expRes = {};
+        Structr.expanded[resourceId] = expRes;
+    }
+    var isExpanded = expRes[id] ? expRes[id] : false;
+    return isExpanded;
+}
+
+function getExpanded() {
+    if (!Structr.expanded) {
+        Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
+    }
+
+    if (!Structr.expanded) {
+        Structr.expanded = {};
+    }
+    return Structr.expanded;
+}
+
+
+function formatValue(key, obj) {
+
+    if (obj == null) {
+        return '<input name="' + key + '" type="text" value="">';
+    } else if (obj.constructor === Object) {
+
+        return '<input name="' + key + '" type="text" value="' + JSON.stringify(obj) + '">';
+
+    } else if (obj.constructor === Array) {
+        var out = '';
+        $(obj).each(function(i,v) {
+            //console.log(v);
+            out += JSON.stringify(v);
+        });
+
+        return '<textarea name="' + key + '">' + out + '</textarea>';
+
+    } else {
+        return '<input name="' + key + '" type="text" value="' + obj + '">';
+
+    }
+
+//return '<input name="' + key + '" type="text" value="' + formatValue(data.result[key]) + '">';
+}
+
+function formatKey(text) {
+    var result = '';
+    for (var i=0; i<text.length; i++) {
+        var c = text.charAt(i);
+        if (c == c.toUpperCase()) {
+            result += ' ' + c;
+        } else {
+            result += (i==0 ? c.toUpperCase() : c);
+        }
+    }
+    return result;
+}
+
+function deleteAll(button, type, callback) {
+    var types = plural(type);
+    var element = $('#' + types);
+    if (isDisabled(button)) return;
+    var con = confirm('Delete all ' + types + '?');
+    if (!con) return;
+    var headers = {
+        'X-StructrSessionToken' : token
+    };
+    $.ajax({
+        url: rootUrl + type.toLowerCase(),
+        type: "DELETE",
+        headers: headers,
+        success: function(data) {
+            $(element).children("." + type).each(function(i, child) {
+                $(child).remove();
+            });
+            enable(button);
+            if (callback) callback();
+        }
+    });
+}
+
+function isDisabled(button) {
+    return $(button).data('disabled');
+}
+
+function disable(button, callback) {
+    var b = $(button);
+    b.data('disabled', true);
+    b.addClass('disabled');
+    if (callback) {
+        b.off('click');
+        b.on('click', callback);
+        b.data('disabled', false);
+    //enable(button, callback);
+    }
+}
+
+function enable(button, func) {
+    var b = $(button);
+    b.data('disabled', false);
+    b.removeClass('disabled');
+    if (func) {
+        b.off('click');
+        b.on('click', func);
+    }
+}
+
+function setPosition(parentId, nodeUrl, pos) {
+    var toPut = '{ "' + parentId + '" : ' + pos + ' }';
+    //console.log(toPut);
+    var headers = {
+        'X-StructrSessionToken' : token
+    };
+    $.ajax({
+        url: nodeUrl + '/in',
+        type: 'PUT',
+        async: false,
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        headers: headers,
+        data: toPut,
+        success: function(data) {
+        //appendElement(parentId, elementId, data);
+        }
+    });
+}
+
+function refresh(parentId, id) {
+    $('.' + parentId + '_ ' + id + '_ > div.nested').remove();
+    showSubEntities(parentId, id);
+}
+
+
+
+var keyEventBlocked = true;
+var keyEventTimeout;
+
+
+function getIdFromClassString(classString) {
+    if (!classString) return false;
+    var classes = classString.split(' ');
+    var id;
+    $(classes).each(function(i,v) {
+        var len = v.length;
+        if (v.substring(len-1, len) == '_') {
+            id = v.substring(0,v.length-1);
+        }
+    });
+    return id;
+}
+
+function getId(element) {
+    return getIdFromClassString($(element).attr('class'));
+}
+
+function lastPart(id, separator) {
+    if (!separator) {
+        separator = '_';
+    }
+    if (id) {
+        return id.substring(id.lastIndexOf(separator)+1);
+    }
+    return '';
+}
+
+function sortArray(arrayIn, sortBy) {
+    var arrayOut = arrayIn.sort(function(a,b) {
+        return sortBy.indexOf(a.id) > sortBy.indexOf(b.id);
+    });
+    return arrayOut;
+}
+
+function followIds(resourceId, entity) {
+    var resId = resourceId.toString();
+    var entityId = (entity ? entity.id : resourceId);
+    var url = rootUrl + entityId + '/' + 'out';
+    //console.log(url);
+    var headers = {
+        'X-StructrSessionToken' : token
+    };
+    var ids = [];
+    $.ajax({
+        url: url,
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        async: false,
+        headers: headers,
+        success: function(data) {
+            //console.log(data);
+            if (!data || data.length == 0 || !data.result) return;
+            var out = data.result;
+            if ($.isArray(out)) {
+                //for (var i=0; i<out.length; i++) {
+                $(out).each(function(i, rel) {
+                    var pos = rel[resId];
+                    if (pos) {
+                        //console.log('pos: ' + pos);
+                        ids[pos] = rel.endNodeId;
+                    //console.log('ids[' + pos + ']: ' + ids[pos]);
+                    }
+                });
+            } else {
+
+                if (out[resId]) {
+                    //console.log('out[resId]: ' + out[resId]);
+                    ids[out[resId]] = out.endNodeId;
+                //console.log('ids[' + out[resId] + ']: ' + out.endNodeId);
+                }
+            }
+        }
+    });
+    //console.log('resourceId: ' + resourceId + ', nodeId: ' + resourceId);
+    //console.log(ids);
+    return ids;
+}
+
+function isIn(id, ids) {
+    return ($.inArray(id, ids) > -1);
+}
+
+function escapeTags(str) {
+    if (!str) return str;
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function unescapeTags(str) {
+    if (!str) return str;
+    return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+}
+
+$.fn.reverse = [].reverse;
+
+if (typeof String.prototype.endsWith != 'function') {
+    String.prototype.endsWith = function(pattern) {
+        var d = this.length - pattern.length;
+        return d >= 0 && this.lastIndexOf(pattern) === d;
+    };
+}
+
+if (typeof String.prototype.startsWith != 'function') {
+    String.prototype.startsWith = function (str){
+        return this.indexOf(str) == 0;
+    };
+}
+
+if (typeof String.prototype.capitalize != 'function') {
+    String.prototype.capitalize = function() {
+        return this.charAt(0).toUpperCase() + this.slice(1);
+    };
+}

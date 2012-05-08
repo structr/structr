@@ -23,6 +23,9 @@ package org.structr.core.node;
 
 import org.apache.commons.lang.StringUtils;
 
+import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
+import org.neo4j.gis.spatial.indexprovider.SpatialIndexProvider;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 
@@ -31,8 +34,9 @@ import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Location;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -58,11 +62,14 @@ public class IndexNodeCommand extends NodeServiceCommand {
 	//~--- fields ---------------------------------------------------------
 
 	private Map<String, Index> indices = new HashMap<String, Index>();
+	GraphDatabaseService graphDb;
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
+
+		graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
@@ -171,6 +178,15 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 	private void indexNode(final AbstractNode node) {
 
+		String uuid = node.getStringProperty(AbstractNode.Key.uuid);
+
+		// Don't index non-structr relationship
+		if (uuid == null) {
+
+			return;
+
+		}
+
 		for (Enum index : (NodeIndex[]) arguments.get("indices")) {
 
 			Set<String> properties = EntityContext.getSearchableProperties(node.getClass(), index.name());
@@ -179,6 +195,37 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 				indexProperty(node, key, index.name());
 
+			}
+
+		}
+
+		Node dbNode = node.getNode();
+
+		if ((dbNode.hasProperty(Location.Key.latitude.name())) && (dbNode.hasProperty(Location.Key.longitude.name()))) {
+
+			LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
+
+			try {
+
+				layerIndex.add(dbNode, "", "");
+
+				// If an exception is thrown here, the index was deleted
+				// and has to be recreated.
+
+			} catch (Exception e) {
+
+				final Map<String, String> config = new HashMap<String, String>();
+
+				config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
+				config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
+				config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
+
+				layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+
+				indices.put(NodeIndex.layer.name(), layerIndex);
+
+				// try again
+				layerIndex.add(dbNode, "", "");
 			}
 
 		}
@@ -247,7 +294,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from all indices", new Object[] { id, key });
 			addNodePropertyToIndex(dbNode, key, valueForIndexing, indexName);
 
-			if ((node instanceof User) && (key.equals(AbstractNode.Key.name.name()) || key.equals(Person.Key.email.name()))) {
+			if ((node instanceof Principal) && (key.equals(AbstractNode.Key.name.name()) || key.equals(Person.Key.email.name()))) {
 
 				removeNodePropertyFromIndex(dbNode, key, NodeIndex.user.name());
 				addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.user.name());

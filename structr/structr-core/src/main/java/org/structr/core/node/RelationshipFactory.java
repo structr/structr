@@ -27,13 +27,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
-import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.module.GetEntityClassCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -79,7 +75,8 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		if (relClass != null) {
 
 			try {
-				newRel = (AbstractRelationship) relClass.newInstance();
+				newRel = (AbstractRelationship) relClass.newInstance();				
+				newRel.onRelationshipInstantiation();
 			} catch (InstantiationException ex) {
 				logger.log(Level.FINE, "Could not instantiate relationship", ex);
 			} catch (IllegalAccessException ex) {
@@ -87,6 +84,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 			}
 
 		}
+
 
 		return newRel;
 	}
@@ -108,11 +106,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		try {
 
-			String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
-			String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.Key.type.name());
-
-			relClass = EntityContext.getNamedRelationClass(sourceNodeType, destNodeType, relationship.getType().name());
-
+			relClass = findNamedRelation(relationship);
 			if (relClass != null) {
 
 				try {
@@ -148,6 +142,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		}
 
 		newRel.init(securityContext, relationship);
+		newRel.onRelationshipInstantiation();
 
 		return newRel;
 	}
@@ -192,43 +187,104 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		return rels;
 	}
+//
+//	public AbstractRelationship createRelationship(final SecurityContext securityContext, final RelationshipDataContainer data) throws FrameworkException {
+//
+//		if (data == null) {
+//
+//			logger.log(Level.SEVERE, "Could not create relationship: Empty data container.");
+//
+//			return null;
+//
+//		}
+//
+//		Map properties              = data.getProperties();
+//		String combinedRelType      = properties.containsKey(AbstractRelationship.HiddenKey.type.name())
+//					      ? (String) properties.get(AbstractRelationship.HiddenKey.type.name())
+//					      : null;
+//		Class relClass              = EntityContext.getNamedRelationClass(combinedRelType);
+//		AbstractRelationship newRel = null;
+//
+//		if (relClass != null) {
+//
+//			try {
+//				newRel = (AbstractRelationship) relClass.newInstance();
+//			} catch (Throwable t) {
+//				newRel = null;
+//			}
+//
+//		}
+//
+//		if (newRel == null) {
+//
+//			newRel = new GenericRelationship();
+//
+//		}
+//
+//		newRel.init(securityContext, data);
+//		newRel.commit();
+//		newRel.onRelationshipInstantiation();
+//
+//		return newRel;
+//	}
+	
+	private Class findNamedRelation(Relationship relationship) {
+		
+		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
+		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.Key.type.name());
 
-	public AbstractRelationship createRelationship(final SecurityContext securityContext, final RelationshipDataContainer data) throws FrameworkException {
-
-		if (data == null) {
-
-			logger.log(Level.SEVERE, "Could not create relationship: Empty data container.");
-
-			return null;
-
-		}
-
-		Map properties              = data.getProperties();
-		String combinedRelType      = properties.containsKey(AbstractRelationship.HiddenKey.type.name())
-					      ? (String) properties.get(AbstractRelationship.HiddenKey.type.name())
-					      : null;
-		Class relClass              = EntityContext.getNamedRelationClass(combinedRelType);
-		AbstractRelationship newRel = null;
-
-		if (relClass != null) {
-
-			try {
-				newRel = (AbstractRelationship) relClass.newInstance();
-			} catch (Throwable t) {
-				newRel = null;
-			}
-
-		}
-
-		if (newRel == null) {
-
-			newRel = new GenericRelationship();
-
-		}
-
-		newRel.init(securityContext, data);
-		newRel.commit();
-
-		return newRel;
+		
+		Class sourceType = EntityContext.getEntityClassForRawType(sourceNodeType);
+		Class destType   = EntityContext.getEntityClassForRawType(destNodeType);
+		
+		return EntityContext.getNamedRelationClass(sourceType, destType, relationship.getType());
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

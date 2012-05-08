@@ -20,10 +20,9 @@ package org.structr.common;
 
 import java.util.Date;
 import junit.framework.TestCase;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  *
@@ -102,7 +101,7 @@ public class SecurityContextTest extends TestCase {
 	}
 
 	// ----- private methods -----
-	private class MockAccessControllable implements AccessControllable {
+	private static class MockAccessControllable implements AccessControllable {
 
 		private boolean visibleToAuthenticatedUsersFlag = false;
 		private String[] permissions = null;
@@ -118,7 +117,7 @@ public class SecurityContextTest extends TestCase {
 		}
 
 		@Override
-		public User getOwnerNode() {
+		public Principal getOwnerNode() {
 			return(null);
 		}
 
@@ -135,7 +134,7 @@ public class SecurityContextTest extends TestCase {
 
 			// check preset permissions
 			for(String presetPermission : permissions) {
-				if(presetPermission.equals(permissions)) {
+				if(presetPermission.equals(permission)) {
 					return(true);
 				}
 			}

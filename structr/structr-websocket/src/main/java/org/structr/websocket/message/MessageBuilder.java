@@ -73,13 +73,13 @@ public class MessageBuilder {
 	}
 
 	public MessageBuilder data(String key, Object value) {
-		data.setData(key, value.toString());
+		data.setNodeData(key, value);
 		return this;
 	}
 
 	public MessageBuilder data(Map<String, Object> data) {
 		for(Entry<String, Object> entry : data.entrySet()) {
-			this.data.setData(entry.getKey(), entry.getValue().toString());
+			this.data.setNodeData(entry.getKey(), entry.getValue());
 		}
 		return this;
 	}

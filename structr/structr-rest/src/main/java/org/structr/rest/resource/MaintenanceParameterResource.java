@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.agent.RebuildIndexTask;
+import org.structr.core.node.ClearDatabase;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 
@@ -40,6 +41,7 @@ public class MaintenanceParameterResource extends Resource {
 
 	static {
 		maintenanceCommandMap.put("rebuildIndex", RebuildIndexTask.class);
+		maintenanceCommandMap.put("clearDatabase", ClearDatabase.class);
 	}
 
 	private String uriPart = null;

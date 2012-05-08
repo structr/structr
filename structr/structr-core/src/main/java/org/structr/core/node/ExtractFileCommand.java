@@ -42,7 +42,7 @@ import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.File;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * Extract a file and create subnodes
@@ -64,7 +64,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 		AbstractNode node = null;
 		AbstractNode targetNode = null;
-		User user = null;
+		Principal user = null;
 
 		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
@@ -96,8 +96,8 @@ public class ExtractFileCommand extends NodeServiceCommand {
 					targetNode = (AbstractNode)findNode.execute(id);
 				}
 
-				if(parameters[2] instanceof User) {
-					user = (User)parameters[2];
+				if(parameters[2] instanceof Principal) {
+					user = (Principal)parameters[2];
 				}
 
 				break;
@@ -112,14 +112,12 @@ public class ExtractFileCommand extends NodeServiceCommand {
 		return null;
 	}
 
-	private void doExtractFileNode(AbstractNode node, AbstractNode targetNode, User user) throws FrameworkException {
+	private void doExtractFileNode(AbstractNode node, AbstractNode targetNode, Principal user) throws FrameworkException {
 
 		if(node != null) {
 
 			if(!(node instanceof File)) {
-				setExitCode(Command.exitCode.FAILURE);
-				setErrorMessage("Could not extract content of node" + node.getId());
-				logger.log(Level.WARNING, getErrorMessage());
+				logger.log(Level.WARNING, "Could not extract content of node{0}", node.getId());
 				return;
 			}
 
@@ -200,7 +198,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 											}
 
 											// link file node to parent node
-											createRel.execute(parentNode, childNode, RelType.HAS_CHILD);
+											createRel.execute(parentNode, childNode, RelType.CONTAINS);
 
 
 											parentNode = childNode;
@@ -227,7 +225,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 									NodeAttribute nameAttr = new NodeAttribute(AbstractNode.Key.name.name(), name);
 
 									AbstractNode fileNode = (AbstractNode)createNode.execute(nameAttr, typeAttr, sizeAttr, user);
-									createRel.execute(targetNode, fileNode, RelType.HAS_CHILD);
+									createRel.execute(targetNode, fileNode, RelType.CONTAINS);
 
 									writeFile(fileNode, input);
 
@@ -251,38 +249,26 @@ public class ExtractFileCommand extends NodeServiceCommand {
 						} while(ae != null);
 
 					} catch(IOException e) {
-						setErrorMessage("Could not read from archive stream");
-						setExitCode(Command.exitCode.FAILURE);
-						logger.log(Level.WARNING, getErrorMessage().concat(": {0}"), e.getMessage());
-						return;
+						logger.log(Level.WARNING, "Could not read from archive stream".concat(": {0}"), e.getMessage());
 					}
 				}
 
 			} catch(ArchiveException e) {
-				setErrorMessage("Unknown Archive format");
-				setExitCode(Command.exitCode.FAILURE);
-				logger.log(Level.WARNING, getErrorMessage().concat(": {0}"), e.getMessage());
-				return;
+				logger.log(Level.WARNING, "Unknown Archive format".concat(": {0}"), e.getMessage());
 			} finally {
 				try {
 					if(input != null) {
 						input.close();
 					}
 				} catch(IOException e) {
-					logger.log(Level.WARNING, "Exception while closing input stream: " + e.getMessage());
+					logger.log(Level.WARNING, "Exception while closing input stream: {0}", e.getMessage());
 				}
 
 			}
 
 		} else {
-			setErrorMessage("Node to extract was null");
-			setExitCode(Command.exitCode.FAILURE);
-			logger.log(Level.WARNING, getErrorMessage());
-			return;
+			logger.log(Level.WARNING, "Node to extract was null");
 		}
-
-		// everything is fine
-		setExitCode(Command.exitCode.SUCCESS);
 
 	}
 

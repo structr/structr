@@ -19,7 +19,6 @@
 
 package org.structr.core.notion;
 
-import java.util.Collection;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;

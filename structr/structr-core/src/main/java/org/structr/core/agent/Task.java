@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.Delayed;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * An experimental interface description for a structr task.
@@ -48,11 +48,11 @@ import org.structr.core.entity.User;
 public interface Task extends Delayed, StatusInfo {
 
     /**
-     * User to process the task as
+     * Principal to process the task as
      *
      * @return
      */
-    public User getUser();
+    public Principal getUser();
 
     /**
      * Returns the nodes this task should operate on.

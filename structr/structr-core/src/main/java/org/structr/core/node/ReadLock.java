@@ -92,9 +92,7 @@ public class ReadLock extends NodeServiceCommand {
 
 		if (node == null) {
 
-			setExitCode(Command.exitCode.FAILURE);
-			setErrorMessage("Could not lock node null");
-			logger.log(Level.WARNING, getErrorMessage());
+			logger.log(Level.WARNING, "Could not lock node null");
 
 			return null;
 
@@ -102,9 +100,7 @@ public class ReadLock extends NodeServiceCommand {
 
 		if (node.getId() == 0) {
 
-			setExitCode(Command.exitCode.FAILURE);
-			setErrorMessage("Locking the root node is not allowed.");
-			logger.log(Level.WARNING, getErrorMessage());
+			logger.log(Level.WARNING, "Locking the root node is not allowed.");
 
 			return null;
 
@@ -125,7 +121,7 @@ public class ReadLock extends NodeServiceCommand {
 
 				if ((lockType == LockType.READ) && (graphDb instanceof AbstractGraphDatabase)) {
 
-					((AbstractGraphDatabase) node.getGraphDatabase()).getConfig().getLockManager().getReadLock(node);
+					((AbstractGraphDatabase) node.getGraphDatabase()).getLockManager().getReadLock(node);
 
 				}
 
@@ -134,7 +130,7 @@ public class ReadLock extends NodeServiceCommand {
 
 		});
 
-		// setExitCode(Command.exitCode.SUCCESS);
+		// setExitCode(Command.ExitCode.SUCCESS);
 		return null;
 	}
 }

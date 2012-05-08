@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * Use this interface for tasks that convert a given node into another
@@ -70,8 +70,8 @@ public class RefreshImageFromUrlTask implements Task {
 
     @Override
     public int compareTo(Delayed o) {
-        Long d1 = new Long(this.getDelay(TimeUnit.MILLISECONDS));
-        Long d2 = new Long(o.getDelay(TimeUnit.MILLISECONDS));
+        Long d1 = Long.valueOf(this.getDelay(TimeUnit.MILLISECONDS));
+        Long d2 = Long.valueOf(o.getDelay(TimeUnit.MILLISECONDS));
 
         return (d1.compareTo(d2));
     }
@@ -84,7 +84,7 @@ public class RefreshImageFromUrlTask implements Task {
     }
 
     @Override
-    public User getUser() {
+    public Principal getUser() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

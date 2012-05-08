@@ -21,13 +21,21 @@
 
 package org.structr.core.node.search;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+
+import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.PlainText;
+import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.module.GetEntitiesCommand;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -39,12 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.ArrayUtils;
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationshipMapping;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -54,23 +56,26 @@ import org.structr.core.entity.RelationshipMapping;
  */
 public abstract class Search {
 
-	private static final Logger logger = Logger.getLogger(Search.class.getName());
-	private static Character[] specialChars = new Character[] {
+	private static final Logger logger           = Logger.getLogger(Search.class.getName());
+	private static Character[] specialChars      = new Character[] {
 
 		'\\', '+', '-', '!', '(', ')', ':', '^', '[', ']', '\"', '{', '}', '~', '*', '?', '|', '&', ';'
 
 	};
-	private static Character[] specialCharsExact = new Character[] {
+	private static Character[] specialCharsExact = new Character[] { '\"', '\\' };
 
-		'\"', '\\'
+	public static final String DISTANCE_SEARCH_KEYWORD = "distance";
 
-	};
+	//~--- methods --------------------------------------------------------
+
 	public static List<SearchAttribute> andExactTypeAndSubtypes(final String searchString) {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-		attrs.add(Search.orExactType(searchString));
+
+		//attrs.add(Search.orExactType(searchString));
 
 		try {
+
 			Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
 			Class parentClass           = entities.get(searchString);
 
@@ -92,7 +97,7 @@ public abstract class Search {
 
 			}
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to add subtypes to search attributes", fex);
 		}
 
@@ -119,7 +124,7 @@ public abstract class Search {
 
 	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
 
-		String searchString = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.AND);
 
 		return attr;
@@ -132,10 +137,10 @@ public abstract class Search {
 	public static SearchAttribute orRelType(final RelationshipType relType, final Class sourceType, final Class destType) {
 		return orRelType(relType.name(), sourceType.getSimpleName(), destType.getSimpleName());
 	}
-	
+
 	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
 
-		String searchString = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.OR);
 
 		return attr;
@@ -217,7 +222,7 @@ public abstract class Search {
 
 	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {
 
-		String searchString = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
@@ -226,10 +231,10 @@ public abstract class Search {
 	public static SearchAttribute orExactRelType(final RelationshipMapping namedRelation) {
 		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
-	
+
 	public static SearchAttribute orExactRelType(final String relType, final String sourceType, final String destType) {
 
-		String searchString = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
@@ -286,7 +291,7 @@ public abstract class Search {
 
 	public static SearchAttribute andNotHidden() {
 
-		SearchAttribute attr = new BooleanSearchAttribute(AbstractNode.Key.hidden.name(), true, SearchOperator.NOT);
+		SearchAttribute attr = new FilterSearchAttribute(AbstractNode.Key.hidden.name(), true, SearchOperator.NOT);
 
 		return attr;
 	}
@@ -399,7 +404,7 @@ public abstract class Search {
 
 		return output;
 	}
-	
+
 	public static String escapeForLucene(String input) {
 
 		StringBuilder output = new StringBuilder();
@@ -461,17 +466,20 @@ public abstract class Search {
 		searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
 
 		try {
+
 			List<AbstractNode> result = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+
 			if (result != null) {
 
 				for (AbstractNode n : result) {
+
 					names.add(n.getName());
 
 				}
 
 			}
-			
-		} catch(FrameworkException fex) {
+
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to execute SearchNodeCommand", fex);
 		}
 

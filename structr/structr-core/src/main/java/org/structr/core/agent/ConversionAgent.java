@@ -26,7 +26,7 @@ import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.CsvFile;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.node.ConvertCsvToNodeListCommand;
 
 /**
@@ -61,7 +61,7 @@ public class ConversionAgent extends Agent {
 		return (ReturnValue.Success);
 	}
 
-	private void convert(final User user, final AbstractNode sourceNode, final Class targetClass) {
+	private void convert(final Principal user, final AbstractNode sourceNode, final Class targetClass) {
 
 		// FIXME: superuser security context
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
