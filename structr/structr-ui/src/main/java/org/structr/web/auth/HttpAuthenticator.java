@@ -29,7 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -59,9 +59,9 @@ public class HttpAuthenticator implements Authenticator {
 	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
-		User user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
+		Principal user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
 
 		if (user != null) {
 
@@ -92,9 +92,9 @@ public class HttpAuthenticator implements Authenticator {
 		}
 	}
 
-	private User checkBasicAuthentication(HttpServletRequest request, HttpServletResponse response) {
+	private Principal checkBasicAuthentication(HttpServletRequest request, HttpServletResponse response) {
 
-		User user;
+		Principal user;
 		String auth = request.getHeader("Authorization");
 
 		if (auth == null) {
@@ -193,9 +193,9 @@ public class HttpAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
 
-		User user = (User) request.getSession().getAttribute(SESSION_USER);
+		Principal user = (Principal) request.getSession().getAttribute(SESSION_USER);
 
 		if (user == null) {
 

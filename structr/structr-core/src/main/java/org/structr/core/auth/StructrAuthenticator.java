@@ -28,7 +28,7 @@ import org.structr.core.Services;
 
 //import org.structr.context.SessionMonitor;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.node.FindUserCommand;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -60,9 +60,9 @@ public class StructrAuthenticator implements Authenticator {
 	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
-		User user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
+		Principal user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
 
 		try {
 
@@ -88,11 +88,11 @@ public class StructrAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
 		Command findUser = Services.command(securityContext, FindUserCommand.class);
 		String userName  = (String) request.getSession().getAttribute(USERNAME_KEY);
-		User user        = (User) findUser.execute(userName);
+		Principal user        = (Principal) findUser.execute(userName);
 
 		return user;
 	}

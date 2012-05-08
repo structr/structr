@@ -31,7 +31,7 @@ import org.structr.core.entity.RelationClass;
 import org.structr.core.node.NodeService;
 import org.structr.web.entity.html.Html;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.web.entity.html.A;
 
@@ -49,7 +49,7 @@ public class Resource extends AbstractNode {
 	}
 
 	static {
-		EntityContext.registerPropertyRelation(AbstractNode.class, AbstractNode.Key.ownerId, User.class, RelType.OWNS, Direction.INCOMING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
+		EntityContext.registerPropertyRelation(AbstractNode.class, AbstractNode.Key.ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
                 
                 EntityContext.registerPropertyRelation(Resource.class, UiKey.linkingElements, A.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
 

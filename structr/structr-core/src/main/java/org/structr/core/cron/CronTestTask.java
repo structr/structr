@@ -26,7 +26,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.structr.core.agent.Task;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  *
@@ -35,7 +35,7 @@ import org.structr.core.entity.User;
 public class CronTestTask implements Task {
 
 	@Override
-	public User getUser() {
+	public Principal getUser() {
 		return null;
 	}
 

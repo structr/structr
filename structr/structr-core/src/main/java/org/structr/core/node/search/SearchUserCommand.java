@@ -31,7 +31,7 @@ import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,7 +64,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 							AbstractNode s = (AbstractNode) findNode.execute(n);
 
-							if (s.getType().equals(User.class.getSimpleName())) {
+							if (s.getType().equals(Principal.class.getSimpleName())) {
 
 								return s;
 
@@ -106,7 +106,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 //									AbstractNode s = (AbstractNode) findNode.execute(n);
 //
 //									// TODO: implement better algorithm for user retrieval
-//									if (s.getType().equals(User.class.getSimpleName()) && userName.equals(s.getName())) {
+//									if (s.getType().equals(Principal.class.getSimpleName()) && userName.equals(s.getName())) {
 //
 //										return s;
 //

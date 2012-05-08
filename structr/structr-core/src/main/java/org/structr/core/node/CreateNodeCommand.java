@@ -36,10 +36,9 @@ import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -68,7 +67,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
-		User user                    = securityContext.getUser();
+		Principal user               = securityContext.getUser();
 		AbstractNode node            = null;
 
 		if (graphDb != null) {
@@ -147,17 +146,17 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				rel.createRelationship(securityContext, user, node);
 
 //                              createRel.execute(user, node, RelType.OWNS, true); // avoid duplicates
-				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
+				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getStringProperty(AbstractNode.Key.name));
 
 				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, true);    // avoid duplicates
 
 				securityRel.setAllowed(AbstractRelationship.Permission.values());
-				logger.log(Level.FINEST, "All permissions given to user {0}", user.getName());
+				logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
 
 				// Group group = user.getGroupNode();
-				IterableAdapter groups = (IterableAdapter) user.getProperty(User.Key.groups);
+				IterableAdapter groups = (IterableAdapter) user.getProperty(Principal.Key.groups);
 
 				if (groups != null) {
 

@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -37,7 +36,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.*;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
@@ -54,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -97,11 +96,11 @@ public class RelationClass {
 
 	//~--- methods --------------------------------------------------------
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws FrameworkException {
+	public void createRelationship(final SecurityContext securityContext, final GraphObject sourceNode, final Object value) throws FrameworkException {
 		createRelationship(securityContext, sourceNode, value, Collections.EMPTY_MAP);
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value, final Map properties) throws FrameworkException {
+	public void createRelationship(final SecurityContext securityContext, final GraphObject sourceNode, final Object value, final Map properties) throws FrameworkException {
 
 		// create relationship if it does not already exist
 		final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -121,6 +120,7 @@ public class RelationClass {
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			final AbstractNode finalTargetNode = targetNode;
+                        final AbstractNode finalSourceNode = (AbstractNode) sourceNode;
 			StructrTransaction transaction     = new StructrTransaction() {
 
 				@Override
@@ -134,11 +134,11 @@ public class RelationClass {
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination type and direction
-							List<AbstractRelationship> rels = sourceNode.getRelationships(relType, direction);
+							List<AbstractRelationship> rels = finalSourceNode.getRelationships(relType, direction);
 
 							for (AbstractRelationship rel : rels) {
 
-								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
+								if (rel.getOtherNode(finalSourceNode).getType().equals(destType)) {
 
 									deleteRel.execute(rel);
 

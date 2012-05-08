@@ -372,13 +372,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return new RelationshipNotion(getStartNodeIdKey());
 	}
 
-//      @Override
-//      public void delete(SecurityContext securityContext) {
-//
-//              dbRelationship.delete();
-//
-//              // EntityContext.getGlobalModificationListener().relationshipDeleted(securityContext, this);
-//      }
 	@Override
 	public long getId() {
 		return getInternalId();
@@ -405,6 +398,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return properties;
 	}
 
+        @Override
 	public Object getProperty(final PropertyKey propertyKey) {
 		return getProperty(propertyKey.name());
 	}
@@ -476,6 +470,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return value;
 	}
 
+        @Override
 	public String getStringProperty(final PropertyKey key) {
 		return getStringProperty(key.name());
 	}
@@ -573,6 +568,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return result;
 	}
 
+        @Override
 	public Date getDateProperty(final PropertyKey key) {
 		return getDateProperty(key.name());
 	}
@@ -629,10 +625,12 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return null;
 	}
 
+        @Override
 	public boolean getBooleanProperty(final PropertyKey propertyKey) {
 		return (getBooleanProperty(propertyKey.name()));
 	}
 
+        @Override
 	public boolean getBooleanProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -657,6 +655,52 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return result;
 	}
 
+        @Override
+	public Double getDoubleProperty(final PropertyKey propertyKey) throws FrameworkException {
+		return (getDoubleProperty(propertyKey.name()));
+	}
+
+        @Override
+	public Double getDoubleProperty(final String key) throws FrameworkException {
+
+		Object propertyValue = getProperty(key);
+		Double result        = null;
+
+		if (propertyValue == null) {
+
+			return null;
+
+		}
+
+		if (propertyValue instanceof Double) {
+
+			Double doubleValue = (Double) propertyValue;
+
+			if (doubleValue.equals(Double.NaN)) {
+
+				// clean NaN values from database
+				setProperty(key, null);
+
+				return null;
+			}
+
+			result = doubleValue;
+
+		} else if (propertyValue instanceof String) {
+
+			if ("".equals((String) propertyValue)) {
+
+				return null;
+
+			}
+
+			result = Double.parseDouble(((String) propertyValue));
+
+		}
+
+		return result;
+	}
+        
 	/**
 	 * Return database relationship
 	 *

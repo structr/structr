@@ -28,7 +28,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.Task;
-import org.structr.core.agent.Task;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
@@ -43,6 +42,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -124,7 +124,7 @@ public class MaintenanceResource extends Resource {
 				? "non-null"
 				: "null", ((securityContext != null)
 												     && (securityContext.getUser() != null))
-					  ? securityContext.getUser().getName()
+					  ? securityContext.getUser().getStringProperty(AbstractNode.Key.name)
 					  : "null" });
 
 			throw new NotAllowedException();

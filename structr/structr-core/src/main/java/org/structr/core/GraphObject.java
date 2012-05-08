@@ -38,11 +38,19 @@ public interface GraphObject {
 	public String getType();
 
 	public Iterable<String> getPropertyKeys(String propertyView);
-	public void setProperty(String key, Object value) throws FrameworkException;
-	public Object getProperty(String key);
-	public String getStringProperty(String key);
-	public Date getDateProperty(String key);
-	public void removeProperty(String key) throws FrameworkException;
+	public void setProperty(final String key, Object value) throws FrameworkException;
+	public void setProperty(final PropertyKey key, Object value) throws FrameworkException;
+	public Object getProperty(final String key);
+        public Object getProperty(final PropertyKey propertyKey);
+	public String getStringProperty(final String key);
+	public String getStringProperty(final PropertyKey propertyKey);
+	public Date getDateProperty(final String key);
+        public Date getDateProperty(final PropertyKey key);
+	public boolean getBooleanProperty(final String key) throws FrameworkException ;
+        public boolean getBooleanProperty(final PropertyKey key) throws FrameworkException ;
+	public Double getDoubleProperty(final String key) throws FrameworkException ;
+        public Double getDoubleProperty(final PropertyKey key) throws FrameworkException ;
+	public void removeProperty(final String key) throws FrameworkException;
 
 	public PropertyKey getDefaultSortKey();
 	public String getDefaultSortOrder();

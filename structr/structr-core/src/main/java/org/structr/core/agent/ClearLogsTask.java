@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * Remove all logging nodes
@@ -78,7 +78,7 @@ public class ClearLogsTask implements Task {
 	}
 
     @Override
-    public User getUser() {
+    public Principal getUser() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

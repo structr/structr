@@ -48,7 +48,7 @@ import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * Save images from a Adobe Flash file, downloadable at the given URL.
@@ -64,7 +64,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
      * Takes three parameters.
      * 
      * <ul>
-     * <li>1: User
+     * <li>1: Principal
      * <li>2: URL string
      * <li>3: Parent node
      * </ul>
@@ -75,7 +75,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
     @Override
     public Object execute(Object... parameters) throws FrameworkException {
 
-        User user = null;
+        Principal user = null;
         String urlString = null;
         AbstractNode parentNode = null;
 
@@ -85,8 +85,8 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 
             case 3:
 
-                if (parameters[0] instanceof User) {
-                    user = (User) parameters[0];
+                if (parameters[0] instanceof Principal) {
+                    user = (Principal) parameters[0];
                 }
                 if (parameters[1] instanceof String) {
                     urlString = (String) parameters[1];
@@ -118,7 +118,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
      * @param imageNode
      * @return image list
      */
-    private List<Image> saveFlashImagesFromUrl(final User user, final String urlString, final AbstractNode parentNode) throws FrameworkException {
+    private List<Image> saveFlashImagesFromUrl(final Principal user, final String urlString, final AbstractNode parentNode) throws FrameworkException {
 
         String flashObjectName = urlString.substring(urlString.lastIndexOf("/") + 1);
         String tmpFilePath = Services.getFilePath(Path.Temp, "_ " + flashObjectName + "_" + System.nanoTime());

@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -48,7 +48,7 @@ import org.structr.common.error.FrameworkException;
  * <p>This command takes one or two parameters:</p>
  *
  * <ol>
- *  <li>first parameter: User name
+ *  <li>first parameter: Principal name
  *  <li>second parameter (optional): Top node, return users beneath this node
  * </ol>
  *
@@ -72,12 +72,12 @@ public class FindUserCommand extends NodeServiceCommand {
 
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-			searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
+			searchAttrs.add(Search.andExactType(Principal.class.getSimpleName()));
 
 			switch (parameters.length) {
 
 				case 0 :
-					List<User> users          = new LinkedList<User>();
+					List<Principal> users          = new LinkedList<Principal>();
 					List<AbstractNode> result = (List<AbstractNode>) searchNode.execute(null,
 						false,
 						false,
@@ -85,8 +85,8 @@ public class FindUserCommand extends NodeServiceCommand {
 
 					for (AbstractNode n : result) {
 
-						if (n instanceof User) {
-							users.add((User) n);
+						if (n instanceof Principal) {
+							users.add((Principal) n);
 						}
 					}
 
@@ -108,8 +108,8 @@ public class FindUserCommand extends NodeServiceCommand {
 							searchAttrs);
 
 						if ((usersFound != null) && (usersFound.size() > 0)
-							&& (usersFound.get(0) instanceof User)) {
-							return (User) usersFound.get(0);
+							&& (usersFound.get(0) instanceof Principal)) {
+							return (Principal) usersFound.get(0);
 						} else {
 
 							logger.log(Level.FINE,
@@ -139,8 +139,8 @@ public class FindUserCommand extends NodeServiceCommand {
 							searchAttrs);
 
 						if ((usersFound != null) && (usersFound.size() > 0)
-							&& (usersFound.get(0) instanceof User)) {
-							return (User) usersFound.get(0);
+							&& (usersFound.get(0) instanceof Principal)) {
+							return (Principal) usersFound.get(0);
 						} else {
 
 							logger.log(Level.FINE,

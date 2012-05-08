@@ -20,10 +20,9 @@ package org.structr.common;
 
 import java.util.Date;
 import junit.framework.TestCase;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  *
@@ -118,7 +117,7 @@ public class SecurityContextTest extends TestCase {
 		}
 
 		@Override
-		public User getOwnerNode() {
+		public Principal getOwnerNode() {
 			return(null);
 		}
 

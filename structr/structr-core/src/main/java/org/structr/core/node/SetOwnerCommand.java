@@ -28,7 +28,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -68,7 +68,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 		Command findNode            = Services.command(securityContext, FindNodeCommand.class);
 		AbstractNode node           = null;
 		List<AbstractNode> nodeList = null;
-		User user                   = null;
+		Principal user                   = null;
 		long id                     = 0;
 
 		switch (parameters.length) {
@@ -90,8 +90,8 @@ public class SetOwnerCommand extends NodeServiceCommand {
 
 				node = (AbstractNode) findNode.execute(id);
 
-				if (parameters[1] instanceof User) {
-					user = (User) parameters[1];
+				if (parameters[1] instanceof Principal) {
+					user = (Principal) parameters[1];
 				} else {
 
 					throw new IllegalArgumentException("Second parameter is no user: "
@@ -118,7 +118,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 
 	//~--- set methods ----------------------------------------------------
 
-	private void setOwner(final AbstractNode node, final User user) throws FrameworkException {
+	private void setOwner(final AbstractNode node, final Principal user) throws FrameworkException {
 
 		Command delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 
@@ -135,10 +135,10 @@ public class SetOwnerCommand extends NodeServiceCommand {
 		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		createRel.execute(user, node, RelType.OWNS);
-		logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
+		logger.log(Level.FINEST, "Relationship to owner {0} added", user.getStringProperty(AbstractNode.Key.name));
 	}
 
-	private void setOwner(final List<AbstractNode> nodeList, final User user) throws FrameworkException {
+	private void setOwner(final List<AbstractNode> nodeList, final Principal user) throws FrameworkException {
 
 		// Create outer transaction to bundle inner transactions
 		final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);

@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -47,10 +47,10 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
 		String errorMsg = null;
-		User user       = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
+		Principal user       = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
 
 		if (errorMsg != null) {
 
@@ -67,12 +67,12 @@ public class UiAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
 		String userName = request.getHeader("X-User");
 		String password = request.getHeader("X-Password");
 		String token    = request.getHeader("X-StructrSessionToken");
-		User user       = null;
+		Principal user       = null;
 
 		// Try to authorize with a session token first
 		if (token != null) {

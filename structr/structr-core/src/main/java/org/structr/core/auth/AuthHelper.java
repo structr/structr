@@ -30,7 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.node.FindUserCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -56,10 +56,10 @@ public class AuthHelper {
 
 	//~--- get methods ----------------------------------------------------
 
-	public static User getUserForUsernameAndPassword(final SecurityContext securityContext, final String userName, final String password) throws AuthenticationException {
+	public static Principal getUserForUsernameAndPassword(final SecurityContext securityContext, final String userName, final String password) throws AuthenticationException {
 
 		String errorMsg = null;
-		User user       = null;
+		Principal user       = null;
 
 		if (Services.getSuperuserUsername().equals(userName) && Services.getSuperuserPassword().equals(password)) {
 
@@ -73,7 +73,7 @@ public class AuthHelper {
 
 				Command findUser = Services.command(securityContext, FindUserCommand.class);
 
-				user = (User) findUser.execute(userName);
+				user = (Principal) findUser.execute(userName);
 
 				if (user == null) {
 
@@ -126,12 +126,12 @@ public class AuthHelper {
 		return user;
 	}
 
-	public static User getUserForToken(final String messageToken) {
+	public static Principal getUserForToken(final String messageToken) {
 
-		User user                   = null;
+		Principal user                   = null;
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-		attrs.add(Search.andExactProperty(User.Key.sessionId, messageToken));
+		attrs.add(Search.andExactProperty(Principal.Key.sessionId, messageToken));
 		attrs.add(Search.andExactType("User"));
 
 		try {
@@ -141,9 +141,9 @@ public class AuthHelper {
 
 			if (!results.isEmpty()) {
 
-				user = (User) results.get(0);
+				user = (Principal) results.get(0);
 
-				if ((user != null) && messageToken.equals(user.getProperty(User.Key.sessionId))) {
+				if ((user != null) && messageToken.equals(user.getProperty(Principal.Key.sessionId))) {
 
 					return user;
 

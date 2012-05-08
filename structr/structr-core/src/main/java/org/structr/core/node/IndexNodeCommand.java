@@ -36,7 +36,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -294,7 +294,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from all indices", new Object[] { id, key });
 			addNodePropertyToIndex(dbNode, key, valueForIndexing, indexName);
 
-			if ((node instanceof User) && (key.equals(AbstractNode.Key.name.name()) || key.equals(Person.Key.email.name()))) {
+			if ((node instanceof Principal) && (key.equals(AbstractNode.Key.name.name()) || key.equals(Person.Key.email.name()))) {
 
 				removeNodePropertyFromIndex(dbNode, key, NodeIndex.user.name());
 				addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.user.name());

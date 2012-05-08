@@ -30,7 +30,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.eclipse.jetty.websocket.WebSocket;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateCommand;
 import org.structr.websocket.command.DeleteCommand;
@@ -296,7 +296,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	// ----- private methods -----
 	private void authenticateToken(final String messageToken) {
 
-		User user = AuthHelper.getUserForToken(messageToken);
+		Principal user = AuthHelper.getUserForToken(messageToken);
 
 		if (user != null) {
 
@@ -333,7 +333,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		return request;
 	}
 
-	public User getCurrentUser() {
+	public Principal getCurrentUser() {
 		return AuthHelper.getUserForToken(token);
 	}
 	
@@ -351,7 +351,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setAuthenticated(final String token, final User user) {
+	public void setAuthenticated(final String token, final Principal user) {
 		this.token = token;
 		try {
 			this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);

@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * An authenticator interface that defines how the system
@@ -55,7 +55,7 @@ public interface Authenticator {
 	 * @return the user that was just logged in
 	 * @throws AuthenticationException
 	 */
-	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException;
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException;
 
 	/**
 	 * Logs the given request out.
@@ -74,5 +74,5 @@ public interface Authenticator {
 	 * @return the logged-in user or null
 	 * @throws FrameworkException
 	 */
-	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
 }

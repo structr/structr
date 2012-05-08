@@ -32,7 +32,7 @@ import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -57,7 +57,7 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
 	 * Takes three parameters.
 	 *
 	 * <ul>
-	 * <li>1: User
+	 * <li>1: Principal
 	 * <li>2: URL string
 	 * <li>3: Parent node
 	 * </ul>
@@ -68,7 +68,7 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		User user               = null;
+		Principal user               = null;
 		String urlString        = null;
 		AbstractNode parentNode = null;
 		List<Image> result      = new LinkedList<Image>();
@@ -76,9 +76,9 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
 		switch (parameters.length) {
 
 			case 3 :
-				if (parameters[0] instanceof User) {
+				if (parameters[0] instanceof Principal) {
 
-					user = (User) parameters[0];
+					user = (Principal) parameters[0];
 
 				}
 
@@ -115,7 +115,7 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
 	 *
 	 * @param imageNode
 	 */
-	private List<Image> saveImagesFromWebsiteUrl(final User user, final String urlString, final AbstractNode parentNode) throws FrameworkException {
+	private List<Image> saveImagesFromWebsiteUrl(final Principal user, final String urlString, final AbstractNode parentNode) throws FrameworkException {
 
 		Command saveImage  = Services.command(securityContext, SaveImageFromUrl.class);
 		List<Image> result = new LinkedList<Image>();

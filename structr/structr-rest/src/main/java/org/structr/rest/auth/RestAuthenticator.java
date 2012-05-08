@@ -27,7 +27,7 @@ import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.rest.servlet.JsonRestServlet;
 
@@ -49,7 +49,7 @@ public class RestAuthenticator implements Authenticator {
 	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 		return null;
 	}
 
@@ -59,10 +59,10 @@ public class RestAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
 
 		String userHeader = request.getHeader("X-User");
-		User user         = null;
+		Principal user         = null;
 
 		try {
 
@@ -71,9 +71,9 @@ public class RestAuthenticator implements Authenticator {
 				long userId           = Long.parseLong(userHeader);
 				AbstractNode userNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(userId);
 
-				if ((userNode != null) && (userNode instanceof User)) {
+				if ((userNode != null) && (userNode instanceof Principal)) {
 
-					user = (User) userNode;
+					user = (Principal) userNode;
 
 				}
 

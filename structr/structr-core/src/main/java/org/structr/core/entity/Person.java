@@ -37,7 +37,7 @@ import org.structr.common.error.FrameworkException;
  * @author amorgner
  *
  */
-public class Person extends Principal {
+public class Person extends AbstractNode {
 
 	static {
 

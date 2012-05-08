@@ -20,9 +20,8 @@
 package org.structr.common;
 
 import java.util.Date;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * Interface to encapsulate query-able permissions. This interface exists
@@ -37,7 +36,7 @@ public interface AccessControllable {
 	 *
 	 * @return
 	 */
-	public User getOwnerNode();
+	public Principal getOwnerNode();
 
 	/**
 	 * Return true if principal has the given permission

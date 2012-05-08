@@ -35,7 +35,7 @@ import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.CsvFile;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * Converts a CSV file to a node list. Each row will be represented
@@ -59,7 +59,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
         Class targetClass = null;
         CsvFile csvFileNode = null;
         String filePath = null;
-        User user = null;
+        Principal user = null;
 
         for (Object o : parameters) {
 
@@ -85,8 +85,8 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
                 targetClass = (Class) o;
             }
 
-            if (o instanceof User) {
-                user = (User) o;
+            if (o instanceof Principal) {
+                user = (Principal) o;
             }
 
         }
@@ -133,7 +133,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
 //			List<String[]> lines = reader.readAll();
 
-            final User userCopy = user;
+            final Principal userCopy = user;
             final AbstractNode sourceNodeCopy = csvFileNode;
 
             final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);

@@ -134,7 +134,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	// dirty flag, true means that some changes are not yet written to the database
 	protected boolean isDirty;
 	protected Map<String, Object> properties;
-	protected User user;
+	protected Principal user;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -288,7 +288,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	/**
 	 * Commit unsaved property values to the database node.
 	 */
-	public void commit(final User user) throws FrameworkException {
+	public void commit(final Principal user) throws FrameworkException {
 
 		isDirty = false;
 
@@ -463,8 +463,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 
-		AbstractRelationship r = null;
-
 		// owner has always access control
 		if (user.equals(getOwnerNode())) {
 
@@ -472,7 +470,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 
-		r = getSecurityRelationship(user);
+		AbstractRelationship r = getSecurityRelationship(user);
 
 		if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
 
@@ -670,6 +668,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
+	public Date getDateProperty(final PropertyKey key) {
+		return getDateProperty(key.name());
+	}
+
+	@Override
 	public Date getDateProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -815,6 +818,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return EntityContext.getPropertySet(this.getClass(), propertyView);
 	}
 
+	@Override
 	public Object getProperty(final PropertyKey propertyKey) {
 		return (getProperty(propertyKey.name()));
 	}
@@ -932,6 +936,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return value;
 	}
 
+	@Override
 	public String getStringProperty(final PropertyKey propertyKey) {
 		return (getStringProperty(propertyKey.name()));
 	}
@@ -1111,10 +1116,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return result;
 	}
 
+	@Override
 	public Double getDoubleProperty(final PropertyKey propertyKey) throws FrameworkException {
 		return (getDoubleProperty(propertyKey.name()));
 	}
 
+	@Override
 	public Double getDoubleProperty(final String key) throws FrameworkException {
 
 		Object propertyValue = getProperty(key);
@@ -1155,10 +1162,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return result;
 	}
 
+	@Override
 	public boolean getBooleanProperty(final PropertyKey propertyKey) {
 		return (getBooleanProperty(propertyKey.name()));
 	}
 
+	@Override
 	public boolean getBooleanProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -1344,15 +1353,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return
 	 */
 	@Override
-	public User getOwnerNode() {
+	public Principal getOwnerNode() {
 
 		for (AbstractRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
 
 			AbstractNode n = s.getStartNode();
 
-			if (n instanceof User) {
+			if (n instanceof Principal) {
 
-				return (User) n;
+				return (Principal) n;
 
 			}
 
@@ -1374,10 +1383,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public String getOwner() {
 
-		User ownner = getOwnerNode();
+		Principal ownner = getOwnerNode();
 
 		return ((ownner != null)
-			? ownner.getRealName() + " (" + ownner.getName() + ")"
+			? ownner.getRealName() + " (" + ownner.getStringProperty(AbstractNode.Key.name) + ")"
 			: null);
 	}
 
@@ -1581,6 +1590,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		setProperty(Key.name.name(), name);
 	}
 
+	@Override
 	public void setProperty(final PropertyKey propertyKey, final Object value) throws FrameworkException {
 		setProperty(propertyKey.name(), value);
 	}
@@ -1645,7 +1655,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// no old value exists, set property
 		if ((oldValue == null) && (value != null)) {
 
-			setPropertyInternal(key, value, updateIndex);
+			setPropertyInternal(key, value);
 
 			return;
 
@@ -1654,14 +1664,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// old value exists and is NOT equal
 		if ((oldValue != null) &&!oldValue.equals(value)) {
 
-			setPropertyInternal(key, value, updateIndex);
-
-			return;
+			setPropertyInternal(key, value);
 
 		}
 	}
 
-	private void setPropertyInternal(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
+	private void setPropertyInternal(final String key, final Object value) throws FrameworkException {
 
 		final Class type = this.getClass();
 

@@ -39,7 +39,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 import org.structr.core.module.GetEntityClassCommand;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -198,7 +198,7 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input, final boolean includeDeleted) throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		User user                = securityContext.getUser();
+		Principal user                = securityContext.getUser();
 
 		if ((input != null) && input.iterator().hasNext()) {
 

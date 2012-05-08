@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * Use this interface for tasks that convert a given node into another
@@ -79,7 +79,7 @@ public class UpdateImageMetadataTask implements Task {
 	}
 
     @Override
-    public User getUser() {
+    public Principal getUser() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

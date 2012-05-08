@@ -42,7 +42,7 @@ import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.File;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 /**
  * Extract a file and create subnodes
@@ -64,7 +64,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 		AbstractNode node = null;
 		AbstractNode targetNode = null;
-		User user = null;
+		Principal user = null;
 
 		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
@@ -96,8 +96,8 @@ public class ExtractFileCommand extends NodeServiceCommand {
 					targetNode = (AbstractNode)findNode.execute(id);
 				}
 
-				if(parameters[2] instanceof User) {
-					user = (User)parameters[2];
+				if(parameters[2] instanceof Principal) {
+					user = (Principal)parameters[2];
 				}
 
 				break;
@@ -112,7 +112,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 		return null;
 	}
 
-	private void doExtractFileNode(AbstractNode node, AbstractNode targetNode, User user) throws FrameworkException {
+	private void doExtractFileNode(AbstractNode node, AbstractNode targetNode, Principal user) throws FrameworkException {
 
 		if(node != null) {
 

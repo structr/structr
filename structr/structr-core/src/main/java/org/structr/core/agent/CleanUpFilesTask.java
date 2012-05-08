@@ -22,7 +22,7 @@
 package org.structr.core.agent;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -98,7 +98,7 @@ public class CleanUpFilesTask implements Task {
 	}
 
 	@Override
-	public User getUser() {
+	public Principal getUser() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

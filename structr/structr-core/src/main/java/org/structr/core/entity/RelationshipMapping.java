@@ -113,7 +113,9 @@ public class RelationshipMapping {
 		return EntityContext.getNamedRelationClass(sourceType, destType, relType);
 	}
 
-	public List<AbstractRelationship> getRelationships(AbstractNode node) throws FrameworkException {
+	public List<AbstractRelationship> getRelationships(GraphObject obj) throws FrameworkException {
+                
+                AbstractNode node = (AbstractNode) obj;
 
 		Class combinedRelType               = getEntityClass();
 		List<AbstractRelationship> relsFilteredByType = new LinkedList<AbstractRelationship>();

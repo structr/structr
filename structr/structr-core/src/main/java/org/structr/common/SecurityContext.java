@@ -28,7 +28,7 @@ import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
+import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -43,6 +43,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,7 +66,7 @@ public class SecurityContext {
 	private Authenticator authenticator  = null;
 	private HttpServletRequest request   = null;
 	private HttpServletResponse response = null;
-	private User user                    = null;
+	private Principal user                    = null;
 	private String password              = null;
 
 	//~--- constructors ---------------------------------------------------
@@ -73,7 +74,7 @@ public class SecurityContext {
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
 	 */
-	private SecurityContext(User user, AccessMode accessMode) {
+	private SecurityContext(Principal user, AccessMode accessMode) {
 
 		this.user       = user;
 		this.accessMode = accessMode;
@@ -100,7 +101,7 @@ public class SecurityContext {
 		this.authenticator.examineRequest(this, request, response);
 	}
 
-	public User doLogin(String userName, String password) throws AuthenticationException {
+	public Principal doLogin(String userName, String password) throws AuthenticationException {
 		return authenticator.doLogin(this, request, response, userName, password);
 	}
 
@@ -118,7 +119,7 @@ public class SecurityContext {
 		return new SecurityContext(config, request, response, accessMode);
 	}
 
-	public static SecurityContext getInstance(User user, AccessMode accessMode) throws FrameworkException {
+	public static SecurityContext getInstance(Principal user, AccessMode accessMode) throws FrameworkException {
 		return new SecurityContext(user, accessMode);
 	}
 
@@ -126,7 +127,7 @@ public class SecurityContext {
 		return request.getSession();
 	}
 
-	public User getUser() {
+	public Principal getUser() {
 
 		try {
 
@@ -149,7 +150,7 @@ public class SecurityContext {
 
 		if (user != null) {
 
-			return user.getName();
+			return user.getStringProperty(AbstractNode.Key.name);
 
 		}
 
@@ -223,7 +224,7 @@ public class SecurityContext {
 		if (node != null) {
 
 			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, (user != null)
-				? user.getName()
+				? user.getStringProperty(AbstractNode.Key.name)
 				: "null", accessMode, node, permission });
 
 		}
@@ -516,7 +517,7 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 	}
 
-	public void setUser(final User user) {
+	public void setUser(final Principal user) {
 		this.user = user;
 	}
 
@@ -537,7 +538,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public User getUser() {
+		public Principal getUser() {
 			return new SuperUser();
 		}
 
