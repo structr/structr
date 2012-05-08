@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -130,9 +129,7 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 		if (node.getStringProperty(AbstractNode.Key.uuid) == null) {
 
-			setExitCode(Command.exitCode.FAILURE);
-			setErrorMessage("Will not remove node from indices which has no UUID");
-			logger.log(Level.WARNING, getErrorMessage());
+			logger.log(Level.WARNING, "Will not remove node from indices which has no UUID");
 
 			return;
 

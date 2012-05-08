@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
@@ -53,7 +52,7 @@ public class RelationshipFactoryCommand extends NodeServiceCommand {
 
                     for (Object o : parameters) {
                         Relationship rel = null;
-                        if (o instanceof AbstractNode) {
+                        if (o instanceof AbstractRelationship) {
                             rel = graphDb.getRelationshipById(((AbstractRelationship) o).getId());
                         } else if (o instanceof Relationship) {
                             rel = (Relationship) o;

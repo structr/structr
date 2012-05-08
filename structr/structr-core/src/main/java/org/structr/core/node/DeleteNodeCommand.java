@@ -118,9 +118,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		if (node == null) {
 
-			setExitCode(Command.exitCode.FAILURE);
-			setErrorMessage("Could not delete node null");
-			logger.log(Level.WARNING, getErrorMessage());
+			logger.log(Level.WARNING, "Could not delete node null");
 
 			return null;
 
@@ -128,9 +126,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		if (node.getId() == 0) {
 
-			setExitCode(Command.exitCode.FAILURE);
-			setErrorMessage("Deleting the root node is not allowed.");
-			logger.log(Level.WARNING, getErrorMessage());
+			logger.log(Level.WARNING, "Deleting the root node is not allowed.");
 
 			return null;
 
@@ -146,9 +142,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		if (node.getStringProperty(AbstractNode.Key.uuid) == null) {
 
-			setExitCode(Command.exitCode.FAILURE);
-			setErrorMessage("Will not delete node which has no UUID");
-			logger.log(Level.WARNING, getErrorMessage());
+			logger.log(Level.WARNING, "Will not delete node which has no UUID");
 
 			return null;
 
@@ -189,14 +183,14 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 						}
 
 						// Delete all start nodes of incoming relationships which are connected
-						// by relationships which have a cascadeDelete value of DELETE_INCOMING or DELETE_INCOMING
+						// by relationships which have a cascadeDelete value of DELETE_INCOMING or DELETE_BOTH
 						List<AbstractRelationship> incomingRels = node.getIncomingRelationships();
 
 						for (AbstractRelationship rel : incomingRels) {
 
 							int cascadeDelete = rel.cascadeDelete();
 
-							if ((cascadeDelete == RelationClass.DELETE_INCOMING) || (cascadeDelete == RelationClass.DELETE_INCOMING)) {
+							if ((cascadeDelete == RelationClass.DELETE_INCOMING) || (cascadeDelete == RelationClass.DELETE_BOTH)) {
 
 								AbstractNode startNode = rel.getStartNode();
 
@@ -227,7 +221,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 					// delete node in database
 					node.getNode().delete();
-					setExitCode(Command.exitCode.SUCCESS);
 
 				} catch (Throwable t) {
 					logger.log(Level.WARNING, "Exception while deleting node: {0}", t);

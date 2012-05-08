@@ -230,7 +230,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 
-		return (new Long(dbNode.getId()).hashCode());
+		return Long.valueOf(dbNode.getId()).hashCode();
 	}
 
 	@Override
@@ -1138,7 +1138,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				return null;
 			}
 
-			result = doubleValue.doubleValue();
+			result = doubleValue;
 
 		} else if (propertyValue instanceof String) {
 
@@ -1172,7 +1172,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		if (propertyValue instanceof Boolean) {
 
-			result = ((Boolean) propertyValue).booleanValue();
+			result = ((Boolean) propertyValue);
 
 		} else if (propertyValue instanceof String) {
 

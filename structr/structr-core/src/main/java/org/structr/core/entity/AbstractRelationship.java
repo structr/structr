@@ -54,6 +54,7 @@ import org.structr.core.validator.SimpleRegexValidator;
 import java.text.ParseException;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -310,7 +311,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	@Override
 	public boolean equals(final Object o) {
-		return (new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+		return (o != null && new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
 	}
 
 	@Override
@@ -322,7 +323,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		}
 
-		return (new Long(dbRelationship.getId()).hashCode());
+		return Long.valueOf(dbRelationship.getId()).hashCode();
 	}
 
 	@Override
@@ -645,7 +646,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		if (propertyValue instanceof Boolean) {
 
-			result = ((Boolean) propertyValue).booleanValue();
+			result = ((Boolean) propertyValue);
 
 		} else if (propertyValue instanceof String) {
 
@@ -718,20 +719,20 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		if (dbRelationship.hasProperty(AbstractRelationship.Permission.allowed.name())) {
 
-			String result              = "";
+			StringBuilder result             = new StringBuilder();
 			String[] allowedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.Permission.allowed.name());
 
 			if (allowedProperties != null) {
 
 				for (String p : allowedProperties) {
 
-					result += p + "\n";
+					result.append(p).append("\n");
 
 				}
 
 			}
 
-			return result;
+			return result.toString();
 
 		} else {
 
@@ -744,20 +745,20 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		if (dbRelationship.hasProperty(AbstractRelationship.Permission.denied.name())) {
 
-			String result             = "";
+			StringBuilder result             = new StringBuilder();
 			String[] deniedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.Permission.denied.name());
 
 			if (deniedProperties != null) {
 
 				for (String p : deniedProperties) {
 
-					result += p + "\n";
+					result.append(p).append("\n");
 
 				}
 
 			}
 
-			return result;
+			return result.toString();
 
 		} else {
 
@@ -900,9 +901,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public void setProperties(final Map<String, Object> properties) throws FrameworkException {
 
-		for (String key : properties.keySet()) {
+		for (Entry prop : properties.entrySet()) {
 
-			setProperty(key, properties.get(key));
+			setProperty((String) prop.getKey(), prop.getValue());
 
 		}
 	}
@@ -1053,7 +1054,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Command findNode          = Services.command(securityContext, FindNodeCommand.class);
 				Command deleteRel         = Services.command(securityContext, DeleteRelationshipCommand.class);
 				Command createRel         = Services.command(securityContext, CreateRelationshipCommand.class);
 				Command nodeFactory       = Services.command(securityContext, NodeFactoryCommand.class);
@@ -1111,7 +1111,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Command findNode        = Services.command(securityContext, FindNodeCommand.class);
 				Command deleteRel       = Services.command(securityContext, DeleteRelationshipCommand.class);
 				Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
 				Command nodeFactory     = Services.command(securityContext, NodeFactoryCommand.class);

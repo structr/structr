@@ -155,7 +155,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			BooleanQuery query                             = new BooleanQuery();
 			List<FilterSearchAttribute> filters            = new LinkedList<FilterSearchAttribute>();
 			List<TextualSearchAttribute> textualAttributes = new LinkedList<TextualSearchAttribute>();
-			String textualQueryString                      = "";
+			StringBuilder textualQueryString               = new StringBuilder();
 			DistanceSearchAttribute distanceSearch         = null;
 			Coordinates coords                             = null;
 			Double dist                                    = null;
@@ -172,12 +172,12 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 					SearchAttributeGroup attributeGroup     = (SearchAttributeGroup) attr;
 					List<SearchAttribute> groupedAttributes = attributeGroup.getSearchAttributes();
-					String subQueryString                   = "";
+					StringBuilder subQueryString                   = new StringBuilder();
 
 					if (!(groupedAttributes.isEmpty())) {
 
 						BooleanQuery subQuery = new BooleanQuery();
-						String subQueryPrefix = (StringUtils.isBlank(textualQueryString)
+						String subQueryPrefix = (StringUtils.isBlank(textualQueryString.toString())
 									 ? ""
 									 : attributeGroup.getSearchOperator()) + " ( ";
 
@@ -189,7 +189,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 								textualAttributes.add((TextualSearchAttribute) groupedAttr);
 								subQuery.add(toQuery((TextualSearchAttribute) groupedAttr), translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
 
-								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr, StringUtils.isBlank(subQueryString));
+								subQueryString.append(toQueryString((TextualSearchAttribute) groupedAttr, StringUtils.isBlank(subQueryString.toString())));
 								allExactMatch  &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
 
 							}
@@ -200,9 +200,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 						String subQuerySuffix = " ) ";
 
 						// Add sub query only if not blank
-						if (StringUtils.isNotBlank(subQueryString)) {
+						if (StringUtils.isNotBlank(subQueryString.toString())) {
 
-							textualQueryString += subQueryPrefix + subQueryString + subQuerySuffix;
+							textualQueryString.append(subQueryPrefix).append(subQueryString).append(subQuerySuffix);
 
 						}
 
@@ -213,7 +213,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					textualAttributes.add((TextualSearchAttribute) attr);
 					query.add(toQuery((TextualSearchAttribute) attr), translateToBooleanClauseOccur(attr.getSearchOperator()));
 
-					textualQueryString += toQueryString((TextualSearchAttribute) attr, StringUtils.isBlank(textualQueryString));
+					textualQueryString.append(toQueryString((TextualSearchAttribute) attr, StringUtils.isBlank(textualQueryString.toString())));
 					allExactMatch      &= isExactMatch(((TextualSearchAttribute) attr).getValue());
 
 				} else if (attr instanceof FilterSearchAttribute) {
@@ -226,18 +226,16 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			List<AbstractNode> intermediateResult;
 
-			if (searchAttrs.isEmpty() && StringUtils.isBlank(textualQueryString)) {
+			if (searchAttrs.isEmpty() && StringUtils.isBlank(textualQueryString.toString())) {
 
-//				if (topNode != null) {
+//                              if (topNode != null) {
 //
-//					intermediateResult = topNode.getAllChildren();
+//                                      intermediateResult = topNode.getAllChildren();
 //
-//				} else {
+//                              } else {
+				intermediateResult = new LinkedList<AbstractNode>();
 
-					intermediateResult = new LinkedList<AbstractNode>();
-
-//				}
-
+//                              }
 			} else {
 
 				long t0 = System.currentTimeMillis();
@@ -245,7 +243,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
 				QueryContext queryContext = new QueryContext(textualQueryString);
-				IndexHits hits = null;
+				IndexHits hits            = null;
 
 				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.Key.uuid.name())) {
 
@@ -280,7 +278,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				long t1 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, hits != null ? hits.size() : 0 });
+				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, (hits != null)
+					? hits.size()
+					: 0 });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
 				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeleted, publicOnly);
@@ -400,7 +400,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	private Query toQuery(final TextualSearchAttribute singleAttribute) {
 
 		String key   = singleAttribute.getKey();
-		Object value = singleAttribute.getValue();
+		String value = singleAttribute.getValue();
 
 //              SearchOperator op = singleAttribute.getSearchOperator();
 		if ((key == null) || (value == null)) {
@@ -409,12 +409,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		boolean valueIsNoStringAndNotNull = ((value != null) &&!(value instanceof String));
-		boolean valueIsNoBlankString      = ((value != null) && (value instanceof String) && StringUtils.isNotBlank((String) value));
+		if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
 
-		if (StringUtils.isNotBlank(key) && (valueIsNoBlankString || valueIsNoStringAndNotNull)) {
-
-			return new TermQuery(new Term(key, value.toString()));
+			return new TermQuery(new Term(key, value));
 
 		}
 
@@ -441,7 +438,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		return BooleanClause.Occur.MUST;
 	}
 
-	private String expand(final String key, final Object value) {
+	private String expand(final String key, final String value) {
 
 		if (StringUtils.isBlank(key)) {
 
@@ -449,18 +446,12 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		String stringValue = null;
 		String escapedKey  = Search.escapeForLucene(key);
+		String stringValue = (String) value;
 
-		if (value instanceof String) {
+		if (StringUtils.isBlank(stringValue)) {
 
-			stringValue = (String) value;
-
-			if (StringUtils.isBlank(stringValue)) {
-
-				return "";
-
-			}
+			return "";
 
 		}
 
@@ -473,7 +464,8 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		String result = "( ";
+		StringBuilder result = new StringBuilder();
+		result.append("( ");
 
 		// Split string into words
 		String[] words = StringUtils.split(stringValue, " ");
@@ -499,15 +491,13 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                      String cleanWord = Search.clean(word);
 //                      result += " (" + key + ":" + cleanWord + "* OR " + key + ":\"" + cleanWord + "\")" + (i<words.length ? " AND " : " ) ");
 //                      result += " (" + key + ":" + word + "* OR " + key + ":\"" + word + "\")" + (i < words.length ? " AND " : " ) ");
-			result += " (" + escapedKey + ":*" + word + "* OR " + escapedKey + ":\"" + word + "\")" + ((i < words.length)
-				? " AND "
-				: " ) ");
+			result.append(" (").append(escapedKey).append(":*").append(word).append("* OR ").append(escapedKey).append(":\"").append(word).append("\")").append((i < words.length) ? " AND ": " ) ");
 
 //                      }
 			i++;
 		}
 
-		return result;
+		return result.toString();
 	}
 
 	private List<AbstractNode> filterNotExactMatches(final List<AbstractNode> result, TextualSearchAttribute attr) {

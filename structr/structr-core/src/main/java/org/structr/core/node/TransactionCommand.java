@@ -72,7 +72,7 @@ public class TransactionCommand extends NodeServiceCommand {
 						int indent = getIndent();
 
 						System.out.print("################################# ");
-						System.out.print(StringUtils.leftPad(new Long(Thread.currentThread().getId()).toString(), 5));
+						System.out.print(StringUtils.leftPad(Long.valueOf(Thread.currentThread().getId()).toString(), 5));
 						System.out.print(" ");
 						for(int i=0; i<indent; i++) System.out.print("  ");
 						System.out.println("Starting  transaction " + transaction.toString() + " at " + System.currentTimeMillis());

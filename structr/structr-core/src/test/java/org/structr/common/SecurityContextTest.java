@@ -102,7 +102,7 @@ public class SecurityContextTest extends TestCase {
 	}
 
 	// ----- private methods -----
-	private class MockAccessControllable implements AccessControllable {
+	private static class MockAccessControllable implements AccessControllable {
 
 		private boolean visibleToAuthenticatedUsersFlag = false;
 		private String[] permissions = null;
@@ -135,7 +135,7 @@ public class SecurityContextTest extends TestCase {
 
 			// check preset permissions
 			for(String presetPermission : permissions) {
-				if(presetPermission.equals(permissions)) {
+				if(presetPermission.equals(permission)) {
 					return(true);
 				}
 			}

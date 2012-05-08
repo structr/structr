@@ -68,7 +68,7 @@ public abstract class AbstractComponent
 
 	public AbstractComponent setForceClosingTag(boolean forceClosingTag)
 	{
-		this.setForceClosingTag(forceClosingTag);
+		this.forceClosingTag = forceClosingTag;
 
 		return(this);
 	}

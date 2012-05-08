@@ -95,7 +95,7 @@ public class Image extends File {
 //			      new FileStreamRenderer());
 //	}
 
-	synchronized public void removeThumbnails() {
+	public void removeThumbnails() {
 
 		Command deleteRelationship = Services.command(securityContext, DeleteRelationshipCommand.class);
 		Command deleteNode         = Services.command(securityContext, DeleteNodeCommand.class);
@@ -210,7 +210,7 @@ public class Image extends File {
 	 *
 	 * @return
 	 */
-	synchronized public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
+	public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
 		thumbnailRelationships = getThumbnailRelationships();
 

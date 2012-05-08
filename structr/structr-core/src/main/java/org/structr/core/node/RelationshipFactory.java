@@ -27,12 +27,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.module.GetEntityClassCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -79,6 +76,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			try {
 				newRel = (AbstractRelationship) relClass.newInstance();				
+				newRel.onRelationshipInstantiation();
 			} catch (InstantiationException ex) {
 				logger.log(Level.FINE, "Could not instantiate relationship", ex);
 			} catch (IllegalAccessException ex) {
@@ -87,7 +85,6 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		}
 
-		newRel.onRelationshipInstantiation();
 
 		return newRel;
 	}

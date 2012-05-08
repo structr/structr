@@ -109,12 +109,12 @@ public class ExtractAndSetImageDimensionsAndFormat extends NodeServiceCommand {
                                 imageNode.setContentType(format);
                             }
 
-                        } catch (Throwable ignore) {
-                            logger.log(Level.SEVERE, "Error while extracting image dimensions or type from {0}", filePath);
-                        } finally {
+                        } catch (Throwable t) {
+                            logger.log(Level.SEVERE, "Error while extracting image dimensions or type from {0} {1}", new Object[] { filePath, t.getMessage() });
                         }
-                    } catch (Exception e) {
-                        logger.log(Level.SEVERE, "Could not read image {0}", filePath);
+			
+                    } catch (Throwable e) {
+                        logger.log(Level.SEVERE, "Could not read image {0} {1}", new Object[] { filePath, e.getMessage() });
                     }
 
                     logger.log(Level.FINE, "Extracted dimensions and format from image node {0} (x,y, format): {1}, {2}, {3}", new Object[]{imageNode.getId(), width, height, format});

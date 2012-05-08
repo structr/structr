@@ -77,7 +77,7 @@ public class AuthHelper {
 
 				if (user == null) {
 
-					logger.log(Level.INFO, "No user found for name {0}", user);
+					logger.log(Level.INFO, "No user found for name {0}", userName);
 
 					errorMsg = STANDARD_ERROR_MSG;
 

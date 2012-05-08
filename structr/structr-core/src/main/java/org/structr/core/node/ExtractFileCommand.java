@@ -117,9 +117,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 		if(node != null) {
 
 			if(!(node instanceof File)) {
-				setExitCode(Command.exitCode.FAILURE);
-				setErrorMessage("Could not extract content of node" + node.getId());
-				logger.log(Level.WARNING, getErrorMessage());
+				logger.log(Level.WARNING, "Could not extract content of node{0}", node.getId());
 				return;
 			}
 
@@ -251,38 +249,26 @@ public class ExtractFileCommand extends NodeServiceCommand {
 						} while(ae != null);
 
 					} catch(IOException e) {
-						setErrorMessage("Could not read from archive stream");
-						setExitCode(Command.exitCode.FAILURE);
-						logger.log(Level.WARNING, getErrorMessage().concat(": {0}"), e.getMessage());
-						return;
+						logger.log(Level.WARNING, "Could not read from archive stream".concat(": {0}"), e.getMessage());
 					}
 				}
 
 			} catch(ArchiveException e) {
-				setErrorMessage("Unknown Archive format");
-				setExitCode(Command.exitCode.FAILURE);
-				logger.log(Level.WARNING, getErrorMessage().concat(": {0}"), e.getMessage());
-				return;
+				logger.log(Level.WARNING, "Unknown Archive format".concat(": {0}"), e.getMessage());
 			} finally {
 				try {
 					if(input != null) {
 						input.close();
 					}
 				} catch(IOException e) {
-					logger.log(Level.WARNING, "Exception while closing input stream: " + e.getMessage());
+					logger.log(Level.WARNING, "Exception while closing input stream: {0}", e.getMessage());
 				}
 
 			}
 
 		} else {
-			setErrorMessage("Node to extract was null");
-			setExitCode(Command.exitCode.FAILURE);
-			logger.log(Level.WARNING, getErrorMessage());
-			return;
+			logger.log(Level.WARNING, "Node to extract was null");
 		}
-
-		// everything is fine
-		setExitCode(Command.exitCode.SUCCESS);
 
 	}
 

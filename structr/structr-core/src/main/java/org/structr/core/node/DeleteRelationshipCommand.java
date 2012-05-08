@@ -45,15 +45,13 @@ import java.util.logging.Logger;
 public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(DeleteRelationshipCommand.class.getName());
-	private static RelationshipFactory relationshipFactory;
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
-
+		RelationshipFactory relationshipFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Object ret                   = null;
 
@@ -62,31 +60,27 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 			switch (parameters.length) {
 
 				case 0 :
-					setExitCode(exitCode.FAILURE);
 
-					String errorMsg = "No arguments supplied";
-
-					setErrorMessage(errorMsg);
-
-					throw new UnsupportedArgumentError(errorMsg);
+					throw new UnsupportedArgumentError("No arguments supplied");
 
 				case 1 :
-					return (handleSingleArgument(graphDb, parameters[0]));
+					return (handleSingleArgument(graphDb, relationshipFactory, parameters[0]));
+
+				default :
+
+					throw new UnsupportedArgumentError("Too many arguments supplied");
+
 
 			}
 
 		}
 
-		setExitCode(exitCode.FAILURE);
-		setErrorMessage("Too many arguments, or database was null");
-
 		return ret;
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private Object handleSingleArgument(GraphDatabaseService graphDb, Object argument) throws FrameworkException {
+	private Object handleSingleArgument(GraphDatabaseService graphDb, RelationshipFactory relationshipFactory, Object argument) throws FrameworkException {
 
-		setExitCode(exitCode.FAILURE);
 
 		AbstractRelationship rel = null;
 
@@ -114,9 +108,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			if (rel.getStringProperty(AbstractRelationship.Key.uuid) == null) {
 
-				setExitCode(Command.exitCode.FAILURE);
-				setErrorMessage("Will not delete relationship which has no UUID");
-				logger.log(Level.WARNING, getErrorMessage());
+				logger.log(Level.WARNING, "Will not delete relationship which has no UUID");
 
 				return null;
 
@@ -145,7 +137,6 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 				}
 
 			});
-			setExitCode(exitCode.SUCCESS);
 
 		}
 

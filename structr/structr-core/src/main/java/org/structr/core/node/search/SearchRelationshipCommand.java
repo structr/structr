@@ -110,7 +110,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 			BooleanQuery query                             = new BooleanQuery();
 			List<FilterSearchAttribute> filters            = new LinkedList<FilterSearchAttribute>();
 			List<TextualSearchAttribute> textualAttributes = new LinkedList<TextualSearchAttribute>();
-			String textualQueryString                      = "";
+			StringBuilder textualQueryString               = new StringBuilder();
 
 			for (SearchAttribute attr : searchAttrs) {
 
@@ -118,12 +118,12 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 					SearchAttributeGroup attributeGroup     = (SearchAttributeGroup) attr;
 					List<SearchAttribute> groupedAttributes = attributeGroup.getSearchAttributes();
-					String subQueryString                   = "";
+					StringBuilder subQueryString            = new StringBuilder();
 
 					if (!(groupedAttributes.isEmpty())) {
 
 						BooleanQuery subQuery = new BooleanQuery();
-						String subQueryPrefix = (StringUtils.isBlank(textualQueryString)
+						String subQueryPrefix = (StringUtils.isBlank(textualQueryString.toString())
 									 ? ""
 									 : attributeGroup.getSearchOperator()) + " ( ";
 
@@ -135,7 +135,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 								textualAttributes.add((TextualSearchAttribute) groupedAttr);
 								subQuery.add(toQuery((TextualSearchAttribute) groupedAttr), translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
 
-								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr, StringUtils.isBlank(subQueryString));
+								subQueryString.append(toQueryString((TextualSearchAttribute) groupedAttr, StringUtils.isBlank(subQueryString.toString())));
 								allExactMatch  &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
 
 							}
@@ -146,9 +146,9 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 						String subQuerySuffix = " ) ";
 
 						// Add sub query only if not blank
-						if (StringUtils.isNotBlank(subQueryString)) {
+						if (StringUtils.isNotBlank(subQueryString.toString())) {
 
-							textualQueryString += subQueryPrefix + subQueryString + subQuerySuffix;
+							textualQueryString.append(subQueryPrefix).append(subQueryString).append(subQuerySuffix);
 
 						}
 
@@ -159,7 +159,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 					textualAttributes.add((TextualSearchAttribute) attr);
 					query.add(toQuery((TextualSearchAttribute) attr), translateToBooleanClauseOccur(attr.getSearchOperator()));
 
-					textualQueryString += toQueryString((TextualSearchAttribute) attr, StringUtils.isBlank(textualQueryString));
+					textualQueryString.append(toQueryString((TextualSearchAttribute) attr, StringUtils.isBlank(textualQueryString.toString())));
 					allExactMatch      &= isExactMatch(((TextualSearchAttribute) attr).getValue());
 
 				} else if (attr instanceof FilterSearchAttribute) {
@@ -172,7 +172,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 			List<AbstractRelationship> intermediateResult;
 
-			if (searchAttrs.isEmpty() || StringUtils.isBlank(textualQueryString)) {
+			if (searchAttrs.isEmpty() || StringUtils.isBlank(textualQueryString.toString())) {
 
 				intermediateResult = new LinkedList<AbstractRelationship>();
 
@@ -321,7 +321,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 	private Query toQuery(final TextualSearchAttribute singleAttribute) {
 
 		String key   = singleAttribute.getKey();
-		Object value = singleAttribute.getValue();
+		String value = singleAttribute.getValue();
 
 //              SearchOperator op = singleAttribute.getSearchOperator();
 		if ((key == null) || (value == null)) {
@@ -330,12 +330,9 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 		}
 
-		boolean valueIsNoStringAndNotNull = ((value != null) &&!(value instanceof String));
-		boolean valueIsNoBlankString      = ((value != null) && (value instanceof String) && StringUtils.isNotBlank((String) value));
+		if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
 
-		if (StringUtils.isNotBlank(key) && (valueIsNoBlankString || valueIsNoStringAndNotNull)) {
-
-			return new TermQuery(new Term(key, value.toString()));
+			return new TermQuery(new Term(key, value));
 
 		}
 

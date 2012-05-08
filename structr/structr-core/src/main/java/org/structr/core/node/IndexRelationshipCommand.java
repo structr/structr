@@ -134,6 +134,12 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 				}
 
+				if (rel == null) {
+
+					logger.log(Level.SEVERE, "Wrong type of parameters for the index relationship command: {0}", parameters);
+
+				}
+
 				indexProperty(rel, key);
 
 				break;
@@ -162,8 +168,11 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		String uuid = rel.getStringProperty(AbstractRelationship.Key.uuid);
 
 		// Don't index non-structr relationship
-		if (uuid == null) return;
+		if (uuid == null) {
 
+			return;
+
+		}
 
 		String combinedKey = rel.getStringProperty(AbstractRelationship.HiddenKey.type.name());
 

@@ -78,9 +78,7 @@ public class NodeService implements SingletonService {
 
 	/** Dependent services */
 	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
-        
-        private boolean isInitialized = false;
-                
+	private boolean isInitialized                   = false;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -125,8 +123,11 @@ public class NodeService implements SingletonService {
 			logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
 			if (graphDb != null) {
+
 				logger.log(Level.INFO, "Database already running ({0}) ...", dbPath);
+
 				return;
+
 			}
 
 			try {
@@ -141,6 +142,14 @@ public class NodeService implements SingletonService {
 			if (graphDb != null) {
 
 				graphDb.registerTransactionEventHandler(EntityContext.getTransactionEventHandler());
+
+			}
+
+			if (graphDb == null) {
+
+				logger.log(Level.SEVERE, "Database could not be started ({0}) ...", dbPath);
+
+				return;
 
 			}
 
@@ -218,8 +227,8 @@ public class NodeService implements SingletonService {
 			logger.log(Level.SEVERE, "Database could not be initialized. {0}", e.getMessage());
 			e.printStackTrace(System.out);
 		}
-                
-                isInitialized = true;
+
+		isInitialized = true;
 	}
 
 	@Override
@@ -237,9 +246,8 @@ public class NodeService implements SingletonService {
 			waitFor(registeredServices.isEmpty());
 			graphDb.shutdown();
 
-			graphDb = null;
-                        
-                        isInitialized = false;
+			graphDb       = null;
+			isInitialized = false;
 
 		}
 	}
@@ -273,6 +281,6 @@ public class NodeService implements SingletonService {
 	// </editor-fold>
 	@Override
 	public boolean isRunning() {
-		return (graphDb != null && isInitialized);
+		return ((graphDb != null) && isInitialized);
 	}
 }

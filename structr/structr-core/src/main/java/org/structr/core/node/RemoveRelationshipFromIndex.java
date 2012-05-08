@@ -125,9 +125,7 @@ public class RemoveRelationshipFromIndex extends NodeServiceCommand {
 
 		if (rel.getStringProperty(AbstractRelationship.Key.uuid) == null) {
 
-			setExitCode(Command.exitCode.FAILURE);
-			setErrorMessage("Will not remove relationship from indices which has no UUID");
-			logger.log(Level.WARNING, getErrorMessage());
+			logger.log(Level.WARNING, "Will not remove relationship from indices which has no UUID");
 
 			return;
 

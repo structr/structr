@@ -21,12 +21,15 @@
 
 package org.structr.core.auth;
 
-
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
+import org.structr.core.Services;
+
 //import org.structr.context.SessionMonitor;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.User;
+import org.structr.core.node.FindUserCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -46,9 +49,10 @@ import javax.servlet.http.HttpSession;
  */
 public class StructrAuthenticator implements Authenticator {
 
-	public static final String USERNAME_KEY  = "username";
-	public static final String USER_NODE_KEY = "userNode";
-	private static final Logger logger       = Logger.getLogger(StructrAuthenticator.class.getName());
+	public static final String USERNAME_KEY = "username";
+
+	// public static final String USER_NODE_KEY = "userNode";
+	private static final Logger logger = Logger.getLogger(StructrAuthenticator.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -58,28 +62,13 @@ public class StructrAuthenticator implements Authenticator {
 	@Override
 	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
-		String errorMsg = null;
-		User user       = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
-
-		if (errorMsg != null) {
-
-			throw new AuthenticationException(errorMsg);
-
-		}
+		User user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
 
 		try {
 
 			HttpSession session = request.getSession();
 
-			session.setAttribute(USER_NODE_KEY, user);
 			session.setAttribute(USERNAME_KEY, userName);
-
-//			long sessionId = SessionMonitor.registerUserSession(securityContext, session);
-//
-//			SessionMonitor.logActivity(securityContext, sessionId, "Login");
-//
-//			// Mark this session with the internal session id
-//			session.setAttribute(SessionMonitor.SESSION_ID, sessionId);
 
 		} catch (Exception e) {
 			logger.log(Level.INFO, "Could not register session");
@@ -92,24 +81,19 @@ public class StructrAuthenticator implements Authenticator {
 	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
 
 		HttpSession session = request.getSession();
-//		Long sessionIdValue = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
-//
-//		if (sessionIdValue != null) {
-//
-//			long sessionId = sessionIdValue.longValue();
-//
-//			SessionMonitor.logActivity(securityContext, sessionId, "Logout");
-//
-//		}
 
-		session.removeAttribute(USER_NODE_KEY);
 		session.removeAttribute(USERNAME_KEY);
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
-		return (User) request.getSession().getAttribute(USER_NODE_KEY);
+	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+
+		Command findUser = Services.command(securityContext, FindUserCommand.class);
+		String userName  = (String) request.getSession().getAttribute(USERNAME_KEY);
+		User user        = (User) findUser.execute(userName);
+
+		return user;
 	}
 }
