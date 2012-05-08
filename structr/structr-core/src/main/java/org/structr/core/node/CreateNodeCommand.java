@@ -149,6 +149,13 @@ public class CreateNodeCommand extends NodeServiceCommand {
 //                              createRel.execute(user, node, RelType.OWNS, true); // avoid duplicates
 				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
 
+				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, true);    // avoid duplicates
+
+				securityRel.setAllowed(AbstractRelationship.Permission.values());
+				logger.log(Level.FINEST, "All permissions given to user {0}", user.getName());
+				node.unlockReadOnlyPropertiesOnce();
+				node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
+
 				// Group group = user.getGroupNode();
 				IterableAdapter groups = (IterableAdapter) user.getProperty(User.Key.groups);
 
@@ -157,29 +164,15 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					while (groups.iterator().hasNext()) {
 
 						Group group                      = (Group) groups.iterator().next();
-						AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(group, node, RelType.SECURITY, true);    // avoid duplicates
+						securityRel = (AbstractRelationship) createRel.execute(group, node, RelType.SECURITY, true);    // avoid duplicates
 
 						securityRel.setAllowed(AbstractRelationship.Permission.values());
-						logger.log(Level.FINEST, "All permissions given to {0}", group.getName());
-						node.unlockReadOnlyPropertiesOnce();
-						node.setProperty(AbstractNode.Key.createdBy.name(),
-
-//                                              user.getRealName() + " (" + user.getName() + ")", false);
-						user.getProperty(AbstractNode.Key.uuid), false);
+						logger.log(Level.FINEST, "All permissions given to group {0}", group.getName());
 
 					}
 
 				}
 
-				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, true);    // avoid duplicates
-
-				securityRel.setAllowed(AbstractRelationship.Permission.values());
-				logger.log(Level.FINEST, "All permissions given to {0}", user.getName());
-				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(AbstractNode.Key.createdBy.name(),
-
-//                              user.getRealName() + " (" + user.getName() + ")", false);
-				user.getProperty(AbstractNode.Key.uuid), false);
 
 			}
 

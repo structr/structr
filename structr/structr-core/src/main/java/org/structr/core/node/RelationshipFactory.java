@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
-import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericRelationship;
@@ -191,46 +190,46 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		return rels;
 	}
-
-	public AbstractRelationship createRelationship(final SecurityContext securityContext, final RelationshipDataContainer data) throws FrameworkException {
-
-		if (data == null) {
-
-			logger.log(Level.SEVERE, "Could not create relationship: Empty data container.");
-
-			return null;
-
-		}
-
-		Map properties              = data.getProperties();
-		String combinedRelType      = properties.containsKey(AbstractRelationship.HiddenKey.type.name())
-					      ? (String) properties.get(AbstractRelationship.HiddenKey.type.name())
-					      : null;
-		Class relClass              = EntityContext.getNamedRelationClass(combinedRelType);
-		AbstractRelationship newRel = null;
-
-		if (relClass != null) {
-
-			try {
-				newRel = (AbstractRelationship) relClass.newInstance();
-			} catch (Throwable t) {
-				newRel = null;
-			}
-
-		}
-
-		if (newRel == null) {
-
-			newRel = new GenericRelationship();
-
-		}
-
-		newRel.init(securityContext, data);
-		newRel.commit();
-		newRel.onRelationshipInstantiation();
-
-		return newRel;
-	}
+//
+//	public AbstractRelationship createRelationship(final SecurityContext securityContext, final RelationshipDataContainer data) throws FrameworkException {
+//
+//		if (data == null) {
+//
+//			logger.log(Level.SEVERE, "Could not create relationship: Empty data container.");
+//
+//			return null;
+//
+//		}
+//
+//		Map properties              = data.getProperties();
+//		String combinedRelType      = properties.containsKey(AbstractRelationship.HiddenKey.type.name())
+//					      ? (String) properties.get(AbstractRelationship.HiddenKey.type.name())
+//					      : null;
+//		Class relClass              = EntityContext.getNamedRelationClass(combinedRelType);
+//		AbstractRelationship newRel = null;
+//
+//		if (relClass != null) {
+//
+//			try {
+//				newRel = (AbstractRelationship) relClass.newInstance();
+//			} catch (Throwable t) {
+//				newRel = null;
+//			}
+//
+//		}
+//
+//		if (newRel == null) {
+//
+//			newRel = new GenericRelationship();
+//
+//		}
+//
+//		newRel.init(securityContext, data);
+//		newRel.commit();
+//		newRel.onRelationshipInstantiation();
+//
+//		return newRel;
+//	}
 	
 	private Class findNamedRelation(Relationship relationship) {
 		

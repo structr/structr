@@ -43,7 +43,6 @@ import org.structr.core.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
 import org.structr.core.Value;
-import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.node.*;
 import org.structr.core.node.NodeService.RelationshipIndex;
 import org.structr.core.notion.Notion;
@@ -147,12 +146,12 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		init(securityContext, dbRel);
 	}
 
-	public AbstractRelationship(final SecurityContext securityContext, final RelationshipDataContainer data) {
+	public AbstractRelationship(final SecurityContext securityContext, final Map<String, Object> data) {
 
 		if (data != null) {
 
 			this.securityContext = securityContext;
-			this.properties      = data.getProperties();
+			this.properties      = data;
 			this.isDirty         = true;
 
 		}
@@ -289,16 +288,16 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		this.securityContext = securityContext;
 	}
 
-	public void init(final SecurityContext securityContext, final RelationshipDataContainer data) {
-
-		if (data != null) {
-
-			this.properties      = data.getProperties();
-			this.isDirty         = true;
-			this.securityContext = securityContext;
-
-		}
-	}
+//	public void init(final SecurityContext securityContext, final RelationshipDataContainer data) {
+//
+//		if (data != null) {
+//
+//			this.properties      = data.getProperties();
+//			this.isDirty         = true;
+//			this.securityContext = securityContext;
+//
+//		}
+//	}
 
 	public void unlockReadOnlyPropertiesOnce() {
 		this.readOnlyPropertiesUnlocked = true;

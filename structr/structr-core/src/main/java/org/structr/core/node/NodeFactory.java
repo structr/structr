@@ -34,8 +34,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.cloud.FileNodeDataContainer;
-import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
@@ -293,62 +291,62 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 		return null;
 	}
 
-	public AbstractNode createNode(final SecurityContext securityContext, final NodeDataContainer data) throws FrameworkException {
-
-		if (data == null) {
-
-			logger.log(Level.SEVERE, "Could not create node: Empty data container.");
-
-			return null;
-
-		}
-
-		Map properties       = data.getProperties();
-		String nodeType      = properties.containsKey(AbstractNode.Key.type.name())
-				       ? (String) properties.get(AbstractNode.Key.type.name())
-				       : null;
-		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
-		AbstractNode newNode = null;
-
-		if (nodeClass != null) {
-
-			try {
-				newNode = (AbstractNode) nodeClass.newInstance();
-			} catch (Throwable t) {
-				newNode = null;
-			}
-
-		}
-
-		if (newNode == null) {
-
-			newNode = new GenericNode();
-
-		}
-
-		newNode.init(securityContext, data);
-		newNode.commit(null);
-		newNode.onNodeInstantiation();
-
-		if (data instanceof FileNodeDataContainer) {
-
-			FileNodeDataContainer container = (FileNodeDataContainer) data;
-			File fileNode                   = (File) newNode;
-			String relativeFilePath         = newNode.getId() + "_" + System.currentTimeMillis();
-			String path                     = Services.getFilesPath() + "/" + relativeFilePath;
-
-			// rename temporary file to new location etc.
-			if (container.persistTemporaryFile(path)) {
-
-				fileNode.setSize(container.getFileSize());
-				fileNode.setRelativeFilePath(relativeFilePath);
-
-			}
-
-		}
-
-		return newNode;
-	}
+//	public AbstractNode createNode(final SecurityContext securityContext, final NodeDataContainer data) throws FrameworkException {
+//
+//		if (data == null) {
+//
+//			logger.log(Level.SEVERE, "Could not create node: Empty data container.");
+//
+//			return null;
+//
+//		}
+//
+//		Map properties       = data.getProperties();
+//		String nodeType      = properties.containsKey(AbstractNode.Key.type.name())
+//				       ? (String) properties.get(AbstractNode.Key.type.name())
+//				       : null;
+//		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
+//		AbstractNode newNode = null;
+//
+//		if (nodeClass != null) {
+//
+//			try {
+//				newNode = (AbstractNode) nodeClass.newInstance();
+//			} catch (Throwable t) {
+//				newNode = null;
+//			}
+//
+//		}
+//
+//		if (newNode == null) {
+//
+//			newNode = new GenericNode();
+//
+//		}
+//
+//		newNode.init(securityContext, data);
+//		newNode.commit(null);
+//		newNode.onNodeInstantiation();
+//
+//		if (data instanceof FileNodeDataContainer) {
+//
+//			FileNodeDataContainer container = (FileNodeDataContainer) data;
+//			File fileNode                   = (File) newNode;
+//			String relativeFilePath         = newNode.getId() + "_" + System.currentTimeMillis();
+//			String path                     = Services.getFilesPath() + "/" + relativeFilePath;
+//
+//			// rename temporary file to new location etc.
+//			if (container.persistTemporaryFile(path)) {
+//
+//				fileNode.setSize(container.getFileSize());
+//				fileNode.setRelativeFilePath(relativeFilePath);
+//
+//			}
+//
+//		}
+//
+//		return newNode;
+//	}
 
 	//~--- get methods ----------------------------------------------------
 

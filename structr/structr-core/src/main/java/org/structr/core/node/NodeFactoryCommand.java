@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -78,10 +77,10 @@ public class NodeFactoryCommand extends NodeServiceCommand {
 
                         node = (Node) parameters[0];
                         
-                    } else if (parameters[0] instanceof NodeDataContainer) {
-
-                        NodeDataContainer nodeData = (NodeDataContainer) parameters[0];
-                        return nodeFactory.createNode(securityContext, nodeData);
+//                    } else if (parameters[0] instanceof NodeDataContainer) {
+//
+//                        NodeDataContainer nodeData = (NodeDataContainer) parameters[0];
+//                        return nodeFactory.createNode(securityContext, nodeData);
 
                     } else {
 

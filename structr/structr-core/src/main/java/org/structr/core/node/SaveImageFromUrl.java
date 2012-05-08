@@ -136,7 +136,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
             String relativeFilePath = imageNode.getRelativeFilePath();
             String imageName = url.substring(url.lastIndexOf("/") + 1);
 
-            imageNode.setName(imageName);
+            imageNode.setProperty(AbstractNode.Key.name, imageName);
 
             if (relativeFilePath == null) {
                 relativeFilePath = imageNode.getId() + "_" + System.currentTimeMillis();

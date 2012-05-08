@@ -23,13 +23,7 @@ package org.structr.core.entity;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RenderMode;
 import org.structr.core.EntityContext;
-import org.structr.core.NodeRenderer;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
@@ -54,11 +48,11 @@ public class PlainText extends AbstractNode {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-
-
-	}
+//	@Override
+//	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+//
+//
+//	}
 
 	//~--- get methods ----------------------------------------------------
 
