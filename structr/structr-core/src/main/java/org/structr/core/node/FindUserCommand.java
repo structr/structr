@@ -72,7 +72,7 @@ public class FindUserCommand extends NodeServiceCommand {
 
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-			searchAttrs.add(Search.andExactType(Principal.class.getSimpleName()));
+			searchAttrs.addAll(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
 
 			switch (parameters.length) {
 
