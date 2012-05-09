@@ -283,7 +283,7 @@ var _Entities = {
                 $('li', tabs).removeClass('active');
                 $('#tabView-' + view).show();
                 self.addClass('active');
-            });
+           });
 
             var tabView = $('#tabView-' + view);
             if (view != 'all') tabView.hide();

@@ -406,10 +406,7 @@ var Structr = {
         $('#title').text('structr ' + menuEntry.text());
         
         if (lastMenuEntry && lastMenuEntry != 'logout') {
-            $.cookie('structrActiveTab', activeTab, {
-                expires: 7,
-                path: '/'
-            });
+
             $.cookie('structrLastMenuEntry', lastMenuEntry, {
                 expires: 7,
                 path: '/'

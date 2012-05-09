@@ -333,6 +333,12 @@ var _Resources = {
 
         element.addClass('active');
 
+        if (debug) console.log('set cookie for active tab', activeTab);
+        $.cookie('structrActiveTab', activeTab, {
+            expires: 7,
+            path: '/'
+        });
+
     },
 
     makeTabEditable : function(element) {
@@ -663,23 +669,23 @@ var _Resources = {
                             textBeforeEditing = self.contents().first().text();
                             if (debug) console.log("textBeforeEditing", textBeforeEditing);
 
-                            //swapFgBg(self);
-//                            sel = iframeWindow.getSelection();
-//                            if (sel.rangeCount) {
-//                                selStart = sel.getRangeAt(0).startOffset;
-//                                selEnd = sel.getRangeAt(0).endOffset;
-//                                if (debug) console.log(selStart, selEnd);
-//                                $('.link_icon').show();
-//                                //                                sourceId = structrId;
-//                                contentSourceId = self.attr('structr_content_id');
-//                                if (debug) console.log('click contentSourceId: ' + contentSourceId);
-//                                var rootResourceElement = self.closest('html')[0];
-//                                if (debug) console.log(rootResourceElement);
-//                                if (rootResourceElement) {
-//                                    rootId = $(rootResourceElement).attr('structr_content_id');
-//                                }
-//								
-//                            }
+                        //swapFgBg(self);
+                        //                            sel = iframeWindow.getSelection();
+                        //                            if (sel.rangeCount) {
+                        //                                selStart = sel.getRangeAt(0).startOffset;
+                        //                                selEnd = sel.getRangeAt(0).endOffset;
+                        //                                if (debug) console.log(selStart, selEnd);
+                        //                                $('.link_icon').show();
+                        //                                //                                sourceId = structrId;
+                        //                                contentSourceId = self.attr('structr_content_id');
+                        //                                if (debug) console.log('click contentSourceId: ' + contentSourceId);
+                        //                                var rootResourceElement = self.closest('html')[0];
+                        //                                if (debug) console.log(rootResourceElement);
+                        //                                if (rootResourceElement) {
+                        //                                    rootId = $(rootResourceElement).attr('structr_content_id');
+                        //                                }
+                        //								
+                        //                            }
                         },
                         blur: function(e) {
                             e.stopPropagation();
@@ -1061,40 +1067,40 @@ var _Resources = {
         });
     },
 
-//    addNode : function(button, type, entity, resourceId) {
-//        if (isDisabled(button)) return;
-//        disable(button);
-//        var pos = $('.' + resourceId + '_ .' + entity.id + '_ > div.nested').length;
-//        //    console.log('addNode(' + type + ', ' + entity.id + ', ' + entity.id + ', ' + pos + ')');
-//        var url = rootUrl + type;
-//        var headers = {
-//            'X-StructrSessionToken' : token
-//        };
-//        var resp = $.ajax({
-//            url: url,
-//            //async: false,
-//            type: 'POST',
-//            dataType: 'json',
-//            contentType: 'application/json; charset=utf-8',
-//            headers: headers,
-//            data: '{ "type" : "' + type + '", "name" : "' + type + '_' + Math.floor(Math.random() * (9999 - 1)) + '", "elements" : "' + entity.id + '" }',
-//            success: function(data) {
-//                var getUrl = resp.getResponseHeader('Location');
-//                $.ajax({
-//                    url: getUrl + '/all',
-//                    success: function(data) {
-//                        var node = data.result;
-//                        if (entity) {
-//                            _Resources.appendElement(node, entity, resourceId);
-//                            _Resources.setPosition(resourceId, getUrl, pos);
-//                        }
-//                        //disable($('.' + groupId + '_ .delete_icon')[0]);
-//                        enable(button);
-//                    }
-//                });
-//            }
-//        });
-//    },
+    //    addNode : function(button, type, entity, resourceId) {
+    //        if (isDisabled(button)) return;
+    //        disable(button);
+    //        var pos = $('.' + resourceId + '_ .' + entity.id + '_ > div.nested').length;
+    //        //    console.log('addNode(' + type + ', ' + entity.id + ', ' + entity.id + ', ' + pos + ')');
+    //        var url = rootUrl + type;
+    //        var headers = {
+    //            'X-StructrSessionToken' : token
+    //        };
+    //        var resp = $.ajax({
+    //            url: url,
+    //            //async: false,
+    //            type: 'POST',
+    //            dataType: 'json',
+    //            contentType: 'application/json; charset=utf-8',
+    //            headers: headers,
+    //            data: '{ "type" : "' + type + '", "name" : "' + type + '_' + Math.floor(Math.random() * (9999 - 1)) + '", "elements" : "' + entity.id + '" }',
+    //            success: function(data) {
+    //                var getUrl = resp.getResponseHeader('Location');
+    //                $.ajax({
+    //                    url: getUrl + '/all',
+    //                    success: function(data) {
+    //                        var node = data.result;
+    //                        if (entity) {
+    //                            _Resources.appendElement(node, entity, resourceId);
+    //                            _Resources.setPosition(resourceId, getUrl, pos);
+    //                        }
+    //                        //disable($('.' + groupId + '_ .delete_icon')[0]);
+    //                        enable(button);
+    //                    }
+    //                });
+    //            }
+    //        });
+    //    },
 
     reloadPreviews : function() {
 

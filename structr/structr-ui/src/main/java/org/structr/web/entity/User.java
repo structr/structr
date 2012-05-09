@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Group;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 

@@ -19,7 +19,7 @@
 
 
 
-package org.structr.core.entity;
+package org.structr.web.entity;
 
 import org.neo4j.graphdb.Direction;
 
@@ -28,6 +28,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
@@ -43,7 +45,7 @@ public class Group extends AbstractNode implements Principal {
 
 		EntityContext.registerPropertySet(Group.class, PropertyView.All, Key.values());
 		//EntityContext.registerPropertyRelation(Group.class, Key.users,	Principal.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Group.class, Principal.class, RelType.MEMBER_OF, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Group.class, User.class, RelType.MEMBER_OF, Direction.INCOMING, Cardinality.ManyToMany);
 	}
 
         @Override
@@ -58,7 +60,7 @@ public class Group extends AbstractNode implements Principal {
 
         @Override
         public Object getPropertyForIndexing(String key) {
-                throw new UnsupportedOperationException("Not supported yet.");
+                return getProperty(key);
         }
 
         @Override

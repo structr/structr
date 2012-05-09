@@ -26,7 +26,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.*;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -35,7 +34,6 @@ import org.structr.core.Transformation;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Group;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Principal;
@@ -155,22 +153,22 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
 
-				// Group group = user.getGroupNode();
-				IterableAdapter groups = (IterableAdapter) user.getProperty(Principal.Key.groups);
-
-				if (groups != null) {
-
-					while (groups.iterator().hasNext()) {
-
-						Group group                      = (Group) groups.iterator().next();
-						securityRel = (AbstractRelationship) createRel.execute(group, node, RelType.SECURITY, true);    // avoid duplicates
-
-						securityRel.setAllowed(AbstractRelationship.Permission.values());
-						logger.log(Level.FINEST, "All permissions given to group {0}", group.getName());
-
-					}
-
-				}
+//				// Group group = user.getGroupNode();
+//				IterableAdapter groups = (IterableAdapter) user.getProperty(Principal.Key.groups);
+//
+//				if (groups != null) {
+//
+//					while (groups.iterator().hasNext()) {
+//
+//						Group group                      = (Group) groups.iterator().next();
+//						securityRel = (AbstractRelationship) createRel.execute(group, node, RelType.SECURITY, true);    // avoid duplicates
+//
+//						securityRel.setAllowed(AbstractRelationship.Permission.values());
+//						logger.log(Level.FINEST, "All permissions given to group {0}", group.getName());
+//
+//					}
+//
+//				}
 
 
 			}
