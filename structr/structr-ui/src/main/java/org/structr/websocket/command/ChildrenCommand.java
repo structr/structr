@@ -26,8 +26,10 @@ import org.structr.common.RelType;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Folder;
 import org.structr.web.common.RelationshipHelper;
 import org.structr.web.entity.Content;
+import org.structr.web.entity.Group;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -53,8 +55,19 @@ public class ChildrenCommand extends AbstractCommand {
 		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
 		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
 		Set<String> nodesWithChildren   = new HashSet<String>();
+		List<GraphObject> result        = new LinkedList<GraphObject>();
 
 		for (AbstractRelationship rel : rels) {
+
+			AbstractNode endNode = rel.getEndNode();
+
+			if ((node instanceof Group) || (node instanceof Folder)) {
+
+				result.add(node);
+
+				continue;
+
+			}
 
 			Long pos = null;
 
@@ -72,9 +85,9 @@ public class ChildrenCommand extends AbstractCommand {
 
 			if (pos != null) {
 
-				AbstractNode endNode = rel.getEndNode();
-
-				if (componentId == null || (!endNode.getType().equals(Content.class.getSimpleName()) || (relCompId != null && relCompId.equals(componentId)))) {
+				if ((componentId == null)
+					|| (!endNode.getType().equals(Content.class.getSimpleName())
+					    || ((relCompId != null) && relCompId.equals(componentId)))) {
 
 					nodesWithChildren.addAll(RelationshipHelper.getChildrenInResource(endNode, resourceId));
 					sortMap.put(pos, endNode);
@@ -85,7 +98,11 @@ public class ChildrenCommand extends AbstractCommand {
 
 		}
 
-		List<GraphObject> result = new ArrayList<GraphObject>(sortMap.values());
+		if (!sortMap.isEmpty()) {
+
+			result = new ArrayList<GraphObject>(sortMap.values());
+
+		}
 
 		webSocketData.setView(PropertyView.Ui);
 		webSocketData.setResult(result);

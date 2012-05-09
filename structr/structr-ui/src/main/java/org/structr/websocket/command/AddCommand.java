@@ -60,18 +60,18 @@ public class AddCommand extends AbstractCommand {
 
 		// create static relationship
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
-		String containedNodeId             = (String) nodeData.get("id");
+		String nodeToAddId                 = (String) nodeData.get("id");
 		final Map<String, Object> relData  = webSocketData.getRelData();
-		String containingNodeId            = webSocketData.getId();
+		String parentId                    = webSocketData.getId();
 
-		if (containingNodeId != null) {
+		if (parentId != null) {
 
-			AbstractNode containedNode  = null;
-			AbstractNode containingNode = getNode(containingNodeId);
+			AbstractNode nodeToAdd  = null;
+			AbstractNode parentNode = getNode(parentId);
 
-			if (containedNodeId != null) {
+			if (nodeToAddId != null) {
 
-				containedNode = getNode(containedNodeId);
+				nodeToAdd = getNode(nodeToAddId);
 
 			} else {
 
@@ -86,7 +86,7 @@ public class AddCommand extends AbstractCommand {
 				try {
 
 					// create node in transaction
-					containedNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					nodeToAdd = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
 				} catch (FrameworkException fex) {
 
 					logger.log(Level.WARNING, "Could not create node.", fex);
@@ -95,22 +95,22 @@ public class AddCommand extends AbstractCommand {
 
 			}
 
-			if ((containedNode != null) && (containingNode != null)) {
+			if ((nodeToAdd != null) && (parentNode != null)) {
 
 				String originalResourceId = (String) nodeData.get("sourceResourceId");
 				String newResourceId      = (String) nodeData.get("targetResourceId");
-				RelationClass rel         = EntityContext.getRelationClass(containingNode.getClass(), containedNode.getClass());
+				RelationClass rel         = EntityContext.getRelationClass(parentNode.getClass(), nodeToAdd.getClass());
 
 				if (rel != null) {
 
 					try {
 
-						rel.createRelationship(securityContext, containingNode, containedNode, relData);
+						rel.createRelationship(securityContext, parentNode, nodeToAdd, relData);
 
 						// set resource ID on copied branch
 						if ((originalResourceId != null) && (newResourceId != null) &&!originalResourceId.equals(newResourceId)) {
 
-							RelationshipHelper.tagOutgoingRelsWithResourceId(containedNode, containedNode, originalResourceId, newResourceId);
+							RelationshipHelper.tagOutgoingRelsWithResourceId(nodeToAdd, nodeToAdd, originalResourceId, newResourceId);
 
 						}
 

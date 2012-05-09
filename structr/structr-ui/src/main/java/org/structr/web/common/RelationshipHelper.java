@@ -21,6 +21,7 @@
 
 package org.structr.web.common;
 
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.RelType;
@@ -30,15 +31,16 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Folder;
 import org.structr.core.node.*;
 import org.structr.web.entity.Component;
+import org.structr.web.entity.Group;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.neo4j.graphdb.Direction;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,15 +50,16 @@ import org.neo4j.graphdb.Direction;
  */
 public class RelationshipHelper {
 
-	public static void copyRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String resourceId, String componentId, long position)
+	public static void copyRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType,
+		String resourceId, String componentId, long position)
 		throws FrameworkException {
 
 		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, resourceId, componentId, position);
 		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, resourceId, componentId, position);
 	}
 
-	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String resourceId, String componentId,
-		long position)
+	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType,
+		String resourceId, String componentId, long position)
 		throws FrameworkException {
 
 		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -91,8 +94,8 @@ public class RelationshipHelper {
 		}
 	}
 
-	public static void copyOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode cloneNode, RelType relType, String resourceId, String componentId,
-		long position)
+	public static void copyOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode cloneNode, RelType relType,
+		String resourceId, String componentId, long position)
 		throws FrameworkException {
 
 		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -126,7 +129,8 @@ public class RelationshipHelper {
 		}
 	}
 
-	public static void removeOutgoingRelationships(SecurityContext securityContext, final AbstractNode node, final RelType relType) throws FrameworkException {
+	public static void removeOutgoingRelationships(SecurityContext securityContext, final AbstractNode node, final RelType relType)
+		throws FrameworkException {
 
 		final Command delRel           = Services.command(securityContext, DeleteRelationshipCommand.class);
 		StructrTransaction transaction = new StructrTransaction() {
@@ -155,7 +159,8 @@ public class RelationshipHelper {
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 	}
 
-	public static void removeIncomingRelationships(SecurityContext securityContext, final AbstractNode node, final RelType relType) throws FrameworkException {
+	public static void removeIncomingRelationships(SecurityContext securityContext, final AbstractNode node, final RelType relType)
+		throws FrameworkException {
 
 		final Command delRel           = Services.command(securityContext, DeleteRelationshipCommand.class);
 		StructrTransaction transaction = new StructrTransaction() {
@@ -184,20 +189,61 @@ public class RelationshipHelper {
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 	}
 
-	public static void moveIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType, String resourceId, String componentId,
-		long position)
+	public static void moveIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType,
+		String resourceId, String componentId, long position)
 		throws FrameworkException {
 
 		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, resourceId, componentId, position);
 		removeIncomingRelationships(securityContext, origNode, relType);
 	}
 
-	public static void moveOutgoingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType, String resourceId, String componentId,
-		long position)
+	public static void moveOutgoingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType,
+		String resourceId, String componentId, long position)
 		throws FrameworkException {
 
 		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, resourceId, componentId, position);
 		removeOutgoingRelationships(securityContext, origNode, relType);
+	}
+
+	public static void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId,
+		final String resourceId)
+		throws FrameworkException {
+
+		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
+
+			Long position = rel.getLongProperty(originalResourceId);
+
+			if (position != null) {
+
+				rel.setProperty(resourceId, position);
+
+			}
+
+			tagOutgoingRelsWithResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
+
+		}
+	}
+
+	public static void tagOutgoingRelsWithComponentId(final AbstractNode startNode, final AbstractNode node, final String componentId)
+		throws FrameworkException {
+
+		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
+
+			if (!(startNode.equals(node))) {
+
+				rel.setProperty("componentId", componentId);
+
+				if (node.getType().equals(Component.class.getSimpleName())) {
+
+					return;
+
+				}
+
+			}
+
+			tagOutgoingRelsWithComponentId(startNode, rel.getEndNode(), componentId);
+
+		}
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -236,6 +282,12 @@ public class RelationshipHelper {
 
 		List<AbstractRelationship> childRels = node.getOutgoingRelationships(RelType.CONTAINS);
 
+		if ((node instanceof Group) || (node instanceof Folder)) {
+
+			return !childRels.isEmpty();
+
+		}
+
 		for (AbstractRelationship childRel : childRels) {
 
 			Long childPos = null;
@@ -260,43 +312,4 @@ public class RelationshipHelper {
 
 		return false;
 	}
-
-	public static void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String resourceId) throws FrameworkException {
-
-		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
-
-			Long position = rel.getLongProperty(originalResourceId);
-
-			if (position != null) {
-
-				rel.setProperty(resourceId, position);
-
-			}
-
-			tagOutgoingRelsWithResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
-
-		}
-	}
-
-	public static void tagOutgoingRelsWithComponentId(final AbstractNode startNode, final AbstractNode node, final String componentId) throws FrameworkException {
-
-		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
-
-			if (!(startNode.equals(node))) {
-
-				rel.setProperty("componentId", componentId);
-
-				if (node.getType().equals(Component.class.getSimpleName())) {
-
-					return;
-
-				}
-
-			}
-
-			tagOutgoingRelsWithComponentId(startNode, rel.getEndNode(), componentId);
-
-		}
-	}
-
 }

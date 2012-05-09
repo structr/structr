@@ -27,7 +27,6 @@ import org.neo4j.graphdb.RelationshipType;
  *
  */
 public enum RelType implements RelationshipType {
-	MEMBER_OF,
 	UNDEFINED, LINK, PAGE_LINK,
 	SECURITY,
         USE_TEMPLATE,

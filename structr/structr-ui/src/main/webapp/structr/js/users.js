@@ -105,8 +105,8 @@ var _UsersAndGroups = {
         _Entities.deleteNode(button, group);
     },
 
-    appendGroupElement : function(group) {
-        
+    appendGroupElement : function(group, hasChildren) {
+        console.log('appendGroupElement', group);
         groups.append('<div class="node group ' + group.id + '_">'
             + '<img class="typeIcon" src="icon/group.png">'
             + '<b class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
@@ -118,6 +118,8 @@ var _UsersAndGroups = {
         $('.delete_icon', div).on('click', function() {
             _UsersAndGroups.deleteGroup(this, group)
         });
+        
+        _Entities.appendExpandIcon(div, group, hasChildren);
 
         div.droppable({
             accept: '.user',
@@ -140,7 +142,7 @@ var _UsersAndGroups = {
     },
 
     appendUserElement : function(user, groupId, removeExisting) {
-        if (debug) console.log('appendUserElement', user, groupId, removeExisting);
+        //console.log('appendUserElement', user, groupId, removeExisting);
         var div;
         var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
                 + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">'
@@ -149,6 +151,8 @@ var _UsersAndGroups = {
             var parent = Structr.node(groupId);
             
             div = Structr.node(user.id);
+            
+            console.log(parent, div);
             
             if (removeExisting && div && div.length) {
                 parent.append(div.css({ top: 0, left: 0 }));

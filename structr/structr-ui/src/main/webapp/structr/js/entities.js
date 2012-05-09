@@ -89,14 +89,15 @@ var _Entities = {
             lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, removeExisting, hasChildren);
             
         } else if (entity.type == 'Group') {
-            var groupElement = _UsersAndGroups.appendGroupElement(entity, removeExisting, hasChildren);
-            var users = entity.users;
-            if (users && users.length > 0) {
-                disable($('.delete_icon', groupElement)[0]);
-                $(users).each(function(i, user) {
-                    _UsersAndGroups.appendUserElement(user, entity.id, removeExisting, hasChildren);
-                });
-            }
+            var groupElement = _UsersAndGroups.appendGroupElement(entity, hasChildren);
+//            var users = entity.users;
+//            if (users && users.length > 0) {
+//                disable($('.delete_icon', groupElement)[0]);
+//                $(users).each(function(i, user) {
+//                    _UsersAndGroups.appendUserElement(user, entity.id, removeExisting, hasChildren);
+//                });
+//            }
+            lastAppendedObj = groupElement;
 
         } else if (entity.type == 'Resource') {
             

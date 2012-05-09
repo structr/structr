@@ -45,7 +45,7 @@ public class Group extends AbstractNode implements Principal {
 
 		EntityContext.registerPropertySet(Group.class, PropertyView.All, Key.values());
 		//EntityContext.registerPropertyRelation(Group.class, Key.users,	Principal.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Group.class, User.class, RelType.MEMBER_OF, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Group.class, User.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 	}
 
         @Override
@@ -135,7 +135,7 @@ public class Group extends AbstractNode implements Principal {
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ users }
+	public enum Key implements PropertyKey{ }
 
 	//~--- get methods ----------------------------------------------------
 

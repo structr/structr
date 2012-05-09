@@ -29,6 +29,10 @@ import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.PasswordConverter;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Person;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService.NodeIndex;
 
@@ -36,10 +40,6 @@ import org.structr.core.node.NodeService.NodeIndex;
 
 import java.util.List;
 import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Person;
-import org.structr.core.entity.Principal;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,8 +59,7 @@ public class User extends Person implements Principal {
 		EntityContext.registerPropertyConverter(User.class, Key.password.name(), PasswordConverter.class);
 		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(User.class, PropertyView.Public, Key.realName);
-
-		EntityContext.registerEntityRelation(User.class, Group.class, RelType.MEMBER_OF, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(User.class, Group.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 
 		// EntityContext.registerEntityRelation(User.class, LogNodeList.class, RelType.OWNS, Direction.OUTGOING, Cardinality.OneToOne);
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(), UserIndexKey.values());
@@ -72,13 +71,18 @@ public class User extends Person implements Principal {
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey {
-		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups
+		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
 	}
+        
+        public enum HiddenKey implements PropertyKey {
+            groups
+        }
 
 	public enum UserIndexKey implements PropertyKey{ name, email; }
 
 	//~--- methods --------------------------------------------------------
 
+	@Override
 	public void block() throws FrameworkException {
 		setBlocked(Boolean.TRUE);
 	}

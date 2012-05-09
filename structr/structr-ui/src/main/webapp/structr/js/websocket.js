@@ -49,7 +49,7 @@ function connect() {
         log('State: ' + ws.readyState);
 		
         var entityId;
-        var parent, entity;
+        var entity;
 
         ws.onmessage = function(message) {
 
@@ -68,7 +68,6 @@ function connect() {
             var code = data.code;
             var callback = data.callback;
 
-            debug = true
             {
                 if (debug) console.log('command: ' + command);
                 if (debug) console.log('type: ' + type);
@@ -76,7 +75,6 @@ function connect() {
                 if (debug) console.log('callback: ' + callback);
                 if (debug) console.log('sessionValid: ' + sessionValid);
             }
-            debug = false;
             if (debug) console.log('result: ' + $.toJSON(result));
 
             if (command == 'LOGIN') { /*********************** LOGIN ************************/
@@ -208,7 +206,7 @@ function connect() {
             } else if (command == 'LIST') { /*********************** LIST ************************/
 				
                 if (debug) console.log('LIST:', result);
-                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
+                if (debug) console.log('Nodes with children', data.nodesWithChildren);
                 $(result).each(function(i, entity) {
                     if (debug) console.log('LIST: ' + entity.type);
                     _Entities.appendObj(entity, null, null, null, false, isIn(entity.id, data.nodesWithChildren));
@@ -273,9 +271,10 @@ function connect() {
 
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                if (debug) console.log(command, result, data, data.data);
+                //console.log(command, result, data, data.data);
 				
                 $(result).each(function(i, entity) {
+                    console.log(command, entity, parentId, componentId, resourceId);
                     _Entities.appendObj(entity, parentId, componentId, resourceId, command == 'ADD');
                 });
 
