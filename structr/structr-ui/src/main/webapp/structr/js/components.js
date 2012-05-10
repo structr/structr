@@ -135,18 +135,6 @@ var _Components = {
 		Command.removeSourceFromTarget(element.id, parentId);
 	    });
 	}
-	//        var elements = element.children;
-	//
-	//        if (elements && elements.length > 0) {
-	//            disable($('.delete_icon', div));
-	//            $(elements).each(function(i, child) {
-	//                if (child.type == "Element") {
-	//                    Resources.appendElementElement(child, element.id);
-	//                } else if (child.type == "Content") {
-	//                    Resources.appendContentElement(child, element.id);
-	//                }
-	//            });
-	//        }
 
 	div.droppable({
 	    accept: '.element',
