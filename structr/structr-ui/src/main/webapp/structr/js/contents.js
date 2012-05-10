@@ -144,6 +144,13 @@ var _Contents = {
 				
             }
         });
+        
+        element.append('<span class="' + entity.id + '_"><label for="contentTypeSelect">Content-Type:</label><select class="contentType_" id="contentTypeSelect"><option value="text/plain">text/plain</option><option value="text/markdown">text/markdown</option></select></span>');
+        Command.getProperty(entity.id, 'contentType', '#dialogBox');
+        var select = $('#contentTypeSelect', element);
+        select.on('change', function() {
+           Command.setProperty(entity.id, 'contentType', select.val());
+        });
 
         editor.id = entity.id;
 

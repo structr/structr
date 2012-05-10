@@ -155,12 +155,12 @@ function connect() {
                     parentElement = $($('.' + data.id + '_')[0]);
                 }
 
-                if (debug) console.log('parentElement', parentElement);
+                console.log('parentElement', parentElement);
                 var key = data.data.key;
                 var value = data.data[key];
 
                 var attrElement = $(parentElement.find('.' + key + '_')[0]);
-                if (debug) console.log('attrElement', attrElement);
+                console.log('attrElement', attrElement);
                 if (debug) console.log(key, value);
 
                 if (attrElement && value) {
@@ -183,8 +183,18 @@ function connect() {
                             + '</div>');
                         
                     } else {
-                        if (debug) console.log('appending ' + value + ' to attrElement', attrElement);
-                        attrElement.append(value);
+                        
+                        var tag = $(attrElement).get(0).tagName.toLowerCase();
+                        
+                        console.log('attrElement tagName', tag);
+                        
+                        if (!(tag == 'select')) {
+                            console.log('appending ' + value + ' to attrElement', attrElement);
+                            attrElement.append(value);
+                        }
+                        
+                        console.log('setting ' + value + ' on attrElement', attrElement);
+                        
                         attrElement.val(value);
                         attrElement.show();
                     }
@@ -297,12 +307,26 @@ function connect() {
 
                 // update values with given key
                 for (var key in data.data) {
-                    var attrElement = element.children('.' + key + '_');
+                    
                     var inputElement = element.children('.props tr td.' + key + ' input');
-                    if (debug) console.log(attrElement, inputElement);
                     var newValue = data.data[key];
-
                     if (debug) console.log(key, newValue, typeof newValue);
+
+                    var attrElement = element.children('.' + key + '_');
+                    
+                    if (attrElement && $(attrElement).length) {
+                    
+                        var tag = $(attrElement).get(0).tagName.toLowerCase();
+                        
+                        
+                        attrElement.val(value);
+                        attrElement.show();
+                    
+                        if (debug) console.log(attrElement, inputElement);
+                    
+                    }
+                    
+
                     if (typeof newValue  == 'boolean') {
 
                         _Entities.changeBooleanAttribute(attrElement, newValue);
@@ -316,9 +340,16 @@ function connect() {
                                 color: '#333333'
                             }, 200);
                         });
-                    
-                        attrElement.text(newValue);
-                        inputElement.val(newValue);
+                        
+                        if (attrElement && tag == 'select') {
+                            attrElement.val(newValue);
+                        } else {
+                            attrElement.text(newValue);
+                        }
+                        
+                        if (inputElement) {
+                            inputElement.val(newValue);
+                        }
 
                         // hook for CodeMirror edit areas
                         if (editor && editor.id == data.id && key == 'content') {
