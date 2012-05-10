@@ -45,8 +45,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 import java.lang.reflect.Modifier;
 
@@ -62,7 +60,6 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import javax.servlet.ServletContext;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -73,8 +70,6 @@ import org.structr.core.entity.AbstractRelationship;
  * This service keeps an index of installed / activated modules for efficient access
  * files:
  *  - $BASEDIR/modules/modules.conf             -> properties file
- *  - $BASEDIR/modules/*.jar                    -> module jar
- *  - $BASEDIR/modules/index/$NAME.index        -> serialized instance of Module.java
  *
  * The entity class cache needs to be initialized with the structr core entities even
  * when no modules exist.
@@ -84,21 +79,21 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public class ModuleService implements SingletonService {
 
-	private static final String MODULES_CONF                 = "modules.conf";
-	private static final Logger logger                       = Logger.getLogger(ModuleService.class.getName());
+	private static final String MODULES_CONF			= "modules.conf";
+	private static final Logger logger				= Logger.getLogger(ModuleService.class.getName());
 	private static final Set<String> nodeEntityPackages		= new LinkedHashSet<String>();
 	private static final Set<String> relationshipPackages		= new LinkedHashSet<String>();
 	private static final Map<String, Class> nodeEntityClassCache	= new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
 	private static final Map<String, Class> relationshipClassCache	= new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Map<String, Class> agentClassCache  = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Set<String> pagePackages            = new LinkedHashSet<String>();
-	private static final Set<String> agentPackages           = new LinkedHashSet<String>();
+	private static final Map<String, Class> agentClassCache		= new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
+	private static final Set<String> pagePackages			= new LinkedHashSet<String>();
+	private static final Set<String> agentPackages			= new LinkedHashSet<String>();
 
 	//~--- fields ---------------------------------------------------------
 
-	private String servletContextRealRootPath  = null;
-	private Predicate structrPagePredicate = null;
-	private boolean initialized            = false;
+	private String servletContextRealRootPath	= null;
+	private Predicate structrPagePredicate		= null;
+	private boolean initialized			= false;
 
 	//~--- methods --------------------------------------------------------
 
@@ -148,17 +143,17 @@ public class ModuleService implements SingletonService {
 	 * @param moduleName the file name of the module to activate
 	 * @param recreateIndex whether to recreate the index file
 	 */
-	public void activateModule(String moduleName, boolean recreateIndex) {
+	public void activateModule(String moduleName) {
 
 		boolean success = true;
 
 		try {
 
-			Module module = loadModule(moduleName, recreateIndex);
+			Module module = loadModule(moduleName);
 
 			if (module != null) {
 
-				importIndex(module);
+				importModule(module);
 
 			} else {
 
@@ -207,7 +202,7 @@ public class ModuleService implements SingletonService {
 
 			// we need to load the module index in order to
 			// be able to remove the deployed resources.
-			Module module = loadModule(moduleName, false);
+			Module module = loadModule(moduleName);
 
 			if (module != null) {
 
@@ -215,8 +210,6 @@ public class ModuleService implements SingletonService {
 
 			}
 
-			// delete index file
-			unloadModule(moduleName);
 		} catch (IOException ioex) {
 
 			logger.log(Level.WARNING, "Error unloading module {0}: {1}", new Object[] { moduleName, ioex });
@@ -306,7 +299,7 @@ public class ModuleService implements SingletonService {
 
 		for (String activeModuleName : activeModuleNames) {
 
-			activateModule(activeModuleName, false);
+			activateModule(activeModuleName);
 
 		}
 
@@ -323,50 +316,9 @@ public class ModuleService implements SingletonService {
 	 *
 	 * @throws IOException
 	 */
-	private Module loadModule(String moduleName, boolean recreateIndex) throws IOException {
+	private Module loadModule(String moduleName) throws IOException {
 
-		String indexPath = createIndexFileName(moduleName);
-		File indexFile   = new File(indexPath);
-		Module ret       = null;
-
-		if (indexFile.exists() &&!recreateIndex) {
-
-			try {
-
-				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(indexFile));
-
-				ret = (Module) ois.readObject();
-
-			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Unable to read module index from {0}: {1}", new Object[] { indexPath, t });
-			}
-
-		}
-
-		if (ret == null) {
-
-			ret = createModuleIndex(moduleName);
-
-		}
-
-		return (ret);
-	}
-
-	/**
-	 * Reverses the actions of loadModule, removing the module index file.
-	 *
-	 * @param moduleName the name of the module that is to be removed
-	 */
-	private void unloadModule(String moduleName) {
-
-		String indexPath = createIndexFileName(moduleName);
-		File indexFile   = new File(indexPath);
-
-		if (indexFile.exists()) {
-
-			indexFile.delete();
-
-		}
+		return createModuleIndex(moduleName);
 	}
 
 	/**
@@ -377,7 +329,7 @@ public class ModuleService implements SingletonService {
 	 *
 	 * @throws IOException
 	 */
-	private void importIndex(Module module) throws IOException {
+	private void importModule(Module module) throws IOException {
 
 		String modulePath = module.getModulePath();
 		ZipFile zipFile   = new ZipFile(modulePath);
@@ -700,9 +652,7 @@ public class ModuleService implements SingletonService {
 		}
 
 		String modulePath = libPath.concat("/").concat(moduleName);
-		String indexPath  = createIndexFileName(moduleName);
 		File moduleFile   = new File(modulePath);
-		File indexFile    = new File(indexPath);
 
 		// create module
 		ClickModule ret        = new ClickModule(modulePath);
@@ -764,44 +714,7 @@ public class ModuleService implements SingletonService {
 
 		addClassesRecursively(classesDir, classes);
 
-		// store index file
-		try {
-
-			indexFile.getParentFile().mkdirs();
-
-			ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(indexFile));
-
-			ois.writeObject(ret);
-			ois.flush();
-			ois.close();
-
-		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Unable to write module index from {0}: {1}", new Object[] { indexPath, t });
-		}
-
-		return (ret);
-	}
-
-	/**
-	 * Creates an absolute file name for the given module
-	 * @param moduleName the name of the module
-	 *
-	 * @return an absolute path for the given module inside the structr module directory
-	 */
-	private String createModuleFileName(String moduleName) {
-		return (Services.getFilePath(Path.Modules, moduleName));
-	}
-
-	/**
-	 * Creates an absolute index file name for the given module, located inside the structr
-	 * module directory.
-	 *
-	 * @param moduleName the name of the module
-	 *
-	 * @return an absolute index file path inside the structr module directory
-	 */
-	private String createIndexFileName(String moduleName) {
-		return (Services.getFilePath(Path.Modules, "index", "/", moduleName, ".index"));
+		return ret;
 	}
 
 	/**

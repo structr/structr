@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  *
  *
- * @author axel
+ * @author Axel Morgner
  */
 public interface Module extends Serializable
 {
