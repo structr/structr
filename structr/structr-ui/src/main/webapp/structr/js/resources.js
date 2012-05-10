@@ -713,7 +713,7 @@ var _Resources = {
     appendElementElement : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
         if (debug) console.log('_Resources.appendElementElement', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
         var div = _Elements.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-
+        
         if (!div) return false;
 
         if (parentId) {

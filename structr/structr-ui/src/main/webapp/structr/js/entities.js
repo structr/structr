@@ -27,10 +27,10 @@ var _Entities = {
 
         if (value == true) {
             attrElement.removeClass('disabled');
-            attrElement.addClass('enabled')
+            attrElement.addClass('enabled');
         } else {
             attrElement.removeClass('enabled');
-            attrElement.addClass('disabled')
+            attrElement.addClass('disabled');
         }
 
     },

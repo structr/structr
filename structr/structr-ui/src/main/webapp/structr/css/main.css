@@ -421,7 +421,7 @@ ul#previewTabs {
 .file .id,
 .folder .id,
 .image .id {
-/*    display: none;*/
+    display: none;
 }
 
 

@@ -114,7 +114,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 				}
 
-				logger.log(Level.FINE, "############################################################ SENDING \n{0}", message);
+				logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
 
 				try {
 					socketConnection.sendMessage(message);

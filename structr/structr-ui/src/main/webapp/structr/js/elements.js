@@ -188,7 +188,13 @@ var _Elements = {
         if (parent.children('.' + entity.id + '_')) {
             pos = parent.children('.' + entity.id + '_').length-1;
         }
+        
+        if (debug) console.log('Appending element', entity.id, parentId, componentId, resourceId, pos);
+        if (debug) console.log('to parent', parent);
+        
         var div = Structr.node(entity.id, parentId, componentId, resourceId, pos);
+        
+        if (debug) console.log('Element appended', div);
 
         entity.resourceId = resourceId;
 
