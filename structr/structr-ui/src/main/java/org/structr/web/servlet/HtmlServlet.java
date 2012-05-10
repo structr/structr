@@ -523,6 +523,7 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
+			// this is the place where the "content" property is evaluated
 			if (startNode instanceof Content) {
 
 				Content contentNode = (Content)startNode;
@@ -546,6 +547,11 @@ public class HtmlServlet extends HttpServlet {
 							logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
 						}
 					}
+				}
+				
+				// replace newlines with <br /> for rendering
+				if(content != null && !content.isEmpty()) {
+					content = content.replaceAll("[\\n]{1}", "<br />");
 				}
 			}
 
