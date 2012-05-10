@@ -41,6 +41,7 @@ public class Folder extends AbstractNode {
 	static {
 
 		EntityContext.registerPropertySet(Folder.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertySet(Folder.class, PropertyView.Ui, Key.values());
 
 		EntityContext.registerEntityRelation(Folder.class, Folder.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
 		EntityContext.registerEntityRelation(Folder.class, File.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);

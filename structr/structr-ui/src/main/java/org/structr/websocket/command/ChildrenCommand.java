@@ -63,7 +63,8 @@ public class ChildrenCommand extends AbstractCommand {
 
 			if ((node instanceof Group) || (node instanceof Folder)) {
 
-				result.add(node);
+				result.add(endNode);
+				nodesWithChildren.addAll(RelationshipHelper.getChildrenInResource(endNode, null));
 
 				continue;
 
@@ -85,9 +86,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 			if (pos != null) {
 
-				if ((componentId == null)
-					|| (!endNode.getType().equals(Content.class.getSimpleName())
-					    || ((relCompId != null) && relCompId.equals(componentId)))) {
+				if ((componentId == null) || (!endNode.getType().equals(Content.class.getSimpleName()) || ((relCompId != null) && relCompId.equals(componentId)))) {
 
 					nodesWithChildren.addAll(RelationshipHelper.getChildrenInResource(endNode, resourceId));
 					sortMap.put(pos, endNode);

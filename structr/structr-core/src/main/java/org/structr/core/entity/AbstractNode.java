@@ -99,6 +99,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	static {
 
 		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.Ui, Key.values());
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityStartDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate, LongDateConverter.class);

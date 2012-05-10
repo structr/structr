@@ -69,7 +69,7 @@ var _Entities = {
     },
 
     appendObj : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
-//        debug = true;
+        //        debug = true;
         if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
         // Check if object is not already contained
         //var node = Structr.node(entity.id, parentId, componentId, resourceId);
@@ -78,9 +78,9 @@ var _Entities = {
         // Check if parent node is expanded
         //if (resourceId && parentId && (!isExpanded(parentId, null, resourceId))) return false;
 
-//        if (!isExpanded(parentId, null, resourceId)) {
-//            addExpandedNode(parentId, null, resourceId);
-//        }
+        //        if (!isExpanded(parentId, null, resourceId)) {
+        //            addExpandedNode(parentId, null, resourceId);
+        //        }
 
         var lastAppendedObj;
 
@@ -89,38 +89,37 @@ var _Entities = {
             lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, removeExisting, hasChildren);
             
         } else if (entity.type == 'Group') {
-            var groupElement = _UsersAndGroups.appendGroupElement(entity, hasChildren);
-//            var users = entity.users;
-//            if (users && users.length > 0) {
-//                disable($('.delete_icon', groupElement)[0]);
-//                $(users).each(function(i, user) {
-//                    _UsersAndGroups.appendUserElement(user, entity.id, removeExisting, hasChildren);
-//                });
-//            }
-            lastAppendedObj = groupElement;
+            lastAppendedObj = _UsersAndGroups.appendGroupElement(entity, hasChildren);
+        //            var users = entity.users;
+        //            if (users && users.length > 0) {
+        //                disable($('.delete_icon', groupElement)[0]);
+        //                $(users).each(function(i, user) {
+        //                    _UsersAndGroups.appendUserElement(user, entity.id, removeExisting, hasChildren);
+        //                });
+        //            }
 
         } else if (entity.type == 'Resource') {
             
             lastAppendedObj = _Resources.appendResourceElement(entity, hasChildren);
 
-//        } else if (entity.type == 'Element') {
-//            console.log('calling _Resources.appendElementElement', entity, parentId, componentId, resourceId, false, hasChildren);
-//            _Resources.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
-//
+        //        } else if (entity.type == 'Element') {
+        //            console.log('calling _Resources.appendElementElement', entity, parentId, componentId, resourceId, false, hasChildren);
+        //            _Resources.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
+        //
         } else if (entity.type == 'Component') {
 
             lastAppendedObj = _Resources.appendComponentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-            //            var componentElement = _Resources.appendComponentElement(entity, parentId, resourceId, removeExisting, hasChildren);
-            //            var elements = entity.elements;
-            //            if (elements && elements.length > 0) {
-            //                disable($('.delete_icon', componentElement)[0]);
-            //                $(elements).each(function(i, element) {
-            //                    if (element.type == 'Element') {
-            //                        return _Resources.appendElementElement(element, entity.id, removeExisting, hasChildren);
-            //                    }
-            //                });
-            //
-            //            }
+        //            var componentElement = _Resources.appendComponentElement(entity, parentId, resourceId, removeExisting, hasChildren);
+        //            var elements = entity.elements;
+        //            if (elements && elements.length > 0) {
+        //                disable($('.delete_icon', componentElement)[0]);
+        //                $(elements).each(function(i, element) {
+        //                    if (element.type == 'Element') {
+        //                        return _Resources.appendElementElement(element, entity.id, removeExisting, hasChildren);
+        //                    }
+        //                });
+        //
+        //            }
 
         } else if (entity.type == 'Content') {
 
@@ -131,31 +130,31 @@ var _Entities = {
 
             var folderElement = _Files.appendFolderElement(entity, removeExisting, hasChildren);
 
-//            var folders = entity.folders;
-//            if (folders && folders.length > 0) {
-//                disable($('.delete_icon', folderElement)[0]);
-//                $(folders).each(function(i, folder) {
-//                    _Files.appendFolderElement(folder, entity.id, removeExisting, hasChildren);
-//                });
-//            }
-//            var images = entity.images;
-//            if (images && images.length > 0) {
-//                disable($('.delete_icon', folderElement)[0]);
-//                $(images).each(function(i, image) {
-//                    _Files.appendImageElement(image, entity.id, removeExisting, hasChildren);
-//                });
-//            }
-//            var files = entity.files;
-//            if (files && files.length > 0) {
-//                disable($('.delete_icon', folderElement)[0]);
-//                $(files).each(function(i, file) {
-//
-//                    if (file.type == 'File') { // files comprise images
-//                        _Files.appendFileElement(file, entity.id, removeExisting, hasChildren);
-//                    }
-//
-//                });
-//            }
+            //            var folders = entity.folders;
+            //            if (folders && folders.length > 0) {
+            //                disable($('.delete_icon', folderElement)[0]);
+            //                $(folders).each(function(i, folder) {
+            //                    _Files.appendFolderElement(folder, entity.id, removeExisting, hasChildren);
+            //                });
+            //            }
+            //            var images = entity.images;
+            //            if (images && images.length > 0) {
+            //                disable($('.delete_icon', folderElement)[0]);
+            //                $(images).each(function(i, image) {
+            //                    _Files.appendImageElement(image, entity.id, removeExisting, hasChildren);
+            //                });
+            //            }
+            //            var files = entity.files;
+            //            if (files && files.length > 0) {
+            //                disable($('.delete_icon', folderElement)[0]);
+            //                $(files).each(function(i, file) {
+            //
+            //                    if (file.type == 'File') { // files comprise images
+            //                        _Files.appendFileElement(file, entity.id, removeExisting, hasChildren);
+            //                    }
+            //
+            //                });
+            //            }
 
             lastAppendedObj = folderElement;
 
@@ -172,38 +171,36 @@ var _Entities = {
             if (debug) console.log('Entity: ', entity);
             lastAppendedObj = _Resources.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
 
-//            var elementElement = _Resources.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-//            var elem = entity.elements;
-//            if (elem && elem.length > 0) {
-//                if (debug) console.log(elem);
-//                disable($('.delete_icon', elementElement)[0]);
-//                $(elem).each(function(i, element) {
-//                    if (elem.type == 'Element') {
-//                        _Resources.appendElementElement(element, entity.id, componentId, resourceId, removeExisting, hasChildren);
-//                    } else if (elem.type == 'Content') {
-//                        _Resources.appendContentElement(element, entity.id, componentId, resourceId, removeExisting, hasChildren);
-//                    }
-//                });
-//            }
+        //            var elementElement = _Resources.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+        //            var elem = entity.elements;
+        //            if (elem && elem.length > 0) {
+        //                if (debug) console.log(elem);
+        //                disable($('.delete_icon', elementElement)[0]);
+        //                $(elem).each(function(i, element) {
+        //                    if (elem.type == 'Element') {
+        //                        _Resources.appendElementElement(element, entity.id, componentId, resourceId, removeExisting, hasChildren);
+        //                    } else if (elem.type == 'Content') {
+        //                        _Resources.appendContentElement(element, entity.id, componentId, resourceId, removeExisting, hasChildren);
+        //                    }
+        //                });
+        //            }
         }
 
-        //console.log('lastAppendedObj', lastAppendedObj);
+        if (debug) console.log('lastAppendedObj', lastAppendedObj);
 
         if (lastAppendedObj) {
 
-                var parent = lastAppendedObj.parent();
-                //console.log('lastAppendedObj.parent()', parent);
-                if (parent.children('.node') && parent.children('.node').length==1) {
+            var parent = lastAppendedObj.parent();
+            if (debug) console.log('lastAppendedObj.parent()', parent);
+            if (parent.children('.node') && parent.children('.node').length==1) {
 
-                    addExpandedNode(getId(parent), null, resourceId);
-                    var ent = Structr.entityFromElement(parent);
-                    ent.resourceId = resourceId;
-                    _Entities.appendExpandIcon(parent, ent, true, true);
+                addExpandedNode(getId(parent), null, resourceId);
+                var ent = Structr.entityFromElement(parent);
+                ent.resourceId = resourceId;
+                _Entities.appendExpandIcon(parent, ent, true, true);
 
-                }
+            }
         }
-        debug = false;
-
 
     },
 
@@ -284,7 +281,7 @@ var _Entities = {
                 $('li', tabs).removeClass('active');
                 $('#tabView-' + view).show();
                 self.addClass('active');
-           });
+            });
 
             var tabView = $('#tabView-' + view);
             if (view != 'all') tabView.hide();
@@ -460,6 +457,14 @@ var _Entities = {
             });
         }
 
+    },
+
+    removeExpandIcon : function(el) {
+        var button = $('.expand_icon', el).first();
+        button.remove();
+        el.children('.typeIcon').css({
+            paddingRight: 11 + 'px'
+        });
     },
 
     setMouseOver : function(el) {

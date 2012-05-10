@@ -198,8 +198,9 @@ function connect() {
                 if (debug) console.log('componentId', componentId);
                 if (debug) console.log('resourceId', resourceId);
                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
+                
                 $(result).each(function(i, child) {
-                     if (debug) console.log('CHILDREN: ', child, parentId, componentId, resourceId, false, isIn(child.id, data.nodesWithChildren));
+                    if (debug) console.log('CHILDREN: ', child, parentId, componentId, resourceId, false, isIn(child.id, data.nodesWithChildren));
                     _Entities.appendObj(child, parentId, componentId, resourceId, false, isIn(child.id, data.nodesWithChildren));
                 });
 
@@ -295,7 +296,7 @@ function connect() {
                 if (debug) console.log(element);
 
                 // update values with given key
-                for (key in data.data) {
+                for (var key in data.data) {
                     var attrElement = element.children('.' + key + '_');
                     var inputElement = element.children('.props tr td.' + key + ' input');
                     if (debug) console.log(attrElement, inputElement);

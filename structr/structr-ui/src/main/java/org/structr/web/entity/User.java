@@ -58,6 +58,7 @@ public class User extends Person implements Principal {
 
 		EntityContext.registerPropertyConverter(User.class, Key.password.name(), PasswordConverter.class);
 		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertySet(User.class, PropertyView.Ui, Key.values());
 		EntityContext.registerPropertySet(User.class, PropertyView.Public, Key.realName);
 		EntityContext.registerEntityRelation(User.class, Group.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 

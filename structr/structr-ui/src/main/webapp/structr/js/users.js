@@ -71,8 +71,19 @@ var _UsersAndGroups = {
     removeUserFromGroup : function(userId, groupId) {
 
         var group = Structr.node(groupId);
+
         var user = Structr.node(userId, groupId);
-        users.append(user);//.animate();
+
+        if ($('.' + userId + '_', users).length) {
+            user.remove();
+        } else {
+            users.append(user);//.animate();
+        }
+
+        if (!Structr.containsNodes(group)) {
+            _Entities.removeExpandIcon(group);
+        }
+
         $('.delete_icon', user).replaceWith('<img title="Delete user ' + user.name + '" '
             + 'alt="Delete user ' + user.name + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', user).on('click', function() {
@@ -106,7 +117,7 @@ var _UsersAndGroups = {
     },
 
     appendGroupElement : function(group, hasChildren) {
-        console.log('appendGroupElement', group);
+        if (debug) console.log('appendGroupElement', group);
         groups.append('<div class="node group ' + group.id + '_">'
             + '<img class="typeIcon" src="icon/group.png">'
             + '<b class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
@@ -142,20 +153,31 @@ var _UsersAndGroups = {
     },
 
     appendUserElement : function(user, groupId, removeExisting) {
-        //console.log('appendUserElement', user, groupId, removeExisting);
+        console.log('appendUserElement', user, groupId, removeExisting);
+
+        removeExisting = true;
+
+        //        if (!groupId && Structr.node(user.id).length) return false;
+        //        if (groupId && Structr.node(user.id, groupId).length) return false;
+
         var div;
         var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
-                + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">'
+        + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">'
         var delIcon;
+        div = $('.' + user.id + '_', users);
         if (groupId) {
+
             var parent = Structr.node(groupId);
             
-            div = Structr.node(user.id);
-            
-            console.log(parent, div);
+            div.draggable('off');
+
+            if (debug) console.log(parent, div);
             
             if (removeExisting && div && div.length) {
-                parent.append(div.css({ top: 0, left: 0 }));
+                parent.append(div.css({
+                    top: 0,
+                    left: 0
+                }));
                 delIcon = $('.delete_icon', div);
                 delIcon.replaceWith(newDelIcon);
                 disable($('.delete_icon', parent)[0]);
@@ -176,6 +198,9 @@ var _UsersAndGroups = {
 
 
         } else {
+
+            if (Structr.node(user.id).length) return false;
+
             users.append('<div class="node user ' + user.id + '_">'
                 + '<img class="typeIcon" src="icon/user.png">'
                 //				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
@@ -184,7 +209,7 @@ var _UsersAndGroups = {
             div = $('.' + user.id + '_', users);
             
             newDelIcon = '<img title="Delete user \'' + user.name + '\'" '
-                + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+            + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
             delIcon = $('.delete_icon', div);
             if (removeExisting && delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
@@ -199,6 +224,7 @@ var _UsersAndGroups = {
 
 			
             div.draggable({
+//                helper: 'clone',
                 revert: 'invalid',
                 containment: '#main',
                 zIndex: 1
@@ -206,6 +232,8 @@ var _UsersAndGroups = {
         }
         _Entities.appendEditPropertiesIcon(div, user);
         _Entities.setMouseOver(div);
+
+        return div;
 
     }
 

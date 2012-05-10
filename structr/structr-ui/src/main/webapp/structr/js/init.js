@@ -419,6 +419,10 @@ var Structr = {
         if (debug) console.log('Module ' + name + ' registered');
     },
 
+    containsNodes : function(element) {
+        return $('.node', element).length;
+    },
+
     findParent : function(parentId, componentId, resourceId, defaultElement) {
         var parent = Structr.node(parentId, null, componentId, resourceId);
         if (debug) console.log('findParent', parentId, componentId, resourceId, defaultElement, parent);
@@ -533,9 +537,17 @@ function plural(type) {
 
 function addExpandedNode(id, parentId, resourceId) {
     if (debug) console.log('addExpandedNode', id, parentId, resourceId);
+
+    if (!id) return;
+
+    if (!resourceId) {
+        resourceId = 'generic';
+    }
+
     if (!getExpanded()[resourceId]) {
         getExpanded()[resourceId] = {};
     }
+
     getExpanded()[resourceId][id] = true;
     $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
         expires: 7, 
@@ -546,6 +558,13 @@ function addExpandedNode(id, parentId, resourceId) {
 
 function removeExpandedNode(id, parentId, resourceId) {
     if (debug) console.log('removeExpandedNode', id, parentId, resourceId);
+
+    if (!id) return;
+
+    if (!resourceId) {
+        resourceId = 'generic';
+    }
+    
     if (!getExpanded()[resourceId]) {
         getExpanded()[resourceId] = {};
     }
@@ -558,12 +577,22 @@ function removeExpandedNode(id, parentId, resourceId) {
 
 function isExpanded(id, parentId, resourceId) {
     if (debug) console.log('isExpanded', id, parentId, resourceId);
+
+    if (!id) return;
+
+    if (!resourceId) {
+        resourceId = 'generic';
+    }
+
     var expRes = getExpanded()[resourceId];
     if (!expRes) {
         expRes = {};
         Structr.expanded[resourceId] = expRes;
     }
     var isExpanded = expRes[id] ? expRes[id] : false;
+
+    if (debug) console.log(isExpanded);
+
     return isExpanded;
 }
 

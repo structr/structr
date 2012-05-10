@@ -70,9 +70,8 @@ public class Image extends File {
 
 		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
 
-		EntityContext.registerPropertySet(Image.class,
-						  PropertyView.All,
-						  Key.values());
+		EntityContext.registerPropertySet(Image.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertySet(Image.class, PropertyView.Ui, Key.values());
 	}
 
 	//~--- fields ---------------------------------------------------------
