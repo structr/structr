@@ -437,30 +437,65 @@ var Structr = {
 
         if (debug) console.log('Structr.node', id, parentId, componentId, resourceId, position);
 
-        if (id && resourceId && componentId && parentId && (resourceId != parentId) && (resourceId != componentId)) {
+        if (id && parentId && componentId && resourceId && (resourceId != parentId) && (resourceId != componentId)) {
 
             resourceElement = $('.node.' + resourceId + '_');
-            componentElement = $('.node.' + componentId + '_', resourceElement);
-            parentElement = $('.node.' + parentId + '_', componentElement);
-            entityElement = $('.node.' + id + '_', parentElement);
+            if (debug) console.log('resourceElement', resourceElement);
+            
+            if (id == resourceId) {
+                
+                entityElement = resourceElement;
+                
+            } else {
+                
+                componentElement = $('.node.' + componentId + '_', resourceElement);
+                if (debug) console.log('componentElement', componentElement);
+                
+                if (id == componentId) {
+                    entityElement = componentElement;
+                    
+                } else {
+                    
+                    if (parentId == componentId) {
+                        parentElement = componentElement;
+                    } else {
+                        parentElement = $('.node.' + parentId + '_', componentElement);
+                    }
+                    if (debug) console.log('parentElement', parentElement);
+                    
+                    if (id == parentId) {
+                        entityElement = parentElement;
+                    } else {
+                        entityElement = $('.node.' + id + '_', parentElement);
+                        if (debug) console.log('entityElement', entityElement);
+                    }
+                }
+            }
+            
 
-        } else if (id && resourceId && parentId && (resourceId != parentId)) {
+        } else if (id && parentId && resourceId && (resourceId != parentId)) {
 
             resourceElement = $('.node.' + resourceId + '_');
             parentElement = $('.node.' + parentId + '_', resourceElement);
             entityElement = $('.node.' + id + '_', parentElement);
 
-        } else if (id && resourceId && componentId && (resourceId != componentId)) {
-
+        } else if (id && componentId && resourceId && (resourceId != componentId)) {
+            
             resourceElement = $('.node.' + resourceId + '_');
             componentElement = $('.node.' + componentId + '_', resourceElement);
-            entityElement = $('.node.' + id + '_', componentElement);
+
+            if (id == componentId) {
+                entityElement = componentElement;
+            } else {
+                entityElement = $('.node.' + id + '_', componentElement);
+            }
 
         } else if (id && resourceId) {
             
             if (id == resourceId) {
                 entityElement = $('.node.' + resourceId + '_');
-            } else {
+            }
+            else {
                 resourceElement = $('.node.' + resourceId + '_');
                 entityElement = $('.node.' + id + '_', resourceElement);
             }
