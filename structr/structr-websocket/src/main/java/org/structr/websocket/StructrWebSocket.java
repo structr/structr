@@ -248,9 +248,9 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 				String msg = gson.toJson(message, WebSocketMessage.class);
 
-				if ("STATUS".equals(message.getCommand())) {
+				//if ("STATUS".equals(message.getCommand())) {
 					logger.log(Level.INFO, "############################################################ SENDING \n{0}", msg);
-				}
+				//}
 
 				connection.sendMessage(msg);
 
