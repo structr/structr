@@ -37,19 +37,18 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.common.Function;
-import org.structr.web.entity.Component;
 import org.structr.web.entity.Element;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.pegdown.Parser;
+import org.pegdown.PegDownProcessor;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,9 +71,9 @@ public abstract class HtmlElement extends Element {
 		"onwaiting",
 	};
 	private static final Logger logger                                             = Logger.getLogger(HtmlElement.class.getName());
-	private static final Pattern templatePattern                                   = Pattern.compile("\\$\\{[^}]*\\}");
 	private static final java.util.Map<String, Function<String, String>> functions = new LinkedHashMap<String, Function<String, String>>();
-	private static final Pattern functionPattern                                   = Pattern.compile("([a-zA-Z0-9_]+)\\((.+)\\)");
+	private static final ThreadLocalMatcher threadLocalFunctionMatcher             = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.+)\\)");
+	private static final ThreadLocalMatcher threadLocalTemplateMatcher             = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
 
 	//~--- static initializers --------------------------------------------
 
@@ -233,7 +232,9 @@ public abstract class HtmlElement extends Element {
 
 			value = (String) rawValue;
 
-			Matcher matcher = templatePattern.matcher(value);
+			// re-use matcher from previous calls
+			Matcher matcher = threadLocalTemplateMatcher.get();
+			matcher.reset(value);
 
 			while (matcher.find()) {
 
@@ -252,14 +253,16 @@ public abstract class HtmlElement extends Element {
 			}
 
 		}
-
+		
 		return value;
 	}
 
 	public static String extractFunctions(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent,
 		String source) {
 
-		Matcher functionMatcher = functionPattern.matcher(source);
+		// re-use matcher from previous calls
+		Matcher functionMatcher = threadLocalFunctionMatcher.get();
+		functionMatcher.reset(source);
 
 		if (functionMatcher.matches()) {
 
@@ -538,5 +541,19 @@ public abstract class HtmlElement extends Element {
 		}
 
 		return null;
+	}
+	
+	private static class ThreadLocalMatcher extends ThreadLocal<Matcher> {
+		
+		private Pattern pattern = null;
+		
+		public ThreadLocalMatcher(String pattern) {
+			this.pattern = Pattern.compile(pattern);
+		}
+		
+		@Override
+		protected Matcher initialValue() {
+			return pattern.matcher("");
+		}
 	}
 }
