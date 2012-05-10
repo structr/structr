@@ -77,7 +77,11 @@
             <artifactId>doxia-converter</artifactId>
             <version>1.2</version>
         </dependency>-->
-
+	 <dependency>
+	  <groupId>org.pegdown</groupId>
+	  <artifactId>pegdown</artifactId>
+	  <version>1.1.0</version>
+	 </dependency>
 	</dependencies>
 	<build>
 		<plugins>

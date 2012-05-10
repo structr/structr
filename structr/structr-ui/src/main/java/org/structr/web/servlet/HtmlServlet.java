@@ -25,7 +25,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.eclipse.jetty.client.ContentExchange;
@@ -77,6 +76,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.pegdown.PegDownProcessor;
+import org.structr.core.Adapter;
+import org.structr.web.entity.Element;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -92,16 +94,43 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HtmlServlet extends HttpServlet {
 
-	private static final Logger logger        = Logger.getLogger(HtmlServlet.class.getName());
+	private static final Map<String, Adapter<String, String>> contentConverters = new LinkedHashMap<String, Adapter<String, String>>();
+	private static final ThreadLocalPegDownProcessor pegDownProcessor           = new ThreadLocalPegDownProcessor();
+	private static final Set<String> html5VoidTags                              = new LinkedHashSet<String>();
+	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
+	
+	static {
+		
+		html5VoidTags.add("area");
+		html5VoidTags.add("base");
+		html5VoidTags.add("br");
+		html5VoidTags.add("col");
+		html5VoidTags.add("command");
+		html5VoidTags.add("embed");
+		html5VoidTags.add("hr");
+		html5VoidTags.add("img");
+		html5VoidTags.add("input");
+		html5VoidTags.add("keygen");
+		html5VoidTags.add("link");
+		html5VoidTags.add("meta");
+		html5VoidTags.add("param");
+		html5VoidTags.add("source");
+		html5VoidTags.add("track");
+		html5VoidTags.add("wbr");
+		
+		contentConverters.put("text/markdown", new Adapter<String, String>() {
 
+			@Override
+			public String adapt(String s) throws FrameworkException {
+				return pegDownProcessor.get().markdownToHtml(s);
+			}
+			
+		});
+	}
+	
 	//~--- fields ---------------------------------------------------------
 
 	private TraversalDescription desc = null;
-	private String[] html5VoidTags    = new String[] {
-
-		"area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"
-
-	};
 
 	// area, base, br, col, command, embed, hr, img, input, keygen, link, meta, param, source, track, wbr
 	private boolean edit, tidy;
@@ -468,13 +497,14 @@ public class HtmlServlet extends HttpServlet {
 		String localComponentId   = componentId;
 		String content            = null;
 		String tag                = null;
-//		AbstractRelationship link = null;
 
 		if (startNode != null) {
 
 			// If a search class is given, respect search attributes
 			// Filters work with AND
 			String structrClass = startNode.getStringProperty(Component.UiKey.structrclass);
+			String id           = startNode.getStringProperty(AbstractNode.Key.uuid);
+			tag                 = startNode.getStringProperty(Element.UiKey.tag);
 
 			if ((structrClass != null) && structrClass.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
 
@@ -493,27 +523,30 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			String id = startNode.getStringProperty("uuid");
-
-			for (int d = 0; d < depth; d++) {
-
-				System.out.print(" ");
-
-			}
-
-			// System.out.println("id: " + id + " [" + node.getStringProperty("type") + "] " + node.getStringProperty("name") + ", depth: " + depth + ", res: " + resourceId + ", comp: " + componentId);
 			if (startNode instanceof Content) {
 
-				content = (((Content) startNode).getPropertyWithVariableReplacement(resource, resourceId, componentId, viewComponent, Content.UiKey.content.name()));
+				Content contentNode = (Content)startNode;
 
-//				List<AbstractRelationship> links = startNode.getOutgoingLinkRelationships();
-
-//				if ((links != null) &&!links.isEmpty()) {
-//
-//					link = links.get(0);    // first link wins
-//
-//				}
-
+				// fetch content with variable replacement
+				content = contentNode.getPropertyWithVariableReplacement(resource, resourceId, componentId, viewComponent, Content.UiKey.content.name());
+				
+				// examine content type and apply converter
+				String contentType  = contentNode.getStringProperty(Content.UiKey.contentType);
+				if(contentType != null) {
+				
+					Adapter<String, String> converter = contentConverters.get(contentType);
+					if(converter != null) {
+						
+						try {
+							// apply adapter
+							content = converter.adapt(content);
+							
+						} catch(FrameworkException fex) {
+							
+							logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
+						}
+					}
+				}
 			}
 
 			// check for component
@@ -523,13 +556,6 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-//			if (link != null) {
-//
-//				buffer.append("<a href=\"").append(link.getEndNode().getName()).append("\">");
-//
-//			}
-
-			tag = startNode.getStringProperty("tag");
 
 			// In edit mode, add an artificial 'div' tag around content nodes within body
 			// to make them editable
@@ -551,7 +577,6 @@ public class HtmlServlet extends HttpServlet {
 
 				}
 
-//                              String onload = node.getStringProperty("onload");
 				buffer.append("<").append(tag);
 
 				if (edit && (id != null)) {
@@ -611,8 +636,6 @@ public class HtmlServlet extends HttpServlet {
 			}
 		}
 
-		// ############################################################################################ BEGIN NEW VIEW TEST
-		// render
 		if (startNode instanceof View) {
 
 			// fetch list of components from this view and
@@ -635,6 +658,7 @@ public class HtmlServlet extends HttpServlet {
 
 				}
 			}
+			
 		} else if (startNode instanceof Condition) {
 
 			// recursively render children
@@ -648,6 +672,7 @@ public class HtmlServlet extends HttpServlet {
 				getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
 
 			}
+			
 		} else {
 
 			// recursively render children
@@ -667,16 +692,18 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		// render end tag, if needed (= if not singleton tags)
-		if (StringUtils.isNotBlank(tag) &&!(ArrayUtils.contains(html5VoidTags, tag))) {
+		if (StringUtils.isNotBlank(tag) && !html5VoidTags.contains(tag)) {
 
 			buffer.append("</").append(tag).append(">");
 
 		}
-
-//		if (link != null) {
-//
-//			buffer.append("</a>");
-//
-//		}
+	}
+	
+	private static class ThreadLocalPegDownProcessor extends ThreadLocal<PegDownProcessor> {
+		
+		@Override
+		protected PegDownProcessor initialValue() {
+			return new PegDownProcessor();
+		}
 	}
 }
