@@ -58,6 +58,8 @@ public class Component extends AbstractNode {
 	private static final int MAX_DEPTH = 10;
 	private static final Logger logger = Logger.getLogger(Component.class.getName());
 
+	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -447,9 +449,37 @@ public class Component extends AbstractNode {
 		// check if component is in "list" mode
 		if (node instanceof Component) {
 
-			String structrClass = node.getStringProperty(Component.UiKey.structrclass);
+			Boolean requestContainsUuidsValue = (Boolean)request.getAttribute(REQUEST_CONTAINS_UUID_IDENTIFIER);
+			boolean requestContainsUuids = false;
+			
+			if(requestContainsUuidsValue != null) {
+				requestContainsUuids = requestContainsUuidsValue.booleanValue();
+			}
+			
+			// String structrClass = node.getStringProperty(Component.UiKey.structrclass);
 			String componentId  = node.getStringProperty(AbstractNode.Key.uuid);
 
+			// new default behaviour: make all components visible
+			// only filter if uuids are present in the request URI
+			
+			if(requestContainsUuids) {
+				
+				if (request.getAttribute(componentId) != null) {
+
+					return true;
+
+				}
+
+				return false;
+				
+			} else {
+				
+				return true;
+			}
+			
+			/*
+			 *  disabled, old code
+			 * 
 			if (structrClass != null) {
 
 				String singleClass = CaseHelper.toUnderscore(structrClass, false);
@@ -473,9 +503,11 @@ public class Component extends AbstractNode {
 				}
 
 			}
+			*/
 
 		}
 
+		// we can return false here by default, as we're only examining nodes of type Component
 		return false;
 	}
 
