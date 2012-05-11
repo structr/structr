@@ -148,6 +148,7 @@ var _Contents = {
         element.append('<span class="' + entity.id + '_"><label for="contentTypeSelect">Content-Type:</label>'
         + '<select class="contentType_" id="contentTypeSelect">'
         + '<option value="text/plain">text/plain</option>'
+        + '<option value="text/css">text/css</option>'
         + '<option value="text/markdown">text/markdown</option>'
         + '<option value="text/textile">text/textile</option>'
         + '<option value="text/mediawiki">text/mediawiki</option>'
