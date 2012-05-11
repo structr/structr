@@ -169,8 +169,6 @@ var _UsersAndGroups = {
 
             var parent = Structr.node(groupId);
             
-            div.draggable('off');
-
             if (debug) console.log(parent, div);
             
             if (removeExisting && div && div.length) {

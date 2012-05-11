@@ -716,6 +716,8 @@ var _Resources = {
         
         if (!div) return false;
 
+        var pos = div.parent().children('.' + entity.id + '_').length-1;
+
         if (parentId) {
 
             $('.delete_icon', div).replaceWith('<img title="Remove element \'' + entity.name + '\' from resource ' + parentId + '" '
@@ -725,7 +727,8 @@ var _Resources = {
                 var self = $(this);
                 self.off('click');
                 self.off('mouseover');
-                Command.removeSourceFromTarget(entity.id, parentId);
+                console.log('Command.removeSourceFromTarget',entity.id, parentId, componentId, resourceId);
+                Command.removeSourceFromTarget(entity.id, parentId, componentId, resourceId, pos);
             });
         }
 
@@ -967,6 +970,10 @@ var _Resources = {
         if (debug) console.log('Resources.appendContentElement');
 		
         var div = _Contents.appendContentElement(content, parentId, componentId, resourceId);
+        var pos = div.parent().children('.' + content.id + '_').length-1;
+        console.log('pos', content.id, pos);
+
+        //var div = Structr.node(content.id, parentId, componentId, resourceId, pos);
 
         if (!div) return false;
 
@@ -978,7 +985,8 @@ var _Resources = {
                 var self = $(this);
                 self.off('click');
                 self.off('mouseover');
-                Command.removeSourceFromTarget(content.id, parentId)
+                console.log('Command.removeSourceFromTarget', content.id, parentId, componentId, resourceId, pos);
+                Command.removeSourceFromTarget(content.id, parentId, componentId, resourceId, pos)
             });
         }
 
@@ -1017,6 +1025,10 @@ var _Resources = {
         var element = Structr.node(elementId, resourceId);
         element.remove();
 
+        if (!Structr.containsNodes(resource)) {
+            _Entities.removeExpandIcon(resource);
+        }
+
         var numberOfElements = $('.element', resource).size();
         if (debug) console.log(numberOfElements);
         if (numberOfElements == 0) {
@@ -1031,6 +1043,10 @@ var _Resources = {
         var element = Structr.node(elementId);
         var contentEl = Structr.node(contentId, elementId);
         contentEl.remove();
+
+        if (!Structr.containsNodes(element)) {
+            _Entities.removeExpandIcon(element);
+        }
 
         var numberOfContents = $('.element', element).size();
         if (debug) console.log(numberOfContents);

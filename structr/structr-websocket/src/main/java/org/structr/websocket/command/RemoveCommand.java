@@ -28,6 +28,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.RelationClass;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -36,8 +37,8 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.LinkedList;
 import java.util.List;
-import org.structr.core.entity.RelationClass;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,35 +54,61 @@ public class RemoveCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		// create static relationship
-		String sourceId = webSocketData.getId();
-		String targetId = (String) webSocketData.getNodeData().get("id");
+		String id                = webSocketData.getId();
+		String parentId          = (String) webSocketData.getNodeData().get("id");
+		final String componentId = (String) webSocketData.getNodeData().get("componentId");
+		final String resourceId  = (String) webSocketData.getNodeData().get("resourceId");
+		String position          = (String) webSocketData.getNodeData().get("position");
 
-		if ((sourceId != null) && (targetId != null)) {
+		if ((id != null) && (parentId != null)) {
 
-			final AbstractNode sourceNode = getNode(sourceId);
-			final AbstractNode targetNode = getNode(targetId);
+			final AbstractNode nodeToRemove = getNode(id);
+			final AbstractNode parentNode   = getNode(parentId);
+			final Long pos                  = (position != null)
+							  ? Long.parseLong(position)
+							  : null;
 
-			if ((sourceNode != null) && (targetNode != null)) {
+			if ((nodeToRemove != null) && (parentNode != null)) {
 
-				RelationClass rel = EntityContext.getRelationClass(sourceNode.getClass(), targetNode.getClass());
+				RelationClass rel = EntityContext.getRelationClass(nodeToRemove.getClass(), parentNode.getClass());
 
 				if (rel != null) {
 
-					final List<AbstractRelationship> rels = sourceNode.getRelationships(rel.getRelType(), rel.getDirection());
+					final List<AbstractRelationship> rels = nodeToRemove.getRelationships(rel.getRelType(), rel.getDirection());
 					StructrTransaction transaction        = new StructrTransaction() {
 
 						@Override
 						public Object execute() throws FrameworkException {
 
-							Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+							Command deleteRel                      = Services.command(securityContext, DeleteRelationshipCommand.class);
+							List<AbstractRelationship> relsToShift = new LinkedList<AbstractRelationship>();
 
 							for (AbstractRelationship rel : rels) {
 
-								if (rel.getOtherNode(sourceNode).equals(targetNode)) {
+								if (rel.getOtherNode(nodeToRemove).equals(parentNode)
+									&& ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))
+									&& ((resourceId == null) || (rel.getProperty(resourceId) != null))) {
 
-									deleteRel.execute(rel);
+									relsToShift.add(rel);
+
+									if (pos.equals(rel.getLongProperty(resourceId))) {
+
+										deleteRel.execute(rel);
+										relsToShift.remove(rel);
+
+										// Stop after removal of one relationship!
+										break;
+
+									}
 
 								}
+
+							}
+
+							// After removal of a relationship, all other rels must get a new position id
+							if (pos != null) {
+
+								moveUpRels(relsToShift, resourceId);
 
 							}
 
@@ -107,6 +134,27 @@ public class RemoveCommand extends AbstractCommand {
 		} else {
 
 			getWebSocket().send(MessageBuilder.status().code(400).message("Add needs id and data.id!").build(), true);
+
+		}
+	}
+
+	private void moveUpRels(final List<AbstractRelationship> rels, final String resourceId) throws FrameworkException {
+
+		long i = 0;
+
+		for (AbstractRelationship rel : rels) {
+
+			try {
+				rel.getId();
+			} catch (IllegalStateException ise) {
+
+				// Silently ignore this exception and continue, omitting deleted rels
+				continue;
+			}
+
+			rel.setProperty(resourceId, i);
+
+			i++;
 
 		}
 	}

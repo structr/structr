@@ -90,7 +90,7 @@ var _Contents = {
             + '</div>');
         
         var pos = parent.children('.' + content.id + '_').length-1;
-        //console.log('pos', content.id, pos);
+        if (debug) console.log('pos', content.id, pos);
         
         var div = Structr.node(content.id, parentId, componentId, resourceId, pos);
 

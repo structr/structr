@@ -144,13 +144,16 @@ var Command = {
      * The server will remove the node with the given sourceId from the node
      * with the given targetId and broadcast a removal notification.
      */
-    removeSourceFromTarget : function(sourceId, targetId) {
+    removeSourceFromTarget : function(sourceId, targetId, componentId, resourceId, position) {
         if (debug) console.log('Remove ' + sourceId + ' from ' + targetId);
         var obj = {};
         obj.command = 'REMOVE';
         obj.id = targetId;
         var data = {};
         data.id = sourceId;
+        data.componentId = componentId;
+        data.resourceId = resourceId;
+        data.position = position;
         obj.data = data;
         if (debug) console.log('removeSourceFromTarget()', obj);
         return sendObj(obj);
