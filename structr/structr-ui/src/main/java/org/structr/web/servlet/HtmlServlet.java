@@ -32,9 +32,6 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 
-import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.Uniqueness;
 
 import org.structr.StructrServer;
 import org.structr.common.*;
@@ -76,6 +73,11 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import net.java.textilej.parser.MarkupParser;
+import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
+import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
+import net.java.textilej.parser.markup.textile.TextileDialect;
+import net.java.textilej.parser.markup.trac.TracWikiDialect;
 import org.pegdown.PegDownProcessor;
 import org.structr.core.Adapter;
 import org.structr.web.entity.Element;
@@ -96,6 +98,10 @@ public class HtmlServlet extends HttpServlet {
 
 	private static final Map<String, Adapter<String, String>> contentConverters = new LinkedHashMap<String, Adapter<String, String>>();
 	private static final ThreadLocalPegDownProcessor pegDownProcessor           = new ThreadLocalPegDownProcessor();
+	private static final ThreadLocalTextileProcessor textileProcessor           = new ThreadLocalTextileProcessor();
+	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor       = new ThreadLocalMediaWikiProcessor();
+	private static final ThreadLocalTracWikiProcessor tracWikiProcessor         = new ThreadLocalTracWikiProcessor();
+	private static final ThreadLocalConfluenceProcessor confluenceProcessor     = new ThreadLocalConfluenceProcessor();
 	private static final Set<String> html5VoidTags                              = new LinkedHashSet<String>();
 	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
 	
@@ -126,11 +132,46 @@ public class HtmlServlet extends HttpServlet {
 			}
 			
 		});
+		
+		contentConverters.put("text/textile", new Adapter<String, String>() {
+
+			@Override
+			public String adapt(String s) throws FrameworkException {
+				return textileProcessor.get().parseToHtml(s);
+			}
+			
+		});
+		
+		contentConverters.put("text/mediawiki", new Adapter<String, String>() {
+
+			@Override
+			public String adapt(String s) throws FrameworkException {
+				return mediaWikiProcessor.get().parseToHtml(s);
+			}
+			
+		});
+		
+		contentConverters.put("text/tracwiki", new Adapter<String, String>() {
+
+			@Override
+			public String adapt(String s) throws FrameworkException {
+				return tracWikiProcessor.get().parseToHtml(s);
+			}
+			
+		});
+		
+		contentConverters.put("text/confluence", new Adapter<String, String>() {
+
+			@Override
+			public String adapt(String s) throws FrameworkException {
+				return confluenceProcessor.get().parseToHtml(s);
+			}
+			
+		});
+		
 	}
 	
 	//~--- fields ---------------------------------------------------------
-
-	private TraversalDescription desc = null;
 
 	// area, base, br, col, command, embed, hr, img, input, keygen, link, meta, param, source, track, wbr
 	private boolean edit, tidy;
@@ -190,7 +231,7 @@ public class HtmlServlet extends HttpServlet {
 	public void init() {
 
 		// create prototype traversal description
-		desc = Traversal.description().depthFirst().uniqueness(Uniqueness.RELATIONSHIP_PATH);    // .uniqueness(Uniqueness.NODE_GLOBAL);
+		// desc = Traversal.description().depthFirst().uniqueness(Uniqueness.RELATIONSHIP_PATH);    // .uniqueness(Uniqueness.NODE_GLOBAL);
 	}
 
 	@Override
@@ -710,6 +751,38 @@ public class HtmlServlet extends HttpServlet {
 		@Override
 		protected PegDownProcessor initialValue() {
 			return new PegDownProcessor();
+		}
+	}
+	
+	private static class ThreadLocalTextileProcessor extends ThreadLocal<MarkupParser> {
+		
+		@Override
+		protected MarkupParser initialValue() {
+			return new MarkupParser(new TextileDialect());
+		}
+	}
+	
+	private static class ThreadLocalConfluenceProcessor extends ThreadLocal<MarkupParser> {
+		
+		@Override
+		protected MarkupParser initialValue() {
+			return new MarkupParser(new ConfluenceDialect());
+		}
+	}
+	
+	private static class ThreadLocalMediaWikiProcessor extends ThreadLocal<MarkupParser> {
+		
+		@Override
+		protected MarkupParser initialValue() {
+			return new MarkupParser(new MediaWikiDialect());
+		}
+	}
+	
+	private static class ThreadLocalTracWikiProcessor extends ThreadLocal<MarkupParser> {
+		
+		@Override
+		protected MarkupParser initialValue() {
+			return new MarkupParser(new TracWikiDialect());
 		}
 	}
 }

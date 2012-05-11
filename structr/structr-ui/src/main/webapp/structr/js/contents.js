@@ -150,6 +150,9 @@ var _Contents = {
         + '<option value="text/plain">text/plain</option>'
         + '<option value="text/markdown">text/markdown</option>'
         + '<option value="text/textile">text/textile</option>'
+        + '<option value="text/mediawiki">text/mediawiki</option>'
+        + '<option value="text/tracwiki">text/tracwiki</option>'
+        + '<option value="text/confluence">text/confluence</option>'
         + '</select>'
         + '</span>');
         Command.getProperty(entity.id, 'contentType', '#dialogBox');

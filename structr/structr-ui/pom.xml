@@ -82,6 +82,11 @@
 	  <artifactId>pegdown</artifactId>
 	  <version>1.1.0</version>
 	 </dependency>
+	 <dependency>
+	  <groupId>net.java</groupId>
+	  <artifactId>textile-j</artifactId>
+	  <version>2.2</version>
+	 </dependency>
 	</dependencies>
 	<build>
 		<plugins>
