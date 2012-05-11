@@ -417,6 +417,10 @@ public class EntityContext {
 	// ----- private methods -----
 	public static String normalizeEntityName(String possibleEntityName) {
 
+		if(possibleEntityName == null) {
+			return null;
+		}
+		
 		// CAUTION: this cache might grow to a very large size, as it
 		// contains all normalized mappings for every possible
 		// property key / entity name that is ever called.

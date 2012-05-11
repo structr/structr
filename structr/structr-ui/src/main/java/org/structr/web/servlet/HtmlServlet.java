@@ -69,6 +69,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -80,6 +81,7 @@ import net.java.textilej.parser.markup.textile.TextileDialect;
 import net.java.textilej.parser.markup.trac.TracWikiDialect;
 import org.pegdown.PegDownProcessor;
 import org.structr.core.Adapter;
+import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Element;
 
 //~--- classes ----------------------------------------------------------------
@@ -102,6 +104,7 @@ public class HtmlServlet extends HttpServlet {
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor       = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor         = new ThreadLocalTracWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor     = new ThreadLocalConfluenceProcessor();
+	private static final ThreadLocalMatcher threadLocalUUIDMatcher              = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 	private static final Set<String> html5VoidTags                              = new LinkedHashSet<String>();
 	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
 	
@@ -307,6 +310,9 @@ public class HtmlServlet extends HttpServlet {
 		// first part (before "//" is resource path (file etc),
 		// second part is nested component control
 		// store remaining path parts in request
+		Matcher matcher                    = threadLocalUUIDMatcher.get();
+		boolean requestUriContainsUuids    = false;
+		
 		for (int i = 1; i < pathParts.length; i++) {
 
 			String[] parts = pathParts[i].split("[/]+");
@@ -317,10 +323,20 @@ public class HtmlServlet extends HttpServlet {
 				// wrong here if we have multiple //-separated
 				// parts!
 				request.setAttribute(parts[j], j);
+				
+				matcher.reset(parts[j]);
+
+				// set to "true" if part matches UUID pattern
+				requestUriContainsUuids |= matcher.matches();
 			}
 
 		}
+		
+		// store information about UUIDs in path in request for later use in Component
+		request.setAttribute(Component.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
 
+		
+		
 		try {
 
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
@@ -426,6 +442,8 @@ public class HtmlServlet extends HttpServlet {
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
+			
 			// logger.log(Level.WARNING, "Exception while processing request", t);
 			HttpAuthenticator.writeInternalServerError(response);
 		}

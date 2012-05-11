@@ -46,9 +46,7 @@ import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.pegdown.Parser;
-import org.pegdown.PegDownProcessor;
+import org.structr.web.common.ThreadLocalMatcher;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -541,19 +539,5 @@ public abstract class HtmlElement extends Element {
 		}
 
 		return null;
-	}
-	
-	private static class ThreadLocalMatcher extends ThreadLocal<Matcher> {
-		
-		private Pattern pattern = null;
-		
-		public ThreadLocalMatcher(String pattern) {
-			this.pattern = Pattern.compile(pattern);
-		}
-		
-		@Override
-		protected Matcher initialValue() {
-			return pattern.matcher("");
-		}
 	}
 }
