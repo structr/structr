@@ -145,7 +145,13 @@ var _Contents = {
             }
         });
         
-        element.append('<span class="' + entity.id + '_"><label for="contentTypeSelect">Content-Type:</label><select class="contentType_" id="contentTypeSelect"><option value="text/plain">text/plain</option><option value="text/markdown">text/markdown</option></select></span>');
+        element.append('<span class="' + entity.id + '_"><label for="contentTypeSelect">Content-Type:</label>'
+        + '<select class="contentType_" id="contentTypeSelect">'
+        + '<option value="text/plain">text/plain</option>'
+        + '<option value="text/markdown">text/markdown</option>'
+        + '<option value="text/textile">text/textile</option>'
+        + '</select>'
+        + '</span>');
         Command.getProperty(entity.id, 'contentType', '#dialogBox');
         var select = $('#contentTypeSelect', element);
         select.on('change', function() {
