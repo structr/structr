@@ -45,6 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.web.entity.relation.ComponentRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -304,7 +305,7 @@ public class Component extends AbstractNode {
 
 				AbstractNode endNode = abstractRelationship.getEndNode();
 
-				if ((endNode instanceof Component) &&!isVisible(request, endNode, abstractRelationship)) {
+				if ((endNode instanceof Component) &&!isVisible(request, endNode, abstractRelationship, componentId)) {
 
 					continue;
 
@@ -438,7 +439,7 @@ public class Component extends AbstractNode {
 	}
 
 	// ----- public static methods -----
-	public static boolean isVisible(HttpServletRequest request, AbstractNode node, AbstractRelationship incomingRelationship) {
+	public static boolean isVisible(HttpServletRequest request, AbstractNode node, AbstractRelationship incomingRelationship, String parentComponentId) {
 
 		if (request == null) {
 
@@ -457,14 +458,16 @@ public class Component extends AbstractNode {
 			}
 			
 			// String structrClass = node.getStringProperty(Component.UiKey.structrclass);
-			String componentId  = node.getStringProperty(AbstractNode.Key.uuid);
+			String componentId       = node.getStringProperty(AbstractNode.Key.uuid);
 
 			// new default behaviour: make all components visible
 			// only filter if uuids are present in the request URI
+			// and we are examining a top-level component (children
+			// of filtered components are not reached anyway)
 			
 			if(requestContainsUuids) {
 				
-				if (request.getAttribute(componentId) != null) {
+				if (hasAttribute(request, componentId) || parentComponentId != null) {
 
 					return true;
 
@@ -511,6 +514,10 @@ public class Component extends AbstractNode {
 		return false;
 	}
 
+	private static boolean hasAttribute(HttpServletRequest request, String key) {
+		return key != null && request.getAttribute(key) != null;
+	}
+	
 	//~--- set methods ----------------------------------------------------
 
 	@Override
