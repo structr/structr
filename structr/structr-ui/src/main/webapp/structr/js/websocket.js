@@ -60,8 +60,10 @@ function connect() {
             var type = data.type;
             var command = data.command;
             var parentId = data.id;
+            var entityId = data.data.id;
             var componentId = data.data.componentId;
             var resourceId = data.data.resourceId;
+            var position = data.data.position;
             var msg = data.message;
             var result = data.result;
             var sessionValid = data.sessionValid;
@@ -234,11 +236,8 @@ function connect() {
 
                 if (debug) console.log(data);
 
-                parentId = data.id;
-                entityId = data.data.id;
-
                 //parent = Structr.node(parentId);
-                entity = Structr.node(entityId, parentId, componentId, resourceId);
+                entity = Structr.node(entityId, parentId, componentId, resourceId, position);
 
                 //if (debug) console.log(parent);
                 if (debug) console.log(entity);
@@ -247,30 +246,25 @@ function connect() {
                 //entity.id = id;
                 if (entity.hasClass('user')) {
                     if (debug) console.log('remove user from group');
-                    _UsersAndGroups.removeUserFromGroup(entityId, parentId);
+                    _UsersAndGroups.removeUserFromGroup(entityId, parentId, position);
 
                 } else if (entity.hasClass('component')) {
                     if (debug) console.log('remove component from resource');
-                    _Resources.removeComponentFromResource(entityId, parentId);
+                    _Resources.removeComponentFromResource(entityId, parentId, componentId, resourceId, position);
                     _Resources.reloadPreviews();
 
-                } else if (entity.hasClass('element')) {
+                } else if (entity.hasClass('element') || entity.hasClass('content')) {
                     if (debug) console.log('remove element from resource');
-                    _Resources.removeElementFromResource(entityId, parentId);
-                    _Resources.reloadPreviews();
-
-                } else if (entity.hasClass('content')) {
-                    if (debug) console.log('remove content from element');
-                    _Resources.removeContentFromElement(entityId, parentId);
+                    _Resources.removeFrom(entityId, parentId, componentId, resourceId, position);
                     _Resources.reloadPreviews();
 
                 } else if (entity.hasClass('file')) {
                     if (debug) console.log('remove file from folder');
-                    _Files.removeFileFromFolder(entityId, parentId);
+                    _Files.removeFileFromFolder(entityId, parentId, position);
 
                 } else if (entity.hasClass('image')) {
                     if (debug) console.log('remove image from folder');
-                    _Files.removeImageFromFolder(entityId, parentId);
+                    _Files.removeImageFromFolder(entityId, parentId, position);
 
                 } else {
                 //if (debug) console.log('remove element');

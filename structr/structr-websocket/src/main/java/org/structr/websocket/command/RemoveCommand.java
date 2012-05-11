@@ -70,11 +70,12 @@ public class RemoveCommand extends AbstractCommand {
 
 			if ((nodeToRemove != null) && (parentNode != null)) {
 
-				RelationClass rel = EntityContext.getRelationClass(nodeToRemove.getClass(), parentNode.getClass());
+				//RelationClass rel = EntityContext.getRelationClass(nodeToRemove.getClass(), parentNode.getClass());
+				RelationClass rel = EntityContext.getRelationClass(parentNode.getClass(), nodeToRemove.getClass());
 
 				if (rel != null) {
 
-					final List<AbstractRelationship> rels = nodeToRemove.getRelationships(rel.getRelType(), rel.getDirection());
+					final List<AbstractRelationship> rels = parentNode.getRelationships(rel.getRelType(), rel.getDirection());
 					StructrTransaction transaction        = new StructrTransaction() {
 
 						@Override
@@ -85,7 +86,7 @@ public class RemoveCommand extends AbstractCommand {
 
 							for (AbstractRelationship rel : rels) {
 
-								if (rel.getOtherNode(nodeToRemove).equals(parentNode)
+								if (rel.getOtherNode(parentNode).equals(nodeToRemove)
 									&& ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))
 									&& ((resourceId == null) || (rel.getProperty(resourceId) != null))) {
 
