@@ -101,12 +101,14 @@ var _Contents = {
 
         div.append('<img title="Edit ' + content.name + ' [' + content.id + ']" alt="Edit ' + content.name + ' [' + content.id + ']" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function() {
+            var self = $(this);
+            var text = self.parent().find('.content_').text();
             Structr.dialog('Edit content of ' + content.id, function() {
                 if (debug) console.log('content saved')
             }, function() {
                 if (debug) console.log('cancelled')
             });
-            _Contents.editContent(this, content, $('#dialogBox .dialogText'));
+            _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
         });
 
         _Entities.appendEditPropertiesIcon(div, content);
@@ -114,13 +116,13 @@ var _Contents = {
         return div;
     },
 
-    editContent : function (button, entity, element) {
+    editContent : function (button, entity, text, element) {
         if (isDisabled(button)) return;
         var div = element.append('<div class="editor"></div>');
         if (debug) console.log(div);
         var contentBox = $('.editor', element);
         editor = CodeMirror(contentBox.get(0), {
-            value: unescapeTags(entity.content),
+            value: unescapeTags(text),
             mode:  "htmlmixed",
             lineNumbers: true,
             onChange: function(cm, changes) {
@@ -146,20 +148,21 @@ var _Contents = {
         });
         
         element.append('<span class="' + entity.id + '_"><label for="contentTypeSelect">Content-Type:</label>'
-        + '<select class="contentType_" id="contentTypeSelect">'
-        + '<option value="text/plain">text/plain</option>'
-        + '<option value="text/css">text/css</option>'
-        + '<option value="text/markdown">text/markdown</option>'
-        + '<option value="text/textile">text/textile</option>'
-        + '<option value="text/mediawiki">text/mediawiki</option>'
-        + '<option value="text/tracwiki">text/tracwiki</option>'
-        + '<option value="text/confluence">text/confluence</option>'
-        + '</select>'
-        + '</span>');
+            + '<select class="contentType_" id="contentTypeSelect">'
+            + '<option value="text/plain">text/plain</option>'
+            + '<option value="text/css">text/css</option>'
+            + '<option value="text/javascript">text/javascript</option>'
+            + '<option value="text/markdown">text/markdown</option>'
+            + '<option value="text/textile">text/textile</option>'
+            + '<option value="text/mediawiki">text/mediawiki</option>'
+            + '<option value="text/tracwiki">text/tracwiki</option>'
+            + '<option value="text/confluence">text/confluence</option>'
+            + '</select>'
+            + '</span>');
         Command.getProperty(entity.id, 'contentType', '#dialogBox');
         var select = $('#contentTypeSelect', element);
         select.on('change', function() {
-           Command.setProperty(entity.id, 'contentType', select.val());
+            Command.setProperty(entity.id, 'contentType', select.val());
         });
 
         editor.id = entity.id;

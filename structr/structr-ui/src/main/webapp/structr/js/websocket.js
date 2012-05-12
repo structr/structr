@@ -248,12 +248,7 @@ function connect() {
                     if (debug) console.log('remove user from group');
                     _UsersAndGroups.removeUserFromGroup(entityId, parentId, position);
 
-                } else if (entity.hasClass('component')) {
-                    if (debug) console.log('remove component from resource');
-                    _Resources.removeComponentFromResource(entityId, parentId, componentId, resourceId, position);
-                    _Resources.reloadPreviews();
-
-                } else if (entity.hasClass('element') || entity.hasClass('content')) {
+                } else if (entity.hasClass('element') || entity.hasClass('content') || entity.hasClass('component')) {
                     if (debug) console.log('remove element from resource');
                     _Resources.removeFrom(entityId, parentId, componentId, resourceId, position);
                     _Resources.reloadPreviews();

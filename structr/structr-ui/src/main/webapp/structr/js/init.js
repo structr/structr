@@ -71,6 +71,19 @@ $(document).ready(function() {
         _Resources.resize();
     });
 
+
+    $('#resources_').droppable({
+        accept: '.element, .content',
+        greedy: true,
+        hoverClass: 'nodeHover',
+        tolerance: 'pointer',
+        drop: function(event, ui) {
+
+            var self = $(this);
+            alert('dropped', self);
+        }
+    });
+
     $('#components_').on('click', function() {
         main.empty();
         Structr.activateMenuEntry('components');
@@ -246,54 +259,7 @@ var Structr = {
             }
         }
     },
-    //
-    //    saveSession : function() {
-    //        alert('saveSession');
-    //
-    //        if (lastMenuEntry && lastMenuEntry != 'logout') {
-    //
-    //            $.cookie('structrLastMenuEntry', lastMenuEntry, {
-    //                expires: 7,
-    //                path: '/'
-    //            });
-    //
-    //            if (debug) console.log('set cookie for active tab', activeTab);
-    //            $.cookie('structrActiveTab', activeTab, {
-    //                expires: 7,
-    //                path: '/'
-    //            });
-    //
-    //            if (resources) $.cookie('structrResourcesVisible', resources.is(':visible'), {
-    //                expires: 7,
-    //                path: '/'
-    //            });
-    //
-    //            if (components) $.cookie('structrComponentsVisible', components.is(':visible'), {
-    //                expires: 7,
-    //                path: '/'
-    //            });
-    //
-    //            if (elements) $.cookie('structrElementsVisible', elements.is(':visible'), {
-    //                expires: 7,
-    //                path: '/'
-    //            });
-    //
-    //            if (contents) $.cookie('structrContentsVisible', contents.is(':visible'), {
-    //                expires: 7,
-    //                path: '/'
-    //            });
-    //
-    //            if (getExpanded()) {
-    //                console.log('storing expanded ids', getExpanded());
-    //                $.cookie('structrTreeExpandedIds', $.toJSON(getExpanded()), {
-    //                    expires: 7,
-    //                    path: '/'
-    //                });
-    //            }
-    //        }
-    //    //console.log('cooke value now: ', $.cookie('structrActiveTab'));
-    //    },
-
+   
     clearMain : function() {
         main.empty();
     },
@@ -425,7 +391,7 @@ var Structr = {
 
     numberOfNodes : function(element) {
         var n = ($(element).children('.node')).length;
-        console.log('number of nodes in element', element, n);
+        if (debug) console.log('number of nodes in element', element, n);
         return n
     },
 
