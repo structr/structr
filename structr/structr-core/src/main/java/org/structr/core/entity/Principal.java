@@ -63,7 +63,7 @@ public interface Principal extends GraphObject {
 	public boolean isBackendUser();
 
 	public boolean isFrontendUser();
-
+	
 	//~--- set methods ----------------------------------------------------
 
 	public void setPassword(final String passwordValue) throws FrameworkException;

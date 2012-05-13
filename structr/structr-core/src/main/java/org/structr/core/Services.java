@@ -147,6 +147,7 @@ public class Services {
 
 					// service not cached
 					service = createService(serviceClass);
+					
 				} else {
 
 					// check RunnableService for isRunning()..
@@ -596,14 +597,18 @@ public class Services {
 	 */
 	private static boolean isConfigured(final Class serviceClass) {
 
-		boolean configurationContainsClass = StringUtils.contains(configuredServices,
-							     serviceClass.getSimpleName());
+		if(!configuredServiceClasses.contains(serviceClass)) {
 
-		if (configurationContainsClass) {
-			configuredServiceClasses.add(serviceClass);
+			boolean configurationContainsClass = StringUtils.contains(configuredServices, serviceClass.getSimpleName());
+
+			if (configurationContainsClass) {
+				configuredServiceClasses.add(serviceClass);
+			}
+
+			return configurationContainsClass;
 		}
-
-		return configurationContainsClass;
+		
+		return true;
 	}
 
 	/**

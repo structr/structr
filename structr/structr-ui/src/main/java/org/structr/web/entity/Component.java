@@ -466,7 +466,7 @@ public class Component extends AbstractNode {
 			// of filtered components are not reached anyway)
 			
 			if(requestContainsUuids) {
-				
+
 				if (hasAttribute(request, componentId) || parentComponentId != null) {
 
 					return true;
@@ -474,9 +474,9 @@ public class Component extends AbstractNode {
 				}
 
 				return false;
-				
+
 			} else {
-				
+
 				return true;
 			}
 			

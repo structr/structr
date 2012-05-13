@@ -921,7 +921,7 @@ public class ModuleService implements SingletonService {
 
 		Class ret = GenericNode.class;
 
-		if ((name != null) && (name.length() > 0)) {
+		if ((name != null) && (!name.isEmpty())) {
 
 			ret = nodeEntityClassCache.get(name);
 

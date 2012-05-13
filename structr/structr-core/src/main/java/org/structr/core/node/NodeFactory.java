@@ -21,6 +21,8 @@
 
 package org.structr.core.node;
 
+import java.lang.reflect.Constructor;
+import java.util.*;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -36,7 +38,6 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.File;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Principal;
@@ -44,11 +45,9 @@ import org.structr.core.module.GetEntityClassCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.ThreadLocalCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,7 +64,9 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
 	//~--- fields ---------------------------------------------------------
 
-	private SecurityContext securityContext = null;
+	private ThreadLocalCommand getEntityClassCommand = new ThreadLocalCommand(GetEntityClassCommand.class);
+	private Map<Class, Constructor> constructors     = new LinkedHashMap<Class, Constructor>();
+	private SecurityContext securityContext          = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -80,23 +81,44 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
 	public AbstractNode createNode(SecurityContext securityContext, final Node node) throws FrameworkException {
 
-		String nodeType = node.hasProperty(AbstractNode.Key.type.name())
-				  ? (String) node.getProperty(AbstractNode.Key.type.name())
-				  : "";
+		String type = AbstractNode.Key.type.name();
+		
+		String nodeType = node.hasProperty(type) ? (String) node.getProperty(type) : "";
 
 		return createNode(securityContext, node, nodeType);
 	}
 
 	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType) throws FrameworkException {
 
-		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
-		AbstractNode newNode = null;
+		/* caching disabled for now...
+		AbstractNode cachedNode = null;
 
+		// only look up node in cache if uuid is already present
+		if(node.hasProperty(AbstractNode.Key.uuid.name())) {
+			String uuid = (String)node.getProperty(AbstractNode.Key.uuid.name());
+			cachedNode = NodeService.getNodeFromCache(uuid);
+		}
+		
+		if(cachedNode == null) {
+		*/
+		
+		Class nodeClass      = (Class)getEntityClassCommand.get().execute(nodeType);
+		AbstractNode newNode = null;
+		
 		if (nodeClass != null) {
 
 			try {
-				newNode = (AbstractNode) nodeClass.newInstance();
+				Constructor constructor = constructors.get(nodeClass);
+				if(constructor == null) {
+					constructor = nodeClass.getConstructor();
+					constructors.put(nodeClass, constructor);
+				}
+				
+				// newNode = (AbstractNode) nodeClass.newInstance();
+				newNode = (AbstractNode)constructor.newInstance();
+
 			} catch (Throwable t) {
+
 				newNode = null;
 			}
 
@@ -129,7 +151,7 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 	 */
 	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeleted, final boolean publicOnly) throws FrameworkException {
 
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		List<AbstractNode> nodes = new ArrayList<AbstractNode>(input.size() + 1);
 
 		if (input != null && input instanceof SpatialRecordHits) {
 
@@ -155,7 +177,7 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 			}
 
 		} else {
-
+			
 			if ((input != null) && input.iterator().hasNext()) {
 
 				for (Node node : input) {
@@ -165,7 +187,6 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 					addIfReadable(securityContext, n, nodes, includeDeleted, publicOnly);
 
 				}
-
 			}
 
 		}
@@ -175,16 +196,45 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
 	private void addIfReadable(final SecurityContext securityContext, final AbstractNode n, List<AbstractNode> nodes, final boolean includeDeleted, final boolean publicOnly) {
 
-		boolean readableByUser = securityContext.isAllowed(n, Permission.Read);
-
-		if (readableByUser && (includeDeleted ||!n.isDeleted()) && (n.isVisibleToPublicUsers() ||!publicOnly)) {
-
+		/**
+		 * The if-clauses in the following lines have been split
+		 * for performance reasons.
+		 * 
+		 * Please verify the decisions documented in the comments
+		 * and remove the comments if everything is valid.
+		 */
+		
+		
+		// hidden nodes will not be returned
+		if(n.isHidden()) {
+			return;
+		}
+		
+		// deleted nodes will only be returned if we are told to do so
+		if(n.isDeleted() && !includeDeleted) {
+			return;
+		}
+		
+		// FIXME: does visibleToPublic override all other flags?
+		// If YES, the following line is correct!
+		
+		// publicly visible nodes will always be returned
+		if(n.isVisibleToPublicUsers()) {
 			nodes.add(n);
-
+			return;
+		}
+		
+		// FIXME: publicOnly is not relevant in this method??
+		
+		// in all other cases: ask the security context
+		if (securityContext.isAllowed(n, Permission.Read)) {
+			nodes.add(n);
+			return;
 		}
 	}
 
-	/**
+	/** unused
+	 * 
 	 * Create structr nodes from the underlying database nodes
 	 *
 	 * Include only nodes which are readable in the given security context.
@@ -194,7 +244,6 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 	 * @param user
 	 * @param includeDeleted
 	 * @return
-	 */
 	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input, final boolean includeDeleted) throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
@@ -220,6 +269,7 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
 		return nodes;
 	}
+	 */
 
 //
 //      /**

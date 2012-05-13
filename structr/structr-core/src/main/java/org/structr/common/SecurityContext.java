@@ -21,6 +21,7 @@
 
 package org.structr.common;
 
+import java.util.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
@@ -32,10 +33,6 @@ import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,6 +40,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -66,7 +64,7 @@ public class SecurityContext {
 	private Authenticator authenticator  = null;
 	private HttpServletRequest request   = null;
 	private HttpServletResponse response = null;
-	private Principal user                    = null;
+	private Principal cachedUser         = null;
 	private String password              = null;
 
 	//~--- constructors ---------------------------------------------------
@@ -76,7 +74,7 @@ public class SecurityContext {
 	 */
 	private SecurityContext(Principal user, AccessMode accessMode) {
 
-		this.user       = user;
+		this.cachedUser = user;
 		this.accessMode = accessMode;
 	}
 
@@ -129,24 +127,23 @@ public class SecurityContext {
 
 	public Principal getUser() {
 
-		try {
+		if(cachedUser == null) {
 
-			if (user == null) {
+			try {
 
-				user = authenticator.getUser(this, request, response);
+				cachedUser = authenticator.getUser(this, request, response);
 
+			} catch (FrameworkException ex) {
+				logger.log(Level.WARNING, "No user found", ex);
 			}
-
-		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "No user found", ex);
 		}
 
-		return user;
+		return cachedUser;
 	}
 
 	public String getUserName() {
 
-		user = getUser();
+		Principal user = getUser();
 
 		if (user != null) {
 
@@ -183,7 +180,7 @@ public class SecurityContext {
 
 	public boolean isSuperUser() {
 
-		user = getUser();
+		Principal user = getUser();
 
 		return ((user != null) && (user instanceof SuperUser));
 	}
@@ -196,7 +193,7 @@ public class SecurityContext {
 
 		}
 
-		user = getUser();
+		Principal user = getUser();
 
 		// owner is always allowed to do anything with its nodes
 		if ((user != null) && (user.equals(node) || user.equals(node.getOwnerNode()))) {
@@ -248,6 +245,28 @@ public class SecurityContext {
 		}
 	}
 
+	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeDeleted, final boolean publicOnly) {
+
+		boolean readableByUser = false;
+		
+		for(Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext();) {
+		
+			GraphObject obj = it.next();
+			if(obj instanceof AbstractNode) {
+
+				AbstractNode n = (AbstractNode)obj;
+				readableByUser = isAllowed(n, Permission.Read);
+
+				if ( !(readableByUser && (includeDeleted ||!n.isDeleted()) && (n.isVisibleToPublicUsers() ||!publicOnly))) {
+
+					it.remove();
+
+				}
+			}
+		}
+	}
+
+
 	// ----- private methods -----
 	private boolean isVisibleInBackend(AccessControllable node) {
 
@@ -259,7 +278,7 @@ public class SecurityContext {
 		}
 
 		// fetch user
-		user = getUser();
+		Principal user = getUser();
 
 		// anonymous users may not see any nodes in backend
 		if (user == null) {
@@ -314,6 +333,8 @@ public class SecurityContext {
 			return false;
 
 		}
+		
+		/*
 
 		boolean visibleByTime = false;
 
@@ -345,11 +366,13 @@ public class SecurityContext {
 		Date now = new Date();
 
 		visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
-
+		*/
+		
 		// public nodes are always visible (constrained by time)
 		if (node.isVisibleToPublicUsers()) {
 
-			return visibleByTime;
+//			return visibleByTime;
+			return true;
 
 		}
 
@@ -357,7 +380,7 @@ public class SecurityContext {
 		if (node.isVisibleToAuthenticatedUsers()) {
 
 			// fetch user
-			user = getUser();
+			Principal user = getUser();
 
 			if (user != null) {
 
@@ -390,7 +413,7 @@ public class SecurityContext {
 
 	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {
 
-		user = getUser();
+		Principal user = getUser();
 
 		if (node == null) {
 
@@ -487,7 +510,7 @@ public class SecurityContext {
 
 		}
 
-		user = getUser();
+		Principal user = getUser();
 
 		if ((user != null) && (user instanceof SuperUser)) {
 
@@ -518,7 +541,7 @@ public class SecurityContext {
 	}
 
 	public void setUser(final Principal user) {
-		this.user = user;
+		this.cachedUser = user;
 	}
 
 	//~--- inner classes --------------------------------------------------

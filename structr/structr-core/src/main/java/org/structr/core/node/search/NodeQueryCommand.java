@@ -45,6 +45,8 @@ import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 /**
+ * Executes a query on the graph database without respecting access restrictions.
+ * 
  * @author Christian Morgner
  */
 public class NodeQueryCommand extends NodeServiceCommand {

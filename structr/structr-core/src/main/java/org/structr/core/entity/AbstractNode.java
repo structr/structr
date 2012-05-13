@@ -137,6 +137,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected Map<String, Object> properties;
 	protected Principal user;
 
+	// we can assume that the name of this node won't change much during the lifetime
+	// of an AbstractNode, because AbstractNodes are newly instantiated on each request.
+	protected Boolean cachedVisibleToAuthenticatedUsersFlag  = null;
+	protected Boolean cachedVisibleToPublicUsersFlag  = null;
+	protected Principal cachedOwnerNode = null;
+	protected Boolean cachedHiddenFlag  = null;
+	protected Boolean cachedDeletedFlag = null;
+	protected String cachedName         = null;
+	
 	//~--- constant enums -------------------------------------------------
 
 	public static enum Key implements PropertyKey {
@@ -191,13 +200,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// override me
 	}
 
-	public void init(final SecurityContext securityContext, final Node dbNode) {
+	public final void init(final SecurityContext securityContext, final Node dbNode) {
 
 		this.dbNode          = dbNode;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
-
-		logger.log(Level.FINE, "User set to {0}", user);
 	}
 
 	private void init(final SecurityContext securityContext, final AbstractNode node) {
@@ -628,17 +635,23 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public String getName() {
 
-		Object nameProperty = getProperty(Key.name.name());
+		// cache name locally for faster access (during sorting etc.)
+		if(cachedName == null) {
+			
+			Object nameProperty = getProperty(Key.name.name());
 
-		if (nameProperty != null) {
+			if (nameProperty != null) {
 
-			return (String) nameProperty;
+				cachedName = (String) nameProperty;
 
-		} else {
+			} else {
 
-			return getNodeId().toString();
+				cachedName = getNodeId().toString();
 
+			}
 		}
+		
+		return cachedName;
 	}
 
 	/**
@@ -726,19 +739,35 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	public boolean getVisibleToPublicUsers() {
-		return getBooleanProperty(Key.visibleToPublicUsers.name());
+		if(cachedVisibleToPublicUsersFlag == null) {
+			cachedVisibleToPublicUsersFlag = getBooleanProperty(Key.visibleToPublicUsers.name());
+		}
+		
+		return cachedVisibleToPublicUsersFlag.booleanValue();
 	}
 
 	public boolean getVisibleToAuthenticatedUsers() {
-		return getBooleanProperty(Key.visibleToAuthenticatedUsers.name());
+		if(cachedVisibleToPublicUsersFlag == null) {
+			cachedVisibleToAuthenticatedUsersFlag = getBooleanProperty(Key.visibleToPublicUsers.name());
+		}
+		
+		return cachedVisibleToPublicUsersFlag.booleanValue();
 	}
 
 	public boolean getHidden() {
-		return getBooleanProperty(Key.hidden.name());
+		if(cachedHiddenFlag == null) {
+			cachedHiddenFlag = getBooleanProperty(Key.hidden.name());
+		}
+		
+		return cachedHiddenFlag.booleanValue();
 	}
 
 	public boolean getDeleted() {
-		return getBooleanProperty(Key.deleted.name());
+		if(cachedDeletedFlag == null) {
+			cachedDeletedFlag = getBooleanProperty(Key.deleted.name());
+		}
+		
+		return cachedDeletedFlag.booleanValue();
 	}
 
 	/**
@@ -1356,21 +1385,25 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public Principal getOwnerNode() {
 
-		for (AbstractRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
+		if(cachedOwnerNode == null) {
+			
+			for (AbstractRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
 
-			AbstractNode n = s.getStartNode();
+				AbstractNode n = s.getStartNode();
 
-			if (n instanceof Principal) {
+				if (n instanceof Principal) {
 
-				return (Principal) n;
+					cachedOwnerNode = (Principal) n;
+					break;
+
+				}
+
+				logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[] { n.getName(), n.getId() });
 
 			}
-
-			logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[] { n.getName(), n.getId() });
-
 		}
 
-		return null;
+		return cachedOwnerNode;
 	}
 
 	public Long getOwnerId() {

@@ -50,7 +50,7 @@ import org.structr.core.node.NodeServiceCommand;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -117,7 +117,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
 
 		if (parameters[3] instanceof List) {
 
@@ -145,7 +145,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Node> index;
 		NodeFactory nodeFactory        = (NodeFactory) arguments.get("nodeFactory");
-		List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
+		List<AbstractNode> finalResult = new ArrayList<AbstractNode>();
 		boolean allExactMatch          = true;
 
 		// boolean allFulltext = false;
@@ -153,8 +153,8 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			// At this point, all search attributes are ready
 			BooleanQuery query                             = new BooleanQuery();
-			List<FilterSearchAttribute> filters            = new LinkedList<FilterSearchAttribute>();
-			List<TextualSearchAttribute> textualAttributes = new LinkedList<TextualSearchAttribute>();
+			List<FilterSearchAttribute> filters            = new ArrayList<FilterSearchAttribute>();
+			List<TextualSearchAttribute> textualAttributes = new ArrayList<TextualSearchAttribute>();
 			StringBuilder textualQueryString               = new StringBuilder();
 			DistanceSearchAttribute distanceSearch         = null;
 			Coordinates coords                             = null;
@@ -233,14 +233,14 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                                      intermediateResult = topNode.getAllChildren();
 //
 //                              } else {
-				intermediateResult = new LinkedList<AbstractNode>();
+				intermediateResult = new ArrayList<AbstractNode>();
 
 //                              }
 			} else {
 
 				long t0 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
+				logger.log(Level.INFO, "Textual Query String: {0}", textualQueryString);
 
 				QueryContext queryContext = new QueryContext(textualQueryString);
 				IndexHits hits            = null;
@@ -250,6 +250,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					// Search for uuid only: Use UUID index
 					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
 					hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+					
 				} else if ((textualAttributes.size() > 1) && allExactMatch) {
 
 					// Only exact machtes: Use keyword index
@@ -278,7 +279,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				long t1 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, (hits != null)
+				logger.log(Level.INFO, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, (hits != null)
 					? hits.size()
 					: 0 });
 
@@ -288,7 +289,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                              hits.close();
 				long t2 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });
+				logger.log(Level.INFO, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });
 
 			}
 
@@ -364,7 +365,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			long t3 = System.currentTimeMillis();
 
-			logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.size() });
+			logger.log(Level.INFO, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.size() });
 		}
 
 		long t4 = System.currentTimeMillis();
@@ -374,7 +375,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		long t5 = System.currentTimeMillis();
 
-		logger.log(Level.FINE, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
+		logger.log(Level.INFO, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
 
 		return finalResult;
 	}
@@ -502,7 +503,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 	private List<AbstractNode> filterNotExactMatches(final List<AbstractNode> result, TextualSearchAttribute attr) {
 
-		List<AbstractNode> notMatchingNodes = new LinkedList<AbstractNode>();
+		List<AbstractNode> notMatchingNodes = new ArrayList<AbstractNode>();
 
 		// Filter not exact matches
 		for (AbstractNode node : result) {

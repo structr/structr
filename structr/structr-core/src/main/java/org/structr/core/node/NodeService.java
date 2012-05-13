@@ -45,12 +45,10 @@ import org.structr.core.entity.Location;
 
 import java.io.File;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.collections.map.LRUMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,6 +62,8 @@ public class NodeService implements SingletonService {
 
 	//~--- fields ---------------------------------------------------------
 
+	private static final Map<String, AbstractNode> nodeCache = (Map<String, AbstractNode>)Collections.synchronizedMap(new LRUMap(100000));
+	
 	private Index<Node> fulltextIndex               = null;
 	private GraphDatabaseService graphDb            = null;
 	private Index<Node> keywordIndex                = null;
@@ -279,8 +279,21 @@ public class NodeService implements SingletonService {
 	}
 
 	// </editor-fold>
+	
 	@Override
 	public boolean isRunning() {
 		return ((graphDb != null) && isInitialized);
+	}
+	
+	public static AbstractNode getNodeFromCache(String uuid) {
+		return nodeCache.get(uuid);
+	}
+	
+	public static void addNodeToCache(String uuid, AbstractNode node) {
+		nodeCache.put(uuid, node);
+	}
+	
+	public static void removeNodeFromCache(String uuid) {
+		nodeCache.remove(uuid);
 	}
 }
