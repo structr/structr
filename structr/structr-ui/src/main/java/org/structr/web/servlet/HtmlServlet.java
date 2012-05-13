@@ -24,6 +24,12 @@ package org.structr.web.servlet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import net.java.textilej.parser.MarkupParser;
+import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
+import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
+import net.java.textilej.parser.markup.textile.TextileDialect;
+import net.java.textilej.parser.markup.trac.TracWikiDialect;
+
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -32,11 +38,13 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 
+import org.pegdown.PegDownProcessor;
 
 import org.structr.StructrServer;
 import org.structr.common.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Adapter;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -50,9 +58,11 @@ import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.web.auth.HttpAuthenticator;
+import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Condition;
 import org.structr.web.entity.Content;
+import org.structr.web.entity.Element;
 import org.structr.web.entity.Resource;
 import org.structr.web.entity.View;
 import org.structr.web.entity.html.HtmlElement;
@@ -74,15 +84,6 @@ import java.util.regex.Matcher;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import net.java.textilej.parser.MarkupParser;
-import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
-import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
-import net.java.textilej.parser.markup.textile.TextileDialect;
-import net.java.textilej.parser.markup.trac.TracWikiDialect;
-import org.pegdown.PegDownProcessor;
-import org.structr.core.Adapter;
-import org.structr.web.common.ThreadLocalMatcher;
-import org.structr.web.entity.Element;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -103,13 +104,15 @@ public class HtmlServlet extends HttpServlet {
 	private static final ThreadLocalTextileProcessor textileProcessor           = new ThreadLocalTextileProcessor();
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor       = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor         = new ThreadLocalTracWikiProcessor();
-	private static final ThreadLocalConfluenceProcessor confluenceProcessor     = new ThreadLocalConfluenceProcessor();
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher              = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
-	private static final Set<String> html5VoidTags                              = new LinkedHashSet<String>();
 	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
-	
+	private static final Set<String> html5VoidTags                              = new LinkedHashSet<String>();
+	private static final ThreadLocalConfluenceProcessor confluenceProcessor     = new ThreadLocalConfluenceProcessor();
+
+	//~--- static initializers --------------------------------------------
+
 	static {
-		
+
 		html5VoidTags.add("area");
 		html5VoidTags.add("base");
 		html5VoidTags.add("br");
@@ -126,54 +129,59 @@ public class HtmlServlet extends HttpServlet {
 		html5VoidTags.add("source");
 		html5VoidTags.add("track");
 		html5VoidTags.add("wbr");
-		
 		contentConverters.put("text/markdown", new Adapter<String, String>() {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
+
 				return pegDownProcessor.get().markdownToHtml(s);
+
 			}
-			
+
 		});
-		
 		contentConverters.put("text/textile", new Adapter<String, String>() {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
+
 				return textileProcessor.get().parseToHtml(s);
+
 			}
-			
+
 		});
-		
 		contentConverters.put("text/mediawiki", new Adapter<String, String>() {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
+
 				return mediaWikiProcessor.get().parseToHtml(s);
+
 			}
-			
+
 		});
-		
 		contentConverters.put("text/tracwiki", new Adapter<String, String>() {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
+
 				return tracWikiProcessor.get().parseToHtml(s);
+
 			}
-			
+
 		});
-		
 		contentConverters.put("text/confluence", new Adapter<String, String>() {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
+
 				return confluenceProcessor.get().parseToHtml(s);
+
 			}
-			
+
 		});
-		
+
 	}
-	
+
 	//~--- fields ---------------------------------------------------------
 
 	// area, base, br, col, command, embed, hr, img, input, keygen, link, meta, param, source, track, wbr
@@ -227,7 +235,9 @@ public class HtmlServlet extends HttpServlet {
 			logger.log(Level.WARNING, "Error while POSTing to REST url " + restUrl, ex);
 
 			return false;
+
 		}
+
 	}
 
 	@Override
@@ -261,8 +271,11 @@ public class HtmlServlet extends HttpServlet {
 			response.sendRedirect("/" + name + "//" + resourcePath);
 
 		} catch (IOException ex) {
+
 			logger.log(Level.SEVERE, "Could not redirect to " + path, ex);
+
 		}
+
 	}
 
 	@Override
@@ -278,7 +291,6 @@ public class HtmlServlet extends HttpServlet {
 		if (urlParts.length > 1) {
 
 			searchFor = StringUtils.substringBefore(urlParts[1], "?");
-
 		}
 
 		String[] pathParts                 = PathHelper.getParts(path);
@@ -289,7 +301,6 @@ public class HtmlServlet extends HttpServlet {
 		if ((parameterMap != null) && (parameterMap.size() > 0)) {
 
 			attrs = convertToNodeAttributes(parameterMap);
-
 		}
 
 		edit = false;
@@ -298,21 +309,19 @@ public class HtmlServlet extends HttpServlet {
 		if (request.getParameter("edit") != null) {
 
 			edit = true;
-
 		}
 
 		if (request.getParameter("tidy") != null) {
 
 			tidy = true;
-
 		}
 
 		// first part (before "//" is resource path (file etc),
 		// second part is nested component control
 		// store remaining path parts in request
-		Matcher matcher                    = threadLocalUUIDMatcher.get();
-		boolean requestUriContainsUuids    = false;
-		
+		Matcher matcher                 = threadLocalUUIDMatcher.get();
+		boolean requestUriContainsUuids = false;
+
 		for (int i = 1; i < pathParts.length; i++) {
 
 			String[] parts = pathParts[i].split("[/]+");
@@ -323,7 +332,6 @@ public class HtmlServlet extends HttpServlet {
 				// wrong here if we have multiple //-separated
 				// parts!
 				request.setAttribute(parts[j], j);
-				
 				matcher.reset(parts[j]);
 
 				// set to "true" if part matches UUID pattern
@@ -331,12 +339,10 @@ public class HtmlServlet extends HttpServlet {
 			}
 
 		}
-		
+
 		// store information about UUIDs in path in request for later use in Component
 		request.setAttribute(Component.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
 
-		
-		
 		try {
 
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
@@ -354,11 +360,9 @@ public class HtmlServlet extends HttpServlet {
 			if (node instanceof Resource) {
 
 				resource = (Resource) node;
-
 			} else if (node instanceof org.structr.core.entity.File) {
 
 				file = (org.structr.core.entity.File) node;
-
 			}
 
 			if ((resource != null) && securityContext.isVisible(resource)) {
@@ -378,7 +382,6 @@ public class HtmlServlet extends HttpServlet {
 				if (contentType != null) {
 
 					response.setContentType(contentType);
-
 				} else {
 
 					// Default
@@ -413,7 +416,6 @@ public class HtmlServlet extends HttpServlet {
 				if (contentType != null) {
 
 					response.setContentType(contentType);
-
 				} else {
 
 					// Default
@@ -432,21 +434,21 @@ public class HtmlServlet extends HttpServlet {
 				if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
 
 					HttpAuthenticator.writeUnauthorized(response);
-
 				} else {
 
 					HttpAuthenticator.writeNotFound(response);
-
 				}
 			}
 
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-			
+
 			// logger.log(Level.WARNING, "Exception while processing request", t);
 			HttpAuthenticator.writeInternalServerError(response);
+
 		}
+
 	}
 
 	/**
@@ -468,11 +470,9 @@ public class HtmlServlet extends HttpServlet {
 			if (values.length == 1) {
 
 				val = values[0];
-
 			} else {
 
 				val = values;
-
 			}
 
 			parameters.put(param.getKey(), val);
@@ -480,6 +480,7 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return parameters;
+
 	}
 
 	/**
@@ -500,11 +501,9 @@ public class HtmlServlet extends HttpServlet {
 			if (values.length == 1) {
 
 				val = values[0];
-
 			} else {
 
 				val = values;
-
 			}
 
 			NodeAttribute attr = new NodeAttribute(param.getKey(), val);
@@ -514,6 +513,7 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return attrs;
+
 	}
 
 	private AbstractNode findEntryPoint(final String name) throws FrameworkException {
@@ -541,21 +541,22 @@ public class HtmlServlet extends HttpServlet {
 			if (!results.isEmpty()) {
 
 				return results.get(0);
-
 			}
 
 		}
 
 		return null;
+
 	}
 
+	//~--- get methods ----------------------------------------------------
 
 	private void getContent(HttpServletRequest request, final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode resource, final AbstractNode startNode,
 				final int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) {
 
-		String localComponentId   = componentId;
-		String content            = null;
-		String tag                = null;
+		String localComponentId = componentId;
+		String content          = null;
+		String tag              = null;
 
 		if (startNode != null) {
 
@@ -563,7 +564,8 @@ public class HtmlServlet extends HttpServlet {
 			// Filters work with AND
 			String structrClass = startNode.getStringProperty(Component.UiKey.structrclass);
 			String id           = startNode.getStringProperty(AbstractNode.Key.uuid);
-			tag                 = startNode.getStringProperty(Element.UiKey.tag);
+
+			tag = startNode.getStringProperty(Element.UiKey.tag);
 
 			if ((structrClass != null) && structrClass.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
 
@@ -575,7 +577,6 @@ public class HtmlServlet extends HttpServlet {
 					if (!val.equals(startNode.getProperty(key))) {
 
 						return;
-
 					}
 
 				}
@@ -585,53 +586,60 @@ public class HtmlServlet extends HttpServlet {
 			// this is the place where the "content" property is evaluated
 			if (startNode instanceof Content) {
 
-				Content contentNode = (Content)startNode;
+				Content contentNode = (Content) startNode;
 
 				// fetch content with variable replacement
 				content = contentNode.getPropertyWithVariableReplacement(resource, resourceId, componentId, viewComponent, Content.UiKey.content.name());
-				
+
 				// examine content type and apply converter
-				String contentType  = contentNode.getStringProperty(Content.UiKey.contentType);
-				if(contentType != null) {
-				
+				String contentType = contentNode.getStringProperty(Content.UiKey.contentType);
+
+				if (contentType != null) {
+
 					Adapter<String, String> converter = contentConverters.get(contentType);
-					if(converter != null) {
-						
+
+					if (converter != null) {
+
 						try {
+
 							// apply adapter
 							content = converter.adapt(content);
-							
-						} catch(FrameworkException fex) {
-							
+						} catch (FrameworkException fex) {
+
 							logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
+
 						}
+
 					}
+
 				}
-				
+
 				// replace newlines with <br /> for rendering
-				if(content != null && !content.isEmpty()) {
+				if ((contentType == null || contentType.equals("text/plain")) && (content != null) && !content.isEmpty()) {
+
 					content = content.replaceAll("[\\n]{1}", "<br />");
 				}
+
 			}
 
 			// check for component
 			if (startNode instanceof Component) {
 
 				localComponentId = startNode.getStringProperty(AbstractNode.Key.uuid);
-
 			}
-
 
 			// In edit mode, add an artificial 'div' tag around content nodes within body
 			// to make them editable
 			if (edit && inBody && (startNode instanceof Content)) {
 
 				tag = "span";
+
 				// Instead of adding a div tag, we mark the parent node with
 				// the structr_element_id of this Content node
 				// remove last character in buffer (should be '>')
-				//buffer.delete(buffer.length() - 1, buffer.length());
-				//buffer.append(" structr_content_id=\"").append(id).append("\">");
+				// buffer.delete(buffer.length() - 1, buffer.length());
+				// buffer.append(" structr_content_id=\"").append(id).append("\">");
+
 			}
 
 			if (StringUtils.isNotBlank(tag)) {
@@ -639,7 +647,6 @@ public class HtmlServlet extends HttpServlet {
 				if (tag.equals("body")) {
 
 					inBody = true;
-
 				}
 
 				buffer.append("<").append(tag);
@@ -649,7 +656,6 @@ public class HtmlServlet extends HttpServlet {
 					if (depth == 1) {
 
 						buffer.append(" structr_resource_id='").append(resourceId).append("'");
-
 					}
 
 					if (!(startNode instanceof Content)) {
@@ -659,8 +665,9 @@ public class HtmlServlet extends HttpServlet {
 						buffer.append(" structr_name=\"").append(startNode.getName()).append("\"");
 
 					} else {
-                                                buffer.append(" structr_content_id=\"").append(id).append("\"");
-                                        }
+
+						buffer.append(" structr_content_id=\"").append(id).append("\"");
+					}
 
 				}
 
@@ -683,7 +690,9 @@ public class HtmlServlet extends HttpServlet {
 							}
 
 						} catch (Throwable t) {
+
 							t.printStackTrace();
+
 						}
 
 					}
@@ -697,7 +706,6 @@ public class HtmlServlet extends HttpServlet {
 			if (content != null) {
 
 				buffer.append(content);
-
 			}
 		}
 
@@ -717,13 +725,13 @@ public class HtmlServlet extends HttpServlet {
 
 						AbstractNode subNode = rel.getEndNode();
 
-						getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, (AbstractNode)component, condition);
+						getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, (AbstractNode) component,
+							   condition);
 
 					}
 
 				}
 			}
-			
 		} else if (startNode instanceof Condition) {
 
 			// recursively render children
@@ -737,7 +745,6 @@ public class HtmlServlet extends HttpServlet {
 				getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
 
 			}
-			
 		} else {
 
 			// recursively render children
@@ -757,50 +764,72 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		// render end tag, if needed (= if not singleton tags)
-		if (StringUtils.isNotBlank(tag) && !html5VoidTags.contains(tag)) {
+		if (StringUtils.isNotBlank(tag) &&!html5VoidTags.contains(tag)) {
 
 			buffer.append("</").append(tag).append(">");
+		}
+
+	}
+
+	//~--- inner classes --------------------------------------------------
+
+	private static class ThreadLocalConfluenceProcessor extends ThreadLocal<MarkupParser> {
+
+		@Override
+		protected MarkupParser initialValue() {
+
+			return new MarkupParser(new ConfluenceDialect());
 
 		}
+
 	}
-	
+
+
+	private static class ThreadLocalMediaWikiProcessor extends ThreadLocal<MarkupParser> {
+
+		@Override
+		protected MarkupParser initialValue() {
+
+			return new MarkupParser(new MediaWikiDialect());
+
+		}
+
+	}
+
+
 	private static class ThreadLocalPegDownProcessor extends ThreadLocal<PegDownProcessor> {
-		
+
 		@Override
 		protected PegDownProcessor initialValue() {
+
 			return new PegDownProcessor();
+
 		}
+
 	}
-	
+
+
 	private static class ThreadLocalTextileProcessor extends ThreadLocal<MarkupParser> {
-		
+
 		@Override
 		protected MarkupParser initialValue() {
+
 			return new MarkupParser(new TextileDialect());
+
 		}
+
 	}
-	
-	private static class ThreadLocalConfluenceProcessor extends ThreadLocal<MarkupParser> {
-		
-		@Override
-		protected MarkupParser initialValue() {
-			return new MarkupParser(new ConfluenceDialect());
-		}
-	}
-	
-	private static class ThreadLocalMediaWikiProcessor extends ThreadLocal<MarkupParser> {
-		
-		@Override
-		protected MarkupParser initialValue() {
-			return new MarkupParser(new MediaWikiDialect());
-		}
-	}
-	
+
+
 	private static class ThreadLocalTracWikiProcessor extends ThreadLocal<MarkupParser> {
-		
+
 		@Override
 		protected MarkupParser initialValue() {
+
 			return new MarkupParser(new TracWikiDialect());
+
 		}
+
 	}
+
 }
