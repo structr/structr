@@ -28,17 +28,22 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.web.common.RelationshipHelper;
+import org.structr.web.entity.Content;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.web.common.RelationshipHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,6 +66,7 @@ public class AddCommand extends AbstractCommand {
 		// create static relationship
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		String nodeToAddId                 = (String) nodeData.get("id");
+		String childContent                = (String) nodeData.get("childContent");
 		final Map<String, Object> relData  = webSocketData.getRelData();
 		String parentId                    = webSocketData.getId();
 
@@ -72,15 +78,17 @@ public class AddCommand extends AbstractCommand {
 			if (nodeToAddId != null) {
 
 				nodeToAdd = getNode(nodeToAddId);
-
 			} else {
 
 				StructrTransaction transaction = new StructrTransaction() {
 
 					@Override
 					public Object execute() throws FrameworkException {
+
 						return Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
+
 					}
+
 				};
 
 				try {
@@ -91,6 +99,7 @@ public class AddCommand extends AbstractCommand {
 
 					logger.log(Level.WARNING, "Could not create node.", fex);
 					getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
 				}
 
 			}
@@ -111,33 +120,90 @@ public class AddCommand extends AbstractCommand {
 						if ((originalResourceId != null) && (newResourceId != null) &&!originalResourceId.equals(newResourceId)) {
 
 							RelationshipHelper.tagOutgoingRelsWithResourceId(nodeToAdd, nodeToAdd, originalResourceId, newResourceId);
-
 						}
 
 					} catch (Throwable t) {
+
 						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+
 					}
+
+				}
+
+                                // If text for a content child node is given, create and link a content node
+				if (childContent != null) {
+
+					Content contentNode             = null;
+					final List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
+
+					attrs.add(new NodeAttribute(Content.UiKey.content, childContent));
+					attrs.add(new NodeAttribute(Content.UiKey.contentType, "text/plain"));
+					attrs.add(new NodeAttribute(AbstractNode.Key.type, Content.class.getSimpleName()));
+
+					StructrTransaction transaction = new StructrTransaction() {
+
+						@Override
+						public Object execute() throws FrameworkException {
+
+							return Services.command(securityContext, CreateNodeCommand.class).execute(attrs);
+
+						}
+
+					};
+
+					try {
+
+						// create content node in transaction
+						contentNode = (Content) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					} catch (FrameworkException fex) {
+
+						logger.log(Level.WARNING, "Could not create content child node.", fex);
+						getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
+					}
+                                        
+                                        if (contentNode != null) {
+                                            
+                                            try {
+
+						rel.createRelationship(securityContext, nodeToAdd, contentNode, relData);
+
+						// set resource ID on copied branch
+						if ((originalResourceId != null) && (newResourceId != null) &&!originalResourceId.equals(newResourceId)) {
+
+							RelationshipHelper.tagOutgoingRelsWithResourceId(contentNode, contentNode, originalResourceId, newResourceId);
+						}
+
+					} catch (Throwable t) {
+
+						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+
+					}
+                                            
+                                            
+                                        }
 
 				}
 
 			} else {
 
 				getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
 			}
 
 		} else {
 
 			getWebSocket().send(MessageBuilder.status().code(400).message("Add needs id and data.id!").build(), true);
-
 		}
-	}
 
+	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "ADD";
+
 	}
+
 }
