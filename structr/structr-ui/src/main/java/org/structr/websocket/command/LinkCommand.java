@@ -54,11 +54,11 @@ public class LinkCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		String sourceId                       = webSocketData.getId();
 		Map<String, Object> properties        = webSocketData.getNodeData();
-		String resourceId                     = (String) properties.get("resourceId");
+		String targetId                       = (String) properties.get("targetId");
 		final AbstractNode sourceNode         = getNode(sourceId);
-		final AbstractNode resourceNode       = getNode(resourceId);
+		final AbstractNode targetNode         = getNode(targetId);
 
-		if ((sourceNode != null) && (resourceNode != null)) {
+		if ((sourceNode != null) && (targetNode != null)) {
 
 			try {
 
@@ -69,32 +69,37 @@ public class LinkCommand extends AbstractCommand {
 					public Object execute() throws FrameworkException {
 
 						// Create a LINK relationship
-						RelationClass rel = new RelationClass(resourceNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, null,
-									    RelationClass.DELETE_NONE);
+						RelationClass rel = new RelationClass(targetNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, null, RelationClass.DELETE_NONE);
 
-						rel.createRelationship(securityContext, sourceNode, resourceNode);
+						rel.createRelationship(securityContext, sourceNode, targetNode);
 
 						return null;
 					}
+
 				};
 
 				transactionCommand.execute(transaction);
 
 			} catch (Throwable t) {
+
 				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+
 			}
 
 		} else {
 
 			getWebSocket().send(MessageBuilder.status().code(400).message("The LINK command needs id and data.id!").build(), true);
-
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "LINK";
+
 	}
+
 }
