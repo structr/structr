@@ -45,6 +45,7 @@ import java.util.List;
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class RemoveCommand extends AbstractCommand {
 
@@ -70,7 +71,7 @@ public class RemoveCommand extends AbstractCommand {
 
 			if ((nodeToRemove != null) && (parentNode != null)) {
 
-				//RelationClass rel = EntityContext.getRelationClass(nodeToRemove.getClass(), parentNode.getClass());
+				// RelationClass rel = EntityContext.getRelationClass(nodeToRemove.getClass(), parentNode.getClass());
 				RelationClass rel = EntityContext.getRelationClass(parentNode.getClass(), nodeToRemove.getClass());
 
 				if (rel != null) {
@@ -109,61 +110,69 @@ public class RemoveCommand extends AbstractCommand {
 							// After removal of a relationship, all other rels must get a new position id
 							if (pos != null) {
 
-								moveUpRels(relsToShift, resourceId);
-
+								reorderRels(rels, resourceId);
 							}
 
 							return null;
+
 						}
+
 					};
 
 					// execute transaction
 					try {
+
 						Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
 					} catch (FrameworkException fex) {
+
 						getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
+
 					}
 
 				}
-
 			} else {
 
 				getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
 			}
 
 		} else {
 
 			getWebSocket().send(MessageBuilder.status().code(400).message("Add needs id and data.id!").build(), true);
-
 		}
+
 	}
 
-	private void moveUpRels(final List<AbstractRelationship> rels, final String resourceId) throws FrameworkException {
+	private void reorderRels(final List<AbstractRelationship> rels, final String resourceId) throws FrameworkException {
 
 		long i = 0;
 
 		for (AbstractRelationship rel : rels) {
 
 			try {
+
 				rel.getId();
+				rel.setProperty(resourceId, i);
+
+				i++;
+
 			} catch (IllegalStateException ise) {
 
 				// Silently ignore this exception and continue, omitting deleted rels
 				continue;
 			}
 
-			rel.setProperty(resourceId, i);
-
-			i++;
-
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "REMOVE";
+
 	}
+
 }
