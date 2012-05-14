@@ -62,8 +62,4 @@ public class Cache extends AbstractNode {
 		this.size = getIntProperty(Key.size);
 	}
 	
-	@Override
-	public String getIconSrc() {
-		return null;
-	}
 }
