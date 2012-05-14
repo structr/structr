@@ -23,8 +23,13 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.File;
+import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.notion.PropertyNotion;
 import org.structr.web.entity.Content;
+import org.structr.web.entity.Resource;
 
 /**
  * @author Axel Morgner
@@ -56,6 +61,10 @@ public class A extends HtmlElement {
 
 //		EntityContext.registerPropertyRelation(A.class, "_html_href", Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
 //                EntityContext.registerEntityRelation(A.class, Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
+                
+                // FIXME: This does not belong here
+                EntityContext.registerPropertyRelation(File.class, Resource.UiKey.linkingElements, A.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
+                EntityContext.registerPropertySet(File.class, PropertyView.Ui, Resource.UiKey.linkingElements);
 
 	}
 
