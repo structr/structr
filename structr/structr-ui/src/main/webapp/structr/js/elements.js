@@ -319,7 +319,48 @@ var _Elements = {
 
                     }
                 });
+                
+                $.ajax({
+                    url: rootUrl + 'files/ui?pageSize=100',
+                    async: true,
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    headers: headers,
+                    success: function(data) {
+                        console.log(data.result);
+                        $(data.result).each(function(i, res) {
+                            
+                            dialog.append('<div class="file ' + res.id + '_"><img class="typeIcon" src="' + _Files.getIcon(res) + '">'
+                                + '<b class="name_">' + res.name + '</b></div>');
+                            
+                            var div = $('.' + res.id + '_', dialog);
+                            
+                            div.on('click', function() {
+                                Command.link(entity.id, res.id); 
+                                $('#dialogBox .dialogText').empty();
+                                _Resources.reloadPreviews();
+                                $.unblockUI({
+                                    fadeOut: 25
+                                });                               
+                            })
+                            .css({
+                                cursor: 'pointer'
+                            })                            
+                            .hover(function() {
+                                $(this).addClass('nodeHover');
+                            }, function() {
+                                $(this).removeClass('nodeHover');
+                            });
+                            
+                            if (isIn(entity.id, res.linkingElements)) {
+                                div.addClass('nodeActive');
+                            }
+                            
+                        });
 
+                    }
+                });
+                
                 Structr.dialog('Link to Resource', function() {
                     return true;
                 }, function() {

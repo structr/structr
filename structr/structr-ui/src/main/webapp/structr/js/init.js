@@ -73,14 +73,31 @@ $(document).ready(function() {
 
 
     $('#resources_').droppable({
-        accept: '.element, .content',
+        accept: '.element, .content, .component, .file, .image',
         greedy: true,
         hoverClass: 'nodeHover',
         tolerance: 'pointer',
-        drop: function(event, ui) {
+        
+        over: function(event, ui) {
 
             var self = $(this);
-            alert('dropped', self);
+//            var node = $(ui.helper).clone().appendTo('body');
+//            console.log(node);
+//            //var el = $(ui.get(0)).clone();
+//            //header.append(node);
+//            
+//            //node.draggable();
+////            $('body').append(node);
+//            //main.empty();
+//            node.draggable({
+//                revert: 'invalid',
+//                helper: 'clone',
+//                //containment: '#main',
+//                zIndex: 4
+//            });
+            Structr.activateMenuEntry('resources');
+            Structr.modules['resources'].onload();
+            _Resources.resize();
         }
     });
 
@@ -585,7 +602,7 @@ function removeExpandedNode(id, parentId, resourceId) {
 function isExpanded(id, parentId, resourceId) {
     if (debug) console.log('isExpanded', id, parentId, resourceId);
 
-    if (!id) return;
+    if (!id) return false;
 
     if (!resourceId) {
         resourceId = 'generic';

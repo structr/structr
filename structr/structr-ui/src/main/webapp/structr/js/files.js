@@ -78,7 +78,7 @@ var _Files = {
 
     refreshFiles : function() {
         files.empty();
-		
+        
         if (window.File && window.FileReader && window.FileList && window.Blob) {
 
             files.append('<h1>Drop files here</h1>');
@@ -86,11 +86,15 @@ var _Files = {
             drop = $('#files');
 
             drop.on('dragover', function(event) {
+                console.log('dragging over #files area');
                 event.originalEvent.dataTransfer.dropEffect = 'copy';
                 return false;
             });
             
             drop.on('drop', function(event) {
+                
+                console.log('dropped something in the #files area')
+                
                 event.stopPropagation()
                 event.preventDefault();
                 //                console.log(event);
@@ -156,21 +160,9 @@ var _Files = {
         }
     },
 
-    appendFileElement : function(file, folderId, removeExisting, hasChildren, isImage) {
-
-        console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
-
-        var parentElement, cls;
-        if (isImage) {
-            parentElement = images;
-            cls = 'image';
-        } else {
-            parentElement = files;
-            cls = 'file';
-        }
-
+    getIcon : function(file, isImage) {
         var icon = _Files.icon; // default
-        if (file.contentType && !isImage) {
+        if (file && file.contentType && !isImage) {
 
             if (file.contentType.indexOf('pdf') > -1) {
                 icon = 'icon/page_white_acrobat.png';
@@ -183,6 +175,24 @@ var _Files = {
             icon = viewRootUrl + file.name;
         }
         
+        return icon;
+    },
+
+    appendFileElement : function(file, folderId, removeExisting, hasChildren, isImage) {
+
+        if (debug) console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
+
+        var parentElement, cls;
+        if (isImage) {
+            parentElement = images;
+            cls = 'image';
+        } else {
+            parentElement = files;
+            cls = 'file';
+        }
+
+        var icon = _Files.getIcon(file, isImage);
+        
         var parent = Structr.findParent(folderId, null, null, parentElement);
         var delIcon, newDelIcon;
         var div = Structr.node(file.id);
@@ -191,7 +201,7 @@ var _Files = {
                 top: 0,
                 left: 0
             }));
-            console.log('appended', div, parent);
+            if (debug) console.log('appended', div, parent);
         } else {
         
             parent.append('<div class="node ' + cls + ' ' + file.id + '_">'
@@ -204,7 +214,7 @@ var _Files = {
         $('.typeIcon', div).on('click', function() {
             window.open(viewRootUrl + file.name, 'Download ' + file.name);
         });
-        console.log(folderId, removeExisting);
+        if (debug) console.log(folderId, removeExisting);
         
         delIcon = $('.delete_icon', div);
 
@@ -237,7 +247,8 @@ var _Files = {
         
         div.draggable({
             revert: 'invalid',
-            containment: '#main',
+            helper: 'clone',
+            //containment: '#main',
             zIndex: 4
         });
 
@@ -249,7 +260,7 @@ var _Files = {
     },
 	
     appendImageElement : function(file, folderId, removeExisting, hasChildren) {
-        console.log('appendImageElement', file, folderId, removeExisting);
+        if (debug) console.log('appendImageElement', file, folderId, removeExisting);
         return _Files.appendFileElement(file, folderId, removeExisting, hasChildren, true);
     },
 		
@@ -397,17 +408,6 @@ var _Files = {
                         // TODO: check if we can send binary data directly
 
                         Command.chunk(file.id, c, chunkSize, chunk);
-
-                    //                        var obj = {};
-                    //                        obj.command = 'CHUNK';
-                    //                        obj.id = file.id;
-                    //                        var data = {};
-                    //                        data.chunkId = c;
-                    //                        data.chunkSize = chunkSize;
-                    //                        data.chunk = chunk;
-                    //                        obj.data = data;
-                    //                        //var data = '{ "command" : "CHUNK" , "id" : "' + file.id + '" , "data" : { "chunkId" : ' + c + ' , "chunkSize" : ' + chunkSize + ' , "chunk" : "' + chunk + '" } }';
-                    //                        sendObj(obj);
 
                     }
                     var typeIcon = Structr.node(file.id).find('.typeIcon');

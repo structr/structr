@@ -93,7 +93,8 @@ var _Resources = {
         //Structr.activateMenuEntry('resources');
         if (debug) console.log('onload');
         //main.append('<div id="resources"></div><div id="previews"></div><div id="palette"></div><div id="components"></div><div id="elements"></div><div id="contents"></div>');
-        main.append('<div id="resources"></div><div id="previews"></div><div id="palette"></div>');
+        
+        main.prepend('<div id="resources"></div><div id="previews"></div><div id="palette"></div>');
 
         resources = $('#resources');
         //components = $('#components');
@@ -593,16 +594,16 @@ var _Resources = {
 
                             self.addClass('structr-element-container-active');
 
-                            self.parent().children('.structr-element-container-header').remove();
-
-                            self.append('<div class="structr-element-container-header">'
-                                + '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
-                                + '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
-                                + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
-                                + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
-                                + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
-                                + '</div>'
-                                );
+//                            self.parent().children('.structr-element-container-header').remove();
+//
+//                            self.append('<div class="structr-element-container-header">'
+//                                + '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
+//                                + '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
+//                                + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
+//                                + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
+//                                + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
+//                                + '</div>'
+//                                );
 
                             var nodes = Structr.node(structrId);
                             nodes.parent().removeClass('nodeHover');
@@ -669,23 +670,6 @@ var _Resources = {
                             textBeforeEditing = self.contents().first().text();
                             if (debug) console.log("textBeforeEditing", textBeforeEditing);
 
-                        //swapFgBg(self);
-                        //                            sel = iframeWindow.getSelection();
-                        //                            if (sel.rangeCount) {
-                        //                                selStart = sel.getRangeAt(0).startOffset;
-                        //                                selEnd = sel.getRangeAt(0).endOffset;
-                        //                                if (debug) console.log(selStart, selEnd);
-                        //                                $('.link_icon').show();
-                        //                                //                                sourceId = structrId;
-                        //                                contentSourceId = self.attr('structr_content_id');
-                        //                                if (debug) console.log('click contentSourceId: ' + contentSourceId);
-                        //                                var rootResourceElement = self.closest('html')[0];
-                        //                                if (debug) console.log(rootResourceElement);
-                        //                                if (rootResourceElement) {
-                        //                                    rootId = $(rootResourceElement).attr('structr_content_id');
-                        //                                }
-                        //								
-                        //                            }
                         },
                         blur: function(e) {
                             e.stopPropagation();
@@ -783,16 +767,19 @@ var _Resources = {
         });
 
         div.droppable({
-            accept: '.element, .content, .component',
+            accept: '.element, .content, .component, .image, .file',
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
+                var self = $(this);
+
+                console.log('dropped', event, ui.draggable);
+                
                 if (sorting) {
                     if (debug) console.log('sorting, no drop allowed');
                     return;
                 }
-                var self = $(this);
                 var nodeData = {};
                 var resourceId;
                 var relData = {};
@@ -811,14 +798,34 @@ var _Resources = {
                     return;
                 }
                 
-                var tag;
+                var tag, name;
+                var cls = Structr.getClass($(ui.draggable));
                 
-                
-                if (!contentId) {
-                    tag = $(ui.draggable).text();
-                } else {
-                    tag = Structr.getClass($(ui.draggable));
+                if (cls == 'image') {
+                    contentId = undefined;
+                    name = $(ui.draggable).find('.name_').text();
+                    console.log('Image dropped, creating <img> node', name);
+                    nodeData._html_src = name;
+                    nodeData.name = name;
+                    tag = 'img';
+                } else if (cls == 'file') {
+                    contentId = undefined;
+                    name = $(ui.draggable).find('.name_').text();
+                    console.log('File dropped, creating <a> node', name);
+                    nodeData._html_href = '${link.name}';
+                    nodeData._html_title = '${link.name}';
+                    //nodeData.name = name;
+                    nodeData.childContent = '${parent.link.name}';
+                    tag = 'a';
+
+                } else {               
+                    if (!contentId) {
+                        tag = $(ui.draggable).text();
+                    } else {
+                        tag = cls;
+                    }
                 }
+                
                 if (debug) console.log($(ui.draggable));
                 var pos = Structr.numberOfNodes(self);
                 if (debug) console.log(pos);
@@ -1190,12 +1197,5 @@ var _Resources = {
         });
 
     }
-
-	
-//    linkSelectionToResource : function(rootResourceId, sourceId, linkedResourceId, startOffset, endOffset) {
-//        if (debug) console.log('linkResourcesToSelection(' + rootResourceId + ', ' + sourceId + ', ' + linkedResourceId + ', ' + startOffset + ', ' + endOffset + ')');
-//        var data = '{ "command" : "LINK" , "id" : "' + sourceId + '" , "data" : { "rootResourceId" : "' + rootResourceId + '", "resourceId" : "' + linkedResourceId + '", "startOffset" : ' + startOffset + ', "endOffset" : ' + endOffset + '} }';
-//        return send(data);
-//    }
 
 };

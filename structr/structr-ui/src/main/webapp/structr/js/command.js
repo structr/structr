@@ -123,6 +123,25 @@ var Command = {
         if (debug) console.log('getProperty()', obj);
         return sendObj(obj);
     },
+    
+    /**
+     * Send an INSERT command to the server.
+     * 
+     * The server will parse the 'html' text and create nodes and relationships
+     * according to the HTML structure contained. 
+     * 
+     * The server will broadcast CREATE and ADD notifications.
+     */
+//    insert : function(id, html) {
+//        var obj = {};
+//        obj.command = 'INSERT';
+//        obj.id = id;
+//        var data = {};
+//        data.html = html;
+//        obj.data = data;
+//        if (debug) console.log('insert()', obj);
+//        return sendObj(obj);
+//    },
 
     /**
      * Send a DELETE command to the server.
@@ -195,9 +214,9 @@ var Command = {
     /**
      * Send an ADD command to the server.
      * 
-     * The server will either
+     * The server will do one of the following:
      * 
-     * add the node with the given id to the children of the node with the
+     * Add the node with the given id to the children of the node with the
      * id given as 'id' property of the 'nodeData' hash. If the 'relData'
      * contains a resource id in both property fields 'sourceResourceId' and 
      * 'targetResourceId', the node will be copied from the source to the
@@ -205,7 +224,7 @@ var Command = {
      * 
      * - or -
      * 
-     * if 'id' is null, create a new node with the properties contained
+     * If 'id' is null, create a new node with the properties contained
      * in the 'nodeData' has and use the relationship parameters from the
      * 'relData' hash.
      * 
@@ -224,7 +243,7 @@ var Command = {
         obj.id = id;
         obj.data = nodeData;
         obj.relData = relData;
-        if (debug) console.log('createAndAdd()', obj);
+        console.log('createAndAdd()', obj);
         return sendObj(obj);
     },
 
@@ -357,14 +376,15 @@ var Command = {
      * 
      * The server gives no feedback on a LINK command.
      */
-    link : function(id, resourceId) {
+    link : function(id, targetId) {
         var obj = {};
         obj.command = 'LINK';
         obj.id = id;
         var data = {};
-        data.resourceId = resourceId;
+        data.targetId = targetId;
         obj.data = data;
         if (debug) console.log('link()', obj);
-        return sendObj(obj);    }
+        return sendObj(obj);
+    }
 
 }
