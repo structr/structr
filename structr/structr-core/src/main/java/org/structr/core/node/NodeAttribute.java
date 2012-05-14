@@ -18,6 +18,8 @@
  */
 package org.structr.core.node;
 
+import org.structr.common.PropertyKey;
+
 /**
  * A parameterized node attribute to identify a node attribute
  * in {@see FindNodeCommand}.
@@ -36,6 +38,11 @@ public class NodeAttribute {
 		this.key = key;
 		this.value = value;
 	}
+        
+	public NodeAttribute(final PropertyKey key, final Object value) {
+		this.key = key.name();
+		this.value = value;
+	}
 
 	/**
 	 * @return the key
@@ -47,10 +54,16 @@ public class NodeAttribute {
 	/**
 	 * @param key the key to set
 	 */
-	public void setKey(String key) {
+	public void setKey(final String key) {
 		this.key = key;
 	}
-
+        
+        /**
+	 * @param key the key to set
+	 */
+	public void setKey(final PropertyKey key) {
+		this.key = key.name();
+	}
 	/**
 	 * @return the value
 	 */
@@ -61,7 +74,7 @@ public class NodeAttribute {
 	/**
 	 * @param value the value to set
 	 */
-	public void setValue(Object value) {
+	public void setValue(final Object value) {
 		this.value = value;
 	}
 
