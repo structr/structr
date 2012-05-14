@@ -1745,7 +1745,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		if (rel != null) {
 
-			if (value != null) {
+			if (value != null && (!(value instanceof Iterable) || ((Iterable) value).iterator().hasNext())) {
 
 				// TODO: check cardinality here
 				if (value instanceof Iterable) {
