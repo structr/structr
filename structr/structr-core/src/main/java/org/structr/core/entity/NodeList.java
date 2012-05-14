@@ -34,15 +34,16 @@ import org.neo4j.kernel.Traversal;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
 import org.structr.core.EntityContext;
+import org.structr.core.IterableAdapter;
 import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
-import org.structr.core.IterableAdapter;
-import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.NodeFactory;
+import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -56,7 +57,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -78,16 +78,15 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class NodeList<T extends AbstractNode> extends AbstractNode
-	implements Iterable<AbstractNode>, Decorable<AbstractNode>, Evaluable {
+public class NodeList<T extends AbstractNode> extends AbstractNode implements Iterable<AbstractNode>, Decorable<AbstractNode>, Evaluable {
 
-	private static final Logger logger   = Logger.getLogger(NodeList.class.getName());
+	private static final Logger logger = Logger.getLogger(NodeList.class.getName());
+
+	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(NodeList.class,
-						  PropertyView.All,
-						  Key.values());
+		EntityContext.registerPropertySet(NodeList.class, PropertyView.All, Key.values());
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -106,7 +105,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	//~--- constructors ---------------------------------------------------
 
 	public NodeList() {
+
 		this(-1);
+
 	}
 
 	public NodeList(int maxLength) {
@@ -114,6 +115,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		this.maxLength   = maxLength;
 		this.transaction = Services.command(securityContext, TransactionCommand.class);
 		this.factory     = Services.command(securityContext, NodeFactoryCommand.class);;
+
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -132,10 +134,12 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		int ret = 0;
 
 		for (Node node : getRawNodes()) {
+
 			ret++;
 		}
 
 		return (ret);
+
 	}
 
 	/**
@@ -146,7 +150,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	 */
 	@Override
 	public Iterator<AbstractNode> iterator() {
+
 		return (getNodes().iterator());
+
 	}
 
 //      /**
@@ -194,6 +200,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	public boolean add(final AbstractNode toAdd) {
 
 		try {
+
 			Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 
 				@Override
@@ -201,6 +208,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 					// apply decorators (if any)
 					for (Decorator<AbstractNode> decorator : decorators) {
+
 						decorator.decorate(toAdd);
 					}
 
@@ -211,11 +219,14 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 			return (returnValue.booleanValue());
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to add node to this list", fex);
+
 		}
 
 		return false;
+
 	}
 
 	/**
@@ -227,22 +238,28 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	public boolean remove(final Object node) {
 
 		try {
+
 			Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
+
 					return (removeNodeFromList((Node) node));
+
 				}
 
 			});
 
 			return (returnValue.booleanValue());
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to remove node from this list", fex);
+
 		}
 
 		return false;
+
 	}
 
 	//
@@ -269,6 +286,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	public boolean addAll(final Collection<? extends AbstractNode> nodes) {
 
 		try {
+
 			Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 
 				@Override
@@ -277,21 +295,26 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 					boolean ret = false;
 
 					for (AbstractNode node : nodes) {
+
 						ret |= appendNodeToList(node.getNode());
 					}
 
 					return (ret);
+
 				}
 
 			});
 
 			return (returnValue.booleanValue());
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to add nodes to this list", fex);
+
 		}
 
 		return false;
+
 	}
 
 //      /**
@@ -391,23 +414,29 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	public void clear() {
 
 		try {
+
 			transaction.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
 					for (Node node : getRawNodes()) {
+
 						removeNodeFromList(node);
 					}
 
 					return (null);
+
 				}
 
 			});
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to clear this list", fex);
+
 		}
+
 	}
 
 //
@@ -473,10 +502,12 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		final int size = this.size();
 
 		if ((index < 0) || (index > size)) {
+
 			throw new ArrayIndexOutOfBoundsException();
 		}
 
 		try {
+
 			transaction.execute(new StructrTransaction() {
 
 				@Override
@@ -484,15 +515,16 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 					// apply decorators (if any)
 					for (Decorator<AbstractNode> decorator : decorators) {
+
 						decorator.decorate(toAdd);
 					}
 
 					if (index == size) {
+
 						appendNodeToList(toAdd.getNode());
 					} else {
 
-						insertNodeIntoList(index,
-								   toAdd.getNode());
+						insertNodeIntoList(index, toAdd.getNode());
 					}
 
 					return (null);
@@ -500,9 +532,12 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 			});
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to add node to this list", fex);
+
 		}
+
 	}
 
 //      /**
@@ -603,23 +638,31 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	// ----- interface Decorable<T>
 	@Override
 	public void addDecorator(Decorator<AbstractNode> d) {
+
 		decorators.add(d);
+
 	}
 
 	@Override
 	public void removeDecorator(Decorator<AbstractNode> d) {
+
 		decorators.remove(d);
+
 	}
 
 	// ----- interface Evaluable -----
 	@Override
 	public void addEvaluator(Evaluator e) {
+
 		evaluators.add(e);
+
 	}
 
 	@Override
 	public void removeEvaluator(Evaluator e) {
+
 		evaluators.remove(e);
+
 	}
 
 	private TraversalDescription createTraversalDescription() {
@@ -631,14 +674,17 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 		// add list evaluators
 		for (Evaluator evaluator : evaluators) {
+
 			ret = ret.evaluator(evaluator);
 		}
 
 		if (maxLength >= 0) {
+
 			ret = ret.evaluator(new MaxLengthEvaluator());
 		}
 
 		return (ret);
+
 	}
 
 	/**
@@ -655,47 +701,34 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 			// node is not null and part of this list
 			Node rootNode     = getNode();
-			Node previousNode = getRelatedNode(toRemove,
-							   RelType.NEXT_LIST_ENTRY,
-							   Direction.INCOMING);
-			Node nextNode     = getRelatedNode(toRemove,
-							   RelType.NEXT_LIST_ENTRY,
-							   Direction.OUTGOING);
+			Node previousNode = getRelatedNode(toRemove, RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
+			Node nextNode     = getRelatedNode(toRemove, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// delete relationship from previousNode to toRemove
-			deleteRelationship(previousNode,
-					   RelType.NEXT_LIST_ENTRY,
-					   Direction.OUTGOING);
+			deleteRelationship(previousNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// delete relationship from toRemove to nextNode (if exists)
-			deleteRelationship(toRemove,
-					   RelType.NEXT_LIST_ENTRY,
-					   Direction.OUTGOING);
+			deleteRelationship(toRemove, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// if nextNode exists
 			if (nextNode != null) {
 
 				// create relationship to next node
-				createRelationship(previousNode,
-						   nextNode,
-						   RelType.NEXT_LIST_ENTRY);
+				createRelationship(previousNode, nextNode, RelType.NEXT_LIST_ENTRY);
 			} else {
 
 				// delete LAST relationship from rootNode
-				deleteRelationship(rootNode,
-						   RelType.LAST_LIST_ENTRY,
-						   Direction.OUTGOING);
+				deleteRelationship(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING);
 
 				// create LAST relationship from rootNode to previousNode
-				createRelationship(rootNode,
-						   previousNode,
-						   RelType.LAST_LIST_ENTRY);
+				createRelationship(rootNode, previousNode, RelType.LAST_LIST_ENTRY);
 			}
 
 			listWasModified = true;
 		}
 
 		return (listWasModified);
+
 	}
 
 	/**
@@ -713,41 +746,32 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 			// node is not null and not already a member of this list
 			Node rootNode = getNode();
-			Node lastNode = getRelatedNode(rootNode,
-						       RelType.LAST_LIST_ENTRY,
-						       Direction.OUTGOING);
+			Node lastNode = getRelatedNode(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING);
 
 			if (lastNode != null) {
 
 				// create NEXT relationship from lastNode to toAdd
-				createRelationship(lastNode,
-						   toAdd,
-						   RelType.NEXT_LIST_ENTRY);
+				createRelationship(lastNode, toAdd, RelType.NEXT_LIST_ENTRY);
 
 				// delete LAST relationship from rootNode
-				deleteRelationship(rootNode,
-						   RelType.LAST_LIST_ENTRY,
-						   Direction.OUTGOING);
+				deleteRelationship(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING);
 
 				// create LAST relationship from rootNode to previousNode
-				createRelationship(rootNode,
-						   toAdd,
-						   RelType.LAST_LIST_ENTRY);
+				createRelationship(rootNode, toAdd, RelType.LAST_LIST_ENTRY);
+
 				listWasModified = true;
 			} else {
 
 				// list is empty, add node as last node
-				createRelationship(rootNode,
-						   toAdd,
-						   RelType.NEXT_LIST_ENTRY);
-				createRelationship(rootNode,
-						   toAdd,
-						   RelType.LAST_LIST_ENTRY);
+				createRelationship(rootNode, toAdd, RelType.NEXT_LIST_ENTRY);
+				createRelationship(rootNode, toAdd, RelType.LAST_LIST_ENTRY);
+
 				listWasModified = true;
 			}
 		}
 
 		return (listWasModified);
+
 	}
 
 	private boolean insertNodeIntoList(int index, Node toInsert) {
@@ -756,10 +780,12 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		boolean ret = false;
 
 		if (node != null) {
+
 			ret = insertNodeBefore(node, toInsert);
 		}
 
 		return (ret);
+
 	}
 
 	private boolean insertNodeBefore(Node node, Node toInsert) {
@@ -768,9 +794,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 		if ((node != null) && (toInsert != null) &&!isMember(toInsert)) {
 
-			Node previousNode = getRelatedNode(node,
-							   RelType.NEXT_LIST_ENTRY,
-							   Direction.INCOMING);
+			Node previousNode = getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
 
 			// delete relationship from previousNode to node
 			ret |= deleteRelationship(previousNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
@@ -780,9 +804,11 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 			// create relationship from toInsert to node
 			ret |= createRelationship(toInsert, node, RelType.NEXT_LIST_ENTRY);
+
 		}
 
 		return (ret);
+
 	}
 
 	private int indexOf(Node node) {
@@ -792,19 +818,21 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		for (Node n : getRawNodes()) {
 
 			if (node.equals(n)) {
+
 				return (ret);
 			}
 
 			ret++;
+
 		}
 
 		return (-1);
+
 	}
 
 	private boolean deleteRelationship(Node startNode, RelType relationshipType, Direction direction) {
 
-		Iterable<Relationship> rels = startNode.getRelationships(relationshipType,
-			direction);
+		Iterable<Relationship> rels = startNode.getRelationships(relationshipType, direction);
 		boolean ret                 = false;
 
 		for (Relationship rel : rels) {
@@ -816,36 +844,36 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 				if ((parent instanceof Long) && ((Long) parent).equals(getNodeId())) {
 
 					rel.delete();
+
 					ret = true;
+
 				}
+
 			}
+
 		}
 
 		return (ret);
+
 	}
 
 	private boolean createRelationship(Node startNode, Node endNode, RelType relationshipType) {
 
 		if (!startNode.equals(endNode)) {
 
-			Relationship rel = startNode.createRelationshipTo(endNode,
-				relationshipType);
+			Relationship rel = startNode.createRelationshipTo(endNode, relationshipType);
 
-			rel.setProperty(Key.parent.name(),
-					Long.valueOf(getNodeId()));
+			rel.setProperty(Key.parent.name(), Long.valueOf(getNodeId()));
 
 			return (true);
+
 		}
 
 		return (false);
+
 	}
 
 	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getIconSrc() {
-		return "/images/application_view_list.png";
-	}
 
 	/**
 	 * Returns the first node of this list, or null if this list is empty.
@@ -857,15 +885,20 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		Node node = getFirstRawNode();
 
 		try {
+
 			if (node != null) {
+
 				return ((AbstractNode) factory.execute(node));
 			}
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to instantiate node", fex);
+
 		}
 
 		return (null);
+
 	}
 
 	/**
@@ -877,9 +910,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 		Node rootNode = getNode();
 
-		return (getRelatedNode(rootNode,
-				       RelType.NEXT_LIST_ENTRY,
-				       Direction.OUTGOING));
+		return (getRelatedNode(rootNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING));
+
 	}
 
 	/**
@@ -888,12 +920,19 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	 * @return the last node of this list, or null
 	 */
 	public AbstractNode getLastNode() {
+
 		try {
+
 			return ((AbstractNode) factory.execute(getLastRawNode()));
-		} catch(FrameworkException fex) {
+
+		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to instantiate node", fex);
+
 		}
+
 		return null;
+
 	}
 
 	/**
@@ -905,9 +944,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 		Node rootNode = getNode();
 
-		return (getRelatedNode(rootNode,
-				       RelType.LAST_LIST_ENTRY,
-				       Direction.OUTGOING));
+		return (getRelatedNode(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING));
+
 	}
 
 	/**
@@ -916,7 +954,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	 * @return
 	 */
 	public int getMaxLength() {
+
 		return (maxLength);
+
 	}
 
 	// ----- private methods -----
@@ -925,16 +965,18 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		List<AbstractNode> ret = new LinkedList<AbstractNode>();
 
 		for (AbstractNode node : getNodes()) {
+
 			ret.add(node);
 		}
 
 		return (ret);
+
 	}
 
 	private Iterable<AbstractNode> getNodes() {
 
-		return (new IterableAdapter<Node, AbstractNode>(getRawNodes(),
-			new NodeFactory()));
+		return (new IterableAdapter<Node, AbstractNode>(getRawNodes(), new NodeFactory()));
+
 	}
 
 	private Iterable<Node> getRawNodes() {
@@ -958,8 +1000,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 		if (startNode != null) {
 
-			Iterable<Relationship> rels = startNode.getRelationships(relationshipType,
-				direction);
+			Iterable<Relationship> rels = startNode.getRelationships(relationshipType, direction);
 
 			for (Relationship rel : rels) {
 
@@ -970,16 +1011,23 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 					if ((parent instanceof Long) && ((Long) parent).equals(getNodeId())) {
 
 						if (direction.equals(Direction.INCOMING)) {
+
 							return (rel.getStartNode());
 						} else {
+
 							return (rel.getEndNode());
 						}
+
 					}
+
 				}
+
 			}
+
 		}
 
 		return (null);
+
 	}
 
 	/**
@@ -995,11 +1043,14 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		for (Node node : getRawNodes()) {
 
 			if (pos++ == index) {
+
 				return (node);
 			}
+
 		}
 
 		return (null);
+
 	}
 
 	/**
@@ -1012,10 +1063,10 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	public boolean isEmpty() {
 
 		Node startNode      = this.getNode();
-		boolean hasElements = ((startNode != null) && startNode.hasRelationship(RelType.NEXT_LIST_ENTRY,
-			Direction.OUTGOING));
+		boolean hasElements = ((startNode != null) && startNode.hasRelationship(RelType.NEXT_LIST_ENTRY, Direction.OUTGOING));
 
 		return (!hasElements);
+
 	}
 
 //
@@ -1041,9 +1092,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 //      }
 	private boolean isMember(Node node) {
 
-		return (getRelatedNode(node,
-				       RelType.NEXT_LIST_ENTRY,
-				       Direction.INCOMING) != null);
+		return (getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.INCOMING) != null);
+
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -1054,7 +1104,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	 * @param maxLength
 	 */
 	public void setMaxLength(int maxLength) {
+
 		this.maxLength = maxLength;
+
 	}
 
 	//~--- inner classes --------------------------------------------------
@@ -1065,11 +1117,14 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		public Evaluation evaluate(Path path) {
 
 			if (path.length() > maxLength) {
+
 				return (Evaluation.EXCLUDE_AND_PRUNE);
 			}
 
 			return (Evaluation.INCLUDE_AND_CONTINUE);
+
 		}
+
 	}
 
 
@@ -1081,8 +1136,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 			// we're following NEXT_LIST_ENTRY rels, so we can trace our way back..
 //                      Relationship rel = path.endNode().getSingleRelationship(RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
-			Iterable<Relationship> rels = path.endNode().getRelationships(RelType.NEXT_LIST_ENTRY,
-				Direction.INCOMING);
+			Iterable<Relationship> rels = path.endNode().getRelationships(RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
 
 			if (rels != null) {
 
@@ -1093,14 +1147,20 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 						Object parent = rel.getProperty(Key.parent.name());
 
 						if ((parent instanceof Long) && ((Long) parent).equals(getNodeId())) {
+
 							return (Evaluation.INCLUDE_AND_CONTINUE);
 						}
+
 					}
+
 				}
+
 			}
 
 			// TODO: find out if EXCLUDE_AND_CONTINUE is the right choice here!
 			return (Evaluation.EXCLUDE_AND_CONTINUE);
 		}
+
 	}
+
 }

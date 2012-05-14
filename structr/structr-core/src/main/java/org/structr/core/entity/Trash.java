@@ -36,16 +36,7 @@ public class Trash extends Folder {
 
 	static {
 
-		EntityContext.registerPropertySet(Trash.class,
-						  PropertyView.All,
-						  Key.values());
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getIconSrc() {
-		return "/images/bin.png";
+		EntityContext.registerPropertySet(Trash.class, PropertyView.All, Key.values());
 	}
 
 }

@@ -35,15 +35,7 @@ public class Category extends AbstractNode {
 
 	static {
 
-		EntityContext.registerPropertySet(Category.class,
-						  PropertyView.All,
-						  Key.values());
+		EntityContext.registerPropertySet(Category.class, PropertyView.All, Key.values());
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getIconSrc() {
-		return "/images/tag_green.png";
-	}
 }

@@ -42,7 +42,6 @@ public class Folder extends AbstractNode {
 
 		EntityContext.registerPropertySet(Folder.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(Folder.class, PropertyView.Ui, Key.values());
-
 		EntityContext.registerEntityRelation(Folder.class, Folder.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
 		EntityContext.registerEntityRelation(Folder.class, File.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
 		EntityContext.registerEntityRelation(Folder.class, Image.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
@@ -53,19 +52,5 @@ public class Folder extends AbstractNode {
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey{ name, parentFolder, folders, files, images }
-
-	//~--- methods --------------------------------------------------------
-
-//	@Override
-//	public boolean renderingAllowed(final RenderContext context) {
-//		return false;
-//	}
-
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getIconSrc() {
-		return "/images/folder.png";
-	}
 
 }

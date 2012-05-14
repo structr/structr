@@ -35,15 +35,7 @@ public class CsvFile extends File {
 
 	static {
 
-		EntityContext.registerPropertySet(CsvFile.class,
-						  PropertyView.All,
-						  Key.values());
+		EntityContext.registerPropertySet(CsvFile.class, PropertyView.All, Key.values());
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getIconSrc() {
-		return "/images/page_white_excel.png";
-	}
 }

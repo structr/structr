@@ -201,11 +201,6 @@ public class Component extends AbstractNode {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public String getIconSrc() {
-		return "";
-	}
-
-	@Override
 	public Iterable<String> getPropertyKeys(final String propertyView) {
 
 		Set<String> augmentedPropertyKeys = new LinkedHashSet<String>();

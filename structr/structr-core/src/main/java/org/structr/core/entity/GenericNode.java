@@ -34,15 +34,7 @@ public class GenericNode extends AbstractNode {
 
 	static {
 
-		EntityContext.registerPropertySet(GenericNode.class,
-						  PropertyView.All,
-						  Key.values());
+		EntityContext.registerPropertySet(GenericNode.class, PropertyView.All, Key.values());
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getIconSrc() {
-		return "/images/error.png";
-	}
 }

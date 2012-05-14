@@ -50,10 +50,7 @@ import java.util.logging.Logger;
  */
 public class User extends Person implements Principal {
 
-	private static final Logger logger = Logger.getLogger(User.class.getName());
-
-	//~--- static initializers --------------------------------------------
-
+	// private static final Logger logger = Logger.getLogger(User.class.getName());
 	static {
 
 		EntityContext.registerPropertyConverter(User.class, Key.password.name(), PasswordConverter.class);
@@ -71,13 +68,13 @@ public class User extends Person implements Principal {
 
 	//~--- constant enums -------------------------------------------------
 
+	public enum HiddenKey implements PropertyKey{ groups }
+
 	public enum Key implements PropertyKey {
+
 		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
+
 	}
-        
-        public enum HiddenKey implements PropertyKey {
-            groups
-        }
 
 	public enum UserIndexKey implements PropertyKey{ name, email; }
 
@@ -85,15 +82,12 @@ public class User extends Person implements Principal {
 
 	@Override
 	public void block() throws FrameworkException {
+
 		setBlocked(Boolean.TRUE);
+
 	}
 
 	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getIconSrc() {
-		return "/images/user.png";
-	}
 
 	/**
 	 * Return user's personal root node
@@ -109,14 +103,15 @@ public class User extends Person implements Principal {
 			for (AbstractRelationship r : outRels) {
 
 				return r.getEndNode();
-
 			}
 
 		}
 
 		return null;
+
 	}
 
+	@Override
 	public String getEncryptedPassword() {
 
 		boolean dbNodeHasProperty = dbNode.hasProperty(Key.password.name());
@@ -130,8 +125,8 @@ public class User extends Person implements Principal {
 		} else {
 
 			return null;
-
 		}
+
 	}
 
 	@Override
@@ -140,73 +135,114 @@ public class User extends Person implements Principal {
 		if (Key.password.name().equals(key)) {
 
 			return "";
-
 		} else {
 
 			return getProperty(key);
-
 		}
+
 	}
 
 	/**
 	 * Intentionally return null.
 	 * @return
 	 */
+	@Override
 	public String getPassword() {
+
 		return null;
+
 	}
 
+	@Override
 	public String getRealName() {
+
 		return getStringProperty(Key.realName);
+
 	}
 
+	@Override
 	public String getConfirmationKey() {
+
 		return getStringProperty(Key.confirmationKey);
+
 	}
 
+	@Override
 	public Boolean getBlocked() {
+
 		return (Boolean) getProperty(Key.blocked);
+
 	}
 
+	@Override
 	public String getSessionId() {
+
 		return getStringProperty(Key.sessionId);
+
 	}
 
+	@Override
 	public Boolean isBlocked() {
+
 		return Boolean.TRUE.equals(getBlocked());
+
 	}
 
+	@Override
 	public boolean isBackendUser() {
-		return (getBooleanProperty(Key.backendUser));
+
+		return getBooleanProperty(Key.backendUser);
+
 	}
 
+	@Override
 	public boolean isFrontendUser() {
-		return (getBooleanProperty(Key.frontendUser));
+
+		return getBooleanProperty(Key.frontendUser);
+
 	}
 
 	//~--- set methods ----------------------------------------------------
 
+	@Override
 	public void setPassword(final String passwordValue) throws FrameworkException {
+
 		setProperty(Key.password, passwordValue);
+
 	}
 
+	@Override
 	public void setRealName(final String realName) throws FrameworkException {
+
 		setProperty(Key.realName, realName);
+
 	}
 
+	@Override
 	public void setBlocked(final Boolean blocked) throws FrameworkException {
+
 		setProperty(Key.blocked, blocked);
+
 	}
 
+	@Override
 	public void setConfirmationKey(final String value) throws FrameworkException {
+
 		setProperty(Key.confirmationKey, value);
+
 	}
 
+	@Override
 	public void setFrontendUser(final boolean isFrontendUser) throws FrameworkException {
+
 		setProperty(Key.frontendUser, isFrontendUser);
+
 	}
 
+	@Override
 	public void setBackendUser(final boolean isBackendUser) throws FrameworkException {
+
 		setProperty(Key.backendUser, isBackendUser);
+
 	}
 }

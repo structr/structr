@@ -76,8 +76,4 @@ public class Element extends AbstractNode {
 	
 	//~--- get methods ----------------------------------------------------
 
-	@Override
-	public String getIconSrc() {
-		return "";
-	}
 }

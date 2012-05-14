@@ -115,11 +115,6 @@ public class Content extends AbstractNode {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public String getIconSrc() {
-		return "";
-	}
-
-	@Override
 	public java.lang.Object getPropertyForIndexing(final String key) {
 
 		if (key.equals(Content.UiKey.content.name())) {
@@ -130,7 +125,7 @@ public class Content extends AbstractNode {
 
 		} else {
 
-		return getProperty(key);
+                    return getProperty(key);
 		}
 	}
 	

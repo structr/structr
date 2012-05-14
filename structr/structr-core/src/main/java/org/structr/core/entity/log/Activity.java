@@ -23,6 +23,7 @@ package org.structr.core.entity.log;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.LongDateConverter;
 import org.structr.core.entity.AbstractNode;
@@ -32,7 +33,6 @@ import org.structr.core.entity.Principal;
 
 import java.util.Date;
 import java.util.Map;
-import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,15 +49,10 @@ public class Activity extends AbstractNode {
 
 	static {
 
-		EntityContext.registerPropertySet(Activity.class,
-						  PropertyView.All,
-						  Key.values());
-		EntityContext.registerPropertyConverter(Activity.class,
-			Key.startTimestamp,
-			LongDateConverter.class);
-		EntityContext.registerPropertyConverter(Activity.class,
-			Key.endTimestamp,
-			LongDateConverter.class);
+		EntityContext.registerPropertySet(Activity.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertyConverter(Activity.class, Key.startTimestamp, LongDateConverter.class);
+		EntityContext.registerPropertyConverter(Activity.class, Key.endTimestamp, LongDateConverter.class);
+
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -71,34 +66,41 @@ public class Activity extends AbstractNode {
 	//~--- constructors ---------------------------------------------------
 
 	public Activity() {
+
 		super();
+
 	}
 
 	public Activity(final Map<String, Object> properties) {
+
 		super(properties);
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
-	@Override
-	public String getIconSrc() {
-		return "/images/sport_soccer.png";
-	}
-
 	public Date getStartTimestamp() {
+
 		return getDateProperty(Key.startTimestamp.name());
+
 	}
 
 	public Date getEndTimestamp() {
+
 		return getDateProperty(Key.endTimestamp.name());
+
 	}
 
 	public String getActivityText() {
+
 		return getStringProperty(Key.activityText.name());
+
 	}
 
 	public long getSessionId() {
+
 		return getLongProperty(Key.sessionId.name());
+
 	}
 
 	/**
@@ -107,39 +109,44 @@ public class Activity extends AbstractNode {
 	 * @return
 	 */
 	public Principal getUser() {
+
 		return user;
+
 	}
 
 	//~--- set methods ----------------------------------------------------
 
 	public void setStartTimestamp(final Date timestamp) throws FrameworkException {
 
-		setProperty(Key.startTimestamp.name(),
-			    timestamp);
+		setProperty(Key.startTimestamp.name(), timestamp);
+
 	}
 
 	public void setEndTimestamp(final Date timestamp) throws FrameworkException {
 
-		setProperty(Key.endTimestamp.name(),
-			    timestamp);
+		setProperty(Key.endTimestamp.name(), timestamp);
+
 	}
 
 	public void setActivityText(final String text) throws FrameworkException {
 
-		setProperty(Key.activityText.name(),
-			    text);
+		setProperty(Key.activityText.name(), text);
+
 	}
 
 	public void setSessionId(final long id) throws FrameworkException {
 
-		setProperty(Key.sessionId.name(),
-			    id);
+		setProperty(Key.sessionId.name(), id);
+
 	}
 
 	/**
 	 * Principal property for logging purposes only
 	 */
 	public void setUser(final Principal user) {
+
 		this.user = user;
+
 	}
+
 }

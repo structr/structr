@@ -621,8 +621,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return GraphObjectComparator.ASCENDING;
 	}
 
-	public abstract String getIconSrc();
-
 	@Override
 	public String getType() {
 		return (String) getProperty(Key.type.name());

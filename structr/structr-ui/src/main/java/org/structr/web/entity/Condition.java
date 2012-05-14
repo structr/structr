@@ -66,9 +66,4 @@ public class Condition extends AbstractNode {
 		
 	}
 
-	@Override
-	public String getIconSrc() {
-		return null;
-	}
-	
 }

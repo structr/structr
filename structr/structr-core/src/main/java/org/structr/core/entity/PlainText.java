@@ -23,8 +23,8 @@ package org.structr.core.entity;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -37,59 +37,51 @@ public class PlainText extends AbstractNode {
 
 	static {
 
-		EntityContext.registerPropertySet(PlainText.class,
-						  PropertyView.All,
-						  Key.values());
+		EntityContext.registerPropertySet(PlainText.class, PropertyView.All, Key.values());
 	}
 
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey{ content, contentType, size; }
 
-	//~--- methods --------------------------------------------------------
-
-//	@Override
-//	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-//
-//
-//	}
-
 	//~--- get methods ----------------------------------------------------
 
-	@Override
-	public String getIconSrc() {
-		return "/images/page_white_text.png";
-	}
-
 	public String getContent() {
+
 		return getStringProperty(Key.content.name());
+
 	}
 
 	public String getContentType() {
+
 		return getStringProperty(Key.contentType.name());
+
 	}
 
 	public String getSize() {
+
 		return getStringProperty(Key.size.name());
+
 	}
 
 	//~--- set methods ----------------------------------------------------
 
 	public void setContent(final String content) throws FrameworkException {
 
-		setProperty(Key.content.name(),
-			    content);
+		setProperty(Key.content.name(), content);
+
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
 
-		setProperty(Key.contentType.name(),
-			    contentType);
+		setProperty(Key.contentType.name(), contentType);
+
 	}
 
 	public void setSize(final String size) throws FrameworkException {
 
-		setProperty(Key.size.name(),
-			    size);
+		setProperty(Key.size.name(), size);
+
 	}
+
 }

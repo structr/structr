@@ -70,8 +70,4 @@ public class Resource extends AbstractNode {
 
 	//~--- get methods ----------------------------------------------------
 
-	@Override
-	public String getIconSrc() {
-		return "";
-	}
 }

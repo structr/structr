@@ -182,7 +182,7 @@ public class Importer {
 					attrs.add(new NodeAttribute("visibleToPublicUsers", publicVisible));
 					attrs.add(new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
 
-					AbstractNode resource = findOrCreateNode("Resource", attrs, "/");
+					AbstractNode resource = findOrCreateNode(attrs, "/");
 
 					createChildNodes(parsedDocument, resource, resource.getStringProperty(AbstractNode.Key.uuid), baseUrl);
 
@@ -334,7 +334,7 @@ public class Importer {
 
 			// create node
 			// TODO: Do we need the name here?
-			AbstractNode newNode = findOrCreateNode(type, attrs, nodePath);
+			AbstractNode newNode = findOrCreateNode(attrs, nodePath);
 
 			// Link new node to its parent node
 			linkNodes(parent, newNode, resourceId, localIndex);
@@ -361,7 +361,7 @@ public class Importer {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private AbstractNode findExistingNode(String type, List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
+	private AbstractNode findExistingNode(final List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
@@ -424,9 +424,9 @@ public class Importer {
 		return null;
 	}
 
-	private AbstractNode findOrCreateNode(String type, List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
+	private AbstractNode findOrCreateNode(final List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
 
-		AbstractNode node = findExistingNode(type, attributes, nodePath);
+		AbstractNode node = findExistingNode(attributes, nodePath);
 
 		if (node != null) {
 

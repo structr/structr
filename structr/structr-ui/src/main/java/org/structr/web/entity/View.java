@@ -69,9 +69,4 @@ public class View extends AbstractNode {
 		
 		return Collections.emptyList();
 	}
-
-	@Override
-	public String getIconSrc() {
-		return null;
-	}
 }

@@ -105,11 +105,6 @@ public class File extends AbstractNode {
 
 	//~--- get methods ----------------------------------------------------
 
-	@Override
-	public String getIconSrc() {
-		return "/images/page_white.png";
-	}
-
 	public String getUrl() {
 		return getStringProperty(Key.url.name());
 	}

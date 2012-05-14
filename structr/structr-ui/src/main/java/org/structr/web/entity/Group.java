@@ -45,103 +45,139 @@ public class Group extends AbstractNode implements Principal {
 
 		EntityContext.registerPropertySet(Group.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(Group.class, PropertyView.Ui, Key.values());
-		//EntityContext.registerPropertyRelation(Group.class, Key.users,	Principal.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.ManyToMany);
+
+		// EntityContext.registerPropertyRelation(Group.class, Key.users,        Principal.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Group.class, User.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+
 	}
-
-        @Override
-        public void block() throws FrameworkException {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public String getEncryptedPassword() {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public Object getPropertyForIndexing(String key) {
-                return getProperty(key);
-        }
-
-        @Override
-        public String getPassword() {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public String getRealName() {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public String getConfirmationKey() {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public Boolean getBlocked() {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public String getSessionId() {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public Boolean isBlocked() {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public boolean isBackendUser() {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public boolean isFrontendUser() {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public void setPassword(String passwordValue) throws FrameworkException {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public void setRealName(String realName) throws FrameworkException {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public void setBlocked(Boolean blocked) throws FrameworkException {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public void setConfirmationKey(String value) throws FrameworkException {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public void setFrontendUser(boolean isFrontendUser) throws FrameworkException {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public void setBackendUser(boolean isBackendUser) throws FrameworkException {
-                throw new UnsupportedOperationException("Not supported yet.");
-        }
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ }
+	public enum Key implements PropertyKey {}
+
+	//~--- methods --------------------------------------------------------
+
+	@Override
+	public void block() throws FrameworkException {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public String getIconSrc() {
-		return "/images/group.png";
+	public String getEncryptedPassword() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
+
+	@Override
+	public Object getPropertyForIndexing(String key) {
+
+		return getProperty(key);
+
+	}
+
+	@Override
+	public String getPassword() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getRealName() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getConfirmationKey() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public Boolean getBlocked() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getSessionId() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public Boolean isBlocked() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public boolean isBackendUser() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public boolean isFrontendUser() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	@Override
+	public void setPassword(String passwordValue) throws FrameworkException {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public void setRealName(String realName) throws FrameworkException {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public void setBlocked(Boolean blocked) throws FrameworkException {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public void setConfirmationKey(String value) throws FrameworkException {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public void setFrontendUser(boolean isFrontendUser) throws FrameworkException {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public void setBackendUser(boolean isBackendUser) throws FrameworkException {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
 }
