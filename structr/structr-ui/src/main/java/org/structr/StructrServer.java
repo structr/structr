@@ -74,7 +74,7 @@ public class StructrServer {
 	public static void main(String[] args) throws Exception {
 
 		String appName        = "structr UI 0.5";
-		String host           = System.getProperty("host", "0.0.0.0");
+		String host           = System.getProperty("host", "localhost");
 		String keyStorePath   = System.getProperty("keyStorePath", "keystore.jks");
 		int httpPort          = Integer.parseInt(System.getProperty("port", "8080"));
 		int httpsPort         = Integer.parseInt(System.getProperty("httpsPort", "8081"));
@@ -309,7 +309,7 @@ public class StructrServer {
 		server.setGracefulShutdown(1000);
 		server.setStopAtShutdown(true);
 		System.out.println();
-		System.out.println("structr UI:        http://" + host + ":" + httpPort + contextPath);
+		System.out.println("structr UI:        http://" + host + ":" + httpPort + contextPath + "structr/");
 		System.out.println();
 		server.start();
 		server.join();
