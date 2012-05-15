@@ -112,7 +112,8 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 			case 1 :
 				AbstractNode node = nodes.get(0);
-				if(!type.getSimpleName().equals(node.getType())) {
+				//if(!type.getSimpleName().equals(node.getType())) {
+				if (!type.isAssignableFrom(node.getClass())) {
 					throw new FrameworkException("base", new TypeToken(propertyKey.name(), type.getSimpleName()));
 				}
 				return node;
