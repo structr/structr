@@ -457,7 +457,7 @@ var _Resources = {
                 + '</style>');
 	
             var iframeDocument = $(this).contents();
-            var iframeWindow = this.contentWindow;
+            //var iframeWindow = this.contentWindow;
 
             var droppables = iframeDocument.find('[structr_element_id]');
 
@@ -534,8 +534,8 @@ var _Resources = {
                 });
 
                 var structrId = el.attr('structr_element_id');
-                var type = el.attr('structr_type');
-                var name = el.attr('structr_name');
+                //var type = el.attr('structr_type');
+                //  var name = el.attr('structr_name');
                 var tag  = element.nodeName.toLowerCase();
                 if (structrId) {
 
@@ -809,18 +809,23 @@ var _Resources = {
                     nodeData.name = name;
                     tag = 'img';
                 } else if (cls == 'file') {
-                    contentId = undefined;
                     name = $(ui.draggable).find('.name_').text();
                     console.log('File dropped, creating <a> node', name);
                     nodeData._html_href = '${link.name}';
                     nodeData._html_title = '${link.name}';
-                    //nodeData.name = name;
+                    nodeData.linkable_id = contentId;
                     nodeData.childContent = '${parent.link.name}';
                     tag = 'a';
-
+                    contentId = undefined;
                 } else {               
                     if (!contentId) {
                         tag = $(ui.draggable).text();
+                        
+                        if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em') {
+                            nodeData.childContent = 'New Content';
+                        }
+                        
+                        
                     } else {
                         tag = cls;
                     }

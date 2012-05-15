@@ -372,14 +372,4 @@ var _Elements = {
 
         return div;
     }
-
-//    addElement : function(button, type, props) {
-//        return _Entities.add(button, type, props);
-//    },
-
-//    deleteElement : function(button, element) {
-//        if (debug) console.log('delete element ' + element);
-//        _Entities.deleteNode(button, element);
-//    }
-
 };
