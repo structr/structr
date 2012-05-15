@@ -21,6 +21,7 @@
 
 package org.structr.core.cron;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.concurrent.Delayed;
@@ -45,8 +46,8 @@ public class CronEntry implements Delayed {
 	private CronField hours   = null;
 	private CronField minutes = null;
 	private CronField months  = null;
-	private String name       = null;
 	private CronField seconds = null;
+	private String name       = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -89,8 +90,8 @@ public class CronEntry implements Delayed {
 			String minutesField = fields[1];
 			String hoursField   = fields[2];
 			String daysField    = fields[3];
-			String weeksField   = fields[4];
-			String monthsField  = fields[5];
+			String monthsField  = fields[4];
+			String weeksField   = fields[5];
 
 			try {
 
@@ -124,7 +125,7 @@ public class CronEntry implements Delayed {
 
 			try {
 
-				CronField days = parseField(daysField, 0, 31);
+				CronField days = parseField(daysField, 1, 31);
 
 				cronEntry.setDays(days);
 
@@ -144,7 +145,7 @@ public class CronEntry implements Delayed {
 
 			try {
 
-				CronField months = parseField(monthsField, 0, 11);
+				CronField months = parseField(monthsField, 1, 12);
 
 				cronEntry.setMonths(months);
 
@@ -169,7 +170,7 @@ public class CronEntry implements Delayed {
 		// asterisk: *
 		if ("*".equals(field)) {
 
-			return new CronField(minValue, maxValue, 1);
+			return new CronField(minValue, maxValue, 1, true);
 
 		}
 
@@ -302,108 +303,73 @@ public class CronEntry implements Delayed {
 		int nowSeconds     = now.get(Calendar.SECOND);
 		int nowMinutes     = now.get(Calendar.MINUTE);
 		int nowHours       = now.get(Calendar.HOUR_OF_DAY);
-		int nowDays        = now.get(Calendar.DAY_OF_MONTH);
-		int nowDow         = now.get(Calendar.DAY_OF_WEEK);
-		int nowMonths      = now.get(Calendar.MONTH);
+		int nowDays        = now.get(Calendar.DAY_OF_MONTH);		// DAY_OF_MONTH starts with 1
+		int nowDow         = now.get(Calendar.DAY_OF_WEEK);		// DAY_OF_WEEK starts with 1 (sunday)
+		int nowMonths      = now.get(Calendar.MONTH) + 1;		// MONTH starts with 0 (why???)
+		boolean modified   = true;
+		int maxTries       = 10000;
+		int numTries       = 0;
+
+		while(modified && numTries++ < maxTries) {
+			
+			modified = false;
+			
+			if(!modified && !seconds.isInside(nowSeconds)) {
+				now.add(Calendar.SECOND, 1);
+				modified = true;
+			}
+			
+			if(!modified && !minutes.isInside(nowMinutes)) {
+				now.add(Calendar.MINUTE, 1);
+				modified = true;
+			}
+			
+			if(!modified && !hours.isInside(nowHours)) {
+				now.add(Calendar.HOUR_OF_DAY, 1);
+				modified = true;
+			}
+
+			// exclude day of week and day from each other (both can match)
+			if(!dow.isIsWildcard() && !days.isIsWildcard()) {
+				
+				if(!modified && !(dow.isInside(nowDow) || days.isInside(nowDays))) {
+					now.add(Calendar.DAY_OF_MONTH, 1);
+					modified = true;
+				}
+				
+			} else if(!dow.isIsWildcard()) {
+				
+				if(!modified && !dow.isInside(nowDow)) {
+					now.add(Calendar.DAY_OF_MONTH, 1);
+					modified = true;
+				}
+				
+			} else if(!days.isIsWildcard()) {
+				
+				if(!modified && !days.isInside(nowDays)) {
+					now.add(Calendar.DAY_OF_MONTH, 1);
+					modified = true;
+				}
+			}
+			
+			if(!modified && !months.isInside(nowMonths)) {
+				now.add(Calendar.MONTH, 1);
+				modified = true;
+			}
+			
+			nowSeconds     = now.get(Calendar.SECOND);
+			nowMinutes     = now.get(Calendar.MINUTE);
+			nowHours       = now.get(Calendar.HOUR_OF_DAY);
+			nowDays        = now.get(Calendar.DAY_OF_MONTH);	// DAY_OF_MONTH starts with 1
+			nowDow         = now.get(Calendar.DAY_OF_WEEK) - 1;	// DAY_OF_WEEK starts with 1 (sunday)
+			nowMonths      = now.get(Calendar.MONTH) + 1;		// MONTH starts with 0 (why???)
+		}
 		
-		int minSecondsNext = seconds.getStartValue();
-		int minMinutesNext = minutes.getStartValue();
-		int minHoursNext   = hours.getStartValue();
-		int minDaysNext    = days.getStartValue();
-		int minDowNext     = dow.getStartValue();
-		int minMonthsNext  = months.getStartValue();
-
-		// Not implemented yet
-//              int stepSeconds = seconds.getStep();
-//              int stepMinutes = minutes.getStep();
-//              int stepHours   = hours.getStep();
-//              int stepDays    = days.getStep();
-//              int stepDow     = dow.getStep();
-//              int stepMonths  = months.getStep();
+		if(numTries == maxTries) {
+			throw new IllegalArgumentException("Unable to determine next cron date for task " + name + ", aborting.");
+		}
 		
-		int diffSeconds = minSecondsNext - nowSeconds;
-		int diffMinutes = minMinutesNext - nowMinutes;
-		int diffHours   = minHoursNext - nowHours;
-		int diffDays    = minDaysNext - nowDays;
-		int diffDow     = minDowNext - nowDow;
-		int diffMonths  = minMonthsNext - nowMonths;
-
-		// FIXME: implement step
-		if (diffSeconds < 0) {
-
-			diffSeconds += 60;
-
-		}
-
-		if (diffMinutes < 0) {
-
-			diffMinutes += 60;
-
-		}
-
-		if (diffHours < 0) {
-
-			diffHours += 24;
-
-		}
-
-		if (diffDays < 0) {
-
-			diffDays += 1;
-
-		}
-
-		if (diffDow < 0) {
-
-			diffDow += 7;
-
-		}
-
-		if (diffMonths < 0) {
-
-			diffMonths += 30;
-
-		}
-
-		long next = 0;
-
-		if (!seconds.isInside(nowSeconds)) {
-
-			next += (diffSeconds) * (1000L);
-
-		}
-
-		if (!minutes.isInside(nowMinutes)) {
-
-			next += (diffMinutes) * (1000L * 60L);
-
-		}
-
-		if (!hours.isInside(nowHours)) {
-
-			next += (diffHours) * (1000L * 60L * 60L);
-
-		}
-
-		if (!days.isInside(nowDays)) {
-
-			next += (diffDays) * (1000L * 60L * 60L * 24L);
-
-		}
-
-		if (!dow.isInside(nowDow)) {
-
-			next += (diffDow) * (1000L * 60L * 60L * 24L * 7L);
-
-		}
-
-		if (!months.isInside(nowMonths)) {
-
-			next += (diffMonths) * (1000L * 60L * 60L * 24L * 30L);
-
-		}
-
-		return next;
+		return now.getTimeInMillis() - System.currentTimeMillis();
 	}
 
 	public CronField getSeconds() {

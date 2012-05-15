@@ -19,6 +19,7 @@
 
 package org.structr.core.cron;
 
+import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,7 @@ public class CronService extends Thread implements RunnableService {
 
 	@Override
 	public void run() {
-		
+
 		// wait for service layer to be initialized
 		while(!Services.isInitialized()) {
 			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
@@ -81,7 +82,7 @@ public class CronService extends Thread implements RunnableService {
 						Class taskClass = Class.forName(taskClassName);
 						Task task = (Task)taskClass.newInstance();
 
-						logger.log(Level.FINE, "Starting task {0}", taskClassName);
+						logger.log(Level.INFO, "Starting task {0}", taskClassName);
 						Services.command(securityContext, ProcessTaskCommand.class).execute(task);
 
 					} catch(Throwable t) {

@@ -77,7 +77,7 @@ import java.util.logging.Logger;
  */
 public class SearchNodeCommand extends NodeServiceCommand {
 
-	private static String IMPROBABLE_SEARCH_VALUE = "xeHfc6OG30o3YQzX57_8____r-Wx-RW_70r84_71D-g--P9-3K";
+	public static String IMPROBABLE_SEARCH_VALUE = "×¦÷þ·";
 	private static final Logger logger            = Logger.getLogger(SearchNodeCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
@@ -279,7 +279,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				long t1 = System.currentTimeMillis();
 
-				logger.log(Level.INFO, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, (hits != null)
+				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, (hits != null)
 					? hits.size()
 					: 0 });
 
@@ -289,7 +289,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                              hits.close();
 				long t2 = System.currentTimeMillis();
 
-				logger.log(Level.INFO, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });
+				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });
 
 			}
 
@@ -365,7 +365,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			long t3 = System.currentTimeMillis();
 
-			logger.log(Level.INFO, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.size() });
+			logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.size() });
 		}
 
 		long t4 = System.currentTimeMillis();
@@ -375,7 +375,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		long t5 = System.currentTimeMillis();
 
-		logger.log(Level.INFO, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
+		logger.log(Level.FINE, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
 
 		return finalResult;
 	}
@@ -388,12 +388,15 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		if (StringUtils.isBlank(value) || value.equals("\"\"")) {
 
-			return " " + key + ":" + IMPROBABLE_SEARCH_VALUE + "";
+			return " AND " + key + ":\"" + IMPROBABLE_SEARCH_VALUE + "\"";
+//			return " " + key + ":" + IMPROBABLE_SEARCH_VALUE + "";
 
 		}
 
 		// NOT operator should always be applied
-		return ((isFirst &&!(op.equals(SearchOperator.NOT)))
+		
+		
+		return ((isFirst && !(op.equals(SearchOperator.NOT)))
 			? ""
 			: " " + op + " ") + expand(key, value);
 	}

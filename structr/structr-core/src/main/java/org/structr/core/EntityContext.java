@@ -1130,6 +1130,9 @@ public class EntityContext {
 
 					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
 
+					if(!data.isDeleted(node)) {
+						modifiedNodes.add(nodeFactory.createNode(securityContext, node));
+					}
 				}
 
 				// 1.2: collect properties of deleted relationships
@@ -1148,6 +1151,9 @@ public class EntityContext {
 
 					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
 
+					if(!data.isDeleted(rel)) {
+						modifiedRels.add(relFactory.createRelationship(securityContext, rel));
+					}
 				}
 
 				// 2: notify listeners of node creation (so the modifications can later be tracked)

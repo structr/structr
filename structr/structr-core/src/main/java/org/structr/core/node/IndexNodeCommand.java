@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -273,43 +274,34 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		Object value            = node.getProperty(key);    // dbNode.getProperty(key);
 		Object valueForIndexing = node.getPropertyForIndexing(key);
-		boolean emptyValue      = ((value instanceof String) && StringUtils.isEmpty((String) value));
-
-		if (value == null) {
-
-			logger.log(Level.FINE, "Node {0} has null value for key {1}, removing property", new Object[] { id, key });
-			dbNode.removeProperty(key);
-			removeNodePropertyFromIndex(dbNode, key, indexName);
-
-		} else if (emptyValue) {
-
-			logger.log(Level.FINE, "Node {0} has empty, non-null value for key {1}, removing property", new Object[] { id, key });
-			dbNode.removeProperty(key);
-			removeNodePropertyFromIndex(dbNode, key, indexName);
-
-		} else {
-
-			// index.remove(node, key, value);
-			removeNodePropertyFromIndex(dbNode, key, indexName);
-			logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from all indices", new Object[] { id, key });
-			addNodePropertyToIndex(dbNode, key, valueForIndexing, indexName);
-
-			if ((node instanceof Principal) && (key.equals(AbstractNode.Key.name.name()) || key.equals(Person.Key.email.name()))) {
-
-				removeNodePropertyFromIndex(dbNode, key, NodeIndex.user.name());
-				addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.user.name());
-
-			}
-
-			if (key.equals(AbstractNode.Key.uuid.name())) {
-
-				removeNodePropertyFromIndex(dbNode, key, NodeIndex.uuid.name());
-				addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.uuid.name());
-
-			}
-
-			logger.log(Level.FINE, "Node {0}: New value {2} added for key {1}", new Object[] { id, key, value });
+		
+		if(value == null || (value != null && (value instanceof String) && StringUtils.isEmpty((String) value))) {
+			valueForIndexing = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
+			value = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 		}
+
+		// logger.log(Level.INFO, "Indexing value {0} for key {1}", new Object[] { valueForIndexing, key });
+		
+		// index.remove(node, key, value);
+		removeNodePropertyFromIndex(dbNode, key, indexName);
+		logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from all indices", new Object[] { id, key });
+		addNodePropertyToIndex(dbNode, key, valueForIndexing, indexName);
+
+		if ((node instanceof Principal) && (key.equals(AbstractNode.Key.name.name()) || key.equals(Person.Key.email.name()))) {
+
+			removeNodePropertyFromIndex(dbNode, key, NodeIndex.user.name());
+			addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.user.name());
+
+		}
+
+		if (key.equals(AbstractNode.Key.uuid.name())) {
+
+			removeNodePropertyFromIndex(dbNode, key, NodeIndex.uuid.name());
+			addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.uuid.name());
+
+		}
+
+		logger.log(Level.FINE, "Node {0}: New value {2} added for key {1}", new Object[] { id, key, value });
 	}
 
 	private void removeNodePropertyFromIndex(final Node node, final String key, final String indexName) {

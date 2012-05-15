@@ -22,7 +22,6 @@
 package org.structr.core.node.search;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.RelationshipType;
@@ -41,10 +40,12 @@ import org.structr.core.module.GetEntitiesCommand;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.text.Normalizer;
+import java.util.LinkedHashSet;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,13 +57,37 @@ import java.util.logging.Logger;
  */
 public abstract class Search {
 
-	private static final Logger logger           = Logger.getLogger(Search.class.getName());
-	private static Character[] specialChars      = new Character[] {
+	private static final Logger logger                    = Logger.getLogger(Search.class.getName());
+	private static final Set<Character> specialCharsExact = new LinkedHashSet<Character>();
+	private static final Set<Character> specialChars      = new LinkedHashSet<Character>();
 
-		'\\', '+', '-', '!', '(', ')', ':', '^', '[', ']', '\"', '{', '}', '~', '*', '?', '|', '&', ';'
+	static {
+		
+		specialChars.add('\\');
+		specialChars.add('+');
+		specialChars.add('-');
+		specialChars.add('!');
+		specialChars.add('(');
+		specialChars.add(')');
+		specialChars.add(':');
+		specialChars.add('^');
+		specialChars.add('[');
+		specialChars.add(']');
+		specialChars.add('"');
+		specialChars.add('{');
+		specialChars.add('}');
+		specialChars.add('~');
+		specialChars.add('*');
+		specialChars.add('?');
+		specialChars.add('|');
+		specialChars.add('&');
+		specialChars.add(';');
+		
+		specialCharsExact.add('"');
+		specialCharsExact.add('\\');
+		
 
 	};
-	private static Character[] specialCharsExact = new Character[] { '\"', '\\' };
 
 	public static final String DISTANCE_SEARCH_KEYWORD = "distance";
 
@@ -413,7 +438,7 @@ public abstract class Search {
 
 			char c = input.charAt(i);
 
-			if (ArrayUtils.contains(specialChars, c) || Character.isWhitespace(c)) {
+			if (specialChars.contains(c) || Character.isWhitespace(c)) {
 
 				output.append('\\');
 
@@ -434,7 +459,7 @@ public abstract class Search {
 
 			char c = input.charAt(i);
 
-			if (ArrayUtils.contains(specialCharsExact, c) || Character.isWhitespace(c)) {
+			if (specialCharsExact.contains(c) || Character.isWhitespace(c)) {
 
 				output.append('\\');
 

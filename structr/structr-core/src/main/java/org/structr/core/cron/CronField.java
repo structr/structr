@@ -25,11 +25,17 @@ package org.structr.core.cron;
  */
 public class CronField {
 
+	private boolean isWildcard = false;
 	private int start = 0;
 	private int step = 0;
 	private int end = 0;
 
 	public CronField(int start, int end, int step) {
+		this(start, end, step, false);
+	}
+	
+	public CronField(int start, int end, int step, boolean isWildcard) {
+		this.isWildcard = isWildcard;
 		this.start = start;
 		this.step = step;
 		this.end = end;
@@ -63,5 +69,13 @@ public class CronField {
 		buf.append(step);
 
 		return buf.toString();
+	}
+
+	public boolean isIsWildcard() {
+		return isWildcard;
+	}
+
+	public void setIsWildcard(boolean isWildcard) {
+		this.isWildcard = isWildcard;
 	}
 }
