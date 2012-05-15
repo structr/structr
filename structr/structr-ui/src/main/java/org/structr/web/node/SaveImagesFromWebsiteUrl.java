@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -19,7 +19,7 @@
 
 
 
-package org.structr.core.node;
+package org.structr.web.node;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -39,6 +39,8 @@ import org.structr.core.entity.Principal;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.structr.core.node.NodeServiceCommand;
+import org.structr.core.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
 

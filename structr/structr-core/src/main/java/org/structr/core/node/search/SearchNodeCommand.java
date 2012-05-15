@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -240,7 +240,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				long t0 = System.currentTimeMillis();
 
-				logger.log(Level.INFO, "Textual Query String: {0}", textualQueryString);
+				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
 				QueryContext queryContext = new QueryContext(textualQueryString);
 				IndexHits hits            = null;
@@ -279,7 +279,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				long t1 = System.currentTimeMillis();
 
-				logger.log(Level.INFO, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, (hits != null)
+				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, (hits != null)
 					? hits.size()
 					: 0 });
 
@@ -289,7 +289,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                              hits.close();
 				long t2 = System.currentTimeMillis();
 
-				logger.log(Level.INFO, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });
+				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });
 
 			}
 
@@ -365,7 +365,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			long t3 = System.currentTimeMillis();
 
-			logger.log(Level.INFO, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.size() });
+			logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.size() });
 		}
 
 		long t4 = System.currentTimeMillis();
@@ -375,7 +375,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		long t5 = System.currentTimeMillis();
 
-		logger.log(Level.INFO, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
+		logger.log(Level.FINE, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
 
 		return finalResult;
 	}

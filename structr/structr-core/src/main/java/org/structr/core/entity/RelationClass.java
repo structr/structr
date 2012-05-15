@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2010-2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -126,47 +126,6 @@ public class RelationClass {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					switch (cardinality) {
-
-						case ManyToOne :
-						case OneToOne : {
-
-							String destType = finalTargetNode.getType();
-
-							// delete previous relationships to nodes of the same destination type and direction
-							List<AbstractRelationship> rels = finalSourceNode.getRelationships(relType, direction);
-
-							for (AbstractRelationship rel : rels) {
-
-								if (rel.getOtherNode(finalSourceNode).getType().equals(destType)) {
-
-									deleteRel.execute(rel);
-								}
-
-							}
-
-							break;
-
-						}
-
-						case OneToMany : {
-
-							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
-							// of the same type incoming to the target node
-							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
-
-							for (AbstractRelationship rel : rels) {
-
-								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
-
-									deleteRel.execute(rel);
-								}
-
-							}
-						}
-
-					}
-
 					AbstractRelationship newRel;
 
 					if (direction.equals(Direction.OUTGOING)) {
@@ -185,6 +144,49 @@ public class RelationClass {
 						if (cascadeDelete > 0) {
 
 							newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
+						}
+
+					}
+
+					switch (cardinality) {
+
+						case ManyToOne :
+						case OneToOne : {
+
+							Class destType = finalTargetNode.getClass();
+
+							// delete previous relationships to nodes of the same destination type and direction
+							List<AbstractRelationship> rels = finalSourceNode.getRelationships(relType, direction);
+
+							for (AbstractRelationship rel : rels) {
+
+								// if (rel.getOtherNode(finalSourceNode).getType().equals(destType)) {
+								// if (destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass())) {
+								if (!rel.equals(newRel) && newRel.getClass().isAssignableFrom(rel.getClass())) {
+
+									deleteRel.execute(rel);
+								}
+							}
+
+							break;
+
+						}
+
+						case OneToMany : {
+
+							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
+							// of the same type incoming to the target node
+							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
+
+							for (AbstractRelationship rel : rels) {
+
+								// if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
+								// if (sourceNode.getClass().isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())) {
+								if (!rel.equals(newRel) && newRel.getClass().isAssignableFrom(rel.getClass())) {
+
+									deleteRel.execute(rel);
+								}
+							}
 						}
 
 					}

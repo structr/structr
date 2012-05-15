@@ -1,3 +1,22 @@
+/*
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or License, or (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.structr;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -19,9 +38,7 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
-import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -56,7 +73,7 @@ public class StructrServer {
 
 	public static void main(String[] args) throws Exception {
 
-		String appName        = "structr UI 0.4.9";
+		String appName        = "structr UI 0.5";
 		String host           = System.getProperty("host", "0.0.0.0");
 		String keyStorePath   = System.getProperty("keyStorePath", "keystore.jks");
 		int httpPort          = Integer.parseInt(System.getProperty("port", "8080"));
@@ -132,7 +149,9 @@ public class StructrServer {
 		webapp.setWar(warPath);
 		System.out.println("Using WAR file " + warPath);
 
-		FilterHolder rewriteFilter = webapp.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+                
+                //FilterHolder rewriteFilter = 
+		webapp.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 
 		// rewriteFilter.setInitParameter("logLevel", "DEBUG");
 		// Strange behaviour of jetty:

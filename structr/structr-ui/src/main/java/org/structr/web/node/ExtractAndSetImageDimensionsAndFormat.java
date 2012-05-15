@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.node;
+package org.structr.web.node;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -30,6 +30,8 @@ import org.structr.common.Path;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
+import org.structr.core.node.NodeServiceCommand;
+import org.structr.core.entity.Image;
 import org.structr.core.entity.Image;
 
 /**

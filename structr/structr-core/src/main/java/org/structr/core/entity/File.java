@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -33,6 +33,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -44,7 +45,6 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,7 +53,7 @@ import org.structr.core.node.NodeService.NodeIndex;
  * @author amorgner
  *
  */
-public class File extends AbstractNode {
+public class File extends Linkable {
 
 	private static final Logger logger = Logger.getLogger(File.class.getName());
 
@@ -66,7 +66,6 @@ public class File extends AbstractNode {
 		EntityContext.registerPropertySet(File.class, PropertyView.Ui, Key.values());
 
 //              EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
-
 		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(), Key.values());
 
@@ -75,16 +74,17 @@ public class File extends AbstractNode {
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey {
+
 		contentType, relativeFilePath, size, url, folder, checksum
+
 	}
 
 	//~--- methods --------------------------------------------------------
 
-//	@Override
-//	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-//		renderers.put(RenderMode.Direct, new FileStreamRenderer());
-//	}
-
+//      @Override
+//      public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+//              renderers.put(RenderMode.Direct, new FileStreamRenderer());
+//      }
 	@Override
 	public void onNodeDeletion() {
 
@@ -95,22 +95,28 @@ public class File extends AbstractNode {
 			if (toDelete.exists() && toDelete.isFile()) {
 
 				toDelete.delete();
-
 			}
 
 		} catch (Throwable t) {
+
 			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[] { getFileLocation(), t });
+
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	public String getUrl() {
+
 		return getStringProperty(Key.url.name());
+
 	}
 
 	public String getContentType() {
+
 		return getStringProperty(Key.contentType.name());
+
 	}
 
 	public long getSize() {
@@ -130,6 +136,7 @@ public class File extends AbstractNode {
 		}
 
 		return -1;
+
 	}
 
 	public String getChecksum() {
@@ -139,7 +146,6 @@ public class File extends AbstractNode {
 		if (storedChecksum != null) {
 
 			return storedChecksum;
-
 		}
 
 		String relativeFilePath = getRelativeFilePath();
@@ -160,20 +166,27 @@ public class File extends AbstractNode {
 				return checksum;
 
 			} catch (Exception ex) {
+
 				logger.log(Level.WARNING, "Could not calculate checksum of file " + filePath, ex);
+
 			}
 
 		}
 
 		return null;
+
 	}
 
 	public String getFormattedSize() {
+
 		return FileUtils.byteCountToDisplaySize(getSize());
+
 	}
 
 	public String getRelativeFilePath() {
+
 		return getStringProperty(Key.relativeFilePath.name());
+
 	}
 
 	public URL getFileLocation() {
@@ -181,12 +194,17 @@ public class File extends AbstractNode {
 		String urlString = "file://" + Services.getFilesPath() + "/" + getRelativeFilePath();
 
 		try {
+
 			return new URL(urlString);
+
 		} catch (MalformedURLException mue) {
+
 			logger.log(Level.SEVERE, "Invalid URL: {0}", urlString);
+
 		}
 
 		return null;
+
 	}
 
 	public InputStream getInputStream() {
@@ -207,13 +225,17 @@ public class File extends AbstractNode {
 			if (in != null) {
 
 				try {
+
 					in.close();
+
 				} catch (IOException ignore) {}
 
 			}
+
 		}
 
 		return null;
+
 	}
 
 	public static String getDirectoryPath(final String uuid) {
@@ -221,27 +243,39 @@ public class File extends AbstractNode {
 		return (uuid != null)
 		       ? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
 		       : null;
+
 	}
 
 	//~--- set methods ----------------------------------------------------
 
 	public void setRelativeFilePath(final String filePath) throws FrameworkException {
+
 		setProperty(Key.relativeFilePath.name(), filePath);
+
 	}
 
 	public void setUrl(final String url) throws FrameworkException {
+
 		setProperty(Key.url.name(), url);
+
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
+
 		setProperty(Key.contentType.name(), contentType);
+
 	}
 
 	public void setSize(final long size) throws FrameworkException {
+
 		setProperty(Key.size.name(), size);
+
 	}
 
 	public void setChecksum(final String checksum) throws FrameworkException {
+
 		setProperty(Key.checksum.name(), checksum);
+
 	}
+
 }

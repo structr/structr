@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -25,8 +25,6 @@ import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.ImageHelper;
-import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
@@ -52,6 +50,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.ImageHelper;
+import org.structr.common.ImageHelper.Thumbnail;
 
 //~--- classes ----------------------------------------------------------------
 
