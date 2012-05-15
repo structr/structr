@@ -1116,9 +1116,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 				deleteRel.execute(dbRelationship);
 
-				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(newStartNode, endNode, type);
-
-				newRel.setProperties(properties);
+				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(newStartNode, endNode, type, properties, false);
 
 				dbRelationship = newRel.getRelationship();
 
@@ -1173,9 +1171,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 				deleteRel.execute(dbRelationship);
 
-				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(startNode, newEndNode, type);
-
-				newRel.setProperties(properties);
+				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(startNode, newEndNode, type, properties, false);
 
 				dbRelationship = newRel.getRelationship();
 
@@ -1214,7 +1210,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 						deleteRel.execute(dbRelationship);
 
-						dbRelationship = ((AbstractRelationship) createRel.execute(type, startNode, endNode)).getRelationship();
+						dbRelationship = ((AbstractRelationship) createRel.execute(startNode, endNode, type)).getRelationship();
 
 						return (null);
 					}

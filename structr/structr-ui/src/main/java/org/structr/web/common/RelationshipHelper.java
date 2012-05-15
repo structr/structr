@@ -74,7 +74,7 @@ public class RelationshipHelper {
 
 			}
 
-			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, in.getProperties());
+			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, in.getProperties(), false);
 
 			// only set componentId if set and avoid setting the component id of the clone node itself
 			if ((componentId != null) &&!(cloneNode.getStringProperty(AbstractNode.Key.uuid).equals(componentId))) {
@@ -110,7 +110,7 @@ public class RelationshipHelper {
 
 			}
 
-			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(cloneNode, endNode, relType, out.getProperties());
+			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(cloneNode, endNode, relType, out.getProperties(), false);
 
 			if (componentId != null) {
 

@@ -146,7 +146,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 //                              createRel.execute(user, node, RelType.OWNS, true); // avoid duplicates
 				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getStringProperty(AbstractNode.Key.name));
 
-				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, true);    // avoid duplicates
+				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, null, true);    // avoid duplicates
 
 				securityRel.setAllowed(AbstractRelationship.Permission.values());
 				logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));

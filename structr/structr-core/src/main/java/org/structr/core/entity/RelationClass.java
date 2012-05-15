@@ -47,6 +47,8 @@ import org.structr.core.notion.Notion;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -91,15 +93,12 @@ public class RelationClass {
 		this.destType      = destType;
 		this.relType       = relType;
 		this.notion        = notion;
-
 	}
 
 	//~--- methods --------------------------------------------------------
 
 	public void createRelationship(final SecurityContext securityContext, final GraphObject sourceNode, final Object value) throws FrameworkException {
-
 		createRelationship(securityContext, sourceNode, value, Collections.EMPTY_MAP);
-
 	}
 
 	public void createRelationship(final SecurityContext securityContext, final GraphObject sourceNode, final Object value, final Map properties) throws FrameworkException {
@@ -112,39 +111,44 @@ public class RelationClass {
 		if (value instanceof AbstractNode) {
 
 			targetNode = (AbstractNode) value;
+
 		} else {
 
 			targetNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(value);
+
 		}
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			final AbstractNode finalTargetNode = targetNode;
 			final AbstractNode finalSourceNode = (AbstractNode) sourceNode;
+                        
 			StructrTransaction transaction     = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
+                                        Map<String, Object> props = new HashMap(properties);
+					// set cascade delete value
+					if (cascadeDelete > 0) {
+
+						props.put(AbstractRelationship.HiddenKey.cascadeDelete.name(), new Integer(cascadeDelete));
+
+					}
+
 					AbstractRelationship newRel;
 
 					if (direction.equals(Direction.OUTGOING)) {
 
-						newRel = (AbstractRelationship) createRel.execute(sourceNode, finalTargetNode, relType, true);
+						newRel = (AbstractRelationship) createRel.execute(sourceNode, finalTargetNode, relType, props, true);
+
 					} else {
 
-						newRel = (AbstractRelationship) createRel.execute(finalTargetNode, sourceNode, relType);
+						newRel = (AbstractRelationship) createRel.execute(finalTargetNode, sourceNode, relType, props, false);
+
 					}
 
 					if (newRel != null) {
-
-						newRel.setProperties(properties);
-
-						// set cascade delete value
-						if (cascadeDelete > 0) {
-
-							newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
-						}
 
 						switch (cardinality) {
 
@@ -160,12 +164,12 @@ public class RelationClass {
 
 									// if (rel.getOtherNode(finalSourceNode).getType().equals(destType)) {
 									// if (destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass())) {
-									
 									if ((!rel.equals(newRel)
 										&& ((!(rel instanceof GenericRelationship) && newRel.getClass().isAssignableFrom(rel.getClass()))
-										|| destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass())))) {
-									
+										    || destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass())))) {
+
 										deleteRel.execute(rel);
+
 									}
 								}
 
@@ -176,7 +180,7 @@ public class RelationClass {
 							case OneToMany : {
 
 								Class sourceType = finalSourceNode.getClass();
-								
+
 								// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 								// of the same type incoming to the target node
 								List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
@@ -187,11 +191,13 @@ public class RelationClass {
 									// if (sourceNode.getClass().isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())) {
 									if ((!rel.equals(newRel)
 										&& ((!(rel instanceof GenericRelationship) && newRel.getClass().isAssignableFrom(rel.getClass()))
-										|| sourceType.isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())))) {
-										
+										    || sourceType.isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())))) {
+
 										deleteRel.execute(rel);
+
 									}
 								}
+
 							}
 
 						}
@@ -199,9 +205,7 @@ public class RelationClass {
 					}
 
 					return newRel;
-
 				}
-
 			};
 
 			// execute transaction
@@ -214,9 +218,11 @@ public class RelationClass {
 			if (sourceNode != null) {
 
 				type = sourceNode.getType();
+
 			} else if (targetNode != null) {
 
 				type = targetNode.getType();
+
 			}
 
 			throw new FrameworkException(type, new IdNotFoundToken(value));
@@ -232,9 +238,11 @@ public class RelationClass {
 		if (value instanceof AbstractNode) {
 
 			targetNode = (AbstractNode) value;
+
 		} else {
 
 			targetNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(value);
+
 		}
 
 		if ((sourceNode != null) && (targetNode != null)) {
@@ -260,6 +268,7 @@ public class RelationClass {
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
 									deleteRel.execute(rel);
+
 								}
 
 							}
@@ -279,6 +288,7 @@ public class RelationClass {
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
 
 									deleteRel.execute(rel);
+
 								}
 
 							}
@@ -295,6 +305,7 @@ public class RelationClass {
 								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
 
 									deleteRel.execute(rel);
+
 								}
 
 							}
@@ -303,9 +314,7 @@ public class RelationClass {
 					}
 
 					return null;
-
 				}
-
 			};
 
 			// execute transaction
@@ -318,15 +327,16 @@ public class RelationClass {
 			if (sourceNode != null) {
 
 				type = sourceNode.getType();
+
 			} else if (targetNode != null) {
 
 				type = targetNode.getType();
+
 			}
 
 			throw new FrameworkException(type, new IdNotFoundToken(value));
 
 		}
-
 	}
 
 	public AbstractNode addRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
@@ -341,51 +351,43 @@ public class RelationClass {
 
 				// Create new relationship between facility and location nodes
 				Command createRel           = Services.command(securityContext, CreateRelationshipCommand.class);
-				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(node, relatedNode, getRelType());
+                                
+                                Map<String, Object> props = new LinkedHashMap<String, Object>();
 
-				if (cascadeDelete > 0) {
+                                if (cascadeDelete > 0) {
 
-					newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
+					props.put(AbstractRelationship.HiddenKey.cascadeDelete.name(), new Integer(cascadeDelete));
+
 				}
+                                
+				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(node, relatedNode, getRelType(), props, false);
 
 				return relatedNode;
-
 			}
 
 		});
-
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	public Class getDestType() {
-
 		return destType;
-
 	}
 
 	public Direction getDirection() {
-
 		return direction;
-
 	}
 
 	public Cardinality getCardinality() {
-
 		return cardinality;
-
 	}
 
 	public RelationshipType getRelType() {
-
 		return relType;
-
 	}
 
 	public Notion getNotion() {
-
 		return notion;
-
 	}
 
 	// ----- public methods -----
@@ -403,7 +405,6 @@ public class RelationClass {
 		}
 
 		return null;
-
 	}
 
 	public AbstractNode getRelatedNode(final SecurityContext securityContext, final AbstractNode node) {
@@ -415,6 +416,7 @@ public class RelationClass {
 			if ((nodes != null) && nodes.iterator().hasNext()) {
 
 				return nodes.iterator().next();
+
 			}
 
 		} else {
@@ -425,7 +427,6 @@ public class RelationClass {
 		}
 
 		return null;
-
 	}
 
 	// ----- private methods -----
@@ -467,12 +468,11 @@ public class RelationClass {
 							} else {
 
 								return Evaluation.EXCLUDE_AND_CONTINUE;
+
 							}
 
 						} catch (FrameworkException fex) {
-
 							logger.log(Level.WARNING, "Unable to instantiate node", fex);
-
 						}
 
 					}
@@ -480,7 +480,6 @@ public class RelationClass {
 				}
 
 				return Evaluation.EXCLUDE_AND_PRUNE;
-
 			}
 
 		}).traverse(node.getNode()).nodes();
@@ -494,33 +493,22 @@ public class RelationClass {
 	//~--- set methods ----------------------------------------------------
 
 	public void setDestType(Class destType) {
-
 		this.destType = destType;
-
 	}
 
 	public void setDirection(Direction direction) {
-
 		this.direction = direction;
-
 	}
 
 	public void setCardinality(Cardinality cardinality) {
-
 		this.cardinality = cardinality;
-
 	}
 
 	public void setRelType(RelationshipType relType) {
-
 		this.relType = relType;
-
 	}
 
 	public void setNotion(Notion notion) {
-
 		this.notion = notion;
-
 	}
-
 }
