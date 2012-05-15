@@ -67,15 +67,7 @@ import org.structr.core.validator.SimpleRegexValidator;
 
 import java.text.ParseException;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -1195,6 +1187,28 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return (getBooleanProperty(propertyKey.name()));
 	}
 
+	public AbstractNode getRelatedNode(Class type) {
+		
+		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
+		if(rc != null) {
+			
+			return rc.getRelatedNode(securityContext, this);
+		}
+		
+		return null;
+	}
+	
+	public List<AbstractNode> getRelatedNodes(Class type) {
+		
+		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
+		if(rc != null) {
+			
+			return rc.getRelatedNodes(securityContext, this);
+		}
+		
+		return Collections.emptyList();
+	}
+	
 	@Override
 	public boolean getBooleanProperty(final String key) {
 
