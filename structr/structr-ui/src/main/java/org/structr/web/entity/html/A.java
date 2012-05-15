@@ -38,7 +38,7 @@ public class A extends HtmlElement {
 
 	private static final String[] htmlAttributes = new String[] { "href", "target", "ping", "rel", "media", "hreflang", "type" };
         
-        public enum UiKey implements PropertyKey { linkable }
+        public enum UiKey implements PropertyKey { linkable, linkable_id }
 
 	static {
 		EntityContext.registerPropertySet(A.class, PropertyView.Ui,	UiKey.values());
@@ -62,6 +62,7 @@ public class A extends HtmlElement {
 
 //		EntityContext.registerPropertyRelation(A.class, "_html_href", Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
                 EntityContext.registerEntityRelation(A.class, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
+		EntityContext.registerPropertyRelation(A.class, UiKey.linkable_id, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid), RelationClass.DELETE_NONE);
                 
                 EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, A.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
 
