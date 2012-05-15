@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.node;
+package org.structr.web.node;
 
 import au.com.bytecode.opencsv.CSVReader;
 import java.io.FileReader;
@@ -32,10 +32,18 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
-import org.structr.core.entity.CsvFile;
+import org.structr.web.entity.CsvFile;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.FindNodeCommand;
+import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.NodeServiceCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
+import org.structr.web.entity.CsvFile;
 
 /**
  * Converts a CSV file to a node list. Each row will be represented

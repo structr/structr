@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -240,7 +240,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				long t0 = System.currentTimeMillis();
 
-				logger.log(Level.INFO, "Textual Query String: {0}", textualQueryString);
+				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
 				QueryContext queryContext = new QueryContext(textualQueryString);
 				IndexHits hits            = null;

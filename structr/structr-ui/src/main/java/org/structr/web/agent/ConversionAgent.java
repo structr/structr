@@ -1,22 +1,24 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
  * 
  *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
  * 
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  * 
- *  You should have received a copy of the GNU General Public License
+ *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.agent;
+
+
+package org.structr.web.agent;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,10 +26,14 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
-import org.structr.core.entity.CsvFile;
+import org.structr.core.agent.Agent;
+import org.structr.core.agent.ConversionTask;
+import org.structr.core.agent.ReturnValue;
+import org.structr.core.agent.Task;
+import org.structr.web.entity.CsvFile;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.node.ConvertCsvToNodeListCommand;
+import org.structr.web.node.ConvertCsvToNodeListCommand;
 
 /**
  *

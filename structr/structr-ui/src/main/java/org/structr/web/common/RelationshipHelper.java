@@ -1,19 +1,19 @@
 /*
- *  Copyright (C) 2012 Axel Morgner
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
  *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
  *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
+ *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -74,7 +74,7 @@ public class RelationshipHelper {
 
 			}
 
-			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, in.getProperties());
+			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, in.getProperties(), false);
 
 			// only set componentId if set and avoid setting the component id of the clone node itself
 			if ((componentId != null) &&!(cloneNode.getStringProperty(AbstractNode.Key.uuid).equals(componentId))) {
@@ -110,7 +110,7 @@ public class RelationshipHelper {
 
 			}
 
-			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(cloneNode, endNode, relType, out.getProperties());
+			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(cloneNode, endNode, relType, out.getProperties(), false);
 
 			if (componentId != null) {
 

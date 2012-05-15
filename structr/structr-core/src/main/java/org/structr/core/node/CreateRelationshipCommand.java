@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -42,6 +42,7 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -110,12 +111,13 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			}
 
-		} else if ((graphDb != null) && (parameters.length == 4)) {
+		} else if ((graphDb != null) && (parameters.length == 5)) {
 
 			Object arg0 = parameters[0];                 // start node
 			Object arg1 = parameters[1];                 // end node
 			Object arg2 = parameters[2];                 // relationship type
-			Object arg3 = parameters[3];                 // check duplicates
+			Object arg3 = parameters[3];                 // properties
+			Object arg4 = parameters[4];                 // check duplicates
 
 			// parameters
 			Map<String, Object> properties = null;
@@ -135,15 +137,17 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			}
 
-			boolean checkDuplicates = false;
-
-			if (arg3 instanceof Boolean) {
-
-				checkDuplicates = ((Boolean) arg3) == true;
-
-			} else if (arg3 instanceof Map) {
+			if (arg3 instanceof Map) {
 
 				properties = (Map<String, Object>) arg3;
+
+			}
+
+			boolean checkDuplicates = false;
+
+			if (arg4 instanceof Boolean) {
+
+				checkDuplicates = ((Boolean) arg4) == true;
 
 			}
 
@@ -158,11 +162,36 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 					for (AbstractRelationship rel : incomingRels) {
 
+                                                // Duplicate check:
+                                                // First, check if relType and start node are equal
 						if (rel.getRelType().equals(relType) && rel.getStartNode().equals(startNode)) {
 
-							logger.log(Level.WARNING, "Creation of duplicate relationship was blocked");
+                                                        // At least one property of new rel has to be different to the tested existing node
+							Map<String, Object> relProps = rel.getProperties();
+							boolean propsEqual           = true;
 
-							return null;
+							for (Entry entry : properties.entrySet()) {
+
+								String key = (String) entry.getKey();
+								Object val = entry.getValue();
+
+								if (!relProps.containsKey(key) || !relProps.get(key).equals(val)) {
+
+									propsEqual = false;
+
+									break;
+
+								}
+
+							}
+
+							if (propsEqual) {
+
+								logger.log(Level.WARNING, "Creation of duplicate relationship was blocked");
+
+								return null;
+
+							}
 
 						}
 
@@ -171,7 +200,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				}
 
 				return createRelationship(startNode, endNode, relType, properties);
-
 
 			} else {
 
@@ -206,8 +234,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 						newRel.setProperties(properties);
 
 					}
-                                        
-                                        // notify relationship of its creation
+
+					// notify relationship of its creation
 					newRel.onRelationshipInstantiation();
 
 					// iterate post creation transformations
