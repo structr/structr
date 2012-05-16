@@ -44,19 +44,18 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Arrays;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.gis.spatial.SimplePointLayer;
-import org.neo4j.gis.spatial.SpatialDatabaseService;
-import org.neo4j.gis.spatial.pipes.GeoPipeline;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.structr.core.Command;
-import org.structr.core.node.GraphDatabaseCommand;
+import org.structr.common.GeoHelper.GeoCodingResult.Type;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,7 +71,7 @@ public class GeoHelper {
 
 	//~--- methods --------------------------------------------------------
 
-	public static Location createLocation(final Coordinates coords) throws FrameworkException {
+	public static Location createLocation(final GeoCodingResult coords) throws FrameworkException {
 
 		double latitude                 = coords.getLatitude();
 		double longitude                = coords.getLongitude();
@@ -94,7 +93,7 @@ public class GeoHelper {
 		return (Location) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
 	}
 
-	public static Coordinates geocode(final String address) throws FrameworkException {
+	public static GeoCodingResult geocode(final String address) throws FrameworkException {
 
 		String encodedAddress;
 
@@ -142,40 +141,44 @@ public class GeoHelper {
 
 		// List<Element> rootChildren = root.elements();
 		String status = root.element("status").getTextTrim();
-		boolean ok    = "OK".equals(status);
-
-		if (!ok) {
-
-			logger.log(Level.WARNING, "Status not OK for address {0}: {1}", new Object[] { address, status });
-
-			return null;
+		if ("OK".equals(status)) {
+			
+			try {
+				return new GeoCodingResult(address, root);
+				
+			} catch(Throwable t) {
+				
+				logger.log(Level.WARNING, "Unable to find geocoding for address {0}: {1}", new Object[] { address, t.getMessage() });
+			}
 
 		} else {
 
-			String latitude  = root.element("result").element("geometry").element("location").element("lat").getTextTrim();
-			String longitude = root.element("result").element("geometry").element("location").element("lng").getTextTrim();
-			double lat       = Double.parseDouble(latitude);
-			double lon       = Double.parseDouble(longitude);
-
-			logger.log(Level.INFO, "Coordinates found for address {0}: lat= {1}, lon={2}", new Object[] { address, lat, lon });
-
-			return new Coordinates(lat, lon);
-
+			logger.log(Level.WARNING, "Status not OK for address {0}: {1}", new Object[] { address, status });
 		}
-	}
 
+		return null;
+	}
+	
 	public static void main(String[] args) {
 
 		String address = "Hanauer Landstr. 291a";
 
 		try {
-			geocode(address);
+			
+			GeoCodingResult res = geocode(address);
+			logger.log(Level.INFO, "result for address {0}: {1} ({2})", new Object[] {
+				address,
+				res.getLatitude(),
+				res.getAddressComponent(Type.administrative_area_level_1).getLongValue()
+			} );
+			
+			
 		} catch (Exception ex) {
-			Logger.getLogger(GeoHelper.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 	}
 
-//	public static List<AbstractNode> filterByDistance(final List<AbstractNode> nodes, final Coordinates coords, final Double distance) throws FrameworkException {
+//	public static List<AbstractNode> filterByDistance(final List<AbstractNode> nodes, final GeoCodingResult coords, final Double distance) throws FrameworkException {
 //
 //		List<AbstractNode> filteredList = new LinkedList<AbstractNode>();
 //
@@ -200,14 +203,54 @@ public class GeoHelper {
 
 	//~--- inner classes --------------------------------------------------
 
-	public static class Coordinates {
+	public static class GeoCodingResult {
 
+		private List<AddressComponent> addressComponents = new LinkedList<AddressComponent>();
+		private String address = null;
 		private double latitude;
 		private double longitude;
 
+		public enum Type {
+			
+			street_number,
+			route,
+			sublocality,
+			locality,
+			
+			/** Bundesland */
+			administrative_area_level_1,
+			
+			/** Regierungsbezirk */
+			administrative_area_level_2,
+			
+			/** Stadt */
+			administrative_area_level_3,
+			
+			postal_code,
+			country,
+			political
+		}
+		
 		//~--- constructors -------------------------------------------
 
-		public Coordinates(final double latitude, final double longitude) {
+		public GeoCodingResult(String address, Element root) {
+			
+			this.address = address;
+			
+			String latString  = root.element("result").element("geometry").element("location").element("lat").getTextTrim();
+			String lonString  = root.element("result").element("geometry").element("location").element("lng").getTextTrim();
+
+			Iterator<Element> addressComponentsElement = root.element("result").elementIterator("address_component");
+			for(;addressComponentsElement.hasNext();) {
+
+				addressComponents.add(new AddressComponent(addressComponentsElement.next()));
+			}
+			
+			this.latitude     = Double.parseDouble(latString);
+			this.longitude    = Double.parseDouble(lonString);
+		}
+		
+		public GeoCodingResult(final double latitude, final double longitude) {
 
 			this.latitude  = latitude;
 			this.longitude = longitude;
@@ -247,6 +290,71 @@ public class GeoHelper {
 
 		public Double[] toArray() {
 			return new Double[]{ latitude, longitude };
+		}
+
+		public String getAddress() {
+			return address;
+		}
+
+		public void setAddress(String address) {
+			this.address = address;
+		}
+
+		public AddressComponent getAddressComponent(Type... types) {
+			
+			for(AddressComponent addressComponent : addressComponents) {
+				
+				if(addressComponent.getTypes().containsAll(Arrays.asList(types))) {
+					return addressComponent;
+				}
+			}
+			
+			return null;
+		}
+		
+		public List<AddressComponent> getAddressComponents() {
+			return addressComponents;
+		}
+	}
+	
+	public static class AddressComponent {
+		
+		private Set<Type> types = new LinkedHashSet<Type>();
+		private String shortValue = null;
+		private String longValue = null;
+		
+		public AddressComponent(Element addressComponent) {
+			
+			this.shortValue = addressComponent.element("short_name").getTextTrim();
+			this.longValue = addressComponent.element("long_name").getTextTrim();
+
+			Iterator<Element> typesElement = addressComponent.elementIterator("type");
+			for(;typesElement.hasNext();) {
+
+				Element typeElement = typesElement.next();
+				String typeName = typeElement.getTextTrim();
+				
+				try {
+					this.types.add(Type.valueOf(typeName));
+					
+				} catch(Throwable t) {
+					
+					logger.log(Level.WARNING, "Encountered unknown address component type {0} while parsing.", typeName);
+				}
+				
+			}
+		}
+
+		public Set<Type> getTypes() {
+			return types;
+		}
+
+		public String getShortValue() {
+			return shortValue;
+		}
+
+		public String getLongValue() {
+			return longValue;
 		}
 	}
 }
