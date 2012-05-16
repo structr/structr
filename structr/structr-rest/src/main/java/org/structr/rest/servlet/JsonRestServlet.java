@@ -311,7 +311,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resource     = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, "" /*resource.getUriPart()*/);
+			securityContext.examineRequest(request, resource.getUriPart());
 			
 			// do action
 			Result result         = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());

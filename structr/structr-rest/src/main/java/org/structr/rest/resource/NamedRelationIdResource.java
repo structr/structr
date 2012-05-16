@@ -117,7 +117,7 @@ public class NamedRelationIdResource extends WrappingResource {
 
 	@Override
 	public String getUriPart() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return namedRelationResource.getUriPart();
 	}
 
 	@Override

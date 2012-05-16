@@ -67,6 +67,8 @@ public class SecurityContext {
 	private Principal cachedUser         = null;
 	private String password              = null;
 
+        private static List<String> publicPaths = new LinkedList<String>();
+        
 	//~--- constructors ---------------------------------------------------
 
 	/*
@@ -249,6 +251,14 @@ public class SecurityContext {
 		}
 	}
 
+        public static void addPublicPath(final String path) {
+                publicPaths.add(path);
+        }
+        
+        public static boolean isPublicPath(final String path) {
+                return publicPaths.contains(path);
+        }
+        
 	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeDeleted, final boolean publicOnly) {
 
 		boolean readableByUser = false;

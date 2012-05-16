@@ -107,7 +107,7 @@ public class RebuildIndexAgent extends Agent {
 
 					nodes++;
 
-					if (nodes % 100 == 0) {
+					if (nodes > 1000 && nodes % 1000 == 0) {
 
 						logger.log(Level.INFO, "Indexed {0} nodes, committing results to database.", nodes);
 						tx.success();
@@ -120,7 +120,8 @@ public class RebuildIndexAgent extends Agent {
 					}
 
 				}
-
+                                logger.log(Level.INFO, "Finished indexing {0} nodes", nodes);
+                                
 				return nodes;
 			}
 

@@ -1,35 +1,44 @@
 /*
  *  Copyright (C) 2010-2012 Axel Morgner
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
 package org.structr.rest.resource;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.agent.RebuildIndexTask;
+import org.structr.core.node.BulkSetPropertiesCommand;
 import org.structr.core.node.ClearDatabase;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  *
@@ -39,25 +48,33 @@ public class MaintenanceParameterResource extends Resource {
 
 	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<String, Class>();
 
+	//~--- static initializers --------------------------------------------
+
 	static {
+
 		maintenanceCommandMap.put("rebuildIndex", RebuildIndexTask.class);
 		maintenanceCommandMap.put("clearDatabase", ClearDatabase.class);
+		maintenanceCommandMap.put("setProperties", BulkSetPropertiesCommand.class);
+
 	}
+
+	//~--- fields ---------------------------------------------------------
 
 	private String uriPart = null;
 
-	public Class getMaintenanceCommand() {
-		return maintenanceCommandMap.get(uriPart);
-	}
+	//~--- methods --------------------------------------------------------
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
 		this.securityContext = securityContext;
 
-		if(maintenanceCommandMap.containsKey(part)) {
+		if (maintenanceCommandMap.containsKey(part)) {
+
 			this.uriPart = part;
+
 			return true;
+
 		}
 
 		return false;
@@ -89,13 +106,19 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
 	@Override
-	public String getUriPart() {
-		return uriPart;
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
+		return null;
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	public Class getMaintenanceCommand() {
+		return maintenanceCommandMap.get(uriPart);
 	}
 
 	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-		return null;
+	public String getUriPart() {
+		return uriPart;
 	}
 
 	@Override

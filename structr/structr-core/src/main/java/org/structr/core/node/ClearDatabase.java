@@ -81,7 +81,7 @@ public class ClearDatabase extends NodeServiceCommand {
 
 							delNode.execute(node);
 
-							if (nodes % 100 == 0) {
+							if (nodes > 1000 && nodes % 1000 == 0) {
 
 								logger.log(Level.INFO, "Deleted {0} nodes, committing results to database.", nodes);
 								tx.success();
@@ -97,6 +97,8 @@ public class ClearDatabase extends NodeServiceCommand {
 
 						}
 					}
+                                        
+                                        logger.log(Level.INFO, "Finished deleting {0} nodes", nodes);
 
 					return null;
 				}

@@ -97,7 +97,7 @@ public class MaintenanceResource extends Resource {
 
 					} else if (Command.class.isAssignableFrom(taskOrCommand)) {
 
-						Services.command(securityContext, taskOrCommand).execute();
+						Services.command(securityContext, taskOrCommand).execute(propertySet);
 
 					} else {
 						return new RestMethodResult(HttpServletResponse.SC_NOT_FOUND);
