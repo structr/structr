@@ -157,7 +157,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			List<TextualSearchAttribute> textualAttributes = new ArrayList<TextualSearchAttribute>();
 			StringBuilder textualQueryString               = new StringBuilder();
 			DistanceSearchAttribute distanceSearch         = null;
-			GeoCodingResult coords                             = null;
+			GeoCodingResult coords                         = null;
 			Double dist                                    = null;
 
 			for (SearchAttribute attr : searchAttrs) {
@@ -256,6 +256,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					// Only exact machtes: Use keyword index
 					index = (Index<Node>) arguments.get(NodeIndex.keyword.name());
 					hits  = index.query(queryContext);
+					
 				} else if (distanceSearch != null) {
 
 					if (coords != null) {
@@ -264,6 +265,8 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 						params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
 						params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
+						
+						
 
 						index = (LayerNodeIndex) arguments.get(NodeIndex.layer.name());
 						hits  = index.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
@@ -366,16 +369,19 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			long t3 = System.currentTimeMillis();
 
 			logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.size() });
+
+			long t4 = System.currentTimeMillis();
+
+			// sort search results; defaults to name, (@see AbstractNode.compareTo())
+			if(distanceSearch == null) {
+				// only sort nodes if distance search is not active
+				Collections.sort(finalResult);
+			}
+
+			long t5 = System.currentTimeMillis();
+
+			logger.log(Level.FINE, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
 		}
-
-		long t4 = System.currentTimeMillis();
-
-		// sort search results; defaults to name, (@see AbstractNode.compareTo())
-		Collections.sort(finalResult);
-
-		long t5 = System.currentTimeMillis();
-
-		logger.log(Level.FINE, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
 
 		return finalResult;
 	}

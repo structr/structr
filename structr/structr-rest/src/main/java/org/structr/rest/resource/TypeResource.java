@@ -135,7 +135,10 @@ public class TypeResource extends SortableResource {
 
 			if (!results.isEmpty()) {
 
-				applyDefaultSorting(results);
+				// only sort if distance search is not active
+				if(distanceSearch == null) {
+					applyDefaultSorting(results);
+				}
 
 				return results;
 

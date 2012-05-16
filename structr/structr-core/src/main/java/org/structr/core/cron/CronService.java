@@ -82,7 +82,7 @@ public class CronService extends Thread implements RunnableService {
 						Class taskClass = Class.forName(taskClassName);
 						Task task = (Task)taskClass.newInstance();
 
-						logger.log(Level.INFO, "Starting task {0}", taskClassName);
+						logger.log(Level.FINE, "Starting task {0}", taskClassName);
 						Services.command(securityContext, ProcessTaskCommand.class).execute(task);
 
 					} catch(Throwable t) {
