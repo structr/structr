@@ -151,7 +151,8 @@ var _Elements = {
         if (Command.list('Element')) {
             elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
 
-            $('.add_element_icon', main).on('click', function() {
+            $('.add_element_icon', main).on('click', function(e) {
+                e.stopPropagation();
                 var button = $(this);
 
                 buttonClicked = button;
@@ -162,7 +163,8 @@ var _Elements = {
                 $(_Elements.elementNames).each(function(i,v) {
                     //console.log('Element: ', v);
                     list.append('<div id="add_' + v + '">' + v + '</div>');
-                    $('#add_' + v).on('click', function() {
+                    $('#add_' + v).on('click', function(e) {
+                        e.stopPropagation();
                         var entity = {};
                         entity.type = v.capitalize();
                         entity.tag = v;
@@ -248,14 +250,7 @@ var _Elements = {
             console.log('Wrap element in component', getId(node), nodeData, relData);
             //_Entities.createAndAdd(getId(node), nodeData, relData);
 
-            // TODO: Move to commands.js
-            var obj = {};
-            obj.command = 'WRAP';
-            obj.id = getId(node);
-            obj.data = nodeData;
-            obj.relData = relData;
-
-            sendObj(obj);
+            Command.wrap(getId(node), nodeData, relData);
 
         });
 
@@ -264,7 +259,8 @@ var _Elements = {
         
         if (entity.tag == 'a') {
             div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + Structr.link_icon + '">');
-            $('.link_icon', div).on('click', function() {
+            $('.link_icon', div).on('click', function(e) {
+                e.stopPropagation();
                 var dialog = $('#dialogBox .dialogText');
                 var dialogMsg = $('#dialogMsg');
 			
@@ -294,7 +290,8 @@ var _Elements = {
                             
                             var div = $('.' + res.id + '_', dialog);
                             
-                            div.on('click', function() {
+                            div.on('click', function(e) {
+                                e.stopPropagation();
                                 Command.link(entity.id, res.id); 
                                 $('#dialogBox .dialogText').empty();
                                 _Resources.reloadPreviews();
@@ -335,7 +332,8 @@ var _Elements = {
                             
                             var div = $('.' + res.id + '_', dialog);
                             
-                            div.on('click', function() {
+                            div.on('click', function(e) {
+                                e.stopPropagation();
                                 Command.link(entity.id, res.id); 
                                 $('#dialogBox .dialogText').empty();
                                 _Resources.reloadPreviews();

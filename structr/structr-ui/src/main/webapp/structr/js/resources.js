@@ -109,43 +109,6 @@ var _Resources = {
         previews.append('<ul id="previewTabs"></ul>');
         previewTabs = $('#previewTabs', previews);
 
-        //	if ($.cookie('structrResourcesVisible') == 'false') {
-        //	    resources.hide();
-        //	} else {
-        //	    $('#toggleResources').prop('checked', true);
-        //	}
-		
-        //        $('#toggleResources').on('click', function() {
-        //            resources.toggle();
-        //        });
-        //
-        //        if ($.cookie('structrComponentsVisible') == 'false') {
-        //            components.hide();
-        //        } else {
-        //            $('#toggleComponents').prop('checked', true);
-        //        }
-        //        $('#toggleComponents').on('click', function() {
-        //            components.toggle();
-        //        });
-        //
-        //        if ($.cookie('structrElementsVisible') == 'false') {
-        //            elements.hide();
-        //        } else {
-        //            $('#toggleElements').prop('checked', true);
-        //        }
-        //        $('#toggleElements').on('click', function() {
-        //            elements.toggle();
-        //        });
-        //
-        //        if ($.cookie('structrContentsVisible') == 'false') {
-        //            contents.hide();
-        //        } else {
-        //            $('#toggleContents').prop('checked', true);
-        //        }
-        //        $('#toggleContents').on('click', function() {
-        //            contents.toggle();
-        //        });
-
         _Resources.refresh();
         //_Resources.refreshComponents();
         //_Resources.refreshElements();
@@ -153,7 +116,8 @@ var _Resources = {
         //_Contents.refresh();
 
         previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
-        $('#import_page', previewTabs).on('click', function() {
+        $('#import_page', previewTabs).on('click', function(e) {
+            e.stopPropagation();
 			
             var dialog = $('#dialogBox .dialogText');
             var dialogMsg = $('#dialogMsg');
@@ -181,13 +145,14 @@ var _Resources = {
 
             dialog.append('<button id="startImport">Start Import</button>');
 
-            Structr.dialog('Import page from URL', function() {
+            Structr.dialog('Import Page from URL', function() {
                 return true;
             }, function() {
                 return true;
             });
 			
-            $('#startImport').on('click', function() {
+            $('#startImport').on('click', function(e) {
+                e.stopPropagation();
 
                 var address = $('#_address', dialog).val();
                 var name    = $('#_name', dialog).val();
@@ -202,7 +167,8 @@ var _Resources = {
         });
 
         previewTabs.append('<li id="add_resource" class="button"><img class="add_button icon" src="icon/add.png"></li>');
-        $('#add_resource', previewTabs).on('click', function() {
+        $('#add_resource', previewTabs).on('click', function(e) {
+            e.stopPropagation();
             var entity = {};
             entity.type = 'Resource';
             Command.create(entity);
@@ -219,7 +185,8 @@ var _Resources = {
         components.empty();
         if (Command.list('Component')) {
             components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
-            $('.add_component_icon', main).on('click', function() {
+            $('.add_component_icon', main).on('click', function(e) {
+                e.stopPropagation();
                 var entity = {};
                 entity.type = 'Component';
                 Command.create(entity);
@@ -231,7 +198,8 @@ var _Resources = {
         elements.empty();
         if (Command.list('Element')) {
             elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
-            $('.add_element_icon', main).on('click', function() {
+            $('.add_element_icon', main).on('click', function(e) {
+                e.stopPropagation();
                 var entity = {};
                 entity.type = 'Element';
                 Command.create(entity);
@@ -249,7 +217,8 @@ var _Resources = {
         tab.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
 
-        $('.view_icon', tab).on('click', function() {
+        $('.view_icon', tab).on('click', function(e) {
+            e.stopPropagation();
             var self = $(this);
             var name = $(self.parent().children('b.name_')[0]).text();
             window.open(viewRootUrl + name);
@@ -290,6 +259,7 @@ var _Resources = {
         });
 
         element.on('click', function(e) {
+            e.stopPropagation();
             var self = $(this);
             var clicks = e.originalEvent.detail;
             if (clicks == 1) {
@@ -324,13 +294,7 @@ var _Resources = {
         var id = getId(element);
         activeTab = id;
 
-        var iframe = $('#preview_' + id);
-        if (debug) console.log(iframe);
-        iframe.attr('src', viewRootUrl + name + '?edit');
-        iframe.parent().show();
-        iframe.on('load', function() {
-            if (debug) console.log('iframe loaded', $(this));
-        });
+        _Resources.reloadIframe(id, name);
 
         element.addClass('active');
 
@@ -341,7 +305,17 @@ var _Resources = {
         });
 
     },
-
+    
+    reloadIframe : function(id, name) {
+        var iframe = $('#preview_' + id);
+        if (debug) console.log(iframe);
+        iframe.attr('src', viewRootUrl + name + '?edit');
+        iframe.parent().show();
+        iframe.on('load', function() {
+            if (debug) console.log('iframe loaded', $(this));
+        });
+    },
+    
     makeTabEditable : function(element) {
         //element.off('dblclick');
         element.off('hover');
@@ -356,6 +330,7 @@ var _Resources = {
         input.focus().select();
 
         input.on('blur', function() {
+            console.log('blur');
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
@@ -363,7 +338,9 @@ var _Resources = {
         });
         
         input.keypress(function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode == 13 || e.keyCode == 9) {
+                e.preventDefault(); 
+                console.log('keypress');
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
@@ -696,7 +673,13 @@ var _Resources = {
 
     appendElementElement : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
         if (debug) console.log('_Resources.appendElementElement', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-        var div = _Elements.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+        
+        var div;
+        if (entity.type == 'Component') {
+            div = _Components.appendComponentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+        } else {
+            div = _Elements.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+        }
         
         if (!div) return false;
 
@@ -706,8 +689,8 @@ var _Resources = {
 
         if (parentId) {
 
-            $('.delete_icon', div).replaceWith('<img title="Remove element \'' + entity.name + '\' from resource ' + parentId + '" '
-                + 'alt="Remove element ' + entity.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
+            $('.delete_icon', div).replaceWith('<img title="Remove ' + entity.type + ' \'' + entity.name + '\' from resource ' + parentId + '" '
+                + 'alt="Remove ' + entity.type + ' ' + entity.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
                 var self = $(this);
@@ -821,7 +804,7 @@ var _Resources = {
                     if (!contentId) {
                         tag = $(ui.draggable).text();
                         
-                        if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em') {
+                        if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title') {
                             nodeData.childContent = 'New Content';
                         }
                         
@@ -873,123 +856,124 @@ var _Resources = {
         return div;
     },
 
-    appendComponentElement : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
-        if (debug) console.log('Resources.appendComponentElement');
-        var div = _Components.appendComponentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-        //console.log(div);
-        if (!div) return false;
-
-        console.log('appendComponentElement div', div);
-        var pos = Structr.numberOfNodes($(div).parent())-1;
-        console.log('pos', entity.id, pos);
-
-        if (parentId) {
-
-            $('.delete_icon', div).replaceWith('<img title="Remove component \'' + entity.name + '\' from resource ' + parentId + '" '
-                + 'alt="Remove component ' + entity.name + ' from ' + parentId + '" class="delete_icon button" src="' + _Components.delete_icon + '">');
-            $('.delete_icon', div).on('click', function() {
-                Command.removeSourceFromTarget(entity.id, parentId, componentId, resourceId, pos);
-            });
-
-        }
-
-        var resource = div.closest( '.resource')[0];
-        if (!resource && resources) {
-            div.draggable({
-                revert: 'invalid',
-                containment: '#main',
-                zIndex: 1,
-                helper: 'clone'
-            });
-        } else {
-            div.draggable({
-                containment: 'body',
-                revert: 'invalid',
-                zIndex: 1,
-                helper: 'clone'
-            });
-        }
-	
-        var sorting = false;
-        var obj = {};
-        obj.command = 'SORT';
-
-        div.sortable({
-            sortable: '.node',
-            containment: 'parent',
-            start: function(event, ui) {
-                sorting = true;
-                var resourceId = getId(ui.item.closest('.resource')[0]);
-                obj.id = resourceId;
-            },
-            update: function(event, ui) {
-                if (debug) console.log('---------')
-                if (debug) console.log(resourceId);
-                var data = {};
-                $(ui.item).parent().children('.node').each(function(i,v) {
-                    var self = $(this);
-                    if (debug) console.log(getId(self), i);
-                    data[getId(self)] = i;
-                    obj.data = data;
-                });
-                sendObj(obj);
-                sorting = false;
-                _Resources.reloadPreviews();
-            },
-            stop: function(event, ui) {
-                sorting = false;
-            }
-        });
-
-        div.droppable({
-            accept: '.element, .content',
-            greedy: true,
-            hoverClass: 'nodeHover',
-            tolerance: 'pointer',
-            drop: function(event, ui) {
-
-                var self = $(this);
-
-                var node = $(self.closest('.node')[0]);
-
-                var resource = node.closest( '.resource')[0];
-
-                if (debug) console.log(resource);
-                var contentId = getId(ui.draggable);
-                if (!contentId) {
-                    var tag = $(ui.draggable).text();
-                }
-                var pos = Structr.numberOfNodes(node.parent())-1;
-                if (debug) console.log(pos);
-                var relData = {};
-                if (resource) {
-                    var resourceId = getId(resource);
-                    relData[resourceId] = pos;
-                    relData.resourceId = resourceId;
-                } else {
-                    relData['*'] = pos;
-                }
-
-                var component = self.closest( '.component')[0];
-                if (component) {
-                    var componentId = getId(component);
-                    relData[componentId] = pos;
-                    relData.componentId = componentId;
-                }
-
-                var nodeData = {};
-                if (!contentId) {
-                    nodeData.type = tag.capitalize();
-                    nodeData.tag = (tag != 'content' ? tag : '');
-                }
-
-                if (debug) console.log('Content or Element dropped on Component', getId(node), nodeData, relData);
-                Command.createAndAdd(getId(node), nodeData, relData);
-            }
-        });
-
-        return div;
-    },
+//    appendComponentElement : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
+//        if (debug) console.log('Resources.appendComponentElement');
+//        var div = _Components.appendComponentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+//        //console.log(div);
+//        if (!div) return false;
+//
+//        console.log('appendComponentElement div', div);
+//        var pos = Structr.numberOfNodes($(div).parent())-1;
+//        console.log('pos', entity.id, pos);
+//
+//        if (parentId) {
+//
+//            $('.delete_icon', div).replaceWith('<img title="Remove component \'' + entity.name + '\' from resource ' + parentId + '" '
+//                + 'alt="Remove component ' + entity.name + ' from ' + parentId + '" class="delete_icon button" src="' + _Components.delete_icon + '">');
+//            $('.delete_icon', div).on('click', function(e) {
+//                e.stopPropagation();
+//                Command.removeSourceFromTarget(entity.id, parentId, componentId, resourceId, pos);
+//            });
+//
+//        }
+//
+//        var resource = div.closest( '.resource')[0];
+//        if (!resource && resources) {
+//            div.draggable({
+//                revert: 'invalid',
+//                containment: '#main',
+//                zIndex: 1,
+//                helper: 'clone'
+//            });
+//        } else {
+//            div.draggable({
+//                containment: 'body',
+//                revert: 'invalid',
+//                zIndex: 1,
+//                helper: 'clone'
+//            });
+//        }
+//	
+//        var sorting = false;
+//        var obj = {};
+//        obj.command = 'SORT';
+//
+//        div.sortable({
+//            sortable: '.node',
+//            containment: 'parent',
+//            start: function(event, ui) {
+//                sorting = true;
+//                var resourceId = getId(ui.item.closest('.resource')[0]);
+//                obj.id = resourceId;
+//            },
+//            update: function(event, ui) {
+//                if (debug) console.log('---------')
+//                if (debug) console.log(resourceId);
+//                var data = {};
+//                $(ui.item).parent().children('.node').each(function(i,v) {
+//                    var self = $(this);
+//                    if (debug) console.log(getId(self), i);
+//                    data[getId(self)] = i;
+//                    obj.data = data;
+//                });
+//                sendObj(obj);
+//                sorting = false;
+//                _Resources.reloadPreviews();
+//            },
+//            stop: function(event, ui) {
+//                sorting = false;
+//            }
+//        });
+//
+//        div.droppable({
+//            accept: '.element, .content',
+//            greedy: true,
+//            hoverClass: 'nodeHover',
+//            tolerance: 'pointer',
+//            drop: function(event, ui) {
+//
+//                var self = $(this);
+//
+//                var node = $(self.closest('.node')[0]);
+//
+//                var resource = node.closest( '.resource')[0];
+//
+//                if (debug) console.log(resource);
+//                var contentId = getId(ui.draggable);
+//                if (!contentId) {
+//                    var tag = $(ui.draggable).text();
+//                }
+//                var pos = Structr.numberOfNodes(node.parent())-1;
+//                if (debug) console.log(pos);
+//                var relData = {};
+//                if (resource) {
+//                    var resourceId = getId(resource);
+//                    relData[resourceId] = pos;
+//                    relData.resourceId = resourceId;
+//                } else {
+//                    relData['*'] = pos;
+//                }
+//
+//                var component = self.closest( '.component')[0];
+//                if (component) {
+//                    var componentId = getId(component);
+//                    relData[componentId] = pos;
+//                    relData.componentId = componentId;
+//                }
+//
+//                var nodeData = {};
+//                if (!contentId) {
+//                    nodeData.type = tag.capitalize();
+//                    nodeData.tag = (tag != 'content' ? tag : '');
+//                }
+//
+//                if (debug) console.log('Content or Element dropped on Component', getId(node), nodeData, relData);
+//                Command.createAndAdd(getId(node), nodeData, relData);
+//            }
+//        });
+//
+//        return div;
+//    },
 
     appendContentElement : function(content, parentId, componentId, resourceId) {
         if (debug) console.log('Resources.appendContentElement', content, parentId, componentId, resourceId);

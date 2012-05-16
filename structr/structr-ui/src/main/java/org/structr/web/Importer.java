@@ -71,6 +71,7 @@ import java.util.regex.Pattern;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * The importer creates a new page by downloading and parsing markup from a URL.
  *
  * @author Axel Morgner
  */
@@ -81,7 +82,6 @@ public class Importer {
 	private static String[] srcElements                              = new String[] {
 
 		"img", "script", "audio", "video", "input", "source", "track"
-
 	};
 	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
@@ -104,12 +104,12 @@ public class Importer {
 	//~--- fields ---------------------------------------------------------
 
 	private String address;
+	private boolean authVisible;
 	private String name;
 	private Document parsedDocument;
-	private int timeout;
-	private SecurityContext securityContext;
 	private boolean publicVisible;
-	private boolean authVisible;
+	private SecurityContext securityContext;
+	private int timeout;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -132,24 +132,30 @@ public class Importer {
 //      }
 	public Importer(final SecurityContext securityContext, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
 
-		this.address = address;
-		this.name    = name;
-		this.timeout = timeout;
+		this.address         = address;
+		this.name            = name;
+		this.timeout         = timeout;
 		this.securityContext = securityContext;
-		this.publicVisible = publicVisible;
-		this.authVisible = authVisible;
+		this.publicVisible   = publicVisible;
+		this.authVisible     = authVisible;
+
 	}
 
 	//~--- methods --------------------------------------------------------
 
-	public boolean parse() throws FrameworkException {
-
-		logger.log(Level.INFO, "##### Start fetching {0} for resource {1} #####", new Object[] { address, name });
+	public void init() {
 
 		searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		createNode = Services.command(securityContext, CreateNodeCommand.class);
 		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 		indexNode  = Services.command(securityContext, IndexNodeCommand.class);
+
+	}
+
+	public boolean parse() throws FrameworkException {
+
+		logger.log(Level.INFO, "##### Start fetching {0} for resource {1} #####", new Object[] { address, name });
+		init();
 
 		try {
 
@@ -158,8 +164,11 @@ public class Importer {
 			return true;
 
 		} catch (IOException ioe) {
+
 			throw new FrameworkException(500, "Error while importing content from " + address);
+
 		}
+
 	}
 
 	public String readResource() throws FrameworkException {
@@ -187,6 +196,7 @@ public class Importer {
 					createChildNodes(parsedDocument, resource, resource.getStringProperty(AbstractNode.Key.uuid), baseUrl);
 
 					return resource;
+
 				}
 
 			});
@@ -200,10 +210,13 @@ public class Importer {
 			}
 
 		} catch (MalformedURLException ex) {
+
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
+
 		}
 
 		return null;
+
 	}
 
 	public void createChildNodes(final Node startNode, final AbstractNode parent, String resourceId, final URL baseUrl) throws FrameworkException {
@@ -222,7 +235,6 @@ public class Importer {
 			if (ArrayUtils.contains(ignoreElementNames, type)) {
 
 				continue;
-
 			}
 
 			if (node instanceof Element) {
@@ -233,7 +245,6 @@ public class Importer {
 				for (String cls : classes) {
 
 					classString.append(cls).append(" ");
-
 				}
 
 				id = el.id();
@@ -265,7 +276,6 @@ public class Importer {
 				if (StringUtils.isBlank(content)) {
 
 					continue;
-
 				}
 
 			}
@@ -281,7 +291,6 @@ public class Importer {
 				if (StringUtils.isBlank(content)) {
 
 					continue;
-
 				}
 
 			}
@@ -292,7 +301,6 @@ public class Importer {
 			if (content != null) {
 
 				attrs.add(new NodeAttribute("content", content));
-
 			}
 
 			// Type and name
@@ -306,14 +314,12 @@ public class Importer {
 			if (StringUtils.isNotBlank(id)) {
 
 				attrs.add(new NodeAttribute(PropertyView.Html + "id", id));
-
 			}
 
 			// "class" attribute: Put it into the "_html_class" field
 			if (StringUtils.isNotBlank(classString.toString())) {
 
 				attrs.add(new NodeAttribute(PropertyView.Html + "class", StringUtils.trim(classString.toString())));
-
 			}
 
 			// Other attributes: Put them into the respective fields with "_html_" prefix
@@ -325,7 +331,6 @@ public class Importer {
 				if (!key.equals("text")) {
 
 					attrs.add(new NodeAttribute(PropertyView.Html + nodeAttr.getKey(), nodeAttr.getValue()));
-
 				}
 
 			}
@@ -346,6 +351,7 @@ public class Importer {
 			localIndex++;
 
 		}
+
 	}
 
 	/**
@@ -367,23 +373,22 @@ public class Importer {
 
 		for (NodeAttribute attr : attrs) {
 
-			String key   = attr.getKey();
-//			String value = Search.escapeForLucene(attr.getValue().toString());
+			String key = attr.getKey();
+
+//                      String value = Search.escapeForLucene(attr.getValue().toString());
 			String value = attr.getValue().toString();
 
-//			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
+//                      if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
 //
-//				value = Search.escapeForLucene(value);
+//                              value = Search.escapeForLucene(value);
 //
-//				// value = Search.clean(value);
+//                              // value = Search.clean(value);
 //
-//			}
-
+//                      }
 			// Exclude data attribute because it may contain code with special characters, too
 			if (!key.equals(PropertyView.Html.concat("data"))) {
 
 				searchAttrs.add(Search.andExactProperty(key, value));
-
 			}
 
 		}
@@ -393,13 +398,11 @@ public class Importer {
 		if (nodes.size() > 1) {
 
 			logger.log(Level.WARNING, "More than one node found.");
-
 		}
 
 		if (nodes.isEmpty()) {
 
 			return null;
-
 		}
 
 		for (AbstractNode foundNode : nodes) {
@@ -422,6 +425,7 @@ public class Importer {
 		logger.log(Level.INFO, "Does not match expected path {0}", nodePath);
 
 		return null;
+
 	}
 
 	private AbstractNode findOrCreateNode(final List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
@@ -431,7 +435,6 @@ public class Importer {
 		if (node != null) {
 
 			return node;
-
 		}
 
 		node = (AbstractNode) createNode.execute(attributes);
@@ -441,14 +444,13 @@ public class Importer {
 		if (node != null) {
 
 			logger.log(Level.INFO, "Created node with name {0}, type {1}", new Object[] { node.getName(), node.getType() });
-
 		} else {
 
 			logger.log(Level.WARNING, "Could not create node");
-
 		}
 
 		return node;
+
 	}
 
 	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
@@ -458,6 +460,7 @@ public class Importer {
 		rel.setProperty(resourceId, index);
 
 		return rel;
+
 	}
 
 	/**
@@ -474,6 +477,7 @@ public class Importer {
 		List<File> files = (List<File>) searchNode.execute(null, false, false, searchAttrs);
 
 		return !files.isEmpty();
+
 	}
 
 	/**
@@ -492,10 +496,10 @@ public class Importer {
 		if (!folders.isEmpty()) {
 
 			return folders.get(0);
-
 		}
 
 		return (Folder) createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.Key.name.name(), name));
+
 	}
 
 	private void downloadFiles(String downloadAddress, final URL baseUrl) {
@@ -528,6 +532,7 @@ public class Importer {
 			logger.log(Level.WARNING, "Unable to download from " + downloadAddress, ioe);
 
 			return;
+
 		}
 
 		contentType     = FileHelper.getContentMimeType(fileOnDisk);
@@ -544,7 +549,6 @@ public class Importer {
 		if (contentType.equals("text/plain")) {
 
 			contentType = StringUtils.defaultIfBlank(contentTypeForExtension.get(StringUtils.substringAfterLast(fileName, ".")), "text/plain");
-
 		}
 
 		final String ct = contentType;
@@ -558,11 +562,9 @@ public class Importer {
 				if (ImageHelper.isImageType(fileName)) {
 
 					fileNode = createImageNode(uuid, fileName, ct);
-
 				} else {
 
 					fileNode = createFileNode(uuid, fileName, ct);
-
 				}
 
 				if (fileNode != null) {
@@ -572,13 +574,11 @@ public class Importer {
 					if (parent != null) {
 
 						createRel.execute(parent, fileNode, RelType.CONTAINS);
-
 					}
 
 					if (contentType.equals("text/css")) {
 
 						processCssFileNode(fileNode, downloadUrl);
-
 					}
 
 				}
@@ -586,12 +586,14 @@ public class Importer {
 			} else {
 
 				fileOnDisk.delete();
-
 			}
 
 		} catch (Exception fex) {
+
 			logger.log(Level.WARNING, "Could not create file node.", fex);
+
 		}
+
 	}
 
 	/**
@@ -609,7 +611,6 @@ public class Importer {
 		if (path == null) {
 
 			return null;
-
 		}
 
 		String[] parts = StringUtils.split(path, "/");
@@ -624,7 +625,6 @@ public class Importer {
 			if (parent != null) {
 
 				createRel.execute(parent, folder, RelType.CONTAINS);
-
 			}
 
 			indexNode.execute(folder);
@@ -632,6 +632,7 @@ public class Importer {
 		}
 
 		return folder;
+
 	}
 
 	private File createFileNode(final String uuid, final String name, final String contentType) throws FrameworkException {
@@ -639,14 +640,14 @@ public class Importer {
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
 		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
 					new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
-					new NodeAttribute(File.Key.contentType.name(), contentType),
-					new NodeAttribute("visibleToPublicUsers", publicVisible),
+					new NodeAttribute(File.Key.contentType.name(), contentType), new NodeAttribute("visibleToPublicUsers", publicVisible),
 					new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
 
 		fileNode.getChecksum();    // calculates and stores checksum
 		indexNode.execute(fileNode);
 
 		return fileNode;
+
 	}
 
 	private Image createImageNode(final String uuid, final String name, final String contentType) throws FrameworkException {
@@ -654,14 +655,14 @@ public class Importer {
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
 		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
 					  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
-					  new NodeAttribute(File.Key.contentType.name(), contentType),
-					  new NodeAttribute("visibleToPublicUsers", publicVisible),
+					  new NodeAttribute(File.Key.contentType.name(), contentType), new NodeAttribute("visibleToPublicUsers", publicVisible),
 					  new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
 
 		imageNode.getChecksum();    // calculates and stores checksum
 		indexNode.execute(imageNode);
 
 		return imageNode;
+
 	}
 
 	private void processCssFileNode(File fileNode, final URL baseUrl) throws IOException {
@@ -673,6 +674,7 @@ public class Importer {
 		String css = sw.toString();
 
 		processCss(css, baseUrl);
+
 	}
 
 	private void processCss(final String css, final URL baseUrl) throws IOException {
@@ -688,6 +690,7 @@ public class Importer {
 			downloadFiles(url, baseUrl);
 
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -707,5 +710,7 @@ public class Importer {
 		}
 
 		return "html/" + path;
+
 	}
+
 }

@@ -48,7 +48,8 @@ var _UsersAndGroups = {
         groups.empty();
         if (Command.list('Group')) {
             groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
-            $('.add_group_icon', main).on('click', function() {
+            $('.add_group_icon', main).on('click', function(e) {
+                e.stopPropagation();
                 var entity = {};
                 entity.type = 'Group';
                 return Command.create(entity);
@@ -60,7 +61,8 @@ var _UsersAndGroups = {
         users.empty();
         if (Command.list('User')) {
             users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
-            $('.add_user_icon', main).on('click', function() {
+            $('.add_user_icon', main).on('click', function(e) {
+                e.stopPropagation();
                 var entity = {};
                 entity.type = 'User';
                 return Command.create(entity);
@@ -86,7 +88,8 @@ var _UsersAndGroups = {
 
         $('.delete_icon', user).replaceWith('<img title="Delete user ' + user.name + '" '
             + 'alt="Delete user ' + user.name + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', user).on('click', function() {
+        $('.delete_icon', user).on('click', function(e) {
+            e.stopPropagation();
             _UsersAndGroups.deleteUser(this, Structr.entity(userId));
         });
         
@@ -125,8 +128,8 @@ var _UsersAndGroups = {
         var div = Structr.node(group.id);
 
         div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-
-        $('.delete_icon', div).on('click', function() {
+        $('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
             _UsersAndGroups.deleteGroup(this, group)
         });
         
@@ -190,7 +193,8 @@ var _UsersAndGroups = {
                 div.append(newDelIcon);
             }
             delIcon = $('.delete_icon', div);
-            delIcon.on('click', function() {
+            delIcon.on('click', function(e) {
+                e.stopPropagation();
                 _UsersAndGroups.removeUserFromGroup(user.id, groupId);
             });
 
@@ -216,7 +220,8 @@ var _UsersAndGroups = {
                 delIcon = $('.delete_icon', div);
             }            
             
-            delIcon.on('click', function() {
+            delIcon.on('click', function(e) {
+                e.stopPropagation();
                 _UsersAndGroups.deleteUser(this, user);
             });
 

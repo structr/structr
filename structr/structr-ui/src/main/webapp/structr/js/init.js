@@ -40,7 +40,8 @@ $(document).ready(function() {
     //        main.height($(window).height()-header.height());
 
     //main.height($(window.document).height() - $('#header').height() - 13);
-    $('#import_json').on('click', function() {
+    $('#import_json').on('click', function(e) {
+        e.stopPropagation();
         var jsonArray = $.parseJSON($('#json_input').val());
         $(jsonArray).each(function(i, json) {
             //console.log(json);
@@ -49,22 +50,26 @@ $(document).ready(function() {
     //var json = $.parseJSON('{ "test" : "abc" }');
 
     });
-    $('#loginButton').on('click', function() {
+    $('#loginButton').on('click', function(e) {
+        e.stopPropagation();
         var username = $('#usernameField').val();
         var password = $('#passwordField').val();
         Structr.doLogin(username, password);
     });
-    $('#logout_').on('click', function() {
+    $('#logout_').on('click', function(e) {
+        e.stopPropagation();
         Structr.doLogout();
     });
 
 
-    $('#dashboard_').on('click', function() {
+    $('#dashboard_').on('click', function(e) {
+        e.stopPropagation();
         main.empty();
         Structr.activateMenuEntry('dashboard');
     });
 
-    $('#resources_').on('click', function() {
+    $('#resources_').on('click', function(e) {
+        e.stopPropagation();
         main.empty();
         Structr.activateMenuEntry('resources');
         Structr.modules['resources'].onload();
@@ -101,43 +106,50 @@ $(document).ready(function() {
         }
     });
 
-    $('#components_').on('click', function() {
+    $('#components_').on('click', function(e) {
+        e.stopPropagation();
         main.empty();
         Structr.activateMenuEntry('components');
         Structr.modules['components'].onload();
     });
 
-    $('#elements_').on('click', function() {
+    $('#elements_').on('click', function(e) {
+        e.stopPropagation();
         main.empty();
         Structr.activateMenuEntry('elements');
         Structr.modules['elements'].onload();
     });
 
-    $('#contents_').on('click', function() {
+    $('#contents_').on('click', function(e) {
+        e.stopPropagation();
         main.empty();
         Structr.activateMenuEntry('contents');
         Structr.modules['contents'].onload();
     });
 
-    $('#files_').on('click', function() {
+    $('#files_').on('click', function(e) {
+        e.stopPropagation();
         main.empty();
         Structr.activateMenuEntry('files');
         Structr.modules['files'].onload();
     });
 
-    $('#usersAndGroups_').on('click', function() {
+    $('#usersAndGroups_').on('click', function(e) {
+        e.stopPropagation();
         main.empty();
         Structr.activateMenuEntry('usersAndGroups');
         Structr.modules['usersAndGroups'].onload();
     });
 
     $('#usernameField').keypress(function(e) {
+        e.stopPropagation();
         if (e.which == 13) {
             jQuery(this).blur();
             jQuery('#loginButton').focus().click();
         }
     });
     $('#passwordField').keypress(function(e) {
+        e.stopPropagation();
         if (e.which == 13) {
             jQuery(this).blur();
             jQuery('#loginButton').focus().click();
@@ -283,10 +295,12 @@ var Structr = {
 
     confirmation : function(text, callback) {
         if (text) $('#confirmation .confirmationText').html(text);
-        if (callback) $('#confirmation .yesButton').on('click', function() {
+        if (callback) $('#confirmation .yesButton').on('click', function(e) {
+            e.stopPropagation();
             callback();
         });
-        $('#confirmation .noButton').on('click', function() {
+        $('#confirmation .noButton').on('click', function(e) {
+            e.stopPropagation();
             $.unblockUI({
                 fadeOut: 25
             });
@@ -307,7 +321,8 @@ var Structr = {
 
     info : function(text, callback) {
         if (text) $('#infoText').html(text);
-        if (callback) $('#okButton').on('click', function() {
+        if (callback) $('#okButton').on('click', function(e) {
+            e.stopPropagation();
             callback();
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
@@ -334,7 +349,8 @@ var Structr = {
         //			$('#dialogBox .dialogText').empty();
         //			$.unblockUI({ fadeOut: 25 });
         //        });
-        if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function() {
+        if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function(e) {
+            e.stopPropagation();
             callbackCancel();
             $('#dialogBox .dialogText').empty();
             _Resources.reloadPreviews();
@@ -360,7 +376,8 @@ var Structr = {
     error : function(text, callback) {
         if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
         console.log(callback);
-        if (callback) $('#errorBox .okButton').on('click', function() {
+        if (callback) $('#errorBox .okButton').on('click', function(e) {
+            e.stopPropagation();
             //callback();
             console.log(callback);
 			

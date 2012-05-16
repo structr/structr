@@ -132,16 +132,16 @@ var Command = {
      * 
      * The server will broadcast CREATE and ADD notifications.
      */
-//    insert : function(id, html) {
-//        var obj = {};
-//        obj.command = 'INSERT';
-//        obj.id = id;
-//        var data = {};
-//        data.html = html;
-//        obj.data = data;
-//        if (debug) console.log('insert()', obj);
-//        return sendObj(obj);
-//    },
+    //    insert : function(id, html) {
+    //        var obj = {};
+    //        obj.command = 'INSERT';
+    //        obj.id = id;
+    //        var data = {};
+    //        data.html = html;
+    //        obj.data = data;
+    //        if (debug) console.log('insert()', obj);
+    //        return sendObj(obj);
+    //    },
 
     /**
      * Send a DELETE command to the server.
@@ -385,6 +385,25 @@ var Command = {
         obj.data = data;
         if (debug) console.log('link()', obj);
         return sendObj(obj);
+    },
+    
+    /**
+     * Send a WRAP command to the server.
+     * 
+     * The server will wrap the node with the given id into an
+     * additional component node.
+     * 
+     * The server will broadcast CREATE and ADD notifications.
+     */
+    wrap : function(id, nodeData, relData) {
+        var obj = {};
+        obj.command = 'WRAP';
+        obj.id = id;
+        obj.data = nodeData;
+        obj.relData = relData;
+        if (debug) console.log('wrap()', obj);
+        return sendObj(obj);
+        
     }
 
 }
