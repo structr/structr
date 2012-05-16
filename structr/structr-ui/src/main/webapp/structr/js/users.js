@@ -37,7 +37,7 @@ var _UsersAndGroups = {
         if (debug) console.log('onload');
         if (palette) palette.remove();
 
-        main.append('<table><tr><td id="groups"></td><td id="users"></td></tr></table>');
+        main.append('<table><tr><td id="users"></td><td id="groups"></td></tr></table>');
         groups = $('#groups');
         users = $('#users');
         _UsersAndGroups.refreshGroups();
@@ -157,6 +157,8 @@ var _UsersAndGroups = {
 
     appendUserElement : function(user, groupId, removeExisting) {
         console.log('appendUserElement', user, groupId, removeExisting);
+
+        if (!groupId && user.group.length) return false;
 
         removeExisting = true;
 

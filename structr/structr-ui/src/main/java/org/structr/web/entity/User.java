@@ -68,11 +68,9 @@ public class User extends Person implements Principal {
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum HiddenKey implements PropertyKey{ groups }
-
 	public enum Key implements PropertyKey {
 
-		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
+		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, group
 
 	}
 

@@ -181,8 +181,8 @@ var _Files = {
 
     appendFileElement : function(file, folderId, removeExisting, hasChildren, isImage) {
 
-        console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
-
+        if (debug) console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
+        
         removeExisting = true;
 
         var parentElement, cls;
