@@ -241,24 +241,17 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			SecurityContext securityContext = getSecurityContext(request, response);
+			List<Resource> chain        = parsePath(securityContext, request);
+			Resource resourceConstraint = optimizeConstraintChain(chain);
 
-			if (securityContext != null) {
+			// let authenticator examine request again
+			securityContext.examineRequest(request, "" /*resourceConstraint.getUriPart()*/);
 
-				// evaluate constraint chain
-				List<Resource> chain        = parsePath(securityContext, request);
-				Resource resourceConstraint = optimizeConstraintChain(chain);
+			// do action
+			RestMethodResult result = resourceConstraint.doDelete();
 
-				// do action
-				RestMethodResult result = resourceConstraint.doDelete();
-
-				result.commitResponse(gson, response);
-			} else {
-
-				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
-
-				result.commitResponse(gson, response);
-
-			}
+			// commit response
+			result.commitResponse(gson, response);
 
 		} catch (FrameworkException frameworkException) {
 
@@ -316,9 +309,17 @@ public class JsonRestServlet extends HttpServlet {
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
 			Resource resource     = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
+			
+			// let authenticator examine request again
+			securityContext.examineRequest(request, "" /*resource.getUriPart()*/);
+			
+			// do action
 			Result result         = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
+			
+			// timing..
 			double queryTimeEnd   = System.nanoTime();
 
+			// commit response
 			if (result != null) {
 
 				// allow resource to modify result set
@@ -398,11 +399,17 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			SecurityContext securityContext       = getSecurityContext(request, response);
-			List<Resource> chain        = parsePath(securityContext, request);
-			Resource resourceConstraint = optimizeConstraintChain(chain);
-			RestMethodResult result               = resourceConstraint.doHead();
+			SecurityContext securityContext = getSecurityContext(request, response);
+			List<Resource> chain            = parsePath(securityContext, request);
+			Resource resourceConstraint     = optimizeConstraintChain(chain);
+			
+			// let authenticator examine request again
+			securityContext.examineRequest(request, "" /*resourceConstraint.getUriPart()*/);
+			
+			// do action
+			RestMethodResult result = resourceConstraint.doHead();
 
+			// commit response
 			result.commitResponse(gson, response);
 
 		} catch (FrameworkException frameworkException) {
@@ -453,11 +460,17 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			SecurityContext securityContext       = getSecurityContext(request, response);
-			List<Resource> chain        = parsePath(securityContext, request);
-			Resource resourceConstraint = optimizeConstraintChain(chain);
-			RestMethodResult result               = resourceConstraint.doOptions();
+			SecurityContext securityContext = getSecurityContext(request, response);
+			List<Resource> chain            = parsePath(securityContext, request);
+			Resource resourceConstraint     = optimizeConstraintChain(chain);
+			
+			// let authenticator examine request again
+			securityContext.examineRequest(request, "" /*resourceConstraint.getUriPart()*/);
+			
+			// do action
+			RestMethodResult result = resourceConstraint.doOptions();
 
+			// commit response
 			result.commitResponse(gson, response);
 
 		} catch (FrameworkException frameworkException) {
@@ -514,10 +527,13 @@ public class JsonRestServlet extends HttpServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<Resource> chain        = parsePath(securityContext, request);
-				Resource resourceConstraint = optimizeConstraintChain(chain);
-				Map<String, Object> properties        = convertPropertySetToMap(propertySet);
+				List<Resource> chain           = parsePath(securityContext, request);
+				Resource resourceConstraint    = optimizeConstraintChain(chain);
+				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
+				// let authenticator examine request again
+				securityContext.examineRequest(request, "" /*resourceConstraint.getUriPart()*/);
+				
 				// do action
 				RestMethodResult result = resourceConstraint.doPost(properties);
 
@@ -701,27 +717,34 @@ public class JsonRestServlet extends HttpServlet {
 
 					if (matcher.matches()) {
 
+						Class type = entry.getValue();
+						Resource resource = null;
+						
 						try {
 
-							Class type = entry.getValue();
-
 							// instantiate resource constraint
-							Resource constraint = (Resource) type.newInstance();
+							resource = (Resource) type.newInstance();
 
+						} catch (Throwable t) {
+							logger.log(Level.WARNING, "Error instantiating constraint class", t);
+						}
+
+						if(resource != null) {
+							
 							// set security context
-							constraint.setSecurityContext(securityContext);
+							resource.setSecurityContext(securityContext);
 
-							if (constraint.checkAndConfigure(part, securityContext, request)) {
+							if (resource.checkAndConfigure(part, securityContext, request)) {
 
 								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}", new Object[] { matcher.pattern(), type.getName(),
 									part });
 
 								// allow constraint to modify context
-								constraint.configurePropertyView(propertyView);
-								constraint.configureIdProperty(defaultIdProperty);
+								resource.configurePropertyView(propertyView);
+								resource.configureIdProperty(defaultIdProperty);
 
 								// add constraint and go on
-								constraintChain.add(constraint);
+								constraintChain.add(resource);
 
 								found = true;
 
@@ -729,9 +752,6 @@ public class JsonRestServlet extends HttpServlet {
 								break;
 
 							}
-
-						} catch (Throwable t) {
-							logger.log(Level.WARNING, "Error instantiating constraint class", t);
 						}
 
 					}
@@ -1044,7 +1064,7 @@ public class JsonRestServlet extends HttpServlet {
 		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 		
 		// let module-specific authenticator examine the request first
-		securityContext.examineRequest(request, response);
+		securityContext.initializeAndExamineRequest(request, response);
 		
 		return securityContext;
 	}

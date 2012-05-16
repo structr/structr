@@ -95,8 +95,12 @@ public class SecurityContext {
 
 	//~--- methods --------------------------------------------------------
 
-	public void examineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
-		this.authenticator.examineRequest(this, request, response);
+	public void initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+		this.authenticator.initializeAndExamineRequest(this, request, response);
+	}
+	
+	public void examineRequest(HttpServletRequest request, String uriPart) throws FrameworkException {
+		this.authenticator.examineRequest(this, request, uriPart);
 	}
 
 	public Principal doLogin(String userName, String password) throws AuthenticationException {

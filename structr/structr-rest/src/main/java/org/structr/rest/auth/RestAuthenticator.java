@@ -46,7 +46,10 @@ import javax.servlet.http.HttpServletResponse;
 public class RestAuthenticator implements Authenticator {
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
+	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
+
+	@Override
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String uriPart) throws FrameworkException { }
 
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {

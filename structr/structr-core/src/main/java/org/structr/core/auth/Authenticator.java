@@ -41,7 +41,15 @@ public interface Authenticator {
 	 * @param request
 	 * @throws FrameworkException 
 	 */
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
+	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
+	
+	/**
+	 * 
+	 * @param securityContext the security context
+	 * @param request
+	 * @throws FrameworkException 
+	 */
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String uriPart) throws FrameworkException;
 	
 	/**
 	 *
