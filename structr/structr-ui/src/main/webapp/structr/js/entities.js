@@ -45,7 +45,7 @@ var _Entities = {
                 if (child.type == "Resource") {
                     _Resources.appendResourceElement(child, parent.id, rootId);
                 } else if (child.type == "Component") {
-                    _Resources.appendComponentElement(child, parent.id, rootId);
+                    _Resources.appendElementElement(child, parent.id, rootId);
                 } else if (child.type == "Content") {
                     _Resources.appendContentElement(child, parent.id, rootId);
                 } else if (child.type == "Folder") {
@@ -69,18 +69,8 @@ var _Entities = {
     },
 
     appendObj : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
-        //        debug = true;
-        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-        // Check if object is not already contained
-        //var node = Structr.node(entity.id, parentId, componentId, resourceId);
-        //if (node && node.length > 0) return false;
-        
-        // Check if parent node is expanded
-        //if (resourceId && parentId && (!isExpanded(parentId, null, resourceId))) return false;
 
-        //        if (!isExpanded(parentId, null, resourceId)) {
-        //            addExpandedNode(parentId, null, resourceId);
-        //        }
+        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
 
         var lastAppendedObj;
 
@@ -90,36 +80,14 @@ var _Entities = {
             
         } else if (entity.type == 'Group') {
             lastAppendedObj = _UsersAndGroups.appendGroupElement(entity, hasChildren);
-        //            var users = entity.users;
-        //            if (users && users.length > 0) {
-        //                disable($('.delete_icon', groupElement)[0]);
-        //                $(users).each(function(i, user) {
-        //                    _UsersAndGroups.appendUserElement(user, entity.id, removeExisting, hasChildren);
-        //                });
-        //            }
 
         } else if (entity.type == 'Resource') {
             
             lastAppendedObj = _Resources.appendResourceElement(entity, hasChildren);
 
-        //        } else if (entity.type == 'Element') {
-        //            console.log('calling _Resources.appendElementElement', entity, parentId, componentId, resourceId, false, hasChildren);
-        //            _Resources.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
-        //
         } else if (entity.type == 'Component') {
 
-            lastAppendedObj = _Resources.appendComponentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-        //            var componentElement = _Resources.appendComponentElement(entity, parentId, resourceId, removeExisting, hasChildren);
-        //            var elements = entity.elements;
-        //            if (elements && elements.length > 0) {
-        //                disable($('.delete_icon', componentElement)[0]);
-        //                $(elements).each(function(i, element) {
-        //                    if (element.type == 'Element') {
-        //                        return _Resources.appendElementElement(element, entity.id, removeExisting, hasChildren);
-        //                    }
-        //                });
-        //
-        //            }
+            lastAppendedObj = _Resources.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
 
         } else if (entity.type == 'Content') {
 
@@ -128,35 +96,7 @@ var _Entities = {
 
         } else if (entity.type == 'Folder') {
 
-            var folderElement = _Files.appendFolderElement(entity, removeExisting, hasChildren);
-
-            //            var folders = entity.folders;
-            //            if (folders && folders.length > 0) {
-            //                disable($('.delete_icon', folderElement)[0]);
-            //                $(folders).each(function(i, folder) {
-            //                    _Files.appendFolderElement(folder, entity.id, removeExisting, hasChildren);
-            //                });
-            //            }
-            //            var images = entity.images;
-            //            if (images && images.length > 0) {
-            //                disable($('.delete_icon', folderElement)[0]);
-            //                $(images).each(function(i, image) {
-            //                    _Files.appendImageElement(image, entity.id, removeExisting, hasChildren);
-            //                });
-            //            }
-            //            var files = entity.files;
-            //            if (files && files.length > 0) {
-            //                disable($('.delete_icon', folderElement)[0]);
-            //                $(files).each(function(i, file) {
-            //
-            //                    if (file.type == 'File') { // files comprise images
-            //                        _Files.appendFileElement(file, entity.id, removeExisting, hasChildren);
-            //                    }
-            //
-            //                });
-            //            }
-
-            lastAppendedObj = folderElement;
+            lastAppendedObj = _Files.appendFolderElement(entity, removeExisting, hasChildren);
 
         } else if (entity.type == 'Image') {
             if (debug) console.log('Image:', entity);
@@ -170,20 +110,6 @@ var _Entities = {
 
             if (debug) console.log('Entity: ', entity);
             lastAppendedObj = _Resources.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
-
-        //            var elementElement = _Resources.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-        //            var elem = entity.elements;
-        //            if (elem && elem.length > 0) {
-        //                if (debug) console.log(elem);
-        //                disable($('.delete_icon', elementElement)[0]);
-        //                $(elem).each(function(i, element) {
-        //                    if (elem.type == 'Element') {
-        //                        _Resources.appendElementElement(element, entity.id, componentId, resourceId, removeExisting, hasChildren);
-        //                    } else if (elem.type == 'Content') {
-        //                        _Resources.appendContentElement(element, entity.id, componentId, resourceId, removeExisting, hasChildren);
-        //                    }
-        //                });
-        //            }
         }
 
         if (debug) console.log('lastAppendedObj', lastAppendedObj);
@@ -246,11 +172,6 @@ var _Entities = {
             }
             );
 
-        //        if (isDisabled(button)) return;
-        //        disable(button, function() {
-        //            _Entities.hideProperties(button, entity, view, dialog);
-        //        });
-
         dialog.append('<div id="tabs"><ul></ul>');
 
         $(views).each(function(i, view) {
@@ -275,7 +196,8 @@ var _Entities = {
 
             var tab = $('#tab-' + view);
 
-            tab.on('click', function() {
+            tab.on('click', function(e) {
+                e.stopPropagation();
                 var self = $(this);
                 tabs.children('div').hide();
                 $('li', tabs).removeClass('active');
@@ -383,12 +305,14 @@ var _Entities = {
                 if (debug) console.log(publicSwitch);
                 if (debug) console.log(authSwitch);
 
-                publicSwitch.on('click', function() {
+                publicSwitch.on('click', function(e) {
+                    e.stopPropagation();
                     if (debug) console.log('Toggle switch', publicSwitch.hasClass('disabled'))
                     Command.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'));
                 });
 
-                authSwitch.on('click', function() {
+                authSwitch.on('click', function(e) {
+                    e.stopPropagation();
                     if (debug) console.log('Toggle switch', authSwitch.hasClass('disabled'))
                     Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'));
                 });
@@ -436,7 +360,8 @@ var _Entities = {
 
             if (button) {
 
-                button.on('click', function() {
+                button.on('click', function(e) {
+                    e.stopPropagation();
                     _Entities.toggleElement(this);
                 });
 
@@ -474,7 +399,8 @@ var _Entities = {
             e.stopPropagation();
         });
 
-        el.children('b.name_').on('click', function() {
+        el.children('b.name_').on('click', function(e) {
+            e.stopPropagation();
             _Entities.makeNameEditable(el);
         });
 
@@ -582,7 +508,8 @@ var _Entities = {
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
             self.replaceWith('<b class="name_">' + newName + '</b>');
-            $('.name_', element).on('click', function() {
+            $('.name_', element).on('click', function(e) {
+                e.stopPropagation();
                 _Entities.makeNameEditable(element);
             });
             _Resources.reloadPreviews();
@@ -594,7 +521,8 @@ var _Entities = {
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
                 self.replaceWith('<b class="name_">' + newName + '</b>');
-                $('.name_', element).on('click', function() {
+                $('.name_', element).on('click', function(e) {
+                    e.stopPropagation();
                     _Entities.makeNameEditable(element);
                 });
                 _Resources.reloadPreviews();

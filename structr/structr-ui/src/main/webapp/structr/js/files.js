@@ -152,7 +152,8 @@ var _Files = {
         folders.empty();
         if (Command.list('Folder')) {
             folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
-            $('.add_folder_icon', main).on('click', function() {
+            $('.add_folder_icon', main).on('click', function(e) {
+                e.stopPropagation();
                 var entity = {};
                 entity.type = 'Folder';
                 Command.create(entity);
@@ -211,7 +212,8 @@ var _Files = {
             div = Structr.node(file.id, folderId);
         }
 
-        $('.typeIcon', div).on('click', function() {
+        $('.typeIcon', div).on('click', function(e) {
+            e.stopPropagation();
             window.open(viewRootUrl + file.name, 'Download ' + file.name);
         });
         if (debug) console.log(folderId, removeExisting);
@@ -226,7 +228,8 @@ var _Files = {
                 div.append(newDelIcon);
                 delIcon = $('.delete_icon', div);
             }
-            $('.delete_icon', div).on('click', function() {
+            $('.delete_icon', div).on('click', function(e) {
+                e.stopPropagation();
                 _Files.removeFileFromFolder(file.id, folderId, isImage);
             });
             disable($('.delete_icon', parent)[0]);
@@ -239,7 +242,8 @@ var _Files = {
                 div.append(newDelIcon);
                 delIcon = $('.delete_icon', div);
             } 
-            $('.delete_icon', div).on('click', function() {
+            $('.delete_icon', div).on('click', function(e) {
+                e.stopPropagation();
                 _Entities.deleteNode(this, file);
             });
 		
@@ -268,20 +272,20 @@ var _Files = {
 		
         if (debug) console.log('Folder: ', folder);
         var parent = Structr.findParent(parentId, null, null, folders);
-
 		
         parent.append('<div structr_type="folder" class="node folder ' + folder.id + '_">'
             + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
             + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
             + '</div>');
         var div = Structr.node(folder.id, parentId);
-
-        _Entities.appendExpandIcon(div, folder, hasChildren);
         
         div.append('<img title="Delete Content \'' + folder.name + '\'" alt="Delete Content \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', div).on('click', function() {
+        $('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
             _Entities.deleteNode(this, folder);
         });
+        
+        _Entities.appendExpandIcon(div, folder, hasChildren);
 
         div.droppable({
             accept: '.file, .image',
@@ -321,7 +325,8 @@ var _Files = {
         parentElement.append(file);
         $('.delete_icon', file).replaceWith('<img title="Delete ' + cls + ' ' + fileId + '" '
             + 'alt="Delete ' + cls + ' ' + fileId + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', file).on('click', function() {
+        $('.delete_icon', file).on('click', function(e) {
+            e.stopPropagation();
             _Entities.deleteNode(this, Structr.entity(fileId));
         });
         

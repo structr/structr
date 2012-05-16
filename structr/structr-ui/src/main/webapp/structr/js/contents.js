@@ -48,7 +48,8 @@ var _Contents = {
         contents.empty();
         if (_Contents.show()) {
             contents.append('<button class="add_content_icon button"><img title="Add Content" alt="Add Content" src="' + _Contents.add_icon + '"> Add Content</button>');
-            $('.add_content_icon', main).on('click', function() {
+            $('.add_content_icon', main).on('click', function(e) {
+                e.stopPropagation();
                 var entity = {};
                 entity.type = 'Content';
                 Command.create(entity);
@@ -95,12 +96,14 @@ var _Contents = {
         var div = Structr.node(content.id, parentId, componentId, resourceId, pos);
 
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', div).on('click', function() {
+        $('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
             _Entities.deleteNode(this, content);
         });
 
         div.append('<img title="Edit ' + content.name + ' [' + content.id + ']" alt="Edit ' + content.name + ' [' + content.id + ']" class="edit_icon button" src="icon/pencil.png">');
-        $('.edit_icon', div).on('click', function() {
+        $('.edit_icon', div).on('click', function(e) {
+            e.stopPropagation();
             var self = $(this);
             var text = self.parent().find('.content_').text();
             Structr.dialog('Edit content of ' + content.id, function() {

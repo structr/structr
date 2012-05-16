@@ -347,8 +347,18 @@ function connect() {
                             editor.setCursor(editorCursor);
                         }
                     }
+                    
+                    console.log(key, Structr.getClass(element));
+                    
+                    if (key == 'name' && Structr.getClass(element) == 'resource') {
+                        console.log('Reload iframe', data.id, newValue);
+                        window.setTimeout(function() { _Resources.reloadIframe(data.id, newValue) }, 100);
+                    }
 
                 }
+                
+                
+                
 
                 // refresh preview iframe
                 input.data('changed', false);

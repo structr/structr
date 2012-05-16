@@ -52,7 +52,8 @@ var _Components = {
 	components.empty();
 	if (Command.list('Component')) {
 	    components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
-	    $('.add_component_icon', main).on('click', function() {
+	    $('.add_component_icon', main).on('click', function(e) {
+                e.stopPropagation();
 		var entity = {};
 		entity.type = 'Component';
 		Command.create(entity);
@@ -64,7 +65,8 @@ var _Components = {
 	elements.empty();
 	if (Command.list('Element')) {
 	    elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
-	    $('.add_element_icon', main).on('click', function() {
+	    $('.add_element_icon', main).on('click', function(e) {
+                e.stopPropagation();
 		var entity = {};
 		entity.type = 'Element';
 		Command.create(entity);
@@ -85,12 +87,14 @@ var _Components = {
 	    + '</div>');
 	var div = Structr.node(component.id, parentId);
 	div.append('<img title="Delete component \'' + component.structrclass + '\' ' + component.id + '" alt="Delete component \'' + component.structrclass + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-	$('.delete_icon', div).on('click', function() {
+	$('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
 	    _Components.deleteComponent(this, component);
 	});
 
 	div.append('<img title="Create Form" alt="Create Form" class="add_form_icon button" src="icon/application_form_add.png">');
-	$('.add_form_icon', div).on('click', function() {
+	$('.add_form_icon', div).on('click', function(e) {
+            e.stopPropagation();
 	    _Components.createForm(this, component);
 	});
 
@@ -131,7 +135,8 @@ var _Components = {
 	    $('.delete_icon', div).remove();
 	    div.append('<img title="Remove element \'' + element.name + '\' from resource ' + parentId + '" '
 		+ 'alt="Remove element ' + element.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
-	    $('.delete_icon', div).on('click', function() {
+	    $('.delete_icon', div).on('click', function(e) {
+                e.stopPropagation();
 		Command.removeSourceFromTarget(element.id, parentId);
 	    });
 	}
