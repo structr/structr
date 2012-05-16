@@ -120,7 +120,7 @@ var _UsersAndGroups = {
     },
 
     appendGroupElement : function(group, hasChildren) {
-        if (debug) console.log('appendGroupElement', group);
+        if (debug) console.log('appendGroupElement', group, hasChildren);
         groups.append('<div class="node group ' + group.id + '_">'
             + '<img class="typeIcon" src="icon/group.png">'
             + '<b class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'

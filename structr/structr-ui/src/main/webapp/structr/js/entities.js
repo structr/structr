@@ -96,7 +96,7 @@ var _Entities = {
 
         } else if (entity.type == 'Folder') {
 
-            lastAppendedObj = _Files.appendFolderElement(entity, removeExisting, hasChildren);
+            lastAppendedObj = _Files.appendFolderElement(entity, hasChildren);
 
         } else if (entity.type == 'Image') {
             if (debug) console.log('Image:', entity);

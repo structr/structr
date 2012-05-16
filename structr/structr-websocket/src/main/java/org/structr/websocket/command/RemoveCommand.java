@@ -93,7 +93,7 @@ public class RemoveCommand extends AbstractCommand {
 
 									relsToShift.add(rel);
 
-									if (pos.equals(rel.getLongProperty(resourceId))) {
+									if (pos == null || pos.equals(rel.getLongProperty(resourceId))) {
 
 										deleteRel.execute(rel);
 										relsToShift.remove(rel);

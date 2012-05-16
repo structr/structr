@@ -95,7 +95,7 @@ var _Files = {
                 
                 console.log('dropped something in the #files area')
                 
-                event.stopPropagation()
+                event.stopPropagation();
                 event.preventDefault();
                 //                console.log(event);
                 fileList = event.originalEvent.dataTransfer.files;
@@ -181,7 +181,9 @@ var _Files = {
 
     appendFileElement : function(file, folderId, removeExisting, hasChildren, isImage) {
 
-        if (debug) console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
+        console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
+
+        removeExisting = true;
 
         var parentElement, cls;
         if (isImage) {
@@ -268,16 +270,16 @@ var _Files = {
         return _Files.appendFileElement(file, folderId, removeExisting, hasChildren, true);
     },
 		
-    appendFolderElement : function(folder, parentId, removeExisting, hasChildren) {
+    appendFolderElement : function(folder, hasChildren) {
 		
-        if (debug) console.log('Folder: ', folder);
-        var parent = Structr.findParent(parentId, null, null, folders);
+        console.log('Folder: ', folder, hasChildren);
+        //var parent = Structr.node(folder, null, null, folders);
 		
-        parent.append('<div structr_type="folder" class="node folder ' + folder.id + '_">'
+        folders.append('<div structr_type="folder" class="node folder ' + folder.id + '_">'
             + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
             + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
             + '</div>');
-        var div = Structr.node(folder.id, parentId);
+        var div = Structr.node(folder.id);
         
         div.append('<img title="Delete Content \'' + folder.name + '\'" alt="Delete Content \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
