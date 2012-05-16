@@ -37,7 +37,7 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
 
 import org.structr.common.GeoHelper;
-import org.structr.common.GeoHelper.Coordinates;
+import org.structr.common.GeoHelper.GeoCodingResult;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -157,7 +157,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			List<TextualSearchAttribute> textualAttributes = new ArrayList<TextualSearchAttribute>();
 			StringBuilder textualQueryString               = new StringBuilder();
 			DistanceSearchAttribute distanceSearch         = null;
-			Coordinates coords                             = null;
+			GeoCodingResult coords                             = null;
 			Double dist                                    = null;
 
 			for (SearchAttribute attr : searchAttrs) {
