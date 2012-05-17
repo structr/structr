@@ -82,6 +82,8 @@ var _UsersAndGroups = {
             users.append(user);//.animate();
         }
 
+        if (debug) console.log('removeUserFromGroup, containesNodes?', group, Structr.containsNodes(group));
+
         if (!Structr.containsNodes(group)) {
             _Entities.removeExpandIcon(group);
         }
@@ -161,9 +163,6 @@ var _UsersAndGroups = {
         if (!groupId && user.group.length) return false;
 
         removeExisting = true;
-
-        //        if (!groupId && Structr.node(user.id).length) return false;
-        //        if (groupId && Structr.node(user.id, groupId).length) return false;
 
         var div;
         var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '

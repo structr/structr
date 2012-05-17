@@ -183,9 +183,13 @@ var _Files = {
 
         if (debug) console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
         
+        if (!folderId && file.folder) return false;
+        
         removeExisting = true;
 
+        var div;
         var parentElement, cls;
+        
         if (isImage) {
             parentElement = images;
             cls = 'image';
@@ -198,7 +202,7 @@ var _Files = {
         
         var parent = Structr.findParent(folderId, null, null, parentElement);
         var delIcon, newDelIcon;
-        var div = Structr.node(file.id);
+        div = Structr.node(file.id);
         if (removeExisting && div && div.length) {
             parent.append(div.css({
                 top: 0,
@@ -222,7 +226,7 @@ var _Files = {
         
         delIcon = $('.delete_icon', div);
 
-        if (folderId || removeExisting) {
+        if (folderId) {
             newDelIcon = '<img title="Remove '+  cls + ' \'' + file.name + '\' from folder ' + folderId + '" alt="Remove '+  cls + ' \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_file_icon + '">';
             if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
@@ -338,11 +342,12 @@ var _Files = {
             zIndex: 1
         });
 
-        var numberOfFiles = $('.' + cls, folder).size();
-        if (debug) console.log(numberOfFiles);
-        if (numberOfFiles == 0) {
+        if (!Structr.containsNodes(folder)) {
+            _Entities.removeExpandIcon(folder);
             enable($('.delete_icon', folder)[0]);
         }
+
+
 
         if (debug) console.log('removeFileFromFolder: fileId=' + fileId + ', folderId=' + folderId);
         Command.removeSourceFromTarget(fileId, folderId);

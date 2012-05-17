@@ -99,13 +99,19 @@ var _Entities = {
             lastAppendedObj = _Files.appendFolderElement(entity, hasChildren);
 
         } else if (entity.type == 'Image') {
+            
             if (debug) console.log('Image:', entity);
             _Files.uploadFile(entity);
+            
             lastAppendedObj = _Files.appendImageElement(entity, parentId, removeExisting, hasChildren);
+            
         } else if (entity.type == 'File') {
+            
             if (debug) console.log('File: ', entity);
             _Files.uploadFile(entity);
+            
             lastAppendedObj = _Files.appendFileElement(entity, parentId, removeExisting, hasChildren);
+            
         } else {
 
             if (debug) console.log('Entity: ', entity);
