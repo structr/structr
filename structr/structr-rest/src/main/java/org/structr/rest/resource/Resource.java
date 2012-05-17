@@ -385,6 +385,15 @@ public abstract class Resource {
 
 						if (looseSearch) {
 
+							// no quotes allowed in loose search queries!
+							if(searchValue.contains("\"")) {
+								searchValue = searchValue.replaceAll("[\"]+", "");
+							}
+							
+							if(searchValue.contains("'")) {
+								searchValue = searchValue.replaceAll("[']+", "");
+							}
+							
 							searchAttributes.add(Search.andProperty(key, searchValue));
 
 						} else {
@@ -416,5 +425,12 @@ public abstract class Resource {
 
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
+	}
+	
+	public static void main(String[] args) {
+		
+		String test = "\"\"\"us De Lameng\"\" e.V.\"";
+		
+		System.out.println(test.replaceAll("[\"]+", "\""));
 	}
 }
