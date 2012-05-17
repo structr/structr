@@ -151,7 +151,13 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 	 */
 	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeleted, final boolean publicOnly) throws FrameworkException {
 
-		List<AbstractNode> nodes = new ArrayList<AbstractNode>(input.size() + 1);
+		int size = input.size();
+		
+		if (size <= 0) {
+			return Collections.EMPTY_LIST;
+		}
+		
+		List<AbstractNode> nodes = new ArrayList<AbstractNode>(size + 1);
 
 		if (input != null && input instanceof SpatialRecordHits) {
 
