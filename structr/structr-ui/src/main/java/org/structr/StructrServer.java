@@ -286,14 +286,14 @@ public class StructrServer {
 		String logPath                      = basePath + "/logs";
 		File logDir                         = new File(logPath);
 
-		logPath = logDir.getAbsolutePath();
-
 		// Create logs directory if not existing
 		if (!logDir.exists()) {
 
 			logDir.mkdir();
 
 		}
+
+		logPath = logDir.getAbsolutePath();
 
 		NCSARequestLog requestLog = new NCSARequestLog(logPath + "/structr-yyyy_mm_dd.request.log");
 
