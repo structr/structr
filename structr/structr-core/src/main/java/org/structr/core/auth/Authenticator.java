@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.ResourceAccess;
 
 /**
  * An authenticator interface that defines how the system
@@ -49,7 +50,7 @@ public interface Authenticator {
 	 * @param request
 	 * @throws FrameworkException 
 	 */
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String uriPart, String propertyView) throws FrameworkException;
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, ResourceAccess resourceAccess, String propertyView) throws FrameworkException;
 	
 	/**
 	 *

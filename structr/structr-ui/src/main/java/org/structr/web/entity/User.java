@@ -21,6 +21,7 @@
 
 package org.structr.web.entity;
 
+import java.util.LinkedHashSet;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
@@ -39,7 +40,9 @@ import org.structr.core.node.NodeService.NodeIndex;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import org.structr.core.entity.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,6 +53,8 @@ import java.util.logging.Logger;
  */
 public class User extends Person implements Principal {
 
+	private Set<ResourceAccess> cachedGrants = null;
+	
 	// private static final Logger logger = Logger.getLogger(User.class.getName());
 	static {
 
@@ -242,5 +247,24 @@ public class User extends Person implements Principal {
 
 		setProperty(Key.backendUser, isBackendUser);
 
+	}
+	
+	@Override
+	public Set<ResourceAccess> getGrants() {
+		
+		if(cachedGrants == null) {
+			
+			cachedGrants = new LinkedHashSet<ResourceAccess>();
+			
+			for(AbstractNode grant : getRelatedNodes(ResourceAccess.class)) {
+				
+				if (grant instanceof ResourceAccess) {
+					
+					cachedGrants.add((ResourceAccess)grant);
+				}
+			}
+		}
+		
+		return cachedGrants;
 	}
 }

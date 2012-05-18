@@ -41,6 +41,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.entity.ResourceAccess;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,7 +60,7 @@ public class HttpAuthenticator implements Authenticator {
 	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String uriPart, String propertyView) throws FrameworkException { }
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, ResourceAccess resourceAccess, String propertyView) throws FrameworkException { }
 
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
