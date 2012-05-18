@@ -96,7 +96,7 @@ var _Entities = {
 
         } else if (entity.type == 'Folder') {
 
-            lastAppendedObj = _Files.appendFolderElement(entity, hasChildren);
+            lastAppendedObj = _Files.appendFolderElement(entity, parentId, hasChildren);
 
         } else if (entity.type == 'Image') {
             

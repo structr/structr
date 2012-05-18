@@ -108,7 +108,7 @@ var _UsersAndGroups = {
         }
 
         if (debug) console.log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
-        Command.removeSourceFromTarget(userId, groupId);
+        
     },
 
     deleteUser : function(button, user) {
@@ -169,11 +169,14 @@ var _UsersAndGroups = {
         + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">'
         var delIcon;
         div = $('.' + user.id + '_', users);
+        
         if (groupId) {
+            
+            div = Structr.node(user.id, groupId);
 
             var parent = Structr.node(groupId);
             
-            if (debug) console.log(parent, div);
+            console.log('parent, div', parent, div);
             
             if (removeExisting && div && div.length) {
                 parent.append(div.css({
@@ -182,6 +185,9 @@ var _UsersAndGroups = {
                 }));
                 delIcon = $('.delete_icon', div);
                 delIcon.replaceWith(newDelIcon);
+                
+                console.log('################ disable delete icon');
+                
                 disable($('.delete_icon', parent)[0]);
 
             } else {
@@ -196,7 +202,7 @@ var _UsersAndGroups = {
             delIcon = $('.delete_icon', div);
             delIcon.on('click', function(e) {
                 e.stopPropagation();
-                _UsersAndGroups.removeUserFromGroup(user.id, groupId);
+                Command.removeSourceFromTarget(user.id, groupId);
             });
 
 
@@ -214,6 +220,7 @@ var _UsersAndGroups = {
             newDelIcon = '<img title="Delete user \'' + user.name + '\'" '
             + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
             delIcon = $('.delete_icon', div);
+            
             if (removeExisting && delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {

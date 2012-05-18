@@ -174,7 +174,7 @@ var Command = {
         data.resourceId = resourceId;
         data.position = position;
         obj.data = data;
-        if (debug) console.log('removeSourceFromTarget()', obj);
+        console.log('removeSourceFromTarget()', obj);
         return sendObj(obj);
     },
 
