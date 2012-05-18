@@ -993,8 +993,8 @@ var _Resources = {
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
                 var self = $(this);
-                self.off('click');
-                self.off('mouseover');
+                //self.off('click');
+                //self.off('mouseover');
                 if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, componentId, resourceId, pos);
                 Command.removeSourceFromTarget(content.id, parentId, componentId, resourceId, pos)
             });

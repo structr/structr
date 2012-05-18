@@ -294,6 +294,16 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		String[] pathParts                 = PathHelper.getParts(path);
+		
+		if (pathParts == null && pathParts.length == 0) {
+			
+			logger.log(Level.WARNING, "Could not get path parts from path {0}", path);
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			
+			return;
+			
+		}
+		
 		String name                        = PathHelper.getName(pathParts[0]);
 		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
 		Map<String, String[]> parameterMap = request.getParameterMap();

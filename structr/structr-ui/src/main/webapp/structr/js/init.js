@@ -420,13 +420,13 @@ var Structr = {
     },
 
     containsNodes : function(element) {
-        return Structr.numberOfNodes(element).length;
+        return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
     },
 
     numberOfNodes : function(element) {
         var n = ($(element).children('.node')).length;
         if (debug) console.log('number of nodes in element', element, n);
-        return n
+        return n;
     },
 
     findParent : function(parentId, componentId, resourceId, defaultElement) {

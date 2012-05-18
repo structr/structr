@@ -222,7 +222,11 @@ function connect() {
                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
                 $(result).each(function(i, entity) {
                     if (debug) console.log('LIST: ' + entity.type);
-                    _Entities.appendObj(entity, null, null, null, false, isIn(entity.id, data.nodesWithChildren));
+                    
+                    if (entity.type != 'Folder' || !entity.parentFolder) {
+                        _Entities.appendObj(entity, null, null, null, false, isIn(entity.id, data.nodesWithChildren));
+                    }
+                    
                 });
 
             } else if (command == 'DELETE') { /*********************** DELETE ************************/
@@ -234,13 +238,13 @@ function connect() {
 
             } else if (command == 'REMOVE') { /*********************** REMOVE ************************/
 
-                if (debug) console.log(data);
+                console.log(data);
 
                 //parent = Structr.node(parentId);
                 entity = Structr.node(entityId, parentId, componentId, resourceId, position);
 
                 //if (debug) console.log(parent);
-                if (debug) console.log(entity);
+                console.log(entity);
 
                 //var id = getIdFromClassString(entity.attr('class'));
                 //entity.id = id;
@@ -254,12 +258,16 @@ function connect() {
                     _Resources.reloadPreviews();
 
                 } else if (entity.hasClass('file')) {
-                    if (debug) console.log('remove file from folder');
+                    console.log('remove file from folder');
                     _Files.removeFileFromFolder(entityId, parentId, position);
 
                 } else if (entity.hasClass('image')) {
                     if (debug) console.log('remove image from folder');
                     _Files.removeImageFromFolder(entityId, parentId, position);
+
+                } else if (entity.hasClass('folder')) {
+                    if (debug) console.log('remove folder from folder');
+                    _Files.removeFolderFromFolder(entityId, parentId, position);
 
                 } else {
                 //if (debug) console.log('remove element');
@@ -274,7 +282,7 @@ function connect() {
                 //console.log(command, result, data, data.data);
 				
                 $(result).each(function(i, entity) {
-                    console.log(command, entity, parentId, componentId, resourceId);
+                    console.log(command, entity, parentId, componentId, resourceId, command == 'ADD');
                     _Entities.appendObj(entity, parentId, componentId, resourceId, command == 'ADD');
                 });
 
@@ -348,10 +356,10 @@ function connect() {
                         }
                     }
                     
-                    console.log(key, Structr.getClass(element));
+                    if (debug) console.log(key, Structr.getClass(element));
                     
                     if (key == 'name' && Structr.getClass(element) == 'resource') {
-                        console.log('Reload iframe', data.id, newValue);
+                        if (debug) console.log('Reload iframe', data.id, newValue);
                         window.setTimeout(function() { _Resources.reloadIframe(data.id, newValue) }, 100);
                     }
 

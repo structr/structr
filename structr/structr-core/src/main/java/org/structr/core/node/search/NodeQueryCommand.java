@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.Query;
-import org.neo4j.index.lucene.QueryContext;
 import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
