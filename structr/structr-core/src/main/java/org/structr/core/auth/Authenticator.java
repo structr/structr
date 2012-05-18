@@ -49,7 +49,7 @@ public interface Authenticator {
 	 * @param request
 	 * @throws FrameworkException 
 	 */
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String uriPart) throws FrameworkException;
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String uriPart, String propertyView) throws FrameworkException;
 	
 	/**
 	 *

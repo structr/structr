@@ -101,8 +101,8 @@ public class SecurityContext {
 		this.authenticator.initializeAndExamineRequest(this, request, response);
 	}
 	
-	public void examineRequest(HttpServletRequest request, String uriPart) throws FrameworkException {
-		this.authenticator.examineRequest(this, request, uriPart);
+	public void examineRequest(HttpServletRequest request, String uriPart, String propertyView) throws FrameworkException {
+		this.authenticator.examineRequest(this, request, uriPart, propertyView);
 	}
 
 	public Principal doLogin(String userName, String password) throws AuthenticationException {
