@@ -41,7 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -101,8 +101,8 @@ public class SecurityContext {
 		this.authenticator.initializeAndExamineRequest(this, request, response);
 	}
 	
-	public void examineRequest(HttpServletRequest request, String uriPart, String propertyView) throws FrameworkException {
-		this.authenticator.examineRequest(this, request, uriPart, propertyView);
+	public void examineRequest(HttpServletRequest request, ResourceAccess resourceAccess, String propertyView) throws FrameworkException {
+		this.authenticator.examineRequest(this, request, resourceAccess, propertyView);
 	}
 
 	public Principal doLogin(String userName, String password) throws AuthenticationException {

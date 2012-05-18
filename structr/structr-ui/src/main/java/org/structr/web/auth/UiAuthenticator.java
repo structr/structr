@@ -32,6 +32,7 @@ import org.structr.core.entity.Principal;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.entity.ResourceAccess;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,7 +48,7 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String uriPart, String propertyView) throws FrameworkException { }
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, ResourceAccess resourceAccess, String propertyView) throws FrameworkException { }
 
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {

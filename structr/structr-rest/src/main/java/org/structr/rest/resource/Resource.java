@@ -38,10 +38,13 @@ import org.structr.rest.servlet.JsonRestServlet;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.entity.ResourceAccess;
+import org.structr.core.node.search.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -89,6 +92,10 @@ public abstract class Resource {
 	public abstract RestMethodResult doOptions() throws FrameworkException;
 
 	public abstract Resource tryCombineWith(Resource next) throws FrameworkException;
+
+	public abstract boolean isCollectionResource() throws FrameworkException;
+	
+	public abstract String getUriPart();
 
 	// ----- methods -----
 	public RestMethodResult doDelete() throws FrameworkException {
@@ -199,6 +206,18 @@ public abstract class Resource {
 		// override me
 	}
 
+	public boolean isPrimitiveArray() {
+		return false;
+	}
+
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
+	
+	public ResourceAccess getGrant() throws FrameworkException {
+		return findOrCreateGrant();
+	}
+
 	// ----- protected methods -----
 	protected RelationClass findRelationClass(TypedIdResource typedIdResource, TypeResource typeResource) {
 		return findRelationClass(typedIdResource.getTypeResource(), typeResource);
@@ -286,6 +305,60 @@ public abstract class Resource {
 		}
 	}
 
+	protected ResourceAccess findOrCreateGrant() throws FrameworkException {
+		
+		Command search                         = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		AbstractNode topNode                   = null;
+		boolean includeDeleted                 = false;
+		boolean publicOnly                     = false;
+		String uriPart                         = this.getUriPart();
+		ResourceAccess grant                            = null;
+		
+		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
+		searchAttributes.add(Search.andExactProperty(ResourceAccess.Key.uri, uriPart));
+		
+		List<AbstractNode> nodes = (List<AbstractNode>)search.execute(topNode, includeDeleted, publicOnly, searchAttributes);
+		if(nodes.isEmpty()) {
+			
+			// create new grant
+			final Command create = Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class);
+			final Map<String, Object> newGrantAttributes = new LinkedHashMap<String, Object>();
+			
+			newGrantAttributes.put(AbstractNode.Key.type.name(), ResourceAccess.class.getSimpleName());
+			newGrantAttributes.put(ResourceAccess.Key.uri.name(), uriPart);
+			
+			grant = (ResourceAccess)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+			
+				@Override public Object execute() throws FrameworkException {
+					return create.execute(newGrantAttributes);
+				}
+			});
+			
+		} else {
+			
+			if(nodes.size() == 1) {
+				
+				AbstractNode node = nodes.get(0);
+				if(node instanceof ResourceAccess) {
+					
+					grant = (ResourceAccess)node;
+					
+				} else {
+				
+					logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { uriPart, node.getClass().getName() } );
+					
+				}
+				
+			} else {
+				
+				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { nodes.size(), uriPart } );
+			}
+		}
+		
+		return grant;
+	}
+	
 	// ----- private methods -----
 	private int parseInteger(Object source) {
 
@@ -319,10 +392,6 @@ public abstract class Resource {
 
 		}
 	}
-
-	//~--- get methods ----------------------------------------------------
-
-	public abstract String getUriPart();
 
 	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request) throws FrameworkException {
 
@@ -413,24 +482,5 @@ public abstract class Resource {
 		}
 
 		return hasSearchableAttributes;
-	}
-
-	public boolean isPrimitiveArray() {
-		return false;
-	}
-
-	public abstract boolean isCollectionResource() throws FrameworkException;
-
-	//~--- set methods ----------------------------------------------------
-
-	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
-	}
-	
-	public static void main(String[] args) {
-		
-		String test = "\"\"\"us De Lameng\"\" e.V.\"";
-		
-		System.out.println(test.replaceAll("[\"]+", "\""));
 	}
 }

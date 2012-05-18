@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import java.util.Collections;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -28,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
+import java.util.Set;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -213,4 +215,9 @@ public class SuperUser implements Principal {
 
 	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
+	
+	@Override
+	public Set<ResourceAccess> getGrants() {
+		return Collections.emptySet();
+	}
 }
