@@ -111,6 +111,26 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			// Create node with type
 			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
+			
+			if ((user != null) &&!(user instanceof SuperUser)) {
+				
+				node.setOwner(user);
+
+//				RelationClass rel = new RelationClass(null, RelType.OWNS, Direction.OUTGOING, Cardinality.OneToMany, null, RelationClass.DELETE_NONE);
+//
+//				rel.createRelationship(securityContext, user, node);
+//
+////                              createRel.execute(user, node, RelType.OWNS, true); // avoid duplicates
+//				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getStringProperty(AbstractNode.Key.name));
+//
+//				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, null, true);    // avoid duplicates
+//
+//				securityRel.setAllowed(AbstractRelationship.Permission.values());
+//				logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));
+//				node.unlockReadOnlyPropertiesOnce();
+//				node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
+
+			}
 
 			node.unlockReadOnlyPropertiesOnce();
 			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
@@ -125,53 +145,12 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			for (Entry<String, Object> attr : attrs.entrySet()) {
 
 				Object value = attr.getValue();
-
-				// ignore null values at creation
-				if (value != null) {
-
-					node.setProperty(attr.getKey(), value);
-
-				}
+				node.setProperty(attr.getKey(), value);
 
 			}
 
 			attrs.clear();
 
-			if ((user != null) &&!(user instanceof SuperUser)) {
-
-				RelationClass rel = new RelationClass(null, RelType.OWNS, Direction.OUTGOING, Cardinality.OneToMany, null, RelationClass.DELETE_NONE);
-
-				rel.createRelationship(securityContext, user, node);
-
-//                              createRel.execute(user, node, RelType.OWNS, true); // avoid duplicates
-				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getStringProperty(AbstractNode.Key.name));
-
-				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, null, true);    // avoid duplicates
-
-				securityRel.setAllowed(AbstractRelationship.Permission.values());
-				logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));
-				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
-
-//				// Group group = user.getGroupNode();
-//				IterableAdapter groups = (IterableAdapter) user.getProperty(Principal.Key.groups);
-//
-//				if (groups != null) {
-//
-//					while (groups.iterator().hasNext()) {
-//
-//						Group group                      = (Group) groups.iterator().next();
-//						securityRel = (AbstractRelationship) createRel.execute(group, node, RelType.SECURITY, true);    // avoid duplicates
-//
-//						securityRel.setAllowed(AbstractRelationship.Permission.values());
-//						logger.log(Level.FINEST, "All permissions given to group {0}", group.getName());
-//
-//					}
-//
-//				}
-
-
-			}
 
 		}
 

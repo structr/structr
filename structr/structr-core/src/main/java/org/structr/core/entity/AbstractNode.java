@@ -1901,17 +1901,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 	}
 
-	public void setOwnerId(final Long value) {
-		setOwnerNode(value);
-	}
-
-	private void setOwnerNode(final Long nodeId) {
+	public void setOwner(final Principal owner) {
 
 		try {
 
 			Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
 
-			setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(nodeId));
+			setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(owner));
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to set owner node", fex);
