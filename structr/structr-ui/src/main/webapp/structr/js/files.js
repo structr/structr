@@ -202,8 +202,6 @@ var _Files = {
         
         var parent = Structr.findParent(folderId, null, null, parentElement);
         
-        if (cls == 'file') console.log('###########', parent);
-        
         var delIcon, newDelIcon;
         div = Structr.node(file.id);
         if (removeExisting && div && div.length) {
@@ -420,6 +418,7 @@ var _Files = {
     },
     
     removeFileFromFolder : function(fileId, folderId, isImage) {
+        if (debug) console.log('removeFileFromFolder', fileId, folderId, isImage);
         
         var parentElement, cls;
         if (isImage) {
@@ -432,6 +431,9 @@ var _Files = {
 
         var folder = Structr.node(folderId);
         var file = Structr.node(fileId, folderId);
+        
+        if (debug) console.log(file, folder);
+        
         _Entities.resetMouseOverState(file);
         
         parentElement.append(file);
@@ -453,8 +455,7 @@ var _Files = {
             _Entities.removeExpandIcon(folder);
             enable($('.delete_icon', folder)[0]);
         }
-
-        if (debug) console.log('removeFileFromFolder: fileId=' + fileId + ', folderId=' + folderId);
+        
     },
     
     removeImageFromFolder : function(imageId, folderId) {

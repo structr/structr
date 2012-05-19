@@ -243,7 +243,7 @@ var Command = {
         obj.id = id;
         obj.data = nodeData;
         obj.relData = relData;
-        console.log('createAndAdd()', obj);
+        if (debug) console.log('createAndAdd()', obj);
         return sendObj(obj);
     },
 

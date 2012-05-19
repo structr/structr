@@ -238,7 +238,7 @@ function connect() {
 
             } else if (command == 'REMOVE') { /*********************** REMOVE ************************/
 
-                if (debug) console.log(data);
+                if (debug) console.log(command, data);
 
                 //parent = Structr.node(parentId);
                 entity = Structr.node(entityId, parentId, componentId, resourceId, position);
@@ -436,7 +436,7 @@ function send(text) {
 
 function log(msg) {
     if (debug) console.log(msg);
-    $("#log").append("<br />" + msg);
+    $("#log").append("<br>" + msg);
 }
 
 

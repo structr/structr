@@ -472,7 +472,7 @@ var Structr = {
                     if (id == parentId) {
                         entityElement = parentElement;
                     } else {
-                        entityElement = $('.node.' + id + '_', parentElement);
+                        entityElement = parentElement.children('.node.' + id + '_');
                         if (debug) console.log('entityElement', entityElement);
                     }
                 }
@@ -509,7 +509,7 @@ var Structr = {
         } else if (id && parentId) {
 
             parentElement = $('.node.' + parentId + '_');
-            entityElement = $('.node.' + id + '_', parentElement);
+            entityElement = parentElement.children('.node.' + id + '_');
 
         } else if (id) {
 

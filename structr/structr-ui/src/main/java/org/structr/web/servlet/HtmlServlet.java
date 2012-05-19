@@ -627,7 +627,7 @@ public class HtmlServlet extends HttpServlet {
 				// replace newlines with <br /> for rendering
 				if ((contentType == null || contentType.equals("text/plain")) && (content != null) && !content.isEmpty()) {
 
-					content = content.replaceAll("[\\n]{1}", "<br />");
+					content = content.replaceAll("[\\n]{1}", "<br>");
 				}
 
 			}

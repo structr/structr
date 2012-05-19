@@ -330,7 +330,7 @@ var _Resources = {
         input.focus().select();
 
         input.on('blur', function() {
-            console.log('blur');
+            if (debug) console.log('blur');
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
@@ -340,7 +340,7 @@ var _Resources = {
         input.keypress(function(e) {
             if (e.keyCode == 13 || e.keyCode == 9) {
                 e.preventDefault(); 
-                console.log('keypress');
+                if (debug) console.log('keypress');
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
@@ -660,6 +660,7 @@ var _Resources = {
                             contentSourceId = null;
                             self.attr('contenteditable', false);
                             self.removeClass('structr-editable-area-active');
+                            _Resources.reloadPreviews();
                         }
                     });
 				
