@@ -171,20 +171,9 @@ function connect() {
                         if (debug) console.log(attrElement, value);
                         _Entities.changeBooleanAttribute(attrElement, value);
 
-                    } else if (key == 'ownerId') {
-                        // append whole node
-
-                        var user = {};
-                        user.id = value;
-                        user.type = 'User';
-                        user.name = 'testuser';
-
-                        parentElement.append('<div class="user ' + user.id + '_">'
-                            + '<img class="typeIcon" src="icon/user.png">'
-                            + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
-                            + '</div>');
-                        
                     } else {
+                        
+                        if (debug) console.log($(attrElement));
                         
                         var tag = $(attrElement).get(0).tagName.toLowerCase();
                         
