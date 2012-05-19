@@ -82,6 +82,8 @@ var _UsersAndGroups = {
             users.append(user);//.animate();
         }
 
+        _Entities.resetMouseOverState(user);
+        
         if (debug) console.log('removeUserFromGroup, containesNodes?', group, Structr.containsNodes(group));
 
         if (!Structr.containsNodes(group)) {
@@ -172,7 +174,7 @@ var _UsersAndGroups = {
         
         if (groupId) {
             
-            div = Structr.node(user.id, groupId);
+            //div = Structr.node(user.id, groupId);
 
             var parent = Structr.node(groupId);
             
@@ -188,9 +190,12 @@ var _UsersAndGroups = {
                 
                 console.log('################ disable delete icon');
                 
-                disable($('.delete_icon', parent)[0]);
 
             } else {
+                
+                console.log('### new user, appending to ', parent);
+                
+                
                 parent.append('<div class="node user ' + user.id + '_">'
                     + '<img class="typeIcon" src="icon/user.png">'
                     //				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
@@ -198,6 +203,7 @@ var _UsersAndGroups = {
                     + '</div>');
                 div = Structr.node(user.id, groupId);
                 div.append(newDelIcon);
+                
             }
             delIcon = $('.delete_icon', div);
             delIcon.on('click', function(e) {
@@ -205,6 +211,8 @@ var _UsersAndGroups = {
                 Command.removeSourceFromTarget(user.id, groupId);
             });
 
+            // disable delete icon on parent
+            disable($('.delete_icon', parent)[0]);
 
         } else {
 
