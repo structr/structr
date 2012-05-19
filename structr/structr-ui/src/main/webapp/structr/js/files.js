@@ -454,7 +454,7 @@ var _Files = {
             enable($('.delete_icon', folder)[0]);
         }
 
-        console.log('removeFileFromFolder: fileId=' + fileId + ', folderId=' + folderId);
+        if (debug) console.log('removeFileFromFolder: fileId=' + fileId + ', folderId=' + folderId);
     },
     
     removeImageFromFolder : function(imageId, folderId) {

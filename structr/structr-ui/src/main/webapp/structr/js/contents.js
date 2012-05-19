@@ -124,27 +124,29 @@ var _Contents = {
         var div = element.append('<div class="editor"></div>');
         if (debug) console.log(div);
         var contentBox = $('.editor', element);
+        var text1, text2;
         editor = CodeMirror(contentBox.get(0), {
             value: unescapeTags(text),
             mode:  "htmlmixed",
             lineNumbers: true,
             onChange: function(cm, changes) {
-				
+                
                 var element = $( '.' + entity.id + '_')[0];
-                var text1 = $(element).children('.content_').text();
-                var text2 = editor.getValue();
+                
+                text1 = $(element).children('.content_').text();
+                text2 = editor.getValue();
                 
                 if (!text1) text1 = '';
                 if (!text2) text2 = '';
 		
                 if (debug) console.log('Element', element);
-                if (debug) console.log('text1', text1);
-                if (debug) console.log('text2', text2);
+                if (debug) console.log(text1);
+                if (debug) console.log(text2);
                 
                 if (text1 == text2) return;
                 editorCursor = cm.getCursor();
                 if (debug) console.log(editorCursor);
-				
+
                 Command.patch(entity.id, text1, text2);
 				
             }

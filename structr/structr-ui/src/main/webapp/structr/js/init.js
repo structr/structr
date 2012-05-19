@@ -86,20 +86,20 @@ $(document).ready(function() {
         over: function(event, ui) {
 
             var self = $(this);
-//            var node = $(ui.helper).clone().appendTo('body');
-//            console.log(node);
-//            //var el = $(ui.get(0)).clone();
-//            //header.append(node);
-//            
-//            //node.draggable();
-////            $('body').append(node);
-//            //main.empty();
-//            node.draggable({
-//                revert: 'invalid',
-//                helper: 'clone',
-//                //containment: '#main',
-//                zIndex: 4
-//            });
+            //            var node = $(ui.helper).clone().appendTo('body');
+            //            console.log(node);
+            //            //var el = $(ui.get(0)).clone();
+            //            //header.append(node);
+            //            
+            //            //node.draggable();
+            ////            $('body').append(node);
+            //            //main.empty();
+            //            node.draggable({
+            //                revert: 'invalid',
+            //                helper: 'clone',
+            //                //containment: '#main',
+            //                zIndex: 4
+            //            });
             Structr.activateMenuEntry('resources');
             Structr.modules['resources'].onload();
             _Resources.resize();
@@ -878,4 +878,26 @@ if (typeof String.prototype.capitalize != 'function') {
     String.prototype.capitalize = function() {
         return this.charAt(0).toUpperCase() + this.slice(1);
     };
+}
+
+/**
+ * Clean text from contenteditable
+ * 
+ * This function will remove any HTML markup and convert
+ * any <br> tag into a line feed ('\n').
+ */
+function cleanText(input) {
+    if (debug)console.log(input);
+    var output = '';
+    $(input).each(function(i, line) {
+        var cleaned = $(line).text();
+        if (debug) console.log(cleaned.length);
+        if (cleaned.length) {
+            output += cleaned;
+        } else {
+            output += '\n';
+        }
+    });
+    if (debug) console.log(output);
+    return output;
 }

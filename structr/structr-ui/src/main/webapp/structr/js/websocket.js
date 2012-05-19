@@ -157,12 +157,12 @@ function connect() {
                     parentElement = $($('.' + data.id + '_')[0]);
                 }
 
-                console.log('parentElement', parentElement);
+                if (debug) console.log('parentElement', parentElement);
                 var key = data.data.key;
                 var value = data.data[key];
 
                 var attrElement = $(parentElement.find('.' + key + '_')[0]);
-                console.log('attrElement', attrElement);
+                if (debug) console.log('attrElement', attrElement);
                 if (debug) console.log(key, value);
 
                 if (attrElement && value) {
@@ -188,14 +188,14 @@ function connect() {
                         
                         var tag = $(attrElement).get(0).tagName.toLowerCase();
                         
-                        console.log('attrElement tagName', tag);
+                        if (debug) console.log('attrElement tagName', tag);
                         
                         if (!(tag == 'select')) {
-                            console.log('appending ' + value + ' to attrElement', attrElement);
+                            if (debug) console.log('appending ' + value + ' to attrElement', attrElement);
                             attrElement.append(value);
                         }
                         
-                        console.log('setting ' + value + ' on attrElement', attrElement);
+                        if (debug) console.log('setting ' + value + ' on attrElement', attrElement);
                         
                         attrElement.val(value);
                         attrElement.show();
@@ -238,13 +238,13 @@ function connect() {
 
             } else if (command == 'REMOVE') { /*********************** REMOVE ************************/
 
-                console.log(data);
+                if (debug) console.log(data);
 
                 //parent = Structr.node(parentId);
                 entity = Structr.node(entityId, parentId, componentId, resourceId, position);
 
                 //if (debug) console.log(parent);
-                console.log(entity);
+                if (debug) console.log(entity);
 
                 //var id = getIdFromClassString(entity.attr('class'));
                 //entity.id = id;
@@ -258,7 +258,7 @@ function connect() {
                     _Resources.reloadPreviews();
 
                 } else if (entity.hasClass('file')) {
-                    console.log('remove file from folder');
+                    if (debug) console.log('remove file from folder');
                     _Files.removeFileFromFolder(entityId, parentId, position);
 
                 } else if (entity.hasClass('image')) {
@@ -282,7 +282,7 @@ function connect() {
                 //console.log(command, result, data, data.data);
 				
                 $(result).each(function(i, entity) {
-                    console.log(command, entity, parentId, componentId, resourceId, command == 'ADD');
+                    if (debug) console.log(command, entity, parentId, componentId, resourceId, command == 'ADD');
                     _Entities.appendObj(entity, parentId, componentId, resourceId, command == 'ADD');
                 });
 

@@ -644,7 +644,7 @@ var _Resources = {
                             self.addClass('structr-editable-area-active');
 
                             // Store old text in global var
-                            textBeforeEditing = self.contents().first().text();
+                            textBeforeEditing = cleanText(self.contents());
                             if (debug) console.log("textBeforeEditing", textBeforeEditing);
 
                         },
@@ -652,10 +652,11 @@ var _Resources = {
                             e.stopPropagation();
                             var self = $(this);
                             contentSourceId = self.attr('structr_content_id');
-                            if (debug) console.log(self.contents().first());
+                            var text = cleanText(self.contents());
                             if (debug) console.log('blur contentSourceId: ' + contentSourceId);
                             //_Resources.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
-                            Command.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
+                            //Command.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
+                            Command.patch(contentSourceId, textBeforeEditing, text);
                             contentSourceId = null;
                             self.attr('contenteditable', false);
                             self.removeClass('structr-editable-area-active');
