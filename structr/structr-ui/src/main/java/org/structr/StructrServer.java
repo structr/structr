@@ -1,13 +1,13 @@
 /*
  *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or License, or (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -16,6 +16,8 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
 
 package org.structr;
 
@@ -125,7 +127,6 @@ public class StructrServer {
 		if (!modulesDir.exists()) {
 
 			modulesDir.mkdir();
-
 		}
 
 		modulesPath = modulesDir.getAbsolutePath();
@@ -149,8 +150,7 @@ public class StructrServer {
 		webapp.setWar(warPath);
 		System.out.println("Using WAR file " + warPath);
 
-                
-                //FilterHolder rewriteFilter = 
+		// FilterHolder rewriteFilter =
 		webapp.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 
 		// rewriteFilter.setInitParameter("logLevel", "DEBUG");
@@ -290,7 +290,6 @@ public class StructrServer {
 		if (!logDir.exists()) {
 
 			logDir.mkdir();
-
 		}
 
 		logPath = logDir.getAbsolutePath();
@@ -314,5 +313,7 @@ public class StructrServer {
 		server.start();
 		server.join();
 		System.out.println(appName + " stopped.");
+
 	}
+
 }

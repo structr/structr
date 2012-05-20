@@ -19,8 +19,12 @@
 
 package org.structr.web.entity.html;
 
+import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.RelationClass;
+import org.structr.web.entity.Content;
 
 /**
  * @author Axel Morgner
@@ -31,5 +35,18 @@ public class Span extends HtmlElement {
 		EntityContext.registerPropertySet(Span.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Span.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Span.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-	}
+			
+		EntityContext.registerEntityRelation(Span.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+
+		EntityContext.registerEntityRelation(Span.class, Span.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Span.class, B.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Span.class, P.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Span.class, Label.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Span.class, Input.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Span.class, Address.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Span.class, Footer.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Span.class, A.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Span.class, Img.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Span.class, Script.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+}
 }
