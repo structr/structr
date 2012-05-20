@@ -40,6 +40,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
 
@@ -55,7 +56,8 @@ import org.structr.core.entity.*;
  */
 public class SecurityContext {
 
-	private static final Logger logger = Logger.getLogger(SecurityContext.class.getName());
+	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
+	private static final Map<String, Long> resourceFlags = new LinkedHashMap<String, Long>();
 
 	//~--- fields ---------------------------------------------------------
 
@@ -65,9 +67,6 @@ public class SecurityContext {
 	private HttpServletRequest request   = null;
 	private HttpServletResponse response = null;
 	private Principal cachedUser         = null;
-	private String password              = null;
-
-        private static List<String> publicPaths = new LinkedList<String>();
         
 	//~--- constructors ---------------------------------------------------
 
@@ -250,15 +249,50 @@ public class SecurityContext {
 
 		}
 	}
+	
+	public static long getResourceFlags(String resource) {
 
-        public static void addPublicPath(final String path) {
-                publicPaths.add(path);
-        }
-        
-        public static boolean isPublicPath(final String path) {
-                return publicPaths.contains(path);
-        }
-        
+		String name = EntityContext.normalizeEntityName(resource);
+		Long flagObject = resourceFlags.get(name);
+		long flags = 0;
+		
+		if(flagObject != null) {
+			flags = flagObject.longValue();
+		}
+		
+		return flags;
+	}
+
+	public static void setResourceFlag(final String resource, long flag) {
+		
+		String name = EntityContext.normalizeEntityName(resource);
+		Long flagObject = resourceFlags.get(name);
+		long flags = 0;
+		
+		if(flagObject != null) {
+			flags = flagObject.longValue();
+		}
+		
+		flags |= flag;
+		
+		resourceFlags.put(name, flags);
+	}
+
+	public static void clearResourceFlag(final String resource, long flag) {
+		
+		String name = EntityContext.normalizeEntityName(resource);
+		Long flagObject = resourceFlags.get(name);
+		long flags = 0;
+		
+		if(flagObject != null) {
+			flags = flagObject.longValue();
+		}
+		
+		flags &= ~flag;
+		
+		resourceFlags.put(name, flags);
+	}
+	
 	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeDeleted, final boolean publicOnly) {
 
 		boolean readableByUser = false;

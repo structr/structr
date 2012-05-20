@@ -434,7 +434,7 @@ public class EntityContext {
 
 				normalizedType = normalizedType.substring(0, normalizedType.length() - 3).concat("y");
 
-			} else if (normalizedType.endsWith("s")) {
+			} else if (!normalizedType.endsWith("ss") && normalizedType.endsWith("s")) {
 
 				logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", normalizedType);
 
