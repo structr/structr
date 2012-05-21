@@ -127,7 +127,12 @@ public class TypedIdResource extends FilterableResource {
 	public String getUriPart() {
 		return typeResource.getUriPart().concat("/").concat(idResource.getUriPart());
 	}
-
+        
+	@Override
+	public String getUriPartForAccessControl() {
+		return typeResource.getUriPart();
+	}
+        
 	@Override
 	public boolean isCollectionResource() {
 		return false;

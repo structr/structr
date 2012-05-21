@@ -83,4 +83,9 @@ public class SortResource extends WrappingResource {
 		result.setSortOrder(sortOrder);
 		result.setSortKey(sortKey);
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
 }

@@ -167,4 +167,9 @@ public class MaintenanceResource extends Resource {
 	public boolean isCollectionResource() {
 		return false;
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
 }

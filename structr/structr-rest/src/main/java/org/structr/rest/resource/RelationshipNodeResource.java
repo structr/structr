@@ -117,4 +117,9 @@ public class RelationshipNodeResource extends WrappingResource {
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 		return super.tryCombineWith(next);
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
 }

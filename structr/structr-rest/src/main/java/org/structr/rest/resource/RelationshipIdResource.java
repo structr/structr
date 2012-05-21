@@ -147,4 +147,9 @@ public class RelationshipIdResource extends FilterableResource {
 	public boolean isCollectionResource() {
 		return false;
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
 }

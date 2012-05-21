@@ -51,6 +51,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.RelationClass;
 
@@ -461,4 +462,43 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	public boolean isCollectionResource() {
 		return lastResource.isCollectionResource();
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+ 
+                StringBuilder uri = new StringBuilder();
+                
+		for (String part : uriParts) {
+
+                        if (part.contains("/")) {
+                                
+                                String[] parts = StringUtils.split(part, "/");
+                                
+                                for (String subPart : parts) {
+                                        
+                                        if (!subPart.matches("[a-zA-Z0-9]{32}")) {
+
+                                                uri.append(subPart);
+                                                uri.append("/");
+
+                                        }
+                                        
+                                }
+                                
+                        } else {
+                                
+                                if (!part.matches("[a-zA-Z0-9]{32}")) {
+
+                                        uri.append(part);
+                                        uri.append("/");
+
+                                }
+                                
+                        }
+                        
+
+		}
+
+		return uri.toString();
+        }
 }

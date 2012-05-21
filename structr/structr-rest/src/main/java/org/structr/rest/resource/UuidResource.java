@@ -136,4 +136,9 @@ public class UuidResource extends FilterableResource {
 	public boolean isCollectionResource() {
 		return false;
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return "/";
+        }
 }

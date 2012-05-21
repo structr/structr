@@ -481,4 +481,9 @@ public class StaticRelationshipResource extends SortableResource {
 	public boolean isCollectionResource() {
 		return true;
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return typedIdResource.getUriPartForAccessControl().concat("/").concat(typeResource.getUriPartForAccessControl());
+        }
 }

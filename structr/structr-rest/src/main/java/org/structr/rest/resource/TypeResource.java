@@ -255,4 +255,9 @@ public class TypeResource extends SortableResource {
 	public boolean isCollectionResource() {
 		return true;
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
 }

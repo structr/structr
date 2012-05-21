@@ -90,4 +90,9 @@ public class PagingResource extends WrappingResource {
 			((SortResource)wrappedResource).postProcessResultSet(result);
 		}
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
 }

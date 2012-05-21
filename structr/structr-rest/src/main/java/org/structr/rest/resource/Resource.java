@@ -97,6 +97,8 @@ public abstract class Resource {
 	
 	public abstract String getUriPart();
 
+        public abstract String getUriPartForAccessControl();
+
 	// ----- methods -----
 	public RestMethodResult doDelete() throws FrameworkException {
 
@@ -308,7 +310,7 @@ public abstract class Resource {
 	protected ResourceAccess findOrCreateGrant() throws FrameworkException {
 		
 		Command search                         = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
-		String uriPart                         = EntityContext.normalizeEntityName(this.getUriPart());
+		String uriPart                         = EntityContext.normalizeEntityName(this.getUriPartForAccessControl());
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
 		boolean includeDeleted                 = false;

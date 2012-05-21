@@ -90,4 +90,9 @@ public class ViewFilterResource extends WrappingResource {
 	public void configurePropertyView(Value<String> propertyView) {
 		propertyView.set(this.propertyView);
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
 }

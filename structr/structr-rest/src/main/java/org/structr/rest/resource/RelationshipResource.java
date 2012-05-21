@@ -110,4 +110,9 @@ public class RelationshipResource extends WrappingResource {
 	public boolean isCollectionResource() {
 		return true;
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
 }

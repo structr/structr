@@ -89,4 +89,9 @@ public class EntityResolverResource extends SortableResource {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 		throw new IllegalMethodException();
 	}
+
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
 }

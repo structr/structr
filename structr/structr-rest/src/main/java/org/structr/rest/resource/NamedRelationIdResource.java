@@ -133,4 +133,9 @@ public class NamedRelationIdResource extends WrappingResource {
 		return idResource;
 	}
 
+        @Override
+        public String getUriPartForAccessControl() {
+                return getUriPart();
+        }
+
 }

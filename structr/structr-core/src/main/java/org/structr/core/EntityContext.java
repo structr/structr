@@ -415,39 +415,84 @@ public class EntityContext {
 	}
 
 	// ----- private methods -----
-	public static String normalizeEntityName(String possibleEntityName) {
+	public static String normalizeEntityName(String possibleEntityString) {
 
-		if(possibleEntityName == null) {
+		if (possibleEntityString == null) {
+
 			return null;
+
 		}
-		
-		// CAUTION: this cache might grow to a very large size, as it
-		// contains all normalized mappings for every possible
-		// property key / entity name that is ever called.
-		String normalizedType = normalizedEntityNameCache.get(possibleEntityName);
 
-		if (normalizedType == null) {
+                StringBuilder result = new StringBuilder();
+                
+		if (possibleEntityString.contains("/")) {
 
-			normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityName));
+			String[] names           = StringUtils.split(possibleEntityString, "/");
 
-			if (normalizedType.endsWith("ies")) {
+			for (String possibleEntityName : names) {
 
-				normalizedType = normalizedType.substring(0, normalizedType.length() - 3).concat("y");
+				// CAUTION: this cache might grow to a very large size, as it
+				// contains all normalized mappings for every possible
+				// property key / entity name that is ever called.
+				String normalizedType = normalizedEntityNameCache.get(possibleEntityName);
 
-			} else if (!normalizedType.endsWith("ss") && normalizedType.endsWith("s")) {
+				if (normalizedType == null) {
 
-				logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", normalizedType);
+					normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityName));
 
-				normalizedType = normalizedType.substring(0, normalizedType.length() - 1);
+					if (normalizedType.endsWith("ies")) {
+
+						normalizedType = normalizedType.substring(0, normalizedType.length() - 3).concat("y");
+
+					} else if (!normalizedType.endsWith("ss") && normalizedType.endsWith("s")) {
+
+						logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", normalizedType);
+
+						normalizedType = normalizedType.substring(0, normalizedType.length() - 1);
+
+					}
+
+					// logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
+					normalizedEntityNameCache.put(possibleEntityName, normalizedType);
+
+				}
+
+				result.append(normalizedType).append("/");
 
 			}
 
-			// logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
-			normalizedEntityNameCache.put(possibleEntityName, normalizedType);
+			return StringUtils.removeEnd(result.toString(), "/");
 
+		} else {
+
+//                      CAUTION: this cache might grow to a very large size, as it
+			// contains all normalized mappings for every possible
+			// property key / entity name that is ever called.
+			String normalizedType = normalizedEntityNameCache.get(possibleEntityString);
+
+			if (normalizedType == null) {
+
+				normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityString));
+
+				if (normalizedType.endsWith("ies")) {
+
+					normalizedType = normalizedType.substring(0, normalizedType.length() - 3).concat("y");
+
+				} else if (!normalizedType.endsWith("ss") && normalizedType.endsWith("s")) {
+
+					logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", normalizedType);
+
+					normalizedType = normalizedType.substring(0, normalizedType.length() - 1);
+
+				}
+
+				// logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
+				normalizedEntityNameCache.put(possibleEntityString, normalizedType);
+
+			}
+
+			return normalizedType;
 		}
-
-		return normalizedType;
 	}
 
 	private static void registerPropertyRelationInternal(Class sourceType, PropertyKey[] properties, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
@@ -585,10 +630,9 @@ public class EntityContext {
 			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
 
 			// do not check superclass for source type
-			//sourceSuperClass = sourceSuperClass.getSuperclass();
-
+			// sourceSuperClass = sourceSuperClass.getSuperclass();
 			// one level up
-                        destSuperClass   = destSuperClass.getSuperclass();
+			destSuperClass = destSuperClass.getSuperclass();
 
 		}
 
@@ -1132,8 +1176,11 @@ public class EntityContext {
 					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
 
 					if (!data.isDeleted(node)) {
+
 						modifiedNodes.add(nodeFactory.createNode(securityContext, node));
+
 					}
+
 				}
 
 				// 1.2: collect properties of deleted relationships
@@ -1149,17 +1196,19 @@ public class EntityContext {
 						removedRelProperties.put(rel, propertyMap);
 
 					}
-					
+
 					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
 
 					if (!data.isDeleted(rel)) {
+
 						modifiedRels.add(relFactory.createRelationship(securityContext, rel));
-						
+
 						AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
-						
+
 						hasError |= propertyRemoved(securityContext, transactionKey, errorBuffer, relationship, entry.key(), entry.previouslyCommitedValue());
-						
+
 					}
+
 				}
 
 				// 2: notify listeners of node creation (so the modifications can later be tracked)
@@ -1191,8 +1240,8 @@ public class EntityContext {
 
 //                                      AbstractRelationship relationship = relFactory.createRelationship(securityContext, removedRelProperties.get(rel));
 					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, relationship, removedRelProperties.get(rel));
-					//hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, null, removedRelProperties.get(rel));
 
+					// hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, null, removedRelProperties.get(rel));
 					deletedRels.add(relationship);
 
 				}
@@ -1264,7 +1313,7 @@ public class EntityContext {
 				for (AbstractNode node : modifiedNodes) {
 
 					// only send UPDATE if node was not created or deleted in this transaction
-					if (!createdNodes.contains(node) && !deletedNodes.contains(node)) {
+					if (!createdNodes.contains(node) &&!deletedNodes.contains(node)) {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
 
@@ -1278,7 +1327,7 @@ public class EntityContext {
 				for (AbstractRelationship rel : modifiedRels) {
 
 					// only send UPDATE if node was not created or deleted in this transaction
-					if (!createdRels.contains(rel) && !deletedRels.contains(rel)) {
+					if (!createdRels.contains(rel) &&!deletedRels.contains(rel)) {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
 
@@ -1404,7 +1453,6 @@ public class EntityContext {
 
 			return hasError;
 		}
-		
 
 		@Override
 		public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
