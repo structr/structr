@@ -464,7 +464,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
+        public String getResourceSignature() {
  
                 StringBuilder uri = new StringBuilder();
                 

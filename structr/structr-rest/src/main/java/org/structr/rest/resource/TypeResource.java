@@ -257,7 +257,7 @@ public class TypeResource extends SortableResource {
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
+        public String getResourceSignature() {
                 return getUriPart();
         }
 }

@@ -100,8 +100,8 @@ public class SecurityContext {
 		this.authenticator.initializeAndExamineRequest(this, request, response);
 	}
 	
-	public void examineRequest(HttpServletRequest request, ResourceAccess resourceAccess, String propertyView) throws FrameworkException {
-		this.authenticator.examineRequest(this, request, resourceAccess, propertyView);
+	public void examineRequest(HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException {
+		this.authenticator.examineRequest(this, request, resourceSignature, resourceAccess, propertyView);
 	}
 
 	public Principal doLogin(String userName, String password) throws AuthenticationException {
@@ -249,7 +249,11 @@ public class SecurityContext {
 
 		}
 	}
-	
+
+        public static boolean hasFlag(String resourceSignature, long flag) {
+		return (getResourceFlags(resourceSignature) & flag) == flag;
+	}
+
 	public static long getResourceFlags(String resource) {
 
 		String name = EntityContext.normalizeEntityName(resource);

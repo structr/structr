@@ -127,7 +127,7 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
+        public String getResourceSignature() {
                 return getUriPart();
         }
 }

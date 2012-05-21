@@ -91,7 +91,7 @@ public class EntityResolverResource extends SortableResource {
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
+        public String getResourceSignature() {
                 return getUriPart();
         }
 }

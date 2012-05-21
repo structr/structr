@@ -97,7 +97,7 @@ public abstract class Resource {
 	
 	public abstract String getUriPart();
 
-        public abstract String getUriPartForAccessControl();
+        public abstract String getResourceSignature();
 
 	// ----- methods -----
 	public RestMethodResult doDelete() throws FrameworkException {
@@ -217,7 +217,7 @@ public abstract class Resource {
 	}
 	
 	public ResourceAccess getGrant() throws FrameworkException {
-		return findOrCreateGrant();
+		return findGrant();
 	}
 
 	// ----- protected methods -----
@@ -307,10 +307,10 @@ public abstract class Resource {
 		}
 	}
 
-	protected ResourceAccess findOrCreateGrant() throws FrameworkException {
+	protected ResourceAccess findGrant() throws FrameworkException {
 		
 		Command search                         = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
-		String uriPart                         = EntityContext.normalizeEntityName(this.getUriPartForAccessControl());
+		String uriPart                         = EntityContext.normalizeEntityName(this.getResourceSignature());
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
 		boolean includeDeleted                 = false;
@@ -322,21 +322,23 @@ public abstract class Resource {
 		
 		List<AbstractNode> nodes = (List<AbstractNode>)search.execute(topNode, includeDeleted, publicOnly, searchAttributes);
 		if(nodes.isEmpty()) {
-			
-			// create new grant
-			final Command create = Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class);
-			final Map<String, Object> newGrantAttributes = new LinkedHashMap<String, Object>();
-			
-			newGrantAttributes.put(AbstractNode.Key.type.name(), ResourceAccess.class.getSimpleName());
-			newGrantAttributes.put(ResourceAccess.Key.uri.name(), uriPart);
-			newGrantAttributes.put(ResourceAccess.Key.flags.name(), SecurityContext.getResourceFlags(uriPart));
-			
-			grant = (ResourceAccess)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-			
-				@Override public Object execute() throws FrameworkException {
-					return create.execute(newGrantAttributes);
-				}
-			});
+                        
+                        logger.log(Level.INFO, "No resource access object found for {0}", uriPart);
+                        
+//			// create new grant
+//			final Command create = Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class);
+//			final Map<String, Object> newGrantAttributes = new LinkedHashMap<String, Object>();
+//			
+//			newGrantAttributes.put(AbstractNode.Key.type.name(), ResourceAccess.class.getSimpleName());
+//			newGrantAttributes.put(ResourceAccess.Key.uri.name(), uriPart);
+//			newGrantAttributes.put(ResourceAccess.Key.flags.name(), SecurityContext.getResourceFlags(uriPart));
+//			
+//			grant = (ResourceAccess)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+//			
+//				@Override public Object execute() throws FrameworkException {
+//					return create.execute(newGrantAttributes);
+//				}
+//			});
 			
 		} else {
 			

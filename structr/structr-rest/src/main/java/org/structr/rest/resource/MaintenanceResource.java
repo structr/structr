@@ -169,7 +169,7 @@ public class MaintenanceResource extends Resource {
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
+        public String getResourceSignature() {
                 return getUriPart();
         }
 }

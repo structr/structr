@@ -85,7 +85,7 @@ public class SortResource extends WrappingResource {
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
+        public String getResourceSignature() {
                 return getUriPart();
         }
 }

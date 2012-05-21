@@ -483,7 +483,7 @@ public class StaticRelationshipResource extends SortableResource {
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
-                return typedIdResource.getUriPartForAccessControl().concat("/").concat(typeResource.getUriPartForAccessControl());
+        public String getResourceSignature() {
+                return typedIdResource.getResourceSignature().concat("/").concat(typeResource.getResourceSignature());
         }
 }

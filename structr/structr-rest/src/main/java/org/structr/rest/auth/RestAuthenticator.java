@@ -50,7 +50,7 @@ public class RestAuthenticator implements Authenticator {
 	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, ResourceAccess resourceAccess, String propertyView) throws FrameworkException { }
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException { }
 
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {

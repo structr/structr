@@ -138,7 +138,7 @@ public class UuidResource extends FilterableResource {
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
+        public String getResourceSignature() {
                 return "/";
         }
 }

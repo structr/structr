@@ -112,7 +112,7 @@ public class RelationshipResource extends WrappingResource {
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
+        public String getResourceSignature() {
                 return getUriPart();
         }
 }

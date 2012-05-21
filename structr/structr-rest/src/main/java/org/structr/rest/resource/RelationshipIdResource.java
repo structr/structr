@@ -149,7 +149,7 @@ public class RelationshipIdResource extends FilterableResource {
 	}
 
         @Override
-        public String getUriPartForAccessControl() {
+        public String getResourceSignature() {
                 return getUriPart();
         }
 }

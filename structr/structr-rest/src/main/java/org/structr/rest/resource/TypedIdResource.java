@@ -129,7 +129,7 @@ public class TypedIdResource extends FilterableResource {
 	}
         
 	@Override
-	public String getUriPartForAccessControl() {
+	public String getResourceSignature() {
 		return typeResource.getUriPart();
 	}
         
