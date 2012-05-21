@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-import java.util.Set;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -64,8 +63,6 @@ public interface Principal extends GraphObject {
 	public boolean isBackendUser();
 
 	public boolean isFrontendUser();
-	
-	public Set<ResourceAccess> getGrants();
 	
 	//~--- set methods ----------------------------------------------------
 

@@ -215,9 +215,4 @@ public class SuperUser implements Principal {
 
 	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
-	
-	@Override
-	public Set<ResourceAccess> getGrants() {
-		return Collections.emptySet();
-	}
 }

@@ -308,12 +308,12 @@ public abstract class Resource {
 	protected ResourceAccess findOrCreateGrant() throws FrameworkException {
 		
 		Command search                         = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+		String uriPart                         = EntityContext.normalizeEntityName(this.getUriPart());
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
 		boolean includeDeleted                 = false;
 		boolean publicOnly                     = false;
-		String uriPart                         = this.getUriPart();
-		ResourceAccess grant                            = null;
+		ResourceAccess grant                   = null;
 		
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
 		searchAttributes.add(Search.andExactProperty(ResourceAccess.Key.uri, uriPart));
@@ -327,6 +327,7 @@ public abstract class Resource {
 			
 			newGrantAttributes.put(AbstractNode.Key.type.name(), ResourceAccess.class.getSimpleName());
 			newGrantAttributes.put(ResourceAccess.Key.uri.name(), uriPart);
+			newGrantAttributes.put(ResourceAccess.Key.flags.name(), SecurityContext.getResourceFlags(uriPart));
 			
 			grant = (ResourceAccess)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
 			

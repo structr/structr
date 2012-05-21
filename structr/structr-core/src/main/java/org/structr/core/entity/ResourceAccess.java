@@ -19,16 +19,22 @@
 package org.structr.core.entity;
 
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService;
 
 /**
- *
+ * The database representation of a REST resource.
+ * 
+ * This class exists because we need to be able to control access to
+ * specific REST resources in the database, i.e. grant access to
+ * Principals (Users or Groups etc.).
+ * 
+ * ResourceAccess objects are created automatically for every
+ * REST resource on access. The
+ * 
  * @author Christian Morgner
  */
 public class ResourceAccess extends AbstractNode {
@@ -36,6 +42,7 @@ public class ResourceAccess extends AbstractNode {
 	private static final Logger logger = Logger.getLogger(ResourceAccess.class.getName());
 
 	private String cachedUriPart = null;
+	private Long cachedFlags     = null;
 	
 	//~--- static initializers --------------------------------------------
 
@@ -44,12 +51,12 @@ public class ResourceAccess extends AbstractNode {
 		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.Ui, Key.values());
 
-		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), File.Key.values());
-		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(), File.Key.values());
+		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  Key.values());
 		
-		EntityContext.registerEntityRelation(ResourceAccess.class, Principal.class, RelType.SECURITY, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Principal.class, ResourceAccess.class, RelType.SECURITY, Direction.OUTGOING, Cardinality.ManyToMany);
-		
+		// uri and type must be read-only
+		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.Key.type.name());
+		EntityContext.registerWriteOnceProperty(ResourceAccess.class, Key.uri.name());
 
 	}
 
@@ -57,12 +64,57 @@ public class ResourceAccess extends AbstractNode {
 
 	public enum Key implements PropertyKey {
 
-		uri
+		uri, flags
 
 	}
 
 	//~--- methods --------------------------------------------------------
 
+	@Override
+	public String toString() {
+		
+		StringBuilder buf = new StringBuilder();
+		
+		buf.append("('").append(getUriPart()).append("', flags: ").append(getFlags()).append(")");
+		
+		return buf.toString();
+	}
+	
+	public boolean hasFlag(long flag) {
+		return (getFlags() & flag) == flag;
+	}
+	
+	public void setFlag(long flag) throws FrameworkException {
+		
+		// reset cached field
+		cachedFlags = null;
+
+		// set modified property
+		setProperty(Key.flags, getFlags() | flag);
+	}
+	
+	public void clearFlag(long flag) throws FrameworkException {
+		
+		// reset cached field
+		cachedFlags = null;
+
+		// set modified property
+		setProperty(Key.flags, getFlags() & ~flag);
+	}
+	
+	public long getFlags() {
+		
+		if(cachedFlags == null) {
+			cachedFlags = getLongProperty(Key.flags);
+		}
+		
+		if(cachedFlags != null) {
+			return cachedFlags.longValue();
+		}
+		
+		return 0;
+	}
+	
 	public String getUriPart() {
 		
 		if(cachedUriPart == null) {

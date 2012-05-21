@@ -21,8 +21,6 @@
 
 package org.structr.web.entity;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
@@ -33,7 +31,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.entity.ResourceAccess;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -43,8 +40,6 @@ import org.structr.core.entity.ResourceAccess;
  *
  */
 public class Group extends AbstractNode implements Principal {
-
-	private Set<ResourceAccess> cachedGrants = null;
 
 	static {
 
@@ -183,24 +178,5 @@ public class Group extends AbstractNode implements Principal {
 
 		throw new UnsupportedOperationException("Not supported yet.");
 
-	}
-	
-	@Override
-	public Set<ResourceAccess> getGrants() {
-		
-		if(cachedGrants == null) {
-			
-			cachedGrants = new LinkedHashSet<ResourceAccess>();
-			
-			for(AbstractNode grant : getRelatedNodes(ResourceAccess.class)) {
-				
-				if (grant instanceof ResourceAccess) {
-					
-					cachedGrants.add((ResourceAccess)grant);
-				}
-			}
-		}
-		
-		return cachedGrants;
 	}
 }
