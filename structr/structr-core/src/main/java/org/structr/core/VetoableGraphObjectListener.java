@@ -39,6 +39,7 @@ public interface VetoableGraphObjectListener {
 	public boolean rollback(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer);
 
 	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue);
+	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue);
 
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);

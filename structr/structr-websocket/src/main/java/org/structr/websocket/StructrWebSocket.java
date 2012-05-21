@@ -93,9 +93,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		// delete an object
 		addCommand(DeleteCommand.class);
 
-		// remove an object from another (remove relationship)
-		addCommand(RemoveCommand.class);
-
 		// get a chunk (part) of an object
 		addCommand(ChunkCommand.class);
 

@@ -66,16 +66,21 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 		this.clients = new LinkedHashSet<StructrWebSocket>();
 		this.gson    = gson;
+
 	}
 
 	//~--- methods --------------------------------------------------------
 
 	public void registerClient(StructrWebSocket client) {
+
 		clients.add(client);
+
 	}
 
 	public void unregisterClient(StructrWebSocket client) {
+
 		clients.remove(client);
+
 	}
 
 	// ----- private methods -----
@@ -98,8 +103,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 				List<GraphObject> result = webSocketData.getResult();
 
 				if ((result != null) && (result.size() > 0)
-					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD")
-					    || webSocketData.getCommand().equals("CREATE"))) {
+					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
 
 					WebSocketMessage clientData     = webSocketData.copy();
 					SecurityContext securityContext = socket.getSecurityContext();
@@ -111,22 +115,28 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 				} else {
 
 					message = gson.toJson(webSocketData, WebSocketMessage.class);
-
 				}
 
 				logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
 
 				try {
+
 					socketConnection.sendMessage(message);
+
 				} catch (org.eclipse.jetty.io.EofException eof) {
+
 					logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+
 				} catch (Throwable t) {
+
 					logger.log(Level.WARNING, "Error sending message to client.", t);
+
 				}
 
 			}
 
 		}
+
 	}
 
 	private List<GraphObject> filter(final SecurityContext securityContext, final List<GraphObject> all) {
@@ -138,12 +148,12 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			if (securityContext.isVisible((AbstractNode) obj)) {
 
 				filteredResult.add(obj);
-
 			}
 
 		}
 
 		return filteredResult;
+
 	}
 
 	// ----- interface VetoableGraphObjectListener -----
@@ -155,6 +165,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		messageStackMap.put(transactionKey, messageStack);
 
 		return false;
+
 	}
 
 	@Override
@@ -167,18 +178,17 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			for (WebSocketMessage message : messageStack) {
 
 				broadcast(message);
-
 			}
 
 		} else {
 
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
-
 		}
 
 		messageStackMap.remove(transactionKey);
 
 		return false;
+
 	}
 
 	@Override
@@ -191,8 +201,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	}
 
 	@Override
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key,
-					Object oldValue, Object newValue) {
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -208,6 +217,40 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		messageStack.add(message);
 
 		return false;
+
+	}
+
+	@Override
+	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue) {
+
+		messageStack = messageStackMap.get(transactionKey);
+
+		WebSocketMessage message = new WebSocketMessage();
+
+		message.setCommand("UPDATE");
+
+		String uuid = graphObject.getStringProperty(AbstractNode.Key.uuid.name());
+
+		if (graphObject instanceof AbstractRelationship) {
+
+			AbstractRelationship relationship = (AbstractRelationship) graphObject;
+			AbstractNode startNode            = relationship.getStartNode();
+			AbstractNode endNode              = relationship.getEndNode();
+			Map<String, Object> relProperties = relationship.getProperties();
+
+			relProperties.put("startNodeId", startNode.getUuid());
+			relProperties.put("endNodeId", endNode.getUuid());
+			message.setRelData(relProperties);
+
+		}
+
+		message.setId(uuid);
+		message.setGraphObject(graphObject);
+		message.getRemovedProperties().add(key);
+		messageStack.add(message);
+
+		return false;
+
 	}
 
 	@Override
@@ -244,8 +287,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 				}
 
 				messageStack.add(message);
-				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(),
-					startNode.getStringProperty(AbstractNode.Key.uuid), endNode.getStringProperty(AbstractNode.Key.uuid) });
+				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
+					endNode.getStringProperty(AbstractNode.Key.uuid) });
 
 			}
 
@@ -268,12 +311,12 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			return false;
 
 		}
+
 	}
 
 	@Override
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
 
-//
 //              messageStack = messageStackMap.get(transactionKey);
 //
 //              WebSocketMessage message = new WebSocketMessage();
@@ -287,8 +330,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj,
-					  Map<String, Object> properties) {
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, Map<String, Object> properties) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -330,10 +372,14 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			return false;
 
 		}
+
 	}
 
 	@Override
 	public boolean wasVisited(List<GraphObject> traversedNodes, long transactionKey, ErrorBuffer errorBuffer, SecurityContext securityContext) {
+
 		return false;
+
 	}
+
 }

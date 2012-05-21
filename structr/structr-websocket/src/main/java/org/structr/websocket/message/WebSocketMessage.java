@@ -54,6 +54,7 @@ public class WebSocketMessage {
 	private String parent                  = null;
 	private Map<String, Object> relData    = new LinkedHashMap<String, Object>();
 	private Set<String> modifiedProperties = new LinkedHashSet<String>();
+	private Set<String> removedProperties = new LinkedHashSet<String>();
 	private List<GraphObject> result       = null;
 	private TreeNode resultTree            = null;
 	private boolean sessionValid           = false;
@@ -79,6 +80,7 @@ public class WebSocketMessage {
 		newCopy.id                 = this.id;
 		newCopy.message            = this.message;
 		newCopy.modifiedProperties = this.modifiedProperties;
+		newCopy.removedProperties  = this.removedProperties;
 		newCopy.page               = this.page;
 		newCopy.pageSize           = this.pageSize;
 		newCopy.parent             = this.parent;
@@ -163,6 +165,10 @@ public class WebSocketMessage {
 
 	public Set<String> getModifiedProperties() {
 		return modifiedProperties;
+	}
+
+	public Set<String> getRemovedProperties() {
+		return removedProperties;
 	}
 
 	public int getChunkSize() {
@@ -272,6 +278,10 @@ public class WebSocketMessage {
 
 	public void setModifiedProperties(Set<String> modifiedProperties) {
 		this.modifiedProperties = modifiedProperties;
+	}
+	
+	public void setRemovedProperties(Set<String> removedProperties) {
+		this.removedProperties = removedProperties;
 	}
 
 	public void setChunkSize(int chunkSize) {

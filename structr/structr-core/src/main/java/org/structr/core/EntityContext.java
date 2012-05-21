@@ -1107,9 +1107,10 @@ public class EntityContext {
 				RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
 				Set<AbstractNode> modifiedNodes                             = new LinkedHashSet<AbstractNode>();
 				Set<AbstractNode> createdNodes                              = new LinkedHashSet<AbstractNode>();
+				Set<AbstractNode> deletedNodes                              = new LinkedHashSet<AbstractNode>();
 				Set<AbstractRelationship> modifiedRels                      = new LinkedHashSet<AbstractRelationship>();
 				Set<AbstractRelationship> createdRels                       = new LinkedHashSet<AbstractRelationship>();
-				//Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
+				Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
 
 				// 0: notify listeners of beginning commit
 				begin(securityContext, transactionKey, errorBuffer);
@@ -1130,7 +1131,7 @@ public class EntityContext {
 
 					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
 
-					if(!data.isDeleted(node)) {
+					if (!data.isDeleted(node)) {
 						modifiedNodes.add(nodeFactory.createNode(securityContext, node));
 					}
 				}
@@ -1148,11 +1149,16 @@ public class EntityContext {
 						removedRelProperties.put(rel, propertyMap);
 
 					}
-
+					
 					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
 
-					if(!data.isDeleted(rel)) {
+					if (!data.isDeleted(rel)) {
 						modifiedRels.add(relFactory.createRelationship(securityContext, rel));
+						
+						AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
+						
+						hasError |= propertyRemoved(securityContext, transactionKey, errorBuffer, relationship, entry.key(), entry.previouslyCommitedValue());
+						
 					}
 				}
 
@@ -1187,11 +1193,11 @@ public class EntityContext {
 					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, relationship, removedRelProperties.get(rel));
 					//hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, null, removedRelProperties.get(rel));
 
-					//deletedRels.add(relationship);
+					deletedRels.add(relationship);
 
 				}
 
-				// 5: notify listeners of node deletion
+				// 5: notify listeners of node and relationshipp deletion
 				for (Node node : data.deletedNodes()) {
 
 					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, null, removedNodeProperties.get(node));
@@ -1199,7 +1205,7 @@ public class EntityContext {
 				}
 
 				// 6: validate property modifications and
-				// notify listeners of property modifications
+				// notify listeners of property removal and modifications
 				for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
 
 					AbstractNode entity = nodeFactory.createNode(securityContext, entry.entity());
@@ -1257,8 +1263,8 @@ public class EntityContext {
 				// 7: notify listeners of modified nodes (to check for non-existing properties etc)
 				for (AbstractNode node : modifiedNodes) {
 
-					// only send UPDATE if node was not created in this transaction
-					if (!createdNodes.contains(node)) {
+					// only send UPDATE if node was not created or deleted in this transaction
+					if (!createdNodes.contains(node) && !deletedNodes.contains(node)) {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
 
@@ -1271,8 +1277,8 @@ public class EntityContext {
 
 				for (AbstractRelationship rel : modifiedRels) {
 
-					// only send UPDATE if node was not created in this transaction
-					if (!createdRels.contains(rel)) {
+					// only send UPDATE if node was not created or deleted in this transaction
+					if (!createdRels.contains(rel) && !deletedRels.contains(rel)) {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
 
@@ -1384,6 +1390,21 @@ public class EntityContext {
 
 			return hasError;
 		}
+
+		@Override
+		public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue) {
+
+			boolean hasError = false;
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				hasError |= listener.propertyRemoved(securityContext, transactionKey, errorBuffer, graphObject, key, oldValue);
+
+			}
+
+			return hasError;
+		}
+		
 
 		@Override
 		public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
