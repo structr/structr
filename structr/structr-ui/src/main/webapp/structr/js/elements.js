@@ -272,11 +272,11 @@ var _Elements = {
                 var headers = {};
                 headers['X-StructrSessionToken'] = token;
                 console.log('headers', headers);
-                var url = rootUrl + 'resources?pageSize=100';
-                console.log('resources URL: ' + url, headers);
+                var url = rootUrl + 'pages?pageSize=100';
+                console.log('pages URL: ' + url, headers);
                 
                 $.ajax({
-                    url: rootUrl + 'resources?pageSize=100',
+                    url: rootUrl + 'pages?pageSize=100',
                     async: true,
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
@@ -294,7 +294,7 @@ var _Elements = {
                                 e.stopPropagation();
                                 Command.link(entity.id, res.id); 
                                 $('#dialogBox .dialogText').empty();
-                                _Resources.reloadPreviews();
+                                _Pages.reloadPreviews();
                                 $.unblockUI({
                                     fadeOut: 25
                                 });                               
@@ -336,7 +336,7 @@ var _Elements = {
                                 e.stopPropagation();
                                 Command.link(entity.id, res.id); 
                                 $('#dialogBox .dialogText').empty();
-                                _Resources.reloadPreviews();
+                                _Pages.reloadPreviews();
                                 $.unblockUI({
                                     fadeOut: 25
                                 });                               

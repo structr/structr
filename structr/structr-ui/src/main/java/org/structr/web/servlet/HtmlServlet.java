@@ -63,7 +63,7 @@ import org.structr.web.entity.Component;
 import org.structr.web.entity.Condition;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.Element;
-import org.structr.web.entity.Resource;
+import org.structr.web.entity.Page;
 import org.structr.web.entity.View;
 import org.structr.web.entity.html.HtmlElement;
 
@@ -364,12 +364,12 @@ public class HtmlServlet extends HttpServlet {
 
 			// 1: find entry point (Resource, File or Image)
 			AbstractNode node                 = findEntryPoint(name);
-			Resource resource                 = null;
+			Page resource                 = null;
 			org.structr.core.entity.File file = null;
 
-			if (node instanceof Resource) {
+			if (node instanceof Page) {
 
-				resource = (Resource) node;
+				resource = (Page) node;
 			} else if (node instanceof org.structr.core.entity.File) {
 
 				file = (org.structr.core.entity.File) node;
@@ -387,7 +387,7 @@ public class HtmlServlet extends HttpServlet {
 
 				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
 
-				String contentType = resource.getStringProperty(Resource.UiKey.contentType);
+				String contentType = resource.getStringProperty(Page.UiKey.contentType);
 
 				if (contentType != null) {
 
@@ -538,7 +538,7 @@ public class HtmlServlet extends HttpServlet {
 
 			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
 
-			group.add(Search.orExactType(Resource.class.getSimpleName()));
+			group.add(Search.orExactType(Page.class.getSimpleName()));
 			group.add(Search.orExactType(org.structr.core.entity.File.class.getSimpleName()));
 			group.add(Search.orExactType(Image.class.getSimpleName()));
 			searchAttrs.add(group);

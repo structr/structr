@@ -49,7 +49,7 @@ public class View extends AbstractNode {
 		EntityContext.registerPropertySet(View.class, PropertyView.Public, Key.values());
 		EntityContext.registerPropertySet(View.class, PropertyView.Ui, Key.values());
 		
-		EntityContext.registerEntityRelation(View.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(View.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(View.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		
 		EntityContext.registerSearchablePropertySet(View.class, NodeService.NodeIndex.fulltext.name(), Key.values());

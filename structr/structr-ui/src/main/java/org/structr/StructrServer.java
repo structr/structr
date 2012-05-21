@@ -78,8 +78,8 @@ public class StructrServer {
 		String appName        = "structr UI 0.5";
 		String host           = System.getProperty("host", "0.0.0.0");
 		String keyStorePath   = System.getProperty("keyStorePath", "keystore.jks");
-		int httpPort          = Integer.parseInt(System.getProperty("port", "8080"));
-		int httpsPort         = Integer.parseInt(System.getProperty("httpsPort", "8081"));
+		int httpPort          = Integer.parseInt(System.getProperty("port", "8082"));
+		int httpsPort         = Integer.parseInt(System.getProperty("httpsPort", "8083"));
 		int maxIdleTime       = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
 		int requestHeaderSize = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
 		String contextPath    = System.getProperty("contextPath", "/");

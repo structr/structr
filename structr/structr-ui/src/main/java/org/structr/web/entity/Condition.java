@@ -46,7 +46,7 @@ public class Condition extends AbstractNode {
 		EntityContext.registerPropertySet(Condition.class, PropertyView.Public, Condition.Key.values());
 		EntityContext.registerPropertySet(Condition.class, PropertyView.Ui, Condition.Key.values());
 		
-		EntityContext.registerEntityRelation(Condition.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Condition.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Condition.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		
 		EntityContext.registerSearchablePropertySet(Condition.class, NodeService.NodeIndex.fulltext.name(), Condition.Key.values());

@@ -35,11 +35,11 @@ var _Components = {
     },
 
     onload : function() {
-	//Structr.activateMenuEntry('resources');
+	//Structr.activateMenuEntry('pages');
 	if (debug) console.log('onload');
 	if (palette) palette.remove();
 
-	main.append('<table id="resourcesEditor"><tr><td id="components"></td><td id="elements"></td></tr></table>');
+	main.append('<table id="pagesEditor"><tr><td id="components"></td><td id="elements"></td></tr></table>');
 
 	components = $('#components');
 	elements = $('#elements');

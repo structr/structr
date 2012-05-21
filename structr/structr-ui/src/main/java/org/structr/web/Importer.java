@@ -186,7 +186,7 @@ public class Importer {
 
 					List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
-					attrs.add(new NodeAttribute("type", "Resource"));
+					attrs.add(new NodeAttribute("type", "Page"));
 					attrs.add(new NodeAttribute("name", name));
 					attrs.add(new NodeAttribute("visibleToPublicUsers", publicVisible));
 					attrs.add(new NodeAttribute("visibleToAuthenticatedUsers", authVisible));

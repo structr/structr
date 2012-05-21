@@ -130,7 +130,7 @@ public class AddCommand extends AbstractCommand {
 
 				}
 
-                                // If text for a content child node is given, create and link a content node
+				// If text for a content child node is given, create and link a content node
 				if (childContent != null) {
 
 					Content contentNode             = null;
@@ -161,27 +161,27 @@ public class AddCommand extends AbstractCommand {
 						getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 					}
-                                        
-                                        if (contentNode != null) {
-                                            
-                                            try {
 
-						rel.createRelationship(securityContext, nodeToAdd, contentNode, relData);
+					if (contentNode != null) {
 
-						// set resource ID on copied branch
-						if ((originalResourceId != null) && (newResourceId != null) &&!originalResourceId.equals(newResourceId)) {
+						try {
 
-							RelationshipHelper.tagOutgoingRelsWithResourceId(contentNode, contentNode, originalResourceId, newResourceId);
+							// New content node is at position 0!!
+							relData.put(newResourceId, 0L);
+							rel.createRelationship(securityContext, nodeToAdd, contentNode, relData);
+
+							// set resource ID on copied branch
+							if ((originalResourceId != null) && (newResourceId != null) &&!originalResourceId.equals(newResourceId)) {
+
+								RelationshipHelper.tagOutgoingRelsWithResourceId(contentNode, contentNode, originalResourceId, newResourceId);
+							}
+						} catch (Throwable t) {
+
+							getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+
 						}
 
-					} catch (Throwable t) {
-
-						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
 					}
-                                            
-                                            
-                                        }
 
 				}
 

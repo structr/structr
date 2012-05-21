@@ -34,7 +34,7 @@ import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.web.entity.Resource;
+import org.structr.web.entity.Page;
 import org.structr.web.entity.html.Html;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -51,11 +51,11 @@ import org.structr.web.common.RelationshipHelper;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket command to clone a resource
+ * Websocket command to clone a page
  *
  * @author Axel Morgner
  */
-public class CloneResourceCommand extends AbstractCommand {
+public class ClonePageCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
 
@@ -85,8 +85,8 @@ public class CloneResourceCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Resource newResource = (Resource) Services.command(securityContext, CreateNodeCommand.class).execute(
-                                                new NodeAttribute(AbstractNode.Key.type.name(), Resource.class.getSimpleName()),
+					Page newResource = (Page) Services.command(securityContext, CreateNodeCommand.class).execute(
+                                                new NodeAttribute(AbstractNode.Key.type.name(), Page.class.getSimpleName()),
                                                 new NodeAttribute(AbstractNode.Key.name.name(), newName),
                                                 new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true)
                                                 );

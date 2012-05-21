@@ -42,13 +42,13 @@ var _Entities = {
         if (children && children.length > 0) {
             $(children).each(function(i,child) {
                 if (debug) console.log(child);
-                if (child.type == "Resource") {
-                    _Resources.appendResourceElement(child, parent.id, rootId);
-                } else if (child.type == "Component") {
-                    _Resources.appendElementElement(child, parent.id, rootId);
-                } else if (child.type == "Content") {
-                    _Resources.appendContentElement(child, parent.id, rootId);
-                } else if (child.type == "Folder") {
+                if (child.type == 'Page') {
+                    _Pages.appendResourceElement(child, parent.id, rootId);
+                } else if (child.type == 'Component') {
+                    _Pages.appendElementElement(child, parent.id, rootId);
+                } else if (child.type == 'Content') {
+                    _Pages.appendContentElement(child, parent.id, rootId);
+                } else if (child.type == 'Folder') {
                     var entity = child;
                     console.log('Render Tree: ' , entity);
                     var folderElement = _Files.appendFolderElement(child, parent.id);
@@ -60,7 +60,7 @@ var _Entities = {
                         });
                     }
                 } else {
-                    _Resources.appendElementElement(child, parent.id, rootId);
+                    _Pages.appendElementElement(child, parent.id, rootId);
                 }
 				
                 _Entities.renderTree(child, rootId);
@@ -81,18 +81,18 @@ var _Entities = {
         } else if (entity.type == 'Group') {
             lastAppendedObj = _UsersAndGroups.appendGroupElement(entity, hasChildren);
 
-        } else if (entity.type == 'Resource') {
+        } else if (entity.type == 'Page') {
             
-            lastAppendedObj = _Resources.appendResourceElement(entity, hasChildren);
+            lastAppendedObj = _Pages.appendResourceElement(entity, hasChildren);
 
         } else if (entity.type == 'Component') {
 
-            lastAppendedObj = _Resources.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
 
         } else if (entity.type == 'Content') {
 
             if (debug) console.log('appending content element', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-            lastAppendedObj = _Resources.appendContentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+            lastAppendedObj = _Pages.appendContentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
 
         } else if (entity.type == 'Folder') {
 
@@ -115,7 +115,7 @@ var _Entities = {
         } else {
 
             if (debug) console.log('Entity: ', entity);
-            lastAppendedObj = _Resources.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
         }
 
         if (debug) console.log('lastAppendedObj', lastAppendedObj);
@@ -264,7 +264,7 @@ var _Entities = {
 
                             input.on('change', function() {
                                 input.data('changed', true);
-                                _Resources.reloadPreviews();
+                                _Pages.reloadPreviews();
                             });
 
                             input.on('focusout', function() {
@@ -547,7 +547,7 @@ var _Entities = {
                 e.stopPropagation();
                 _Entities.makeNameEditable(element);
             });
-            _Resources.reloadPreviews();
+            _Pages.reloadPreviews();
         });
 
         input.keypress(function(e) {
@@ -560,7 +560,7 @@ var _Entities = {
                     e.stopPropagation();
                     _Entities.makeNameEditable(element);
                 });
-                _Resources.reloadPreviews();
+                _Pages.reloadPreviews();
             }
         });
 

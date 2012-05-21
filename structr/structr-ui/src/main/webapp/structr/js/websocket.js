@@ -223,7 +223,7 @@ function connect() {
                 if (debug) console.log($(elementSelector));
                 $(elementSelector).remove();
                 if (buttonClicked) enable(buttonClicked);
-                _Resources.reloadPreviews();
+                _Pages.reloadPreviews();
 
             } else if (command == 'REMOVE') { /*********************** REMOVE ************************/
 
@@ -243,8 +243,8 @@ function connect() {
 
                 } else if (entity.hasClass('element') || entity.hasClass('content') || entity.hasClass('component')) {
                     if (debug) console.log('remove element from resource');
-                    _Resources.removeFrom(entityId, parentId, componentId, resourceId, position);
-                    _Resources.reloadPreviews();
+                    _Pages.removeFrom(entityId, parentId, componentId, resourceId, position);
+                    _Pages.reloadPreviews();
 
                 } else if (entity.hasClass('file')) {
                     if (debug) console.log('remove file from folder');
@@ -263,7 +263,7 @@ function connect() {
                 //entity.remove();
                 }
 
-                _Resources.reloadPreviews();
+                _Pages.reloadPreviews();
                 if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
 
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
@@ -275,7 +275,7 @@ function connect() {
                     _Entities.appendObj(entity, parentId, componentId, resourceId, command == 'ADD');
                 });
 
-                _Resources.reloadPreviews();
+                _Pages.reloadPreviews();
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
                 var element = $( '.' + data.id + '_');
@@ -347,19 +347,18 @@ function connect() {
                     
                     if (debug) console.log(key, Structr.getClass(element));
                     
-                    if (key == 'name' && Structr.getClass(element) == 'resource') {
+                    if (key == 'name' && Structr.getClass(element) == 'page') {
                         if (debug) console.log('Reload iframe', data.id, newValue);
-                        window.setTimeout(function() { _Resources.reloadIframe(data.id, newValue) }, 100);
+                        window.setTimeout(function() { _Pages.reloadIframe(data.id, newValue) }, 100);
                     }
 
                 }
                 
-                
-                
 
                 // refresh preview iframe
                 input.data('changed', false);
-            //_Resources.reloadPreviews();
+                _Pages.reloadPreviews();
+                
             } else if (command == 'WRAP') { /*********************** WRAP ************************/
 
                 if (debug) console.log('WRAP');

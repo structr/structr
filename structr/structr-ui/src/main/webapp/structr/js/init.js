@@ -68,16 +68,16 @@ $(document).ready(function() {
         Structr.activateMenuEntry('dashboard');
     });
 
-    $('#resources_').on('click', function(e) {
+    $('#pages_').on('click', function(e) {
         e.stopPropagation();
         main.empty();
-        Structr.activateMenuEntry('resources');
-        Structr.modules['resources'].onload();
-        _Resources.resize();
+        Structr.activateMenuEntry('pages');
+        Structr.modules['pages'].onload();
+        _Pages.resize();
     });
 
 
-    $('#resources_').droppable({
+    $('#pages_').droppable({
         accept: '.element, .content, .component, .file, .image',
         greedy: true,
         hoverClass: 'nodeHover',
@@ -100,9 +100,9 @@ $(document).ready(function() {
             //                //containment: '#main',
             //                zIndex: 4
             //            });
-            Structr.activateMenuEntry('resources');
-            Structr.modules['resources'].onload();
-            _Resources.resize();
+            Structr.activateMenuEntry('pages');
+            Structr.modules['pages'].onload();
+            _Pages.resize();
         }
     });
 
@@ -353,7 +353,7 @@ var Structr = {
             e.stopPropagation();
             callbackCancel();
             $('#dialogBox .dialogText').empty();
-            _Resources.reloadPreviews();
+            _Pages.reloadPreviews();
             $.unblockUI({
                 fadeOut: 25
             });

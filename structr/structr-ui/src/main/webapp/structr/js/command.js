@@ -331,16 +331,16 @@ var Command = {
      * 
      * The server will broadcast a CREATE and an ADD notification.
      */
-    cloneResource : function(id) {
+    clonePage : function(id) {
         var nodeData = {};
         if (!nodeData.name) {
-            nodeData.name = 'New Resource ' + Math.floor(Math.random() * (999999 - 1));
+            nodeData.name = 'New Page ' + Math.floor(Math.random() * (999999 - 1));
         }
         var obj = {};
         obj.data = nodeData;
         obj.command = 'CLONE';
         obj.id = id;
-        if (debug) console.log('cloneResource()', obj);
+        if (debug) console.log('clonePage()', obj);
         return sendObj(obj);
     },
     

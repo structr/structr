@@ -463,7 +463,7 @@ public abstract class HtmlElement extends Element {
 
 			}
 
-			// special keyword "resource"
+			// special keyword "page"
 			if ("page".equals(part.toLowerCase())) {
 
 				node = resource;
