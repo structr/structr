@@ -341,39 +341,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 				if (value instanceof Iterable) {
 
-					JsonArray property = new JsonArray();
-
-					for (Object o : (Iterable) value) {
-
-						// non-null check in case a lazy evaluator returns null
-						if (o != null) {
-
-							if (o instanceof GraphObject) {
-
-								GraphObject obj                      = (GraphObject) o;
-								JsonElement recursiveSerializedValue = this.serializeFlatNameValue(obj, typeOfSrc, context, localPropertyView, depth + 1);
-
-								if (recursiveSerializedValue != null) {
-
-									property.add(recursiveSerializedValue);
-
-								}
-
-							} else if (o instanceof Map) {
-
-								property.add(serializeMap((Map) o, typeOfSrc, context, localPropertyView, false, false, depth));
-
-							} else {
-
-								// serialize primitive, this is for PropertyNotion
-								// property.add(new JsonPrimitive(o.toString()));
-								property.add(primitive(o));
-							}
-
-						}
-					}
-
-					jsonObject.add(key, property);
+					jsonObject.add(key, serializeIterable((Iterable)value, typeOfSrc, context, localPropertyView, depth));
 
 				} else if (value instanceof GraphObject) {
 
@@ -411,7 +379,48 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 		return null;
 	}
 	
+	private JsonArray serializeIterable(Iterable value, Type typeOfSrc, JsonSerializationContext context, String localPropertyView, int depth) {
+		
+		JsonArray property = new JsonArray();
 
+		for (Object o : value) {
+
+			// non-null check in case a lazy evaluator returns null
+			if (o != null) {
+
+				if (o instanceof GraphObject) {
+
+					GraphObject obj                      = (GraphObject) o;
+					JsonElement recursiveSerializedValue = this.serializeFlatNameValue(obj, typeOfSrc, context, localPropertyView, depth + 1);
+
+					if (recursiveSerializedValue != null) {
+
+						property.add(recursiveSerializedValue);
+
+					}
+
+				} else if (o instanceof Map) {
+
+					property.add(serializeMap((Map) o, typeOfSrc, context, localPropertyView, false, false, depth));
+
+				} else if (o instanceof Iterable) {
+
+					property.add(serializeIterable((Iterable) o, typeOfSrc, context, localPropertyView, depth));
+
+				} else {
+
+					// serialize primitive, this is for PropertyNotion
+					// property.add(new JsonPrimitive(o.toString()));
+					property.add(primitive(o));
+				}
+
+			}
+		}
+
+		return property;
+	}
+	
+	
 	private JsonObject serializePrimitive(String key, Object value, boolean includeTypeInOutput) {
 
 		JsonObject property = new JsonObject();
@@ -487,6 +496,10 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 						}
 
+					} else if(value instanceof Iterable) {
+						
+						object.add(key, serializeIterable((Iterable)value, typeOfT, context, localPropertyView, depth));
+						
 					} else {
 
 						object.add(key, primitive(value));
