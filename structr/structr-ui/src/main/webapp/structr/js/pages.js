@@ -988,8 +988,12 @@ var _Pages = {
                 var self = $(this);
                 //self.off('click');
                 //self.off('mouseover');
-                if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, componentId, resourceId, pos);
-                Command.removeSourceFromTarget(content.id, parentId, componentId, resourceId, pos)
+                var component = self.closest( '.component')[0];
+                var resource = self.closest( '.resource')[0];
+                if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, getId(component), getId(resource), pos);
+                Command.removeSourceFromTarget(content.id, parentId, getId(component), getId(resource), pos)
+//                if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, componentId, resourceId, pos);
+//                Command.removeSourceFromTarget(content.id, parentId, componentId, resourceId, pos)
             });
         }
 
@@ -1025,14 +1029,14 @@ var _Pages = {
     },
 
     removeFrom : function(entityId, parentId, componentId, resourceId, pos) {
-        if (debug) console.log('Resources.removeFrom', entityId, parentId, componentId, resourceId, pos);
+        console.log('Resources.removeFrom', entityId, parentId, componentId, resourceId, pos);
 
         var parent = Structr.node(parentId, null, componentId, resourceId);
         var element = Structr.node(entityId, parentId, componentId, resourceId, pos);
 
         //var parent = $(element).parent();
 
-        if (debug) console.log('parent', parent);
+        console.log('parent', parent);
         
         element.remove();
 

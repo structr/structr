@@ -242,7 +242,7 @@ function connect() {
                     _UsersAndGroups.removeUserFromGroup(entityId, parentId, position);
 
                 } else if (entity.hasClass('element') || entity.hasClass('content') || entity.hasClass('component')) {
-                    if (debug) console.log('remove element from resource');
+                    console.log('remove element from resource', entityId, parentId, componentId, resourceId, position);
                     _Pages.removeFrom(entityId, parentId, componentId, resourceId, position);
                     _Pages.reloadPreviews();
 
@@ -267,6 +267,7 @@ function connect() {
                 if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
 
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
+            //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
                 //console.log(command, result, data, data.data);
 				
@@ -276,6 +277,8 @@ function connect() {
                 });
 
                 _Pages.reloadPreviews();
+                
+                //alert(command);
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
                 
@@ -290,12 +293,10 @@ function connect() {
                     isRelOp = true;
                 }
                 
-                console.log('isRelOp', isRelOp);
-                console.log('modifiedProperties', modifiedProperties);
                 if (modifiedProperties) {
-                    console.log('modifiedProperties.length', modifiedProperties.length);
+                    if (debug) console.log('modifiedProperties.length', modifiedProperties.length);
                     var resId = modifiedProperties[0];
-                    console.log('relData[resId]', relData[resId]);
+                    if (debug) console.log('relData[resId]', relData[resId]);
                 }
                 
                 
@@ -304,28 +305,34 @@ function connect() {
                 
                 
                 if (relData && removedProperties && removedProperties.length) {
-                    console.log('removedProperties', removedProperties);
+                    if (debug) console.log('removedProperties', removedProperties);
                     _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
                     
-                //		} else if (isRelOp && modifiedProperties && modifiedProperties.length) {
-                //		    console.log('modifiedProperties', modifiedProperties[0]);
-                //		    
-                //		    var newResourceId = modifiedProperties[0];
-                //		    
-                //		    var res = Structr.node(newResourceId);
-                //		    console.log('resource?', res);
-                //		    
-                //		    if (res && res.length) {
-                //                    
-                //			var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                //			console.log('entity', entity);
-                //                    
-                //			_Entities.appendObj(entity, relData.startNodeId, null, modifiedProperties[0]);
-                //		    }
+                } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
+                    
+                    console.log(data);
+                    
+                    if (debug) console.log('modifiedProperties', modifiedProperties[0]);
+                		    
+                    var newResourceId = modifiedProperties[0];
+                    var pos = relData[newResourceId];
+                		    
+                    var res = Structr.node(newResourceId);
+                    if (debug) console.log('resource?', res);
+                		    
+                    if (res && res.length) {
+                                    
+                        var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
+                        console.log('entity', entity);
+                        if (entity) {
+                            _Pages.removeFrom(entity.id, relData.startNodeId, null, newResourceId, pos);
+                            _Entities.appendObj(entity, relData.startNodeId, null, newResourceId);
+                        }
+                    }
                     
                 } else {
                     
-                    console.log('else');
+                    if (debug) console.log('else');
                 
                     var element = $( '.' + data.id + '_');
                     var input = $('.props tr td.value input', element);
@@ -409,8 +416,9 @@ function connect() {
                 
                 }
                 
-                // refresh preview iframe
-                input.data('changed', false);
+                if (input) {
+                    input.data('changed', false);
+                }
                 
                 _Pages.reloadPreviews();
                 

@@ -359,6 +359,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			WebSocketMessage message = new WebSocketMessage();
 			String startNodeId       = relationship.getCachedStartNodeId();
 			String endNodeId         = relationship.getCachedEndNodeId();
+			String resourceId	 = (String) properties.get("resourceId");
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
@@ -366,6 +367,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 				message.setGraphObject(relationship);
 				message.setId(startNodeId);
 				message.setNodeData("id", endNodeId);
+				message.setNodeData("resourceId", resourceId);
 				messageStack.add(message);
 
 			}

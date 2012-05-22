@@ -117,28 +117,27 @@ public class AddCommand extends AbstractCommand {
 
 					try {
 
-						if (newNodeCreated || (originalResourceId == null && newResourceId == null)) {
+						boolean addedResourceIdProperty = false;
+
+						// Search for an existing relationship between the node to add and the parent
+						for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
+
+							if (r.getEndNode().equals(nodeToAdd) && r.getLongProperty(originalResourceId) != null) {
+
+								r.setProperty(newResourceId, Long.parseLong((String) relData.get(newResourceId)));
+
+								addedResourceIdProperty = true;
+								break;
+
+							}
+
+						}
+
+						if (!addedResourceIdProperty) {
 
 							// A new node was created, no relationship exists,
 							// so we create a new one.
 							rel.createRelationship(securityContext, parentNode, nodeToAdd, relData);
-							//relData.clear();
-						} else {
-
-							// An existing node was added to the parent node.
-							// All we need to do here is add another property to the relationship with
-							// the new resource id as key and the designated position as value
-							for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
-
-								Long pos = r.getLongProperty(originalResourceId);
-
-								if (pos != null) {
-
-									r.setProperty(newResourceId, Long.parseLong((String) relData.get(newResourceId)));
-									//relData.clear();
-								}
-
-							}
 						}
 
 						// set resource ID on copied branch

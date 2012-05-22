@@ -420,12 +420,13 @@ var Structr = {
     },
 
     containsNodes : function(element) {
+        console.log(element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
         return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
     },
 
     numberOfNodes : function(element) {
         var n = ($(element).children('.node')).length;
-        if (debug) console.log('number of nodes in element', element, n);
+        console.log('number of nodes in element', element, n);
         return n;
     },
 
@@ -794,7 +795,7 @@ function getIdFromClassString(classString) {
 }
 
 function getId(element) {
-    return getIdFromClassString($(element).attr('class'));
+    return getIdFromClassString($(element).attr('class')) || undefined;
 }
 
 function lastPart(id, separator) {
