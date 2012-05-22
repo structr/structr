@@ -35,6 +35,7 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.web.common.RelationshipHelper;
 import org.structr.web.entity.Page;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -108,6 +109,7 @@ public class RemoveCommand extends AbstractCommand {
 										if (pos.equals(rel.getLongProperty(resourceId))) {
 
 											rel.removeProperty(resourceId);
+											RelationshipHelper.untagOutgoingRelsFromResourceId(nodeToRemove, nodeToRemove, resourceId, resourceId);
 
 											hasResourceIds = hasResourceIds(securityContext, rel);
 
@@ -117,16 +119,15 @@ public class RemoveCommand extends AbstractCommand {
 												deleteRel.execute(rel);
 
 												// relsToShift.remove(rel);
-
 												// Stop after removal of one relationship!
 
 											}
 
-											break;
-
 										}
 
 									}
+
+									break;
 								}
 
 							}
@@ -208,7 +209,6 @@ public class RemoveCommand extends AbstractCommand {
 			String key = (String) entry.getKey();
 
 			// Object val = entry.getValue();
-
 			// Check if key is a node id (UUID format)
 			if (key.matches("[a-zA-Z0-9]{32}")) {
 
@@ -219,7 +219,7 @@ public class RemoveCommand extends AbstractCommand {
 
 				List<AbstractNode> results = (List<AbstractNode>) searchNode.execute(null, false, false, attrs);
 
-				if (results != null &&!results.isEmpty()) {
+				if (results != null && !results.isEmpty()) {
 
 					count++;
 				} else {

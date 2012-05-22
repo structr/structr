@@ -21,15 +21,7 @@
 
 package org.structr.websocket;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 
 import org.structr.common.PropertyView;
 import org.structr.common.TreeNode;
@@ -62,7 +54,9 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 	//~--- constructors ---------------------------------------------------
 
 	public WebSocketDataGSONAdapter(String idProperty) {
+
 		graphObjectSerializer = new GraphObjectGSONAdapter(PropertyFormat.FlatNameValue, propertyView, idProperty);
+
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -70,85 +64,75 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 	@Override
 	public JsonElement serialize(WebSocketMessage src, Type typeOfSrc, JsonSerializationContext context) {
 
-		JsonObject root = new JsonObject();
-		JsonObject data = new JsonObject();
+		JsonObject root             = new JsonObject();
+		JsonObject jsonNodeData     = new JsonObject();
+		JsonObject jsonRelData      = new JsonObject();
+		JsonArray removedProperties = new JsonArray();
+		JsonArray modifiedProperties = new JsonArray();
 
 		if (src.getCommand() != null) {
 
 			root.add("command", new JsonPrimitive(src.getCommand()));
-
 		}
 
 		if (src.getId() != null) {
 
 			root.add("id", new JsonPrimitive(src.getId()));
-
 		}
 
 		if (src.getMessage() != null) {
 
 			root.add("message", new JsonPrimitive(src.getMessage()));
-
 		}
 
 		if (src.getCode() != 0) {
 
 			root.add("code", new JsonPrimitive(src.getCode()));
-
 		}
 
 		if (src.getToken() != null) {
 
 			root.add("token", new JsonPrimitive(src.getToken()));
-
 		}
 
 		if (src.getCallback() != null) {
 
 			root.add("callback", new JsonPrimitive(src.getCallback()));
-
 		}
 
 		if (src.getButton() != null) {
 
 			root.add("button", new JsonPrimitive(src.getButton()));
-
 		}
 
 		if (src.getParent() != null) {
 
 			root.add("parent", new JsonPrimitive(src.getParent()));
-
 		}
 
 		if (src.getView() != null) {
 
 			root.add("view", new JsonPrimitive(src.getView()));
-
 		}
 
 		if (src.getSortKey() != null) {
 
 			root.add("sort", new JsonPrimitive(src.getSortKey()));
-
 		}
 
 		if (src.getSortOrder() != null) {
 
 			root.add("order", new JsonPrimitive(src.getSortOrder()));
-
 		}
 
 		if (src.getPageSize() > 0) {
 
 			root.add("pageSize", new JsonPrimitive(src.getPageSize()));
-
 		}
 
 		if (src.getPage() > 0) {
 
 			root.add("page", new JsonPrimitive(src.getPage()));
-
 		}
 
 		JsonArray nodesWithChildren = new JsonArray();
@@ -159,7 +143,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			for (String nodeId : nwc) {
 
 				nodesWithChildren.add(new JsonPrimitive(nodeId));
-
 			}
 
 			root.add("nodesWithChildren", nodesWithChildren);
@@ -169,26 +152,51 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		// serialize session valid flag (output only)
 		root.add("sessionValid", new JsonPrimitive(src.isSessionValid()));
 
-		// UPDATE only, serialize only modified properties and use the correct values
-		if ((src.getGraphObject() != null) &&!src.getModifiedProperties().isEmpty()) {
+		// UPDATE only, serialize only removed and modified properties and use the correct values
+		if ((src.getGraphObject() != null)) {
 
 			GraphObject graphObject = src.getGraphObject();
 
-			for (String modifiedKey : src.getModifiedProperties()) {
+			if (!src.getModifiedProperties().isEmpty()) {
 
-				Object newValue = graphObject.getProperty(modifiedKey);
+				for (String modifiedKey : src.getModifiedProperties()) {
+					
+					modifiedProperties.add(toJsonPrimitive(modifiedKey));
 
-				if (newValue != null) {
+					Object newValue = graphObject.getProperty(modifiedKey);
 
-					src.getNodeData().put(modifiedKey, newValue);
+					if (newValue != null) {
+
+						if (graphObject instanceof AbstractNode) {
+
+							src.getNodeData().put(modifiedKey, newValue);
+						} else {
+
+							src.getRelData().put(modifiedKey, newValue);
+						}
+
+					}
 
 				}
+				
+				root.add("modifiedProperties", modifiedProperties);
+
+			}
+
+			if (!src.getRemovedProperties().isEmpty()) {
+
+				for (String removedKey : src.getRemovedProperties()) {
+
+					removedProperties.add(toJsonPrimitive(removedKey));
+				}
+
+				root.add("removedProperties", removedProperties);
 
 			}
 
 		}
 
-		// serialize data
+		// serialize node data
 		if (src.getNodeData() != null) {
 
 			for (Entry<String, Object> entry : src.getNodeData().entrySet()) {
@@ -198,37 +206,31 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				if (value != null) {
 
-					JsonPrimitive jp;
-
-					if (value instanceof String) {
-
-						jp = new JsonPrimitive((String) value);
-
-					} else if (value instanceof Number) {
-
-						jp = new JsonPrimitive((Number) value);
-
-					} else if (value instanceof Boolean) {
-
-						jp = new JsonPrimitive((Boolean) value);
-
-					} else if (value instanceof Character) {
-
-						jp = new JsonPrimitive((Character) value);
-
-					} else {
-
-						jp = new JsonPrimitive(value.toString());
-
-					}
-
-					data.add(key, jp);
-
+					jsonNodeData.add(key, toJsonPrimitive(value));
 				}
 
 			}
 
-			root.add("data", data);
+			root.add("data", jsonNodeData);
+
+		}
+
+		// serialize relationship data
+		if (src.getRelData() != null) {
+
+			for (Entry<String, Object> entry : src.getRelData().entrySet()) {
+
+				Object value = entry.getValue();
+				String key   = entry.getKey();
+
+				if (value != null) {
+
+					jsonRelData.add(key, toJsonPrimitive(value));
+				}
+
+			}
+
+			root.add("relData", jsonRelData);
 
 		}
 
@@ -238,11 +240,9 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			if (src.getView() != null) {
 
 				propertyView.set(src.getView());
-
 			} else {
 
 				propertyView.set(PropertyView.All);
-
 			}
 
 			JsonArray result = new JsonArray();
@@ -250,7 +250,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			for (GraphObject obj : src.getResult()) {
 
 				result.add(graphObjectSerializer.serialize(obj, GraphObject.class, context));
-
 			}
 
 			root.add("result", result);
@@ -267,6 +266,32 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		}
 
 		return root;
+
+	}
+
+	private JsonPrimitive toJsonPrimitive(final Object value) {
+
+		JsonPrimitive jp;
+
+		if (value instanceof String) {
+
+			jp = new JsonPrimitive((String) value);
+		} else if (value instanceof Number) {
+
+			jp = new JsonPrimitive((Number) value);
+		} else if (value instanceof Boolean) {
+
+			jp = new JsonPrimitive((Boolean) value);
+		} else if (value instanceof Character) {
+
+			jp = new JsonPrimitive((Character) value);
+		} else {
+
+			jp = new JsonPrimitive(value.toString());
+		}
+
+		return jp;
+
 	}
 
 	private JsonObject buildTree(TreeNode node, JsonSerializationContext context) {
@@ -277,7 +302,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		if (data != null) {
 
 			jsonChild = graphObjectSerializer.serialize(data, GraphObject.class, context).getAsJsonObject();
-
 		}
 
 		JsonArray array = new JsonArray();
@@ -291,6 +315,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		jsonChild.add("children", array);
 
 		return jsonChild;
+
 	}
 
 	@Override
@@ -307,67 +332,56 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			if (root.has("command")) {
 
 				webSocketData.setCommand(root.getAsJsonPrimitive("command").getAsString());
-
 			}
 
 			if (root.has("id")) {
 
 				webSocketData.setId(root.getAsJsonPrimitive("id").getAsString());
-
 			}
 
 			if (root.has("token")) {
 
 				webSocketData.setToken(root.getAsJsonPrimitive("token").getAsString());
-
 			}
 
 			if (root.has("callback")) {
 
 				webSocketData.setCallback(root.getAsJsonPrimitive("callback").getAsString());
-
 			}
 
 			if (root.has("button")) {
 
 				webSocketData.setButton(root.getAsJsonPrimitive("button").getAsString());
-
 			}
 
 			if (root.has("parent")) {
 
 				webSocketData.setParent(root.getAsJsonPrimitive("parent").getAsString());
-
 			}
 
 			if (root.has("view")) {
 
 				webSocketData.setView(root.getAsJsonPrimitive("view").getAsString());
-
 			}
 
 			if (root.has("sort")) {
 
 				webSocketData.setSortKey(root.getAsJsonPrimitive("sort").getAsString());
-
 			}
 
 			if (root.has("order")) {
 
 				webSocketData.setSortOrder(root.getAsJsonPrimitive("order").getAsString());
-
 			}
 
 			if (root.has("pageSize")) {
 
 				webSocketData.setPageSize(root.getAsJsonPrimitive("pageSize").getAsInt());
-
 			}
 
 			if (root.has("page")) {
 
 				webSocketData.setPage(root.getAsJsonPrimitive("page").getAsInt());
-
 			}
 
 			if (nodeData != null) {
@@ -375,7 +389,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
 
 					webSocketData.setNodeData(entry.getKey(), entry.getValue().getAsString());
-
 				}
 
 			}
@@ -385,7 +398,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 				for (Entry<String, JsonElement> entry : relData.entrySet()) {
 
 					webSocketData.setRelData(entry.getKey(), entry.getValue().getAsString());
-
 				}
 
 			}
@@ -393,5 +405,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		}
 
 		return webSocketData;
+
 	}
+
 }

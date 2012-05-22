@@ -196,12 +196,14 @@ var _Elements = {
         
         var div = Structr.node(entity.id, parentId, componentId, resourceId, pos);
         
+        if (!div) return;
+        
         if (debug) console.log('Element appended', div);
 
         entity.resourceId = resourceId;
 
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
-            + '<b class="tag_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
+            + '<b class="tag_ name_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
             + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class : '</span>')
             + '</div>');
