@@ -1326,7 +1326,7 @@ public class EntityContext {
 
 				for (AbstractRelationship rel : modifiedRels) {
 
-					// only send UPDATE if node was not created or deleted in this transaction
+					// only send UPDATE if relationship was not created or deleted in this transaction
 					if (!createdRels.contains(rel) &&!deletedRels.contains(rel)) {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, rel);

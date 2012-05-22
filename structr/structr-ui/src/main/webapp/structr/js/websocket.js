@@ -307,13 +307,21 @@ function connect() {
                     console.log('removedProperties', removedProperties);
                     _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
                     
-                } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
-                    console.log('modifiedProperties', modifiedProperties);
-                    
-                    var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                    console.log('entity', entity);
-                    
-                    _Entities.appendObj(entity, relData.startNodeId, null, modifiedProperties[0]);
+                //		} else if (isRelOp && modifiedProperties && modifiedProperties.length) {
+                //		    console.log('modifiedProperties', modifiedProperties[0]);
+                //		    
+                //		    var newResourceId = modifiedProperties[0];
+                //		    
+                //		    var res = Structr.node(newResourceId);
+                //		    console.log('resource?', res);
+                //		    
+                //		    if (res && res.length) {
+                //                    
+                //			var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
+                //			console.log('entity', entity);
+                //                    
+                //			_Entities.appendObj(entity, relData.startNodeId, null, modifiedProperties[0]);
+                //		    }
                     
                 } else {
                     
@@ -397,12 +405,12 @@ function connect() {
 
                     }
                 
-                    // refresh preview iframe
-                    input.data('changed', false);
 
                 
                 }
                 
+                // refresh preview iframe
+                input.data('changed', false);
                 
                 _Pages.reloadPreviews();
                 

@@ -117,11 +117,12 @@ public class AddCommand extends AbstractCommand {
 
 					try {
 
-						if (newNodeCreated) {
+						if (newNodeCreated || (originalResourceId == null && newResourceId == null)) {
 
 							// A new node was created, no relationship exists,
 							// so we create a new one.
 							rel.createRelationship(securityContext, parentNode, nodeToAdd, relData);
+							//relData.clear();
 						} else {
 
 							// An existing node was added to the parent node.
@@ -134,6 +135,7 @@ public class AddCommand extends AbstractCommand {
 								if (pos != null) {
 
 									r.setProperty(newResourceId, Long.parseLong((String) relData.get(newResourceId)));
+									//relData.clear();
 								}
 
 							}
