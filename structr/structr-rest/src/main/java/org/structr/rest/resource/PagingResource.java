@@ -8,6 +8,7 @@ package org.structr.rest.resource;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -93,6 +94,31 @@ public class PagingResource extends WrappingResource {
 
         @Override
         public String getResourceSignature() {
-                return getUriPart();
-        }
+		
+		String uriPart    = getUriPart();
+		StringBuilder uri = new StringBuilder();
+
+		if (uriPart.contains("/")) {
+
+			String[] parts = StringUtils.split(uriPart, "/");
+
+			for (String subPart : parts) {
+
+				if (!subPart.matches("[a-zA-Z0-9]{32}")) {
+
+					uri.append(subPart);
+					uri.append("/");
+
+				}
+
+			}
+
+			return uri.toString();
+
+		} else {
+
+			return uriPart;
+
+		}
+	}
 }
