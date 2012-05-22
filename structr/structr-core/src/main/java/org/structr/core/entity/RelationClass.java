@@ -349,7 +349,6 @@ public class RelationClass {
 				AbstractNode relatedNode = (AbstractNode) Services.command(securityContext,
 								   CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType().getSimpleName()));
 
-				// Create new relationship between facility and location nodes
 				Command createRel           = Services.command(securityContext, CreateRelationshipCommand.class);
                                 
                                 Map<String, Object> props = new LinkedHashMap<String, Object>();

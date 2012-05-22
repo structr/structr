@@ -218,6 +218,23 @@ public class RelationshipHelper {
 
 		}
 	}
+	
+	public static void untagOutgoingRelsFromResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String resourceId) throws FrameworkException {
+
+		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
+
+			Long position = rel.getLongProperty(originalResourceId);
+
+			if (position != null) {
+
+				rel.removeProperty(resourceId);
+
+			}
+
+			untagOutgoingRelsFromResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
+
+		}
+	}
 
 	public static void tagOutgoingRelsWithComponentId(final AbstractNode startNode, final AbstractNode node, final String componentId) throws FrameworkException {
 

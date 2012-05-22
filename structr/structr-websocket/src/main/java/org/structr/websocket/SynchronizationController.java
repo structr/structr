@@ -210,6 +210,19 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		message.setCommand("UPDATE");
 
 		String uuid = graphObject.getStringProperty(AbstractNode.Key.uuid.name());
+		
+		if (graphObject instanceof AbstractRelationship) {
+
+			AbstractRelationship relationship = (AbstractRelationship) graphObject;
+			AbstractNode startNode            = relationship.getStartNode();
+			AbstractNode endNode              = relationship.getEndNode();
+			Map<String, Object> relProperties = relationship.getProperties();
+
+			relProperties.put("startNodeId", startNode.getUuid());
+			relProperties.put("endNodeId", endNode.getUuid());
+			message.setRelData(relProperties);
+
+		}
 
 		message.setId(uuid);
 		message.setGraphObject(graphObject);

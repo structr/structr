@@ -535,7 +535,7 @@ var Structr = {
         if (debug) console.log(Structr.classes);
         $(Structr.classes).each(function(i, cls) {
             if (debug) console.log('testing class', cls);
-            if (el.hasClass(cls)) {
+            if (el && el.hasClass(cls)) {
                 c = cls;
                 if (debug) console.log('found class', cls);
             }
@@ -544,13 +544,26 @@ var Structr = {
     },
 	
     entityFromElement : function(element) {
+        if (debug) console.log(element);
         
         var entity = {};
         entity.id = getId($(element));
-        entity.type = Structr.getClass(element);
+        var cls = Structr.getClass(element);
+        if (cls) {
+            entity.type = cls.capitalize();
+        }
 
-        if (debug) console.log(entity.type);
-        entity.name = $('.name_', element).text();
+        var nameEl = $(element).children('.name_');
+        
+        if (nameEl && nameEl.length) {
+            entity.name = $(nameEl[0]).text();
+        }
+        
+        var tagEl = $(element).children('.tag_');
+        
+        if (tagEl && tagEl.length) {
+            entity.tag = $(tagEl[0]).text();
+        }
 
         return entity;
     }

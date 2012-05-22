@@ -21,11 +21,13 @@
 
 package org.structr.websocket.command;
 
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
@@ -38,7 +40,6 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,7 @@ public class AddCommand extends AbstractCommand {
 		String childContent                = (String) nodeData.get("childContent");
 		final Map<String, Object> relData  = webSocketData.getRelData();
 		String parentId                    = webSocketData.getId();
+		boolean newNodeCreated             = false;
 
 		if (parentId != null) {
 
@@ -94,7 +96,8 @@ public class AddCommand extends AbstractCommand {
 				try {
 
 					// create node in transaction
-					nodeToAdd = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					nodeToAdd      = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					newNodeCreated = true;
 				} catch (FrameworkException fex) {
 
 					logger.log(Level.WARNING, "Could not create node.", fex);
@@ -114,10 +117,30 @@ public class AddCommand extends AbstractCommand {
 
 					try {
 
-						rel.createRelationship(securityContext, parentNode, nodeToAdd, relData);
+						if (newNodeCreated) {
+
+							// A new node was created, no relationship exists,
+							// so we create a new one.
+							rel.createRelationship(securityContext, parentNode, nodeToAdd, relData);
+						} else {
+
+							// An existing node was added to the parent node.
+							// All we need to do here is add another property to the relationship with
+							// the new resource id as key and the designated position as value
+							for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
+
+								Long pos = r.getLongProperty(originalResourceId);
+
+								if (pos != null) {
+
+									r.setProperty(newResourceId, Long.parseLong((String) relData.get(newResourceId)));
+								}
+
+							}
+						}
 
 						// set resource ID on copied branch
-						if ((originalResourceId != null) && (newResourceId != null) &&!originalResourceId.equals(newResourceId)) {
+						if ((originalResourceId != null) && (newResourceId != null) && !originalResourceId.equals(newResourceId)) {
 
 							RelationshipHelper.tagOutgoingRelsWithResourceId(nodeToAdd, nodeToAdd, originalResourceId, newResourceId);
 						}
@@ -171,7 +194,7 @@ public class AddCommand extends AbstractCommand {
 							rel.createRelationship(securityContext, nodeToAdd, contentNode, relData);
 
 							// set resource ID on copied branch
-							if ((originalResourceId != null) && (newResourceId != null) &&!originalResourceId.equals(newResourceId)) {
+							if ((originalResourceId != null) && (newResourceId != null) && !originalResourceId.equals(newResourceId)) {
 
 								RelationshipHelper.tagOutgoingRelsWithResourceId(contentNode, contentNode, originalResourceId, newResourceId);
 							}

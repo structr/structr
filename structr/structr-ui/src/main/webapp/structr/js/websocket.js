@@ -278,85 +278,132 @@ function connect() {
                 _Pages.reloadPreviews();
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
-                var element = $( '.' + data.id + '_');
-                var input = $('.props tr td.value input', element);
-                if (debug) console.log(element);
-
-                // remove save and cancel icons
-                input.parent().children('.icon').each(function(i, img) {
-                    $(img).remove();
-                });
-
-                // make inactive
-                input.removeClass('active');
-                if (debug) console.log(element);
-
-                // update values with given key
-                for (var key in data.data) {
-                    
-                    var inputElement = element.children('.props tr td.' + key + ' input');
-                    var newValue = data.data[key];
-                    if (debug) console.log(key, newValue, typeof newValue);
-
-                    var attrElement = element.children('.' + key + '_');
-                    
-                    if (attrElement && $(attrElement).length) {
-                    
-                        var tag = $(attrElement).get(0).tagName.toLowerCase();
-                        
-                        
-                        attrElement.val(value);
-                        attrElement.show();
-                    
-                        if (debug) console.log(attrElement, inputElement);
-                    
-                    }
-                    
-
-                    if (typeof newValue  == 'boolean') {
-
-                        _Entities.changeBooleanAttribute(attrElement, newValue);
-                        
-                    } else {
-
-                        attrElement.animate({
-                            color: '#81ce25'
-                        }, 100, function() {
-                            $(this).animate({
-                                color: '#333333'
-                            }, 200);
-                        });
-                        
-                        if (attrElement && tag == 'select') {
-                            attrElement.val(newValue);
-                        } else {
-                            attrElement.text(newValue);
-                        }
-                        
-                        if (inputElement) {
-                            inputElement.val(newValue);
-                        }
-
-                        // hook for CodeMirror edit areas
-                        if (editor && editor.id == data.id && key == 'content') {
-                            if (debug) console.log(editor.id);
-                            editor.setValue(newValue);
-                            editor.setCursor(editorCursor);
-                        }
-                    }
-                    
-                    if (debug) console.log(key, Structr.getClass(element));
-                    
-                    if (key == 'name' && Structr.getClass(element) == 'page') {
-                        if (debug) console.log('Reload iframe', data.id, newValue);
-                        window.setTimeout(function() { _Pages.reloadIframe(data.id, newValue) }, 100);
-                    }
-
+                
+                var relData = data.relData;
+                if (debug) console.log('relData', relData);
+                
+                var removedProperties = data.removedProperties;
+                var modifiedProperties = data.modifiedProperties;
+                
+                var isRelOp = false;
+                if (relData && relData.startNodeId && relData.endNodeId) {
+                    isRelOp = true;
                 }
                 
+                console.log('isRelOp', isRelOp);
+                console.log('modifiedProperties', modifiedProperties);
+                if (modifiedProperties) {
+                    console.log('modifiedProperties.length', modifiedProperties.length);
+                    var resId = modifiedProperties[0];
+                    console.log('relData[resId]', relData[resId]);
+                }
+                
+                
+                //### FIXME: Entscheidungskriterien (ggf. serverseitig) finden, so dass
+                //### eindeutig ist, dass eine Rel-Op stattfindet
+                
+                
+                if (relData && removedProperties && removedProperties.length) {
+                    console.log('removedProperties', removedProperties);
+                    _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
+                    
+                } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
+                    console.log('modifiedProperties', modifiedProperties);
+                    
+                    var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
+                    console.log('entity', entity);
+                    
+                    _Entities.appendObj(entity, relData.startNodeId, null, modifiedProperties[0]);
+                    
+                } else {
+                    
+                    console.log('else');
+                
+                    var element = $( '.' + data.id + '_');
+                    var input = $('.props tr td.value input', element);
+                    if (debug) console.log(element);
 
-                // refresh preview iframe
-                input.data('changed', false);
+                    // remove save and cancel icons
+                    input.parent().children('.icon').each(function(i, img) {
+                        $(img).remove();
+                    });
+
+                    // make inactive
+                    input.removeClass('active');
+                    if (debug) console.log(element);
+
+                    // update values with given key
+                    for (var key in data.data) {
+                    
+                        var inputElement = element.children('.props tr td.' + key + ' input');
+                        var newValue = data.data[key];
+                        if (debug) console.log(key, newValue, typeof newValue);
+
+                        var attrElement = element.children('.' + key + '_');
+                    
+                        if (attrElement && $(attrElement).length) {
+                    
+                            var tag = $(attrElement).get(0).tagName.toLowerCase();
+                        
+                        
+                            attrElement.val(value);
+                            attrElement.show();
+                    
+                            if (debug) console.log(attrElement, inputElement);
+                    
+                        }
+                    
+
+                        if (typeof newValue  == 'boolean') {
+
+                            _Entities.changeBooleanAttribute(attrElement, newValue);
+                        
+                        } else {
+
+                            attrElement.animate({
+                                color: '#81ce25'
+                            }, 100, function() {
+                                $(this).animate({
+                                    color: '#333333'
+                                }, 200);
+                            });
+                        
+                            if (attrElement && tag == 'select') {
+                                attrElement.val(newValue);
+                            } else {
+                                attrElement.text(newValue);
+                            }
+                        
+                            if (inputElement) {
+                                inputElement.val(newValue);
+                            }
+
+                            // hook for CodeMirror edit areas
+                            if (editor && editor.id == data.id && key == 'content') {
+                                if (debug) console.log(editor.id);
+                                editor.setValue(newValue);
+                                editor.setCursor(editorCursor);
+                            }
+                        }
+                    
+                        if (debug) console.log(key, Structr.getClass(element));
+                    
+                        if (key == 'name' && Structr.getClass(element) == 'page') {
+                            if (debug) console.log('Reload iframe', data.id, newValue);
+                            window.setTimeout(function() {
+                                _Pages.reloadIframe(data.id, newValue)
+                            }, 100);
+                        }
+
+                    }
+                
+                    // refresh preview iframe
+                    input.data('changed', false);
+
+                
+                }
+                
+                
                 _Pages.reloadPreviews();
                 
             } else if (command == 'WRAP') { /*********************** WRAP ************************/

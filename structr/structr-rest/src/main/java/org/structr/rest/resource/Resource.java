@@ -323,7 +323,7 @@ public abstract class Resource {
 		List<AbstractNode> nodes = (List<AbstractNode>)search.execute(topNode, includeDeleted, publicOnly, searchAttributes);
 		if(nodes.isEmpty()) {
                         
-                        logger.log(Level.INFO, "No resource access object found for {0}", uriPart);
+                        logger.log(Level.FINE, "No resource access object found for {0}", uriPart);
                         
 //			// create new grant
 //			final Command create = Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class);
