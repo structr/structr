@@ -287,7 +287,7 @@ var _Elements = {
                         console.log(data.result);
                         $(data.result).each(function(i, res) {
                             
-                            dialog.append('<div class="resource ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
+                            dialog.append('<div class="page ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
                                 + '<b class="name_">' + res.name + '</b></div>');
                             
                             var div = $('.' + res.id + '_', dialog);

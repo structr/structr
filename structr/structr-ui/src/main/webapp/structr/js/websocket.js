@@ -305,7 +305,7 @@ function connect() {
                 
                 
                 if (relData && removedProperties && removedProperties.length) {
-                    if (debug) console.log('removedProperties', removedProperties);
+                    console.log('removedProperties', removedProperties);
                     _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
                     
                 } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
@@ -323,10 +323,20 @@ function connect() {
                     if (res && res.length) {
                                     
                         var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                        console.log('entity', entity);
-                        if (entity) {
-                            _Pages.removeFrom(entity.id, relData.startNodeId, null, newResourceId, pos);
-                            _Entities.appendObj(entity, relData.startNodeId, null, newResourceId);
+                        console.log('entity', entity, resourceId, newResourceId);
+                        if (entity && newResourceId) {
+                            
+                            parentId = relData.startNodeId;
+                            var id = entity.id;
+                            //_Pages.removeFrom(entity.id, relData.startNodeId, null, newResourceId, pos);
+                            //_Entities.appendObj(entity, relData.startNodeId, null, newResourceId);
+                            var el = Structr.node(id, parentId, componentId, newResourceId);
+                            console.log('removing subnodes from', el);
+                            $(el).remove();
+                            //_Entities.resetMouseOverState(el);
+                            _Entities.appendObj(entity, parentId, null, newResourceId);
+                            
+                            //_Entities.reloadChildren(relData.startNodeId, componentId, newResourceId)
                         }
                     }
                     

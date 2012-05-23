@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REST_URL=http://localhost:8080/structr/rest
+REST_URL=http://localhost:8082/structr/rest
 REST_USER=admin
 REST_PW=admin
 

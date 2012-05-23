@@ -420,13 +420,13 @@ var Structr = {
     },
 
     containsNodes : function(element) {
-        console.log(element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
+        if (debug) console.log(element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
         return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
     },
 
     numberOfNodes : function(element) {
         var n = ($(element).children('.node')).length;
-        console.log('number of nodes in element', element, n);
+        if (debug) console.log('number of nodes in element', element, n);
         return n;
     },
 

@@ -68,6 +68,18 @@ var _Entities = {
         }
     },
 
+    reloadChildren : function(id, componentId, resourceId) {
+        var el = Structr.node(id, null, componentId, resourceId);
+        
+        console.log('reloadChildren', el);
+        
+        $(el).children('.node').remove();
+        _Entities.resetMouseOverState(el);
+        
+        Command.children(id, componentId, resourceId);
+        
+    },
+
     appendObj : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
 
         if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
