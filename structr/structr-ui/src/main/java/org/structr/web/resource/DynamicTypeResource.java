@@ -406,7 +406,6 @@ public class DynamicTypeResource extends TypeResource {
 		return pos;
 	}
 
-	// ----- private methods -----
 	@Override
 	public boolean isCollectionResource() {
 
@@ -417,5 +416,13 @@ public class DynamicTypeResource extends TypeResource {
 		}
 
 		return true;
+	}
+	
+	@Override
+	public boolean hasSearchableAttributes(List<SearchAttribute> attributes) throws FrameworkException {
+		
+		// TODO: search for data-key attributes
+		
+		return false;
 	}
 }

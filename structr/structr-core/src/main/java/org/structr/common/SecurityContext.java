@@ -129,6 +129,10 @@ public class SecurityContext {
 	public HttpSession getSession() {
 		return request.getSession();
 	}
+	
+	public HttpServletRequest getRequest() {
+		return request;
+	}
 
 	public Principal getUser() {
 
