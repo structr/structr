@@ -247,7 +247,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		// use parentId from template
 		String parentComponentId = template.getComponentId();
-		String parentResourceId  = template.getResourceId();
+		String parentResourceId  = template.getPageId();
 		final long position      = getMaxPosition(templates, parentResourceId) + 1;
 
 		if (surroundingComponentId != null) {
@@ -382,7 +382,7 @@ public class DynamicTypeResource extends TypeResource {
 		return (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
 	}
 
-	public static long getMaxPosition(final List<GraphObject> templates, final String resourceId) {
+	public static long getMaxPosition(final List<GraphObject> templates, final String pageId) {
 
 		long pos = 0;
 
@@ -395,7 +395,7 @@ public class DynamicTypeResource extends TypeResource {
 
 				for (AbstractRelationship rel : rels) {
 
-					pos = Math.max(pos, rel.getLongProperty(resourceId));
+					pos = Math.max(pos, rel.getLongProperty(pageId));
 
 				}
 

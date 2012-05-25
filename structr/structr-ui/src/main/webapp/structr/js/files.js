@@ -377,6 +377,9 @@ var _Files = {
                     var nodeData = {};
                     nodeData.id = fileId;
                     Command.createAndAdd(folderId, nodeData);
+                    
+                    if (debug) console.log('dropped here!', Structr.node(folderId));
+                    
                 }
             }
         });

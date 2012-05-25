@@ -177,10 +177,10 @@ var _Elements = {
         }
     },
 
-    appendElementElement : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
-        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+    appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
+        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
 
-        var parent = Structr.findParent(parentId, componentId, resourceId, elements);
+        var parent = Structr.findParent(parentId, componentId, pageId, elements);
         if (debug) console.log('appendElementElement parent', parent);
         if (!parent) return false;
         
@@ -191,16 +191,16 @@ var _Elements = {
             pos = parent.children('.' + entity.id + '_').length-1;
         }
         
-        if (debug) console.log('Appending element', entity.id, parentId, componentId, resourceId, pos);
+        if (debug) console.log('Appending element', entity.id, parentId, componentId, pageId, pos);
         if (debug) console.log('to parent', parent);
         
-        var div = Structr.node(entity.id, parentId, componentId, resourceId, pos);
+        var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
         
         if (!div) return;
         
         if (debug) console.log('Element appended', div);
 
-        entity.resourceId = resourceId;
+        entity.pageId = pageId;
 
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
             + '<b class="tag_ name_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
@@ -243,11 +243,11 @@ var _Elements = {
                 relData.componentId = componentId;
             }
 
-            var resource = node.closest('.resource')[0];
-            if (resource) {
-                var resourceId = getId(resource);
-                relData[resourceId] = pos;
-                relData.resourceId = resourceId;
+            var page = node.closest('.page')[0];
+            if (page) {
+                var pageId = getId(page);
+                relData[pageId] = pos;
+                relData.pageId = pageId;
             }
             console.log('Wrap element in component', getId(node), nodeData, relData);
             //_Entities.createAndAdd(getId(node), nodeData, relData);
@@ -269,7 +269,7 @@ var _Elements = {
                 dialog.empty();
                 dialogMsg.empty();
                 
-                dialog.append('<p>Click on a resource to establish a hyperlink between this element and the resource.</p>');
+                dialog.append('<p>Click on a page to establish a hyperlink between this element and the page.</p>');
                 
                 var headers = {};
                 headers['X-StructrSessionToken'] = token;
@@ -361,7 +361,7 @@ var _Elements = {
                     }
                 });
                 
-                Structr.dialog('Link to Resource', function() {
+                Structr.dialog('Link to Page', function() {
                     return true;
                 }, function() {
                     return true;

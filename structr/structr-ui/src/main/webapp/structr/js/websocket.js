@@ -62,7 +62,7 @@ function connect() {
             var parentId = data.id;
             var entityId = data.data.id;
             var componentId = data.data.componentId;
-            var resourceId = data.data.resourceId;
+            var pageId = data.data.pageId;
             var position = data.data.position;
             var msg = data.message;
             var result = data.result;
@@ -193,16 +193,16 @@ function connect() {
 
             } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
 
-                if (debug) console.log('CHILDREN:', parentId, componentId, resourceId);
+                if (debug) console.log('CHILDREN:', parentId, componentId, pageId);
                 if (debug) console.log('CHILDREN');
                 if (debug) console.log('parentId', parentId);
                 if (debug) console.log('componentId', componentId);
-                if (debug) console.log('resourceId', resourceId);
+                if (debug) console.log('pageId', pageId);
                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
                 
                 $(result).each(function(i, child) {
-                    if (debug) console.log('CHILDREN: ', child, parentId, componentId, resourceId, false, isIn(child.id, data.nodesWithChildren));
-                    _Entities.appendObj(child, parentId, componentId, resourceId, false, isIn(child.id, data.nodesWithChildren));
+                    if (debug) console.log('CHILDREN: ', child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren));
+                    _Entities.appendObj(child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren));
                 });
 
             } else if (command == 'LIST') { /*********************** LIST ************************/
@@ -230,7 +230,7 @@ function connect() {
                 if (debug) console.log(command, data);
 
                 //parent = Structr.node(parentId);
-                entity = Structr.node(entityId, parentId, componentId, resourceId, position);
+                entity = Structr.node(entityId, parentId, componentId, pageId, position);
 
                 //if (debug) console.log(parent);
                 if (debug) console.log(entity);
@@ -242,8 +242,8 @@ function connect() {
                     _UsersAndGroups.removeUserFromGroup(entityId, parentId, position);
 
                 } else if (entity.hasClass('element') || entity.hasClass('content') || entity.hasClass('component')) {
-                    console.log('remove element from resource', entityId, parentId, componentId, resourceId, position);
-                    _Pages.removeFrom(entityId, parentId, componentId, resourceId, position);
+                    console.log('remove element from page', entityId, parentId, componentId, pageId, position);
+                    _Pages.removeFrom(entityId, parentId, componentId, pageId, position);
                     _Pages.reloadPreviews();
 
                 } else if (entity.hasClass('file')) {
@@ -267,18 +267,24 @@ function connect() {
                 if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
 
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
-            //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
+                //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
                 //console.log(command, result, data, data.data);
 				
                 $(result).each(function(i, entity) {
-                    if (debug) console.log(command, entity, parentId, componentId, resourceId, command == 'ADD');
-                    _Entities.appendObj(entity, parentId, componentId, resourceId, command == 'ADD');
+                    if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD');
+                    
+                    
+                    var el = Structr.node(entity.id, parentId, componentId, pageId);
+                    //console.log(el);
+                    if (el) el.remove();
+                    
+                    _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD');
                 });
 
                 _Pages.reloadPreviews();
                 
-                //alert(command);
+            //alert(command);
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
                 
@@ -305,38 +311,53 @@ function connect() {
                 
                 
                 if (relData && removedProperties && removedProperties.length) {
-                    console.log('removedProperties', removedProperties);
+                    if (debug) console.log('removedProperties', removedProperties);
                     _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
                     
                 } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
                     
-                    console.log(data);
+                    if (debug) console.log(data);
                     
                     if (debug) console.log('modifiedProperties', modifiedProperties[0]);
                 		    
-                    var newResourceId = modifiedProperties[0];
-                    var pos = relData[newResourceId];
+                    var newPageId = modifiedProperties[0];
+                    //var pos = relData[newPageId];
                 		    
-                    var res = Structr.node(newResourceId);
-                    if (debug) console.log('resource?', res);
+                    var page;
+                        
+                    if (newPageId != '*') {
+                        page   = Structr.node(newPageId);
+                    }
+                    
+                    if (debug) console.log('page', page);
                 		    
-                    if (res && res.length) {
+                    if (page && page.length) {
                                     
                         var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                        console.log('entity', entity, resourceId, newResourceId);
-                        if (entity && newResourceId) {
+                        console.log('entity', entity, pageId, newPageId);
+                        if (entity && newPageId) {
                             
                             parentId = relData.startNodeId;
-                            var id = entity.id;
-                            //_Pages.removeFrom(entity.id, relData.startNodeId, null, newResourceId, pos);
-                            //_Entities.appendObj(entity, relData.startNodeId, null, newResourceId);
-                            var el = Structr.node(id, parentId, componentId, newResourceId);
-                            console.log('removing subnodes from', el);
-                            $(el).remove();
-                            //_Entities.resetMouseOverState(el);
-                            _Entities.appendObj(entity, parentId, null, newResourceId);
                             
-                            //_Entities.reloadChildren(relData.startNodeId, componentId, newResourceId)
+                            if (parentId == pageId) {
+                                console.log('parentId == pageId');
+                            }
+                            
+                            var id = entity.id;
+                            //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
+                            //_Entities.appendObj(entity, relData.startNodeId, null, newPageId);
+                            var el = Structr.node(id, parentId, componentId, newPageId);
+                            console.log('removing', el);
+                            
+                            if (el) el.remove();
+                            
+                            //_Entities.resetMouseOverState(el);
+                            _Entities.appendObj(entity, parentId, null, newPageId, true);
+                            
+                        //_Entities.reloadChildren(relData.startNodeId, componentId, newPageId)
+                        
+                        //_Pages.refresh();
+                        
                         }
                     }
                     
@@ -344,7 +365,7 @@ function connect() {
                     
                     if (debug) console.log('else');
                 
-                    var element = $( '.' + data.id + '_');
+                    var element = $('.' + data.id + '_');
                     var input = $('.props tr td.value input', element);
                     if (debug) console.log(element);
 
@@ -414,7 +435,7 @@ function connect() {
                         if (debug) console.log(key, Structr.getClass(element));
                     
                         if (key == 'name' && Structr.getClass(element) == 'page') {
-                            if (debug) console.log('Reload iframe', data.id, newValue);
+                            console.log('Reload iframe', data.id, newValue);
                             window.setTimeout(function() {
                                 _Pages.reloadIframe(data.id, newValue)
                             }, 100);

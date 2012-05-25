@@ -139,7 +139,7 @@ public class Content extends AbstractNode {
 		return getRelationships(RelType.CONTAINS, Direction.INCOMING).get(0);
 	}	
 	
-	public String getPropertyWithVariableReplacement(AbstractNode resource, String resourceId, String componentId, AbstractNode viewComponent, String key) {
-		return HtmlElement.replaceVariables(securityContext, resource, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
+	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, String key) {
+		return HtmlElement.replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getStringProperty(key));
 	}
 }

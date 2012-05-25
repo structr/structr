@@ -23,11 +23,15 @@ package org.structr.web.entity.html;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyKey;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Linkable;
 import org.structr.core.entity.RelationClass;
+import org.structr.core.notion.PropertyNotion;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -36,11 +40,9 @@ import org.structr.core.entity.RelationClass;
  */
 public class Link extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] {
+	private static final String[] htmlAttributes = new String[] { "href", "rel", "media", "hreflang", "type", "sizes" };
 
-		"href", "rel", "media", "hreflang", "type", "sizes"
-
-	};
+        public enum UiKey implements PropertyKey { linkable, linkable_id }
 
 	//~--- static initializers --------------------------------------------
 
@@ -51,6 +53,9 @@ public class Link extends HtmlElement {
 		EntityContext.registerPropertySet(Link.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 
 		EntityContext.registerEntityRelation(Link.class, Head.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+
+                EntityContext.registerEntityRelation(Link.class,      Linkable.class,                           RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
+		EntityContext.registerPropertyRelation(Link.class,    Link.UiKey.linkable_id, Linkable.class,   RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid), RelationClass.DELETE_NONE);
 	}
 
 	//~--- get methods ----------------------------------------------------

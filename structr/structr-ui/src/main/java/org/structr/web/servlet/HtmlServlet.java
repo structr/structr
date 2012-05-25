@@ -92,7 +92,7 @@ import javax.servlet.http.HttpServletResponse;
  * one to create an example structure and one to traverse over the created
  * structure and return the collected content. Use the request parameter "create"
  * to create the test structure, use the request parameter "id" to retrieve the
- * resources, see log during "create" for IDs of the created resources.
+ * pages, see log during "create" for IDs of the created pages.
  *
  * @author Christian Morgner
  * @author Axel Morgner
@@ -190,7 +190,7 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- methods --------------------------------------------------------
 
-	private boolean postToRestUrl(HttpServletRequest request, final String resourcePath, final Map<String, Object> parameters) {
+	private boolean postToRestUrl(HttpServletRequest request, final String pagePath, final Map<String, Object> parameters) {
 
 		HttpClient httpClient = new HttpClient();
 		ContentExchange contentExchange;
@@ -206,7 +206,7 @@ public class HtmlServlet extends HttpServlet {
 
 			httpClient.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
 
-			restUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getLocalPort() + StructrServer.REST_URL + "/" + resourcePath;
+			restUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getLocalPort() + StructrServer.REST_URL + "/" + pagePath;
 
 			contentExchange.setURL(restUrl);
 
@@ -258,9 +258,9 @@ public class HtmlServlet extends HttpServlet {
 
 		// Split by "//"
 		String[] parts      = PathHelper.getParts(path);
-		String resourcePath = parts[parts.length - 1];
+		String pagePath = parts[parts.length - 1];
 
-		postToRestUrl(request, resourcePath, convert(parameterMap));
+		postToRestUrl(request, pagePath, convert(parameterMap));
 
 		String name = null;
 
@@ -268,7 +268,7 @@ public class HtmlServlet extends HttpServlet {
 
 			name = PathHelper.getParts(path)[0];
 
-			response.sendRedirect("/" + name + "//" + resourcePath);
+			response.sendRedirect("/" + name + "//" + pagePath);
 
 		} catch (IOException ex) {
 
@@ -326,7 +326,7 @@ public class HtmlServlet extends HttpServlet {
 			tidy = true;
 		}
 
-		// first part (before "//" is resource path (file etc),
+		// first part (before "//" is page path (file etc),
 		// second part is nested component control
 		// store remaining path parts in request
 		Matcher matcher                 = threadLocalUUIDMatcher.get();
@@ -362,32 +362,32 @@ public class HtmlServlet extends HttpServlet {
 			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 			double start                = System.nanoTime();
 
-			// 1: find entry point (Resource, File or Image)
+			// 1: find entry point (Page, File or Image)
 			AbstractNode node                 = findEntryPoint(name);
-			Page resource                 = null;
+			Page page                 = null;
 			org.structr.core.entity.File file = null;
 
 			if (node instanceof Page) {
 
-				resource = (Page) node;
+				page = (Page) node;
 			} else if (node instanceof org.structr.core.entity.File) {
 
 				file = (org.structr.core.entity.File) node;
 			}
 
-			if ((resource != null) && securityContext.isVisible(resource)) {
+			if ((page != null) && securityContext.isVisible(page)) {
 
-				String uuid                = resource.getStringProperty(AbstractNode.Key.uuid);
+				String uuid                = page.getStringProperty(AbstractNode.Key.uuid);
 				final StringBuilder buffer = new StringBuilder(10000);
 
-				getContent(request, uuid, null, buffer, resource, resource, 0, false, searchFor, attrs, null, null);
+				getContent(request, uuid, null, buffer, page, page, 0, false, searchFor, attrs, null, null);
 
 				String content = buffer.toString();
 				double end     = System.nanoTime();
 
 				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
 
-				String contentType = resource.getStringProperty(Page.UiKey.contentType);
+				String contentType = page.getStringProperty(Page.UiKey.contentType);
 
 				if (contentType != null) {
 
@@ -543,7 +543,7 @@ public class HtmlServlet extends HttpServlet {
 			group.add(Search.orExactType(Image.class.getSimpleName()));
 			searchAttrs.add(group);
 
-			// Searching for resources needs super user context anyway
+			// Searching for pages needs super user context anyway
 			List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
 
 			logger.log(Level.FINE, "{0} results", results.size());
@@ -561,7 +561,7 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- get methods ----------------------------------------------------
 
-	private void getContent(HttpServletRequest request, final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode resource, final AbstractNode startNode,
+	private void getContent(HttpServletRequest request, final String pageId, final String componentId, final StringBuilder buffer, final AbstractNode page, final AbstractNode startNode,
 				final int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) {
 
 		String localComponentId = componentId;
@@ -599,7 +599,7 @@ public class HtmlServlet extends HttpServlet {
 				Content contentNode = (Content) startNode;
 
 				// fetch content with variable replacement
-				content = contentNode.getPropertyWithVariableReplacement(resource, resourceId, componentId, viewComponent, Content.UiKey.content.name());
+				content = contentNode.getPropertyWithVariableReplacement(page, pageId, componentId, viewComponent, Content.UiKey.content.name());
 
 				// examine content type and apply converter
 				String contentType = contentNode.getStringProperty(Content.UiKey.contentType);
@@ -665,7 +665,7 @@ public class HtmlServlet extends HttpServlet {
 
 					if (depth == 1) {
 
-						buffer.append(" structr_resource_id='").append(resourceId).append("'");
+						buffer.append(" structr_page_id='").append(pageId).append("'");
 					}
 
 					if (!(startNode instanceof Content)) {
@@ -689,7 +689,7 @@ public class HtmlServlet extends HttpServlet {
 
 						try {
 
-							String value = htmlElement.getPropertyWithVariableReplacement(resource, resourceId, localComponentId, viewComponent, attribute);
+							String value = htmlElement.getPropertyWithVariableReplacement(page, pageId, localComponentId, viewComponent, attribute);
 
 							if ((value != null) && StringUtils.isNotBlank(value)) {
 
@@ -727,7 +727,7 @@ public class HtmlServlet extends HttpServlet {
 			for (GraphObject component : components) {
 
 				// recursively render children
-				List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, resourceId, localComponentId);
+				List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
 
 				for (AbstractRelationship rel : rels) {
 
@@ -735,7 +735,7 @@ public class HtmlServlet extends HttpServlet {
 
 						AbstractNode subNode = rel.getEndNode();
 
-						getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, (AbstractNode) component,
+						getContent(request, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, (AbstractNode) component,
 							   condition);
 
 					}
@@ -745,20 +745,20 @@ public class HtmlServlet extends HttpServlet {
 		} else if (startNode instanceof Condition) {
 
 			// recursively render children
-			List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, resourceId, localComponentId);
+			List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
 			Condition newCondition          = (Condition) startNode;
 
 			for (AbstractRelationship rel : rels) {
 
 				AbstractNode subNode = rel.getEndNode();
 
-				getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
+				getContent(request, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
 
 			}
 		} else {
 
 			// recursively render children
-			List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, resourceId, localComponentId);
+			List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
 
 			for (AbstractRelationship rel : rels) {
 
@@ -766,7 +766,7 @@ public class HtmlServlet extends HttpServlet {
 
 					AbstractNode subNode = rel.getEndNode();
 
-					getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
+					getContent(request, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
 
 				}
 

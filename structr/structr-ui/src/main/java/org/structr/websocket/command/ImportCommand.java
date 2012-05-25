@@ -59,6 +59,7 @@ public class ImportCommand extends AbstractCommand {
 		StructrWebSocket.addCommand(AddCommand.class);
 		StructrWebSocket.addCommand(RemoveCommand.class);
 		StructrWebSocket.addCommand(LinkCommand.class);
+		StructrWebSocket.addCommand(CreateSimplePage.class);
 
 	}
 
@@ -88,16 +89,16 @@ public class ImportCommand extends AbstractCommand {
 
 					getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully parsed address " + address).build(), true);
 
-					String resourceId = pageImporter.readResource();
+					String pageId = pageImporter.readPage();
 
 					Map<String, Object> resultData = new HashMap<String, Object>();
 
-					if (resourceId != null) {
-						resultData.put("id", resourceId);
+					if (pageId != null) {
+						resultData.put("id", pageId);
 
-						getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully created resource " + name).data(resultData).build(), true);
+						getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully created page " + name).data(resultData).build(), true);
 					} else {
-						getWebSocket().send(MessageBuilder.status().code(400).message("Error while creating resource " + name).data(resultData).build(), true);
+						getWebSocket().send(MessageBuilder.status().code(400).message("Error while creating page " + name).data(resultData).build(), true);
 					}
 				}
 

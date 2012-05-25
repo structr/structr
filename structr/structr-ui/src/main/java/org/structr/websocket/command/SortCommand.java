@@ -51,8 +51,8 @@ public class SortCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String resourceId            = webSocketData.getId();
-		AbstractNode node            = getNode(resourceId);
+		String pageId            = webSocketData.getId();
+		AbstractNode node            = getNode(pageId);
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 
 		if (node != null) {
@@ -64,12 +64,12 @@ public class SortCommand extends AbstractCommand {
 
 				for (AbstractRelationship rel : nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
 
-					Long oldPos = rel.getLongProperty(resourceId);
+					Long oldPos = rel.getLongProperty(pageId);
 
 					if ((oldPos != null) &&!(oldPos.equals(pos))) {
 
 						try {
-							rel.setProperty(resourceId, pos);
+							rel.setProperty(pageId, pos);
 						} catch (FrameworkException fex) {
 							fex.printStackTrace();
 						}

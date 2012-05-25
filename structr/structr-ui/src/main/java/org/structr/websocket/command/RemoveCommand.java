@@ -66,7 +66,7 @@ public class RemoveCommand extends AbstractCommand {
 		String id                = webSocketData.getId();
 		String parentId          = (String) webSocketData.getNodeData().get("id");
 		final String componentId = (String) webSocketData.getNodeData().get("componentId");
-		final String resourceId  = (String) webSocketData.getNodeData().get("resourceId");
+		final String pageId  = (String) webSocketData.getNodeData().get("pageId");
 		String position          = (String) webSocketData.getNodeData().get("position");
 
 		if ((id != null) && (parentId != null)) {
@@ -92,13 +92,13 @@ public class RemoveCommand extends AbstractCommand {
 
 							Command deleteRel                      = Services.command(securityContext, DeleteRelationshipCommand.class);
 							List<AbstractRelationship> relsToShift = new LinkedList<AbstractRelationship>();
-							boolean hasResourceIds                 = true;
+							boolean hasPageId                 = true;
 
 							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(parentNode).equals(nodeToRemove)
 									&& ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))
-									&& ((resourceId == null) || (rel.getProperty(resourceId) != null))) {
+									&& ((pageId == null) || (rel.getProperty(pageId) != null))) {
 
 									// relsToShift.add(rel);
 									if (pos == null) {
@@ -106,15 +106,15 @@ public class RemoveCommand extends AbstractCommand {
 										deleteRel.execute(rel);
 									} else {
 
-										if (pos.equals(rel.getLongProperty(resourceId))) {
+										if (pos.equals(rel.getLongProperty(pageId))) {
 
-											rel.removeProperty(resourceId);
-											RelationshipHelper.untagOutgoingRelsFromResourceId(nodeToRemove, nodeToRemove, resourceId, resourceId);
+											rel.removeProperty(pageId);
+											RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
 
-											hasResourceIds = hasResourceIds(securityContext, rel);
+											hasPageId = hasPageIds(securityContext, rel);
 
-											// If no resourceId property is left, remove relationship
-											if (!hasResourceIds) {
+											// If no pageId property is left, remove relationship
+											if (!hasPageId) {
 
 												deleteRel.execute(rel);
 
@@ -133,9 +133,9 @@ public class RemoveCommand extends AbstractCommand {
 							}
 
 							// After removal of a relationship, all other rels must get a new position id
-//                                                      if (!hasResourceIds && pos != null) {
+//                                                      if (!hasPageIds && pos != null) {
 //
-//                                                              reorderRels(rels, resourceId);
+//                                                              reorderRels(rels, pageId);
 //                                                      }
 							return null;
 
@@ -167,7 +167,7 @@ public class RemoveCommand extends AbstractCommand {
 
 	}
 
-	private void reorderRels(final List<AbstractRelationship> rels, final String resourceId) throws FrameworkException {
+	private void reorderRels(final List<AbstractRelationship> rels, final String pageId) throws FrameworkException {
 
 		long i = 0;
 
@@ -176,7 +176,7 @@ public class RemoveCommand extends AbstractCommand {
 			try {
 
 				rel.getId();
-				rel.setProperty(resourceId, i);
+				rel.setProperty(pageId, i);
 
 				i++;
 
@@ -199,7 +199,7 @@ public class RemoveCommand extends AbstractCommand {
 
 	}
 
-	private boolean hasResourceIds(final SecurityContext securityContext, final AbstractRelationship rel) throws FrameworkException {
+	private boolean hasPageIds(final SecurityContext securityContext, final AbstractRelationship rel) throws FrameworkException {
 
 		Command searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		long count         = 0;
@@ -224,7 +224,7 @@ public class RemoveCommand extends AbstractCommand {
 					count++;
 				} else {
 
-					// UUID, but not resource found: Remove this property
+					// UUID, but not page found: Remove this property
 					rel.removeProperty(key);
 				}
 

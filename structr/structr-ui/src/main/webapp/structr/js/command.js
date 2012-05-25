@@ -47,7 +47,7 @@ var Command = {
      * The server will return a result set containing all items of the given
      * type to the sending client (no broadcast).
      * The server will return an array with all
-     * node ids which have child nodes in this resource.
+     * node ids which have child nodes in this page.
      * 
      * TODO: Add paging and sorting
      */
@@ -65,20 +65,20 @@ var Command = {
      * Send a CHILDREN command to the server.
      * 
      * The server will return a result set containing all children of the
-     * node with the given id which are rendered within the resource with
-     * the given resourceId and within the component with the given
+     * node with the given id which are rendered within the page with
+     * the given pageId and within the component with the given
      * componentId to the sending client (no broadcast).
      * 
      * The server will return an array with all node ids which have child
-     * nodes in this resource.
+     * nodes in this page.
      */
-    children : function(id, componentId, resourceId) {
+    children : function(id, componentId, pageId) {
         var obj = {};
         obj.command = 'CHILDREN';
         obj.id = id;
         var data = {};
         if (componentId) data.componentId = componentId;
-        data.resourceId = resourceId;
+        data.pageId = pageId;
         obj.data = data;
         if (debug) console.log('children()', obj);
         return sendObj(obj);
@@ -163,7 +163,7 @@ var Command = {
      * The server will remove the node with the given sourceId from the node
      * with the given targetId and broadcast a removal notification.
      */
-    removeSourceFromTarget : function(entityId, parentId, componentId, resourceId, position) {
+    removeSourceFromTarget : function(entityId, parentId, componentId, pageId, position) {
         if (debug) console.log('Remove ' + entityId + ' from ' + parentId);
         var obj = {};
         obj.command = 'REMOVE';
@@ -171,7 +171,7 @@ var Command = {
         var data = {};
         data.id = parentId;
         data.componentId = componentId;
-        data.resourceId = resourceId;
+        data.pageId = pageId;
         data.position = position;
         obj.data = data;
         if (debug) console.log('removeSourceFromTarget()', obj);
@@ -218,9 +218,9 @@ var Command = {
      * 
      * Add the node with the given id to the children of the node with the
      * id given as 'id' property of the 'nodeData' hash. If the 'relData'
-     * contains a resource id in both property fields 'sourceResourceId' and 
-     * 'targetResourceId', the node will be copied from the source to the
-     * target resource,
+     * contains a page id in both property fields 'sourcePageId' and 
+     * 'targetPageId', the node will be copied from the source to the
+     * target page,
      * 
      * - or -
      * 
@@ -268,11 +268,29 @@ var Command = {
     },
 
     /**
+     * Send a CREATE_SIMPLE_PAGE command to the server.
+     * 
+     * The server will create a simple HTML page with head, body
+     * and title element and broadcast a CREATE notification.
+     */
+    createSimplePage : function() {
+        var obj = {};
+        obj.command = 'CREATE_SIMPLE_PAGE';
+        var nodeData = {};
+        if (!nodeData.name) {
+            nodeData.name = 'New Page ' + Math.floor(Math.random() * (999999 - 1));
+        }
+        obj.data = nodeData;
+        console.log('createSimplePage()', obj);
+        return sendObj(obj);
+    },
+    
+    /**
      * Send an IMPORT command to the server.
      * 
      * This command will trigger the server-side importer to start with
      * parsing and importing the page data from the given address.
-     * If successful, the server will add a new resource with the given name
+     * If successful, the server will add a new page with the given name
      * and make it visible for public or authenticated users.
      * 
      * The server will broadcast CREATE and ADD notifications for each
@@ -325,9 +343,9 @@ var Command = {
     /**
      * Send a CLONE command to the server.
      * 
-     * This will create a new resource and copy all children of the resource
+     * This will create a new page and copy all children of the page
      * with the given id so that they become children of the newly created
-     * resource, too.
+     * page, too.
      * 
      * The server will broadcast a CREATE and an ADD notification.
      */
@@ -372,7 +390,7 @@ var Command = {
      * Send a LINK command to the server.
      * 
      * The server will establish a relationship from the node with the given
-     * id to the resource with the given resource id.
+     * id to the page with the given page id.
      * 
      * The server gives no feedback on a LINK command.
      */

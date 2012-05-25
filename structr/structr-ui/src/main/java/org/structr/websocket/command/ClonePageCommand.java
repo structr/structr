@@ -85,18 +85,18 @@ public class ClonePageCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Page newResource = (Page) Services.command(securityContext, CreateNodeCommand.class).execute(
+					Page newPage = (Page) Services.command(securityContext, CreateNodeCommand.class).execute(
                                                 new NodeAttribute(AbstractNode.Key.type.name(), Page.class.getSimpleName()),
                                                 new NodeAttribute(AbstractNode.Key.name.name(), newName),
                                                 new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true)
                                                 );
 
-					if (newResource != null) {
+					if (newPage != null) {
 						
-						String resourceId = newResource.getStringProperty(AbstractNode.Key.uuid);
+						String pageId = newPage.getStringProperty(AbstractNode.Key.uuid);
 
 						List<AbstractRelationship> relsOut = nodeToClone.getOutgoingRelationships(RelType.CONTAINS);
-						String originalResourceId          = nodeToClone.getStringProperty(AbstractNode.Key.uuid);
+						String originalPageId          = nodeToClone.getStringProperty(AbstractNode.Key.uuid);
 						Html htmlNode                      = null;
 
 						for (AbstractRelationship out : relsOut) {
@@ -114,24 +114,24 @@ public class ClonePageCommand extends AbstractCommand {
 
 						if (htmlNode != null) {
 
-							RelationClass rel = EntityContext.getRelationClass(newResource.getClass(), htmlNode.getClass());
+							RelationClass rel = EntityContext.getRelationClass(newPage.getClass(), htmlNode.getClass());
 
 							if (rel != null) {
 
 								Map<String, Object> relProps = new LinkedHashMap<String, Object>();
 
-								relProps.put(resourceId, 0);
-								relProps.put("resourceId", resourceId);
+								relProps.put(pageId, 0);
+								relProps.put("pageId", pageId);
 
 								try {
-									rel.createRelationship(securityContext, newResource, htmlNode, relProps);
+									rel.createRelationship(securityContext, newPage, htmlNode, relProps);
 								} catch (Throwable t) {
 
 									getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(),
 											    true);
 								}
 
-								RelationshipHelper.tagOutgoingRelsWithResourceId(newResource, newResource, originalResourceId, resourceId);
+								RelationshipHelper.tagOutgoingRelsWithPageId(newPage, newPage, originalPageId, pageId);
 							}
 
 						}

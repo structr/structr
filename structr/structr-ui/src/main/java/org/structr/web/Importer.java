@@ -51,7 +51,6 @@ import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.web.entity.Content;
 import org.structr.web.entity.html.HtmlElement;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -67,6 +66,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.web.entity.Page;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -154,7 +154,7 @@ public class Importer {
 
 	public boolean parse() throws FrameworkException {
 
-		logger.log(Level.INFO, "##### Start fetching {0} for resource {1} #####", new Object[] { address, name });
+		logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[] { address, name });
 		init();
 
 		try {
@@ -171,7 +171,7 @@ public class Importer {
 
 	}
 
-	public String readResource() throws FrameworkException {
+	public String readPage() throws FrameworkException {
 
 		final URL baseUrl;
 
@@ -186,16 +186,16 @@ public class Importer {
 
 					List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
-					attrs.add(new NodeAttribute("type", "Page"));
-					attrs.add(new NodeAttribute("name", name));
-					attrs.add(new NodeAttribute("visibleToPublicUsers", publicVisible));
-					attrs.add(new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
+					attrs.add(new NodeAttribute(AbstractNode.Key.type, Page.class.getSimpleName()));
+					attrs.add(new NodeAttribute(AbstractNode.Key.name, name));
+					attrs.add(new NodeAttribute(AbstractNode.Key.visibleToPublicUsers, publicVisible));
+					attrs.add(new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers, authVisible));
 
-					AbstractNode resource = findOrCreateNode(attrs, "/");
+					AbstractNode page = findOrCreateNode(attrs, "/");
 
-					createChildNodes(parsedDocument, resource, resource.getStringProperty(AbstractNode.Key.uuid), baseUrl);
+					createChildNodes(parsedDocument, page, page.getStringProperty(AbstractNode.Key.uuid), baseUrl);
 
-					return resource;
+					return page;
 
 				}
 
@@ -203,7 +203,7 @@ public class Importer {
 
 			if (res != null) {
 
-				logger.log(Level.INFO, "##### Finished fetching {0} for resource {1} #####", new Object[] { address, name });
+				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
 				return res.getStringProperty(AbstractNode.Key.uuid);
 
@@ -219,7 +219,7 @@ public class Importer {
 
 	}
 
-	public void createChildNodes(final Node startNode, final AbstractNode parent, String resourceId, final URL baseUrl) throws FrameworkException {
+	public void createChildNodes(final Node startNode, final AbstractNode parent, String pageId, final URL baseUrl) throws FrameworkException {
 
 		List<Node> children = startNode.childNodes();
 		int localIndex      = 0;
@@ -342,10 +342,10 @@ public class Importer {
 			AbstractNode newNode = findOrCreateNode(attrs, nodePath);
 
 			// Link new node to its parent node
-			linkNodes(parent, newNode, resourceId, localIndex);
+			linkNodes(parent, newNode, pageId, localIndex);
 
 			// Step down and process child nodes
-			createChildNodes(node, newNode, resourceId, baseUrl);
+			createChildNodes(node, newNode, pageId, baseUrl);
 
 			// Count up position index
 			localIndex++;
@@ -410,8 +410,8 @@ public class Importer {
 			String foundNodePath = foundNode.getStringProperty(HtmlElement.UiKey.path);
 
 			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
-
-			if (foundNodePath.equals(nodePath)) {
+			
+			if (foundNodePath != null && foundNodePath.equals(nodePath)) {
 
 				logger.log(Level.INFO, "MATCH!");
 
@@ -453,11 +453,11 @@ public class Importer {
 
 	}
 
-	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
+	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String pageId, int index) throws FrameworkException {
 
 		AbstractRelationship rel = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
 
-		rel.setProperty(resourceId, index);
+		rel.setProperty(pageId, index);
 
 		return rel;
 

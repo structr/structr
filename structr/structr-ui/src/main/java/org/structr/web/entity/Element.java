@@ -62,14 +62,14 @@ public class Element extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), uiAttributes);
 		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(), uiAttributes);
 
-//              EntityContext.registerEntityRelation(Element.class,     Resource.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
+//              EntityContext.registerEntityRelation(Element.class,     Page.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
 
 	}
 	
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {
-		name, tag, contents, elements, components, resource
+		name, tag, contents, elements, components, page
 	}
 
 

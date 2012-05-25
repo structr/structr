@@ -82,7 +82,7 @@ public class Component extends AbstractNode {
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ componentId, resourceId }
+	public enum Key implements PropertyKey{ componentId, pageId }
 
 	public enum UiKey implements PropertyKey{ type, name, structrclass, displayMode }
 
@@ -144,7 +144,7 @@ public class Component extends AbstractNode {
 
 		}
 
-		// collection of properties must not depend on resource
+		// collection of properties must not depend on page
 		for (AbstractRelationship rel : getChildRelationships(null, startNode, null, componentId)) {
 
 			AbstractNode endNode = rel.getEndNode();
@@ -188,7 +188,7 @@ public class Component extends AbstractNode {
 
 		}
 
-		// collection of properties must not depend on resource
+		// collection of properties must not depend on page
 		for (AbstractRelationship rel : getChildRelationships(null, startNode, null, componentId)) {
 
 			AbstractNode endNode = rel.getEndNode();
@@ -271,15 +271,15 @@ public class Component extends AbstractNode {
 		return null;
 	}
 
-	public String getResourceId() {
+	public String getPageId() {
 
 		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
 
-			String resourceId = in.getStringProperty(Key.resourceId.name());
+			String pageId = in.getStringProperty(Key.pageId.name());
 
-			if (resourceId != null) {
+			if (pageId != null) {
 
-				return resourceId;
+				return pageId;
 
 			}
 
@@ -288,7 +288,7 @@ public class Component extends AbstractNode {
 		return null;
 	}
 
-	public static List<AbstractRelationship> getChildRelationships(final HttpServletRequest request, final AbstractNode node, final String resourceId, final String componentId) {
+	public static List<AbstractRelationship> getChildRelationships(final HttpServletRequest request, final AbstractNode node, final String pageId, final String componentId) {
 
 		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
 
@@ -296,7 +296,7 @@ public class Component extends AbstractNode {
 
 			Relationship rel = abstractRelationship.getRelationship();
 
-			if ((resourceId == null) || ((resourceId != null) && rel.hasProperty(resourceId)) || rel.hasProperty("*")) {
+			if ((pageId == null) || ((pageId != null) && rel.hasProperty(pageId)) || rel.hasProperty("*")) {
 
 				AbstractNode endNode = abstractRelationship.getEndNode();
 
@@ -324,15 +324,15 @@ public class Component extends AbstractNode {
 
 		}
 
-		if (resourceId != null) {
+		if (pageId != null) {
 
 			Collections.sort(rels, new Comparator<AbstractRelationship>() {
 
 				@Override
 				public int compare(AbstractRelationship o1, AbstractRelationship o2) {
 
-					Long pos1 = getPosition(o1, resourceId);
-					Long pos2 = getPosition(o2, resourceId);
+					Long pos1 = getPosition(o1, pageId);
+					Long pos2 = getPosition(o2, pageId);
 
 					return pos1.compareTo(pos2);
 				}
@@ -344,7 +344,7 @@ public class Component extends AbstractNode {
 		return rels;
 	}
 
-	public static long getPosition(final AbstractRelationship relationship, final String resourceId) {
+	public static long getPosition(final AbstractRelationship relationship, final String pageId) {
 
 //              final Relationship rel = relationship.getRelationship();
 		long position = 0;
@@ -355,17 +355,17 @@ public class Component extends AbstractNode {
 			Object prop = null;
 			final String key;
 
-			// "*" is a wildcard for "matches any resource id"
+			// "*" is a wildcard for "matches any page id"
 			// TOOD: use pattern matching here?
 			if (relationship.getProperty("*") != null) {
 
 				prop = relationship.getProperty("*");
 				key  = "*";
 
-			} else if (relationship.getProperty(resourceId) != null) {
+			} else if (relationship.getProperty(pageId) != null) {
 
-				prop = relationship.getLongProperty(resourceId);
-				key  = resourceId;
+				prop = relationship.getLongProperty(pageId);
+				key  = pageId;
 
 			} else {
 
@@ -427,7 +427,7 @@ public class Component extends AbstractNode {
 		} catch (Throwable t) {
 
 			// fail fast, no check
-			logger.log(Level.SEVERE, "While reading property " + resourceId, t);
+			logger.log(Level.SEVERE, "While reading property " + pageId, t);
 		}
 
 		return position;

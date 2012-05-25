@@ -58,7 +58,7 @@ public class Page extends Linkable {
 		EntityContext.registerEntityRelation(Page.class,	Component.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Page.class,	Element.class,		RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Page.class,	Content.class,		RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
-//		EntityContext.registerEntityRelation(Resource.class,	Element.class,		RelType.LINK,		Direction.INCOMING, Cardinality.OneToMany);
+//		EntityContext.registerEntityRelation(Page.class,	Element.class,		RelType.LINK,		Direction.INCOMING, Cardinality.OneToMany);
 
 		EntityContext.registerEntityRelation(Page.class, Html.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne);
 

@@ -50,14 +50,14 @@ import java.util.Set;
  */
 public class RelationshipHelper {
 
-	public static void copyRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String resourceId, String componentId, long position)
+	public static void copyRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String pageId, String componentId, long position)
 		throws FrameworkException {
 
-		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, resourceId, componentId, position);
-		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, resourceId, componentId, position);
+		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
+		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
 	}
 
-	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String resourceId, String componentId,
+	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String pageId, String componentId,
 		long position)
 		throws FrameworkException {
 
@@ -83,17 +83,17 @@ public class RelationshipHelper {
 
 			}
 
-			if (resourceId != null) {
+			if (pageId != null) {
 
-				newInRel.setProperty(Component.Key.resourceId, resourceId);
-				newInRel.setProperty(resourceId, position);
+				newInRel.setProperty(Component.Key.pageId, pageId);
+				newInRel.setProperty(pageId, position);
 
 			}
 
 		}
 	}
 
-	public static void copyOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode cloneNode, RelType relType, String resourceId, String componentId,
+	public static void copyOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode cloneNode, RelType relType, String pageId, String componentId,
 		long position)
 		throws FrameworkException {
 
@@ -118,10 +118,10 @@ public class RelationshipHelper {
 
 			}
 
-			if (resourceId != null) {
+			if (pageId != null) {
 
-				newOutRel.setProperty(Component.Key.resourceId, resourceId);
-				newOutRel.setProperty(resourceId, position);
+				newOutRel.setProperty(Component.Key.pageId, pageId);
+				newOutRel.setProperty(pageId, position);
 
 			}
 
@@ -186,40 +186,40 @@ public class RelationshipHelper {
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 	}
 
-	public static void moveIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType, String resourceId, String componentId,
+	public static void moveIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType, String pageId, String componentId,
 		long position)
 		throws FrameworkException {
 
-		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, resourceId, componentId, position);
+		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
 		removeIncomingRelationships(securityContext, origNode, relType);
 	}
 
-	public static void moveOutgoingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType, String resourceId, String componentId,
+	public static void moveOutgoingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType, String pageId, String componentId,
 		long position)
 		throws FrameworkException {
 
-		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, resourceId, componentId, position);
+		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
 		removeOutgoingRelationships(securityContext, origNode, relType);
 	}
 
-	public static void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String resourceId) throws FrameworkException {
+	public static void tagOutgoingRelsWithPageId(final AbstractNode startNode, final AbstractNode node, final String originalPageId, final String pageId) throws FrameworkException {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
-			Long position = rel.getLongProperty(originalResourceId);
+			Long position = rel.getLongProperty(originalPageId);
 
 			if (position != null) {
 
-				rel.setProperty(resourceId, position);
+				rel.setProperty(pageId, position);
 
 			}
 
-			tagOutgoingRelsWithResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
+			tagOutgoingRelsWithPageId(startNode, rel.getEndNode(), originalPageId, pageId);
 
 		}
 	}
 	
-	public static void untagOutgoingRelsFromResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String resourceId) throws FrameworkException {
+	public static void untagOutgoingRelsFromPageId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String pageId) throws FrameworkException {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
@@ -227,11 +227,11 @@ public class RelationshipHelper {
 
 			if (position != null) {
 
-				rel.removeProperty(resourceId);
+				rel.removeProperty(pageId);
 
 			}
 
-			untagOutgoingRelsFromResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
+			untagOutgoingRelsFromPageId(startNode, rel.getEndNode(), originalResourceId, pageId);
 
 		}
 	}
@@ -259,7 +259,7 @@ public class RelationshipHelper {
 
 	//~--- get methods ----------------------------------------------------
 
-	public static Set<String> getChildrenInResource(final AbstractNode parentNode, final String resourceId) {
+	public static Set<String> getChildrenInPage(final AbstractNode parentNode, final String pageId) {
 
 		Set<String> nodesWithChildren        = new HashSet<String>();
 		List<AbstractRelationship> childRels = parentNode.getOutgoingRelationships(RelType.CONTAINS);
@@ -268,7 +268,7 @@ public class RelationshipHelper {
 
 			String parentId = parentNode.getUuid();
 
-			if (resourceId == null || (parentNode instanceof Group) || (parentNode instanceof Folder)) {
+			if (pageId == null || (parentNode instanceof Group) || (parentNode instanceof Folder)) {
 
 				nodesWithChildren.add(parentId);
 
@@ -276,9 +276,9 @@ public class RelationshipHelper {
 
 			Long childPos = null;
 
-			if (childRel.getLongProperty(resourceId) != null) {
+			if (childRel.getLongProperty(pageId) != null) {
 
-				childPos = childRel.getLongProperty(resourceId);
+				childPos = childRel.getLongProperty(pageId);
 
 			} else {
 
@@ -297,7 +297,7 @@ public class RelationshipHelper {
 		return nodesWithChildren;
 	}
 
-	public static boolean hasChildren(final AbstractNode node, final String resourceId) {
+	public static boolean hasChildren(final AbstractNode node, final String pageId) {
 
 		List<AbstractRelationship> childRels = node.getOutgoingRelationships(RelType.CONTAINS);
 
@@ -311,9 +311,9 @@ public class RelationshipHelper {
 
 			Long childPos = null;
 
-			if (childRel.getLongProperty(resourceId) != null) {
+			if (childRel.getLongProperty(pageId) != null) {
 
-				childPos = childRel.getLongProperty(resourceId);
+				childPos = childRel.getLongProperty(pageId);
 
 			} else {
 

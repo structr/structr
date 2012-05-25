@@ -109,41 +109,41 @@ public class AddCommand extends AbstractCommand {
 
 			if ((nodeToAdd != null) && (parentNode != null)) {
 
-				String originalResourceId = (String) nodeData.get("sourceResourceId");
-				String newResourceId      = (String) nodeData.get("targetResourceId");
+				String originalPageId = (String) nodeData.get("sourcePageId");
+				String newPageId      = (String) nodeData.get("targetPageId");
 				RelationClass rel         = EntityContext.getRelationClass(parentNode.getClass(), nodeToAdd.getClass());
 
 				if (rel != null) {
 
 					try {
 
-						boolean addedResourceIdProperty = false;
+						boolean addedPageIdProperty = false;
 
 						// Search for an existing relationship between the node to add and the parent
 						for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
 
-							if (r.getEndNode().equals(nodeToAdd) && r.getLongProperty(originalResourceId) != null) {
+							if (r.getEndNode().equals(nodeToAdd) && r.getLongProperty(originalPageId) != null) {
 
-								r.setProperty(newResourceId, Long.parseLong((String) relData.get(newResourceId)));
+								r.setProperty(newPageId, Long.parseLong((String) relData.get(newPageId)));
 
-								addedResourceIdProperty = true;
+								addedPageIdProperty = true;
 								break;
 
 							}
 
 						}
 
-						if (!addedResourceIdProperty) {
+						if (!addedPageIdProperty) {
 
 							// A new node was created, no relationship exists,
 							// so we create a new one.
 							rel.createRelationship(securityContext, parentNode, nodeToAdd, relData);
 						}
 
-						// set resource ID on copied branch
-						if ((originalResourceId != null) && (newResourceId != null) && !originalResourceId.equals(newResourceId)) {
+						// set page ID on copied branch
+						if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {
 
-							RelationshipHelper.tagOutgoingRelsWithResourceId(nodeToAdd, nodeToAdd, originalResourceId, newResourceId);
+							RelationshipHelper.tagOutgoingRelsWithPageId(nodeToAdd, nodeToAdd, originalPageId, newPageId);
 						}
 
 					} catch (Throwable t) {
@@ -191,13 +191,13 @@ public class AddCommand extends AbstractCommand {
 						try {
 
 							// New content node is at position 0!!
-							relData.put(newResourceId, 0L);
+							relData.put(newPageId, 0L);
 							rel.createRelationship(securityContext, nodeToAdd, contentNode, relData);
 
-							// set resource ID on copied branch
-							if ((originalResourceId != null) && (newResourceId != null) && !originalResourceId.equals(newResourceId)) {
+							// set page ID on copied branch
+							if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {
 
-								RelationshipHelper.tagOutgoingRelsWithResourceId(contentNode, contentNode, originalResourceId, newResourceId);
+								RelationshipHelper.tagOutgoingRelsWithPageId(contentNode, contentNode, originalPageId, newPageId);
 							}
 						} catch (Throwable t) {
 

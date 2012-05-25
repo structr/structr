@@ -755,3 +755,38 @@ button.enabled {
 .node ._html_class_ {
     color: #888;
 }
+
+
+.callToAction {
+  background-color: #81ce25;  
+  background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
+  background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
+  filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
+  width: 248px;
+  height: 32px;
+  border: 1px solid #a5a5a5;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  font-size: 14pt;
+  padding: 11px 0 0 12px;
+  margin: 24px;
+  cursor: pointer;
+  color: #fff;
+}
+.callToAction:hover {
+  background-color: #96f02b;
+  background: -webkit-gradient(linear, left bottom, left top, from(#7ec924), to(#96f02b)) no-repeat;
+  background: -moz-linear-gradient(90deg, #7ec924, #96f02b) no-repeat;
+  filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#96f02b', EndColorStr='#7ec924', GradientType=0);
+  border: 1px solid #bbb;
+
+}
+.callToAction a, .callToAction a:link, .callToAction a:visited, .callToAction a:hover, .callToAction a:active {
+  text-decoration: none;
+  color: #fff;
+}
+.callToAction img {
+  vertical-align: top;
+  padding: 3px 0 0 7px;
+}

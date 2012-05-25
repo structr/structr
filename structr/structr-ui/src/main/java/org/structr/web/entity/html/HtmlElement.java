@@ -221,7 +221,7 @@ public abstract class HtmlElement extends Element {
 	}
 
 	// ----- static methods -----
-	public static String replaceVariables(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent,
+	public static String replaceVariables(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
 		String rawValue) {
 
 		String value = null;
@@ -240,7 +240,7 @@ public abstract class HtmlElement extends Element {
 				String source = group.substring(2, group.length() - 1);
 
 				// fetch referenced property
-				String partValue = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, source);
+				String partValue = extractFunctions(securityContext, page, startNode, pageId, componentId, viewComponent, source);
 
 				if (partValue != null) {
 
@@ -255,7 +255,7 @@ public abstract class HtmlElement extends Element {
 		return value;
 	}
 
-	public static String extractFunctions(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent,
+	public static String extractFunctions(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
 		String source) {
 
 		// re-use matcher from previous calls
@@ -279,7 +279,7 @@ public abstract class HtmlElement extends Element {
 					// collect results from comma-separated function parameter
 					for (int i = 0; i < parameters.length; i++) {
 
-						results[i] = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, StringUtils.strip(parameters[i]));
+						results[i] = extractFunctions(securityContext, page, startNode, pageId, componentId, viewComponent, StringUtils.strip(parameters[i]));
 
 					}
 
@@ -287,7 +287,7 @@ public abstract class HtmlElement extends Element {
 
 				} else {
 
-					String result = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, StringUtils.strip(parameter));
+					String result = extractFunctions(securityContext, page, startNode, pageId, componentId, viewComponent, StringUtils.strip(parameter));
 
 					return function.apply(new String[] { result });
 
@@ -313,7 +313,7 @@ public abstract class HtmlElement extends Element {
 		} else {
 
 			// return property key
-			return convertValueForHtml(getReferencedProperty(securityContext, resource, startNode, resourceId, componentId, viewComponent, source));
+			return convertValueForHtml(getReferencedProperty(securityContext, page, startNode, pageId, componentId, viewComponent, source));
 		}
 	}
 
@@ -412,8 +412,8 @@ public abstract class HtmlElement extends Element {
 		return htmlAttributes;
 	}
 
-	public String getPropertyWithVariableReplacement(AbstractNode resource, String resourceId, String componentId, AbstractNode viewComponent, String key) {
-		return replaceVariables(securityContext, resource, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
+	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, String key) {
+		return replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getStringProperty(key));
 	}
 
 	public static AbstractNode getNodeById(SecurityContext securityContext, String id) {
@@ -433,7 +433,7 @@ public abstract class HtmlElement extends Element {
 		return null;
 	}
 
-	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId,
+	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId,
 		AbstractNode viewComponent, String refKey) {
 
 		AbstractNode node   = startNode;
@@ -457,7 +457,7 @@ public abstract class HtmlElement extends Element {
 			// special keyword "resource"
 			if ("resource".equals(part.toLowerCase())) {
 
-				node = getNodeById(securityContext, resourceId);
+				node = getNodeById(securityContext, pageId);
 
 				continue;
 
@@ -466,7 +466,7 @@ public abstract class HtmlElement extends Element {
 			// special keyword "page"
 			if ("page".equals(part.toLowerCase())) {
 
-				node = resource;
+				node = page;
 
 				continue;
 
@@ -492,7 +492,7 @@ public abstract class HtmlElement extends Element {
 
 				for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
 
-					if (rel.getProperty(resourceId) != null) {
+					if (rel.getProperty(pageId) != null) {
 
 						node = rel.getStartNode();
 

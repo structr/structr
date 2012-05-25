@@ -23,11 +23,15 @@ package org.structr.web.entity.html;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyKey;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Linkable;
 import org.structr.core.entity.RelationClass;
+import org.structr.core.notion.PropertyNotion;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -38,6 +42,8 @@ import org.structr.web.entity.Content;
 public class Script extends HtmlElement {
 
 	private static final String[] htmlAttributes = new String[] { "src", "async", "defer", "type", "charset" };
+        
+        public enum UiKey implements PropertyKey { linkable, linkable_id }
 
 	//~--- static initializers --------------------------------------------
 
@@ -50,6 +56,9 @@ public class Script extends HtmlElement {
 		EntityContext.registerEntityRelation(Script.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Script.class, Head.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Script.class, Div.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+
+                EntityContext.registerEntityRelation(Script.class,      Linkable.class,                                 RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
+		EntityContext.registerPropertyRelation(Script.class,    Script.UiKey.linkable_id, Linkable.class,       RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid), RelationClass.DELETE_NONE);
 	}
 
 	//~--- get methods ----------------------------------------------------

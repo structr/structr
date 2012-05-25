@@ -66,6 +66,7 @@ $(document).ready(function() {
         e.stopPropagation();
         main.empty();
         Structr.activateMenuEntry('dashboard');
+        Structr.modules['dashboard'].onload();
     });
 
     $('#pages_').on('click', function(e) {
@@ -85,7 +86,7 @@ $(document).ready(function() {
         
         over: function(event, ui) {
 
-            var self = $(this);
+            //var self = $(this);
             //            var node = $(ui.helper).clone().appendTo('body');
             //            console.log(node);
             //            //var el = $(ui.get(0)).clone();
@@ -101,6 +102,7 @@ $(document).ready(function() {
             //                zIndex: 4
             //            });
             Structr.activateMenuEntry('pages');
+            document.location = '/structr/#pages'
             Structr.modules['pages'].onload();
             _Pages.resize();
         }
@@ -275,8 +277,9 @@ var Structr = {
         if (debug) console.log('anchor', anchor);
 
         lastMenuEntry = ((anchor && anchor != 'logout') ? anchor : $.cookie('structrLastMenuEntry'));
-        if (!lastMenuEntry) lastMenuEntry = 'dashboard';
-        {
+        if (!lastMenuEntry) {
+            lastMenuEntry = 'dashboard';
+        } else {
             if (debug) console.log('Last menu entry found: ' + lastMenuEntry);
             Structr.activateMenuEntry(lastMenuEntry);
             if (debug) console.log(Structr.modules);
@@ -430,32 +433,32 @@ var Structr = {
         return n;
     },
 
-    findParent : function(parentId, componentId, resourceId, defaultElement) {
-        var parent = Structr.node(parentId, null, componentId, resourceId);
-        if (debug) console.log('findParent', parentId, componentId, resourceId, defaultElement, parent);
+    findParent : function(parentId, componentId, pageId, defaultElement) {
+        var parent = Structr.node(parentId, null, componentId, pageId);
+        if (debug) console.log('findParent', parentId, componentId, pageId, defaultElement, parent);
         if (debug) console.log('findParent: parent element from Structr.node: ', parent);
         if (!parent) parent = defaultElement;
         if (debug) console.log('findParent: final parent element: ', parent);
         return parent;
     },
     
-    node : function(id, parentId, componentId, resourceId, position) {
-        var entityElement, parentElement, componentElement, resourceElement;
+    node : function(id, parentId, componentId, pageId, position) {
+        var entityElement, parentElement, componentElement, pageElement;
 
-        if (debug) console.log('Structr.node', id, parentId, componentId, resourceId, position);
+        if (debug) console.log('Structr.node', id, parentId, componentId, pageId, position);
 
-        if (id && parentId && componentId && resourceId && (resourceId != parentId) && (resourceId != componentId)) {
+        if (id && parentId && componentId && pageId && (pageId != parentId) && (pageId != componentId)) {
 
-            resourceElement = $('.node.' + resourceId + '_');
-            if (debug) console.log('resourceElement', resourceElement);
+            pageElement = $('.node.' + pageId + '_');
+            if (debug) console.log('pageElement', pageElement);
             
-            if (id == resourceId) {
+            if (id == pageId) {
                 
-                entityElement = resourceElement;
+                entityElement = pageElement;
                 
             } else {
                 
-                componentElement = $('.node.' + componentId + '_', resourceElement);
+                componentElement = $('.node.' + componentId + '_', pageElement);
                 if (debug) console.log('componentElement', componentElement);
                 
                 if (id == componentId) {
@@ -480,16 +483,16 @@ var Structr = {
             }
             
 
-        } else if (id && parentId && resourceId && (resourceId != parentId)) {
+        } else if (id && parentId && pageId && (pageId != parentId)) {
 
-            resourceElement = $('.node.' + resourceId + '_');
-            parentElement = $('.node.' + parentId + '_', resourceElement);
+            pageElement = $('.node.' + pageId + '_');
+            parentElement = $('.node.' + parentId + '_', pageElement);
             entityElement = $('.node.' + id + '_', parentElement);
 
-        } else if (id && componentId && resourceId && (resourceId != componentId)) {
+        } else if (id && componentId && pageId && (pageId != componentId)) {
             
-            resourceElement = $('.node.' + resourceId + '_');
-            componentElement = $('.node.' + componentId + '_', resourceElement);
+            pageElement = $('.node.' + pageId + '_');
+            componentElement = $('.node.' + componentId + '_', pageElement);
 
             if (id == componentId) {
                 entityElement = componentElement;
@@ -497,14 +500,14 @@ var Structr = {
                 entityElement = $('.node.' + id + '_', componentElement);
             }
 
-        } else if (id && resourceId) {
+        } else if (id && pageId) {
             
-            if (id == resourceId) {
-                entityElement = $('.node.' + resourceId + '_');
+            if (id == pageId) {
+                entityElement = $('.node.' + pageId + '_');
             }
             else {
-                resourceElement = $('.node.' + resourceId + '_');
-                entityElement = $('.node.' + id + '_', resourceElement);
+                pageElement = $('.node.' + pageId + '_');
+                entityElement = $('.node.' + id + '_', pageElement);
             }
 
         } else if (id && parentId) {
@@ -590,20 +593,20 @@ function plural(type) {
     }
 }
 
-function addExpandedNode(id, parentId, resourceId) {
-    if (debug) console.log('addExpandedNode', id, parentId, resourceId);
+function addExpandedNode(id, parentId, pageId) {
+    if (debug) console.log('addExpandedNode', id, parentId, pageId);
 
     if (!id) return;
 
-    if (!resourceId) {
-        resourceId = 'generic';
+    if (!pageId) {
+        pageId = 'generic';
     }
 
-    if (!getExpanded()[resourceId]) {
-        getExpanded()[resourceId] = {};
+    if (!getExpanded()[pageId]) {
+        getExpanded()[pageId] = {};
     }
 
-    getExpanded()[resourceId][id] = true;
+    getExpanded()[pageId][shorten(id)] = 1;
     $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
         expires: 7, 
         path: '/'
@@ -611,40 +614,40 @@ function addExpandedNode(id, parentId, resourceId) {
 
 }
 
-function removeExpandedNode(id, parentId, resourceId) {
-    if (debug) console.log('removeExpandedNode', id, parentId, resourceId);
+function removeExpandedNode(id, parentId, pageId) {
+    if (debug) console.log('removeExpandedNode', id, parentId, pageId);
 
     if (!id) return;
 
-    if (!resourceId) {
-        resourceId = 'generic';
+    if (!pageId) {
+        pageId = 'generic';
     }
     
-    if (!getExpanded()[resourceId]) {
-        getExpanded()[resourceId] = {};
+    if (!getExpanded()[pageId]) {
+        getExpanded()[pageId] = {};
     }
-    delete getExpanded()[resourceId][id];
+    delete getExpanded()[pageId][shorten(id)];
     $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
         expires: 7, 
         path: '/'
     });
 }
 
-function isExpanded(id, parentId, resourceId) {
-    if (debug) console.log('isExpanded', id, parentId, resourceId);
+function isExpanded(id, parentId, pageId) {
+    if (debug) console.log('isExpanded', id, parentId, pageId);
 
     if (!id) return false;
 
-    if (!resourceId) {
-        resourceId = 'generic';
+    if (!pageId) {
+        pageId = 'generic';
     }
 
-    var expRes = getExpanded()[resourceId];
+    var expRes = getExpanded()[pageId];
     if (!expRes) {
         expRes = {};
-        Structr.expanded[resourceId] = expRes;
+        Structr.expanded[pageId] = expRes;
     }
-    var isExpanded = expRes[id] ? expRes[id] : false;
+    var isExpanded = expRes[shorten(id)] ? expRes[shorten(id)] : false;
 
     if (debug) console.log(isExpanded);
 
@@ -815,9 +818,9 @@ function sortArray(arrayIn, sortBy) {
     return arrayOut;
 }
 
-function followIds(resourceId, entity) {
-    var resId = resourceId.toString();
-    var entityId = (entity ? entity.id : resourceId);
+function followIds(pageId, entity) {
+    var resId = pageId.toString();
+    var entityId = (entity ? entity.id : pageId);
     var url = rootUrl + entityId + '/' + 'out';
     //console.log(url);
     var headers = {
@@ -854,7 +857,7 @@ function followIds(resourceId, entity) {
             }
         }
     });
-    //console.log('resourceId: ' + resourceId + ', nodeId: ' + resourceId);
+    //console.log('pageId: ' + pageId + ', nodeId: ' + pageId);
     //console.log(ids);
     return ids;
 }
@@ -914,4 +917,8 @@ function cleanText(input) {
     });
     if (debug) console.log(output);
     return output;
+}
+
+function shorten(uuid) {
+    return uuid.substring(0,8);
 }

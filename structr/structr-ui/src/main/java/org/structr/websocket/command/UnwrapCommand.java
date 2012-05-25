@@ -71,10 +71,10 @@ public class UnwrapCommand extends AbstractCommand {
 		final AbstractNode nodeToWrap      = getNode(nodeId);
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final Map<String, Object> relData  = webSocketData.getRelData();
-		final String resourceId            = (String) relData.get("resourceId");
+		final String pageId            = (String) relData.get("pageId");
 		final String parentId              = (String) nodeData.get("parentId");
 		final AbstractNode parentNode      = getNode(parentId);
-		final Long position                = Long.parseLong((String) relData.get(resourceId));
+		final Long position                = Long.parseLong((String) relData.get(pageId));
 
 		if (nodeToWrap != null) {
 
@@ -86,7 +86,7 @@ public class UnwrapCommand extends AbstractCommand {
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
 					String componentId     = newComponent.getStringProperty(AbstractNode.Key.uuid);
 
-					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, resourceId,
+					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, pageId,
 						newComponent.getStringProperty(AbstractNode.Key.uuid), position);
 
 					if ((parentNode != null) && (newComponent != null)) {
@@ -98,8 +98,8 @@ public class UnwrapCommand extends AbstractCommand {
 							// First element in new component, so set position to 0
 							Map<String, Object> relProps = new LinkedHashMap<String, Object>();
 
-							relProps.put(resourceId, 0);
-							relProps.put("resourceId", resourceId);
+							relProps.put(pageId, 0);
+							relProps.put("pageId", pageId);
 							relProps.put("componentId", componentId);
 
 							try {

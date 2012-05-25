@@ -43,7 +43,7 @@ var _Entities = {
             $(children).each(function(i,child) {
                 if (debug) console.log(child);
                 if (child.type == 'Page') {
-                    _Pages.appendResourceElement(child, parent.id, rootId);
+                    _Pages.appendPageElement(child, parent.id, rootId);
                 } else if (child.type == 'Component') {
                     _Pages.appendElementElement(child, parent.id, rootId);
                 } else if (child.type == 'Content') {
@@ -68,21 +68,21 @@ var _Entities = {
         }
     },
 
-    reloadChildren : function(id, componentId, resourceId) {
-        var el = Structr.node(id, null, componentId, resourceId);
+    reloadChildren : function(id, componentId, pageId) {
+        var el = Structr.node(id, null, componentId, pageId);
         
         console.log('reloadChildren', el);
         
         $(el).children('.node').remove();
         _Entities.resetMouseOverState(el);
         
-        Command.children(id, componentId, resourceId);
+        Command.children(id, componentId, pageId);
         
     },
 
-    appendObj : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
+    appendObj : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
 
-        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, removeExisting, hasChildren);
 
         var lastAppendedObj;
 
@@ -95,16 +95,16 @@ var _Entities = {
 
         } else if (entity.type == 'Page') {
             
-            lastAppendedObj = _Pages.appendResourceElement(entity, hasChildren);
+            lastAppendedObj = _Pages.appendPageElement(entity, hasChildren);
 
         } else if (entity.type == 'Component') {
 
-            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, removeExisting, hasChildren);
 
         } else if (entity.type == 'Content') {
 
-            if (debug) console.log('appending content element', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
-            lastAppendedObj = _Pages.appendContentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+            if (debug) console.log('appending content element', entity, parentId, componentId, pageId, removeExisting, hasChildren);
+            lastAppendedObj = _Pages.appendContentElement(entity, parentId, componentId, pageId, removeExisting, hasChildren);
 
         } else if (entity.type == 'Folder') {
 
@@ -127,7 +127,7 @@ var _Entities = {
         } else {
 
             if (debug) console.log('Entity: ', entity);
-            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, false, hasChildren);
         }
 
         if (debug) console.log('lastAppendedObj', lastAppendedObj);
@@ -137,10 +137,13 @@ var _Entities = {
             var parent = lastAppendedObj.parent();
             if (debug) console.log('lastAppendedObj.parent()', parent);
             if (parent.children('.node') && parent.children('.node').length==1) {
+                
+                if (debug) console.log('parent of last appended object has children');
 
-                addExpandedNode(getId(parent), null, resourceId);
+                addExpandedNode(getId(parent), null, pageId);
                 var ent = Structr.entityFromElement(parent);
-                ent.resourceId = resourceId;
+                if (debug) console.log('entity', ent);
+                ent.pageId = pageId;
                 _Entities.appendExpandIcon(parent, ent, true, true);
 
             }
@@ -391,34 +394,41 @@ var _Entities = {
 
     appendExpandIcon : function(el, entity, hasChildren, expanded) {
 
-        var button = $('.expand_icon', el).first();
-        if (button && button.length) return; // Expand icon already existing
+        var button = $(el).children('.expand_icon').first();
+        if (button && button.length) {
+            if (debug) console.log('Expand icon already existing');
+            return;
+        }
 
         if (hasChildren) {
 
-            var typeIcon = $(el.children('.typeIcon')[0]);
+            var typeIcon = $(el.children('.typeIcon').first());
 
             typeIcon.css({
                 paddingRight: 0 + 'px'
             })
             .after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expand_icon + '">');
 
-            button = $('.expand_icon', el).first();
+            button = $(el.children('.expand_icon').first());
 
             if (button) {
 
                 button.on('click', function(e) {
+                    
+                    if (debug) console.log('clicked');
+                    
                     e.stopPropagation();
                     _Entities.toggleElement(this);
+                    
                 });
 
                 // Prevent expand icon from being draggable
                 button.on('mousedown', function(e) {
                     e.stopPropagation();
                 });
-                if (debug) console.log('appendExpandIcon', isExpanded(entity.id, null, entity.resourceId), entity);
-                if (isExpanded(entity.id, null, entity.resourceId)) {
-                    if (debug) console.log('toggle', entity.id, entity.resourceId);
+                if (debug) console.log('appendExpandIcon', isExpanded(entity.id, null, entity.pageId), entity);
+                if (isExpanded(entity.id, null, entity.pageId)) {
+                    if (debug) console.log('toggle', entity.id, entity.pageId);
                     _Entities.toggleElement(button, expanded)
                 }
             }
@@ -432,7 +442,7 @@ var _Entities = {
     },
 
     removeExpandIcon : function(el) {
-        var button = $('.expand_icon', el).first();
+        var button = $(el.children('.expand_icon').first());
         button.remove();
         el.children('.typeIcon').css({
             paddingRight: 11 + 'px'
@@ -459,11 +469,11 @@ var _Entities = {
                 //window.clearTimeout(timer[nodeId]);
                 //		console.log('setMouseOver', nodeId);
                 var nodes = $('.' + nodeId + '_');
-                var resource = $(el).closest('.resource');
-                if (resource.length) {
-                    var resId = getId(resource);
-                    //console.log('setMouseOver resourceId', resId);
-                    var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
+                var page = $(el).closest('.page');
+                if (page.length) {
+                    var pageId = getId(page);
+                    //console.log('setMouseOver pageId', resId);
+                    var previewNodes = $('#preview_' + pageId).contents().find('[structr_element_id]');
                     previewNodes.each(function(i,v) {
                         var self = $(v);
                         var sid = self.attr('structr_element_id');
@@ -495,10 +505,10 @@ var _Entities = {
         //	    el.children('.node').remove();
         //	}, 1000);
         nodes.removeClass('nodeHover');
-        var resource = $(el).closest('.resource');
-        if (resource.length) {
-            var resId = getId(resource);
-            //		    console.log('setMouseOver resourceId', resId);
+        var page = $(el).closest('.page');
+        if (page.length) {
+            var resId = getId(page);
+            //		    console.log('setMouseOver pageId', resId);
             var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
             previewNodes.each(function(i,v) {
                 var self = $(v);
@@ -522,18 +532,18 @@ var _Entities = {
         var nodeElement = $(button).parent();
         var id = getId(nodeElement);
         var compId = getId(nodeElement.closest('.component'));
-        var resId = getId(nodeElement.closest('.resource'));
+        var pageId = getId(nodeElement.closest('.page'));
 
         if (src.endsWith('icon/tree_arrow_down.png')) {
             nodeElement.children('.node').remove();
             b.attr('src', 'icon/tree_arrow_right.png');
 
-            removeExpandedNode(id, null, resId);
+            removeExpandedNode(id, null, pageId);
         } else {
-            if (!expanded) Command.children(id, compId, resId);
+            if (!expanded) Command.children(id, compId, pageId);
             b.attr('src', 'icon/tree_arrow_down.png');
 
-            addExpandedNode(id, null, resId);
+            addExpandedNode(id, null, pageId);
         }
 
     },

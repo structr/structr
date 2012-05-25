@@ -61,7 +61,7 @@ public class CreateCommand extends AbstractCommand {
 
 				Map<String, Object> nodeData = webSocketData.getNodeData();
 
-				nodeData.put("visibleToAuthenticatedUsers", true);
+				nodeData.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true);
 
 				return Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
 			}

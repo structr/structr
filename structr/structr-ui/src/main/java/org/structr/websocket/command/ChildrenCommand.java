@@ -40,7 +40,7 @@ import java.util.*;
 
 /**
  * Websocket command to return the children of the given node
- * in the context of the given resourceId
+ * in the context of the given pageId
  *
  * @author Axel Morgner
  */
@@ -49,7 +49,7 @@ public class ChildrenCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String resourceId               = (String) webSocketData.getNodeData().get("resourceId");
+		String pageId               = (String) webSocketData.getNodeData().get("pageId");
 		String componentId              = (String) webSocketData.getNodeData().get("componentId");
 		AbstractNode node               = getNode(webSocketData.getId());
 		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
@@ -64,7 +64,7 @@ public class ChildrenCommand extends AbstractCommand {
 			if ((node instanceof Group) || (node instanceof Folder)) {
 
 				result.add(endNode);
-				nodesWithChildren.addAll(RelationshipHelper.getChildrenInResource(endNode, null));
+				nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, null));
 
 				continue;
 
@@ -72,9 +72,9 @@ public class ChildrenCommand extends AbstractCommand {
 
 			Long pos = null;
 
-			if (rel.getLongProperty(resourceId) != null) {
+			if (rel.getLongProperty(pageId) != null) {
 
-				pos = rel.getLongProperty(resourceId);
+				pos = rel.getLongProperty(pageId);
 
 			} else {
 
@@ -88,7 +88,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 				if ((componentId == null) || (!endNode.getType().equals(Content.class.getSimpleName()) || ((relCompId != null) && relCompId.equals(componentId)))) {
 
-					nodesWithChildren.addAll(RelationshipHelper.getChildrenInResource(endNode, resourceId));
+					nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, pageId));
 					sortMap.put(pos, endNode);
 
 				}

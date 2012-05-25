@@ -74,10 +74,10 @@ var _Components = {
 	}
     },
     
-    appendComponentElement : function(component, parentId, componentId, resourceId, removeExisting, hasChildren) {
-	if (debug) console.log('Components.appendComponentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
+    appendComponentElement : function(component, parentId, componentId, pageId, removeExisting, hasChildren) {
+	if (debug) console.log('Components.appendComponentElement: parentId: ' + parentId + ', pageId: ' + pageId);
 
-	var parent = Structr.findParent(parentId, componentId, resourceId, components);
+	var parent = Structr.findParent(parentId, componentId, pageId, components);
         
         if (!parent) return false;
 
@@ -98,7 +98,7 @@ var _Components = {
 	    _Components.createForm(this, component);
 	});
 
-	component.resourceId = resourceId;
+	component.pageId = pageId;
         
         _Entities.appendExpandIcon(div, component, hasChildren);
 	_Entities.setMouseOver(div);
@@ -112,28 +112,28 @@ var _Components = {
 	    drop: function(event, ui) {
 		var self = $(this);
 		var elementId = getId(ui.draggable);
-		var resourceId = getId(self);
-		if (!resourceId) resourceId = '*';
+		var pageId = getId(self);
+		if (!pageId) pageId = '*';
 		var pos = $('.element', self).length;
 		var nodeData = {};
 		nodeData.id = elementId;
 		var relData = {};
-		relData[resourceId] = pos;
-		Command.createAndAdd(resourceId, nodeData, relData);
+		relData[pageId] = pos;
+		Command.createAndAdd(pageId, nodeData, relData);
 	    }
 	});
 
 	return div;
     },
 
-    appendElementElement : function(element, parentId, resourceId) {
+    appendElementElement : function(element, parentId, pageId) {
 	if (debug) console.log('Components.appendElementElement');
-	var div = _Elements.appendElementElement(element, parentId, resourceId);
+	var div = _Elements.appendElementElement(element, parentId, pageId);
 	//console.log(div);
 	if (parentId) {
 
 	    $('.delete_icon', div).remove();
-	    div.append('<img title="Remove element \'' + element.name + '\' from resource ' + parentId + '" '
+	    div.append('<img title="Remove element \'' + element.name + '\' from page ' + parentId + '" '
 		+ 'alt="Remove element ' + element.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
 	    $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
@@ -148,21 +148,21 @@ var _Components = {
             tolerance: 'pointer',
 	    drop: function(event, ui) {
 		var self = $(this);
-		var resource = self.closest( '.resource')[0];
-		if (debug) console.log(resource);
+		var page = self.closest( '.page')[0];
+		if (debug) console.log(page);
 		var contentId = getId(ui.draggable);
 		var elementId = getId(self);
 		var pos = $('.content', self).length;
 		if (debug) console.log(pos);
-		var resourceId;
-		if (resource) {
-		    resourceId = getId(resource);
+		var pageId;
+		if (page) {
+		    pageId = getId(page);
 		} else {
-		    resourceId = '*';
+		    pageId = '*';
 		}
 
 		var relData = {};
-		relData[resourceId] = pos;
+		relData[pageId] = pos;
 		var nodeData = {};
 		nodeData.id = contentId;
 		Command.createAndAdd(elementId, nodeData, relData);
@@ -189,7 +189,7 @@ var _Components = {
 	var node = $($(button).closest('.node')[0]);
 
 	//var componentId = component.id;
-	var resourceId = getId(node.closest('.resource')[0]);
+	var pageId = getId(node.closest('.page')[0]);
 
 	var componentElement = node.closest('.component');
 	var parentElement = componentElement.parent();
@@ -198,7 +198,7 @@ var _Components = {
 	var rel = {};
 
 	//rel[componentId] = pos;
-	rel[resourceId] = pos;
+	rel[pageId] = pos;
 
 	var parentId = getId(parentElement);
 

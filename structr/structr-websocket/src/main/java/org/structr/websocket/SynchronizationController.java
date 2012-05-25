@@ -117,7 +117,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 					message = gson.toJson(webSocketData, WebSocketMessage.class);
 				}
 
-				logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
+				logger.log(Level.FINE, "############################################################ SENDING \n{0}", message);
 
 				try {
 
@@ -288,13 +288,13 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 				message.setId(startNode.getStringProperty("uuid"));
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
 
-				String resourceId = relationship.getStringProperty("resourceId");
+				String pageId = relationship.getStringProperty("pageId");
 
-				if (resourceId != null) {
+				if (pageId != null) {
 
 					Map<String, Object> props = new LinkedHashMap<String, Object>();
 
-					props.put("resourceId", resourceId);
+					props.put("pageId", pageId);
 					message.setNodeData(props);
 
 				}
@@ -359,7 +359,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			WebSocketMessage message = new WebSocketMessage();
 			String startNodeId       = relationship.getCachedStartNodeId();
 			String endNodeId         = relationship.getCachedEndNodeId();
-			String resourceId	 = (String) properties.get("resourceId");
+			String pageId	 = (String) properties.get("pageId");
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
@@ -367,7 +367,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 				message.setGraphObject(relationship);
 				message.setId(startNodeId);
 				message.setNodeData("id", endNodeId);
-				message.setNodeData("resourceId", resourceId);
+				message.setNodeData("pageId", pageId);
 				messageStack.add(message);
 
 			}

@@ -33,7 +33,7 @@ import org.structr.web.entity.Component;
 public class ComponentComponentRelationship extends AbstractRelationship {
 
 	public enum Key implements PropertyKey {
-		parentId, componentId, resourceId
+		parentId, componentId, pageId
 	}
 
 	static {
@@ -62,7 +62,7 @@ public class ComponentComponentRelationship extends AbstractRelationship {
 		
 		keys.add(Key.parentId.name());
 		keys.add(Key.componentId.name());
-		keys.add(Key.resourceId.name());
+		keys.add(Key.pageId.name());
 		
 		if(dbRelationship != null) {
 			

@@ -72,10 +72,10 @@ var _Contents = {
         return Command.list('Content');
     },
 
-    appendContentElement : function(content, parentId, componentId, resourceId) {
-        if (debug) console.log('Contents.appendContentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
+    appendContentElement : function(content, parentId, componentId, pageId) {
+        if (debug) console.log('Contents.appendContentElement: parentId: ' + parentId + ', pageId: ' + pageId);
 
-        var parent = Structr.findParent(parentId, componentId, resourceId, contents);
+        var parent = Structr.findParent(parentId, componentId, pageId, contents);
         if (!parent) return false;
         
         if (debug) console.log(parent);
@@ -93,7 +93,7 @@ var _Contents = {
         var pos = parent.children('.' + content.id + '_').length-1;
         if (debug) console.log('pos', content.id, pos);
         
-        var div = Structr.node(content.id, parentId, componentId, resourceId, pos);
+        var div = Structr.node(content.id, parentId, componentId, pageId, pos);
 
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
