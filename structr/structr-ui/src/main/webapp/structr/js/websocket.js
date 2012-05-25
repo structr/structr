@@ -305,11 +305,6 @@ function connect() {
                     if (debug) console.log('relData[resId]', relData[resId]);
                 }
                 
-                
-                //### FIXME: Entscheidungskriterien (ggf. serverseitig) finden, so dass
-                //### eindeutig ist, dass eine Rel-Op stattfindet
-                
-                
                 if (relData && removedProperties && removedProperties.length) {
                     if (debug) console.log('removedProperties', removedProperties);
                     _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
@@ -318,7 +313,7 @@ function connect() {
                     
                     if (debug) console.log(data);
                     
-                    if (debug) console.log('modifiedProperties', modifiedProperties[0]);
+                    console.log('modifiedProperties', modifiedProperties[0]);
                 		    
                     var newPageId = modifiedProperties[0];
                     //var pos = relData[newPageId];
@@ -339,20 +334,22 @@ function connect() {
                             
                             parentId = relData.startNodeId;
                             
-                            if (parentId == pageId) {
-                                console.log('parentId == pageId');
-                            }
+                            var parent = Structr.entity(parentId);
+                            console.log('parent type', parent, parent.type);
+                            if (parent.type == 'Page') return;
                             
                             var id = entity.id;
                             //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
                             //_Entities.appendObj(entity, relData.startNodeId, null, newPageId);
                             var el = Structr.node(id, parentId, componentId, newPageId);
-                            console.log('removing', el);
+                            console.log('node already exists?', el);
                             
-                            if (el) el.remove();
+                            if (!el || !el.length) {
+                                //el.remove();
                             
-                            //_Entities.resetMouseOverState(el);
-                            _Entities.appendObj(entity, parentId, null, newPageId, true);
+                                //_Entities.resetMouseOverState(el);
+                                _Entities.appendObj(entity, parentId, null, newPageId, true, true);
+                            }
                             
                         //_Entities.reloadChildren(relData.startNodeId, componentId, newPageId)
                         
@@ -435,7 +432,7 @@ function connect() {
                         if (debug) console.log(key, Structr.getClass(element));
                     
                         if (key == 'name' && Structr.getClass(element) == 'page') {
-                            console.log('Reload iframe', data.id, newValue);
+                            if (debug) console.log('Reload iframe', data.id, newValue);
                             window.setTimeout(function() {
                                 _Pages.reloadIframe(data.id, newValue)
                             }, 100);

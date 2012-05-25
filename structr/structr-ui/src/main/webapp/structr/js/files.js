@@ -276,6 +276,21 @@ var _Files = {
 
         _Entities.appendAccessControlIcon(div, file);
         _Entities.appendEditPropertiesIcon(div, file);
+
+
+        div.append('<img title="Edit ' + file.name + ' [' + file.id + ']" alt="Edit ' + file.name + ' [' + file.id + ']" class="edit_icon button" src="icon/pencil.png">');
+        $('.edit_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            //var text = self.parent().find('.file').text();
+            Structr.dialog('Edit ' + file.name, function() {
+                if (debug) console.log('content saved')
+            }, function() {
+                if (debug) console.log('cancelled')
+            });
+            _Files.editContent(this, file, $('#dialogBox .dialogText'));
+        });        
+
         _Entities.setMouseOver(div);
         
         return div;
@@ -541,8 +556,64 @@ var _Files = {
 
         });
 
-    }
+    },
 
+    editContent : function (button, file, element) {
+        var headers = {};
+        headers['X-StructrSessionToken'] = token;
+        var text;
+        $.ajax({
+            url: viewRootUrl + file.name,
+            async: true,
+            //dataType: 'json',
+            contentType: 'text/plain',
+            headers: headers,
+            success: function(data) {
+                console.log(data);
+                text = data;
+                
+                if (isDisabled(button)) return;
+                var div = element.append('<div class="editor"></div>');
+                if (debug) console.log(div);
+                var contentBox = $('.editor', element);
+                editor = CodeMirror(contentBox.get(0), {
+                    value: unescapeTags(text),
+                    mode:  "htmlmixed",
+                    lineNumbers: true
+                //            ,
+                //            onChange: function(cm, changes) {
+                //                
+                //                var element = $( '.' + entity.id + '_')[0];
+                //                
+                //                text1 = $(element).children('.content_').text();
+                //                text2 = editor.getValue();
+                //                
+                //                if (!text1) text1 = '';
+                //                if (!text2) text2 = '';
+                //		
+                //                if (debug) console.log('Element', element);
+                //                if (debug) console.log(text1);
+                //                if (debug) console.log(text2);
+                //                
+                //                if (text1 == text2) return;
+                //                editorCursor = cm.getCursor();
+                //                if (debug) console.log(editorCursor);
+                //
+                //                Command.patch(entity.id, text1, text2);
+                //				
+                //            }
+                });
+
+                editor.id = file.id;                
+                        
+         
+
+            }
+        });
+        
+        
+
+    }    
 };
 
 $(document).ready(function() {

@@ -85,18 +85,19 @@ var _Components = {
 	    + '<img class="typeIcon" src="'+ _Components.icon + '">'
 	    + '<b class="name_">' + component.structrclass + '</b> <span class="id">' + component.id + '</span>'
 	    + '</div>');
+        
 	var div = Structr.node(component.id, parentId);
-	div.append('<img title="Delete component \'' + component.structrclass + '\' ' + component.id + '" alt="Delete component \'' + component.structrclass + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-	$('.delete_icon', div).on('click', function(e) {
-            e.stopPropagation();
-	    _Components.deleteComponent(this, component);
-	});
-
-	div.append('<img title="Create Form" alt="Create Form" class="add_form_icon button" src="icon/application_form_add.png">');
-	$('.add_form_icon', div).on('click', function(e) {
-            e.stopPropagation();
-	    _Components.createForm(this, component);
-	});
+//	div.append('<img title="Delete component \'' + component.structrclass + '\' ' + component.id + '" alt="Delete component \'' + component.structrclass + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+//	$('.delete_icon', div).on('click', function(e) {
+//            e.stopPropagation();
+//	    _Components.deleteComponent(this, component);
+//	});
+//
+//	div.append('<img title="Create Form" alt="Create Form" class="add_form_icon button" src="icon/application_form_add.png">');
+//	$('.add_form_icon', div).on('click', function(e) {
+//            e.stopPropagation();
+//	    _Components.createForm(this, component);
+//	});
 
 	component.pageId = pageId;
         

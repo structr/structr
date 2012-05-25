@@ -178,7 +178,7 @@ var _Elements = {
     },
 
     appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
-        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
+        console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
 
         var parent = Structr.findParent(parentId, componentId, pageId, elements);
         if (debug) console.log('appendElementElement parent', parent);
@@ -259,7 +259,7 @@ var _Elements = {
         _Entities.setMouseOver(div);
         _Entities.appendEditPropertiesIcon(div, entity);
         
-        if (entity.tag == 'a') {
+        if (entity.tag == 'a' || entity.tag == 'link') {
             div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + Structr.link_icon + '">');
             $('.link_icon', div).on('click', function(e) {
                 e.stopPropagation();
@@ -269,7 +269,7 @@ var _Elements = {
                 dialog.empty();
                 dialogMsg.empty();
                 
-                dialog.append('<p>Click on a page to establish a hyperlink between this element and the page.</p>');
+                dialog.append('<p>Click on a page to establish a hyperlink between this element and the target resource.</p>');
                 
                 var headers = {};
                 headers['X-StructrSessionToken'] = token;

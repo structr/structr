@@ -86,7 +86,7 @@ public class CreateSimplePage extends AbstractCommand {
 				relData.put(pageId, 0);
 				
 				nodeData.put(AbstractNode.Key.type.name(), Html.class.getSimpleName());
-				nodeData.put(HtmlElement.UiKey.name.name(), "New Html");
+				nodeData.put(HtmlElement.UiKey.name.name(), "html");
 				nodeData.put(HtmlElement.UiKey.tag.name(), "html");
 				
 				AbstractNode html = (AbstractNode) createNode.execute(nodeData);
@@ -94,7 +94,7 @@ public class CreateSimplePage extends AbstractCommand {
 				createRel.execute(page, html, RelType.CONTAINS, relData, false);
 
 				nodeData.put(AbstractNode.Key.type.name(), Head.class.getSimpleName());
-				nodeData.put(HtmlElement.UiKey.name.name(), "New Head");
+				nodeData.put(HtmlElement.UiKey.name.name(), "head");
 				nodeData.put(HtmlElement.UiKey.tag.name(), "head");
 
 				AbstractNode head = (AbstractNode) createNode.execute(nodeData);
@@ -102,7 +102,7 @@ public class CreateSimplePage extends AbstractCommand {
 				createRel.execute(html, head, RelType.CONTAINS, relData, false);
 
 				nodeData.put(AbstractNode.Key.type.name(), Body.class.getSimpleName());
-				nodeData.put(HtmlElement.UiKey.name.name(), "New Body");
+				nodeData.put(HtmlElement.UiKey.name.name(), "body");
 				nodeData.put(HtmlElement.UiKey.tag.name(), "body");
 				
 				AbstractNode body = (AbstractNode) createNode.execute(nodeData);
@@ -112,7 +112,7 @@ public class CreateSimplePage extends AbstractCommand {
 
 				relData.put(pageId, 0);
 				nodeData.put(AbstractNode.Key.type.name(), Title.class.getSimpleName());
-				nodeData.put(HtmlElement.UiKey.name.name(), "New Title");
+				nodeData.put(HtmlElement.UiKey.name.name(), "title");
 				nodeData.put(HtmlElement.UiKey.tag.name(), "title");
 				
 				AbstractNode title = (AbstractNode) createNode.execute(nodeData);
