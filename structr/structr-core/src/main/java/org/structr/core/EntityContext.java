@@ -1455,7 +1455,7 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
+		public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException {
 
 			boolean hasError = false;
 
@@ -1469,7 +1469,7 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
+		public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException {
 
 			boolean hasError = false;
 
@@ -1497,7 +1497,7 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, Map<String, Object> properties) {
+		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, Map<String, Object> properties) throws FrameworkException {
 
 			boolean hasError = false;
 

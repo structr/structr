@@ -1198,9 +1198,31 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return null;
 	}
 	
+	public AbstractNode getRelatedNode(PropertyKey propertyKey) {
+		
+		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey.name());
+		if(rc != null) {
+			
+			return rc.getRelatedNode(securityContext, this);
+		}
+		
+		return null;
+	}
+	
 	public List<AbstractNode> getRelatedNodes(Class type) {
 		
 		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
+		if(rc != null) {
+			
+			return rc.getRelatedNodes(securityContext, this);
+		}
+		
+		return Collections.emptyList();
+	}
+	
+	public List<AbstractNode> getRelatedNodes(PropertyKey propertyKey) {
+		
+		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey.name());
 		if(rc != null) {
 			
 			return rc.getRelatedNodes(securityContext, this);

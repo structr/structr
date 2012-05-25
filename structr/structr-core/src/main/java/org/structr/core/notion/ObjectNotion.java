@@ -42,7 +42,7 @@ public class ObjectNotion extends Notion {
 		super(serializationStrategy, deserializationStrategy);
 	}
 
-	private static class ObjectSerializationStrategy implements SerializationStrategy {
+	public static class ObjectSerializationStrategy implements SerializationStrategy {
 		@Override
 		public Object serialize(SecurityContext securityContext, Class type, GraphObject source) {
 			return source;
