@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var contents, editor;
+var contents, editor, contentType;
 
 $(document).ready(function() {
     Structr.registerModule('contents', _Contents);
@@ -124,10 +124,12 @@ var _Contents = {
         var div = element.append('<div class="editor"></div>');
         if (debug) console.log(div);
         var contentBox = $('.editor', element);
+        contentType = contentType ? contentType : entity.contentType;
+        //alert(contentType);
         var text1, text2;
         editor = CodeMirror(contentBox.get(0), {
             value: unescapeTags(text),
-            mode:  "htmlmixed",
+            mode:  contentType,
             lineNumbers: true,
             onChange: function(cm, changes) {
                 
@@ -152,7 +154,10 @@ var _Contents = {
             }
         });
         
-        element.append('<span class="' + entity.id + '_"><label for="contentTypeSelect">Content-Type:</label>'
+        element.append('<table class="props ' + entity.id + '_"></table>');
+        var t = $('.props', element);
+        
+        t.append('<tr><td><label for="contentTypeSelect">Content-Type:</label></td><td>'
             + '<select class="contentType_" id="contentTypeSelect">'
             + '<option value="text/plain">text/plain</option>'
             + '<option value="text/css">text/css</option>'
@@ -163,11 +168,20 @@ var _Contents = {
             + '<option value="text/tracwiki">text/tracwiki</option>'
             + '<option value="text/confluence">text/confluence</option>'
             + '</select>'
-            + '</span>');
+            + '</td></tr>');
+        
         Command.getProperty(entity.id, 'contentType', '#dialogBox');
-        var select = $('#contentTypeSelect', element);
+        var select = $('#contentTypeSelect', t);
         select.on('change', function() {
-            Command.setProperty(entity.id, 'contentType', select.val());
+            contentType = select.val();
+            Command.setProperty(entity.id, 'contentType', contentType);
+        });
+        
+        t.append('<tr><td><label for="data-key">Data Key:</label></td><td><input id="dataKey" class="data-key_" name="data-key" size="20" value=""></td></tr>');
+        Command.getProperty(entity.id, 'data-key', '#dialogBox');
+        var dataKeyInput = $('#dataKey', t);
+        dataKeyInput.on('blur', function() {
+            Command.setProperty(entity.id, 'data-key', dataKeyInput.val());
         });
 
         editor.id = entity.id;

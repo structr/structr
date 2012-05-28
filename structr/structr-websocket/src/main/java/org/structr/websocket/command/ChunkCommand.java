@@ -61,8 +61,9 @@ public class ChunkCommand extends AbstractCommand {
 
 		} catch(Throwable t) {
 
+			String msg = t.getMessage();
 			// return error message
-			getWebSocket().send(MessageBuilder.status().code(400).message("Invalid chunk: ".concat(t.getMessage())).build(), true);
+			getWebSocket().send(MessageBuilder.status().code(400).message("Invalid chunk: ".concat(msg != null ? msg : "")).build(), true);
 		}
 	}
 

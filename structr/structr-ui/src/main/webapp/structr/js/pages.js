@@ -284,7 +284,7 @@ var _Pages = {
 
     activateTab : function(element) {
         
-        var name = $.trim(element.children('b.name_').text());
+        var name = $.trim(element.children('.name_').text());
         if (debug) console.log('activateTab', element, name);
 
         previewTabs.children('li').each(function() {
@@ -326,7 +326,7 @@ var _Pages = {
     makeTabEditable : function(element) {
         //element.off('dblclick');
         element.off('hover');
-        var oldName = $.trim(element.children('b').text());
+        var oldName = $.trim(element.children('.name_').text());
         //console.log('oldName', oldName);
         element.children('b').hide();
         element.find('.button').hide();
@@ -767,7 +767,9 @@ var _Pages = {
             drop: function(event, ui) {
                 var self = $(this);
 
-                console.log('dropped', event, ui.draggable);
+                if (debug) console.log('dropped', event, ui.draggable);
+                
+                
                 
                 if (sorting) {
                     if (debug) console.log('sorting, no drop allowed');
@@ -801,6 +803,10 @@ var _Pages = {
                     nodeData._html_src = name;
                     nodeData.name = name;
                     tag = 'img';
+                    
+                    Structr.modules['files'].unload();
+                    _Pages.makeMenuDroppable();
+                    
                 } else if (cls == 'file') {
                     name = $(ui.draggable).children('.name_').text();
                     
@@ -817,7 +823,7 @@ var _Pages = {
                             console.log('CSS file dropped in <head>, creating <link>');
                             
                             tag = 'link';
-                            nodeData._html_href = '${link.name}';
+                            nodeData._html_href = '/${link.name}';
                             nodeData._html_type = 'text/css';
                             nodeData._html_rel = 'stylesheet';
                             nodeData._html_media = 'screen';
@@ -827,20 +833,24 @@ var _Pages = {
                             console.log('JS file dropped in <head>, creating <script>');
                             
                             tag = 'script';
-                            nodeData._html_src = '${link.name}';
+                            nodeData._html_src = '/${link.name}';
                             nodeData._html_type = 'text/javascript';
                         }
                         
                     } else {
                     
                         console.log('File dropped, creating <a> node', name);
-                        nodeData._html_href = '${link.name}';
+                        nodeData._html_href = '/${link.name}';
                         nodeData._html_title = '${link.name}';
                         nodeData.linkable_id = contentId;
                         nodeData.childContent = '${parent.link.name}';
                         tag = 'a';
                     }
                     contentId = undefined;
+                    
+                    Structr.modules['files'].unload();
+                    _Pages.makeMenuDroppable();
+
                 } else {               
                     if (!contentId) {
                         tag = $(ui.draggable).text();
@@ -943,7 +953,7 @@ var _Pages = {
 
         var page = Structr.node(pageId);
         var component = Structr.node(entityId, componentId, componentId, pageId, pos);
-        //component.remove();
+        component.remove();
         
         if (!Structr.containsNodes(page)) {
             _Entities.removeExpandIcon(page);
@@ -953,7 +963,7 @@ var _Pages = {
         if (numberOfComponents == 0) {
             enable($('.delete_icon', page)[0]);
         }
-        Command.removeSourceFromTarget(entityId, parentId, componentId, pageId, pos);
+    //Command.removeSourceFromTarget(entityId, parentId, componentId, pageId, pos);
 
     },
 
@@ -1037,6 +1047,33 @@ var _Pages = {
 
         });
 
+    },
+    
+    makeMenuDroppable : function() {
+        
+        $('#pages_').removeClass('nodeHover').droppable('enable');
+
+        $('#pages_').droppable({
+            accept: '.element, .content, .component, .file, .image',
+            greedy: true,
+            hoverClass: 'nodeHover',
+            tolerance: 'pointer',
+        
+            over: function(e, ui) {
+            
+                e.stopPropagation();
+                $('#pages_').droppable('disable');
+                console.log('over is off');
+            
+                Structr.activateMenuEntry('pages');
+                document.location = '/structr/#pages'
+                Structr.modules['pages'].onload();
+            
+                _Pages.resize();
+            }
+        
+        });
+        
     }
 
 };

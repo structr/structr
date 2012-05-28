@@ -77,36 +77,7 @@ $(document).ready(function() {
         _Pages.resize();
     });
 
-
-    $('#pages_').droppable({
-        accept: '.element, .content, .component, .file, .image',
-        greedy: true,
-        hoverClass: 'nodeHover',
-        tolerance: 'pointer',
-        
-        over: function(event, ui) {
-
-            //var self = $(this);
-            //            var node = $(ui.helper).clone().appendTo('body');
-            //            console.log(node);
-            //            //var el = $(ui.get(0)).clone();
-            //            //header.append(node);
-            //            
-            //            //node.draggable();
-            ////            $('body').append(node);
-            //            //main.empty();
-            //            node.draggable({
-            //                revert: 'invalid',
-            //                helper: 'clone',
-            //                //containment: '#main',
-            //                zIndex: 4
-            //            });
-            Structr.activateMenuEntry('pages');
-            document.location = '/structr/#pages'
-            Structr.modules['pages'].onload();
-            _Pages.resize();
-        }
-    });
+    _Pages.makeMenuDroppable();
 
     $('#components_').on('click', function(e) {
         e.stopPropagation();

@@ -30,9 +30,13 @@ import org.eclipse.jetty.websocket.WebSocket;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
+import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.File;
 import org.structr.core.entity.Principal;
+import org.structr.core.node.search.Search;
 import org.structr.websocket.command.*;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateCommand;
@@ -51,13 +55,14 @@ import java.io.IOException;
 import java.security.SecureRandom;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.entity.File;
+import org.structr.core.node.GetNodeByIdCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -187,7 +192,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				}
 
 				// we only permit LOGIN commands if token authentication was not successful
-				if (!isAuthenticated() &&!type.equals(LoginCommand.class)) {
+				if (!isAuthenticated() && !type.equals(LoginCommand.class)) {
 
 					// send 401 Authentication Required
 					send(MessageBuilder.status().code(401).message("").build(), true);
@@ -278,7 +283,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	}
 
 	// ----- file handling -----
-	public void handleFileCreation(File file) {
+	public void createFileUploadHandler(File file) {
 
 		String uuid = file.getStringProperty(AbstractNode.Key.uuid);
 
@@ -286,9 +291,35 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	}
 
+	private void handleExistingFile(final String uuid) {
+
+		Command getNode = Services.command(getSecurityContext(), GetNodeByIdCommand.class);
+
+		try {
+
+			File file = (File) getNode.execute(uuid);
+
+			if (file != null) {
+
+				uploads.put(uuid, new FileUploadHandler(file));
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "File not found with id " + uuid, ex);
+
+		}
+
+	}
+
 	public void handleFileChunk(String uuid, int sequenceNumber, int chunkSize, byte[] data) throws IOException {
 
 		FileUploadHandler upload = uploads.get(uuid);
+
+		if (upload == null) {
+
+			handleExistingFile(uuid);
+		}
 
 		if (upload != null) {
 

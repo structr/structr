@@ -76,6 +76,10 @@ var _Files = {
     //	_Files.resize();
     },
 
+    unload : function() {
+        $(main.children('table')).remove();
+    },
+
     refreshFiles : function() {
         files.empty();
         
@@ -271,25 +275,15 @@ var _Files = {
             revert: 'invalid',
             helper: 'clone',
             //containment: '#main',
-            zIndex: 4
+            zIndex: 4,
+            stop : function(e,ui) {
+                $('#pages_').removeClass('nodeHover').droppable('enable');
+            }
         });
 
         _Entities.appendAccessControlIcon(div, file);
         _Entities.appendEditPropertiesIcon(div, file);
-
-
-        div.append('<img title="Edit ' + file.name + ' [' + file.id + ']" alt="Edit ' + file.name + ' [' + file.id + ']" class="edit_icon button" src="icon/pencil.png">');
-        $('.edit_icon', div).on('click', function(e) {
-            e.stopPropagation();
-            var self = $(this);
-            //var text = self.parent().find('.file').text();
-            Structr.dialog('Edit ' + file.name, function() {
-                if (debug) console.log('content saved')
-            }, function() {
-                if (debug) console.log('cancelled')
-            });
-            _Files.editContent(this, file, $('#dialogBox .dialogText'));
-        });        
+        _Files.appendEditFileIcon(div, file);      
 
         _Entities.setMouseOver(div);
         
@@ -307,7 +301,7 @@ var _Files = {
         //var parent = Structr.node(folder, null, null, folders);
 	
         var parent = Structr.findParent(folderId, null, null, folders);
-        var delIcon, newDelIcon;
+        var delIcon, newDelIcon;    
         var div;
         
         var removeExisting = true;
@@ -490,7 +484,7 @@ var _Files = {
         entity.type = isImage(entity.contentType) ? 'Image' : 'File';
         Command.create(entity);
     },
-
+    
     uploadFile : function(file) {
 
         if (debug) console.log(fileList);
@@ -558,10 +552,54 @@ var _Files = {
 
     },
 
+    updateTextFile : function(file, text) {
+
+        
+
+        var chunks = Math.ceil(text.length / chunkSize);
+        
+        console.log(text, text.length, chunks);
+                
+        for (var c=0; c<chunks; c++) {
+                        
+            var start = c*chunkSize;
+            var end = (c+1)*chunkSize;
+                        
+            var chunk = utf8_to_b64(text.substring(start,end));
+            // TODO: check if we can send binary data directly
+
+            Command.chunk(file.id, c, chunkSize, chunk);
+
+        }
+
+    },
+
+    appendEditFileIcon : function(parent, file) {
+        
+        var editIcon = $('.edit_file_icon', parent);
+        
+        if (!(editIcon && editIcon.length)) {
+            parent.append('<img title="Edit ' + file.name + ' [' + file.id + ']" alt="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button" src="icon/pencil.png">');
+        }
+        
+        $(parent.children('.edit_file_icon')).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            //var text = self.parent().find('.file').text();
+            Structr.dialog('Edit ' + file.name, function() {
+                if (debug) console.log('content saved')
+            }, function() {
+                if (debug) console.log('cancelled')
+            });
+            _Files.editContent(this, file, $('#dialogBox .dialogText'));
+        });
+    },
+
     editContent : function (button, file, element) {
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         var text;
+        
         $.ajax({
             url: viewRootUrl + file.name,
             async: true,
@@ -569,8 +607,18 @@ var _Files = {
             contentType: 'text/plain',
             headers: headers,
             success: function(data) {
-                console.log(data);
+                //console.log(data);
                 text = data;
+                
+                var mode;
+                
+                if (file.name.endsWith('.css')) {
+                    mode = 'text/css';
+                } else if (file.name.endsWith('.js')) {
+                    mode = 'text/javascript';
+                } else {
+                    mode = 'text/plain';
+                }
                 
                 if (isDisabled(button)) return;
                 var div = element.append('<div class="editor"></div>');
@@ -578,7 +626,7 @@ var _Files = {
                 var contentBox = $('.editor', element);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
-                    mode:  "htmlmixed",
+                    mode:  mode,
                     lineNumbers: true
                 //            ,
                 //            onChange: function(cm, changes) {
@@ -604,7 +652,17 @@ var _Files = {
                 //            }
                 });
 
-                editor.id = file.id;                
+                editor.id = file.id;
+                
+                element.append('<button id="saveFile">Save</button>');
+                $(element.children('button#saveFile').first()).on('click', function(e) {
+                    e.stopPropagation();
+                    
+                    console.log(editor.getValue());
+                    
+                    _Files.updateTextFile(file, editor.getValue());
+                   
+                });
                         
          
 

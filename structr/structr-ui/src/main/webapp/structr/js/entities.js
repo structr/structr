@@ -99,7 +99,7 @@ var _Entities = {
 
         } else if (entity.type == 'Component') {
 
-            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, removeExisting, hasChildren);
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, true, true);
 
         } else if (entity.type == 'Content') {
 
@@ -551,9 +551,9 @@ var _Entities = {
     makeNameEditable : function(element) {
         //element.off('dblclick');
         element.off('hover');
-        var oldName = $.trim(element.children('b.name_').text());
+        var oldName = $.trim(element.children('b.name_').first().text());
         //console.log('oldName', oldName);
-        element.children('b').replaceWith('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
+        element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
         element.find('.button').hide();
 
         var input = $('input', element);

@@ -79,7 +79,7 @@ public class CreateCommand extends AbstractCommand {
 				String uuid   = newNode.getStringProperty(AbstractNode.Key.uuid);
 
 				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
-				getWebSocket().handleFileCreation((File) newNode);
+				getWebSocket().createFileUploadHandler((File) newNode);
 
 			}
 		} catch (FrameworkException fex) {

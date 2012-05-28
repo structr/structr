@@ -80,19 +80,22 @@ var _Components = {
 	var parent = Structr.findParent(parentId, componentId, pageId, components);
         
         if (!parent) return false;
+        
+        var name = component.name;
+        var kind = component.kind;
 
 	parent.append('<div class="node component ' + component.id + '_">'
 	    + '<img class="typeIcon" src="'+ _Components.icon + '">'
-	    + '<b class="name_">' + component.structrclass + '</b> <span class="id">' + component.id + '</span>'
+	    + '<b class="name_">' + (name ? name : '') + '</b> [<b class="kind_">' + (kind ? kind : '') + '</b>] <span class="id">' + component.id + '</span>'
 	    + '</div>');
         
 	var div = Structr.node(component.id, parentId);
-//	div.append('<img title="Delete component \'' + component.structrclass + '\' ' + component.id + '" alt="Delete component \'' + component.structrclass + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-//	$('.delete_icon', div).on('click', function(e) {
-//            e.stopPropagation();
-//	    _Components.deleteComponent(this, component);
-//	});
-//
+	div.append('<img title="Delete component \'' + name + '\' ' + component.id + '" alt="Delete component \'' + name + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+	$('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
+	    _Components.deleteComponent(this, component);
+	});
+
 //	div.append('<img title="Create Form" alt="Create Form" class="add_form_icon button" src="icon/application_form_add.png">');
 //	$('.add_form_icon', div).on('click', function(e) {
 //            e.stopPropagation();
@@ -184,7 +187,7 @@ var _Components = {
 	var form = {};
 	form.type = 'Form';
 	form.tag = 'form';
-	form._html_action = '//' + plural(component.structrclass).toLowerCase();
+	form._html_action = '//' + plural(component.kind).toLowerCase();
 	form._html_method = 'post';
 
 	var node = $($(button).closest('.node')[0]);

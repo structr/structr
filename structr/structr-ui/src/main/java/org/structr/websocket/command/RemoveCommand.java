@@ -66,7 +66,7 @@ public class RemoveCommand extends AbstractCommand {
 		String id                = webSocketData.getId();
 		String parentId          = (String) webSocketData.getNodeData().get("id");
 		final String componentId = (String) webSocketData.getNodeData().get("componentId");
-		final String pageId  = (String) webSocketData.getNodeData().get("pageId");
+		final String pageId      = (String) webSocketData.getNodeData().get("pageId");
 		String position          = (String) webSocketData.getNodeData().get("position");
 
 		if ((id != null) && (parentId != null)) {
@@ -92,7 +92,7 @@ public class RemoveCommand extends AbstractCommand {
 
 							Command deleteRel                      = Services.command(securityContext, DeleteRelationshipCommand.class);
 							List<AbstractRelationship> relsToShift = new LinkedList<AbstractRelationship>();
-							boolean hasPageId                 = true;
+							boolean hasPageId                      = true;
 
 							for (AbstractRelationship rel : rels) {
 
@@ -118,6 +118,8 @@ public class RemoveCommand extends AbstractCommand {
 
 												deleteRel.execute(rel);
 
+												break;
+
 												// relsToShift.remove(rel);
 												// Stop after removal of one relationship!
 
@@ -126,8 +128,6 @@ public class RemoveCommand extends AbstractCommand {
 										}
 
 									}
-
-									break;
 								}
 
 							}

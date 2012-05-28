@@ -148,7 +148,7 @@ function connect() {
                 if (debug) console.log('GET:', data);
 
                 var d = data.data.displayElementId;
-                if (debug) console.log('displayElementId', d);
+                console.log('displayElementId', d);
 
                 var parentElement;
                 if (d != null) {
@@ -157,7 +157,7 @@ function connect() {
                     parentElement = $($('.' + data.id + '_')[0]);
                 }
 
-                if (debug) console.log('parentElement', parentElement);
+                console.log('parentElement', parentElement);
                 var key = data.data.key;
                 var value = data.data[key];
 
@@ -173,7 +173,7 @@ function connect() {
 
                     } else {
                         
-                        if (debug) console.log($(attrElement));
+                        console.log($(attrElement));
                         
                         var tag = $(attrElement).get(0).tagName.toLowerCase();
                         

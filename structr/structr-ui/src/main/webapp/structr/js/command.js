@@ -382,7 +382,7 @@ var Command = {
         data.chunkSize = chunkSize;
         data.chunk = chunk;
         obj.data = data;
-        if (debug) console.log('chunk()', obj);
+        console.log('chunk()', obj);
         return sendObj(obj);
     },
     

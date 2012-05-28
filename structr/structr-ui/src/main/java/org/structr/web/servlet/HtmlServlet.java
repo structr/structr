@@ -257,7 +257,7 @@ public class HtmlServlet extends HttpServlet {
 		String path                        = PathHelper.clean(request.getPathInfo());
 
 		// Split by "//"
-		String[] parts      = PathHelper.getParts(path);
+		String[] parts  = PathHelper.getParts(path);
 		String pagePath = parts[parts.length - 1];
 
 		postToRestUrl(request, pagePath, convert(parameterMap));
@@ -293,17 +293,17 @@ public class HtmlServlet extends HttpServlet {
 			searchFor = StringUtils.substringBefore(urlParts[1], "?");
 		}
 
-		String[] pathParts                 = PathHelper.getParts(path);
-		
+		String[] pathParts = PathHelper.getParts(path);
+
 		if (pathParts == null && pathParts.length == 0) {
-			
+
 			logger.log(Level.WARNING, "Could not get path parts from path {0}", path);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			
+
 			return;
-			
+
 		}
-		
+
 		String name                        = PathHelper.getName(pathParts[0]);
 		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
 		Map<String, String[]> parameterMap = request.getParameterMap();
@@ -364,7 +364,7 @@ public class HtmlServlet extends HttpServlet {
 
 			// 1: find entry point (Page, File or Image)
 			AbstractNode node                 = findEntryPoint(name);
-			Page page                 = null;
+			Page page                         = null;
 			org.structr.core.entity.File file = null;
 
 			if (node instanceof Page) {
@@ -572,12 +572,12 @@ public class HtmlServlet extends HttpServlet {
 
 			// If a search class is given, respect search attributes
 			// Filters work with AND
-			String structrClass = startNode.getStringProperty(Component.UiKey.structrclass);
-			String id           = startNode.getStringProperty(AbstractNode.Key.uuid);
+			String kind = startNode.getStringProperty(Component.UiKey.kind);
+			String id   = startNode.getStringProperty(AbstractNode.Key.uuid);
 
 			tag = startNode.getStringProperty(Element.UiKey.tag);
 
-			if ((structrClass != null) && structrClass.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
+			if ((kind != null) && kind.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
 
 				for (NodeAttribute attr : attrs) {
 
@@ -735,8 +735,7 @@ public class HtmlServlet extends HttpServlet {
 
 						AbstractNode subNode = rel.getEndNode();
 
-						getContent(request, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, (AbstractNode) component,
-							   condition);
+						getContent(request, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, (AbstractNode) component, condition);
 
 					}
 
@@ -774,7 +773,7 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		// render end tag, if needed (= if not singleton tags)
-		if (StringUtils.isNotBlank(tag) &&!html5VoidTags.contains(tag)) {
+		if (StringUtils.isNotBlank(tag) && !html5VoidTags.contains(tag)) {
 
 			buffer.append("</").append(tag).append(">");
 		}

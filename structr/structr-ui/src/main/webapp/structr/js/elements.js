@@ -251,8 +251,34 @@ var _Elements = {
             }
             console.log('Wrap element in component', getId(node), nodeData, relData);
             //_Entities.createAndAdd(getId(node), nodeData, relData);
+            
+            var dialog = $('#dialogBox .dialogText');
+            var dialogMsg = $('#dialogMsg');
+			
+            dialog.empty();
+            dialogMsg.empty();
+            
+            dialog.append('<label for="kind">Component Class:</label></td><td><input id="_kind" name="kind" size="20" value="">');
+            dialog.append('<button id="startWrap">Create Component</button>');
 
-            Command.wrap(getId(node), nodeData, relData);
+            Structr.dialog('Create Component', function() {
+                return true;
+            }, function() {
+                return true;
+            });
+			
+            $('#startWrap').on('click', function(e) {
+                e.stopPropagation();
+
+                var kind = $('#_kind', dialog).val();
+                
+                nodeData.kind = kind;
+
+                if (debug) console.log('start');
+                return Command.wrap(getId(node), nodeData, relData);
+            });
+
+            
 
         });
 
@@ -361,7 +387,7 @@ var _Elements = {
                     }
                 });
                 
-                Structr.dialog('Link to Page', function() {
+                Structr.dialog('Link to Resource (Page, File or Image)', function() {
                     return true;
                 }, function() {
                     return true;

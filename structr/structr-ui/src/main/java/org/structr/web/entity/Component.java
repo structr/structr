@@ -84,7 +84,7 @@ public class Component extends AbstractNode {
 
 	public enum Key implements PropertyKey{ componentId, pageId }
 
-	public enum UiKey implements PropertyKey{ type, name, structrclass, displayMode }
+	public enum UiKey implements PropertyKey{ type, name, kind }
 
 	//~--- methods --------------------------------------------------------
 
@@ -151,7 +151,7 @@ public class Component extends AbstractNode {
 
 			if (endNode instanceof Component) {
 
-				String subType = endNode.getStringProperty(Component.UiKey.structrclass);
+				String subType = endNode.getStringProperty(Component.UiKey.kind);
 
 				if (subType != null) {
 
@@ -452,7 +452,6 @@ public class Component extends AbstractNode {
 				requestContainsUuids = requestContainsUuidsValue.booleanValue();
 			}
 			
-			// String structrClass = node.getStringProperty(Component.UiKey.structrclass);
 			String componentId       = node.getStringProperty(AbstractNode.Key.uuid);
 
 			// new default behaviour: make all components visible
@@ -474,34 +473,6 @@ public class Component extends AbstractNode {
 
 				return true;
 			}
-			
-			/*
-			 *  disabled, old code
-			 * 
-			if (structrClass != null) {
-
-				String singleClass = CaseHelper.toUnderscore(structrClass, false);
-				String listClass   = CaseHelper.toUnderscore(structrClass, true);
-
-				// check for "single" mode with uuid
-				if (request.getAttribute(singleClass) != null) {
-
-					if (request.getAttribute(componentId) != null) {
-
-						return true;
-
-					}
-
-					// check for "list" mode
-
-				} else if (request.getAttribute(listClass) != null) {
-
-					return true;
-
-				}
-
-			}
-			*/
 
 		}
 

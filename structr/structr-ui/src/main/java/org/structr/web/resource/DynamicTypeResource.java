@@ -242,8 +242,8 @@ public class DynamicTypeResource extends TypeResource {
 
 		// copy properties to map
 		templateProperties.put(AbstractNode.Key.type.name(), Component.class.getSimpleName());
-		templateProperties.put("structrclass", template.getStringProperty("structrclass"));
-		templateProperties.put("uuid", componentId);
+		templateProperties.put(Component.UiKey.kind.name(), template.getStringProperty(Component.UiKey.kind.name()));
+		templateProperties.put(AbstractNode.Key.uuid.name(), componentId);
 
 		// use parentId from template
 		String parentComponentId = template.getComponentId();
@@ -363,7 +363,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (rawType != null) {
 
-			searchAttributes.add(Search.andExactProperty(Component.UiKey.structrclass.name(), EntityContext.normalizeEntityName(rawType)));
+			searchAttributes.add(Search.andExactProperty(Component.UiKey.kind.name(), EntityContext.normalizeEntityName(rawType)));
 			searchAttributes.add(Search.andExactType(Component.class.getSimpleName()));
 
 		}
