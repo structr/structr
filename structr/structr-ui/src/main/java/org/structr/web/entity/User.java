@@ -143,21 +143,21 @@ public class User extends Person implements Principal {
 	 * Intentionally return null.
 	 * @return
 	 */
-	@Override
+//	@Override
 	public String getPassword() {
 
 		return null;
 
 	}
 
-	@Override
+//	@Override
 	public String getRealName() {
 
 		return getStringProperty(Key.realName);
 
 	}
 
-	@Override
+//	@Override
 	public String getConfirmationKey() {
 
 		return getStringProperty(Key.confirmationKey);
@@ -171,7 +171,7 @@ public class User extends Person implements Principal {
 
 	}
 
-	@Override
+//	@Override
 	public String getSessionId() {
 
 		return getStringProperty(Key.sessionId);
@@ -185,14 +185,14 @@ public class User extends Person implements Principal {
 
 	}
 
-	@Override
+//	@Override
 	public boolean isBackendUser() {
 
 		return getBooleanProperty(Key.backendUser);
 
 	}
 
-	@Override
+//	@Override
 	public boolean isFrontendUser() {
 
 		return getBooleanProperty(Key.frontendUser);
@@ -201,14 +201,14 @@ public class User extends Person implements Principal {
 
 	//~--- set methods ----------------------------------------------------
 
-	@Override
+//	@Override
 	public void setPassword(final String passwordValue) throws FrameworkException {
 
 		setProperty(Key.password, passwordValue);
 
 	}
 
-	@Override
+//	@Override
 	public void setRealName(final String realName) throws FrameworkException {
 
 		setProperty(Key.realName, realName);
@@ -222,21 +222,21 @@ public class User extends Person implements Principal {
 
 	}
 
-	@Override
+//	@Override
 	public void setConfirmationKey(final String value) throws FrameworkException {
 
 		setProperty(Key.confirmationKey, value);
 
 	}
 
-	@Override
+//	@Override
 	public void setFrontendUser(final boolean isFrontendUser) throws FrameworkException {
 
 		setProperty(Key.frontendUser, isFrontendUser);
 
 	}
 
-	@Override
+//	@Override
 	public void setBackendUser(final boolean isBackendUser) throws FrameworkException {
 
 		setProperty(Key.backendUser, isBackendUser);

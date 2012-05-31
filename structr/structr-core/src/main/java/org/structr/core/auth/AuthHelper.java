@@ -100,8 +100,10 @@ public class AuthHelper {
 					}
 
 					String encryptedPasswordValue = DigestUtils.sha512Hex(password);
+					
+					String pw = user.getEncryptedPassword();
 
-					if (!encryptedPasswordValue.equals(user.getEncryptedPassword())) {
+					if (pw == null || !encryptedPasswordValue.equals(pw)) {
 
 						logger.log(Level.INFO, "Wrong password for user {0}", user);
 

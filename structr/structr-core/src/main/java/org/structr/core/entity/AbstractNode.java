@@ -71,7 +71,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -127,7 +126,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	// dirty flag, true means that some changes are not yet written to the database
 	protected boolean isDirty;
 	protected Map<String, Object> properties;
-	protected Principal user;
+//	protected Principal user;
 
 	// we can assume that the name of this node won't change much during the lifetime
 	// of an AbstractNode, because AbstractNodes are newly instantiated on each request.
@@ -331,9 +330,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return the output
 	 */
-	public String evaluate(HttpServletRequest request) {
-		return ("");
-	}
+//	public String evaluate(HttpServletRequest request) {
+//		return ("");
+//	}
 
 	/**
 	 * Populate the security relationship cache map
@@ -359,127 +358,127 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public boolean readAllowed() {
-
-		// Check global settings first
-		if (isVisible()) {
-
-			return true;
-
-		}
-
-		// Then check per-user permissions
-		return hasPermission(AbstractRelationship.Permission.read.name(), user);
-	}
+//	public boolean readAllowed() {
+//
+//		// Check global settings first
+//		if (isVisible()) {
+//
+//			return true;
+//
+//		}
+//
+//		// Then check per-user permissions
+//		return hasPermission(AbstractRelationship.Permission.read.name(), user);
+//	}
 
 	/**
 	 * Check if given node may see the navigation tree
 	 *
 	 * @return
 	 */
-	public boolean showTreeAllowed() {
-		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
-	}
+//	public boolean showTreeAllowed() {
+//		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
+//	}
 
 	/**
 	 * Check if given node may be written by current user.
 	 *
 	 * @return
 	 */
-	public boolean writeAllowed() {
-		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
-	}
+//	public boolean writeAllowed() {
+//		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
+//	}
 
 	/**
 	 * Check if given user may create new sub nodes.
 	 *
 	 * @return
 	 */
-	public boolean createSubnodeAllowed() {
-		return hasPermission(AbstractRelationship.Permission.createNode.name(), user);
-	}
+//	public boolean createSubnodeAllowed() {
+//		return hasPermission(AbstractRelationship.Permission.createNode.name(), user);
+//	}
 
 	/**
 	 * Check if given user may delete this node
 	 *
 	 * @return
 	 */
-	public boolean deleteNodeAllowed() {
-		return hasPermission(AbstractRelationship.Permission.deleteNode.name(), user);
-	}
+//	public boolean deleteNodeAllowed() {
+//		return hasPermission(AbstractRelationship.Permission.deleteNode.name(), user);
+//	}
 
 	/**
 	 * Check if given user may add new relationships to this node
 	 *
 	 * @return
 	 */
-	public boolean addRelationshipAllowed() {
-		return hasPermission(AbstractRelationship.Permission.addRelationship.name(), user);
-	}
+//	public boolean addRelationshipAllowed() {
+//		return hasPermission(AbstractRelationship.Permission.addRelationship.name(), user);
+//	}
 
 	/**
 	 * Check if given user may edit (set) properties of this node
 	 *
 	 * @return
 	 */
-	public boolean editPropertiesAllowed() {
-		return hasPermission(AbstractRelationship.Permission.editProperties.name(), user);
-	}
+//	public boolean editPropertiesAllowed() {
+//		return hasPermission(AbstractRelationship.Permission.editProperties.name(), user);
+//	}
 
 	/**
 	 * Check if given user may remove relationships to this node
 	 *
 	 * @return
 	 */
-	public boolean removeRelationshipAllowed() {
-		return hasPermission(AbstractRelationship.Permission.removeRelationship.name(), user);
-	}
+//	public boolean removeRelationshipAllowed() {
+//		return hasPermission(AbstractRelationship.Permission.removeRelationship.name(), user);
+//	}
 
 	/**
 	 * Check if access of given node may be controlled by current user.
 	 *
 	 * @return
 	 */
-	public boolean accessControlAllowed() {
-
-		// just in case ...
-		if (user == null) {
-
-			return false;
-
-		}
-
-		// superuser
-		if (user instanceof SuperUser) {
-
-			return true;
-
-		}
-
-		// node itself
-		if (this.equals(user)) {
-
-			return true;
-
-		}
-
-		// owner has always access control
-		if (user.equals(getOwnerNode())) {
-
-			return true;
-
-		}
-
-		AbstractRelationship r = getSecurityRelationship(user);
-
-		if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
-
-			return true;
-
-		}
-
-		return false;
-	}
+//	public boolean accessControlAllowed() {
+//
+//		// just in case ...
+//		if (user == null) {
+//
+//			return false;
+//
+//		}
+//
+//		// superuser
+//		if (user instanceof SuperUser) {
+//
+//			return true;
+//
+//		}
+//
+//		// node itself
+//		if (this.equals(user)) {
+//
+//			return true;
+//
+//		}
+//
+//		// owner has always access control
+//		if (user.equals(getOwnerNode())) {
+//
+//			return true;
+//
+//		}
+//
+//		AbstractRelationship r = getSecurityRelationship(user);
+//
+//		if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
+//
+//			return true;
+//
+//		}
+//
+//		return false;
+//	}
 
 	// ----- protected methods -----
 	public static String toGetter(String name) {
@@ -1449,14 +1448,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public String getOwner() {
-
-		Principal ownner = getOwnerNode();
-
-		return ((ownner != null)
-			? ownner.getRealName() + " (" + ownner.getStringProperty(AbstractNode.Key.name) + ")"
-			: null);
-	}
+//	public String getOwner() {
+//
+//		Principal owner = getOwnerNode();
+//
+//		return ((owner != null)
+//			? owner.getRealName() + " (" + owner.getStringProperty(AbstractNode.Key.name) + ")"
+//			: null);
+//	}
 
 	/**
 	 * Return a list with the connected principals (user, group, role)

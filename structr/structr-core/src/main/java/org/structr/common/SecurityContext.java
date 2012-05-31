@@ -350,12 +350,12 @@ public class SecurityContext {
 
 		}
 
-		// non-backend users are not allowed here
-		if (!user.isBackendUser()) {
-
-			return (false);
-
-		}
+//		// non-backend users are not allowed here
+//		if (!user.isBackendUser()) {
+//
+//			return (false);
+//
+//		}
 
 		// users with read permissions may see the node
 		if (isAllowedInBackend(node, Permission.Read)) {
@@ -448,19 +448,19 @@ public class SecurityContext {
 				}
 
 				// frontend user
-				if (user.isFrontendUser()) {
-
-					boolean hasReadPermission = node.hasPermission(AbstractRelationship.Permission.read.name(), user);
-
-					if (!hasReadPermission) {
-
-						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-
-					}
-
-					return hasReadPermission;
-
-				}
+//				if (user.isFrontendUser()) {
+//
+//					boolean hasReadPermission = node.hasPermission(AbstractRelationship.Permission.read.name(), user);
+//
+//					if (!hasReadPermission) {
+//
+//						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//
+//					}
+//
+//					return hasReadPermission;
+//
+//				}
 			}
 		}
 
