@@ -326,44 +326,47 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 		}
 
 		// property keys
-		for (String key : src.getPropertyKeys(localPropertyView)) {
+		Iterable<String> keys = src.getPropertyKeys(localPropertyView);
+		if(keys != null) {
+			for (String key : keys) {
 
-			Object value = src.getProperty(key);
+				Object value = src.getProperty(key);
 
-			if (value != null) {
+				if (value != null) {
 
-				// id property mapping
-				if (key.equals(idProperty)) {
+					// id property mapping
+					if (key.equals(idProperty)) {
 
-					key = "id";
+						key = "id";
 
-				}
+					}
 
-				if (value instanceof Iterable) {
+					if (value instanceof Iterable) {
 
-					jsonObject.add(key, serializeIterable((Iterable)value, typeOfSrc, context, localPropertyView, depth));
+						jsonObject.add(key, serializeIterable((Iterable)value, typeOfSrc, context, localPropertyView, depth));
 
-				} else if (value instanceof GraphObject) {
+					} else if (value instanceof GraphObject) {
 
-					GraphObject graphObject = (GraphObject) value;
+						GraphObject graphObject = (GraphObject) value;
 
-					jsonObject.add(key, this.serializeFlatNameValue(graphObject, typeOfSrc, context, localPropertyView, depth + 1));
+						jsonObject.add(key, this.serializeFlatNameValue(graphObject, typeOfSrc, context, localPropertyView, depth + 1));
 
-				} else if (value instanceof Map) {
+					} else if (value instanceof Map) {
 
-					jsonObject.add(key, serializeMap((Map) value, typeOfSrc, context, localPropertyView, false, false, depth));
+						jsonObject.add(key, serializeMap((Map) value, typeOfSrc, context, localPropertyView, false, false, depth));
 
+					} else {
+
+	//                                      jsonObject.add(key, new JsonPrimitive(value.toString()));
+						jsonObject.add(key, primitive(value));
+					}
 				} else {
 
-//                                      jsonObject.add(key, new JsonPrimitive(value.toString()));
-					jsonObject.add(key, primitive(value));
-				}
-			} else {
+					jsonObject.add(key, new JsonNull());
 
-				jsonObject.add(key, new JsonNull());
+				}
 
 			}
-
 		}
 
 		return jsonObject;

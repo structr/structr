@@ -108,10 +108,14 @@ public class FindNodeCommand extends NodeServiceCommand {
 		} else if (argument instanceof String) {
 
 			// single string value, try to parse to long
-			long id   = Long.parseLong((String) argument);
-			Node node = graphDb.getNodeById(id);
+			try {
+				long id   = Long.parseLong((String) argument);
+				Node node = graphDb.getNodeById(id);
 
-			result = nodeFactory.createNode(securityContext, node);
+				result = nodeFactory.createNode(securityContext, node);
+				
+			} catch(NumberFormatException nfex) { }
+			
 		} else if (argument instanceof ReferenceNode) {
 
 			// return reference node
