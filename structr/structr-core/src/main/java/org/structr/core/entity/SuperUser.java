@@ -28,6 +28,9 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
+import java.util.List;
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -213,4 +216,19 @@ public class SuperUser implements Principal {
 
 	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
+
+	@Override
+	public List<Principal> getParents() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void grant(Permission permission, AccessControllable obj) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void revoke(Permission permission, AccessControllable obj) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

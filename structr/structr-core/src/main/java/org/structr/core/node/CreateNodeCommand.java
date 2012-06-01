@@ -21,7 +21,6 @@
 
 package org.structr.core.node;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.RelType;
@@ -31,10 +30,8 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Transformation;
-import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Principal;
 
@@ -47,6 +44,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Permission;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -112,7 +110,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			// Create node with type
 			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
 			
-			if ((user != null) &&!(user instanceof SuperUser)) {
+			if ((user != null) && !(user instanceof SuperUser)) {
 				
 				node.setOwner(user);
 
@@ -125,7 +123,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 //
 				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, null, true);    // avoid duplicates
 
-				securityRel.setAllowed(AbstractRelationship.Permission.values());
+				securityRel.setAllowed(Permission.values());
 				logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);

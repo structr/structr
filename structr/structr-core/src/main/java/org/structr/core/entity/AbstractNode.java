@@ -71,7 +71,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 //~--- classes ----------------------------------------------------------------
 
 /**
@@ -111,7 +110,16 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	//~--- fields ---------------------------------------------------------
 
-	private List<AbstractRelationship> allRelationships      = null;
+	private List<AbstractRelationship> allRelationships = null;
+	protected Boolean cachedDeletedFlag                 = null;
+	protected Boolean cachedHiddenFlag                  = null;
+	protected String cachedName                         = null;
+	protected Principal cachedOwnerNode                 = null;
+
+	// we can assume that the name of this node won't change much during the lifetime
+	// of an AbstractNode, because AbstractNodes are newly instantiated on each request.
+	protected Boolean cachedVisibleToAuthenticatedUsersFlag  = null;
+	protected Boolean cachedVisibleToPublicUsersFlag         = null;
 	private List<AbstractRelationship> incomingRelationships = null;
 	private List<AbstractRelationship> outgoingRelationships = null;
 
@@ -126,23 +134,16 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	// dirty flag, true means that some changes are not yet written to the database
 	protected boolean isDirty;
 	protected Map<String, Object> properties;
-//	protected Principal user;
 
-	// we can assume that the name of this node won't change much during the lifetime
-	// of an AbstractNode, because AbstractNodes are newly instantiated on each request.
-	protected Boolean cachedVisibleToAuthenticatedUsersFlag  = null;
-	protected Boolean cachedVisibleToPublicUsersFlag  = null;
-	protected Principal cachedOwnerNode = null;
-	protected Boolean cachedHiddenFlag  = null;
-	protected Boolean cachedDeletedFlag = null;
-	protected String cachedName         = null;
-	
+//      protected Principal user;
+
 	//~--- constant enums -------------------------------------------------
 
 	public static enum Key implements PropertyKey {
 
 		uuid, name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position, visibleToPublicUsers, title, titles, visibilityEndDate, visibilityStartDate,
 		visibleToAuthenticatedUsers, templateId, categories, ownerId, owner;
+
 	}
 
 	//~--- constructors ---------------------------------------------------
@@ -151,16 +152,20 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		this.properties = new HashMap<String, Object>();
 		isDirty         = true;
+
 	}
 
 	public AbstractNode(final Map<String, Object> properties) {
 
 		this.properties = properties;
 		isDirty         = true;
+
 	}
 
 	public AbstractNode(SecurityContext securityContext, final Node dbNode) {
+
 		init(securityContext, dbNode);
+
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -196,10 +201,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		this.dbNode          = dbNode;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
+
 	}
 
 	private void init(final SecurityContext securityContext, final AbstractNode node) {
+
 		init(securityContext, node.dbNode);
+
 	}
 
 	@Override
@@ -208,16 +216,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (o == null) {
 
 			return false;
-
 		}
 
 		if (!(o instanceof AbstractNode)) {
 
 			return false;
-
 		}
 
 		return (new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+
 	}
 
 	@Override
@@ -226,10 +233,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (this.dbNode == null) {
 
 			return (super.hashCode());
-
 		}
 
 		return Long.valueOf(dbNode.getId()).hashCode();
+
 	}
 
 	@Override
@@ -238,10 +245,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if ((node == null) || (node.getName() == null) || (this.getName() == null)) {
 
 			return -1;
-
 		}
 
 		return (this.getName().compareTo(node.getName()));
+
 	}
 
 	/**
@@ -253,7 +260,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (dbNode == null) {
 
 			return "AbstractNode with null database node";
-
 		}
 
 		try {
@@ -273,6 +279,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		} catch (Throwable ignore) {}
 
 		return "<AbstractNode>";
+
 	}
 
 	/**
@@ -314,15 +321,16 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					if ((key != null) && (value != null)) {
 
 						setProperty(key, value, false);    // Don't update index now!
-
 					}
 
 				}
 
 				return null;
+
 			}
 
 		});
+
 	}
 
 	/**
@@ -330,9 +338,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return the output
 	 */
-//	public String evaluate(HttpServletRequest request) {
-//		return ("");
-//	}
+
+//      public String evaluate(HttpServletRequest request) {
+//              return ("");
+//      }
 
 	/**
 	 * Populate the security relationship cache map
@@ -342,15 +351,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (securityRelationships == null) {
 
 			securityRelationships = new HashMap<Long, AbstractRelationship>();
-
 		}
 
 		// Fill cache map
 		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
 
 			securityRelationships.put(r.getStartNode().getId(), r);
-
 		}
+
 	}
 
 	/**
@@ -358,131 +366,133 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-//	public boolean readAllowed() {
+
+//      public boolean readAllowed() {
 //
-//		// Check global settings first
-//		if (isVisible()) {
+//              // Check global settings first
+//              if (isVisible()) {
 //
-//			return true;
+//                      return true;
 //
-//		}
+//              }
 //
-//		// Then check per-user permissions
-//		return hasPermission(AbstractRelationship.Permission.read.name(), user);
-//	}
+//              // Then check per-user permissions
+//              return isGranted(AbstractRelationship.Permission.read.name(), user);
+//      }
 
 	/**
 	 * Check if given node may see the navigation tree
 	 *
 	 * @return
 	 */
-//	public boolean showTreeAllowed() {
-//		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
-//	}
+//      public boolean showTreeAllowed() {
+//              return isGranted(AbstractRelationship.Permission.showTree.name(), user);
+//      }
 
 	/**
 	 * Check if given node may be written by current user.
 	 *
 	 * @return
 	 */
-//	public boolean writeAllowed() {
-//		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
-//	}
+//      public boolean writeAllowed() {
+//              return isGranted(AbstractRelationship.Permission.showTree.name(), user);
+//      }
 
 	/**
 	 * Check if given user may create new sub nodes.
 	 *
 	 * @return
 	 */
-//	public boolean createSubnodeAllowed() {
-//		return hasPermission(AbstractRelationship.Permission.createNode.name(), user);
-//	}
+//      public boolean createSubnodeAllowed() {
+//              return isGranted(AbstractRelationship.Permission.createNode.name(), user);
+//      }
 
 	/**
 	 * Check if given user may delete this node
 	 *
 	 * @return
 	 */
-//	public boolean deleteNodeAllowed() {
-//		return hasPermission(AbstractRelationship.Permission.deleteNode.name(), user);
-//	}
+//      public boolean deleteNodeAllowed() {
+//              return isGranted(AbstractRelationship.Permission.deleteNode.name(), user);
+//      }
 
 	/**
 	 * Check if given user may add new relationships to this node
 	 *
 	 * @return
 	 */
-//	public boolean addRelationshipAllowed() {
-//		return hasPermission(AbstractRelationship.Permission.addRelationship.name(), user);
-//	}
+//      public boolean addRelationshipAllowed() {
+//              return isGranted(AbstractRelationship.Permission.addRelationship.name(), user);
+//      }
 
 	/**
 	 * Check if given user may edit (set) properties of this node
 	 *
 	 * @return
 	 */
-//	public boolean editPropertiesAllowed() {
-//		return hasPermission(AbstractRelationship.Permission.editProperties.name(), user);
-//	}
+//      public boolean editPropertiesAllowed() {
+//              return isGranted(AbstractRelationship.Permission.editProperties.name(), user);
+//      }
 
 	/**
 	 * Check if given user may remove relationships to this node
 	 *
 	 * @return
 	 */
-//	public boolean removeRelationshipAllowed() {
-//		return hasPermission(AbstractRelationship.Permission.removeRelationship.name(), user);
-//	}
+//      public boolean removeRelationshipAllowed() {
+//              return isGranted(AbstractRelationship.Permission.removeRelationship.name(), user);
+//      }
 
 	/**
 	 * Check if access of given node may be controlled by current user.
 	 *
 	 * @return
 	 */
-//	public boolean accessControlAllowed() {
+//      public boolean accessControlAllowed() {
 //
-//		// just in case ...
-//		if (user == null) {
+//              // just in case ...
+//              if (user == null) {
 //
-//			return false;
+//                      return false;
 //
-//		}
+//              }
 //
-//		// superuser
-//		if (user instanceof SuperUser) {
+//              // superuser
+//              if (user instanceof SuperUser) {
 //
-//			return true;
+//                      return true;
 //
-//		}
+//              }
 //
-//		// node itself
-//		if (this.equals(user)) {
+//              // node itself
+//              if (this.equals(user)) {
 //
-//			return true;
+//                      return true;
 //
-//		}
+//              }
 //
-//		// owner has always access control
-//		if (user.equals(getOwnerNode())) {
+//              // owner has always access control
+//              if (user.equals(getOwnerNode())) {
 //
-//			return true;
+//                      return true;
 //
-//		}
+//              }
 //
-//		AbstractRelationship r = getSecurityRelationship(user);
+//              AbstractRelationship r = getSecurityRelationship(user);
 //
-//		if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
+//              if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
 //
-//			return true;
+//                      return true;
 //
-//		}
+//              }
 //
-//		return false;
-//	}
-
+//              return false;
+//      }
 	// ----- protected methods -----
 	public static String toGetter(String name) {
+
 		return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
+
 	}
 
 	/**
@@ -494,7 +504,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * default behaviour.
 	 */
 	public void unlockReadOnlyPropertiesOnce() {
+
 		this.readOnlyPropertiesUnlocked = true;
+
 	}
 
 	@Override
@@ -521,7 +533,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				} else {
 
 					throw new FrameworkException(this.getType(), new ReadOnlyPropertyToken(key));
-
 				}
 
 			}
@@ -534,11 +545,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					dbNode.removeProperty(key);
 
 					return null;
+
 				}
 
 			});
 
 		}
+
 	}
 
 	/**
@@ -554,10 +567,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		for (Object o : iterable) {
 
 			count++;
-
 		}
 
 		return (count);
+
 	}
 
 	protected Set toSet(Object source) {
@@ -570,7 +583,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			for (AbstractNode node : iterable) {
 
 				nodes.add(node);
-
 			}
 
 			return nodes;
@@ -578,6 +590,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return null;
+
 	}
 
 	protected List toList(Object source) {
@@ -590,7 +603,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			for (AbstractNode node : iterable) {
 
 				nodes.add(node);
-
 			}
 
 			return nodes;
@@ -598,23 +610,30 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return null;
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public PropertyKey getDefaultSortKey() {
+
 		return null;
+
 	}
 
 	@Override
 	public String getDefaultSortOrder() {
+
 		return GraphObjectComparator.ASCENDING;
+
 	}
 
 	@Override
 	public String getType() {
+
 		return (String) getProperty(Key.type.name());
+
 	}
 
 	/**
@@ -625,21 +644,20 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public String getName() {
 
 		// cache name locally for faster access (during sorting etc.)
-		if(cachedName == null) {
-			
+		if (cachedName == null) {
+
 			Object nameProperty = getProperty(Key.name.name());
 
 			if (nameProperty != null) {
 
 				cachedName = (String) nameProperty;
-
 			} else {
 
 				cachedName = getNodeId().toString();
-
 			}
+
 		}
-		
+
 		return cachedName;
 	}
 
@@ -652,27 +670,35 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (isDirty) {
 
 			return -1;
-
 		}
 
 		return dbNode.getId();
+
 	}
 
 	public String getUuid() {
+
 		return getStringProperty(Key.uuid);
+
 	}
 
 	public Long getNodeId() {
+
 		return getId();
+
 	}
 
 	public String getIdString() {
+
 		return Long.toString(getId());
+
 	}
 
 	@Override
 	public Date getDateProperty(final PropertyKey key) {
+
 		return getDateProperty(key.name());
+
 	}
 
 	@Override
@@ -685,11 +711,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if (propertyValue instanceof Date) {
 
 				return (Date) propertyValue;
-
 			} else if (propertyValue instanceof Long) {
 
 				return new Date((Long) propertyValue);
-
 			} else if (propertyValue instanceof String) {
 
 				try {
@@ -706,12 +730,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 						return date;
 
 					} catch (ParseException ex2) {
+
 						logger.log(Level.WARNING, "Could not parse " + propertyValue + " to date", ex2);
+
 					}
 
 					logger.log(Level.WARNING, "Can''t parse String {0} to a Date.", propertyValue);
 
 					return null;
+
 				}
 
 			} else {
@@ -725,38 +752,51 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return null;
+
 	}
 
 	public boolean getVisibleToPublicUsers() {
-		if(cachedVisibleToPublicUsersFlag == null) {
+
+		if (cachedVisibleToPublicUsersFlag == null) {
+
 			cachedVisibleToPublicUsersFlag = getBooleanProperty(Key.visibleToPublicUsers.name());
 		}
-		
+
 		return cachedVisibleToPublicUsersFlag.booleanValue();
+
 	}
 
 	public boolean getVisibleToAuthenticatedUsers() {
-		if(cachedVisibleToPublicUsersFlag == null) {
+
+		if (cachedVisibleToPublicUsersFlag == null) {
+
 			cachedVisibleToAuthenticatedUsersFlag = getBooleanProperty(Key.visibleToPublicUsers.name());
 		}
-		
+
 		return cachedVisibleToPublicUsersFlag.booleanValue();
+
 	}
 
 	public boolean getHidden() {
-		if(cachedHiddenFlag == null) {
+
+		if (cachedHiddenFlag == null) {
+
 			cachedHiddenFlag = getBooleanProperty(Key.hidden.name());
 		}
-		
+
 		return cachedHiddenFlag.booleanValue();
+
 	}
 
 	public boolean getDeleted() {
-		if(cachedDeletedFlag == null) {
+
+		if (cachedDeletedFlag == null) {
+
 			cachedDeletedFlag = getBooleanProperty(Key.deleted.name());
 		}
-		
+
 		return cachedDeletedFlag.booleanValue();
+
 	}
 
 	/**
@@ -767,7 +807,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return
 	 */
 	public Map<String, Object> getPropertyMap() {
+
 		return properties;
+
 	}
 
 	/**
@@ -786,12 +828,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if (prop != null) {
 
 				signature.put(key, prop.getClass());
-
 			}
 
 		}
 
 		return signature;
+
 	}
 
 	/**
@@ -804,10 +846,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (dbNode == null) {
 
 			return null;
-
 		}
 
 		return dbNode.getPropertyKeys();
+
 	}
 
 	/**
@@ -816,7 +858,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return
 	 */
 	public Iterable<String> getPropertyKeys() {
+
 		return getPropertyKeys(PropertyView.All);
+
 	}
 
 	/**
@@ -834,12 +878,16 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	@Override
 	public Iterable<String> getPropertyKeys(final String propertyView) {
+
 		return EntityContext.getPropertySet(this.getClass(), propertyView);
+
 	}
 
 	@Override
 	public Object getProperty(final PropertyKey propertyKey) {
+
 		return (getProperty(propertyKey.name()));
+
 	}
 
 	/**
@@ -851,7 +899,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return
 	 */
 	public Object getPropertyForIndexing(final String key) {
+
 		return getProperty(key);
+
 	}
 
 	@Override
@@ -871,7 +921,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (dbNode == null) {
 
 			return null;
-
 		}
 
 		// ----- BEGIN property group resolution -----
@@ -880,7 +929,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (propertyGroup != null) {
 
 			return propertyGroup.getGroupedProperties(this);
-
 		}
 
 		if (dbNode.hasProperty(key)) {
@@ -888,13 +936,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if (isDirty) {
 
 				value = properties.get(key);
-
 			}
 
 			if ((key != null) && (dbNode != null)) {
 
 				value = dbNode.getProperty(key);
-
 			}
 
 		} else {
@@ -919,9 +965,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					case OneToOne :
 					case ManyToOne :
 						try {
+
 							value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+
 						} catch (FrameworkException fex) {
+
 							logger.log(Level.WARNING, "Error while adapting related node", fex);
+
 						}
 
 						break;
@@ -936,7 +986,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (value == null) {
 
 			value = EntityContext.getDefaultValue(type, key);
-
 		}
 
 		// apply property converters
@@ -953,11 +1002,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return value;
+
 	}
 
 	@Override
 	public String getStringProperty(final PropertyKey propertyKey) {
+
 		return (getStringProperty(propertyKey.name()));
+
 	}
 
 	public String getPropertyMD5(final String key) {
@@ -967,16 +1019,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (value instanceof String) {
 
 			return DigestUtils.md5Hex((String) value);
-
 		} else if (value instanceof byte[]) {
 
 			return DigestUtils.md5Hex((byte[]) value);
-
 		}
 
 		logger.log(Level.WARNING, "Could not create MD5 hex out of value {0}", value);
 
 		return null;
+
 	}
 
 	@Override
@@ -988,20 +1039,21 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (propertyValue == null) {
 
 			return null;
-
 		}
 
 		if (propertyValue instanceof String) {
 
 			result = ((String) propertyValue);
-
 		}
 
 		return result;
+
 	}
 
 	public List<String> getStringListProperty(final PropertyKey propertyKey) {
+
 		return (getStringListProperty(propertyKey.name()));
+
 	}
 
 	public List<String> getStringListProperty(final String key) {
@@ -1012,7 +1064,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (propertyValue == null) {
 
 			return null;
-
 		}
 
 		if (propertyValue instanceof String) {
@@ -1030,10 +1081,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return result;
+
 	}
 
 	public String getStringArrayPropertyAsString(final PropertyKey propertyKey) {
+
 		return (getStringArrayPropertyAsString(propertyKey.name()));
+
 	}
 
 	public String getStringArrayPropertyAsString(final String key) {
@@ -1053,7 +1107,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				if (i < values.length - 1) {
 
 					result.append("\r\n");
-
 				}
 
 			}
@@ -1061,10 +1114,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return result.toString();
+
 	}
 
 	public Integer getIntProperty(final PropertyKey propertyKey) {
+
 		return (getIntProperty(propertyKey.name()));
+
 	}
 
 	public Integer getIntProperty(final String key) {
@@ -1075,19 +1131,16 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (propertyValue == null) {
 
 			return null;
-
 		}
 
 		if (propertyValue instanceof Integer) {
 
 			result = ((Integer) propertyValue);
-
 		} else if (propertyValue instanceof String) {
 
 			if ("".equals((String) propertyValue)) {
 
 				return null;
-
 			}
 
 			result = Integer.parseInt(((String) propertyValue));
@@ -1095,10 +1148,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return result;
+
 	}
 
 	public Long getLongProperty(final PropertyKey propertyKey) {
+
 		return (getLongProperty(propertyKey.name()));
+
 	}
 
 	public Long getLongProperty(final String key) {
@@ -1109,23 +1165,19 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (propertyValue == null) {
 
 			return null;
-
 		}
 
 		if (propertyValue instanceof Long) {
 
 			result = ((Long) propertyValue);
-
 		} else if (propertyValue instanceof Integer) {
 
 			result = ((Integer) propertyValue).longValue();
-
 		} else if (propertyValue instanceof String) {
 
 			if ("".equals((String) propertyValue)) {
 
 				return null;
-
 			}
 
 			result = Long.parseLong(((String) propertyValue));
@@ -1133,11 +1185,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return result;
+
 	}
 
 	@Override
 	public Double getDoubleProperty(final PropertyKey propertyKey) throws FrameworkException {
+
 		return (getDoubleProperty(propertyKey.name()));
+
 	}
 
 	@Override
@@ -1149,7 +1204,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (propertyValue == null) {
 
 			return null;
-
 		}
 
 		if (propertyValue instanceof Double) {
@@ -1171,7 +1225,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if ("".equals((String) propertyValue)) {
 
 				return null;
-
 			}
 
 			result = Double.parseDouble(((String) propertyValue));
@@ -1179,57 +1232,68 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return result;
+
 	}
 
 	@Override
 	public boolean getBooleanProperty(final PropertyKey propertyKey) {
+
 		return (getBooleanProperty(propertyKey.name()));
+
 	}
 
 	public AbstractNode getRelatedNode(Class type) {
-		
+
 		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
-		if(rc != null) {
-			
+
+		if (rc != null) {
+
 			return rc.getRelatedNode(securityContext, this);
 		}
-		
+
 		return null;
+
 	}
-	
+
 	public AbstractNode getRelatedNode(PropertyKey propertyKey) {
-		
+
 		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey.name());
-		if(rc != null) {
-			
+
+		if (rc != null) {
+
 			return rc.getRelatedNode(securityContext, this);
 		}
-		
+
 		return null;
+
 	}
-	
+
 	public List<AbstractNode> getRelatedNodes(Class type) {
-		
+
 		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
-		if(rc != null) {
-			
+
+		if (rc != null) {
+
 			return rc.getRelatedNodes(securityContext, this);
 		}
-		
+
 		return Collections.emptyList();
+
 	}
-	
+
 	public List<AbstractNode> getRelatedNodes(PropertyKey propertyKey) {
-		
+
 		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey.name());
-		if(rc != null) {
-			
+
+		if (rc != null) {
+
 			return rc.getRelatedNodes(securityContext, this);
 		}
-		
+
 		return Collections.emptyList();
+
 	}
-	
+
 	@Override
 	public boolean getBooleanProperty(final String key) {
 
@@ -1239,20 +1303,18 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (propertyValue == null) {
 
 			return Boolean.FALSE;
-
 		}
 
 		if (propertyValue instanceof Boolean) {
 
 			result = ((Boolean) propertyValue);
-
 		} else if (propertyValue instanceof String) {
 
 			result = Boolean.parseBoolean(((String) propertyValue));
-
 		}
 
 		return result;
+
 	}
 
 	/**
@@ -1261,7 +1323,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return
 	 */
 	public Node getNode() {
+
 		return dbNode;
+
 	}
 
 	/**
@@ -1277,7 +1341,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (principal == null) {
 
 			return null;
-
 		}
 
 		long userId = principal.getId();
@@ -1285,16 +1348,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (securityRelationships == null) {
 
 			securityRelationships = new HashMap<Long, AbstractRelationship>();
-
 		}
 
 		if (!(securityRelationships.containsKey(userId))) {
 
 			populateSecurityRelationshipCacheMap();
-
 		}
 
 		return securityRelationships.get(userId);
+
 	}
 
 	/**
@@ -1305,12 +1367,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
 
 		try {
+
 			return (List<AbstractRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
+
 		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to get relationships", fex);
+
 		}
 
 		return null;
+
 	}
 
 	/**
@@ -1321,12 +1388,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
 
 		try {
+
 			return (Map<RelationshipType, Long>) Services.command(securityContext, NodeRelationshipStatisticsCommand.class).execute(this, dir);
+
 		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to get relationship info", fex);
+
 		}
 
 		return null;
+
 	}
 
 	/**
@@ -1339,10 +1411,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (allRelationships == null) {
 
 			allRelationships = getRelationships(null, Direction.BOTH);
-
 		}
 
 		return allRelationships;
+
 	}
 
 	/**
@@ -1351,7 +1423,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return
 	 */
 	public List<AbstractRelationship> getRelationships(Direction dir) {
+
 		return getRelationships(null, dir);
+
 	}
 
 	/**
@@ -1364,10 +1438,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (incomingRelationships == null) {
 
 			incomingRelationships = getRelationships(null, Direction.INCOMING);
-
 		}
 
 		return incomingRelationships;
+
 	}
 
 	/**
@@ -1380,21 +1454,33 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (outgoingRelationships == null) {
 
 			outgoingRelationships = getRelationships(null, Direction.OUTGOING);
-
 		}
 
 		return outgoingRelationships;
+
 	}
 
+	/**
+	 * Non-cached list of incoming relationships
+	 *
+	 * @return
+	 */
+	public List<AbstractRelationship> getIncomingRelationships(final RelationshipType type) {
+
+		return getRelationships(type, Direction.INCOMING);
+
+	}
+	
 	/**
 	 * Non-cached list of outgoing relationships
 	 *
 	 * @return
 	 */
 	public List<AbstractRelationship> getOutgoingRelationships(final RelationshipType type) {
-		return getRelationships(type, Direction.OUTGOING);
-	}
 
+		return getRelationships(type, Direction.OUTGOING);
+
+	}
 	public List<AbstractNode> getAllChildrenForRemotePush() {
 
 		try {
@@ -1404,10 +1490,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			return ((List<AbstractNode>) findNode.execute(this));
 		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to get child nodes", fex);
+
 		}
 
 		return null;
+
 	}
 
 	/**
@@ -1418,8 +1507,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public Principal getOwnerNode() {
 
-		if(cachedOwnerNode == null) {
-			
+		if (cachedOwnerNode == null) {
+
 			for (AbstractRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
 
 				AbstractNode n = s.getStartNode();
@@ -1427,6 +1516,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				if (n instanceof Principal) {
 
 					cachedOwnerNode = (Principal) n;
+
 					break;
 
 				}
@@ -1434,13 +1524,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[] { n.getName(), n.getId() });
 
 			}
+
 		}
 
 		return cachedOwnerNode;
+
 	}
 
 	public Long getOwnerId() {
+
 		return getOwnerNode().getId();
+
 	}
 
 	/**
@@ -1448,14 +1542,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-//	public String getOwner() {
+
+//      public String getOwner() {
 //
-//		Principal owner = getOwnerNode();
+//              Principal owner = getOwnerNode();
 //
-//		return ((owner != null)
-//			? owner.getRealName() + " (" + owner.getStringProperty(AbstractNode.Key.name) + ")"
-//			: null);
-//	}
+//              return ((owner != null)
+//                      ? owner.getRealName() + " (" + owner.getStringProperty(AbstractNode.Key.name) + ")"
+//                      : null);
+//      }
 
 	/**
 	 * Return a list with the connected principals (user, group, role)
@@ -1475,30 +1570,41 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return principalList;
+
 	}
 
 	@Override
 	public Date getVisibilityStartDate() {
+
 		return getDateProperty(Key.visibilityStartDate.name());
+
 	}
 
 	@Override
 	public Date getVisibilityEndDate() {
+
 		return getDateProperty(Key.visibilityEndDate.name());
+
 	}
 
 	@Override
 	public Date getCreatedDate() {
+
 		return getDateProperty(Key.createdDate.name());
+
 	}
 
 	@Override
 	public Date getLastModifiedDate() {
+
 		return getDateProperty(Key.lastModifiedDate.name());
+
 	}
 
 	public AbstractComponent getHelpContent() {
+
 		return (null);
+
 	}
 
 	/**
@@ -1512,38 +1618,35 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		List<AbstractRelationship> rels = this.getRelationships(type, dir);
 
-		return ((rels != null) &&!(rels.isEmpty()));
+		return ((rels != null) && !(rels.isEmpty()));
+
 	}
 
 	// ----- interface AccessControllable -----
 	@Override
-	public boolean hasPermission(final String permission, final Principal principal) {
+	public boolean isGranted(final Permission permission, final Principal principal) {
 
 		if (principal == null) {
 
 			return false;
-
 		}
 
 		// just in case ...
 		if (permission == null) {
 
 			return false;
-
 		}
 
 		// superuser
 		if (principal instanceof SuperUser) {
 
 			return true;
-
 		}
 
 		// user has full control over his/her own user node
 		if (this.equals(principal)) {
 
 			return true;
-
 		}
 
 		AbstractRelationship r = getSecurityRelationship(principal);
@@ -1551,10 +1654,20 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if ((r != null) && r.isAllowed(permission)) {
 
 			return true;
+		}
+
+		// Now check possible parent principals
+		for (Principal parent : principal.getParents()) {
+
+			if (isGranted(permission, parent)) {
+
+				return true;
+			}
 
 		}
 
 		return false;
+
 	}
 
 	@Override
@@ -1566,35 +1679,48 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		error |= ValidationHelper.checkStringNotBlank(this, Key.type, errorBuffer);
 
 		return !error;
+
 	}
 
 	@Override
 	public boolean isVisibleToPublicUsers() {
+
 		return getVisibleToPublicUsers();
+
 	}
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
+
 		return getBooleanProperty(Key.visibleToAuthenticatedUsers.name());
+
 	}
 
 	@Override
 	public boolean isNotHidden() {
+
 		return !getHidden();
+
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return getHidden();
+
 	}
 
 	// ----- end interface AccessControllable -----
 	public boolean isNotDeleted() {
+
 		return !getDeleted();
+
 	}
 
 	public boolean isDeleted() {
+
 		return getDeleted();
+
 	}
 
 	/**
@@ -1603,63 +1729,91 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return
 	 */
 	public boolean isRootNode() {
+
 		return getId() == 0;
+
 	}
 
 	public boolean isVisible() {
+
 		return securityContext.isVisible(this);
+
 	}
 
 	//~--- set methods ----------------------------------------------------
 
 	public void setCreatedBy(final String createdBy) throws FrameworkException {
+
 		setProperty(Key.createdBy.name(), createdBy);
+
 	}
 
 	public void setCreatedDate(final Date date) throws FrameworkException {
+
 		setProperty(Key.createdDate.name(), date);
+
 	}
 
 	public void setLastModifiedDate(final Date date) throws FrameworkException {
+
 		setProperty(Key.lastModifiedDate.name(), date);
+
 	}
 
 	public void setVisibilityStartDate(final Date date) throws FrameworkException {
+
 		setProperty(Key.visibilityStartDate.name(), date);
+
 	}
 
 	public void setVisibilityEndDate(final Date date) throws FrameworkException {
+
 		setProperty(Key.visibilityEndDate.name(), date);
+
 	}
 
 	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
+
 		setProperty(Key.visibleToPublicUsers.name(), publicFlag);
+
 	}
 
 	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
+
 		setProperty(Key.visibleToAuthenticatedUsers.name(), flag);
+
 	}
 
 //
 	public void setHidden(final boolean hidden) throws FrameworkException {
+
 		setProperty(Key.hidden.name(), hidden);
+
 	}
 
 	public void setDeleted(final boolean deleted) throws FrameworkException {
+
 		setProperty(Key.deleted.name(), deleted);
+
 	}
 
 	public void setType(final String type) throws FrameworkException {
+
 		setProperty(Key.type.name(), type);
+
 	}
 
 	public void setName(final String name) throws FrameworkException {
+
 		setProperty(Key.name.name(), name);
+
 	}
 
 	@Override
 	public void setProperty(final PropertyKey propertyKey, final Object value) throws FrameworkException {
+
 		setProperty(propertyKey.name(), value);
+
 	}
 
 	/**
@@ -1672,11 +1826,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	@Override
 	public void setProperty(final String key, final Object value) throws FrameworkException {
+
 		setProperty(key, value, updateIndexDefault);
+
 	}
 
 	public void setPropertyAsStringArray(final PropertyKey propertyKey, final String value) throws FrameworkException {
+
 		setPropertyAsStringArray(propertyKey.name(), value);
+
 	}
 
 	/**
@@ -1691,10 +1849,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		String[] values = StringUtils.split(((String) value), "\r\n");
 
 		setProperty(key, values, updateIndexDefault);
+
 	}
 
 	public void setProperty(final PropertyKey propertyKey, final Object value, final boolean updateIndex) throws FrameworkException {
+
 		setProperty(propertyKey.name(), value, updateIndex);
+
 	}
 
 	/**
@@ -1716,7 +1877,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if ((oldValue == null) && (value == null)) {
 
 			return;
-
 		}
 
 		// no old value exists, set property
@@ -1729,11 +1889,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		// old value exists and is NOT equal
-		if ((oldValue != null) &&!oldValue.equals(value)) {
+		if ((oldValue != null) && !oldValue.equals(value)) {
 
 			setPropertyInternal(key, value);
-
 		}
+
 	}
 
 	private void setPropertyInternal(final String key, final Object value) throws FrameworkException {
@@ -1759,7 +1919,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			} else {
 
 				throw new FrameworkException(type.getSimpleName(), new ReadOnlyPropertyToken(key));
-
 			}
 
 		}
@@ -1790,7 +1949,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					for (GraphObject graphObject : collection) {
 
 						rel.createRelationship(securityContext, this, graphObject);
-
 					}
 
 				} else {
@@ -1809,7 +1967,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				if (existingValue == null) {
 
 					return;
-
 				}
 
 				// support collection resources, too
@@ -1848,7 +2005,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			} else {
 
 				convertedValue = value;
-
 			}
 
 			final Object oldValue = getProperty(key);
@@ -1859,7 +2015,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
 
 				return;
-
 			}
 
 			if (isDirty) {
@@ -1881,7 +2036,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 							if (convertedValue == null) {
 
 								dbNode.removeProperty(key);
-
 							} else {
 
 								// Setting last modified date explicetely is not allowed
@@ -1890,7 +2044,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 									if (convertedValue instanceof Date) {
 
 										dbNode.setProperty(key, ((Date) convertedValue).getTime());
-
 									} else {
 
 										dbNode.setProperty(key, convertedValue);
@@ -1906,13 +2059,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 								} else {
 
 									logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
-
 								}
 							}
 						} finally {}
 
 						return null;
+
 					}
+
 				};
 
 				// execute transaction
@@ -1920,6 +2074,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			}
 
 		}
+
 	}
 
 	public void setOwner(final Principal owner) {
@@ -1931,7 +2086,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(owner));
 
 		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to set owner node", fex);
+
 		}
+
 	}
+
 }

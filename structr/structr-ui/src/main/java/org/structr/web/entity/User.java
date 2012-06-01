@@ -21,11 +21,11 @@
 
 package org.structr.web.entity;
 
+import java.util.LinkedList;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.PasswordConverter;
@@ -39,6 +39,7 @@ import org.structr.core.node.NodeService.NodeIndex;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.common.RelType;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -75,16 +76,8 @@ public class User extends Person implements Principal {
 
 	public enum UserIndexKey implements PropertyKey{ name, email; }
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void block() throws FrameworkException {
-
-		setBlocked(Boolean.TRUE);
-
-	}
-
 	//~--- get methods ----------------------------------------------------
+
 
 	/**
 	 * Return user's personal root node
@@ -109,24 +102,6 @@ public class User extends Person implements Principal {
 	}
 
 	@Override
-	public String getEncryptedPassword() {
-
-		boolean dbNodeHasProperty = dbNode.hasProperty(Key.password.name());
-
-		if (dbNodeHasProperty) {
-
-			Object dbValue = dbNode.getProperty(Key.password.name());
-
-			return (String) dbValue;
-
-		} else {
-
-			return null;
-		}
-
-	}
-
-	@Override
 	public Object getPropertyForIndexing(final String key) {
 
 		if (Key.password.name().equals(key)) {
@@ -143,56 +118,36 @@ public class User extends Person implements Principal {
 	 * Intentionally return null.
 	 * @return
 	 */
-//	@Override
 	public String getPassword() {
 
 		return null;
 
 	}
 
-//	@Override
 	public String getRealName() {
 
 		return getStringProperty(Key.realName);
 
 	}
 
-//	@Override
 	public String getConfirmationKey() {
 
 		return getStringProperty(Key.confirmationKey);
 
 	}
 
-	@Override
-	public Boolean getBlocked() {
-
-		return (Boolean) getProperty(Key.blocked);
-
-	}
-
-//	@Override
 	public String getSessionId() {
 
 		return getStringProperty(Key.sessionId);
 
 	}
 
-	@Override
-	public Boolean isBlocked() {
-
-		return Boolean.TRUE.equals(getBlocked());
-
-	}
-
-//	@Override
 	public boolean isBackendUser() {
 
 		return getBooleanProperty(Key.backendUser);
 
 	}
 
-//	@Override
 	public boolean isFrontendUser() {
 
 		return getBooleanProperty(Key.frontendUser);
@@ -201,42 +156,30 @@ public class User extends Person implements Principal {
 
 	//~--- set methods ----------------------------------------------------
 
-//	@Override
 	public void setPassword(final String passwordValue) throws FrameworkException {
 
 		setProperty(Key.password, passwordValue);
 
 	}
 
-//	@Override
 	public void setRealName(final String realName) throws FrameworkException {
 
 		setProperty(Key.realName, realName);
 
 	}
 
-	@Override
-	public void setBlocked(final Boolean blocked) throws FrameworkException {
-
-		setProperty(Key.blocked, blocked);
-
-	}
-
-//	@Override
 	public void setConfirmationKey(final String value) throws FrameworkException {
 
 		setProperty(Key.confirmationKey, value);
 
 	}
 
-//	@Override
 	public void setFrontendUser(final boolean isFrontendUser) throws FrameworkException {
 
 		setProperty(Key.frontendUser, isFrontendUser);
 
 	}
 
-//	@Override
 	public void setBackendUser(final boolean isBackendUser) throws FrameworkException {
 
 		setProperty(Key.backendUser, isBackendUser);

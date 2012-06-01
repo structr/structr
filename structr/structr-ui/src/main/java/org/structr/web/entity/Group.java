@@ -21,14 +21,14 @@
 
 package org.structr.web.entity;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.neo4j.graphdb.Direction;
-
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass.Cardinality;
 
@@ -55,6 +55,42 @@ public class Group extends AbstractNode implements Principal {
 	public String getEncryptedPassword() {
 		// A group has no password
 		return null;
+	}
+
+	@Override
+	public List<Principal> getParents() {
+		
+		List<Principal> parents = new LinkedList<Principal>();
+		
+		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
+		
+		for (AbstractRelationship rel : parentRels) {
+			
+			AbstractNode node = rel.getEndNode();
+			
+			if (node instanceof Principal) {
+				
+				parents.add((Principal) node);
+				
+			}
+
+		}
+		
+		return parents;
+	}
+
+	@Override
+	public void grant(Permission permission, AccessControllable obj) {
+		
+		obj.getSecurityRelationship(this).addPermission(permission);
+		
+	}
+
+	@Override
+	public void revoke(Permission permission, AccessControllable obj) {
+		
+		obj.getSecurityRelationship(this).removePermission(permission);
+		
 	}
 
 	//~--- constant enums -------------------------------------------------

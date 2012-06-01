@@ -1061,7 +1061,7 @@ public class JsonRestServlet extends HttpServlet {
 
 	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
+		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Backend);
 		
 		// let module-specific authenticator examine the request first
 		securityContext.initializeAndExamineRequest(request, response);

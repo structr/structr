@@ -37,7 +37,7 @@ import java.util.Date;
  * @author amorgner
  *
  */
-public class Person extends AbstractNode {
+public class Person extends PrincipalImpl {
 
 	static {
 

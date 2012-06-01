@@ -26,17 +26,17 @@ package org.structr.common;
  */
 public enum Permission implements PropertyKey {
 
-	BackendAccess, FrontendAccess,
+	backendAccess, frontendAccess,
 	
-	ShowTree,
+	showTree,
 
-	Read, Write, Execute,
+	read, write, execute,
 
-	CreateNode, DeleteNode,
+	createNode, deleteNode,
 
-	EditProperty,
+	editProperty,
 
-	CreateRelationship, DeleteRelationship,
+	createRelationship, deleteRelationship,
 
-	AccessControl;
+	accessControl;
 }

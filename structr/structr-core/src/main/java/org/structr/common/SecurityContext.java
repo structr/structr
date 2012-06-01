@@ -21,18 +21,21 @@
 
 package org.structr.common;
 
-import java.util.*;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,9 +43,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,10 +64,10 @@ public class SecurityContext {
 	private AccessMode accessMode        = AccessMode.Frontend;
 	private Map<String, Object> attrs    = null;
 	private Authenticator authenticator  = null;
+	private Principal cachedUser         = null;
 	private HttpServletRequest request   = null;
 	private HttpServletResponse response = null;
-	private Principal cachedUser         = null;
-        
+
 	//~--- constructors ---------------------------------------------------
 
 	/*
@@ -77,6 +77,7 @@ public class SecurityContext {
 
 		this.cachedUser = user;
 		this.accessMode = accessMode;
+
 	}
 
 	private SecurityContext(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
@@ -88,83 +89,141 @@ public class SecurityContext {
 
 		// the authenticator does not have a security context
 		try {
+
 			this.authenticator = (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(config);
+
 		} catch (Throwable t) {
+
 			logger.log(Level.SEVERE, "Could not instantiate security context!");
+
 		}
+
 	}
 
 	//~--- methods --------------------------------------------------------
 
 	public void initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+
 		this.authenticator.initializeAndExamineRequest(this, request, response);
+
 	}
-	
+
 	public void examineRequest(HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException {
+
 		this.authenticator.examineRequest(this, request, resourceSignature, resourceAccess, propertyView);
+
 	}
 
 	public Principal doLogin(String userName, String password) throws AuthenticationException {
+
 		return authenticator.doLogin(this, request, response, userName, password);
+
 	}
 
 	public void doLogout() {
+
 		authenticator.doLogout(this, request, response);
+
+	}
+
+	public static void clearResourceFlag(final String resource, long flag) {
+
+		String name     = EntityContext.normalizeEntityName(resource);
+		Long flagObject = resourceFlags.get(name);
+		long flags      = 0;
+
+		if (flagObject != null) {
+
+			flags = flagObject.longValue();
+		}
+
+		flags &= ~flag;
+
+		resourceFlags.put(name, flags);
+
+	}
+
+	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeDeleted, final boolean publicOnly) {
+
+		boolean readableByUser = false;
+
+		for (Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext(); ) {
+
+			GraphObject obj = it.next();
+
+			if (obj instanceof AbstractNode) {
+
+				AbstractNode n = (AbstractNode) obj;
+
+				readableByUser = isAllowed(n, Permission.read);
+
+				if (!(readableByUser && (includeDeleted || !n.isDeleted()) && (n.isVisibleToPublicUsers() || !publicOnly))) {
+
+					it.remove();
+				}
+
+			}
+
+		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	public static SecurityContext getSuperUserInstance() {
+
 		return new SuperUserSecurityContext();
+
 	}
 
 	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) throws FrameworkException {
+
 		return new SecurityContext(config, request, response, accessMode);
+
 	}
 
 	public static SecurityContext getInstance(Principal user, AccessMode accessMode) throws FrameworkException {
+
 		return new SecurityContext(user, accessMode);
+
 	}
 
 	public HttpSession getSession() {
+
 		return request.getSession();
+
 	}
-	
+
 	public HttpServletRequest getRequest() {
+
 		return request;
+
 	}
 
 	public Principal getUser() {
 
-		if(cachedUser == null) {
+		if (cachedUser == null) {
 
 			try {
 
 				cachedUser = authenticator.getUser(this, request, response);
 
 			} catch (FrameworkException ex) {
+
 				logger.log(Level.WARNING, "No user found", ex);
+
 			}
+
 		}
 
 		return cachedUser;
-	}
 
-	public String getUserName() {
-
-		Principal user = getUser();
-
-		if (user != null) {
-
-			return user.getStringProperty(AbstractNode.Key.name);
-
-		}
-
-		return null;
 	}
 
 	public AccessMode getAccessMode() {
+
 		return (accessMode);
+
 	}
 
 	public StringBuilder getBaseURI() {
@@ -181,10 +240,34 @@ public class SecurityContext {
 		uriBuilder.append("/");
 
 		return uriBuilder;
+
 	}
 
 	public Object getAttribute(String key) {
+
 		return attrs.get(key);
+
+	}
+
+	public static long getResourceFlags(String resource) {
+
+		String name     = EntityContext.normalizeEntityName(resource);
+		Long flagObject = resourceFlags.get(name);
+		long flags      = 0;
+
+		if (flagObject != null) {
+
+			flags = flagObject.longValue();
+		}
+
+		return flags;
+
+	}
+
+	public static boolean hasFlag(String resourceSignature, long flag) {
+
+		return (getResourceFlags(resourceSignature) & flag) == flag;
+
 	}
 
 	public boolean isSuperUser() {
@@ -192,23 +275,32 @@ public class SecurityContext {
 		Principal user = getUser();
 
 		return ((user != null) && (user instanceof SuperUser));
+
 	}
 
 	public boolean isAllowed(AccessControllable node, Permission permission) {
 
+		if (node == null) {
+
+			return false;
+		}
+
 		if (isSuperUser()) {
 
 			return true;
-
 		}
 
 		Principal user = getUser();
+
+		if (user == null) {
+
+			return false;
+		}
 
 		// owner is always allowed to do anything with its nodes
 		if ((user != null) && (user.equals(node) || user.equals(node.getOwnerNode()))) {
 
 			return true;
-
 		}
 
 		boolean isAllowed = false;
@@ -227,15 +319,12 @@ public class SecurityContext {
 
 		}
 
-		if (node != null) {
-
-			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, (user != null)
-				? user.getStringProperty(AbstractNode.Key.name)
-				: "null", accessMode, node, permission });
-
-		}
+		logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, (user != null)
+			? user.getStringProperty(AbstractNode.Key.name)
+			: "null", accessMode, node, permission });
 
 		return isAllowed;
+
 	}
 
 	public boolean isVisible(AccessControllable node) {
@@ -252,76 +341,8 @@ public class SecurityContext {
 				return false;
 
 		}
+
 	}
-
-        public static boolean hasFlag(String resourceSignature, long flag) {
-		return (getResourceFlags(resourceSignature) & flag) == flag;
-	}
-
-	public static long getResourceFlags(String resource) {
-
-		String name = EntityContext.normalizeEntityName(resource);
-		Long flagObject = resourceFlags.get(name);
-		long flags = 0;
-		
-		if(flagObject != null) {
-			flags = flagObject.longValue();
-		}
-		
-		return flags;
-	}
-
-	public static void setResourceFlag(final String resource, long flag) {
-		
-		String name = EntityContext.normalizeEntityName(resource);
-		Long flagObject = resourceFlags.get(name);
-		long flags = 0;
-		
-		if(flagObject != null) {
-			flags = flagObject.longValue();
-		}
-		
-		flags |= flag;
-		
-		resourceFlags.put(name, flags);
-	}
-
-	public static void clearResourceFlag(final String resource, long flag) {
-		
-		String name = EntityContext.normalizeEntityName(resource);
-		Long flagObject = resourceFlags.get(name);
-		long flags = 0;
-		
-		if(flagObject != null) {
-			flags = flagObject.longValue();
-		}
-		
-		flags &= ~flag;
-		
-		resourceFlags.put(name, flags);
-	}
-	
-	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeDeleted, final boolean publicOnly) {
-
-		boolean readableByUser = false;
-		
-		for(Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext();) {
-		
-			GraphObject obj = it.next();
-			if(obj instanceof AbstractNode) {
-
-				AbstractNode n = (AbstractNode)obj;
-				readableByUser = isAllowed(n, Permission.Read);
-
-				if ( !(readableByUser && (includeDeleted ||!n.isDeleted()) && (n.isVisibleToPublicUsers() ||!publicOnly))) {
-
-					it.remove();
-
-				}
-			}
-		}
-	}
-
 
 	// ----- private methods -----
 	private boolean isVisibleInBackend(AccessControllable node) {
@@ -329,8 +350,7 @@ public class SecurityContext {
 		// no node, nothing to see here..
 		if (node == null) {
 
-			return (false);
-
+			return false;
 		}
 
 		// fetch user
@@ -339,33 +359,29 @@ public class SecurityContext {
 		// anonymous users may not see any nodes in backend
 		if (user == null) {
 
-			return (false);
-
+			return false;
 		}
 
 		// SuperUser may always see the node
 		if (user instanceof SuperUser) {
 
 			return true;
-
 		}
 
-//		// non-backend users are not allowed here
-//		if (!user.isBackendUser()) {
+//              // non-backend users are not allowed here
+//              if (!user.isBackendUser()) {
 //
-//			return (false);
+//                      return false;
 //
-//		}
-
+//              }
 		// users with read permissions may see the node
-		if (isAllowedInBackend(node, Permission.Read)) {
+		if (isAllowedInBackend(node, Permission.read)) {
 
-			return (true);
-
+			return true;
 		}
 
 		// no match, node is not visible
-		return (false);
+		return false;
 	}
 
 	/**
@@ -380,56 +396,53 @@ public class SecurityContext {
 		if (node == null) {
 
 			return false;
-
 		}
 
 		// check hidden flag (see STRUCTR-12)
 		if (node.isHidden()) {
 
 			return false;
-
 		}
-		
+
 		/*
+		 *
+		 * boolean visibleByTime = false;
+		 *
+		 * // check visibility period of time (see STRUCTR-13)
+		 * Date visStartDate       = node.getVisibilityStartDate();
+		 * long effectiveStartDate = 0L;
+		 * Date createdDate        = node.getCreatedDate();
+		 *
+		 * if (createdDate != null) {
+		 *
+		 *       effectiveStartDate = Math.max(createdDate.getTime(), 0L);
+		 *
+		 * }
+		 *
+		 * // if no start date for visibility is given,
+		 * // take the maximum of 0 and creation date.
+		 * visStartDate = ((visStartDate == null)
+		 *               ? new Date(effectiveStartDate)
+		 *               : visStartDate);
+		 *
+		 * // if no end date for visibility is given,
+		 * // take the Long.MAX_VALUE
+		 * Date visEndDate = node.getVisibilityEndDate();
+		 *
+		 * visEndDate = ((visEndDate == null)
+		 *             ? new Date(Long.MAX_VALUE)
+		 *             : visEndDate);
+		 *
+		 * Date now = new Date();
+		 *
+		 * visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
+		 */
 
-		boolean visibleByTime = false;
-
-		// check visibility period of time (see STRUCTR-13)
-		Date visStartDate       = node.getVisibilityStartDate();
-		long effectiveStartDate = 0L;
-		Date createdDate        = node.getCreatedDate();
-
-		if (createdDate != null) {
-
-			effectiveStartDate = Math.max(createdDate.getTime(), 0L);
-
-		}
-
-		// if no start date for visibility is given,
-		// take the maximum of 0 and creation date.
-		visStartDate = ((visStartDate == null)
-				? new Date(effectiveStartDate)
-				: visStartDate);
-
-		// if no end date for visibility is given,
-		// take the Long.MAX_VALUE
-		Date visEndDate = node.getVisibilityEndDate();
-
-		visEndDate = ((visEndDate == null)
-			      ? new Date(Long.MAX_VALUE)
-			      : visEndDate);
-
-		Date now = new Date();
-
-		visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
-		*/
-		
 		// public nodes are always visible (constrained by time)
 		if (node.isVisibleToPublicUsers()) {
 
-//			return visibleByTime;
+//                      return visibleByTime;
 			return true;
-
 		}
 
 		// Ask for user only if node is visible for authenticated users
@@ -440,146 +453,51 @@ public class SecurityContext {
 
 			if (user != null) {
 
+				// user not null means user is authenticated
 				// SuperUser
-				if (user instanceof SuperUser) {
+				// if (user instanceof SuperUser) {
+				return true;
 
-					return true;
-
-				}
+				// }
 
 				// frontend user
-//				if (user.isFrontendUser()) {
+//                              if (user.isFrontendUser()) {
 //
-//					boolean hasReadPermission = node.hasPermission(AbstractRelationship.Permission.read.name(), user);
+//                                      boolean hasReadPermission = node.isGranted(AbstractRelationship.Permission.read.name(), user);
 //
-//					if (!hasReadPermission) {
+//                                      if (!hasReadPermission) {
 //
-//						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//                                              response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 //
-//					}
+//                                      }
 //
-//					return hasReadPermission;
+//                                      return hasReadPermission;
 //
-//				}
+//                              }
 			}
 		}
 
 		return false;
+
 	}
 
 	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {
 
 		Principal user = getUser();
-
-		if (node == null) {
-
-			return false;
-
-		}
-
-		// SuperUser has all permissions
-		if ((user != null) && (user instanceof SuperUser)) {
-
-			return true;
-
-		}
-
-		switch (permission) {
-
-			case AccessControl :
-				if (user == null) {
-
-					return false;
-
-				}
-
-				// superuser
-				if (user instanceof SuperUser) {
-
-					return true;
-
-				}
-
-				// node itself
-				if (node.equals(user)) {
-
-					return true;
-
-				}
-
-				AbstractRelationship r = null;
-
-				// owner has always access control
-				if (user.equals(node.getOwnerNode())) {
-
-					return true;
-
-				}
-
-				r = node.getSecurityRelationship(user);
-
-				if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
-
-					return true;
-
-				}
-
-				return false;
-
-			case CreateNode :
-				return node.hasPermission(AbstractRelationship.Permission.createNode.name(), user);
-
-			case CreateRelationship :
-				return node.hasPermission(AbstractRelationship.Permission.addRelationship.name(), user);
-
-			case DeleteNode :
-				return node.hasPermission(AbstractRelationship.Permission.deleteNode.name(), user);
-
-			case DeleteRelationship :
-				return node.hasPermission(AbstractRelationship.Permission.removeRelationship.name(), user);
-
-			case EditProperty :
-				return node.hasPermission(AbstractRelationship.Permission.editProperties.name(), user);
-
-			case Execute :
-				return node.hasPermission(AbstractRelationship.Permission.execute.name(), user);
-
-			case Read :
-				return node.hasPermission(AbstractRelationship.Permission.read.name(), user);
-
-			case ShowTree :
-				return node.hasPermission(AbstractRelationship.Permission.showTree.name(), user);
-
-			case Write :
-				return node.hasPermission(AbstractRelationship.Permission.write.name(), user);
-
-		}
-
-		return (false);
+		return node.isGranted(permission, user);
+		
 	}
 
 	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
 
-		if (node == null) {
-
-			return false;
-
-		}
-
-		Principal user = getUser();
-
-		if ((user != null) && (user instanceof SuperUser)) {
-
-			return true;
-
-		}
-
+//		Principal user = getUser();
+		
 		switch (permission) {
 
-			case Read :
-				return isVisibleInFrontend(node);    // Read permission in frontend is equivalent to visibility
+			case read :
+				return isVisibleInFrontend(node);    // read permission in frontend is equivalent to visibility here
 
-			// return node.hasPermission(AbstractRelationship.READ_KEY, user);
+			// return node.isGranted(AbstractRelationship.READ_KEY, user);
 			default :
 				return false;
 
@@ -588,16 +506,39 @@ public class SecurityContext {
 
 	//~--- set methods ----------------------------------------------------
 
+	public static void setResourceFlag(final String resource, long flag) {
+
+		String name     = EntityContext.normalizeEntityName(resource);
+		Long flagObject = resourceFlags.get(name);
+		long flags      = 0;
+
+		if (flagObject != null) {
+
+			flags = flagObject.longValue();
+		}
+
+		flags |= flag;
+
+		resourceFlags.put(name, flags);
+
+	}
+
 	public void setAttribute(String key, Object value) {
+
 		attrs.put(key, value);
+
 	}
 
 	public void setAccessMode(AccessMode accessMode) {
+
 		this.accessMode = accessMode;
+
 	}
 
 	public void setUser(final Principal user) {
+
 		this.cachedUser = user;
+
 	}
 
 	//~--- inner classes --------------------------------------------------
@@ -606,39 +547,55 @@ public class SecurityContext {
 	private static class SuperUserSecurityContext extends SecurityContext {
 
 		public SuperUserSecurityContext() {
+
 			super(null, null, null, null);
+
 		}
 
 		//~--- get methods --------------------------------------------
 
 		@Override
 		public HttpSession getSession() {
+
 			throw new IllegalStateException("Trying to access session in SuperUserSecurityContext!");
+
 		}
 
 		@Override
 		public Principal getUser() {
+
 			return new SuperUser();
+
 		}
 
 		@Override
 		public AccessMode getAccessMode() {
+
 			return (AccessMode.Backend);
+
 		}
 
 		@Override
 		public boolean isAllowed(AccessControllable node, Permission permission) {
+
 			return true;
+
 		}
 
 		@Override
 		public boolean isVisible(AccessControllable node) {
+
 			return true;
+
 		}
 
 		@Override
 		public boolean isSuperUser() {
+
 			return true;
+
 		}
+
 	}
+
 }
