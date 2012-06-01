@@ -294,7 +294,7 @@ var _Pages = {
         $('.previewBox', previews).each(function() {
             $(this).hide();
         });
-        //var id = $(this).attr('id').substring(5);
+        //var id = $(this).prop('id').substring(5);
 
         var id = getId(element);
         activeTab = id;
@@ -314,7 +314,7 @@ var _Pages = {
     reloadIframe : function(id, name) {
         var iframe = $('#preview_' + id);
         if (debug) console.log(iframe);
-        iframe.attr('src', viewRootUrl + name + '?edit');
+        iframe.prop('src', viewRootUrl + name + '?edit');
         iframe.parent().show();
         iframe.on('load', function() {
             if (debug) console.log('iframe loaded', $(this));
@@ -449,7 +449,7 @@ var _Pages = {
 
                 //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
                 var html = iframeDocument.find('html');
-                html.attr('structr_element_id', entity.id);
+                html.prop('structr_element_id', entity.id);
                 html.addClass('structr-element-container');
 
             }
@@ -484,14 +484,14 @@ var _Pages = {
                             
                             // we're in the iframe
                             page = self.closest('[structr_page_id]')[0];
-                            pageId = $(page).attr('structr_page_id');
+                            pageId = $(page).prop('structr_page_id');
                             pos = $('[structr_element_id]', self).length;
                         }
                         
                         var contentId = getId(ui.draggable);
                         var elementId = getId(self);
 
-                        if (!elementId) elementId = self.attr('structr_element_id');
+                        if (!elementId) elementId = self.prop('structr_element_id');
 
                         if (!contentId) {
                             // create element on the fly
@@ -517,9 +517,9 @@ var _Pages = {
                     }
                 });
 
-                var structrId = el.attr('structr_element_id');
-                //var type = el.attr('structr_type');
-                //  var name = el.attr('structr_name');
+                var structrId = el.prop('structr_element_id');
+                //var type = el.prop('structr_type');
+                //  var name = el.prop('structr_name');
                 var tag  = element.nodeName.toLowerCase();
                 if (structrId) {
 
@@ -529,11 +529,11 @@ var _Pages = {
                         var element = self.closest('[structr_element_id]');
                         //var element = self.children('.structr-node');
                         if (debug) console.log(element);
-                        var entity = Structr.entity(structrId, element.attr('structr_element_id'));
-                        entity.type = element.attr('structr_type');
-                        entity.name = element.attr('structr_name');
+                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
+                        entity.type = element.prop('structr_type');
+                        entity.name = element.prop('structr_name');
                         if (debug) console.log('move', entity);
-                        //var parentId = element.attr('structr_element_id');
+                        //var parentId = element.prop('structr_element_id');
                         self.parent().children('.structr-node').show();
                     });
 
@@ -541,11 +541,11 @@ var _Pages = {
                         e.stopPropagation();
                         var self = $(this);
                         var element = self.closest('[structr_element_id]');
-                        var entity = Structr.entity(structrId, element.attr('structr_element_id'));
-                        entity.type = element.attr('structr_type');
-                        entity.name = element.attr('structr_name');
+                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
+                        entity.type = element.prop('structr_type');
+                        entity.name = element.prop('structr_name');
                         if (debug) console.log('edit', entity);
-                        //var parentId = element.attr('structr_element_id');
+                        //var parentId = element.prop('structr_element_id');
                         if (debug) console.log(element);
                         Structr.dialog('Edit Properties of ' + entity.id, function() {
                             if (debug) console.log('save')
@@ -559,11 +559,11 @@ var _Pages = {
                         e.stopPropagation();
                         var self = $(this);
                         var element = self.closest('[structr_element_id]');
-                        var entity = Structr.entity(structrId, element.attr('structr_element_id'));
-                        entity.type = element.attr('structr_type');
-                        entity.name = element.attr('structr_name');
+                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
+                        entity.type = element.prop('structr_type');
+                        entity.name = element.prop('structr_name');
                         if (debug) console.log('delete', entity);
-                        var parentId = element.attr('structr_element_id');
+                        var parentId = element.prop('structr_element_id');
 
                         Command.removeSourceFromTarget(entity.id, parentId);
                         _Entities.deleteNode(this, entity);
@@ -639,7 +639,7 @@ var _Pages = {
                             var self = $(this);
                             //swapFgBg(self);
                             self.removeClass('structr-editable-area');
-                            //self.attr('contenteditable', false);
+                            //self.prop('contenteditable', false);
                             $('#hoverStatus').text('-- non-editable --');
                             var nodes = Structr.node(structrId);
                             nodes.removeClass('nodeHover');
@@ -968,7 +968,7 @@ var _Pages = {
     },
 
     removeFrom : function(entityId, parentId, componentId, pageId, pos) {
-        console.log('Pages.removeFrom', entityId, parentId, componentId, pageId, pos);
+        if (debug) console.log('Pages.removeFrom', entityId, parentId, componentId, pageId, pos);
 
         var parent = Structr.node(parentId, null, componentId, pageId);
         var element = Structr.node(entityId, parentId, componentId, pageId, pos);
@@ -1017,7 +1017,7 @@ var _Pages = {
 
         $('iframe', $('#previews')).each(function() {
             var self = $(this);
-            var pageId = self.attr('id').substring('preview_'.length);
+            var pageId = self.prop('id').substring('preview_'.length);
             var name = $(Structr.node(pageId)[0]).children('b.name_').text();
             var doc = this.contentDocument;
             doc.location = name;

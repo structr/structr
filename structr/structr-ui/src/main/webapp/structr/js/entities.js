@@ -21,16 +21,22 @@ var buttonClicked;
 
 var _Entities = {
     
+    booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden'],
+    numberAttrs : ['position', 'size'],
+    dateAttrs : ['createdDate', 'lastModifiedDate'],
+    
     changeBooleanAttribute : function(attrElement, value) {
 
-        if (debug) console.log('Change boolean attribute ', attrElement, ' to ', value);
+        console.log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value == true) {
             attrElement.removeClass('disabled');
             attrElement.addClass('enabled');
+            attrElement.prop('checked', 'checked');
         } else {
             attrElement.removeClass('enabled');
             attrElement.addClass('disabled');
+            attrElement.prop('checked', '');
         }
 
     },
@@ -193,7 +199,7 @@ var _Entities = {
             }
             );
 
-        dialog.append('<div id="tabs"><ul></ul>');
+        dialog.append('<div id="tabs"><ul></ul></div>');
 
         $(views).each(function(i, view) {
             var tabs = $('#tabs', dialog);
@@ -265,14 +271,31 @@ var _Entities = {
                             } else if (view == 'in' || view == 'out') {
                                 props.append('<tr><td class="key">' + key + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
                             } else {
-                                props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                
+                                if (isIn(key, _Entities.booleanAttrs)) {
+                                    
+                                    props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
+                                    var checkbox = $(props.find('.' + key + '_'));
+                                    checkbox.on('change', function() {
+                                        console.log('set property', entity.id, key, checkbox.attr('checked') == 'checked');
+                                        Command.setProperty(entity.id, key, checkbox.attr('checked') == 'checked');
+                                    });
+                                    Command.getProperty(entity.id, key, '#dialogBox');
+                                
+//                                } else if (isIn(key, _Entities.numberAttrs)) {
+//                                } else if (isIn(key, _Entities.dateAttrs)) {
+                                
+                                } else {
+                                
+                                    props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                }
                             }
 
                         });
 
                         $('.props tr td.value input', dialog).each(function(i,v) {
                             var input = $(v);
-
+                            
                             input.on('focus', function() {
                                 input.addClass('active');
                             });
@@ -283,7 +306,7 @@ var _Entities = {
                             });
 
                             input.on('focusout', function() {
-                                Command.setProperty(entity.id, input.attr('name'), input.val());
+                                Command.setProperty(entity.id, input.prop('name'), input.val());
                                 input.removeClass('active');
                                 input.parent().children('.icon').each(function(i, img) {
                                     $(img).remove();
@@ -476,7 +499,7 @@ var _Entities = {
                     var previewNodes = $('#preview_' + pageId).contents().find('[structr_element_id]');
                     previewNodes.each(function(i,v) {
                         var self = $(v);
-                        var sid = self.attr('structr_element_id');
+                        var sid = self.prop('structr_element_id');
                         if (sid == nodeId) {
                             self.addClass('nodeHover');
                         }
@@ -512,7 +535,7 @@ var _Entities = {
             var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
             previewNodes.each(function(i,v) {
                 var self = $(v);
-                var sid = self.attr('structr_element_id');
+                var sid = self.prop('structr_element_id');
                 if (sid == nodeId) {
                     if (debug) console.log(sid);
                     self.removeClass('nodeHover');
@@ -525,7 +548,7 @@ var _Entities = {
     toggleElement : function(button, expanded) {
 
         var b = $(button);
-        var src = b.attr('src');
+        var src = b.prop('src');
 
         if (!src) return;
 
@@ -536,12 +559,12 @@ var _Entities = {
 
         if (src.endsWith('icon/tree_arrow_down.png')) {
             nodeElement.children('.node').remove();
-            b.attr('src', 'icon/tree_arrow_right.png');
+            b.prop('src', 'icon/tree_arrow_right.png');
 
             removeExpandedNode(id, null, pageId);
         } else {
             if (!expanded) Command.children(id, compId, pageId);
-            b.attr('src', 'icon/tree_arrow_down.png');
+            b.prop('src', 'icon/tree_arrow_down.png');
 
             addExpandedNode(id, null, pageId);
         }
