@@ -43,9 +43,9 @@ public class Html extends HtmlElement {
 
 	static {
 
-		EntityContext.registerPropertySet(Html.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Html.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Html.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		EntityContext.registerPropertySet(Html.class, PropertyView.All,		HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Html.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Html.class, PropertyView.Html,	PropertyView.Html, htmlAttributes);
 
 		EntityContext.registerEntityRelation(Html.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 

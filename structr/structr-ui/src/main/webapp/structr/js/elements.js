@@ -178,7 +178,7 @@ var _Elements = {
     },
 
     appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
-        console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
+        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
 
         var parent = Structr.findParent(parentId, componentId, pageId, elements);
         if (debug) console.log('appendElementElement parent', parent);

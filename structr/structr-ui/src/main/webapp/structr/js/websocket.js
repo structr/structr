@@ -235,7 +235,7 @@ function connect() {
                 //if (debug) console.log(parent);
                 if (debug) console.log(entity);
 
-                //var id = getIdFromClassString(entity.attr('class'));
+                //var id = getIdFromClassString(entity.prop('class'));
                 //entity.id = id;
                 if (entity.hasClass('user')) {
                     if (debug) console.log('remove user from group');

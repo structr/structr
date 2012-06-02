@@ -769,7 +769,7 @@ function getIdFromClassString(classString) {
 }
 
 function getId(element) {
-    return getIdFromClassString($(element).attr('class')) || undefined;
+    return getIdFromClassString($(element).prop('class')) || undefined;
 }
 
 function lastPart(id, separator) {

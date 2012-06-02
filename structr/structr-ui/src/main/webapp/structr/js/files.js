@@ -541,9 +541,9 @@ var _Files = {
 
                     }
                     var typeIcon = Structr.node(file.id).find('.typeIcon');
-                    var iconSrc = typeIcon.attr('src');
+                    var iconSrc = typeIcon.prop('src');
                     if (debug) console.log('Icon src: ', iconSrc);
-                    typeIcon.attr('src', iconSrc + '?' + new Date().getTime());
+                    typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
 
                 }
             }
