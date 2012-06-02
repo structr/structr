@@ -46,6 +46,7 @@ import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import javax.measure.quantity.Length;
 import org.structr.web.common.ThreadLocalMatcher;
 
 //~--- classes ----------------------------------------------------------------
@@ -144,6 +145,7 @@ public abstract class HtmlElement extends Element {
 			}
 
 		});
+		
 		functions.put("equal", new Function<String, String>() {
 
 			@Override
@@ -165,6 +167,7 @@ public abstract class HtmlElement extends Element {
 			}
 
 		});
+		
 		functions.put("add", new Function<String, String>() {
 
 			@Override
@@ -185,6 +188,39 @@ public abstract class HtmlElement extends Element {
 				}
 
 				return new Integer(result).toString();
+			}
+
+		});
+		
+		functions.put("active", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				if(s.length == 0) {
+					return "";
+				}
+				
+				if(s.length == 1) {
+					return s[0];
+				}
+				
+				String data = this.dataId.get();
+				String page = this.pageId.get();
+				
+				if(data != null && page != null) {
+					
+					if(data.equals(page)) {
+						
+						return s[0];
+						
+					} else {
+						
+						return s[1];
+					}
+				}
+				
+				return "";
 			}
 
 		});
@@ -264,6 +300,7 @@ public abstract class HtmlElement extends Element {
 
 		if (functionMatcher.matches()) {
 
+			String viewComponentId            = viewComponent != null ? viewComponent.getStringProperty(AbstractNode.Key.uuid) : null;
 			String functionGroup              = functionMatcher.group(1);
 			String parameter                  = functionMatcher.group(2);
 			String functionName               = functionGroup.substring(0, functionGroup.length());
@@ -271,6 +308,10 @@ public abstract class HtmlElement extends Element {
 
 			if (function != null) {
 
+				// store thread "state" in function
+				function.setDataId(viewComponentId);
+				function.setPageId(pageId);
+				
 				if (parameter.contains(",")) {
 
 					String[] parameters = split(parameter);

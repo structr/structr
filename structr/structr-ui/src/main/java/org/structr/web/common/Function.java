@@ -23,5 +23,17 @@ package org.structr.web.common;
  * @author Christian Morgner
  */
 public abstract class Function<S, T> {
+
+	protected ThreadLocal<String> dataId = new ThreadLocal<String>();
+	protected ThreadLocal<String> pageId = new ThreadLocal<String>();
+	
 	public abstract T apply(S[] sources);
+	
+	public void setDataId(String dataIdString) {
+		dataId.set(dataIdString);
+	}
+	
+	public void setPageId(String pageIdString) {
+		pageId.set(pageIdString);
+	}
 }

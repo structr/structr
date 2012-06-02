@@ -50,7 +50,11 @@ public class UuidResource extends FilterableResource {
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
-		GraphObject obj = getNode();
+		
+		GraphObject obj = null;
+		
+		// search for node first, then fall back to relationship
+		try { obj = getNode(); } catch(NotFoundException nfex1) { try { obj = getRelationship(); } catch(NotFoundException nfex2) { } }
 
 		if (obj != null) {
 
@@ -76,6 +80,7 @@ public class UuidResource extends FilterableResource {
 		int size = results.size();
 
 		switch(size) {
+			
 			case 0:
 				throw new NotFoundException();
 

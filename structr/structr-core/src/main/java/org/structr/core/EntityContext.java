@@ -1317,11 +1317,9 @@ public class EntityContext {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
 
-					} else {
-
-						indexNodeCommand.execute(node);
-
 					}
+					
+					indexNodeCommand.execute(node);
 				}
 
 				for (AbstractRelationship rel : modifiedRels) {

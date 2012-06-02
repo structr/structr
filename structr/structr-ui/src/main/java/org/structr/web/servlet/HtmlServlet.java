@@ -438,6 +438,7 @@ public class HtmlServlet extends HttpServlet {
 				out.flush();
 				out.close();
 				response.setStatus(HttpServletResponse.SC_OK);
+				
 			} else {
 
 				// Check if security context has set an 401 status
@@ -452,7 +453,7 @@ public class HtmlServlet extends HttpServlet {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			// t.printStackTrace();
 
 			// logger.log(Level.WARNING, "Exception while processing request", t);
 			HttpAuthenticator.writeInternalServerError(response);
