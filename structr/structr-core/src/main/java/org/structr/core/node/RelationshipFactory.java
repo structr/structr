@@ -91,7 +91,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 	public AbstractRelationship createRelationship(final SecurityContext securityContext, final Map properties) throws FrameworkException {
 
-		String combinedRelType      = (String) properties.get(AbstractRelationship.HiddenKey.type.name());
+		String combinedRelType      = (String) properties.get(AbstractRelationship.HiddenKey.combinedType.name());
 		AbstractRelationship newRel = createRelationship(securityContext, combinedRelType);
 
 		newRel.setProperties(properties);
@@ -117,9 +117,9 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			} else {
 
-				if (relationship.hasProperty(AbstractRelationship.HiddenKey.type.name())) {
+				if (relationship.hasProperty(AbstractRelationship.HiddenKey.combinedType.name())) {
 
-					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.HiddenKey.type.name());
+					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.HiddenKey.combinedType.name());
 
 					relClass = EntityContext.getNamedRelationClass(combinedRelType);
 
@@ -199,8 +199,8 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 //		}
 //
 //		Map properties              = data.getProperties();
-//		String combinedRelType      = properties.containsKey(AbstractRelationship.HiddenKey.type.name())
-//					      ? (String) properties.get(AbstractRelationship.HiddenKey.type.name())
+//		String combinedRelType      = properties.containsKey(AbstractRelationship.HiddenKey.combinedType.name())
+//					      ? (String) properties.get(AbstractRelationship.HiddenKey.combinedType.name())
 //					      : null;
 //		Class relClass              = EntityContext.getNamedRelationClass(combinedRelType);
 //		AbstractRelationship newRel = null;

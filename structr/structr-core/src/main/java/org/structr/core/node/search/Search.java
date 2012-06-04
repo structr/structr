@@ -150,7 +150,7 @@ public abstract class Search {
 	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
 
 		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.AND);
 
 		return attr;
 	}
@@ -166,7 +166,7 @@ public abstract class Search {
 	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
 
 		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.OR);
 
 		return attr;
 	}
@@ -248,7 +248,7 @@ public abstract class Search {
 	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {
 
 		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), exactMatch(searchString), SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
 	}
@@ -260,7 +260,7 @@ public abstract class Search {
 	public static SearchAttribute orExactRelType(final String relType, final String sourceType, final String destType) {
 
 		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), exactMatch(searchString), SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
 	}

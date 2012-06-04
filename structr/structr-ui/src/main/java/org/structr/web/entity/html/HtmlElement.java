@@ -201,10 +201,6 @@ public abstract class HtmlElement extends Element {
 					return "";
 				}
 				
-				if(s.length == 1) {
-					return s[0];
-				}
-				
 				String data = this.dataId.get();
 				String page = this.pageId.get();
 				
@@ -212,10 +208,12 @@ public abstract class HtmlElement extends Element {
 					
 					if(data.equals(page)) {
 						
+						// return first argument if condition is true
 						return s[0];
 						
-					} else {
-						
+					} else if(s.length > 1) {
+	
+						// return second argument if condition is false and second argument exists
 						return s[1];
 					}
 				}

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.node.BulkCopyRelationshipPropertyCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,6 +56,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("rebuildIndex", RebuildIndexTask.class);
 		maintenanceCommandMap.put("clearDatabase", ClearDatabase.class);
 		maintenanceCommandMap.put("setProperties", BulkSetPropertiesCommand.class);
+		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
 
 	}
 

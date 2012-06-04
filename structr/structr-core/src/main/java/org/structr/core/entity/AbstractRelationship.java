@@ -101,7 +101,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum HiddenKey implements PropertyKey{ type,    // internal type, see IndexRelationshipCommand#indexRelationship method
+	public enum HiddenKey implements PropertyKey{ combinedType,    // internal combinedType, see IndexRelationshipCommand#indexRelationship method
 					 cascadeDelete, createdDate, allowed }
 
 	public enum Key implements PropertyKey{ uuid }
@@ -146,7 +146,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	//~--- methods --------------------------------------------------------
 
 	/**
-	 * Called when a relationship of this type is instatiated. Please note that
+	 * Called when a relationship of this combinedType is instatiated. Please note that
 	 * a relationship can (and will) be instantiated several times during a
 	 * normal rendering turn.
 	 */
@@ -1210,11 +1210,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	/**
-	 * Set relationship type
+	 * Set relationship combinedType
 	 *
 	 * Internally, this method deletes the old relationship
 	 * and creates a new one, with the same start and end node,
-	 * but with another type
+	 * but with another combinedType
 	 *
 	 */
 	public void setType(final String type) {

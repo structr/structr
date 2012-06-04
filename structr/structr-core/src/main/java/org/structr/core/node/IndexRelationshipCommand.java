@@ -174,15 +174,15 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		}
 
-		String combinedKey = rel.getStringProperty(AbstractRelationship.HiddenKey.type.name());
+		String combinedKey = rel.getStringProperty(AbstractRelationship.HiddenKey.combinedType.name());
 
 		if (combinedKey == null) {
 
-			// add a special type key, consisting of the relationship type, the type of the start node and the type of the end node
+			// add a special combinedType key, consisting of the relationship combinedType, the combinedType of the start node and the combinedType of the end node
 			String tripleKey = EntityContext.createCombinedRelationshipType(rel.getStartNode().getType(), rel.getType(), rel.getEndNode().getType());
 
-			rel.setProperty(AbstractRelationship.HiddenKey.type.name(), Search.clean(tripleKey));
-			indexProperty(rel, AbstractRelationship.HiddenKey.type.name());
+			rel.setProperty(AbstractRelationship.HiddenKey.combinedType.name(), Search.clean(tripleKey));
+			indexProperty(rel, AbstractRelationship.HiddenKey.combinedType.name());
 		}
 
 		for (String key : rel.getPropertyKeys()) {
@@ -194,7 +194,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 	private void indexProperty(final AbstractRelationship rel, final String key) {
 
-		// String type = node.getClass().getSimpleName();
+		// String combinedType = node.getClass().getSimpleName();
 		Relationship dbRel = rel.getRelationship();
 		long id            = rel.getId();
 
