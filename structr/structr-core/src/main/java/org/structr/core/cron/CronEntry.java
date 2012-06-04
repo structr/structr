@@ -304,7 +304,7 @@ public class CronEntry implements Delayed {
 		int nowMinutes     = now.get(Calendar.MINUTE);
 		int nowHours       = now.get(Calendar.HOUR_OF_DAY);
 		int nowDays        = now.get(Calendar.DAY_OF_MONTH);		// DAY_OF_MONTH starts with 1
-		int nowDow         = now.get(Calendar.DAY_OF_WEEK);		// DAY_OF_WEEK starts with 1 (sunday)
+		int nowDow         = now.get(Calendar.DAY_OF_WEEK) - 1;		// DAY_OF_WEEK starts with 1 (sunday)
 		int nowMonths      = now.get(Calendar.MONTH) + 1;		// MONTH starts with 0 (why???)
 		boolean modified   = true;
 		int maxTries       = 10000;
