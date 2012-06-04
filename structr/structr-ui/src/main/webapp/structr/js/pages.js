@@ -449,7 +449,7 @@ var _Pages = {
 
                 //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
                 var html = iframeDocument.find('html');
-                html.prop('structr_element_id', entity.id);
+                html.attr('structr_element_id', entity.id);
                 html.addClass('structr-element-container');
 
             }
@@ -484,14 +484,14 @@ var _Pages = {
                             
                             // we're in the iframe
                             page = self.closest('[structr_page_id]')[0];
-                            pageId = $(page).prop('structr_page_id');
+                            pageId = $(page).attr('structr_page_id');
                             pos = $('[structr_element_id]', self).length;
                         }
                         
                         var contentId = getId(ui.draggable);
                         var elementId = getId(self);
 
-                        if (!elementId) elementId = self.prop('structr_element_id');
+                        if (!elementId) elementId = self.attr('structr_element_id');
 
                         if (!contentId) {
                             // create element on the fly
@@ -517,7 +517,7 @@ var _Pages = {
                     }
                 });
 
-                var structrId = el.prop('structr_element_id');
+                var structrId = el.attr('structr_element_id');
                 //var type = el.prop('structr_type');
                 //  var name = el.prop('structr_name');
                 var tag  = element.nodeName.toLowerCase();
@@ -628,8 +628,8 @@ var _Pages = {
                             e.stopPropagation();
                             var self = $(this);
                             self.addClass('structr-editable-area');
-                            self.attr('contenteditable', true);
-                            $('#hoverStatus').text('Editable content element: ' + self.attr('structr_content_id'));
+                            self.prop('contenteditable', true);
+                            //$('#hoverStatus').text('Editable content element: ' + self.attr('structr_content_id'));
                             var nodes = Structr.node(structrId);
                             nodes.parent().removeClass('nodeHover');
                             nodes.addClass('nodeHover');
