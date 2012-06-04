@@ -41,5 +41,6 @@ public class Head extends HtmlElement {
 		EntityContext.registerEntityRelation(Head.class, Script.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Head.class, Link.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Head.class, Meta.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Head.class, Base.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}
 }
