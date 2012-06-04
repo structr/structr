@@ -87,13 +87,13 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 					long n                  = 0L;
                                         List<AbstractRelationship> rels = null;
                                         
-                                        if (properties.containsKey(AbstractRelationship.HiddenKey.type.name())) {
+                                        if (properties.containsKey(AbstractRelationship.HiddenKey.combinedType.name())) {
                                                 
                                                 List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.HiddenKey.type.name())));
+                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.HiddenKey.combinedType.name())));
                                                 
                                                 rels = (List<AbstractRelationship>) searchRel.execute(attrs);
-                                                properties.remove(AbstractRelationship.HiddenKey.type.name());
+                                                properties.remove(AbstractRelationship.HiddenKey.combinedType.name());
                                                 
                                         } else {
                                         

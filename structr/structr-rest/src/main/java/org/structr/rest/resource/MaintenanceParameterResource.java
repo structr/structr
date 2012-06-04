@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.node.BulkCopyRelationshipPropertyCommand;
+import org.structr.core.node.BulkSetRelationshipPropertiesCommand;
 
 //~--- classes ----------------------------------------------------------------
 
