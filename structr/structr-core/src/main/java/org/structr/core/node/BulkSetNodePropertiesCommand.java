@@ -53,9 +53,9 @@ import org.structr.core.node.search.SearchNodeCommand;
  *
  * @author Axel Morgner
  */
-public class BulkSetPropertiesCommand extends NodeServiceCommand {
+public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkSetPropertiesCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(BulkSetNodePropertiesCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
