@@ -866,7 +866,7 @@ var _Pages = {
                 }
                 
                 if (debug) console.log($(ui.draggable));
-                var pos = Structr.numberOfNodes(self);
+                var pos = Structr.numberOfNodes(self, contentId);
                 if (debug) console.log(pos);
 
                 if (page) {

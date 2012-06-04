@@ -398,9 +398,14 @@ var Structr = {
         return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
     },
 
-    numberOfNodes : function(element) {
-        var n = ($(element).children('.node')).length;
-        if (debug) console.log('number of nodes in element', element, n);
+    numberOfNodes : function(element, excludeId) {
+        var childNodes = $(element).children('.node');
+        if (excludeId) {
+            childNodes = childNodes.not('.' + excludeId + '_');
+        }
+        var n = childNodes.length;
+        console.log('children', $(element).children('.node'));
+        console.log('number of nodes in element', element, n);
         return n;
     },
 
