@@ -25,10 +25,6 @@ import org.structr.core.entity.RelationClass;
 import org.structr.core.node.*;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.core.node.search.DistanceSearchAttribute;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchOperator;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
@@ -205,7 +201,27 @@ public abstract class Resource {
 
 	public void postProcessResultSet(Result result) {
 
-		// override me
+		if(result != null && result.getResults() != null && !result.getResults().isEmpty()) {
+			
+			Class type = result.getResults().get(0).getClass();
+			String propertyView = result.getPropertyView();
+
+			if(type != null && propertyView != null) {
+
+				Transformation<List<? extends GraphObject>> transformation = EntityContext.getViewTransformation(type, propertyView);
+				if(transformation != null) {
+
+					try {
+
+						transformation.apply(securityContext, result.getResults());
+
+					} catch(Throwable t) {
+
+						t.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 
 	public boolean isPrimitiveArray() {

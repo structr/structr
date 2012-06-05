@@ -90,6 +90,8 @@ public class PagingResource extends WrappingResource {
 		if(wrappedResource != null && wrappedResource instanceof SortResource) {
 			((SortResource)wrappedResource).postProcessResultSet(result);
 		}
+		
+		super.postProcessResultSet(result);
 	}
 
         @Override
