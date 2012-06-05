@@ -83,6 +83,9 @@ public class EntityContext {
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
 
+	// This map contains view-dependent result set transformations
+	private static final Map<Class, Map<String, Transformation<List<? extends GraphObject>>>> viewTransformations = new LinkedHashMap<Class, Map<String, Transformation<List<? extends GraphObject>>>>();
+	
 	// This set contains all known properties
 	private static final Set<String> globalKnownPropertyKeys                                                = new LinkedHashSet<String>();
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
@@ -736,6 +739,27 @@ public class EntityContext {
 
 		return relation;
 	}
+	
+	// ----- view transformations -----
+	public static void registerViewTransformation(Class type, String view, Transformation<List<? extends GraphObject>> transformation) {
+		getViewTransformationMapForType(type).put(view, transformation);
+	}
+	
+	public static Transformation<List<? extends GraphObject>> getViewTransformation(Class type, String view) {
+		return getViewTransformationMapForType(type).get(view);
+	}
+	
+	private static Map<String, Transformation<List<? extends GraphObject>>> getViewTransformationMapForType(Class type) {
+		
+		Map<String, Transformation<List<? extends GraphObject>>> viewTransformationMap = viewTransformations.get(type);
+		if(viewTransformationMap == null) {
+			viewTransformationMap = new LinkedHashMap<String, Transformation<List<? extends GraphObject>>>();
+			viewTransformations.put(type, viewTransformationMap);
+		}
+		
+		return viewTransformationMap;
+	}
+	
 
 	// ----- property set methods -----
 	public static Set<String> getPropertySet(Class type, String propertyView) {
@@ -1038,7 +1062,7 @@ public class EntityContext {
 
 		return transformations;
 	}
-
+	
 	public static EntityContextModificationListener getTransactionEventHandler() {
 		return globalModificationListener;
 	}

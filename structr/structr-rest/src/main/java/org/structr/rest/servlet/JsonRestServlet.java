@@ -322,6 +322,9 @@ public class JsonRestServlet extends HttpServlet {
 			// commit response
 			if (result != null) {
 
+				// store property view that will be used to render the results
+				result.setPropertyView(propertyView.get());
+				
 				// allow resource to modify result set
 				resource.postProcessResultSet(result);
 				

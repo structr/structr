@@ -19,7 +19,7 @@ public class Result {
 	private List<? extends GraphObject> results = null;
 	private boolean isCollectionResource = false;
 	private boolean isPrimitiveArray = false;
-	private PropertyView propertyView = null;
+	private String propertyView = null;
 
 	private String searchString = null;
 	private String queryTime = null;
@@ -114,11 +114,11 @@ public class Result {
 		this.pageSize = pageSize;
 	}
 
-	public PropertyView getPropertyView() {
+	public String getPropertyView() {
 		return propertyView;
 	}
 
-	public void setPropertyView(PropertyView propertyView) {
+	public void setPropertyView(String propertyView) {
 		this.propertyView = propertyView;
 	}
 
