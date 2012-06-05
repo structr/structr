@@ -723,7 +723,7 @@ public class HtmlServlet extends HttpServlet {
 		if (startNode instanceof View) {
 
 			// fetch list of components from this view and
-			List<GraphObject> components = ((View) startNode).getComponents();
+			List<GraphObject> components = ((View) startNode).getGraphObjects(request);
 
 			for (GraphObject component : components) {
 

@@ -46,7 +46,7 @@ import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
-import javax.measure.quantity.Length;
+import javax.servlet.http.HttpServletRequest;
 import org.structr.web.common.ThreadLocalMatcher;
 
 //~--- classes ----------------------------------------------------------------
@@ -483,6 +483,18 @@ public abstract class HtmlElement extends Element {
 		for (int i = 0; (i < parts.length) && (node != null); i++) {
 
 			String part = parts[i];
+			
+			// special keyword "request"
+			if ("request".equals(part.toLowerCase())) {
+				
+				HttpServletRequest request = securityContext.getRequest();
+				
+				if (request != null) {
+
+					return request.getParameter(referenceKey);
+				}
+
+			}
 
 			// special keyword "component"
 			if ("component".equals(part.toLowerCase())) {
