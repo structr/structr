@@ -139,6 +139,10 @@ public class EntityContext {
 
 			}
 
+			// include property sets from interfaces
+			for(Class interfaceClass : type.getInterfaces()) {
+				searchablePropertySet.addAll(getSearchableProperties(interfaceClass, indexName));
+			}
 		}
 	}
 
@@ -283,6 +287,14 @@ public class EntityContext {
 			superClass = superClass.getSuperclass();
 
 		}
+		
+		// include property sets from interfaces
+		for(Class interfaceClass : type.getInterfaces()) {
+			properties.addAll(getPropertySet(interfaceClass, propertyView));
+		}
+
+		System.out.println("####################################### " + type + ": " + properties);
+		
 	}
 
 	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, String[] propertySet) {
@@ -310,6 +322,14 @@ public class EntityContext {
 			superClass = superClass.getSuperclass();
 
 		}
+		
+		// include property sets from interfaces
+		for(Class interfaceClass : type.getInterfaces()) {
+			properties.addAll(getPropertySet(interfaceClass, propertyView));
+		}
+
+		System.out.println("####################################### " + type + ": " + properties);
+		
 	}
 
 	public static void clearPropertySet(Class type, String propertyView) {
@@ -786,20 +806,24 @@ public class EntityContext {
 			propertySet = new LinkedHashSet<String>();
 
 			propertyViewMap.put(propertyView, propertySet);
+		}
+		
+		// add property set from interfaces
+		for(Class interfaceClass : type.getInterfaces()) {
+			propertySet.addAll(getPropertySet(interfaceClass, propertyView));
+		}
 
-			// test: fill property set with values from supertypes
-			Class superClass = type.getSuperclass();
+		// test: fill property set with values from supertypes
+		Class superClass = type.getSuperclass();
 
-			while ((superClass != null) &&!superClass.equals(Object.class)) {
+		while ((superClass != null) &&!superClass.equals(Object.class)) {
 
-				Set<String> superProperties = getPropertySet(superClass, propertyView);
+			Set<String> superProperties = getPropertySet(superClass, propertyView);
 
-				propertySet.addAll(superProperties);
+			propertySet.addAll(superProperties);
 
-				// one level up :)
-				superClass = superClass.getSuperclass();
-
-			}
+			// one level up :)
+			superClass = superClass.getSuperclass();
 
 		}
 
@@ -823,6 +847,11 @@ public class EntityContext {
 			localType = localType.getSuperclass();
 
 		}
+		
+		// try converters from interfaces as well
+		for(Class interfaceClass : type.getInterfaces()) {
+			validators.addAll(getPropertyValidatorMapForType(interfaceClass).get(propertyKey));
+		}
 
 		return validators;
 	}
@@ -842,6 +871,17 @@ public class EntityContext {
 //                      logger.log(Level.INFO, "Converter class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			localType = localType.getSuperclass();
 
+		}
+		
+		// try converters from interfaces as well
+		if(clazz == null) {
+			
+			for(Class interfaceClass : type.getInterfaces()) {
+				clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
+				if(clazz != null) {
+					break;
+				}
+			}
 		}
 
 		if (clazz != null) {
@@ -875,6 +915,17 @@ public class EntityContext {
 //                      logger.log(Level.INFO, "Conversion parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
 			localType = localType.getSuperclass();
 
+		}
+		
+		// try parameters from interfaces as well
+		if(value == null) {
+			
+			for(Class interfaceClass : type.getInterfaces()) {
+				value = getPropertyConversionParameterMapForType(interfaceClass).get(propertyKey);
+				if(value != null) {
+					break;
+				}
+			}
 		}
 
 		return value;
@@ -1103,6 +1154,18 @@ public class EntityContext {
 			localType = localType.getSuperclass();
 
 		}
+		
+		if(!isReadOnly) {
+			
+			for(Class interfaceClass : type.getInterfaces()) {
+
+				if (getReadOnlyPropertySetForType(interfaceClass).contains(key)) {
+					return true;
+				}
+				
+				
+			}
+		}
 
 		return isReadOnly;
 	}
@@ -1132,6 +1195,18 @@ public class EntityContext {
 			// one level up :)
 			localType = localType.getSuperclass();
 
+		}
+		
+		if(!isWriteOnce) {
+			
+			for(Class interfaceClass : type.getInterfaces()) {
+
+				if (getWriteOncePropertySetForType(interfaceClass).contains(key)) {
+					return true;
+				}
+				
+				
+			}
 		}
 
 		return isWriteOnce;
