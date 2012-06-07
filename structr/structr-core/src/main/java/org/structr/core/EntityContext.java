@@ -871,21 +871,21 @@ public class EntityContext {
 
 			converterMap = getPropertyConverterMapForType(localType);
 			clazz        = converterMap.get(propertyKey);
+		
+			// try converters from interfaces as well
+			if(clazz == null) {
+
+				for(Class interfaceClass : getInterfacesForType(type)) {
+					clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
+					if(clazz != null) {
+						break;
+					}
+				}
+			}
 
 //                      logger.log(Level.INFO, "Converter class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			localType = localType.getSuperclass();
 
-		}
-		
-		// try converters from interfaces as well
-		if(clazz == null) {
-			
-			for(Class interfaceClass : getInterfacesForType(type)) {
-				clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
-				if(clazz != null) {
-					break;
-				}
-			}
 		}
 
 		if (clazz != null) {
