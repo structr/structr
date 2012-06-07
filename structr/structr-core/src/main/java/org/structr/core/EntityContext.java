@@ -99,6 +99,8 @@ public class EntityContext {
 	private static final Map<Long, FrameworkException> exceptionMap                                         = new LinkedHashMap<Long, FrameworkException>();
 	private static final Map<Thread, SecurityContext> securityContextMap                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
 	private static final Map<Thread, Long> transactionKeyMap                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
+	private static final Map<Class, Set<Class>> interfaceMap                                                = new LinkedHashMap<Class, Set<Class>>();
+
 	private static Map<String, Class> cachedEntities                                                        = new LinkedHashMap<String, Class>();
 
 	//~--- methods --------------------------------------------------------
@@ -140,7 +142,7 @@ public class EntityContext {
 			}
 
 			// include property sets from interfaces
-			for(Class interfaceClass : type.getInterfaces()) {
+			for(Class interfaceClass : getInterfacesForType(type)) {
 				searchablePropertySet.addAll(getSearchableProperties(interfaceClass, indexName));
 			}
 		}
@@ -289,12 +291,9 @@ public class EntityContext {
 		}
 		
 		// include property sets from interfaces
-		for(Class interfaceClass : type.getInterfaces()) {
+		for(Class interfaceClass : getInterfacesForType(type)) {
 			properties.addAll(getPropertySet(interfaceClass, propertyView));
 		}
-
-		System.out.println("####################################### " + type + ": " + properties);
-		
 	}
 
 	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, String[] propertySet) {
@@ -324,11 +323,9 @@ public class EntityContext {
 		}
 		
 		// include property sets from interfaces
-		for(Class interfaceClass : type.getInterfaces()) {
+		for(Class interfaceClass : getInterfacesForType(type)) {
 			properties.addAll(getPropertySet(interfaceClass, propertyView));
 		}
-
-		System.out.println("####################################### " + type + ": " + properties);
 		
 	}
 
@@ -760,7 +757,7 @@ public class EntityContext {
 		// try interfaces classes
 		if (relation == null) {
 		
-			for(Class interfaceClass : sourceType.getInterfaces()) {
+			for(Class interfaceClass : getInterfacesForType(sourceType)) {
 				
 				relation  = getPropertyRelationshipMapForType(interfaceClass).get(propertyKey);
 				
@@ -809,7 +806,7 @@ public class EntityContext {
 		}
 		
 		// add property set from interfaces
-		for(Class interfaceClass : type.getInterfaces()) {
+		for(Class interfaceClass : getInterfacesForType(type)) {
 			propertySet.addAll(getPropertySet(interfaceClass, propertyView));
 		}
 
@@ -832,15 +829,19 @@ public class EntityContext {
 
 	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, String propertyKey) {
 
+		Set<PropertyValidator> validators                = new LinkedHashSet<PropertyValidator>();
 		Map<String, Set<PropertyValidator>> validatorMap = null;
-		Set<PropertyValidator> validators                = null;
 		Class localType                                  = type;
 
 		// try all superclasses
-		while ((validators == null) &&!localType.equals(Object.class)) {
+		while (!localType.equals(Object.class)) {
 
 			validatorMap = getPropertyValidatorMapForType(localType);
-			validators   = validatorMap.get(propertyKey);
+			
+			Set<PropertyValidator> classValidators = validatorMap.get(propertyKey);
+			if(classValidators != null) {
+				validators.addAll(validatorMap.get(propertyKey));
+			}
 
 //                      logger.log(Level.INFO, "Validator class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			// one level up :)
@@ -849,8 +850,11 @@ public class EntityContext {
 		}
 		
 		// try converters from interfaces as well
-		for(Class interfaceClass : type.getInterfaces()) {
-			validators.addAll(getPropertyValidatorMapForType(interfaceClass).get(propertyKey));
+		for(Class interfaceClass : getInterfacesForType(type)) {
+			Set<PropertyValidator> interfaceValidators = getPropertyValidatorMapForType(interfaceClass).get(propertyKey);
+			if(interfaceValidators != null) {
+				validators.addAll(interfaceValidators);
+			}
 		}
 
 		return validators;
@@ -876,7 +880,7 @@ public class EntityContext {
 		// try converters from interfaces as well
 		if(clazz == null) {
 			
-			for(Class interfaceClass : type.getInterfaces()) {
+			for(Class interfaceClass : getInterfacesForType(type)) {
 				clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
 				if(clazz != null) {
 					break;
@@ -920,7 +924,7 @@ public class EntityContext {
 		// try parameters from interfaces as well
 		if(value == null) {
 			
-			for(Class interfaceClass : type.getInterfaces()) {
+			for(Class interfaceClass : getInterfacesForType(type)) {
 				value = getPropertyConversionParameterMapForType(interfaceClass).get(propertyKey);
 				if(value != null) {
 					break;
@@ -1128,6 +1132,20 @@ public class EntityContext {
 		return transformations;
 	}
 	
+	private static Set<Class> getInterfacesForType(Class type) {
+		
+		Set<Class> interfaces = interfaceMap.get(type);
+		if(interfaces == null) {
+			
+			interfaces = new LinkedHashSet<Class>();
+			interfaceMap.put(type, interfaces);
+			
+			interfaces.addAll(Arrays.asList(type.getInterfaces()));
+		}
+		
+		return interfaces;
+	}
+	
 	public static EntityContextModificationListener getTransactionEventHandler() {
 		return globalModificationListener;
 	}
@@ -1157,7 +1175,7 @@ public class EntityContext {
 		
 		if(!isReadOnly) {
 			
-			for(Class interfaceClass : type.getInterfaces()) {
+			for(Class interfaceClass : getInterfacesForType(type)) {
 
 				if (getReadOnlyPropertySetForType(interfaceClass).contains(key)) {
 					return true;
@@ -1199,7 +1217,7 @@ public class EntityContext {
 		
 		if(!isWriteOnce) {
 			
-			for(Class interfaceClass : type.getInterfaces()) {
+			for(Class interfaceClass : getInterfacesForType(type)) {
 
 				if (getWriteOncePropertySetForType(interfaceClass).contains(key)) {
 					return true;
