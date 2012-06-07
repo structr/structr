@@ -709,6 +709,19 @@ public class EntityContext {
 		while ((relation == null) &&!localType.equals(Object.class)) {
 
 			relation  = getRelationClassMapForType(localType).get(destType);
+			
+			if(relation == null) {
+				
+				// try interfaces as well
+				for(Class interfaceClass : getInterfacesForType(localType)) {
+					
+					relation = getRelationClassMapForType(interfaceClass).get(destType);
+					if(relation != null) {
+						break;
+					}
+				}
+			}
+			
 			localType = localType.getSuperclass();
 
 		}
