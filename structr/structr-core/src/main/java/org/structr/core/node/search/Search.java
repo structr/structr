@@ -21,7 +21,7 @@
 
 package org.structr.core.node.search;
 
-import org.apache.commons.lang.ArrayUtils;
+import java.lang.Class;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.RelationshipType;
@@ -48,6 +48,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.module.GetModuleServiceCommand;
+import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -101,11 +103,24 @@ public abstract class Search {
 
 		try {
 
-			Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
-			Class parentClass           = entities.get(searchString);
+			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+			Map<String, Class> entities      = (Map) Services.command(superUserContext, GetEntitiesCommand.class).execute();
+			Class parentClass                = entities.get(searchString);
 
 			if (parentClass == null) {
 
+				// no entity class for the given type found,
+				// examine interface types and subclasses
+
+				ModuleService moduleService    = (ModuleService)Services.command(superUserContext, GetModuleServiceCommand.class).execute();
+				Set<Class> classesForInterface = moduleService.getClassesForInterface(EntityContext.normalizeEntityName(searchString));
+				
+				if(classesForInterface != null) {
+					for(Class clazz : classesForInterface) {
+						attrs.addAll(andExactTypeAndSubtypes(clazz.getSimpleName()));
+					}
+				}
+				
 				return attrs;
 
 			}

@@ -26,7 +26,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PropertyNotFoundToken;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -108,6 +110,14 @@ public class NamedRelationResource extends WrappingResource {
 			AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
 			RelationshipType relType = namedRelation.getRelType();
 
+			if(startNode == null) {
+				throw new FrameworkException(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getStartNodeIdKey().name()));
+			}
+			
+			if(endNode == null) {
+				throw new FrameworkException(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getEndNodeIdKey().name()));
+			}
+			
 			Class sourceType = namedRelation.getSourceType();
 			Class destType = namedRelation.getDestType();
 

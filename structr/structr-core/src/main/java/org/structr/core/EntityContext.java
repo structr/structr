@@ -736,6 +736,20 @@ public class EntityContext {
 			localType = localType.getSuperclass();
 
 		}
+		
+		// try interfaces classes
+		if (relation == null) {
+		
+			for(Class interfaceClass : sourceType.getInterfaces()) {
+				
+				relation  = getPropertyRelationshipMapForType(interfaceClass).get(propertyKey);
+				
+				if(relation != null) {
+					
+					return relation;
+				}
+			}
+		}
 
 		return relation;
 	}

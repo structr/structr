@@ -86,6 +86,7 @@ public class ModuleService implements SingletonService {
 	private static final Map<String, Class> nodeEntityClassCache	= new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
 	private static final Map<String, Class> relationshipClassCache	= new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
 	private static final Map<String, Class> agentClassCache		= new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
+	private static final Map<String, Set<Class>> interfaceCache	= new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
 	private static final Set<String> pagePackages			= new LinkedHashSet<String>();
 	private static final Set<String> agentPackages			= new LinkedHashSet<String>();
 
@@ -466,6 +467,20 @@ public class ModuleService implements SingletonService {
 						nodeEntityClassCache.put(simpleName, clazz);
 						nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
+
+						for(Class interfaceClass : clazz.getInterfaces()) {
+
+							String interfaceName = interfaceClass.getSimpleName();
+
+							Set<Class> classesForInterface = interfaceCache.get(interfaceName);
+							if(classesForInterface == null) {
+								classesForInterface = new LinkedHashSet<Class>();
+								interfaceCache.put(interfaceName, classesForInterface);
+							}
+
+							classesForInterface.add(clazz);
+						}
+						
 					}
 
 					// register entity classes
@@ -897,6 +912,10 @@ public class ModuleService implements SingletonService {
 		return agentClassCache.keySet();
 	}
 
+	public Set<Class> getClassesForInterface(String simpleName) {
+		return interfaceCache.get(simpleName);
+	}
+
 	public Map<String, Class> getCachedNodeEntities() {
 		return nodeEntityClassCache;
 	}
@@ -938,7 +957,7 @@ public class ModuleService implements SingletonService {
 							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
 								nodeEntityClassCache.put(name, nodeClass);
-
+								
 								// first match wins
 								break;
 
