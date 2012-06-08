@@ -109,6 +109,7 @@ public class BulkSetPropertiesCommand extends NodeServiceCommand {
                                                                 String key = (String) entry.getKey();
                                                                 Object val = entry.getValue();
                                                                 
+								node.unlockReadOnlyPropertiesOnce();
                                                                 node.setProperty(key, val);
                                                                 
                                                         }
