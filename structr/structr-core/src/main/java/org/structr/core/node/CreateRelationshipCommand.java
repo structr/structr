@@ -54,7 +54,7 @@ import java.util.logging.Logger;
  *
  * @param startNode the start node
  * @param endNode the end node
- * @param type the name of relationship type to create
+ * @param combinedType the name of relationship combinedType to create
  *
  * @return the new relationship
  *
@@ -81,7 +81,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			Object arg0              = parameters[0];    // start node
 			Object arg1              = parameters[1];    // end node
-			Object arg2              = parameters[2];    // relationship type
+			Object arg2              = parameters[2];    // relationship combinedType
 			RelationshipType relType = null;
 
 			if (arg2 instanceof String) {
@@ -115,7 +115,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			Object arg0 = parameters[0];                 // start node
 			Object arg1 = parameters[1];                 // end node
-			Object arg2 = parameters[2];                 // relationship type
+			Object arg2 = parameters[2];                 // relationship combinedType
 			Object arg3 = parameters[3];                 // properties
 			Object arg4 = parameters[4];                 // check duplicates
 

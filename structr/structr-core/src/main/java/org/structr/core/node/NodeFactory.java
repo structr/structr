@@ -21,8 +21,6 @@
 
 package org.structr.core.node;
 
-import java.lang.reflect.Constructor;
-import java.util.*;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -32,6 +30,7 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
+import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.Command;
@@ -39,15 +38,15 @@ import org.structr.core.Services;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.Principal;
 import org.structr.core.module.GetEntityClassCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.lang.reflect.Constructor;
+
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.ThreadLocalCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,52 +73,62 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 	public NodeFactory() {}
 
 	public NodeFactory(SecurityContext securityContext) {
+
 		this.securityContext = securityContext;
+
 	}
 
 	//~--- methods --------------------------------------------------------
 
 	public AbstractNode createNode(SecurityContext securityContext, final Node node) throws FrameworkException {
 
-		String type = AbstractNode.Key.type.name();
-		
-		String nodeType = node.hasProperty(type) ? (String) node.getProperty(type) : "";
+		String type     = AbstractNode.Key.type.name();
+		String nodeType = node.hasProperty(type)
+				  ? (String) node.getProperty(type)
+				  : "";
 
 		return createNode(securityContext, node, nodeType);
+
 	}
 
 	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType) throws FrameworkException {
 
-		/* caching disabled for now...
-		AbstractNode cachedNode = null;
-
-		// only look up node in cache if uuid is already present
-		if(node.hasProperty(AbstractNode.Key.uuid.name())) {
-			String uuid = (String)node.getProperty(AbstractNode.Key.uuid.name());
-			cachedNode = NodeService.getNodeFromCache(uuid);
-		}
-		
-		if(cachedNode == null) {
-		*/
-		
-		Class nodeClass      = (Class)getEntityClassCommand.get().execute(nodeType);
+		/*
+		 *  caching disabled for now...
+		 * AbstractNode cachedNode = null;
+		 *
+		 * // only look up node in cache if uuid is already present
+		 * if(node.hasProperty(AbstractNode.Key.uuid.name())) {
+		 *       String uuid = (String)node.getProperty(AbstractNode.Key.uuid.name());
+		 *       cachedNode = NodeService.getNodeFromCache(uuid);
+		 * }
+		 *
+		 * if(cachedNode == null) {
+		 */
+		Class nodeClass      = (Class) getEntityClassCommand.get().execute(nodeType);
 		AbstractNode newNode = null;
-		
+
 		if (nodeClass != null) {
 
 			try {
+
 				Constructor constructor = constructors.get(nodeClass);
-				if(constructor == null) {
+
+				if (constructor == null) {
+
 					constructor = nodeClass.getConstructor();
+
 					constructors.put(nodeClass, constructor);
+
 				}
-				
+
 				// newNode = (AbstractNode) nodeClass.newInstance();
-				newNode = (AbstractNode)constructor.newInstance();
+				newNode = (AbstractNode) constructor.newInstance();
 
 			} catch (Throwable t) {
 
 				newNode = null;
+
 			}
 
 		}
@@ -127,7 +136,6 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 		if (newNode == null) {
 
 			newNode = new GenericNode();
-
 		}
 
 		newNode.init(securityContext, node);
@@ -169,7 +177,6 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 					for (AbstractNode nodeAt : getNodesAt(n)) {
 
 						addIfReadable(securityContext, nodeAt, nodes, includeDeleted, publicOnly);
-
 					}
 
 				}
@@ -177,7 +184,7 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 			}
 
 		} else {
-			
+
 			if ((input != null) && input.iterator().hasNext()) {
 
 				for (Node node : input) {
@@ -187,118 +194,77 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 					addIfReadable(securityContext, n, nodes, includeDeleted, publicOnly);
 
 				}
+
 			}
 
 		}
 
 		return nodes;
+
 	}
 
-	private void addIfReadable(final SecurityContext securityContext, final AbstractNode n, List<AbstractNode> nodes, final boolean includeDeleted, final boolean publicOnly) {
+	/**
+	 * Check if given node should be instantiated
+	 * @param securityContext
+	 * @param n
+	 * @param nodes
+	 * @param includeDeleted
+	 * @param publicOnly
+	 */
+	private void addIfReadable(final SecurityContext securityContext, AbstractNode n, List<AbstractNode> nodes, final boolean includeDeleted, final boolean publicOnly) {
 
 		/**
 		 * The if-clauses in the following lines have been split
 		 * for performance reasons.
-		 * 
-		 * Please verify the decisions documented in the comments
-		 * and remove the comments if everything is valid.
 		 */
-		
-		
+
 		// hidden nodes will not be returned
-		if(n.isHidden()) {
+		if (n.isHidden()) {
+
+			n = null;    // help GC
+
 			return;
+
 		}
-		
+
 		// deleted nodes will only be returned if we are told to do so
-		if(n.isDeleted() && !includeDeleted) {
+		if (n.isDeleted() && !includeDeleted) {
+
+			n = null;    // help GC
+
 			return;
+
 		}
-		
-		// FIXME: does visibleToPublic override all other flags?
-		// If YES, the following line is correct!
-		
-		// publicly visible nodes will always be returned
-		if(n.isVisibleToPublicUsers()) {
+
+		// visibleToPublic overrides anything else
+		// Publicly visible nodes will always be returned
+		if (n.isVisibleToPublicUsers()) {
+
 			nodes.add(n);
+
 			return;
+
 		}
-		
-		// FIXME: publicOnly is not relevant in this method??
-		
-		// in all other cases: ask the security context
-		if (securityContext.isAllowed(n, Permission.Read)) {
-			nodes.add(n);
+
+		// Next check is only for non-public nodes, because
+		// public nodes are already added one step above.
+		if (publicOnly) {
+
+			n = null;    // help GC
+
 			return;
+
+		}
+
+		// Ask the security context
+		if (securityContext.isAllowed(n, Permission.read)) {
+
+			nodes.add(n);
+
+			return;
+
 		}
 	}
-
-	/** unused
-	 * 
-	 * Create structr nodes from the underlying database nodes
-	 *
-	 * Include only nodes which are readable in the given security context.
-	 * If includeDeleted is true, include nodes with 'deleted' flag
-	 *
-	 * @param input
-	 * @param user
-	 * @param includeDeleted
-	 * @return
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input, final boolean includeDeleted) throws FrameworkException {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		Principal user                = securityContext.getUser();
-
-		if ((input != null) && input.iterator().hasNext()) {
-
-			for (Node node : input) {
-
-				AbstractNode n                  = createNode(securityContext, node);
-				boolean readableByUser          = ((user instanceof SuperUser) || securityContext.isAllowed(n, Permission.Read));
-				boolean publicUserAndPublicNode = ((user == null) && n.isVisibleToPublicUsers());
-
-				if ((readableByUser || publicUserAndPublicNode) && (includeDeleted ||!n.isDeleted())) {
-
-					nodes.add(n);
-
-				}
-
-			}
-
-		}
-
-		return nodes;
-	}
-	 */
-
-//
-//      /**
-//       * Create structr nodes from the underlying database nodes
-//       *
-//       * If includeDeleted is true, include nodes with 'deleted' flag
-//       *
-//       * @param input
-//       * @param includeDeleted
-//       * @return
-//       */
-//      public List<AbstractNode> createNodes(final Iterable<Node> input, final boolean includeDeleted) {
-//
-//              List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-//
-//              if ((input != null) && input.iterator().hasNext()) {
-//
-//                      for (Node node : input) {
-//
-//                              AbstractNode n = createNode(node);
-//
-//                              if (includeDeleted ||!n.isDeleted()) {
-//                                      nodes.add(n);
-//                              }
-//                      }
-//              }
-//
-//              return nodes;
-//      }
 
 	/**
 	 * Create structr nodes from all given underlying database nodes
@@ -323,80 +289,25 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 		}
 
 		return nodes;
+
 	}
 
-//      @Override
-//      protected void finalize() throws Throwable {
-//          nodeTypeCache.clear();
-//      }
 	@Override
 	public T adapt(Node s) {
 
 		try {
+
 			return ((T) createNode(securityContext, s));
+
 		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to adapt node", fex);
+
 		}
 
 		return null;
-	}
 
-//	public AbstractNode createNode(final SecurityContext securityContext, final NodeDataContainer data) throws FrameworkException {
-//
-//		if (data == null) {
-//
-//			logger.log(Level.SEVERE, "Could not create node: Empty data container.");
-//
-//			return null;
-//
-//		}
-//
-//		Map properties       = data.getProperties();
-//		String nodeType      = properties.containsKey(AbstractNode.Key.type.name())
-//				       ? (String) properties.get(AbstractNode.Key.type.name())
-//				       : null;
-//		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
-//		AbstractNode newNode = null;
-//
-//		if (nodeClass != null) {
-//
-//			try {
-//				newNode = (AbstractNode) nodeClass.newInstance();
-//			} catch (Throwable t) {
-//				newNode = null;
-//			}
-//
-//		}
-//
-//		if (newNode == null) {
-//
-//			newNode = new GenericNode();
-//
-//		}
-//
-//		newNode.init(securityContext, data);
-//		newNode.commit(null);
-//		newNode.onNodeInstantiation();
-//
-//		if (data instanceof FileNodeDataContainer) {
-//
-//			FileNodeDataContainer container = (FileNodeDataContainer) data;
-//			File fileNode                   = (File) newNode;
-//			String relativeFilePath         = newNode.getId() + "_" + System.currentTimeMillis();
-//			String path                     = Services.getFilesPath() + "/" + relativeFilePath;
-//
-//			// rename temporary file to new location etc.
-//			if (container.persistTemporaryFile(path)) {
-//
-//				fileNode.setSize(container.getFileSize());
-//				fileNode.setRelativeFilePath(relativeFilePath);
-//
-//			}
-//
-//		}
-//
-//		return newNode;
-//	}
+	}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -407,9 +318,10 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 		for (AbstractRelationship rel : locationNode.getRelationships(RelType.IS_AT, Direction.INCOMING)) {
 
 			nodes.add(rel.getStartNode());
-
 		}
 
 		return nodes;
+
 	}
+
 }

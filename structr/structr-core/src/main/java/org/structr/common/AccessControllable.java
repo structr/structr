@@ -45,7 +45,7 @@ public interface AccessControllable {
 	 * @param principal
 	 * @return whether the principal has the given permissions
 	 */
-	public boolean hasPermission(final String permission, final Principal principal);
+	public boolean isGranted(final Permission permission, final Principal principal);
 
 	/**
 	 * Return the (cached) incoming relationship between this node and the

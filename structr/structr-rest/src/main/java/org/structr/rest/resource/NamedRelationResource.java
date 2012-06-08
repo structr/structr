@@ -26,7 +26,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PropertyNotFoundToken;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -78,7 +80,7 @@ public class NamedRelationResource extends WrappingResource {
 
 		} else {
 
-			// fetch all relationships of a specific type and return them
+			// fetch all relationships of a specific combinedType and return them
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 			searchAttributes.add(Search.andRelType(namedRelation));
 			
@@ -95,7 +97,7 @@ public class NamedRelationResource extends WrappingResource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		// create new relationship of specified type here
+		// create new relationship of specified combinedType here
 
 		AbstractRelationship relationshipEntity = namedRelation.newEntityClass();
 		if(relationshipEntity != null) {
@@ -108,11 +110,19 @@ public class NamedRelationResource extends WrappingResource {
 			AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
 			RelationshipType relType = namedRelation.getRelType();
 
+			if(startNode == null) {
+				throw new FrameworkException(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getStartNodeIdKey().name()));
+			}
+			
+			if(endNode == null) {
+				throw new FrameworkException(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getEndNodeIdKey().name()));
+			}
+			
 			Class sourceType = namedRelation.getSourceType();
 			Class destType = namedRelation.getDestType();
 
 
-			propertySet.put(AbstractRelationship.HiddenKey.type.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
+			propertySet.put(AbstractRelationship.HiddenKey.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
 
 			// create new relationship with startNode, endNode, relType and propertySet
 			AbstractRelationship newRel = (AbstractRelationship)createRel.execute(startNode, endNode, relType, propertySet, false);

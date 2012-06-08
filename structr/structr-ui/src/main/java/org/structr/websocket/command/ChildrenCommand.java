@@ -52,6 +52,11 @@ public class ChildrenCommand extends AbstractCommand {
 		String pageId               = (String) webSocketData.getNodeData().get("pageId");
 		String componentId              = (String) webSocketData.getNodeData().get("componentId");
 		AbstractNode node               = getNode(webSocketData.getId());
+		
+		if (node == null) {
+			return;
+		}
+		
 		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
 		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
 		Set<String> nodesWithChildren   = new HashSet<String>();

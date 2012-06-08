@@ -76,9 +76,9 @@ public class SecurityContextTest extends TestCase {
 		*/
 
 
-		AccessControllable publicNode =		new MockAccessControllable( true, false,  true, AbstractRelationship.Permission.read.name());
-		AccessControllable privateNode =	new MockAccessControllable(false,  true,  true, AbstractRelationship.Permission.read.name());
-		AccessControllable publicHiddenNode =	new MockAccessControllable( true,  true,  true, AbstractRelationship.Permission.read.name());
+		AccessControllable publicNode =		new MockAccessControllable( true, false,  true, Permission.read.name());
+		AccessControllable privateNode =	new MockAccessControllable(false,  true,  true, Permission.read.name());
+		AccessControllable publicHiddenNode =	new MockAccessControllable( true,  true,  true, Permission.read.name());
 
 
 		assertTrue(frontendUserSecurityContext.isVisible(publicNode));
@@ -122,10 +122,10 @@ public class SecurityContextTest extends TestCase {
 		}
 
 		@Override
-		public boolean hasPermission(String permission, Principal principal) {
+		public boolean isGranted(Permission permission, Principal principal) {
 
-			if(principal == null) {
-				return(false);
+			if (principal == null) {
+				return false;
 			}
 
 			if (principal instanceof SuperUser) {
@@ -133,9 +133,9 @@ public class SecurityContextTest extends TestCase {
 			}
 
 			// check preset permissions
-			for(String presetPermission : permissions) {
-				if(presetPermission.equals(permission)) {
-					return(true);
+			for (String presetPermission : permissions) {
+				if (presetPermission.equals(permission.name())) {
+					return true;
 				}
 			}
 
@@ -187,5 +187,6 @@ public class SecurityContextTest extends TestCase {
 		public Date getLastModifiedDate() {
 			return(null);
 		}
+
 	}
 }

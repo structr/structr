@@ -157,7 +157,7 @@ public class RelationClass {
 
 								Class destType = finalTargetNode.getClass();
 
-								// delete previous relationships to nodes of the same destination type and direction
+								// delete previous relationships to nodes of the same destination combinedType and direction
 								List<AbstractRelationship> rels = finalSourceNode.getRelationships(relType, direction);
 
 								for (AbstractRelationship rel : rels) {
@@ -182,7 +182,7 @@ public class RelationClass {
 								Class sourceType = finalSourceNode.getClass();
 
 								// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
-								// of the same type incoming to the target node
+								// of the same combinedType incoming to the target node
 								List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
 
 								for (AbstractRelationship rel : rels) {
@@ -260,7 +260,7 @@ public class RelationClass {
 
 							String destType = finalTargetNode.getType();
 
-							// delete previous relationships to nodes of the same destination type and direction
+							// delete previous relationships to nodes of the same destination combinedType and direction
 							List<AbstractRelationship> rels = sourceNode.getRelationships(relType, direction);
 
 							for (AbstractRelationship rel : rels) {
@@ -280,7 +280,7 @@ public class RelationClass {
 						case OneToMany : {
 
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
-							// of the same type incoming to the target node
+							// of the same combinedType incoming to the target node
 							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
 
 							for (AbstractRelationship rel : rels) {
@@ -296,7 +296,7 @@ public class RelationClass {
 
 						case ManyToMany : {
 
-							// In this case, remove exact the relationship of the given type
+							// In this case, remove exact the relationship of the given combinedType
 							// between source and target node
 							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.BOTH);
 
@@ -394,7 +394,7 @@ public class RelationClass {
 
 		if (cardinality.equals(Cardinality.OneToMany) || cardinality.equals(Cardinality.ManyToMany)) {
 
-			// return getTraversalResults(securityContext, node, StringUtils.toCamelCase(type));
+			// return getTraversalResults(securityContext, node, StringUtils.toCamelCase(combinedType));
 			return getTraversalResults(securityContext, node);
 		} else {
 

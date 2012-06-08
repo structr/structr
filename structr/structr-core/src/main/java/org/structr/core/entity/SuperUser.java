@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-import java.util.Collections;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -29,7 +28,9 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,7 +57,7 @@ public class SuperUser implements Principal {
 		return -1L;
 	}
 
-	@Override
+//	@Override
 	public String getRealName() {
 		return "Super User";
 	}
@@ -71,22 +72,22 @@ public class SuperUser implements Principal {
 		return null;
 	}
 
-	@Override
+//	@Override
 	public Object getPropertyForIndexing(String key) {
 		return null;
 	}
 
-	@Override
+//	@Override
 	public String getPassword() {
 		return null;
 	}
 
-	@Override
+//	@Override
 	public String getConfirmationKey() {
 		return null;
 	}
 
-	@Override
+//	@Override
 	public String getSessionId() {
 		return null;
 	}
@@ -166,12 +167,12 @@ public class SuperUser implements Principal {
 		return false;
 	}
 
-	@Override
+//	@Override
 	public boolean isFrontendUser() {
 		return (true);
 	}
 
-	@Override
+//	@Override
 	public boolean isBackendUser() {
 		return (true);
 	}
@@ -183,13 +184,13 @@ public class SuperUser implements Principal {
 
 	//~--- set methods ----------------------------------------------------
 
-	@Override
+//	@Override
 	public void setPassword(final String passwordValue) {
 
 		// not supported
 	}
 
-	@Override
+//	@Override
 	public void setRealName(final String realName) {
 
 		// not supported
@@ -201,13 +202,13 @@ public class SuperUser implements Principal {
 		// not supported
 	}
 
-	@Override
+//	@Override
 	public void setConfirmationKey(String value) throws FrameworkException {}
 
-	@Override
+//	@Override
 	public void setFrontendUser(boolean isFrontendUser) throws FrameworkException {}
 
-	@Override
+//	@Override
 	public void setBackendUser(boolean isBackendUser) throws FrameworkException {}
 
 	@Override
@@ -215,4 +216,19 @@ public class SuperUser implements Principal {
 
 	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
+
+	@Override
+	public List<Principal> getParents() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void grant(Permission permission, AccessControllable obj) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void revoke(Permission permission, AccessControllable obj) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

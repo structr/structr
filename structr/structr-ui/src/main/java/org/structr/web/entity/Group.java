@@ -21,14 +21,14 @@
 
 package org.structr.web.entity;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.neo4j.graphdb.Direction;
-
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass.Cardinality;
 
@@ -51,6 +51,48 @@ public class Group extends AbstractNode implements Principal {
 
 	}
 
+	@Override
+	public String getEncryptedPassword() {
+		// A group has no password
+		return null;
+	}
+
+	@Override
+	public List<Principal> getParents() {
+		
+		List<Principal> parents = new LinkedList<Principal>();
+		
+		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
+		
+		for (AbstractRelationship rel : parentRels) {
+			
+			AbstractNode node = rel.getEndNode();
+			
+			if (node instanceof Principal) {
+				
+				parents.add((Principal) node);
+				
+			}
+
+		}
+		
+		return parents;
+	}
+
+	@Override
+	public void grant(Permission permission, AccessControllable obj) {
+		
+		obj.getSecurityRelationship(this).addPermission(permission);
+		
+	}
+
+	@Override
+	public void revoke(Permission permission, AccessControllable obj) {
+		
+		obj.getSecurityRelationship(this).removePermission(permission);
+		
+	}
+
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey {}
@@ -67,114 +109,23 @@ public class Group extends AbstractNode implements Principal {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public String getEncryptedPassword() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public Object getPropertyForIndexing(String key) {
-
-		return getProperty(key);
-
-	}
-
-	@Override
-	public String getPassword() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public String getRealName() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public String getConfirmationKey() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
 	public Boolean getBlocked() {
 
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public String getSessionId() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
+		return (Boolean) getProperty(Principal.Key.blocked);
 
 	}
 
 	@Override
 	public Boolean isBlocked() {
 
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public boolean isBackendUser() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public boolean isFrontendUser() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
+		return getBlocked();
 
 	}
 
 	//~--- set methods ----------------------------------------------------
 
 	@Override
-	public void setPassword(String passwordValue) throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public void setRealName(String realName) throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
 	public void setBlocked(Boolean blocked) throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public void setConfirmationKey(String value) throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public void setFrontendUser(boolean isFrontendUser) throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public void setBackendUser(boolean isBackendUser) throws FrameworkException {
 
 		throw new UnsupportedOperationException("Not supported yet.");
 

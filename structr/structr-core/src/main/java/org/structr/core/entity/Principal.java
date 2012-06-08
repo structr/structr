@@ -21,9 +21,15 @@
 
 package org.structr.core.entity;
 
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.List;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -34,47 +40,30 @@ import org.structr.core.GraphObject;
  */
 public interface Principal extends GraphObject {
 
-	public enum Key implements PropertyKey { sessionId, groups }
+	public enum Key implements PropertyKey{ sessionId, groups, blocked }
 
-	public enum UserIndexKey implements PropertyKey{ name, email; }
+	//public enum UserIndexKey implements PropertyKey{ name, email; }
 
 	//~--- methods --------------------------------------------------------
 
 	public void block() throws FrameworkException;
 
+	public void grant(final Permission permission, final AccessControllable obj);
+
+	public void revoke(final Permission permission, final AccessControllable obj);
+
 	//~--- get methods ----------------------------------------------------
+
+	public List<Principal> getParents();
 
 	public String getEncryptedPassword();
 
-	public Object getPropertyForIndexing(final String key);
-
-	public String getPassword();
-
-	public String getRealName();
-
-	public String getConfirmationKey();
-
 	public Boolean getBlocked();
-
-	public String getSessionId();
 
 	public Boolean isBlocked();
 
-	public boolean isBackendUser();
-
-	public boolean isFrontendUser();
-	
 	//~--- set methods ----------------------------------------------------
-
-	public void setPassword(final String passwordValue) throws FrameworkException;
-
-	public void setRealName(final String realName) throws FrameworkException;
 
 	public void setBlocked(final Boolean blocked) throws FrameworkException;
 
-	public void setConfirmationKey(final String value) throws FrameworkException;
-
-	public void setFrontendUser(final boolean isFrontendUser) throws FrameworkException;
-
-	public void setBackendUser(final boolean isBackendUser) throws FrameworkException;
 }

@@ -322,6 +322,9 @@ public class JsonRestServlet extends HttpServlet {
 			// commit response
 			if (result != null) {
 
+				// store property view that will be used to render the results
+				result.setPropertyView(propertyView.get());
+				
 				// allow resource to modify result set
 				resource.postProcessResultSet(result);
 				
@@ -1061,7 +1064,7 @@ public class JsonRestServlet extends HttpServlet {
 
 	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
+		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Backend);
 		
 		// let module-specific authenticator examine the request first
 		securityContext.initializeAndExamineRequest(request, response);

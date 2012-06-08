@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -17,26 +17,18 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.core.module;
 
 /**
- * A type-safe enumeration of structr's node access privileges
  *
  * @author Christian Morgner
  */
-public enum Permission implements PropertyKey {
+public class GetModuleServiceCommand extends ModuleServiceCommand
+{
+	@Override
+	public Object execute(Object... parameters)
+	{
+		return (ModuleService)getArgument("moduleService");
+	}
 
-	backendAccess, frontendAccess,
-	
-	showTree,
-
-	read, write, execute,
-
-	createNode, deleteNode,
-
-	editProperty,
-
-	createRelationship, deleteRelationship,
-
-	accessControl;
 }

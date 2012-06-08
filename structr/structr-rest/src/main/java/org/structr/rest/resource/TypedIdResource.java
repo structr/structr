@@ -7,10 +7,12 @@ package org.structr.rest.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.RestMethodResult;
@@ -79,11 +81,11 @@ public class TypedIdResource extends FilterableResource {
 	public AbstractNode getTypesafeNode() throws FrameworkException {
 		
 		AbstractNode node = idResource.getNode();
-//		String type = typeResource.getType();
+		String type = EntityContext.normalizeEntityName(typeResource.getRawType());
 
-		// logger.log(Level.INFO, "type from TypeResource: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
+		logger.log(Level.INFO, "type from TypeResource: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
 		
-		if(node != null) { //  && type.equalsIgnoreCase(node.getType())) {
+		if(node != null && type.equalsIgnoreCase(node.getType())) {
 			return node;
 		}
 

@@ -83,6 +83,9 @@ public class EntityContext {
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
 
+	// This map contains view-dependent result set transformations
+	private static final Map<Class, Map<String, Transformation<List<? extends GraphObject>>>> viewTransformations = new LinkedHashMap<Class, Map<String, Transformation<List<? extends GraphObject>>>>();
+	
 	// This set contains all known properties
 	private static final Set<String> globalKnownPropertyKeys                                                = new LinkedHashSet<String>();
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
@@ -96,6 +99,8 @@ public class EntityContext {
 	private static final Map<Long, FrameworkException> exceptionMap                                         = new LinkedHashMap<Long, FrameworkException>();
 	private static final Map<Thread, SecurityContext> securityContextMap                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
 	private static final Map<Thread, Long> transactionKeyMap                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
+	private static final Map<Class, Set<Class>> interfaceMap                                                = new LinkedHashMap<Class, Set<Class>>();
+
 	private static Map<String, Class> cachedEntities                                                        = new LinkedHashMap<String, Class>();
 
 	//~--- methods --------------------------------------------------------
@@ -136,6 +141,10 @@ public class EntityContext {
 
 			}
 
+			// include property sets from interfaces
+			for(Class interfaceClass : getInterfacesForType(type)) {
+				searchablePropertySet.addAll(getSearchableProperties(interfaceClass, indexName));
+			}
 		}
 	}
 
@@ -280,6 +289,11 @@ public class EntityContext {
 			superClass = superClass.getSuperclass();
 
 		}
+		
+		// include property sets from interfaces
+		for(Class interfaceClass : getInterfacesForType(type)) {
+			properties.addAll(getPropertySet(interfaceClass, propertyView));
+		}
 	}
 
 	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, String[] propertySet) {
@@ -307,6 +321,12 @@ public class EntityContext {
 			superClass = superClass.getSuperclass();
 
 		}
+		
+		// include property sets from interfaces
+		for(Class interfaceClass : getInterfacesForType(type)) {
+			properties.addAll(getPropertySet(interfaceClass, propertyView));
+		}
+		
 	}
 
 	public static void clearPropertySet(Class type, String propertyView) {
@@ -689,6 +709,19 @@ public class EntityContext {
 		while ((relation == null) &&!localType.equals(Object.class)) {
 
 			relation  = getRelationClassMapForType(localType).get(destType);
+			
+			if(relation == null) {
+				
+				// try interfaces as well
+				for(Class interfaceClass : getInterfacesForType(localType)) {
+					
+					relation = getRelationClassMapForType(interfaceClass).get(destType);
+					if(relation != null) {
+						break;
+					}
+				}
+			}
+			
 			localType = localType.getSuperclass();
 
 		}
@@ -733,9 +766,44 @@ public class EntityContext {
 			localType = localType.getSuperclass();
 
 		}
+		
+		// try interfaces classes
+		if (relation == null) {
+		
+			for(Class interfaceClass : getInterfacesForType(sourceType)) {
+				
+				relation  = getPropertyRelationshipMapForType(interfaceClass).get(propertyKey);
+				
+				if(relation != null) {
+					
+					return relation;
+				}
+			}
+		}
 
 		return relation;
 	}
+	
+	// ----- view transformations -----
+	public static void registerViewTransformation(Class type, String view, Transformation<List<? extends GraphObject>> transformation) {
+		getViewTransformationMapForType(type).put(view, transformation);
+	}
+	
+	public static Transformation<List<? extends GraphObject>> getViewTransformation(Class type, String view) {
+		return getViewTransformationMapForType(type).get(view);
+	}
+	
+	private static Map<String, Transformation<List<? extends GraphObject>>> getViewTransformationMapForType(Class type) {
+		
+		Map<String, Transformation<List<? extends GraphObject>>> viewTransformationMap = viewTransformations.get(type);
+		if(viewTransformationMap == null) {
+			viewTransformationMap = new LinkedHashMap<String, Transformation<List<? extends GraphObject>>>();
+			viewTransformations.put(type, viewTransformationMap);
+		}
+		
+		return viewTransformationMap;
+	}
+	
 
 	// ----- property set methods -----
 	public static Set<String> getPropertySet(Class type, String propertyView) {
@@ -748,20 +816,24 @@ public class EntityContext {
 			propertySet = new LinkedHashSet<String>();
 
 			propertyViewMap.put(propertyView, propertySet);
+		}
+		
+		// add property set from interfaces
+		for(Class interfaceClass : getInterfacesForType(type)) {
+			propertySet.addAll(getPropertySet(interfaceClass, propertyView));
+		}
 
-			// test: fill property set with values from supertypes
-			Class superClass = type.getSuperclass();
+		// test: fill property set with values from supertypes
+		Class superClass = type.getSuperclass();
 
-			while ((superClass != null) &&!superClass.equals(Object.class)) {
+		while ((superClass != null) &&!superClass.equals(Object.class)) {
 
-				Set<String> superProperties = getPropertySet(superClass, propertyView);
+			Set<String> superProperties = getPropertySet(superClass, propertyView);
 
-				propertySet.addAll(superProperties);
+			propertySet.addAll(superProperties);
 
-				// one level up :)
-				superClass = superClass.getSuperclass();
-
-			}
+			// one level up :)
+			superClass = superClass.getSuperclass();
 
 		}
 
@@ -770,20 +842,32 @@ public class EntityContext {
 
 	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, String propertyKey) {
 
+		Set<PropertyValidator> validators                = new LinkedHashSet<PropertyValidator>();
 		Map<String, Set<PropertyValidator>> validatorMap = null;
-		Set<PropertyValidator> validators                = null;
 		Class localType                                  = type;
 
 		// try all superclasses
-		while ((validators == null) &&!localType.equals(Object.class)) {
+		while (!localType.equals(Object.class)) {
 
 			validatorMap = getPropertyValidatorMapForType(localType);
-			validators   = validatorMap.get(propertyKey);
+			
+			Set<PropertyValidator> classValidators = validatorMap.get(propertyKey);
+			if(classValidators != null) {
+				validators.addAll(validatorMap.get(propertyKey));
+			}
 
 //                      logger.log(Level.INFO, "Validator class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			// one level up :)
 			localType = localType.getSuperclass();
 
+		}
+		
+		// try converters from interfaces as well
+		for(Class interfaceClass : getInterfacesForType(type)) {
+			Set<PropertyValidator> interfaceValidators = getPropertyValidatorMapForType(interfaceClass).get(propertyKey);
+			if(interfaceValidators != null) {
+				validators.addAll(interfaceValidators);
+			}
 		}
 
 		return validators;
@@ -800,6 +884,17 @@ public class EntityContext {
 
 			converterMap = getPropertyConverterMapForType(localType);
 			clazz        = converterMap.get(propertyKey);
+		
+			// try converters from interfaces as well
+			if(clazz == null) {
+
+				for(Class interfaceClass : getInterfacesForType(type)) {
+					clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
+					if(clazz != null) {
+						break;
+					}
+				}
+			}
 
 //                      logger.log(Level.INFO, "Converter class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			localType = localType.getSuperclass();
@@ -837,6 +932,17 @@ public class EntityContext {
 //                      logger.log(Level.INFO, "Conversion parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
 			localType = localType.getSuperclass();
 
+		}
+		
+		// try parameters from interfaces as well
+		if(value == null) {
+			
+			for(Class interfaceClass : getInterfacesForType(type)) {
+				value = getPropertyConversionParameterMapForType(interfaceClass).get(propertyKey);
+				if(value != null) {
+					break;
+				}
+			}
 		}
 
 		return value;
@@ -1038,7 +1144,21 @@ public class EntityContext {
 
 		return transformations;
 	}
-
+	
+	private static Set<Class> getInterfacesForType(Class type) {
+		
+		Set<Class> interfaces = interfaceMap.get(type);
+		if(interfaces == null) {
+			
+			interfaces = new LinkedHashSet<Class>();
+			interfaceMap.put(type, interfaces);
+			
+			interfaces.addAll(Arrays.asList(type.getInterfaces()));
+		}
+		
+		return interfaces;
+	}
+	
 	public static EntityContextModificationListener getTransactionEventHandler() {
 		return globalModificationListener;
 	}
@@ -1064,6 +1184,18 @@ public class EntityContext {
 			// one level up :)
 			localType = localType.getSuperclass();
 
+		}
+		
+		if(!isReadOnly) {
+			
+			for(Class interfaceClass : getInterfacesForType(type)) {
+
+				if (getReadOnlyPropertySetForType(interfaceClass).contains(key)) {
+					return true;
+				}
+				
+				
+			}
 		}
 
 		return isReadOnly;
@@ -1094,6 +1226,18 @@ public class EntityContext {
 			// one level up :)
 			localType = localType.getSuperclass();
 
+		}
+		
+		if(!isWriteOnce) {
+			
+			for(Class interfaceClass : getInterfacesForType(type)) {
+
+				if (getWriteOncePropertySetForType(interfaceClass).contains(key)) {
+					return true;
+				}
+				
+				
+			}
 		}
 
 		return isWriteOnce;
@@ -1317,11 +1461,9 @@ public class EntityContext {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
 
-					} else {
-
-						indexNodeCommand.execute(node);
-
 					}
+					
+					indexNodeCommand.execute(node);
 				}
 
 				for (AbstractRelationship rel : modifiedRels) {

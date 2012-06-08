@@ -25,7 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.agent.RebuildIndexTask;
-import org.structr.core.node.BulkSetPropertiesCommand;
+import org.structr.core.node.BulkSetNodePropertiesCommand;
 import org.structr.core.node.ClearDatabase;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.node.BulkCopyRelationshipPropertyCommand;
+import org.structr.core.node.BulkSetRelationshipPropertiesCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -54,7 +56,9 @@ public class MaintenanceParameterResource extends Resource {
 
 		maintenanceCommandMap.put("rebuildIndex", RebuildIndexTask.class);
 		maintenanceCommandMap.put("clearDatabase", ClearDatabase.class);
-		maintenanceCommandMap.put("setProperties", BulkSetPropertiesCommand.class);
+		maintenanceCommandMap.put("setNodeProperties", BulkSetNodePropertiesCommand.class);
+		maintenanceCommandMap.put("setRelationshipProperties", BulkSetRelationshipPropertiesCommand.class);
+		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
 
 	}
 

@@ -39,23 +39,24 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * This command takes a property set as parameter.
  * 
- * Sets the properties found in the property set on all nodes matching the type.
- * If no type property is found, set the properties on all nodes.
+ * Sets the properties found in the property set on all relationships matching the type.
+ * If no type property is found, set the properties on all relationships.
  *
  * @author Axel Morgner
  */
-public class BulkSetPropertiesCommand extends NodeServiceCommand {
+public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkSetPropertiesCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(BulkSetRelationshipPropertiesCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -63,8 +64,8 @@ public class BulkSetPropertiesCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		final NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
-                final Command searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+		final RelationshipFactory relationshipFactory      = (RelationshipFactory) arguments.get("relationshipFactory");
+                final Command searchRel = Services.command(SecurityContext.getSuperUserInstance(), SearchRelationshipCommand.class);
                 
                 if (!((parameters != null) && (parameters.length == 1) && (parameters[0] instanceof Map) && !((Map) parameters[0]).isEmpty())) {
                         
@@ -84,39 +85,38 @@ public class BulkSetPropertiesCommand extends NodeServiceCommand {
 				public Object execute(Transaction tx) throws FrameworkException {
 
 					long n                  = 0L;
-                                        List<AbstractNode> nodes = null;
+                                        List<AbstractRelationship> rels = null;
                                         
-                                        if (properties.containsKey(AbstractNode.Key.type.name())) {
+                                        if (properties.containsKey(AbstractRelationship.HiddenKey.combinedType.name())) {
                                                 
                                                 List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-                                                attrs.add(Search.andExactType((String) properties.get(AbstractNode.Key.type.name())));
+                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.HiddenKey.combinedType.name())));
                                                 
-                                                nodes = (List<AbstractNode>) searchNode.execute(null, false, false, attrs);
-                                                properties.remove(AbstractNode.Key.type.name());
+                                                rels = (List<AbstractRelationship>) searchRel.execute(attrs);
+                                                properties.remove(AbstractRelationship.HiddenKey.combinedType.name());
                                                 
                                         } else {
                                         
-                                                nodes = (List<AbstractNode>) nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
+                                                rels = (List<AbstractRelationship>) relationshipFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
                                         }
 
-					for (AbstractNode node : nodes) {
+					for (AbstractRelationship rel : rels) {
 
 						// Treat only "our" nodes
-						if (node.getStringProperty(AbstractNode.Key.uuid) != null) {
+						if (rel.getStringProperty(AbstractRelationship.Key.uuid) != null) {
 
 							for (Entry entry : properties.entrySet()) {
                                                                 
                                                                 String key = (String) entry.getKey();
                                                                 Object val = entry.getValue();
                                                                 
-								node.unlockReadOnlyPropertiesOnce();
-                                                                node.setProperty(key, val);
+                                                                rel.setProperty(key, val);
                                                                 
                                                         }
 
 							if (n > 1000 && n % 1000 == 0) {
 
-								logger.log(Level.INFO, "Set properties on {0} nodes, committing results to database.", n);
+								logger.log(Level.INFO, "Set properties on {0} relationships, committing results to database.", n);
 								tx.success();
 								tx.finish();
 
@@ -131,7 +131,7 @@ public class BulkSetPropertiesCommand extends NodeServiceCommand {
 						}
 					}
                                         
-                                        logger.log(Level.INFO, "Finished setting properties on {0} nodes", n);
+                                        logger.log(Level.INFO, "Finished setting properties on {0} relationships", n);
 
 					return null;
 				}
