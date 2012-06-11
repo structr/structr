@@ -68,7 +68,9 @@ public class TestNodeCommand extends NodeServiceCommand
 									newNode.setProperty("type", "PlainText");
 
 									AbstractNode newStructrNode = nodeFactory.createNode(securityContext, newNode);
-									nodeList.add(newStructrNode);
+									if(newStructrNode != null) {
+										nodeList.add(newStructrNode);
+									}
 
 								} else if("del".equals(cmd))
 								{

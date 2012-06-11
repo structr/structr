@@ -60,7 +60,11 @@ public class NodeFactoryCommand extends NodeServiceCommand {
                             logger.log(Level.WARNING, "Unknown parameter of type {0}", o.getClass().getName());
                             return null;
                         }
-                        collection.add(nodeFactory.createNode(securityContext, node));
+			
+			AbstractNode abstractNode = nodeFactory.createNode(securityContext, node);
+			if(abstractNode != null) {
+				collection.add(abstractNode);
+			}
                     }
 
                     ret = collection;

@@ -99,12 +99,15 @@ public class TraversingConverter extends PropertyConverter {
 		Iterable<Node> nodes = traversalDescription.traverse(node.getNode()).nodes();
 
 		// collect results and convert nodes into structr nodes
-		NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
+		NodeFactory nodeFactory = new NodeFactory<AbstractNode>();
 		List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 
 		for(Node n : nodes) {
 			String type = n.hasProperty(AbstractNode.Key.type.name()) ? (String)n.getProperty(AbstractNode.Key.type.name()) : "GenericNode";
-			nodeList.add(nodeFactory.createNode(securityContext, n, type));
+			AbstractNode abstractNode = nodeFactory.createNode(securityContext, n, type);
+			if(abstractNode != null) {
+				nodeList.add(abstractNode);
+			}
 		}
 
 		// apply comparator

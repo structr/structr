@@ -185,8 +185,8 @@ public class RelationshipFollowingResource extends SortableResource implements E
 
 		if (path != null) {
 
-			NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
-			List<GraphObject> nodeList     = new LinkedList<GraphObject>();
+			NodeFactory nodeFactory     = new NodeFactory<AbstractNode>();
+			List<GraphObject> nodeList  = new LinkedList<GraphObject>();
 
 			// traverse path to force evaluation
 			for (Node node : path.nodes()) {

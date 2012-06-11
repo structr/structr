@@ -1,9 +1,6 @@
 package org.structr.core.converter;
 
-import java.util.Iterator;
-import java.util.List;
-import org.structr.common.PropertyKey;
-import org.structr.core.IterableAdapter;
+import java.util.Collection;
 import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
@@ -22,27 +19,36 @@ public class ResultCountConverter extends PropertyConverter {
 	@Override
 	public Object convertForGetter(Object source, Value value) {
 		
-		Object result = this.currentObject.getProperty((((PropertyKey)value.get()).name()));
+		int count = 0;
 		
-		if (result == null) return 0;
-		
-		if (result instanceof List) {
-			return ((List) result).size();
-		}
-		
-		if (result instanceof IterableAdapter) {
+		if(currentObject != null && value != null) {
 			
-			int count = 0;
-			Iterator it = ((IterableAdapter) result).iterator();
+			Object val = value.get();
 			
-			while (it.hasNext()) {
-				it.next();
-				count++;
+			if(val != null) {
+				
+				Object toCount = currentObject.getProperty(val.toString());
+				if(toCount != null) {
+
+					if (toCount instanceof Collection) {
+
+						count = ((Collection)toCount).size();
+
+					} else if (toCount instanceof Iterable) {
+
+						for(Object o : ((Iterable)toCount)) {
+							count++;
+						}
+
+					} else {
+
+						// a single object
+						count = 1;
+					}
+				}
 			}
-			
-			return count;
 		}
 		
-		return 1;
+		return count;
 	}
 }

@@ -401,6 +401,12 @@ public class StaticRelationshipResource extends SortableResource {
 						// the source node to it. (this is the "old" implementation)
 						AbstractNode otherNode = typeResource.createNode(propertySet);
 
+						// FIXME: this prevents post creation transformations from working
+						// properly if they rely on an already existing relationship when
+						// the transformation runs.
+						
+						// TODO: we need to find a way to notify the listener at the end of the
+						// transaction, when all entities and relationships are created!
 						if (otherNode != null) {
 
 							rel.createRelationship(securityContext, sourceNode, otherNode);

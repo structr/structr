@@ -86,6 +86,6 @@ public class SortResource extends WrappingResource {
 
         @Override
         public String getResourceSignature() {
-                return getUriPart();
+                return wrappedResource.getResourceSignature();
         }
 }

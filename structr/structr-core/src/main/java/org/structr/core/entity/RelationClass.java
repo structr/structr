@@ -432,7 +432,7 @@ public class RelationClass {
 	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
 
 		// final Class realType              = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-		final NodeFactory nodeFactory     = new NodeFactory<AbstractNode>(securityContext);
+		final NodeFactory nodeFactory     = new NodeFactory<AbstractNode>();
 		final List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 
 		// use traverser
@@ -451,29 +451,30 @@ public class RelationClass {
 						// index node in this case), but continue
 						// traversal
 						return Evaluation.EXCLUDE_AND_CONTINUE;
+						
 					} else {
 
 						try {
-
 							AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
+							if(abstractNode != null) {
 
-							// use inheritance
-							if ((destType != null) && destType.isAssignableFrom(abstractNode.getClass())) {
+								// use inheritance
+								if ((destType != null) && destType.isAssignableFrom(abstractNode.getClass())) {
 
-								nodeList.add(abstractNode);
+									nodeList.add(abstractNode);
 
-								return Evaluation.INCLUDE_AND_CONTINUE;
+									return Evaluation.INCLUDE_AND_CONTINUE;
 
-							} else {
+								} else {
 
-								return Evaluation.EXCLUDE_AND_CONTINUE;
+									return Evaluation.EXCLUDE_AND_CONTINUE;
 
+								}
 							}
-
-						} catch (FrameworkException fex) {
-							logger.log(Level.WARNING, "Unable to instantiate node", fex);
+							
+						} catch(FrameworkException fex) {
+							logger.log(Level.WARNING, "Unable to instaniate node: {0}", fex.getMessage());
 						}
-
 					}
 
 				}

@@ -21,10 +21,14 @@
 
 package org.structr.common;
 
+import java.util.Collections;
 import org.structr.core.GraphObject;
 import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -33,7 +37,7 @@ import org.structr.core.entity.AbstractNode;
  *
  * @author axel
  */
-public class GraphObjectComparator implements Comparator<GraphObject> {
+public class GraphObjectComparator implements Comparator<GraphObject>, Transformation<List<? extends GraphObject>> {
 
 	public static final String ASCENDING  = "asc";
 	public static final String DESCENDING = "desc";
@@ -110,5 +114,15 @@ public class GraphObjectComparator implements Comparator<GraphObject> {
 		}
 		
 		return 0;
+	}
+
+	@Override
+	public void apply(SecurityContext securityContext, List<? extends GraphObject> obj) throws FrameworkException {
+		Collections.sort(obj, this);
+	}
+
+	@Override
+	public int getOrder() {
+		return 998;
 	}
 }

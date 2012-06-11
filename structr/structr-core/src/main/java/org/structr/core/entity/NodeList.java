@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import java.util.*;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -39,7 +40,6 @@ import org.structr.core.Command;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
 import org.structr.core.EntityContext;
-import org.structr.core.IterableAdapter;
 import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
 import org.structr.core.node.NodeFactory;
@@ -49,12 +49,6 @@ import org.structr.core.node.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -975,8 +969,15 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 	private Iterable<AbstractNode> getNodes() {
 
-		return (new IterableAdapter<Node, AbstractNode>(getRawNodes(), new NodeFactory()));
-
+		try {
+			return new NodeFactory().createNodes(securityContext, getRawNodes());
+			
+		} catch(FrameworkException fex) {
+			
+			logger.log(Level.WARNING, "Unable to instantiate nodes: {0}", fex.getMessage());
+		}
+		
+		return Collections.emptyList();
 	}
 
 	private Iterable<Node> getRawNodes() {
