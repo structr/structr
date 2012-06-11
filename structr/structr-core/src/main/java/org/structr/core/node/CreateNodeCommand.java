@@ -45,6 +45,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -108,47 +109,39 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					    : "GenericNode";
 
 			// Create node with type
-			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
-			
-			if ((user != null) && !(user instanceof SuperUser)) {
-				
-				node.setOwner(user);
+			node = nodeFactory.createNode(SecurityContext.getSuperUserInstance(), graphDb.createNode(), nodeType);
+			if(node != null) {
+				if ((user != null) && !(user instanceof SuperUser)) {
 
-//				RelationClass rel = new RelationClass(null, RelType.OWNS, Direction.OUTGOING, Cardinality.OneToMany, null, RelationClass.DELETE_NONE);
-//
-//				rel.createRelationship(securityContext, user, node);
-//
-////                              createRel.execute(user, node, RelType.OWNS, true); // avoid duplicates
-//				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getStringProperty(AbstractNode.Key.name));
-//
-				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, null, true);    // avoid duplicates
+					node.setOwner(user);
+	//
+					AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, null, true);    // avoid duplicates
 
-				securityRel.setAllowed(Permission.values());
-				logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));
+					securityRel.setAllowed(Permission.values());
+					logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));
+					node.unlockReadOnlyPropertiesOnce();
+					node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
+
+				}
+
 				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
+				node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
+				node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
+				logger.log(Level.FINE, "Node {0} created", node.getId());
 
+				// set type first!!
+				node.setProperty(AbstractNode.Key.type.name(), nodeType);
+				attrs.remove(AbstractNode.Key.type.name());
+
+				for (Entry<String, Object> attr : attrs.entrySet()) {
+
+					Object value = attr.getValue();
+					node.setProperty(attr.getKey(), value);
+
+				}
+
+				attrs.clear();
 			}
-
-			node.unlockReadOnlyPropertiesOnce();
-			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
-			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
-			logger.log(Level.FINE, "Node {0} created", node.getId());
-
-//                      EntityContext.getGlobalModificationListener().newNode(securityContext, node.getId());
-			// set type first!!
-			node.setProperty(AbstractNode.Key.type.name(), nodeType);
-			attrs.remove(AbstractNode.Key.type.name());
-
-			for (Entry<String, Object> attr : attrs.entrySet()) {
-
-				Object value = attr.getValue();
-				node.setProperty(attr.getKey(), value);
-
-			}
-
-			attrs.clear();
-
 
 		}
 

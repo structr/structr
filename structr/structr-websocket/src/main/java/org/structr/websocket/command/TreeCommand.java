@@ -60,10 +60,9 @@ public class TreeCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		AbstractNode rootNode                 = getNode(webSocketData.getId());
-		TraversalDescription localDesc        =
-			Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).expand(new ResourceExpander(rootNode.getStringProperty(AbstractNode.Key.uuid.name())));
-		final NodeFactory factory = new NodeFactory(securityContext);
-		final TreeNode root              = new TreeNode(null);
+		TraversalDescription localDesc        =	Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).expand(new ResourceExpander(rootNode.getStringProperty(AbstractNode.Key.uuid.name())));
+		final NodeFactory factory             = new NodeFactory();
+		final TreeNode root                   = new TreeNode(null);
 
 		localDesc = localDesc.evaluator(new Evaluator() {
 

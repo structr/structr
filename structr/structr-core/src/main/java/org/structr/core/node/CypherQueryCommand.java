@@ -58,7 +58,11 @@ public class CypherQueryCommand extends NodeServiceCommand {
 				for(Object o : IteratorUtil.asIterable(result.columnAs(column))) {
 				
 					if(o instanceof Node) {
-						resultList.add(nodeFactory.createNode(securityContext, (Node)o));
+						
+						AbstractNode node = nodeFactory.createNode(securityContext, (Node)o);
+						if(node != null) {
+							resultList.add(node);
+						}
 					}
 				}
 			}

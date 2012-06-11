@@ -706,38 +706,52 @@ public class EntityContext {
 		RelationClass relation = null;
 		Class localType        = sourceType;
 
-		while ((relation == null) &&!localType.equals(Object.class)) {
+		while ((relation == null) && localType != null && !localType.equals(Object.class)) {
 
 			relation  = getRelationClassMapForType(localType).get(destType);
-			
-			if(relation == null) {
-				
-				// try interfaces as well
-				for(Class interfaceClass : getInterfacesForType(localType)) {
-					
-					relation = getRelationClassMapForType(interfaceClass).get(destType);
-					if(relation != null) {
-						break;
-					}
-				}
-			}
-			
 			localType = localType.getSuperclass();
 
 		}
+		
+		// check source type interfaces after source supertypes!
+		if(relation == null) {
 
+			// try interfaces as well
+			for(Class interfaceClass : getInterfacesForType(sourceType)) {
+
+				relation = getRelationClassMapForType(interfaceClass).get(destType);
+				if(relation != null) {
+					break;
+				}
+			}
+		}
+
+		// Check dest type superclasses
 		if (relation == null) {
 
-			// Check dest type superclasses
 			localType = destType;
 
-			while ((relation == null) &&!localType.equals(Object.class)) {
+			while ((relation == null) && localType != null && !localType.equals(Object.class)) {
 
 				relation  = getRelationClassMapForType(sourceType).get(localType);
 				localType = localType.getSuperclass();
 
 			}
 		}
+		
+		// check dest type interfaces after dest type
+		if(relation == null) {
+
+			// try interfaces as well
+			for(Class interfaceClass : getInterfacesForType(destType)) {
+
+				relation = getRelationClassMapForType(sourceType).get(interfaceClass);
+				if(relation != null) {
+					break;
+				}
+			}
+		}
+			
 
 		return relation;
 	}
@@ -1287,11 +1301,8 @@ public class EntityContext {
 
 			try {
 
-				ErrorBuffer errorBuffer                                     = new ErrorBuffer();
-				boolean hasError                                            = false;
 				Map<Node, Map<String, Object>> removedNodeProperties        = new LinkedHashMap<Node, Map<String, Object>>();
 				Map<Relationship, Map<String, Object>> removedRelProperties = new LinkedHashMap<Relationship, Map<String, Object>>();
-				NodeFactory nodeFactory                                     = new NodeFactory(securityContext);
 				RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
 				Set<AbstractNode> modifiedNodes                             = new LinkedHashSet<AbstractNode>();
 				Set<AbstractNode> createdNodes                              = new LinkedHashSet<AbstractNode>();
@@ -1299,6 +1310,9 @@ public class EntityContext {
 				Set<AbstractRelationship> modifiedRels                      = new LinkedHashSet<AbstractRelationship>();
 				Set<AbstractRelationship> createdRels                       = new LinkedHashSet<AbstractRelationship>();
 				Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
+				ErrorBuffer errorBuffer                                     = new ErrorBuffer();
+				NodeFactory nodeFactory                                     = new NodeFactory();
+				boolean hasError                                            = false;
 
 				// 0: notify listeners of beginning commit
 				begin(securityContext, transactionKey, errorBuffer);
@@ -1321,7 +1335,10 @@ public class EntityContext {
 
 					if (!data.isDeleted(node)) {
 
-						modifiedNodes.add(nodeFactory.createNode(securityContext, node));
+						AbstractNode modifiedNode = nodeFactory.createNode(securityContext, node);
+						if(modifiedNode != null) {
+							modifiedNodes.add(modifiedNode);
+						}
 
 					}
 
@@ -1359,10 +1376,11 @@ public class EntityContext {
 				for (Node node : data.createdNodes()) {
 
 					AbstractNode entity = nodeFactory.createNode(securityContext, node);
-
-					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
-
-					createdNodes.add(entity);
+					if(entity != null) {
+						
+						hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
+						createdNodes.add(entity);
+					}
 
 				}
 
@@ -1402,28 +1420,30 @@ public class EntityContext {
 				for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
 
 					AbstractNode entity = nodeFactory.createNode(securityContext, entry.entity());
-					String key          = entry.key();
-					Object value        = entry.value();
+					if(entity != null) {
+						
+						String key          = entry.key();
+						Object value        = entry.value();
 
-					// iterate over validators
-					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
+						// iterate over validators
+						Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
 
-					if (validators != null) {
+						if (validators != null) {
 
-						for (PropertyValidator validator : validators) {
+							for (PropertyValidator validator : validators) {
 
-							hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+								hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+
+							}
 
 						}
 
+						hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
+
+						// after successful validation, add node to index to make uniqueness constraints work
+						indexNodeCommand.execute(entity, key);
+						modifiedNodes.add(entity);
 					}
-
-					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
-
-					// after successful validation, add node to index to make uniqueness constraints work
-					indexNodeCommand.execute(entity, key);
-					modifiedNodes.add(entity);
-
 				}
 
 				for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {

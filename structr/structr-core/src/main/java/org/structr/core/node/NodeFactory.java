@@ -57,7 +57,7 @@ import java.util.logging.Logger;
  *
  * @author cmorgner
  */
-public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
+public class NodeFactory<T extends AbstractNode> {
 
 	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
 
@@ -65,18 +65,11 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
 	private ThreadLocalCommand getEntityClassCommand = new ThreadLocalCommand(GetEntityClassCommand.class);
 	private Map<Class, Constructor> constructors     = new LinkedHashMap<Class, Constructor>();
-	private SecurityContext securityContext          = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 	public NodeFactory() {}
-
-	public NodeFactory(SecurityContext securityContext) {
-
-		this.securityContext = securityContext;
-
-	}
 
 	//~--- methods --------------------------------------------------------
 
@@ -141,7 +134,16 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 		newNode.init(securityContext, node);
 		newNode.onNodeInstantiation();
 
-		return newNode;
+		// check access
+		boolean includeDeleted = false;
+		boolean publicOnly     = false;
+		
+		if (isReadable(securityContext, newNode, includeDeleted, publicOnly)) {
+			
+			return newNode;
+		}
+		
+		return null;
 	}
 
 	/**
@@ -171,12 +173,15 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 				for (Node node : input) {
 
 					AbstractNode n = createNode(securityContext, graphDb.getNodeById((Long) node.getProperty("id")));
-
-					addIfReadable(securityContext, n, nodes, includeDeleted, publicOnly);
+					if(n != null && isReadable(securityContext, n, includeDeleted, publicOnly)) {
+						nodes.add(n);
+					}
 
 					for (AbstractNode nodeAt : getNodesAt(n)) {
 
-						addIfReadable(securityContext, nodeAt, nodes, includeDeleted, publicOnly);
+						if(nodeAt != null && isReadable(securityContext, nodeAt, includeDeleted, publicOnly)) {
+							nodes.add(nodeAt);
+						}
 					}
 
 				}
@@ -191,8 +196,9 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
 					AbstractNode n = createNode(securityContext, (Node) node);
 
-					addIfReadable(securityContext, n, nodes, includeDeleted, publicOnly);
-
+					if(n != null && isReadable(securityContext, n, includeDeleted, publicOnly)) {
+						nodes.add(n);
+					}
 				}
 
 			}
@@ -202,16 +208,9 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 		return nodes;
 
 	}
-
-	/**
-	 * Check if given node should be instantiated
-	 * @param securityContext
-	 * @param n
-	 * @param nodes
-	 * @param includeDeleted
-	 * @param publicOnly
-	 */
-	private void addIfReadable(final SecurityContext securityContext, AbstractNode n, List<AbstractNode> nodes, final boolean includeDeleted, final boolean publicOnly) {
+	
+	private boolean isReadable(SecurityContext securityContext, AbstractNode node, boolean includeDeleted, boolean publicOnly) {
+		
 
 		/**
 		 * The if-clauses in the following lines have been split
@@ -219,51 +218,37 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 		 */
 
 		// hidden nodes will not be returned
-		if (n.isHidden()) {
-
-			n = null;    // help GC
-
-			return;
+		if (node.isHidden()) {
+			return false;
 
 		}
 
 		// deleted nodes will only be returned if we are told to do so
-		if (n.isDeleted() && !includeDeleted) {
-
-			n = null;    // help GC
-
-			return;
+		if (node.isDeleted() && !includeDeleted) {
+			return false;
 
 		}
 
 		// visibleToPublic overrides anything else
 		// Publicly visible nodes will always be returned
-		if (n.isVisibleToPublicUsers()) {
-
-			nodes.add(n);
-
-			return;
-
+		if (node.isVisibleToPublicUsers()) {
+			return true;
 		}
 
 		// Next check is only for non-public nodes, because
 		// public nodes are already added one step above.
 		if (publicOnly) {
-
-			n = null;    // help GC
-
-			return;
+			return false;
 
 		}
 
 		// Ask the security context
-		if (securityContext.isAllowed(n, Permission.read)) {
-
-			nodes.add(n);
-
-			return;
+		if (securityContext.isAllowed(node, Permission.read)) {
+			return true;
 
 		}
+		
+		return false;
 	}
 
 	/**
@@ -289,23 +274,6 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 		}
 
 		return nodes;
-
-	}
-
-	@Override
-	public T adapt(Node s) {
-
-		try {
-
-			return ((T) createNode(securityContext, s));
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to adapt node", fex);
-
-		}
-
-		return null;
 
 	}
 
