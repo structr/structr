@@ -97,11 +97,11 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 	 */
 	private List<AbstractRelationship> search(final SecurityContext securityContext, final List<SearchAttribute> searchAttrs) throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Index<Relationship> index;
+		GraphDatabaseService graphDb            = (GraphDatabaseService) arguments.get("graphDb");
 		RelationshipFactory relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
 		List<AbstractRelationship> finalResult  = new LinkedList<AbstractRelationship>();
 		boolean allExactMatch                   = true;
+		final Index<Relationship> index;
 
 		// boolean allFulltext = false;
 		if (graphDb != null) {
@@ -189,17 +189,23 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 					// Search for uuid only: Use UUID index
 					index = (Index<Relationship>) arguments.get(RelationshipIndex.rel_uuid.name());
-					hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+					synchronized(index) {
+						hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+					}
 				} else if ((textualAttributes.size() > 1) && allExactMatch) {
 
 					// Only exact machtes: Use keyword index
 					index = (Index<Relationship>) arguments.get(RelationshipIndex.rel_keyword.name());
-					hits  = index.query(queryContext);
+					synchronized(index) {
+						hits  = index.query(queryContext);
+					}
 				} else {
 
 					// Default: Mixed or fulltext-only search: Use fulltext index
 					index = (Index<Relationship>) arguments.get(RelationshipIndex.rel_fulltext.name());
-					hits  = index.query(queryContext);
+					synchronized(index) {
+						hits  = index.query(queryContext);
+					}
 				}
 
 				long t1 = System.currentTimeMillis();
@@ -209,7 +215,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
 				intermediateResult = relationshipFactory.createRelationships(securityContext, hits);
 
-//                              hits.close();
+				hits.close();
 				long t2 = System.currentTimeMillis();
 
 				logger.log(Level.FINE, "Creating structr relationships took {0} ms, {1} relationships made.", new Object[] { t2 - t1, intermediateResult.size() });

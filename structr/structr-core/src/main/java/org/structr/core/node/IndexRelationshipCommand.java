@@ -270,14 +270,23 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 	}
 
 	private void addRelationshipPropertyToFulltextIndex(final Relationship rel, final String key, final Object value) {
-		indices.get(RelationshipIndex.rel_fulltext.name()).add(rel, key, value);
+		Index<Relationship> index = indices.get(RelationshipIndex.rel_fulltext.name());
+		synchronized(index) {
+			index.add(rel, key, value);
+		}
 	}
 
 	private void addRelationshipPropertyToUuidIndex(final Relationship rel, final String key, final Object value) {
-		indices.get(RelationshipIndex.rel_uuid.name()).add(rel, key, value);
+		Index<Relationship> index = indices.get(RelationshipIndex.rel_uuid.name());
+		synchronized(index) {
+			index.add(rel, key, value);
+		}
 	}
 
 	private void addRelationshipPropertyToKeywordIndex(final Relationship rel, final String key, final Object value) {
-		indices.get(RelationshipIndex.rel_keyword.name()).add(rel, key, value);
+		Index<Relationship> index = indices.get(RelationshipIndex.rel_keyword.name());
+		synchronized(index) {
+			index.add(rel, key, value);
+		}
 	}
 }

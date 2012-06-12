@@ -133,8 +133,10 @@ public class RemoveRelationshipFromIndex extends NodeServiceCommand {
 
 		for (Enum indexName : indices.keySet()) {
 
-			indices.get(indexName).remove(rel.getRelationship());
-
+			Index<Relationship> index = indices.get(indexName);
+			synchronized(index) {
+				index.remove(rel.getRelationship());
+			}
 		}
 	}
 }
