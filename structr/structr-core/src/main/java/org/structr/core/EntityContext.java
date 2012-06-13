@@ -649,6 +649,17 @@ public class EntityContext {
 
 			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
 
+			// check interfaces of dest class
+			if (namedRelationClass == null) {
+				
+				for(Class interfaceClass : getInterfacesForType(destSuperClass)) {
+					
+					namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, interfaceClass));
+					if(namedRelationClass != null) {
+						break;
+					}
+				}
+			}
 			// do not check superclass for source type
 			// sourceSuperClass = sourceSuperClass.getSuperclass();
 			// one level up

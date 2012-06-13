@@ -44,6 +44,8 @@ public interface GraphObject {
         public Object getProperty(final PropertyKey propertyKey);
 	public String getStringProperty(final String key);
 	public String getStringProperty(final PropertyKey propertyKey);
+	public Integer getIntProperty(final String key);
+	public Integer getIntProperty(final PropertyKey propertyKey);
 	public Date getDateProperty(final String key);
         public Date getDateProperty(final PropertyKey key);
 	public boolean getBooleanProperty(final String key) throws FrameworkException ;
@@ -55,8 +57,8 @@ public interface GraphObject {
 	public PropertyKey getDefaultSortKey();
 	public String getDefaultSortOrder();
 
-	public abstract boolean isValid(ErrorBuffer errorBuffer);
-	
+	public boolean isValid(ErrorBuffer errorBuffer);
+	public void unlockReadOnlyPropertiesOnce();
 	// ----- rels only -----
 //	public Long getStartNodeId();
 //	public Long getEndNodeId();
