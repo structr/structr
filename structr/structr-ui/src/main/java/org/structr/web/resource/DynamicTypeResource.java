@@ -106,7 +106,7 @@ public class DynamicTypeResource extends TypeResource {
 		// check for dynamic type, use super class otherwise
 		List<SearchAttribute> searchAttributes = getSearchAttributes(rawType);
 
-		hasSearchableAttributes(rawType, request, searchAttributes);
+		hasSearchableAttributesForNodes(rawType, request, searchAttributes);
 
 		// do search
 		List<GraphObject> results = getComponents(securityContext, searchAttributes);

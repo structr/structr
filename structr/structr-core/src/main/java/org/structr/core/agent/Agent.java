@@ -93,6 +93,7 @@ public abstract class Agent extends Thread implements StatusInfo {
 					// someone killed us or the task processing failed..
 					// Log this!!
 					logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
+					t.printStackTrace();
 				}
 
 				if (ret != null) {
