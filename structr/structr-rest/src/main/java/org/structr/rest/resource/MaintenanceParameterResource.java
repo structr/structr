@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.agent.Task;
 import org.structr.core.node.BulkCopyRelationshipPropertyCommand;
 import org.structr.core.node.BulkSetRelationshipPropertiesCommand;
 
@@ -134,4 +135,13 @@ public class MaintenanceParameterResource extends Resource {
         public String getResourceSignature() {
                 return getUriPart();
         }
+	
+	public static void registerMaintenanceTask(String key, Class<? extends Task> task) {
+		
+		if(maintenanceCommandMap.containsKey(key)) {
+			throw new IllegalStateException("Maintenance command for key " + key + " already registered!");
+		}
+		
+		maintenanceCommandMap.put(key, task);
+	}
 }

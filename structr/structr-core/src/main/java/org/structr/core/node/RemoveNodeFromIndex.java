@@ -138,7 +138,9 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
 			Index<Node> index = indices.get(indexName);
-			index.remove(node.getNode());
+			synchronized(index) {
+				index.remove(node.getNode());
+			}
 
 		}
 	}

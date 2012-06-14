@@ -142,11 +142,11 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					  final List<SearchAttribute> searchAttrs)
 		throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Index<Node> index;
+		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory        = (NodeFactory) arguments.get("nodeFactory");
 		List<AbstractNode> finalResult = new ArrayList<AbstractNode>();
 		boolean allExactMatch          = true;
+		final Index<Node> index;
 
 		// boolean allFulltext = false;
 		if (graphDb != null) {
@@ -249,13 +249,17 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 					// Search for uuid only: Use UUID index
 					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
-					hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+					synchronized(index) {
+						hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+					}
 					
 				} else if ((textualAttributes.size() > 1) && allExactMatch) {
 
 					// Only exact machtes: Use keyword index
 					index = (Index<Node>) arguments.get(NodeIndex.keyword.name());
-					hits  = index.query(queryContext);
+					synchronized(index) {
+						hits  = index.query(queryContext);
+					}
 					
 				} else if (distanceSearch != null) {
 
@@ -266,10 +270,10 @@ public class SearchNodeCommand extends NodeServiceCommand {
 						params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
 						params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
 						
-						
-
 						index = (LayerNodeIndex) arguments.get(NodeIndex.layer.name());
-						hits  = index.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
+						synchronized(index) {
+							hits  = index.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
+						}
 
 					}
 
@@ -277,7 +281,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 					// Default: Mixed or fulltext-only search: Use fulltext index
 					index = (Index<Node>) arguments.get(NodeIndex.fulltext.name());
-					hits  = index.query(queryContext);
+					synchronized(index) {
+						hits  = index.query(queryContext);
+					}
 				}
 
 				long t1 = System.currentTimeMillis();
@@ -289,7 +295,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
 				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeleted, publicOnly);
 
-//                              hits.close();
+				hits.close();
 				long t2 = System.currentTimeMillis();
 
 				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });

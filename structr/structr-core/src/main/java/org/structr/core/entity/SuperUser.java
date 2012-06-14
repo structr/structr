@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import java.util.Collections;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -123,6 +124,16 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
+	public Integer getIntProperty(String key) {
+		return null;
+	}
+
+	@Override
+	public Integer getIntProperty(PropertyKey propertyKey) {
+		return null;
+	}
+
+	@Override
 	public Date getDateProperty(String key) {
 		return null;
 	}
@@ -219,16 +230,18 @@ public class SuperUser implements Principal {
 
 	@Override
 	public List<Principal> getParents() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return Collections.emptyList();
 	}
 
 	@Override
 	public void grant(Permission permission, AccessControllable obj) {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public void revoke(Permission permission, AccessControllable obj) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void unlockReadOnlyPropertiesOnce() {
 	}
 }

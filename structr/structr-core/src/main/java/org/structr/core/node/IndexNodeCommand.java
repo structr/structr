@@ -305,10 +305,16 @@ public class IndexNodeCommand extends NodeServiceCommand {
 	}
 
 	private void removeNodePropertyFromIndex(final Node node, final String key, final String indexName) {
-		indices.get(indexName).remove(node, key);
+		Index<Node> index = indices.get(indexName);
+		synchronized(index) {
+			index.remove(node, key);
+		}
 	}
 
 	private void addNodePropertyToIndex(final Node node, final String key, final Object value, final String indexName) {
-		indices.get(indexName).add(node, key, value);
+		Index<Node> index = indices.get(indexName);
+		synchronized(index) {
+			index.add(node, key, value);
+		}
 	}
 }
