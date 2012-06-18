@@ -443,7 +443,7 @@ public abstract class Resource {
 		return null;
 	}
 
-	protected boolean hasSearchableAttributes(final String rawType, final HttpServletRequest request, final List<SearchAttribute> searchAttributes) throws FrameworkException {
+	protected boolean hasSearchableAttributesForNodes(final String rawType, final HttpServletRequest request, final List<SearchAttribute> searchAttributes) throws FrameworkException {
 
 		boolean hasSearchableAttributes = false;
 
@@ -460,6 +460,68 @@ public abstract class Resource {
 			} else {
 
 				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.NodeIndex.keyword.name());
+
+			}
+
+			if (searchableProperties != null) {
+
+				checkForIllegalSearchKeys(request, searchableProperties);
+
+				for (String key : searchableProperties) {
+
+					String searchValue = request.getParameter(key);
+
+					if (searchValue != null) {
+
+						if (looseSearch) {
+
+							// no quotes allowed in loose search queries!
+							if(searchValue.contains("\"")) {
+								searchValue = searchValue.replaceAll("[\"]+", "");
+							}
+							
+							if(searchValue.contains("'")) {
+								searchValue = searchValue.replaceAll("[']+", "");
+							}
+							
+							searchAttributes.add(Search.andProperty(key, searchValue));
+
+						} else {
+
+							searchAttributes.add(Search.andExactProperty(key, searchValue));
+
+						}
+
+						hasSearchableAttributes = true;
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return hasSearchableAttributes;
+	}
+
+	protected boolean hasSearchableAttributesForRelationships(final String rawType, final HttpServletRequest request, final List<SearchAttribute> searchAttributes) throws FrameworkException {
+
+		boolean hasSearchableAttributes = false;
+
+		// searchable attributes
+		if ((rawType != null) && (request != null) &&!request.getParameterMap().isEmpty()) {
+
+			boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
+			Set<String> searchableProperties = null;
+
+			if (looseSearch) {
+
+				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.RelationshipIndex.rel_fulltext.name());
+
+			} else {
+
+				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.RelationshipIndex.rel_keyword.name());
 
 			}
 

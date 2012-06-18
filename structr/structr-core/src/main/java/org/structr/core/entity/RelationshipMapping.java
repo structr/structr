@@ -121,7 +121,7 @@ public class RelationshipMapping {
 		List<AbstractRelationship> relsFilteredByType = new LinkedList<AbstractRelationship>();
 
 		// filter relationships for correct combined relationship type
-		for (AbstractRelationship rel : node.getRelationships(relType, getDirectionForType(node.getStringProperty(AbstractNode.Key.type.name())))) {
+		for (AbstractRelationship rel : node.getRelationships(relType, getDirectionForType(node.getClass()))) {
 
 			if (rel.getClass().equals(combinedRelType)) {
 
@@ -135,18 +135,31 @@ public class RelationshipMapping {
 	}
 
 	// ----- private methods -----
-	private Direction getDirectionForType(String type) throws FrameworkException {
+	private Direction getDirectionForType(Class type) throws FrameworkException {
 
-		if (type.equals(sourceType.getSimpleName())) {
-
-			return Direction.OUTGOING;
-
-		}
-
-		if (type.equals(destType.getSimpleName())) {
-
-			return Direction.INCOMING;
-
+		Class localType = type;
+		
+		while(localType != null && !Object.class.equals(localType)) {
+			
+			if (localType.equals(sourceType)) {
+				return Direction.OUTGOING;
+				
+			} else  if (localType.equals(destType)) {
+				
+				return Direction.INCOMING;
+			}
+			
+			for(Class interfaceClass : EntityContext.getInterfacesForType(localType)) {
+				
+				if (interfaceClass.equals(sourceType)) {
+					return Direction.OUTGOING;
+					
+				} else if (interfaceClass.equals(destType)) {
+					return Direction.INCOMING;
+				}
+			}
+			
+			localType = localType.getSuperclass();
 		}
 
 		throw new FrameworkException(HttpServletResponse.SC_BAD_REQUEST, new ErrorBuffer());

@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -28,11 +29,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.PropertyNotFoundToken;
-import org.structr.core.Command;
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
+import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationshipMapping;
@@ -40,6 +37,7 @@ import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchRelationshipCommand;
+import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
@@ -85,10 +83,44 @@ public class NamedRelationResource extends WrappingResource {
 			searchAttributes.add(Search.andRelType(namedRelation));
 			
 			// add searchable attributes from EntityContext
-			hasSearchableAttributes(namedRelation.getName(), request, searchAttributes);
+			hasSearchableAttributesForRelationships(namedRelation.getEntityClass().getSimpleName(), request, searchAttributes);
 
 			relationResults.addAll((List<AbstractRelationship>)Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
 
+		}
+
+		// filter by searchable properties
+		final List<SearchAttribute> filterAttributes = new LinkedList<SearchAttribute>();
+		hasSearchableAttributesForRelationships(namedRelation.getEntityClass().getSimpleName(), request, filterAttributes);
+		
+		if(!filterAttributes.isEmpty()) {
+
+			Predicate<GraphObject> predicate = new Predicate<GraphObject>() {
+
+				@Override
+				public boolean evaluate(GraphObject obj) {
+
+					for(SearchAttribute attr : filterAttributes) {
+
+						String value = ((TextualSearchAttribute)attr).getValue();
+						String key = ((TextualSearchAttribute)attr).getKey();
+
+						Object val = "\"" + obj.getProperty(key) + "\"";
+						if(val != null && val.equals(value)) {
+							return true;
+						}
+					}
+
+					return false;
+				}
+			};
+
+			for(Iterator<GraphObject> it = relationResults.iterator(); it.hasNext();) {
+
+				if(!predicate.evaluate(it.next())) {
+					it.remove();
+				}
+			}
 		}
 		
 		return relationResults;

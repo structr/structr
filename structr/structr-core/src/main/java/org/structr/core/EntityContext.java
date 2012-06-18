@@ -128,22 +128,21 @@ public class EntityContext {
 
 			}
 
-			Class superClass = type.getSuperclass();
+			Class localType = type.getSuperclass();
 
-			while ((superClass != null) &&!superClass.equals(Object.class)) {
+			while ((localType != null) &&!localType.equals(Object.class)) {
 
-				Set<String> superProperties = getSearchableProperties(superClass, indexName);
-
+				Set<String> superProperties = getSearchableProperties(localType, indexName);
 				searchablePropertySet.addAll(superProperties);
 
+				// include property sets from interfaces
+				for(Class interfaceClass : getInterfacesForType(localType)) {
+					searchablePropertySet.addAll(getSearchableProperties(interfaceClass, indexName));
+				}
+
 				// one level up :)
-				superClass = superClass.getSuperclass();
+				localType = localType.getSuperclass();
 
-			}
-
-			// include property sets from interfaces
-			for(Class interfaceClass : getInterfacesForType(type)) {
-				searchablePropertySet.addAll(getSearchableProperties(interfaceClass, indexName));
 			}
 		}
 	}
@@ -309,24 +308,22 @@ public class EntityContext {
 		}
 
 		// include property sets from superclass
-		Class superClass = type.getSuperclass();
+		Class localType = type.getSuperclass();
 
-		while ((superClass != null) &&!superClass.equals(Object.class)) {
+		while ((localType != null) &&!localType.equals(Object.class)) {
 
-			Set<String> superProperties = getPropertySet(superClass, propertyView);
+			Set<String> superProperties = getPropertySet(localType, propertyView);
 
 			properties.addAll(superProperties);
 
-			// one level up :)
-			superClass = superClass.getSuperclass();
+			// include property sets from interfaces
+			for(Class interfaceClass : getInterfacesForType(localType)) {
+				properties.addAll(getPropertySet(interfaceClass, propertyView));
+			}
 
+			// one level up :)
+			localType = localType.getSuperclass();
 		}
-		
-		// include property sets from interfaces
-		for(Class interfaceClass : getInterfacesForType(type)) {
-			properties.addAll(getPropertySet(interfaceClass, propertyView));
-		}
-		
 	}
 
 	public static void clearPropertySet(Class type, String propertyView) {
@@ -694,6 +691,8 @@ public class EntityContext {
 
 			transformations.addAll(getEntityCreationTransformationsForType(localType));
 
+			// FIXME: include interfaces as well??
+			
 			localType = localType.getSuperclass();
 
 		}
@@ -708,7 +707,30 @@ public class EntityContext {
 	}
 
 	public static PropertyGroup getPropertyGroup(Class type, String key) {
-		return getPropertyGroupMapForType(type).get(key);
+		
+		PropertyGroup group = null;
+		Class localType     = type;
+		
+		while(group == null && localType != null && !localType.equals(Object.class)) {
+
+			group = getPropertyGroupMapForType(localType).get(key);
+
+			if(group == null) {
+
+				// try interfaces as well
+				for(Class interfaceClass : getInterfacesForType(localType)) {
+
+					group = getPropertyGroupMapForType(interfaceClass).get(key);
+					if(group != null) {
+						break;
+					}
+				}
+			}
+			
+			localType = localType.getSuperclass();
+		}
+		
+		return group;
 	}
 
 	// ----- static relationship methods -----
@@ -720,21 +742,21 @@ public class EntityContext {
 		while ((relation == null) && localType != null && !localType.equals(Object.class)) {
 
 			relation  = getRelationClassMapForType(localType).get(destType);
-			localType = localType.getSuperclass();
 
-		}
-		
-		// check source type interfaces after source supertypes!
-		if(relation == null) {
+			// check source type interfaces after source supertypes!
+			if(relation == null) {
 
-			// try interfaces as well
-			for(Class interfaceClass : getInterfacesForType(sourceType)) {
+				// try interfaces as well
+				for(Class interfaceClass : getInterfacesForType(localType)) {
 
-				relation = getRelationClassMapForType(interfaceClass).get(destType);
-				if(relation != null) {
-					break;
+					relation = getRelationClassMapForType(interfaceClass).get(destType);
+					if(relation != null) {
+						break;
+					}
 				}
 			}
+
+			localType = localType.getSuperclass();
 		}
 
 		// Check dest type superclasses
@@ -745,21 +767,21 @@ public class EntityContext {
 			while ((relation == null) && localType != null && !localType.equals(Object.class)) {
 
 				relation  = getRelationClassMapForType(sourceType).get(localType);
-				localType = localType.getSuperclass();
 
-			}
-		}
-		
-		// check dest type interfaces after dest type
-		if(relation == null) {
+				// check dest type interfaces after dest type
+				if(relation == null) {
 
-			// try interfaces as well
-			for(Class interfaceClass : getInterfacesForType(destType)) {
+					// try interfaces as well
+					for(Class interfaceClass : getInterfacesForType(localType)) {
 
-				relation = getRelationClassMapForType(sourceType).get(interfaceClass);
-				if(relation != null) {
-					break;
+						relation = getRelationClassMapForType(sourceType).get(interfaceClass);
+						if(relation != null) {
+							break;
+						}
+					}
 				}
+
+				localType = localType.getSuperclass();
 			}
 		}
 			
@@ -788,22 +810,22 @@ public class EntityContext {
 		while ((relation == null) &&!localType.equals(Object.class)) {
 
 			relation  = getPropertyRelationshipMapForType(localType).get(propertyKey);
-			localType = localType.getSuperclass();
 
-		}
-		
-		// try interfaces classes
-		if (relation == null) {
-		
-			for(Class interfaceClass : getInterfacesForType(sourceType)) {
-				
-				relation  = getPropertyRelationshipMapForType(interfaceClass).get(propertyKey);
-				
-				if(relation != null) {
-					
-					return relation;
+			// try interfaces classes
+			if (relation == null) {
+
+				for(Class interfaceClass : getInterfacesForType(localType)) {
+
+					relation  = getPropertyRelationshipMapForType(interfaceClass).get(propertyKey);
+
+					if(relation != null) {
+
+						return relation;
+					}
 				}
 			}
+
+			localType = localType.getSuperclass();
 		}
 
 		return relation;
@@ -842,11 +864,11 @@ public class EntityContext {
 
 			propertyViewMap.put(propertyView, propertySet);
 		}
-		
+
 		// add property set from interfaces
 		for(Class interfaceClass : getInterfacesForType(type)) {
 			propertySet.addAll(getPropertySet(interfaceClass, propertyView));
-		}
+			}
 
 		// test: fill property set with values from supertypes
 		Class superClass = type.getSuperclass();
@@ -881,18 +903,18 @@ public class EntityContext {
 				validators.addAll(validatorMap.get(propertyKey));
 			}
 
+			// try converters from interfaces as well
+			for(Class interfaceClass : getInterfacesForType(localType)) {
+				Set<PropertyValidator> interfaceValidators = getPropertyValidatorMapForType(interfaceClass).get(propertyKey);
+				if(interfaceValidators != null) {
+					validators.addAll(interfaceValidators);
+				}
+			}
+			
 //                      logger.log(Level.INFO, "Validator class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			// one level up :)
 			localType = localType.getSuperclass();
 
-		}
-		
-		// try converters from interfaces as well
-		for(Class interfaceClass : getInterfacesForType(type)) {
-			Set<PropertyValidator> interfaceValidators = getPropertyValidatorMapForType(interfaceClass).get(propertyKey);
-			if(interfaceValidators != null) {
-				validators.addAll(interfaceValidators);
-			}
 		}
 
 		return validators;
@@ -913,7 +935,7 @@ public class EntityContext {
 			// try converters from interfaces as well
 			if(clazz == null) {
 
-				for(Class interfaceClass : getInterfacesForType(type)) {
+				for(Class interfaceClass : getInterfacesForType(localType)) {
 					clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
 					if(clazz != null) {
 						break;
@@ -954,20 +976,20 @@ public class EntityContext {
 			conversionParameterMap = getPropertyConversionParameterMapForType(localType);
 			value                  = conversionParameterMap.get(propertyKey);
 
+			// try parameters from interfaces as well
+			if(value == null) {
+
+				for(Class interfaceClass : getInterfacesForType(localType)) {
+					value = getPropertyConversionParameterMapForType(interfaceClass).get(propertyKey);
+					if(value != null) {
+						break;
+					}
+				}
+			}
+			
 //                      logger.log(Level.INFO, "Conversion parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
 			localType = localType.getSuperclass();
 
-		}
-		
-		// try parameters from interfaces as well
-		if(value == null) {
-			
-			for(Class interfaceClass : getInterfacesForType(type)) {
-				value = getPropertyConversionParameterMapForType(interfaceClass).get(propertyKey);
-				if(value != null) {
-					break;
-				}
-			}
 		}
 
 		return value;
@@ -1170,7 +1192,7 @@ public class EntityContext {
 		return transformations;
 	}
 	
-	private static Set<Class> getInterfacesForType(Class type) {
+	public static Set<Class> getInterfacesForType(Class type) {
 		
 		Set<Class> interfaces = interfaceMap.get(type);
 		if(interfaces == null) {
