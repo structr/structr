@@ -79,7 +79,6 @@ public class View extends AbstractNode {
 //                      HttpServletRequest request = securityContext.getRequest();
 			String rawQuery    = getStringProperty("query");
 			String query       = rawQuery;
-			boolean matchedKey = false;
 
 			if (request != null) {
 
@@ -96,29 +95,20 @@ public class View extends AbstractNode {
 
 					if (StringUtils.isNotEmpty(value)) {
 
-						query      = StringUtils.replace(query, "${request." + key + "}", value);
-						matchedKey = true;
+						query = StringUtils.replace(rawQuery, "${request." + key + "}", value);
 
 					}
 
 				}
 
-				if (matchedKey) {
-
-					return (List<GraphObject>) Services.command(securityContext, CypherQueryCommand.class).execute(query);
-				}
-
 			}
 
-			return Collections.EMPTY_LIST;
+			return (List<GraphObject>) Services.command(securityContext, CypherQueryCommand.class).execute(query);
 		} catch (Throwable t) {
-
 			t.printStackTrace();
-
 		}
 
 		return Collections.emptyList();
-
 	}
 
 //      public static void main(String[] args) throws Exception {
@@ -138,5 +128,4 @@ public class View extends AbstractNode {
 //                      }       
 //              
 //      }
-
 }
