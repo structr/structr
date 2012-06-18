@@ -159,6 +159,11 @@ public class MaintenanceResource extends Resource {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
+	public Class getEntityClass() {
+		return null;
+	}
+
+	@Override
 	public String getUriPart() {
 		return "maintenance";
 	}

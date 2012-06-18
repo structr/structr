@@ -93,6 +93,8 @@ public abstract class Resource {
 	
 	public abstract String getUriPart();
 
+	public abstract Class getEntityClass();
+	
         public abstract String getResourceSignature();
 
 	// ----- methods -----
@@ -200,28 +202,6 @@ public abstract class Resource {
 	}
 
 	public void postProcessResultSet(Result result) {
-
-		if(result != null && result.getResults() != null && !result.getResults().isEmpty()) {
-			
-			Class type = result.getResults().get(0).getClass();
-			String propertyView = result.getPropertyView();
-
-			if(type != null && propertyView != null) {
-
-				Transformation<List<? extends GraphObject>> transformation = EntityContext.getViewTransformation(type, propertyView);
-				if(transformation != null) {
-
-					try {
-
-						transformation.apply(securityContext, result.getResults());
-
-					} catch(Throwable t) {
-
-						t.printStackTrace();
-					}
-				}
-			}
-		}
 	}
 
 	public boolean isPrimitiveArray() {

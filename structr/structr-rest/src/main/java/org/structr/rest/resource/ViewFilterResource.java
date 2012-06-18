@@ -112,7 +112,7 @@ public class ViewFilterResource extends WrappingResource {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
+	
 	@Override
 	public String getResourceSignature() {
 

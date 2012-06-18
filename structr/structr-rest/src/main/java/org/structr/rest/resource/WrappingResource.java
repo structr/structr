@@ -102,6 +102,18 @@ public abstract class WrappingResource extends Resource {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
+	public Class getEntityClass() {
+		
+		if (wrappedResource != null) {
+
+			return wrappedResource.getEntityClass();
+
+		}
+
+		return null;
+	}
+
+	@Override
 	public String getUriPart() {
 		return wrappedResource.getUriPart();
 	}

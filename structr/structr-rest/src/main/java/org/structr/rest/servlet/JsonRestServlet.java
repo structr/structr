@@ -73,10 +73,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.EntityContext;
+import org.structr.core.*;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.rest.resource.NamedRelationResource;
-import org.structr.rest.resource.ViewFilterResource;
+import org.structr.rest.resource.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -894,11 +893,21 @@ public class JsonRestServlet extends HttpServlet {
 		return propertyFormat;
 	}
 
-	private Resource addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, Resource finalConstraint) throws FrameworkException {
+	private Resource addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, Resource finalResource) throws FrameworkException {
 
-		Resource pagedSortedConstraint = finalConstraint;
+		Resource pagedSortedResource = finalResource;
 
-		// sorting
+		// add view transformation
+		Class type = finalResource.getEntityClass();
+		if(type != null) {
+			
+			Transformation<List<? extends GraphObject>> transformation = EntityContext.getViewTransformation(type, propertyView.get());
+			if(transformation != null) {
+				pagedSortedResource = pagedSortedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
+			}
+		}
+		
+		// add sorting
 		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 
 		if (sortKey != null) {
@@ -912,11 +921,11 @@ public class JsonRestServlet extends HttpServlet {
 			}
 
 			// combine sort constraint
-			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new SortResource(securityContext, sortKey, sortOrder));
+			pagedSortedResource = pagedSortedResource.tryCombineWith(new SortResource(securityContext, sortKey, sortOrder));
 
 		}
 
-		// paging
+		// add paging
 		String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
 
 		if (pageSizeParameter != null) {
@@ -931,11 +940,11 @@ public class JsonRestServlet extends HttpServlet {
 
 			}
 
-			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new PagingResource(securityContext, page, pageSize));
+			pagedSortedResource = pagedSortedResource.tryCombineWith(new PagingResource(securityContext, page, pageSize));
 
 		}
 
-		return pagedSortedConstraint;
+		return pagedSortedResource;
 	}
 
 	/**

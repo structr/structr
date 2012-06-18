@@ -117,6 +117,11 @@ public class MaintenanceParameterResource extends Resource {
 
 	//~--- get methods ----------------------------------------------------
 
+	@Override
+	public Class getEntityClass() {
+		return null;
+	}
+
 	public Class getMaintenanceCommand() {
 		return maintenanceCommandMap.get(uriPart);
 	}
