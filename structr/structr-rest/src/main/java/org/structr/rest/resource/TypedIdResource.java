@@ -83,7 +83,7 @@ public class TypedIdResource extends FilterableResource {
 		AbstractNode node = idResource.getNode();
 		String type = EntityContext.normalizeEntityName(typeResource.getRawType());
 
-		logger.log(Level.INFO, "type from TypeResource: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
+		logger.log(Level.FINE, "type from TypeResource: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
 		
 		if(node != null && type.equalsIgnoreCase(node.getType())) {
 			return node;
