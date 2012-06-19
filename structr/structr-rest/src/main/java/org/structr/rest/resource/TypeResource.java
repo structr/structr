@@ -124,7 +124,7 @@ public class TypeResource extends SortableResource {
 
 			} else {
                                 
-                                searchAttributes.addAll(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
+                                searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 				// searchable attributes from EntityContext
 				hasSearchableAttributesForNodes(rawType, request, searchAttributes);

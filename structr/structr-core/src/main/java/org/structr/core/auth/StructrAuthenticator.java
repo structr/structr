@@ -21,6 +21,8 @@
 
 package org.structr.core.auth;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -29,7 +31,9 @@ import org.structr.core.Services;
 //import org.structr.context.SessionMonitor;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
-import org.structr.core.node.FindUserCommand;
+import org.structr.core.entity.ResourceAccess;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -39,7 +43,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.structr.core.entity.ResourceAccess;
+import org.structr.core.node.search.SearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,7 +65,8 @@ public class StructrAuthenticator implements Authenticator {
 	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException { }
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView)
+		throws FrameworkException {}
 
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
@@ -75,10 +80,13 @@ public class StructrAuthenticator implements Authenticator {
 			session.setAttribute(USERNAME_KEY, userName);
 
 		} catch (Exception e) {
+
 			logger.log(Level.INFO, "Could not register session");
+
 		}
 
 		return user;
+
 	}
 
 	@Override
@@ -87,6 +95,7 @@ public class StructrAuthenticator implements Authenticator {
 		HttpSession session = request.getSession();
 
 		session.removeAttribute(USERNAME_KEY);
+
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -94,10 +103,23 @@ public class StructrAuthenticator implements Authenticator {
 	@Override
 	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		Command findUser = Services.command(securityContext, FindUserCommand.class);
+		Command findNode = Services.command(securityContext, SearchNodeCommand.class);
 		String userName  = (String) request.getSession().getAttribute(USERNAME_KEY);
-		Principal user        = (Principal) findUser.execute(userName);
+		
+		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
+		attrs.add(Search.andExactName(userName));
+		
+		List<Principal> userList   = (List<Principal>) findNode.execute(null, false, false, attrs);
+		
+		Principal user = null;
+		
+		if (!userList.isEmpty()) {
+			user = userList.get(0);
+		}
 
 		return user;
+
 	}
+
 }

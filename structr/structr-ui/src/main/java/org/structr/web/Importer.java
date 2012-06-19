@@ -472,7 +472,7 @@ public class Importer {
 
 		searchAttrs.add(Search.andExactProperty(AbstractNode.Key.name.name(), name));
 		searchAttrs.add(Search.andExactProperty(File.Key.checksum.name(), String.valueOf(checksum)));
-		searchAttrs.addAll(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
+		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
 
 		List<File> files = (List<File>) searchNode.execute(null, false, false, searchAttrs);
 

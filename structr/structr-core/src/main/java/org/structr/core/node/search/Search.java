@@ -21,7 +21,6 @@
 
 package org.structr.core.node.search;
 
-import java.lang.Class;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.RelationshipType;
@@ -36,20 +35,22 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.module.GetEntitiesCommand;
+import org.structr.core.module.GetModuleServiceCommand;
+import org.structr.core.module.ModuleService;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.text.Normalizer;
-import java.util.LinkedHashSet;
+import java.lang.Class;
 
+import java.text.Normalizer;
+
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.module.GetModuleServiceCommand;
-import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,12 +60,15 @@ import org.structr.core.module.ModuleService;
  */
 public abstract class Search {
 
+	public static final String DISTANCE_SEARCH_KEYWORD    = "distance";
 	private static final Logger logger                    = Logger.getLogger(Search.class.getName());
 	private static final Set<Character> specialCharsExact = new LinkedHashSet<Character>();
 	private static final Set<Character> specialChars      = new LinkedHashSet<Character>();
 
+	//~--- static initializers --------------------------------------------
+
 	static {
-		
+
 		specialChars.add('\\');
 		specialChars.add('+');
 		specialChars.add('-');
@@ -84,23 +88,20 @@ public abstract class Search {
 		specialChars.add('|');
 		specialChars.add('&');
 		specialChars.add(';');
-		
 		specialCharsExact.add('"');
 		specialCharsExact.add('\\');
-		
 
-	};
+	}
 
-	public static final String DISTANCE_SEARCH_KEYWORD = "distance";
+	;
 
 	//~--- methods --------------------------------------------------------
 
-	public static List<SearchAttribute> andExactTypeAndSubtypes(final String searchString) {
+	private static List<SearchAttribute> andExactTypeAndSubtypesInternal(final String searchString) {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-		//attrs.add(Search.orExactType(searchString));
-
+		// attrs.add(Search.orExactType(searchString));
 		try {
 
 			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
@@ -111,18 +112,19 @@ public abstract class Search {
 
 				// no entity class for the given type found,
 				// examine interface types and subclasses
-
-				ModuleService moduleService    = (ModuleService)Services.command(superUserContext, GetModuleServiceCommand.class).execute();
+				ModuleService moduleService    = (ModuleService) Services.command(superUserContext, GetModuleServiceCommand.class).execute();
 				Set<Class> classesForInterface = moduleService.getClassesForInterface(EntityContext.normalizeEntityName(searchString));
-				
-				if(classesForInterface != null) {
-					for(Class clazz : classesForInterface) {
-						attrs.addAll(andExactTypeAndSubtypes(clazz.getSimpleName()));
-					}
-				}
-				
-				return attrs;
 
+				if (classesForInterface != null) {
+
+					for (Class clazz : classesForInterface) {
+
+						attrs.addAll(andExactTypeAndSubtypesInternal(clazz.getSimpleName()));
+					}
+
+				}
+
+				return attrs;
 			}
 
 			for (Map.Entry<String, Class> entity : entities.entrySet()) {
@@ -132,16 +134,32 @@ public abstract class Search {
 				if (parentClass.isAssignableFrom(entityClass)) {
 
 					attrs.add(Search.orExactType(entity.getKey()));
-
 				}
 
 			}
 
 		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to add subtypes to search attributes", fex);
+
 		}
 
 		return attrs;
+
+	}
+
+	public static SearchAttributeGroup andExactTypeAndSubtypes(final String searchString) {
+
+		SearchAttributeGroup attrs          = new SearchAttributeGroup(SearchOperator.AND);
+		List<SearchAttribute> attrsInternal = andExactTypeAndSubtypesInternal(searchString);
+
+		for (SearchAttribute attr : attrsInternal) {
+
+			attrs.add(attr);
+		}
+
+		return attrs;
+
 	}
 
 	public static SearchAttribute orType(final String searchString) {
@@ -149,6 +167,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), searchString, SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andType(final String searchString) {
@@ -156,10 +175,13 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), searchString, SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andRelType(final RelationshipMapping namedRelation) {
+
 		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+
 	}
 
 	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
@@ -168,14 +190,19 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orRelType(final RelationshipMapping namedRelation) {
+
 		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+
 	}
 
 	public static SearchAttribute orRelType(final RelationshipType relType, final Class sourceType, final Class destType) {
+
 		return orRelType(relType.name(), sourceType.getSimpleName(), destType.getSimpleName());
+
 	}
 
 	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
@@ -184,6 +211,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orName(final String searchString) {
@@ -191,6 +219,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.name.name(), searchString, SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andName(final String searchString) {
@@ -198,6 +227,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.name.name(), searchString, SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andTitle(final String searchString) {
@@ -205,6 +235,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orTitle(final String searchString) {
@@ -212,6 +243,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andContent(final String searchString) {
@@ -219,6 +251,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(), searchString, SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orContent(final String searchString) {
@@ -226,6 +259,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(), searchString, SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andProperty(final String key, final String searchString) {
@@ -233,6 +267,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(key, searchString, SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andProperty(final PropertyKey propertyKey, final String searchString) {
@@ -240,6 +275,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(propertyKey.name(), searchString, SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orExactType(final String searchString) {
@@ -247,6 +283,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andExactType(final String searchString) {
@@ -254,10 +291,13 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andExactRelType(final RelationshipMapping namedRelation) {
+
 		return andExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+
 	}
 
 	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {
@@ -266,10 +306,13 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orExactRelType(final RelationshipMapping namedRelation) {
+
 		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+
 	}
 
 	public static SearchAttribute orExactRelType(final String relType, final String sourceType, final String destType) {
@@ -278,6 +321,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orExactName(final String searchString) {
@@ -285,6 +329,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.name.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andExactName(final String searchString) {
@@ -292,6 +337,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.name.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orExactTitle(final String searchString) {
@@ -299,6 +345,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andExactTitle(final String searchString) {
@@ -306,6 +353,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orExactContent(final String searchString) {
@@ -313,6 +361,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andExactUuid(final String searchString) {
@@ -320,6 +369,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.uuid.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andExactContent(final String searchString) {
@@ -327,6 +377,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andNotHidden() {
@@ -334,6 +385,7 @@ public abstract class Search {
 		SearchAttribute attr = new FilterSearchAttribute(AbstractNode.Key.hidden.name(), true, SearchOperator.NOT);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andExactProperty(final PropertyKey propertyKey, final String searchString) {
@@ -341,6 +393,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(propertyKey.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute orExactProperty(final PropertyKey propertyKey, final String searchString) {
@@ -348,6 +401,7 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(propertyKey.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
+
 	}
 
 	public static SearchAttribute andExactProperty(final String key, final String searchString) {
@@ -355,10 +409,13 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(key, exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
+
 	}
 
 	public static String exactMatch(final String searchString) {
+
 		return ("\"" + escapeForLuceneExact(searchString) + "\"");
+
 	}
 
 	public static String unquoteExactMatch(final String searchString) {
@@ -368,16 +425,15 @@ public abstract class Search {
 		if (searchString.startsWith("\"")) {
 
 			result = result.substring(1);
-
 		}
 
 		if (searchString.endsWith("\"")) {
 
 			result = result.substring(0, result.length() - 1);
-
 		}
 
 		return result;
+
 	}
 
 	/**
@@ -391,6 +447,7 @@ public abstract class Search {
 		String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
 
 		return normalized.replaceAll("[^\\p{ASCII}]", "");
+
 	}
 
 	/**
@@ -456,7 +513,6 @@ public abstract class Search {
 			if (specialChars.contains(c) || Character.isWhitespace(c)) {
 
 				output.append('\\');
-
 			}
 
 			output.append(c);
@@ -464,6 +520,7 @@ public abstract class Search {
 		}
 
 		return output.toString();
+
 	}
 
 	public static String escapeForLuceneExact(String input) {
@@ -477,7 +534,6 @@ public abstract class Search {
 			if (specialCharsExact.contains(c) || Character.isWhitespace(c)) {
 
 				output.append('\\');
-
 			}
 
 			output.append(c);
@@ -485,6 +541,7 @@ public abstract class Search {
 		}
 
 		return output.toString();
+
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -514,15 +571,18 @@ public abstract class Search {
 				for (AbstractNode n : result) {
 
 					names.add(n.getName());
-
 				}
 
 			}
 
 		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Unable to execute SearchNodeCommand", fex);
+
 		}
 
 		return names;
+
 	}
+
 }

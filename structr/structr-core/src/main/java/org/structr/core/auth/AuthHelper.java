@@ -29,9 +29,8 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Principal;
-import org.structr.core.node.FindUserCommand;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -59,7 +58,7 @@ public class AuthHelper {
 	public static Principal getUserForUsernameAndPassword(final SecurityContext securityContext, final String userName, final String password) throws AuthenticationException {
 
 		String errorMsg = null;
-		Principal user       = null;
+		Principal user  = null;
 
 		if (Services.getSuperuserUsername().equals(userName) && Services.getSuperuserPassword().equals(password)) {
 
@@ -71,9 +70,20 @@ public class AuthHelper {
 
 			try {
 
-				Command findUser = Services.command(securityContext, FindUserCommand.class);
+				;
+				
+				Command findNode            = Services.command(securityContext, SearchNodeCommand.class);
+				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-				user = (Principal) findUser.execute(userName);
+				attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
+//				attrs.add(Search.andExactType("User"));
+				attrs.add(Search.andExactName(userName));
+
+				List<Principal> userList = (List<Principal>) findNode.execute(null, false, false, attrs);
+				
+				if (!userList.isEmpty()) {
+					user = userList.get(0);
+				}
 
 				if (user == null) {
 
@@ -100,8 +110,7 @@ public class AuthHelper {
 					}
 
 					String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-					
-					String pw = user.getEncryptedPassword();
+					String pw                     = user.getEncryptedPassword();
 
 					if (pw == null || !encryptedPasswordValue.equals(pw)) {
 
@@ -114,7 +123,9 @@ public class AuthHelper {
 				}
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
+
 			}
 
 		}
@@ -122,15 +133,15 @@ public class AuthHelper {
 		if (errorMsg != null) {
 
 			throw new AuthenticationException(errorMsg);
-
 		}
 
 		return user;
+
 	}
 
 	public static Principal getUserForToken(final String messageToken) {
 
-		Principal user                   = null;
+		Principal user              = null;
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 		attrs.add(Search.andExactProperty(Principal.Key.sessionId, messageToken));
@@ -148,14 +159,17 @@ public class AuthHelper {
 				if ((user != null) && messageToken.equals(user.getProperty(Principal.Key.sessionId))) {
 
 					return user;
-
 				}
 
 			}
 		} catch (FrameworkException fex) {
+
 			logger.log(Level.WARNING, "Error while executing SearchNodeCommand", fex);
+
 		}
 
 		return user;
+
 	}
+
 }
