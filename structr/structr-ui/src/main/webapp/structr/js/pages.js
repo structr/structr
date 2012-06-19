@@ -112,7 +112,7 @@ var _Pages = {
         _Pages.refresh();
         
         
-        window.setTimeout(_Pages.resize(), 1000);
+        window.setTimeout('_Pages.resize()', 1000);
 
     },
 

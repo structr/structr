@@ -187,7 +187,7 @@ var Structr = {
             } else {
                 if (debug) console.log('Current user: ' + user);
                 //            $.cookie("structrUser", username);
-                $('#logout_').html(' Logout <span class="username">' + user + '</span>');
+                $('#logout_').html(' Logout <span class="username">' + (user ? user : '') + '</span>');
                 //				UsersAndGroups.onload();
 				
                 Structr.loadInitialModule();
@@ -404,8 +404,8 @@ var Structr = {
             childNodes = childNodes.not('.' + excludeId + '_');
         }
         var n = childNodes.length;
-        console.log('children', $(element).children('.node'));
-        console.log('number of nodes in element', element, n);
+        if (debug) console.log('children', $(element).children('.node'));
+        if (debug) console.log('number of nodes in element', element, n);
         return n;
     },
 

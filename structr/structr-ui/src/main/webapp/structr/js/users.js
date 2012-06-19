@@ -160,7 +160,7 @@ var _UsersAndGroups = {
     },
 
     appendUserElement : function(user, groupId, removeExisting) {
-        console.log('appendUserElement', user, groupId, removeExisting);
+        if (debug) console.log('appendUserElement', user, groupId, removeExisting);
 
         if (!groupId && user.group.length) return false;
 
@@ -178,7 +178,7 @@ var _UsersAndGroups = {
 
             var parent = Structr.node(groupId);
             
-            console.log('parent, div', parent, div);
+            if (debug) console.log('parent, div', parent, div);
             
             if (removeExisting && div && div.length) {
                 parent.append(div.css({
@@ -188,12 +188,12 @@ var _UsersAndGroups = {
                 delIcon = $('.delete_icon', div);
                 delIcon.replaceWith(newDelIcon);
                 
-                console.log('################ disable delete icon');
+                if (debug) console.log('################ disable delete icon');
                 
 
             } else {
                 
-                console.log('### new user, appending to ', parent);
+                if (debug) console.log('### new user, appending to ', parent);
                 
                 
                 parent.append('<div class="node user ' + user.id + '_">'

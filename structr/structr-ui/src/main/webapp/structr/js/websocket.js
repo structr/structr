@@ -313,7 +313,7 @@ function connect() {
                     
                     if (debug) console.log(data);
                     
-                    console.log('modifiedProperties', modifiedProperties[0]);
+                    if (debug) console.log('modifiedProperties', modifiedProperties[0]);
                 		    
                     var newPageId = modifiedProperties[0];
                     //var pos = relData[newPageId];

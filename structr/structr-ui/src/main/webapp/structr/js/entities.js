@@ -21,13 +21,13 @@ var buttonClicked;
 
 var _Entities = {
     
-    booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden'],
+    booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'frontendUser', 'backendUser'],
     numberAttrs : ['position', 'size'],
     dateAttrs : ['createdDate', 'lastModifiedDate'],
     
     changeBooleanAttribute : function(attrElement, value) {
 
-        console.log('Change boolean attribute ', attrElement, ' to ', value);
+        if (debug) console.log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value == true) {
             attrElement.removeClass('disabled');
@@ -56,7 +56,7 @@ var _Entities = {
                     _Pages.appendContentElement(child, parent.id, rootId);
                 } else if (child.type == 'Folder') {
                     var entity = child;
-                    console.log('Render Tree: ' , entity);
+                    if (debug) console.log('Render Tree: ' , entity);
                     var folderElement = _Files.appendFolderElement(child, parent.id);
                     var files = entity.files;
                     if (files && files.length > 0) {
@@ -77,7 +77,7 @@ var _Entities = {
     reloadChildren : function(id, componentId, pageId) {
         var el = Structr.node(id, null, componentId, pageId);
         
-        console.log('reloadChildren', el);
+        if (debug) console.log('reloadChildren', el);
         
         $(el).children('.node').remove();
         _Entities.resetMouseOverState(el);
