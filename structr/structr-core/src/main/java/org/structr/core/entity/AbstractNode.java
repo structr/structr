@@ -355,8 +355,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		// Fill cache map
 		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+			
+			Principal owner = (Principal) r.getStartNode();
+			
+			if (owner != null) {
 
-			securityRelationships.put(r.getStartNode().getId(), r);
+				securityRelationships.put(owner.getId(), r);
+			}
 		}
 
 	}
@@ -503,6 +508,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * property while allowing a manual set method to override this
 	 * default behaviour.
 	 */
+	@Override
 	public void unlockReadOnlyPropertiesOnce() {
 
 		this.readOnlyPropertiesUnlocked = true;
@@ -1117,12 +1123,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	@Override
 	public Integer getIntProperty(final PropertyKey propertyKey) {
 
 		return (getIntProperty(propertyKey.name()));
 
 	}
 
+	@Override
 	public Integer getIntProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -1512,6 +1520,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			for (AbstractRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
 
 				AbstractNode n = s.getStartNode();
+				
+				if (n == null) {
+					
+					logger.log(Level.WARNING, "Could not determine owner node!");
+					
+					return null;
+				}
 
 				if (n instanceof Principal) {
 
