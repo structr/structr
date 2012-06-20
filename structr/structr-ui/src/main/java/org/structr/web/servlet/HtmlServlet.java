@@ -111,14 +111,12 @@ public class HtmlServlet extends HttpServlet {
 	//~--- static initializers --------------------------------------------
 
 	static {
-		
+
 		contentConverters.put("text/markdown", new Adapter<String, String>() {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return pegDownProcessor.get().markdownToHtml(s);
-
 			}
 
 		});
@@ -126,9 +124,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return textileProcessor.get().parseToHtml(s);
-
 			}
 
 		});
@@ -136,9 +132,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return mediaWikiProcessor.get().parseToHtml(s);
-
 			}
 
 		});
@@ -146,9 +140,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return tracWikiProcessor.get().parseToHtml(s);
-
 			}
 
 		});
@@ -156,9 +148,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return confluenceProcessor.get().parseToHtml(s);
-
 			}
 
 		});
@@ -218,9 +208,7 @@ public class HtmlServlet extends HttpServlet {
 			logger.log(Level.WARNING, "Error while POSTing to REST url " + restUrl, ex);
 
 			return false;
-
 		}
-
 	}
 
 	@Override
@@ -254,11 +242,8 @@ public class HtmlServlet extends HttpServlet {
 			response.sendRedirect("/" + name + "//" + pagePath);
 
 		} catch (IOException ex) {
-
 			logger.log(Level.SEVERE, "Could not redirect to " + path, ex);
-
 		}
-
 	}
 
 	@Override
@@ -274,11 +259,12 @@ public class HtmlServlet extends HttpServlet {
 		if (urlParts.length > 1) {
 
 			searchFor = StringUtils.substringBefore(urlParts[1], "?");
+
 		}
 
 		String[] pathParts = PathHelper.getParts(path);
 
-		if (pathParts == null && pathParts.length == 0) {
+		if ((pathParts == null) && (pathParts.length == 0)) {
 
 			logger.log(Level.WARNING, "Could not get path parts from path {0}", path);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -294,6 +280,7 @@ public class HtmlServlet extends HttpServlet {
 		if ((parameterMap != null) && (parameterMap.size() > 0)) {
 
 			attrs = convertToNodeAttributes(parameterMap);
+
 		}
 
 		edit = false;
@@ -302,11 +289,13 @@ public class HtmlServlet extends HttpServlet {
 		if (request.getParameter("edit") != null) {
 
 			edit = true;
+
 		}
 
 		if (request.getParameter("tidy") != null) {
 
 			tidy = true;
+
 		}
 
 		// first part (before "//" is page path (file etc),
@@ -353,9 +342,11 @@ public class HtmlServlet extends HttpServlet {
 			if (node instanceof Page) {
 
 				page = (Page) node;
+
 			} else if (node instanceof org.structr.core.entity.File) {
 
 				file = (org.structr.core.entity.File) node;
+
 			}
 
 			if ((page != null) && securityContext.isVisible(page)) {
@@ -375,6 +366,7 @@ public class HtmlServlet extends HttpServlet {
 				if (contentType != null) {
 
 					response.setContentType(contentType);
+
 				} else {
 
 					// Default
@@ -409,6 +401,7 @@ public class HtmlServlet extends HttpServlet {
 				if (contentType != null) {
 
 					response.setContentType(contentType);
+
 				} else {
 
 					// Default
@@ -421,28 +414,26 @@ public class HtmlServlet extends HttpServlet {
 				out.flush();
 				out.close();
 				response.setStatus(HttpServletResponse.SC_OK);
-				
 			} else {
 
 				// Check if security context has set an 401 status
 				if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
 
 					HttpAuthenticator.writeUnauthorized(response);
+
 				} else {
 
 					HttpAuthenticator.writeNotFound(response);
+
 				}
 			}
 
 		} catch (Throwable t) {
 
 			// t.printStackTrace();
-
 			// logger.log(Level.WARNING, "Exception while processing request", t);
 			HttpAuthenticator.writeInternalServerError(response);
-
 		}
-
 	}
 
 	/**
@@ -464,9 +455,11 @@ public class HtmlServlet extends HttpServlet {
 			if (values.length == 1) {
 
 				val = values[0];
+
 			} else {
 
 				val = values;
+
 			}
 
 			parameters.put(param.getKey(), val);
@@ -474,7 +467,6 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return parameters;
-
 	}
 
 	/**
@@ -495,9 +487,11 @@ public class HtmlServlet extends HttpServlet {
 			if (values.length == 1) {
 
 				val = values[0];
+
 			} else {
 
 				val = values;
+
 			}
 
 			NodeAttribute attr = new NodeAttribute(param.getKey(), val);
@@ -507,7 +501,6 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return attrs;
-
 	}
 
 	private AbstractNode findEntryPoint(final String name) throws FrameworkException {
@@ -535,12 +528,12 @@ public class HtmlServlet extends HttpServlet {
 			if (!results.isEmpty()) {
 
 				return results.get(0);
+
 			}
 
 		}
 
 		return null;
-
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -551,6 +544,15 @@ public class HtmlServlet extends HttpServlet {
 		String localComponentId = componentId;
 		String content          = null;
 		String tag              = null;
+		StringBuilder indent    = new StringBuilder();
+
+		for (int d = 1; d < depth; d++) {
+
+			indent.append("  ");
+
+		}
+
+		String ind = indent.toString();
 
 		if (startNode != null) {
 
@@ -571,6 +573,7 @@ public class HtmlServlet extends HttpServlet {
 					if (!val.equals(startNode.getProperty(key))) {
 
 						return;
+
 					}
 
 				}
@@ -599,9 +602,7 @@ public class HtmlServlet extends HttpServlet {
 							// apply adapter
 							content = converter.adapt(content);
 						} catch (FrameworkException fex) {
-
 							logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
-
 						}
 
 					}
@@ -609,9 +610,10 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 				// replace newlines with <br /> for rendering
-				if ((contentType == null || contentType.equals("text/plain")) && (content != null) && !content.isEmpty()) {
+				if (((contentType == null) || contentType.equals("text/plain")) && (content != null) &&!content.isEmpty()) {
 
 					content = content.replaceAll("[\\n]{1}", "<br>\n");
+
 				}
 
 			}
@@ -620,6 +622,7 @@ public class HtmlServlet extends HttpServlet {
 			if (startNode instanceof Component) {
 
 				localComponentId = startNode.getStringProperty(AbstractNode.Key.uuid);
+
 			}
 
 			// In edit mode, add an artificial 'div' tag around content nodes within body
@@ -636,24 +639,22 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			if (StringUtils.isNotBlank(tag)) {
+			if (StringUtils.isNotBlank(tag) && (startNode instanceof HtmlElement)) {
 
 				if (tag.equals("body")) {
 
 					inBody = true;
+
 				}
 
-				for (int d=1; d<depth; d++) {
-					buffer.append("  ");
-				}
-				
-				buffer.append("<").append(tag);
+				buffer.append(ind).append("<").append(tag);
 
 				if (edit && (id != null)) {
 
 					if (depth == 1) {
 
 						buffer.append(" structr_page_id='").append(pageId).append("'");
+
 					}
 
 					if (!(startNode instanceof Content)) {
@@ -665,34 +666,29 @@ public class HtmlServlet extends HttpServlet {
 					} else {
 
 						buffer.append(" structr_content_id=\"").append(id).append("\"");
+
 					}
 
 				}
 
-				if (startNode instanceof HtmlElement) {
+				HtmlElement htmlElement = (HtmlElement) startNode;
 
-					HtmlElement htmlElement = (HtmlElement) startNode;
+				for (String attribute : EntityContext.getPropertySet(startNode.getClass(), PropertyView.Html)) {
 
-					for (String attribute : EntityContext.getPropertySet(startNode.getClass(), PropertyView.Html)) {
+					try {
 
-						try {
+						String value = htmlElement.getPropertyWithVariableReplacement(page, pageId, localComponentId, viewComponent, attribute);
 
-							String value = htmlElement.getPropertyWithVariableReplacement(page, pageId, localComponentId, viewComponent, attribute);
+						if ((value != null) && StringUtils.isNotBlank(value)) {
 
-							if ((value != null) && StringUtils.isNotBlank(value)) {
+							String key = attribute.substring(PropertyView.Html.length());
 
-								String key = attribute.substring(PropertyView.Html.length());
-
-								buffer.append(" ").append(key).append("=\"").append(value).append("\"");
-
-							}
-
-						} catch (Throwable t) {
-
-							t.printStackTrace();
+							buffer.append(" ").append(key).append("=\"").append(value).append("\"");
 
 						}
 
+					} catch (Throwable t) {
+						t.printStackTrace();
 					}
 
 				}
@@ -702,12 +698,9 @@ public class HtmlServlet extends HttpServlet {
 			}
 
 			if (content != null) {
-				
-				for (int d=1; d<depth; d++) {
-					buffer.append("  ");
-				}
-				
-				buffer.append(content).append("\n");
+
+				buffer.append(ind).append(content).append("\n");
+
 			}
 		}
 
@@ -727,7 +720,7 @@ public class HtmlServlet extends HttpServlet {
 
 						AbstractNode subNode = rel.getEndNode();
 
-						getContent(request, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, (AbstractNode) component, condition);
+						getContent(request, pageId, localComponentId, buffer, page, subNode, depth, inBody, searchClass, attrs, (AbstractNode) component, condition);
 
 					}
 
@@ -765,15 +758,11 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		// render end tag, if needed (= if not singleton tags)
-		if (StringUtils.isNotBlank(tag) && startNode instanceof HtmlElement && !((HtmlElement) startNode).isVoidElement()) {
-			
-			for (int d=1; d<depth; d++) {
-				buffer.append("  ");
-			}
+		if (StringUtils.isNotBlank(tag) && (startNode instanceof HtmlElement) &&!((HtmlElement) startNode).isVoidElement()) {
 
-			buffer.append("</").append(tag).append(">\n");
+			buffer.append(ind).append("</").append(tag).append(">\n");
+
 		}
-
 	}
 
 	//~--- inner classes --------------------------------------------------
@@ -782,11 +771,8 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected MarkupParser initialValue() {
-
 			return new MarkupParser(new ConfluenceDialect());
-
 		}
-
 	}
 
 
@@ -794,11 +780,8 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected MarkupParser initialValue() {
-
 			return new MarkupParser(new MediaWikiDialect());
-
 		}
-
 	}
 
 
@@ -806,11 +789,8 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected PegDownProcessor initialValue() {
-
 			return new PegDownProcessor();
-
 		}
-
 	}
 
 
@@ -818,11 +798,8 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected MarkupParser initialValue() {
-
 			return new MarkupParser(new TextileDialect());
-
 		}
-
 	}
 
 
@@ -830,11 +807,7 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected MarkupParser initialValue() {
-
 			return new MarkupParser(new TracWikiDialect());
-
 		}
-
 	}
-
 }
