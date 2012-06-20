@@ -141,7 +141,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	public static enum Key implements PropertyKey {
 
-		uuid, name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position, visibleToPublicUsers, title, titles, visibilityEndDate, visibilityStartDate,
+		uuid, name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position, visibleToPublicUsers, visibilityEndDate, visibilityStartDate,
 		visibleToAuthenticatedUsers, templateId, categories, ownerId, owner;
 
 	}

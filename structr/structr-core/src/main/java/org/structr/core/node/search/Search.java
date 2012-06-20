@@ -230,21 +230,21 @@ public abstract class Search {
 
 	}
 
-	public static SearchAttribute andTitle(final String searchString) {
-
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.AND);
-
-		return attr;
-
-	}
-
-	public static SearchAttribute orTitle(final String searchString) {
-
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.OR);
-
-		return attr;
-
-	}
+//	public static SearchAttribute andTitle(final String searchString) {
+//
+//		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.AND);
+//
+//		return attr;
+//
+//	}
+//
+//	public static SearchAttribute orTitle(final String searchString) {
+//
+//		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.OR);
+//
+//		return attr;
+//
+//	}
 
 	public static SearchAttribute andContent(final String searchString) {
 
@@ -340,21 +340,21 @@ public abstract class Search {
 
 	}
 
-	public static SearchAttribute orExactTitle(final String searchString) {
-
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.OR);
-
-		return attr;
-
-	}
-
-	public static SearchAttribute andExactTitle(final String searchString) {
-
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.AND);
-
-		return attr;
-
-	}
+//	public static SearchAttribute orExactTitle(final String searchString) {
+//
+//		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.OR);
+//
+//		return attr;
+//
+//	}
+//
+//	public static SearchAttribute andExactTitle(final String searchString) {
+//
+//		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.AND);
+//
+//		return attr;
+//
+//	}
 
 	public static SearchAttribute orExactContent(final String searchString) {
 
