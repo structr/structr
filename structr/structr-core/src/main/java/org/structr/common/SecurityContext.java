@@ -200,6 +200,10 @@ public class SecurityContext {
 
 	}
 
+	public void setRequest(HttpServletRequest request) {
+		this.request = request;
+	}
+	
 	public Principal getUser() {
 
 		if (cachedUser == null) {
