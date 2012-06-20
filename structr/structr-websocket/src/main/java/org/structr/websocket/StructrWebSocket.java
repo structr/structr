@@ -291,17 +291,22 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	}
 
-	private void handleExistingFile(final String uuid) {
+	private FileUploadHandler handleExistingFile(final String uuid) {
 
 		Command getNode = Services.command(getSecurityContext(), GetNodeByIdCommand.class);
 
+		FileUploadHandler newHandler = null;
+		
 		try {
 
 			File file = (File) getNode.execute(uuid);
 
 			if (file != null) {
 
-				uploads.put(uuid, new FileUploadHandler(file));
+				newHandler = new FileUploadHandler(file);
+				
+				uploads.put(uuid, newHandler);
+				
 			}
 
 		} catch (FrameworkException ex) {
@@ -309,6 +314,8 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 			logger.log(Level.WARNING, "File not found with id " + uuid, ex);
 
 		}
+		
+		return newHandler;
 
 	}
 
@@ -318,18 +325,19 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		if (upload == null) {
 
-			handleExistingFile(uuid);
+			upload = handleExistingFile(uuid);
 		}
 
 		if (upload != null) {
 
 			upload.handleChunk(sequenceNumber, chunkSize, data);
+			
 		}
 
 	}
 
 	// ----- public static methods -----
-	public static final String secureRandomString() {
+	public static String secureRandomString() {
 
 		byte[] binaryData = new byte[SessionIdLength];
 
