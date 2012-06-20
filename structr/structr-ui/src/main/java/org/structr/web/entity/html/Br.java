@@ -32,4 +32,10 @@ public class Br extends HtmlElement {
 		EntityContext.registerPropertySet(Br.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Br.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
+
 }

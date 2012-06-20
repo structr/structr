@@ -32,4 +32,10 @@ public class Keygen extends HtmlElement {
 		EntityContext.registerPropertySet(Keygen.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Keygen.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
+
 }

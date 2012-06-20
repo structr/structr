@@ -32,4 +32,10 @@ public class Source extends HtmlElement {
 		EntityContext.registerPropertySet(Source.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Source.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
+
 }

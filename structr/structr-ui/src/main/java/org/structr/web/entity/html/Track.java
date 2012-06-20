@@ -32,4 +32,10 @@ public class Track extends HtmlElement {
 		EntityContext.registerPropertySet(Track.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Track.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
+
 }

@@ -106,29 +106,12 @@ public class HtmlServlet extends HttpServlet {
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor         = new ThreadLocalTracWikiProcessor();
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher              = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
-	private static final Set<String> html5VoidTags                              = new LinkedHashSet<String>();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor     = new ThreadLocalConfluenceProcessor();
 
 	//~--- static initializers --------------------------------------------
 
 	static {
-
-		html5VoidTags.add("area");
-		html5VoidTags.add("base");
-		html5VoidTags.add("br");
-		html5VoidTags.add("col");
-		html5VoidTags.add("command");
-		html5VoidTags.add("embed");
-		html5VoidTags.add("hr");
-		html5VoidTags.add("img");
-		html5VoidTags.add("input");
-		html5VoidTags.add("keygen");
-		html5VoidTags.add("link");
-		html5VoidTags.add("meta");
-		html5VoidTags.add("param");
-		html5VoidTags.add("source");
-		html5VoidTags.add("track");
-		html5VoidTags.add("wbr");
+		
 		contentConverters.put("text/markdown", new Adapter<String, String>() {
 
 			@Override
@@ -628,7 +611,7 @@ public class HtmlServlet extends HttpServlet {
 				// replace newlines with <br /> for rendering
 				if ((contentType == null || contentType.equals("text/plain")) && (content != null) && !content.isEmpty()) {
 
-					content = content.replaceAll("[\\n]{1}", "<br>");
+					content = content.replaceAll("[\\n]{1}", "<br>\n");
 				}
 
 			}
@@ -660,6 +643,10 @@ public class HtmlServlet extends HttpServlet {
 					inBody = true;
 				}
 
+				for (int d=1; d<depth; d++) {
+					buffer.append("  ");
+				}
+				
 				buffer.append("<").append(tag);
 
 				if (edit && (id != null)) {
@@ -710,13 +697,17 @@ public class HtmlServlet extends HttpServlet {
 
 				}
 
-				buffer.append(">");
+				buffer.append(">\n");
 
 			}
 
 			if (content != null) {
-
-				buffer.append(content);
+				
+				for (int d=1; d<depth; d++) {
+					buffer.append("  ");
+				}
+				
+				buffer.append(content).append("\n");
 			}
 		}
 
@@ -774,9 +765,13 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		// render end tag, if needed (= if not singleton tags)
-		if (StringUtils.isNotBlank(tag) && !html5VoidTags.contains(tag)) {
+		if (StringUtils.isNotBlank(tag) && startNode instanceof HtmlElement && !((HtmlElement) startNode).isVoidElement()) {
+			
+			for (int d=1; d<depth; d++) {
+				buffer.append("  ");
+			}
 
-			buffer.append("</").append(tag).append(">");
+			buffer.append("</").append(tag).append(">\n");
 		}
 
 	}

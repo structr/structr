@@ -41,4 +41,10 @@ public class Img extends HtmlElement {
 		EntityContext.registerEntityRelation(Img.class, P.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Img.class, A.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 	}
+
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
+
 }

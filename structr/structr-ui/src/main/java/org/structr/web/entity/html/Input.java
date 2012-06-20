@@ -40,4 +40,10 @@ public class Input extends HtmlElement {
 		
 		EntityContext.registerEntityRelation(Input.class, Form.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 	}
+
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
+
 }

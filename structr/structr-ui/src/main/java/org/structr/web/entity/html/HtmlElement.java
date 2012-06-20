@@ -243,6 +243,14 @@ public abstract class HtmlElement extends Element {
 
 	//~--- methods --------------------------------------------------------
 
+	public boolean isTextElement() {
+		return false;
+	};
+	
+	public boolean isVoidElement() {
+		return false;
+	}
+	
 	public static String convertValueForHtml(java.lang.Object value) {
 
 		if (value != null) {

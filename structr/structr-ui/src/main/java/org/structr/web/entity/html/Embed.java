@@ -32,4 +32,10 @@ public class Embed extends HtmlElement {
 		EntityContext.registerPropertySet(Embed.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Embed.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
+
 }

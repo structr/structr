@@ -37,7 +37,7 @@ import org.structr.web.entity.Content;
 public class A extends HtmlElement {
 
 	private static final String[] htmlAttributes = new String[] { "href", "target", "ping", "rel", "media", "hreflang", "type" };
-        
+
         public enum UiKey implements PropertyKey { linkable, linkable_id }
 
 	static {
@@ -68,4 +68,9 @@ public class A extends HtmlElement {
 
 	}
 
+	@Override
+	public boolean isTextElement() {
+		return true;
+	};
+	        
 }
