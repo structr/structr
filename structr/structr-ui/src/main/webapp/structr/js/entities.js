@@ -23,7 +23,7 @@ var _Entities = {
     
     booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
     numberAttrs : ['position', 'size'],
-    dateAttrs : ['createdDate', 'lastModifiedDate'],
+    dateAttrs : ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
     
     changeBooleanAttribute : function(attrElement, value) {
 
@@ -282,9 +282,24 @@ var _Entities = {
                                     });
                                     Command.getProperty(entity.id, key, '#dialogBox');
                                 
-//                                } else if (isIn(key, _Entities.numberAttrs)) {
-//                                } else if (isIn(key, _Entities.dateAttrs)) {
-                                
+                                //                                } else if (isIn(key, _Entities.numberAttrs)) {
+                                } else if (isIn(key, _Entities.dateAttrs)) {
+                                    
+                                    if (!res[key] || res[key] == 'null') {
+                                        res[key] = '';
+                                    }
+                                    
+                                    props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td></tr>');
+                                    
+                                    var dateField = $(props.find('.dateField'));
+                                    dateField.datetimepicker({
+                                        showSecond: true,
+                                        timeFormat: 'hh:mm:ssz',
+                                        dateFormat: 'yy-mm-dd',
+                                        separator: 'T'
+                                    });
+                                    //dateField.datepicker();
+                                    
                                 } else {
                                 
                                     props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
