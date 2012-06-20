@@ -586,7 +586,7 @@ public class HtmlServlet extends HttpServlet {
 				Content contentNode = (Content) startNode;
 
 				// fetch content with variable replacement
-				content = contentNode.getPropertyWithVariableReplacement(page, pageId, componentId, viewComponent, Content.UiKey.content.name());
+				content = contentNode.getPropertyWithVariableReplacement(request, page, pageId, componentId, viewComponent, Content.UiKey.content.name());
 
 				// examine content type and apply converter
 				String contentType = contentNode.getStringProperty(Content.UiKey.contentType);

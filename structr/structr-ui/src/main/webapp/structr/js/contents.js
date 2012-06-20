@@ -126,12 +126,14 @@ var _Contents = {
         var contentBox = $('.editor', element);
         contentType = contentType ? contentType : entity.contentType;
         //alert(contentType);
-        var text1, text2;
+        var text1, text2, timer;
         editor = CodeMirror(contentBox.get(0), {
             value: unescapeTags(text),
             mode:  contentType,
             lineNumbers: true,
             onChange: function(cm, changes) {
+                
+                window.clearTimeout(timer);
                 
                 var element = $( '.' + entity.id + '_')[0];
                 
@@ -149,7 +151,9 @@ var _Contents = {
                 editorCursor = cm.getCursor();
                 if (debug) console.log(editorCursor);
 
-                Command.patch(entity.id, text1, text2);
+                timer = window.setTimeout(function() {
+                    Command.patch(entity.id, text1, text2);
+                }, 500);
 				
             }
         });

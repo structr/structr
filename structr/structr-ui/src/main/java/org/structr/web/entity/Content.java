@@ -22,6 +22,7 @@
 package org.structr.web.entity;
 
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
@@ -139,7 +140,10 @@ public class Content extends AbstractNode {
 		return getRelationships(RelType.CONTAINS, Direction.INCOMING).get(0);
 	}	
 	
-	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, String key) {
+	public String getPropertyWithVariableReplacement(HttpServletRequest request, AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, String key) {
+		if (securityContext.getRequest() == null) {
+			securityContext.setRequest(request);
+		}
 		return HtmlElement.replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getStringProperty(key));
 	}
 }

@@ -43,11 +43,14 @@ import org.structr.web.entity.Element;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.web.entity.Page;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -588,6 +591,22 @@ public abstract class HtmlElement extends Element {
 				continue;
 
 			}
+			
+			// special keyword "root": Find containing page
+			if ("root".equals(part.toLowerCase())) {
+				
+				List<Page> pages = getPages(securityContext, viewComponent);
+				
+				if (pages.isEmpty()) {
+					continue;
+				}
+
+				node = pages.get(0);
+
+				continue;
+
+			}
+			
 
 		}
 
@@ -599,4 +618,39 @@ public abstract class HtmlElement extends Element {
 
 		return null;
 	}
+	
+	
+	/**
+	 * Find all pages which contain the given html element node
+	 * 
+	 * @param securityContext
+	 * @param node
+	 * @return 
+	 */
+	private static List<Page> getPages(SecurityContext securityContext, final AbstractNode node) {
+		
+		List<Page> pages = new LinkedList<Page>();
+		
+		AbstractNode pageNode;
+		
+		List<AbstractRelationship> rels = node.getIncomingRelationships(RelType.CONTAINS);
+		
+		for (AbstractRelationship rel : rels) {
+			
+			for (String key : rel.getProperties().keySet()) {
+				
+				pageNode = getNodeById(securityContext, key);
+				
+				if (pageNode != null && pageNode instanceof Page) {
+					pages.add((Page) pageNode);
+				}
+				
+			}
+			
+		}
+			
+		return pages;
+		
+	}
+	
 }
