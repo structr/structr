@@ -40,6 +40,7 @@ import org.structr.core.node.NodeService.NodeIndex;
 
 import java.util.List;
 import org.structr.common.RelType;
+import org.structr.core.converter.BooleanConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,6 +65,9 @@ public class User extends Person implements Principal {
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(), Key.values());
 
+		EntityContext.registerPropertyConverter(User.class, User.Key.backendUser, BooleanConverter.class);
+		EntityContext.registerPropertyConverter(User.class, User.Key.frontendUser, BooleanConverter.class);
+		
 	}
 
 	//~--- constant enums -------------------------------------------------
