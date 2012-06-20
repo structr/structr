@@ -49,7 +49,7 @@ public class Page extends Linkable {
 	}
 
 	static {
-		EntityContext.registerPropertyRelation(AbstractNode.class, AbstractNode.Key.ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
+		EntityContext.registerPropertyRelation(AbstractNode.class, UiKey.ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
                 
 		EntityContext.registerPropertySet(Page.class,	PropertyView.All,	UiKey.values());
 		EntityContext.registerPropertySet(Page.class,	PropertyView.Public,	UiKey.values());

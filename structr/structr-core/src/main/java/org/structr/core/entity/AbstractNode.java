@@ -70,6 +70,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.converter.DateConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -90,10 +91,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.Ui, Key.values());
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityStartDate, LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate, LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate, LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate, LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityStartDate, DateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate, DateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate, DateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate, DateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibleToPublicUsers, BooleanConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibleToAuthenticatedUsers, BooleanConverter.class);
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
@@ -141,8 +142,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	public static enum Key implements PropertyKey {
 
-		uuid, name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position, visibleToPublicUsers, visibilityEndDate, visibilityStartDate,
-		visibleToAuthenticatedUsers, templateId, categories, ownerId, owner;
+		uuid, name, type, createdBy, createdDate, deleted, hidden, lastModifiedDate, visibleToPublicUsers, visibilityEndDate, visibilityStartDate,
+		visibleToAuthenticatedUsers, categories, owner;
 
 	}
 
