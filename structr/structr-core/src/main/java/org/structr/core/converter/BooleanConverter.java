@@ -5,6 +5,7 @@
  */
 package org.structr.core.converter;
 
+import org.apache.commons.lang.BooleanUtils;
 
 import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
@@ -13,7 +14,6 @@ import org.structr.core.Value;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.BooleanUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -30,27 +30,29 @@ public class BooleanConverter extends PropertyConverter {
 	@Override
 	public Object convertForSetter(Object source, Value value) {
 
-		if (source != null) {
+		if (source == null) {
 
-			try {
+			return false;
 
-				if (source instanceof Boolean) {
+		}
 
-					return ((Boolean) source);
+		try {
 
-				} else if (source instanceof String) {
+			if (source instanceof Boolean) {
 
-					return BooleanUtils.toBoolean((String) source, "true", "false");
+				return ((Boolean) source);
 
-				}
+			} else if (source instanceof String) {
 
-			} catch (Throwable t) {
+				return BooleanUtils.toBoolean((String) source, "true", "false");
 
-				logger.log(Level.WARNING, "Exception while parsing boolean", t);
-
-				return null;
 			}
 
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING, "Exception while parsing boolean", t);
+
+			return null;
 		}
 
 		return source;
@@ -58,6 +60,6 @@ public class BooleanConverter extends PropertyConverter {
 
 	@Override
 	public Object convertForGetter(Object source, Value value) {
-		return source == null ? false : source;
+		return convertForSetter(source, value);
 	}
 }
