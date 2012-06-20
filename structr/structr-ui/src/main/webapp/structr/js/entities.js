@@ -21,7 +21,7 @@ var buttonClicked;
 
 var _Entities = {
     
-    booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'frontendUser', 'backendUser'],
+    booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
     numberAttrs : ['position', 'size'],
     dateAttrs : ['createdDate', 'lastModifiedDate'],
     
