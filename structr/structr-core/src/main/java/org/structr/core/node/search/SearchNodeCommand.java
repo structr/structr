@@ -551,6 +551,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	//~--- get methods ----------------------------------------------------
 
 	private boolean isExactMatch(final String value) {
+		if (value == null) return false;
 		return value.startsWith("\"") && value.endsWith("\"");
 	}
 }
