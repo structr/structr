@@ -108,8 +108,8 @@ public class Content extends AbstractNode {
 		EntityContext.registerEntityRelation(Content.class,	Bdo.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Span.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), Element.UiKey.values());
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
+		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), UiKey.values());
 
 	}
 	

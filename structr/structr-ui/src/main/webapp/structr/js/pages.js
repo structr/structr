@@ -854,9 +854,9 @@ var _Pages = {
                 } else {               
                     if (!contentId) {
                         tag = $(ui.draggable).text();
-                        
-                        if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title') {
-                            nodeData.childContent = 'New Content';
+
+                        if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title' || tag == 'b' || tag == 'span') {
+                            nodeData.childContent = 'Initial Content for ' + tag;
                         }
                         
                         

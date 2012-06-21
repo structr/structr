@@ -153,7 +153,7 @@ var _Contents = {
 
                 timer = window.setTimeout(function() {
                     Command.patch(entity.id, text1, text2);
-                }, 500);
+                }, 1000);
 				
             }
         });
@@ -164,6 +164,7 @@ var _Contents = {
         t.append('<tr><td><label for="contentTypeSelect">Content-Type:</label></td><td>'
             + '<select class="contentType_" id="contentTypeSelect">'
             + '<option value="text/plain">text/plain</option>'
+            + '<option value="text/html">text/html</option>'
             + '<option value="text/css">text/css</option>'
             + '<option value="text/javascript">text/javascript</option>'
             + '<option value="text/markdown">text/markdown</option>'

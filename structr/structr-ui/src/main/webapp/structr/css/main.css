@@ -217,14 +217,14 @@ img.disabled {
 
 .props {
     /*    position: absolute;*/
-    width: 462px;
+    width: 662px;
     border-collapse: collapse;
     margin-bottom: 12px;
     border: 1px solid #b5b5b5;
 }
 
 #users .props {
-    width: 462px ! important;
+    width: 662px ! important;
 }
 
 tr:nth-child(odd) {
@@ -566,7 +566,7 @@ button img {
 }
 
 #dialogBox {
-    width: 480px;
+    width: 800px;
     margin-top: -70%;
 }
 
@@ -579,8 +579,8 @@ button img {
 .dialogText {
     text-align: left;
     font-size: 9pt;
-    height: 450px;
-    width: 478px;
+    height: 600px;
+    width: 776px;
     overflow: auto;
 }
 

@@ -156,7 +156,7 @@ public abstract class HtmlElement extends Element {
 			@Override
 			public String apply(String[] s) {
 
-				logger.log(Level.INFO, "Length: {0}", s.length);
+				logger.log(Level.FINE, "Length: {0}", s.length);
 
 				if (s.length < 2) {
 
@@ -164,7 +164,7 @@ public abstract class HtmlElement extends Element {
 
 				}
 
-				logger.log(Level.INFO, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] });
+				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] });
 
 				return s[0].equals(s[1])
 				       ? "true"
