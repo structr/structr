@@ -48,5 +48,11 @@ public class Span extends HtmlElement {
 		EntityContext.registerEntityRelation(Span.class, A.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Span.class, Img.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Span.class, Script.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-}
+	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

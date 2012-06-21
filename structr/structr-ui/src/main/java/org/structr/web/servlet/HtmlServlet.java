@@ -556,6 +556,24 @@ public class HtmlServlet extends HttpServlet {
 
 	}
 
+	private static String indent(final int depth, final boolean newline) {
+
+		StringBuilder indent = new StringBuilder();
+
+		if (newline) {
+
+			indent.append("\n");
+		}
+
+		for (int d = 0; d < depth; d++) {
+
+			indent.append("  ");
+		}
+
+		return indent.toString();
+
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	private void getContent(SecurityContext securityContext, final String pageId, final String componentId, final StringBuilder buffer, final AbstractNode page, final AbstractNode startNode,
@@ -564,15 +582,21 @@ public class HtmlServlet extends HttpServlet {
 		String localComponentId    = componentId;
 		String content             = null;
 		String tag                 = null;
-		StringBuilder indent       = new StringBuilder();
+		String ind                 = "";
 		HttpServletRequest request = securityContext.getRequest();
+		HtmlElement el             = null;
+		boolean isVoid             = startNode instanceof HtmlElement && ((HtmlElement) startNode).isVoidElement();
 
-		for (int d = 1; d < depth; d++) {
+		if (startNode instanceof HtmlElement) {
 
-			indent.append("  ");
+			el = (HtmlElement) startNode;
+
+			if (!el.avoidWhitespace()) {
+
+				ind = indent(depth, true);
+			}
+
 		}
-
-		String ind = indent.toString();
 
 		if (startNode != null) {
 
@@ -649,75 +673,79 @@ public class HtmlServlet extends HttpServlet {
 			if (edit && inBody && (startNode instanceof Content)) {
 
 				tag = "span";
-
-				// Instead of adding a div tag, we mark the parent node with
-				// the structr_element_id of this Content node
-				// remove last character in buffer (should be '>')
-				// buffer.delete(buffer.length() - 1, buffer.length());
-				// buffer.append(" structr_content_id=\"").append(id).append("\">");
-
 			}
 
-			if (StringUtils.isNotBlank(tag) && (startNode instanceof HtmlElement)) {
+			if (StringUtils.isNotBlank(tag)) {
 
 				if (tag.equals("body")) {
 
 					inBody = true;
 				}
 
-				buffer.append(ind).append("<").append(tag);
+				if (startNode instanceof Content || startNode instanceof HtmlElement) {
 
-				if (edit && (id != null)) {
+					buffer.append("<").append(tag);
 
-					if (depth == 1) {
+					if (edit && (id != null)) {
 
-						buffer.append(" structr_page_id='").append(pageId).append("'");
+						if (depth == 1) {
+
+							buffer.append(" structr_page_id='").append(pageId).append("'");
+						}
+
+						if (el != null) {
+
+							buffer.append(" structr_element_id=\"").append(id).append("\"");
+							buffer.append(" structr_type=\"").append(startNode.getType()).append("\"");
+							buffer.append(" structr_name=\"").append(startNode.getName()).append("\"");
+
+						} else {
+
+							buffer.append(" structr_content_id=\"").append(id).append("\"");
+						}
+
 					}
 
-					if (!(startNode instanceof Content)) {
+					if (el != null) {
 
-						buffer.append(" structr_element_id=\"").append(id).append("\"");
-						buffer.append(" structr_type=\"").append(startNode.getType()).append("\"");
-						buffer.append(" structr_name=\"").append(startNode.getName()).append("\"");
+						for (String attribute : EntityContext.getPropertySet(startNode.getClass(), PropertyView.Html)) {
 
-					} else {
+							try {
 
-						buffer.append(" structr_content_id=\"").append(id).append("\"");
-					}
+								String value = el.getPropertyWithVariableReplacement(page, pageId, localComponentId, viewComponent, attribute);
 
-				}
+								if ((value != null) && StringUtils.isNotBlank(value)) {
 
-				HtmlElement htmlElement = (HtmlElement) startNode;
+									String key = attribute.substring(PropertyView.Html.length());
 
-				for (String attribute : EntityContext.getPropertySet(startNode.getClass(), PropertyView.Html)) {
+									buffer.append(" ").append(key).append("=\"").append(value).append("\"");
 
-					try {
+								}
 
-						String value = htmlElement.getPropertyWithVariableReplacement(page, pageId, localComponentId, viewComponent, attribute);
+							} catch (Throwable t) {
 
-						if ((value != null) && StringUtils.isNotBlank(value)) {
+								t.printStackTrace();
 
-							String key = attribute.substring(PropertyView.Html.length());
-
-							buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+							}
 
 						}
 
-					} catch (Throwable t) {
+					}
 
-						t.printStackTrace();
+					buffer.append(">");
 
+					if (!isVoid) {
+
+						buffer.append(ind);
 					}
 
 				}
-
-				buffer.append(">\n");
 
 			}
 
 			if (content != null) {
 
-				buffer.append(ind).append(content).append("\n");
+				buffer.append(content);
 			}
 		}
 
@@ -800,10 +828,30 @@ public class HtmlServlet extends HttpServlet {
 			}
 		}
 
-		// render end tag, if needed (= if not singleton tags)
-		if (StringUtils.isNotBlank(tag) && (startNode instanceof HtmlElement) && !((HtmlElement) startNode).isVoidElement()) {
+		boolean whitespaceOnly = StringUtils.isBlank(buffer.substring(buffer.lastIndexOf("\n")));
 
-			buffer.append(ind).append("</").append(tag).append(">\n");
+		if (el != null && !el.avoidWhitespace()) {
+
+			if (whitespaceOnly) {
+
+				buffer.replace(buffer.length() - 2, buffer.length(), "");
+			} else {
+
+				buffer.append(indent(depth - 1, true));
+			}
+
+		}
+
+		// render end tag, if needed (= if not singleton tags)
+		if (StringUtils.isNotBlank(tag) && (startNode instanceof Content || !isVoid)) {
+
+			buffer.append("</").append(tag).append(">");
+
+			if (el != null && !el.avoidWhitespace()) {
+
+				buffer.append(indent(depth - 1, true));
+			}
+
 		}
 
 	}

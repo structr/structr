@@ -70,7 +70,7 @@ public class A extends HtmlElement {
 	}
 
 	@Override
-	public boolean isTextElement() {
+	public boolean avoidWhitespace() {
 		return true;
 	};
 	        

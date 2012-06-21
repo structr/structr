@@ -32,4 +32,10 @@ public class Sup extends HtmlElement {
 		EntityContext.registerPropertySet(Sup.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Sup.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

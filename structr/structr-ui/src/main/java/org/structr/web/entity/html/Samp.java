@@ -32,4 +32,10 @@ public class Samp extends HtmlElement {
 		EntityContext.registerPropertySet(Samp.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Samp.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

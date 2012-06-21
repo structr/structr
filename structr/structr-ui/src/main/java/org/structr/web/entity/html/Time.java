@@ -32,4 +32,10 @@ public class Time extends HtmlElement {
 		EntityContext.registerPropertySet(Time.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Time.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

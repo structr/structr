@@ -32,4 +32,10 @@ public class Dfn extends HtmlElement {
 		EntityContext.registerPropertySet(Dfn.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Dfn.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

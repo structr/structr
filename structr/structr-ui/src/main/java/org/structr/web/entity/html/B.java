@@ -38,4 +38,10 @@ public class B extends HtmlElement {
 		
 		EntityContext.registerEntityRelation(B.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

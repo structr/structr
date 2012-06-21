@@ -32,4 +32,10 @@ public class Kbd extends HtmlElement {
 		EntityContext.registerPropertySet(Kbd.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Kbd.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

@@ -32,4 +32,10 @@ public class Ruby extends HtmlElement {
 		EntityContext.registerPropertySet(Ruby.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Ruby.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

@@ -640,7 +640,7 @@ var _Pages = {
                             //swapFgBg(self);
                             self.removeClass('structr-editable-area');
                             //self.prop('contenteditable', false);
-                            $('#hoverStatus').text('-- non-editable --');
+                            //$('#hoverStatus').text('-- non-editable --');
                             var nodes = Structr.node(structrId);
                             nodes.removeClass('nodeHover');
                         },

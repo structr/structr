@@ -32,4 +32,10 @@ public class Bdo extends HtmlElement {
 		EntityContext.registerPropertySet(Bdo.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Bdo.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

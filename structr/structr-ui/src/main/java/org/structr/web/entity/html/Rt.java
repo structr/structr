@@ -32,4 +32,10 @@ public class Rt extends HtmlElement {
 		EntityContext.registerPropertySet(Rt.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Rt.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

@@ -248,10 +248,10 @@ public abstract class HtmlElement extends Element {
 
 	//~--- methods --------------------------------------------------------
 
-	public boolean isTextElement() {
+	public boolean avoidWhitespace() {
 		return false;
 	};
-	
+
 	public boolean isVoidElement() {
 		return false;
 	}

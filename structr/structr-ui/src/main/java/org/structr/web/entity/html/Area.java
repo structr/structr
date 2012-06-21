@@ -32,11 +32,6 @@ public class Area extends HtmlElement {
 		EntityContext.registerPropertySet(Area.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Area.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
-
-	@Override
-	public boolean isTextElement() {
-		return true;
-	};
 	
 	@Override
 	public boolean isVoidElement() {
