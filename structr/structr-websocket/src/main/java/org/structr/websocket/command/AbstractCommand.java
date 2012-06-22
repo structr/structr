@@ -94,7 +94,7 @@ public abstract class AbstractCommand {
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 				attrs.add(Search.andExactProperty(idProperty, id));
 
-				List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+				List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(null, true, false, attrs);
 				if(!results.isEmpty()) {
 					return results.get(0);
 				}

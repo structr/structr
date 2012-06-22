@@ -49,7 +49,7 @@ public class UpdateCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		AbstractNode node                 = getNode(webSocketData.getId());
-		final Map<String, Object> relData = webSocketData.getRelData();
+//		final Map<String, Object> relData = webSocketData.getRelData();
 
 		if (node != null) {
 

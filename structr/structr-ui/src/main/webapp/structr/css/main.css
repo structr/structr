@@ -217,14 +217,14 @@ img.disabled {
 
 .props {
     /*    position: absolute;*/
-    width: 662px;
+    width: 776px;
     border-collapse: collapse;
     margin-bottom: 12px;
     border: 1px solid #b5b5b5;
 }
 
 #users .props {
-    width: 662px ! important;
+    width: 776px ! important;
 }
 
 tr:nth-child(odd) {
@@ -264,14 +264,14 @@ tr:nth-child(even) {
     border: none;
     font-size: inherit;
     /*    background: transparent;*/
-    width: 200px;
+    width: 380px;
 }
 
 .props tr td.value textarea {
     margin: -3px;
     border: none;
     font-size: inherit;
-    width: 180px;
+    width: 360px;
 }
 
 .props tr td.value input.active {
@@ -458,6 +458,10 @@ span.id {
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
     /*    min-width: 200px;*/
+}
+
+.readonly {
+    color: #666;
 }
 
 .typeIcon, .expand_icon {

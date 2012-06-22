@@ -61,7 +61,7 @@ public class NodeFactoryCommand extends NodeServiceCommand {
                             return null;
                         }
 			
-			AbstractNode abstractNode = nodeFactory.createNode(securityContext, node);
+			AbstractNode abstractNode = nodeFactory.createNode(securityContext, node, true, false); // include hidden and deleted!
 			if(abstractNode != null) {
 				collection.add(abstractNode);
 			}
@@ -91,7 +91,7 @@ public class NodeFactoryCommand extends NodeServiceCommand {
                         logger.log(Level.WARNING, "Unknown parameter of type {0}", parameters[0].getClass().getName());
                         return null;
                     }
-                    ret = nodeFactory.createNode(securityContext, node);
+                    ret = nodeFactory.createNode(securityContext, node, true, false);
 
                 }
             } else {
