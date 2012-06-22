@@ -38,4 +38,5 @@ public class Title extends HtmlElement {
 		EntityContext.registerEntityRelation(Title.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Title.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}
+
 }

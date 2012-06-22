@@ -32,4 +32,10 @@ public class Bdi extends HtmlElement {
 		EntityContext.registerPropertySet(Bdi.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Bdi.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

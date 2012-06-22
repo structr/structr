@@ -37,5 +37,10 @@ public class Wbr extends HtmlElement {
 	public boolean isVoidElement() {
 		return true;
 	}
-
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

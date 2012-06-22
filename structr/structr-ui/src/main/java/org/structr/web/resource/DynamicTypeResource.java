@@ -84,11 +84,14 @@ public class DynamicTypeResource extends TypeResource {
 
 		// FIXME: do type check on existing dynamic resources here..
 		return rawType != null;
+
 	}
 
 	@Override
 	public String toString() {
+
 		return "DynamicTypeResource(".concat(this.rawType).concat(")");
+
 	}
 
 	@Override
@@ -100,7 +103,6 @@ public class DynamicTypeResource extends TypeResource {
 		if (uuidResource != null) {
 
 			uuidResults = (List<GraphObject>) uuidResource.doGet();
-
 		}
 
 		// check for dynamic type, use super class otherwise
@@ -117,7 +119,6 @@ public class DynamicTypeResource extends TypeResource {
 			if (uuidResults != null) {
 
 				results = ListUtils.intersection(results, uuidResults);
-
 			}
 
 			// check if nested DynamicTypeResources have valid results
@@ -126,7 +127,6 @@ public class DynamicTypeResource extends TypeResource {
 				if (res.doGet().isEmpty()) {
 
 					throw new NotFoundException();
-
 				}
 
 			}
@@ -137,6 +137,7 @@ public class DynamicTypeResource extends TypeResource {
 		parentResults = true;
 
 		return super.doGet();
+
 	}
 
 	@Override
@@ -146,7 +147,6 @@ public class DynamicTypeResource extends TypeResource {
 		if (uuidResource != null) {
 
 			throw new IllegalPathException();
-
 		}
 
 		List<GraphObject> templates = doGet();
@@ -154,7 +154,6 @@ public class DynamicTypeResource extends TypeResource {
 		if (parentResults) {
 
 			return super.doPost(propertySet);
-
 		} else if (!templates.isEmpty()) {
 
 			// try to find ID if surrounding component
@@ -163,7 +162,6 @@ public class DynamicTypeResource extends TypeResource {
 			if ((wrappedResource != null) && (wrappedResource instanceof UuidResource)) {
 
 				surroundingComponentId = ((UuidResource) wrappedResource).getUuid();
-
 			} else if (!nestedResources.isEmpty()) {
 
 				DynamicTypeResource nested = nestedResources.get(nestedResources.size() - 1);
@@ -171,7 +169,6 @@ public class DynamicTypeResource extends TypeResource {
 				if (nested.uuidResource != null) {
 
 					surroundingComponentId = nested.uuidResource.getUuid();
-
 				}
 
 			}
@@ -182,14 +179,12 @@ public class DynamicTypeResource extends TypeResource {
 			if (newComponent != null) {
 
 				result.addHeader("Location", buildLocationHeader(newComponent));
-
 			}
 
 			return result;
 		} else {
 
 			return super.doPost(propertySet);
-
 		}
 	}
 
@@ -199,10 +194,10 @@ public class DynamicTypeResource extends TypeResource {
 		if (uuidResource != null) {
 
 			return uuidResource.doPut(propertySet);
-
 		}
 
 		throw new IllegalPathException();
+
 	}
 
 	@Override
@@ -225,10 +220,10 @@ public class DynamicTypeResource extends TypeResource {
 		} else if (next instanceof TypeResource) {
 
 			throw new IllegalPathException();
-
 		}
 
 		return super.tryCombineWith(next);
+
 	}
 
 	public static Component duplicateComponent(final SecurityContext securityContext, final Map<String, Object> propertySet, final String rawType, final String surroundingComponentId)
@@ -253,7 +248,6 @@ public class DynamicTypeResource extends TypeResource {
 		if (surroundingComponentId != null) {
 
 			parentComponentId = surroundingComponentId;
-
 		}
 
 		final String finalParentComponentId = parentComponentId;
@@ -267,8 +261,7 @@ public class DynamicTypeResource extends TypeResource {
 
 				RelationshipHelper.copyRelationships(securityContext, template, comp, RelType.CONTAINS, finalParentResourceId, finalParentComponentId, position);
 
-				//RelationshipHelper.tagOutgoingRelsWithComponentId(comp, comp, comp.getUuid());
-
+				// RelationshipHelper.tagOutgoingRelsWithComponentId(comp, comp, comp.getUuid());
 				Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
 
 				for (AbstractNode node : template.getContentNodes().values()) {
@@ -295,6 +288,7 @@ public class DynamicTypeResource extends TypeResource {
 				}
 
 				return comp;
+
 			}
 
 		});
@@ -304,7 +298,6 @@ public class DynamicTypeResource extends TypeResource {
 			for (String key : propertySet.keySet()) {
 
 				newComponent.setProperty(key, propertySet.get(key));
-
 			}
 
 		}
@@ -351,6 +344,7 @@ public class DynamicTypeResource extends TypeResource {
 		 * }
 		 */
 		return newComponent;
+
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -374,12 +368,12 @@ public class DynamicTypeResource extends TypeResource {
 	public static List<GraphObject> getComponents(final SecurityContext securityContext, List<SearchAttribute> searchAttributes) throws FrameworkException {
 
 		// check for dynamic type, use super class otherwise
-		AbstractNode topNode   = null;
-		boolean includeDeleted = false;
-		boolean publicOnly     = false;
+		AbstractNode topNode            = null;
+		boolean includeDeletedAndHidden = false;
+		boolean publicOnly              = false;
 
 		// do search
-		return (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
+		return (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 	}
 
 	public static long getMaxPosition(final List<GraphObject> templates, final String pageId) {
@@ -396,7 +390,6 @@ public class DynamicTypeResource extends TypeResource {
 				for (AbstractRelationship rel : rels) {
 
 					pos = Math.max(pos, rel.getLongProperty(pageId));
-
 				}
 
 			}
@@ -404,6 +397,14 @@ public class DynamicTypeResource extends TypeResource {
 		}
 
 		return pos;
+
+	}
+
+	@Override
+	public boolean hasSearchableAttributes(List<SearchAttribute> attributes) throws FrameworkException {
+
+		// TODO: search for data-key attributes
+		return false;
 	}
 
 	@Override
@@ -412,17 +413,10 @@ public class DynamicTypeResource extends TypeResource {
 		if (uuidResource != null) {
 
 			return uuidResource.isCollectionResource();
-
 		}
 
 		return true;
+
 	}
-	
-	@Override
-	public boolean hasSearchableAttributes(List<SearchAttribute> attributes) throws FrameworkException {
-		
-		// TODO: search for data-key attributes
-		
-		return false;
-	}
+
 }

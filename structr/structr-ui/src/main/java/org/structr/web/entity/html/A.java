@@ -45,6 +45,7 @@ public class A extends HtmlElement {
 		EntityContext.registerPropertySet(A.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 
 		EntityContext.registerEntityRelation(A.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, Span.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(A.class, Img.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(A.class, Div.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(A.class, Section.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
@@ -69,7 +70,7 @@ public class A extends HtmlElement {
 	}
 
 	@Override
-	public boolean isTextElement() {
+	public boolean avoidWhitespace() {
 		return true;
 	};
 	        

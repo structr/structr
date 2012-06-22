@@ -45,7 +45,7 @@ import org.structr.web.entity.html.Html;
 public class Page extends Linkable {
 
 	public enum UiKey implements PropertyKey {
-		name, tag, components, elements, linkingElements, contentType, ownerId, visibleToPublicUsers, visibleToAuthenticatedUsers
+		name, tag, components, elements, linkingElements, contentType, ownerId, position
 	}
 
 	static {

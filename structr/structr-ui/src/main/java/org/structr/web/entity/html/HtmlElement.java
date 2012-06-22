@@ -45,12 +45,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Page;
+import org.structr.web.servlet.HtmlServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -154,7 +156,7 @@ public abstract class HtmlElement extends Element {
 			@Override
 			public String apply(String[] s) {
 
-				logger.log(Level.INFO, "Length: {0}", s.length);
+				logger.log(Level.FINE, "Length: {0}", s.length);
 
 				if (s.length < 2) {
 
@@ -162,7 +164,7 @@ public abstract class HtmlElement extends Element {
 
 				}
 
-				logger.log(Level.INFO, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] });
+				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] });
 
 				return s[0].equals(s[1])
 				       ? "true"
@@ -246,10 +248,10 @@ public abstract class HtmlElement extends Element {
 
 	//~--- methods --------------------------------------------------------
 
-	public boolean isTextElement() {
+	public boolean avoidWhitespace() {
 		return false;
 	};
-	
+
 	public boolean isVoidElement() {
 		return false;
 	}
@@ -502,7 +504,7 @@ public abstract class HtmlElement extends Element {
 				
 				if (request != null) {
 
-					return request.getParameter(referenceKey);
+					return StringUtils.defaultString(request.getParameter(referenceKey));
 				}
 
 			}
@@ -607,6 +609,20 @@ public abstract class HtmlElement extends Element {
 
 			}
 			
+			// special keyword "result_size"
+			if ("result_size".equals(part.toLowerCase())) {
+				
+				Set<Page> pages = HtmlServlet.getResultPages(securityContext, (Page) page);
+				
+				if (!pages.isEmpty()) {
+					return pages.size();
+				}
+
+				return 0;
+
+			}
+			
+			
 
 		}
 
@@ -627,7 +643,7 @@ public abstract class HtmlElement extends Element {
 	 * @param node
 	 * @return 
 	 */
-	private static List<Page> getPages(SecurityContext securityContext, final AbstractNode node) {
+	public static List<Page> getPages(SecurityContext securityContext, final AbstractNode node) {
 		
 		List<Page> pages = new LinkedList<Page>();
 		
@@ -642,6 +658,7 @@ public abstract class HtmlElement extends Element {
 				pageNode = getNodeById(securityContext, key);
 				
 				if (pageNode != null && pageNode instanceof Page) {
+					
 					pages.add((Page) pageNode);
 				}
 				

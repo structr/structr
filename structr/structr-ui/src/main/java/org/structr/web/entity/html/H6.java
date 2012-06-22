@@ -37,5 +37,7 @@ public class H6 extends HtmlElement {
 		EntityContext.registerPropertySet(H6.class, PropertyView.Html, PropertyView.Html,	HtmlElement.htmlAttributes);
 
 		EntityContext.registerEntityRelation(H6.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(H6.class, B.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(H6.class, Span.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}
 }

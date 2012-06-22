@@ -32,4 +32,10 @@ public class Abbr extends HtmlElement {
 		EntityContext.registerPropertySet(Abbr.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Abbr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

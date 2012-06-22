@@ -32,4 +32,10 @@ public class Strong extends HtmlElement {
 		EntityContext.registerPropertySet(Strong.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Strong.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

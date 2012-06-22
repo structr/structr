@@ -32,4 +32,10 @@ public class Cite extends HtmlElement {
 		EntityContext.registerPropertySet(Cite.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Cite.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

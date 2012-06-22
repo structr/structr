@@ -46,5 +46,10 @@ public class Img extends HtmlElement {
 	public boolean isVoidElement() {
 		return true;
 	}
-
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }

@@ -12,8 +12,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.CypherQueryCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.*;
 import org.structr.core.node.search.DistanceSearchAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -30,8 +32,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.node.CypherQueryCommand;
-import org.structr.core.node.search.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,12 +74,12 @@ public class TypeResource extends SortableResource {
 				if (!EntityContext.isKnownProperty(part)) {
 
 					return false;
-
 				}
 			}
 		}
 
 		return true;
+
 	}
 
 	@Override
@@ -87,7 +87,7 @@ public class TypeResource extends SortableResource {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
-		boolean includeDeleted                 = false;
+		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
 
 		if (rawType != null) {
@@ -109,10 +109,7 @@ public class TypeResource extends SortableResource {
 			if (entityClass == null) {
 
 				throw new NotFoundException();
-
 			}
-
-			
 
 			// distance search?
 			DistanceSearchAttribute distanceSearch = getDistanceSearch(request);
@@ -120,33 +117,34 @@ public class TypeResource extends SortableResource {
 			if (distanceSearch != null) {
 
 				searchAttributes.add(distanceSearch);
-                                searchAttributes.add(new FilterSearchAttribute(AbstractNode.Key.type.name(), EntityContext.normalizeEntityName(rawType), SearchOperator.AND));
+				searchAttributes.add(new FilterSearchAttribute(AbstractNode.Key.type.name(), EntityContext.normalizeEntityName(rawType), SearchOperator.AND));
 
 			} else {
-                                
-                                searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
+
+				searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 				// searchable attributes from EntityContext
 				hasSearchableAttributesForNodes(rawType, request, searchAttributes);
+
 			}
 
 			// do search
-			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
+			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly,
+							    searchAttributes);
 
 			if (!results.isEmpty()) {
 
 				// only sort if distance search is not active
-				if(distanceSearch == null) {
+				if (distanceSearch == null) {
+
 					applyDefaultSorting(results);
 				}
 
 				return results;
-
 			}
 		} else {
 
 			logger.log(Level.WARNING, "type was null");
-
 		}
 
 		return Collections.emptyList();
@@ -161,6 +159,7 @@ public class TypeResource extends SortableResource {
 //                      return Collections.emptyList();
 //
 //              }
+
 	}
 
 	@Override
@@ -171,8 +170,11 @@ public class TypeResource extends SortableResource {
 
 			@Override
 			public Object execute() throws FrameworkException {
+
 				return createNode(propertySet);
+
 			}
+
 		};
 
 		// execute transaction: create new node
@@ -182,7 +184,6 @@ public class TypeResource extends SortableResource {
 		if (newNode != null) {
 
 			result.addHeader("Location", buildLocationHeader(newNode));
-
 		}
 
 		// finally: return 201 Created
@@ -191,17 +192,23 @@ public class TypeResource extends SortableResource {
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
+
 		throw new IllegalPathException();
+
 	}
 
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public RestMethodResult doOptions() throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
@@ -226,38 +233,51 @@ public class TypeResource extends SortableResource {
 		} else if (next instanceof TypeResource) {
 
 			throw new IllegalPathException();
-
 		}
 
 		return super.tryCombineWith(next);
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getUriPart() {
+
 		return rawType;
+
 	}
 
 	public String getRawType() {
+
 		return rawType;
+
 	}
 
 	public Class getEntityClass() {
+
 		return entityClass;
+
+	}
+
+	@Override
+	public String getResourceSignature() {
+
+		return getUriPart();
+
 	}
 
 	public boolean hasSearchableAttributes(List<SearchAttribute> attributes) throws FrameworkException {
+
 		return hasSearchableAttributesForNodes(rawType, request, attributes);
+
 	}
 
 	@Override
 	public boolean isCollectionResource() {
+
 		return true;
+
 	}
 
-        @Override
-        public String getResourceSignature() {
-                return getUriPart();
-        }
 }
