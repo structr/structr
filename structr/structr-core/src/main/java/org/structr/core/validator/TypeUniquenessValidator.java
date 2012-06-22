@@ -57,7 +57,9 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 	//~--- constructors ---------------------------------------------------
 
 	public TypeUniquenessValidator(String type) {
+
 		this.type = type;
+
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -75,10 +77,10 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 
 		if ((key != null) && (value != null)) {
 
-			AbstractNode topNode   = null;
-			Boolean includeDeleted = false;
-			Boolean publicOnly     = false;
-			boolean nodeExists     = false;
+			AbstractNode topNode            = null;
+			Boolean includeDeletedAndHidden = false;
+			Boolean publicOnly              = false;
+			boolean nodeExists              = false;
 			String id;
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
 
@@ -89,12 +91,14 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 
 			try {
 
-				resultList = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly,
-					attributes, type, key);
+				resultList = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden,
+					publicOnly, attributes, type, key);
 				nodeExists = !resultList.isEmpty();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
+
 			}
 
 			if (nodeExists) {
@@ -108,11 +112,12 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 			} else {
 
 				return true;
-
 			}
 
 		}
 
 		return false;
+
 	}
+
 }

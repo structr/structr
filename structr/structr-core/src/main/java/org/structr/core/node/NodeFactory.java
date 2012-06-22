@@ -72,19 +72,28 @@ public class NodeFactory<T extends AbstractNode> {
 	public NodeFactory() {}
 
 	//~--- methods --------------------------------------------------------
+	public AbstractNode createNode(final SecurityContext securityContext, final Node node) throws FrameworkException {
 
-	public AbstractNode createNode(SecurityContext securityContext, final Node node) throws FrameworkException {
+		return createNode(securityContext, node, false, false);
+
+	}
+
+	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
 
 		String type     = AbstractNode.Key.type.name();
 		String nodeType = node.hasProperty(type)
 				  ? (String) node.getProperty(type)
 				  : "";
 
-		return createNode(securityContext, node, nodeType);
+		return createNode(securityContext, node, nodeType, includeDeletedAndHidden, publicOnly);
 
 	}
-
+	
 	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType) throws FrameworkException {
+		return createNode(securityContext, node, nodeType, false, false);
+	}
+
+	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
 
 		/*
 		 *  caching disabled for now...
@@ -135,31 +144,33 @@ public class NodeFactory<T extends AbstractNode> {
 		newNode.onNodeInstantiation();
 
 		// check access
-		boolean includeDeleted = false;
-		boolean publicOnly     = false;
-		
-		if (isReadable(securityContext, newNode, includeDeleted, publicOnly)) {
-			
+		if (isReadable(securityContext, newNode, includeDeletedAndHidden, publicOnly)) {
+
 			return newNode;
 		}
-		
+
 		return null;
+	}
+	
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input) throws FrameworkException {
+		return createNodes(securityContext, input, false, false);
 	}
 
 	/**
 	 * Create structr nodes from the underlying database nodes
 	 *
 	 * Include only nodes which are readable in the given security context.
-	 * If includeDeleted is true, include nodes with 'deleted' flag
-	 * If publicOnly is true, filter by 'public' flag
+	 * If includeDeletedAndHidden is true, include nodes with 'deleted' flag
+	 * If publicOnly is true, filter by 'visibleToPublicUsers' flag
 	 *
 	 * @param securityContext
 	 * @param input
-	 * @param includeDeleted
+	 * @param includeDeletedAndHidden
 	 * @param publicOnly
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeleted, final boolean publicOnly) throws FrameworkException {
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly)
+		throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -172,16 +183,21 @@ public class NodeFactory<T extends AbstractNode> {
 
 				for (Node node : input) {
 
-					AbstractNode n = createNode(securityContext, graphDb.getNodeById((Long) node.getProperty("id")));
-					if(n != null && isReadable(securityContext, n, includeDeleted, publicOnly)) {
+					AbstractNode n = createNode(securityContext, graphDb.getNodeById((Long) node.getProperty("id")), includeDeletedAndHidden, publicOnly);
+
+					// Check is done in createNode already, so we don't have to do it again
+					if (n != null) {// && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+
 						nodes.add(n);
 					}
 
 					for (AbstractNode nodeAt : getNodesAt(n)) {
 
-						if(nodeAt != null && isReadable(securityContext, nodeAt, includeDeleted, publicOnly)) {
+						if (nodeAt != null && isReadable(securityContext, nodeAt, includeDeletedAndHidden, publicOnly)) {
+
 							nodes.add(nodeAt);
 						}
+
 					}
 
 				}
@@ -194,11 +210,14 @@ public class NodeFactory<T extends AbstractNode> {
 
 				for (Node node : input) {
 
-					AbstractNode n = createNode(securityContext, (Node) node);
+					AbstractNode n = createNode(securityContext, (Node) node, includeDeletedAndHidden, publicOnly);
 
-					if(n != null && isReadable(securityContext, n, includeDeleted, publicOnly)) {
+					// Check is done in createNode already, so we don't have to do it again
+					if (n != null) {//  && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+
 						nodes.add(n);
 					}
+
 				}
 
 			}
@@ -209,48 +228,6 @@ public class NodeFactory<T extends AbstractNode> {
 
 	}
 	
-	private boolean isReadable(SecurityContext securityContext, AbstractNode node, boolean includeDeleted, boolean publicOnly) {
-		
-
-		/**
-		 * The if-clauses in the following lines have been split
-		 * for performance reasons.
-		 */
-
-		// hidden nodes will not be returned
-		if (node.isHidden()) {
-			return false;
-
-		}
-
-		// deleted nodes will only be returned if we are told to do so
-		if (node.isDeleted() && !includeDeleted) {
-			return false;
-
-		}
-
-		// visibleToPublic overrides anything else
-		// Publicly visible nodes will always be returned
-		if (node.isVisibleToPublicUsers()) {
-			return true;
-		}
-
-		// Next check is only for non-public nodes, because
-		// public nodes are already added one step above.
-		if (publicOnly) {
-			return false;
-
-		}
-
-		// Ask the security context
-		if (securityContext.isAllowed(node, Permission.read)) {
-			return true;
-
-		}
-		
-		return false;
-	}
-
 	/**
 	 * Create structr nodes from all given underlying database nodes
 	 *
@@ -267,7 +244,11 @@ public class NodeFactory<T extends AbstractNode> {
 
 				AbstractNode n = createNode(securityContext, node);
 
-				nodes.add(n);
+				if (n != null) {
+					
+					nodes.add(n);
+					
+				}
 
 			}
 
@@ -290,6 +271,42 @@ public class NodeFactory<T extends AbstractNode> {
 
 		return nodes;
 
+	}
+
+	private boolean isReadable(final SecurityContext securityContext, final AbstractNode node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+
+		/**
+		 * The if-clauses in the following lines have been split
+		 * for performance reasons.
+		 */
+
+		// deleted and hidden nodes will only be returned if we are told to do so
+		if ((node.isDeleted() || node.isHidden()) && !includeDeletedAndHidden) {
+
+			return false;
+		}
+
+		// visibleToPublic overrides anything else
+		// Publicly visible nodes will always be returned
+		if (node.isVisibleToPublicUsers()) {
+
+			return true;
+		}
+
+		// Next check is only for non-public nodes, because
+		// public nodes are already added one step above.
+		if (publicOnly) {
+
+			return false;
+		}
+
+		// Ask the security context
+		if (securityContext.isAllowed(node, Permission.read)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 }

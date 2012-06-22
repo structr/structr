@@ -56,14 +56,15 @@ public class ListCommand extends AbstractCommand {
 //              searchAttributes.addAll(Search.andExactTypeAndSubtypes(CaseHelper.toUpperCamelCase(type)));
 		searchAttributes.add(Search.andExactType(CaseHelper.toUpperCamelCase(type)));
 
-		AbstractNode topNode   = null;
-		boolean includeDeleted = false;
-		boolean publicOnly     = false;
+		AbstractNode topNode            = null;
+		boolean includeDeletedAndHidden = false;
+		boolean publicOnly              = false;
 
 		try {
 
 			// do search
-			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
+			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly,
+							    searchAttributes);
 
 			// sorting
 			if (webSocketData.getSortKey() != null) {
@@ -85,7 +86,9 @@ public class ListCommand extends AbstractCommand {
 								Comparable c2 = (Comparable) n2.getProperty(sortKey);
 
 								return (c2.compareTo(c1));
+
 							}
+
 						};
 
 					} else {
@@ -99,7 +102,9 @@ public class ListCommand extends AbstractCommand {
 								Comparable c2 = (Comparable) n2.getProperty(sortKey);
 
 								return (c1.compareTo(c2));
+
 							}
+
 						};
 
 					}
@@ -107,7 +112,6 @@ public class ListCommand extends AbstractCommand {
 					if (comparator != null) {
 
 						Collections.sort(results, comparator);
-
 					}
 
 				} catch (Throwable t) {
@@ -124,7 +128,6 @@ public class ListCommand extends AbstractCommand {
 				if ((obj instanceof AbstractNode) && RelationshipHelper.hasChildren(node, node.getUuid())) {
 
 					nodesWithChildren.add(node.getUuid());
-
 				}
 
 			}
@@ -153,14 +156,20 @@ public class ListCommand extends AbstractCommand {
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
+
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "LIST";
+
 	}
+
 }

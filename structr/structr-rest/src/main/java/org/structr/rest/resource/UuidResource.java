@@ -74,7 +74,8 @@ public class UuidResource extends FilterableResource {
 		attrs.add(Search.andExactUuid(uuid));
 
 		List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(
-			null, false, false, attrs
+			//null, false, false, attrs
+			null, true, false, attrs // take hidden and delted nodes into account!
 		);
 
 		int size = results.size();

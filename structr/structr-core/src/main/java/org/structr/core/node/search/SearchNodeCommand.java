@@ -66,7 +66,7 @@ import java.util.logging.Logger;
  * <ol>
  * <li>{@see AbstractNode} top node: search only below this node
  *     <p>if null, search everywhere (top node = root node)
- * <li>boolean include deleted: if true, return deleted nodes as well
+ * <li>boolean include deleted and hidden: if true, return deleted and hidden nodes as well
  * <li>boolean public only: if true, return only public nodes
  * <li>List<{@see TextualSearchAttribute}> search attributes: key/value pairs with search operator
  *    <p>if no TextualSearchAttribute is given, return any node matching the other
@@ -101,11 +101,11 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		boolean includeDeleted = false;
+		boolean includeDeletedAndHidden = false;
 
 		if (parameters[1] instanceof Boolean) {
 
-			includeDeleted = (Boolean) parameters[1];
+			includeDeletedAndHidden = (Boolean) parameters[1];
 
 		}
 
@@ -125,20 +125,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs);
+		return search(securityContext, topNode, includeDeletedAndHidden, publicOnly, searchAttrs);
 	}
 
 	/**
 	 * Return a list of nodes which fit to all search criteria.
 	 *
-	 * @param securityContext       Search in this security context
-	 * @param topNode               If set, return only search results below this top node (follows the HAS_CHILD relationship)
-	 * @param includeDeleted        If true, include nodes marked as deleted or contained in a Trash node as well
-	 * @param publicOnly            If true, don't include nodes which are not public
-	 * @param searchAttrs           List with search attributes
+	 * @param securityContext		Search in this security context
+	 * @param topNode			If set, return only search results below this top node (follows the HAS_CHILD relationship)
+	 * @param includeDeletedAndHidden       If true, include nodes marked as deleted or hidden
+	 * @param publicOnly			If true, don't include nodes which are not public
+	 * @param searchAttrs			List with search attributes
 	 * @return
 	 */
-	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted, final boolean publicOnly,
+	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeletedAndHidden, final boolean publicOnly,
 					  final List<SearchAttribute> searchAttrs)
 		throws FrameworkException {
 
@@ -293,7 +293,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					: 0 });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeleted, publicOnly);
+				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeletedAndHidden, publicOnly);
 
 				hits.close();
 				long t2 = System.currentTimeMillis();

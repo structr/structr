@@ -86,14 +86,13 @@ public class NodeQueryCommand extends NodeServiceCommand {
 	}
 
 	/**
-	 * Return a list of nodes which fit to all search criteria.
-	 *
-	 * @param securityContext       Search in this security context
-	 * @param topNode               If set, return only search results below this top node (follows the HAS_CHILD relationship)
-	 * @param includeDeleted        If true, include nodes marked as deleted or contained in a Trash node as well
-	 * @param publicOnly            If true, don't include nodes which are not public
-	 * @param searchAttrs           List with search attributes
+	 * Query given index with given query
+	 * 
+	 * @param securityContext
+	 * @param whichIndex
+	 * @param query
 	 * @return
+	 * @throws FrameworkException 
 	 */
 	private List<AbstractNode> search(final SecurityContext securityContext, final NodeIndex whichIndex, final Query query) throws FrameworkException {
 

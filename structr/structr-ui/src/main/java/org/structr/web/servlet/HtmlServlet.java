@@ -897,7 +897,7 @@ public class HtmlServlet extends HttpServlet {
 		Command searchNode                     = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
-		boolean includeDeleted                 = false;
+		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
 
 		searchAttributes.add(Search.andContent(search));
@@ -905,7 +905,7 @@ public class HtmlServlet extends HttpServlet {
 
 		try {
 
-			List<Content> contentNodes = (List<Content>) searchNode.execute(topNode, includeDeleted, publicOnly, searchAttributes);
+			List<Content> contentNodes = (List<Content>) searchNode.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			for (Content contentNode : contentNodes) {
 

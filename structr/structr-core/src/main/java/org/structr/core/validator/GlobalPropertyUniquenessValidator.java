@@ -13,6 +13,7 @@ import org.structr.common.error.UniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
@@ -23,7 +24,6 @@ import org.structr.core.node.search.TextualSearchAttribute;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,20 +52,20 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 
 			// String type = EntityContext.GLOBAL_UNIQUENESS;
 			AbstractNode topNode             = null;
-			Boolean includeDeleted           = false;
+			Boolean includeDeletedAndHidden  = false;
 			Boolean publicOnly               = false;
 			boolean nodeExists               = false;
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
-                        String id = null;
+			String id                        = null;
 
 			attributes.add(new TextualSearchAttribute(key, value, SearchOperator.AND));
-                        
-                        List<AbstractNode> resultList = null;
+
+			List<AbstractNode> resultList = null;
+
 			try {
 
-				resultList = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted,
-									publicOnly, attributes);
-
+				resultList = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden,
+					publicOnly, attributes);
 				nodeExists = !resultList.isEmpty();
 
 			} catch (FrameworkException fex) {
@@ -75,8 +75,8 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 
 			if (nodeExists) {
 
-                                id = ((AbstractNode) resultList.get(0)).getUuid();
-                                
+				id = ((AbstractNode) resultList.get(0)).getUuid();
+
 				errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
 
 				return false;
@@ -84,10 +84,11 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 			} else {
 
 				return true;
-
 			}
 		}
 
 		return false;
+
 	}
+
 }

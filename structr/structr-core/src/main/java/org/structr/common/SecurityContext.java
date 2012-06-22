@@ -143,7 +143,7 @@ public class SecurityContext {
 
 	}
 
-	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeDeleted, final boolean publicOnly) {
+	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeDeletedAndHidden, final boolean publicOnly) {
 
 		boolean readableByUser = false;
 
@@ -157,7 +157,7 @@ public class SecurityContext {
 
 				readableByUser = isAllowed(n, Permission.read);
 
-				if (!(readableByUser && (includeDeleted || !n.isDeleted()) && (n.isVisibleToPublicUsers() || !publicOnly))) {
+				if (!(readableByUser && (includeDeletedAndHidden || !n.isDeleted()) && (n.isVisibleToPublicUsers() || !publicOnly))) {
 
 					it.remove();
 				}
@@ -200,10 +200,6 @@ public class SecurityContext {
 
 	}
 
-	public void setRequest(HttpServletRequest request) {
-		this.request = request;
-	}
-	
 	public Principal getUser() {
 
 		if (cachedUser == null) {
@@ -262,9 +258,8 @@ public class SecurityContext {
 		if (flagObject != null) {
 
 			flags = flagObject.longValue();
-			
 		} else {
-			
+
 			logger.log(Level.WARNING, "No resource flag set for {0}", resource);
 		}
 
@@ -467,7 +462,6 @@ public class SecurityContext {
 				return true;
 
 				// }
-
 				// frontend user
 //                              if (user.isFrontendUser()) {
 //
@@ -492,14 +486,14 @@ public class SecurityContext {
 	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {
 
 		Principal user = getUser();
+
 		return node.isGranted(permission, user);
-		
+
 	}
 
 	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
 
-//		Principal user = getUser();
-		
+//              Principal user = getUser();
 		switch (permission) {
 
 			case read :
@@ -513,6 +507,12 @@ public class SecurityContext {
 	}
 
 	//~--- set methods ----------------------------------------------------
+
+	public void setRequest(HttpServletRequest request) {
+
+		this.request = request;
+
+	}
 
 	public static void setResourceFlag(final String resource, long flag) {
 
