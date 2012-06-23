@@ -513,7 +513,7 @@ public class ModuleService implements SingletonService {
 					}
 
 					// register page packages
-					if (structrPagePredicate.evaluate(clazz)) {
+					if (structrPagePredicate.evaluate(null, clazz)) {
 
 						String fullName    = clazz.getName();
 						String packageName = fullName.substring(0, fullName.lastIndexOf("."));
@@ -620,7 +620,7 @@ public class ModuleService implements SingletonService {
 					agentClassCache.remove(simpleName);
 					agentPackages.remove(fullName.substring(0, fullName.lastIndexOf(".")));
 
-				} else if ((structrPagePredicate != null) && structrPagePredicate.evaluate(clazz)) {
+				} else if ((structrPagePredicate != null) && structrPagePredicate.evaluate(null, clazz)) {
 
 					pagePackages.remove(fullName.substring(0, fullName.lastIndexOf(".")));
 

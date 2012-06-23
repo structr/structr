@@ -19,7 +19,6 @@
 
 package org.structr.core;
 
-import java.util.List;
 import java.util.Map;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
@@ -33,11 +32,11 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public interface VetoableGraphObjectListener {
+public interface StructrTransactionListener {
 
-	public boolean begin(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer);
-	public boolean commit(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer);
-	public boolean rollback(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer);
+	public void begin(SecurityContext securityContext, long transactionKey);
+	public void commit(SecurityContext securityContext, long transactionKey);
+	public void rollback(SecurityContext securityContext, long transactionKey);
 
 	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue);
 	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue);
@@ -45,9 +44,4 @@ public interface VetoableGraphObjectListener {
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;
 	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, Map<String, Object> properties) throws FrameworkException;
-
-//	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship);
-//	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship);
-	
-	public boolean wasVisited(List<GraphObject> traversedNodes, long transactionKey, ErrorBuffer errorBuffer, SecurityContext securityContext);
 }

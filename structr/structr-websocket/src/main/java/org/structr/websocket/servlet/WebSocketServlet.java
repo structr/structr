@@ -83,7 +83,7 @@ public class WebSocketServlet extends HttpServlet {
 		final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(idPropertyName)).create();
 
 		syncController = new SynchronizationController(gson);
-		EntityContext.registerModificationListener(syncController);
+		EntityContext.registerTransactionListener(syncController);
 
 		// create web socket factory
 		factory = new WebSocketFactory(new Acceptor() {
@@ -115,7 +115,7 @@ public class WebSocketServlet extends HttpServlet {
 
 	@Override
 	public void destroy() {
-		EntityContext.unregisterModificationListener(syncController);
+		EntityContext.unregisterTransactionListener(syncController);
 	}
 
 	@Override

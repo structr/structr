@@ -28,7 +28,7 @@ public class PropertyMapper extends PropertyConverter {
 
 		if(value != null) {
 
-			Object valueObject = value.get();
+			Object valueObject = value.get(securityContext);
 			if(valueObject instanceof String) {
 
 				String mappedKey = (String)valueObject;

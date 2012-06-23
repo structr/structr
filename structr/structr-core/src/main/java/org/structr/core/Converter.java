@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,30 +16,31 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.structr.core;
 
-package org.structr.core.validator;
-
-import org.structr.core.Value;
+import org.structr.common.SecurityContext;
 
 /**
- * A generic value parameter for functional evaluation.
  *
- * @author chrisi
+ * @author Christian Morgner
  */
-public class GenericValue<T> implements Value<T> {
+public class Converter<S, T> implements Value<T> {
 
-	private T value = null;
-
-	public GenericValue(T value) {
-		this.value = value;
+	private PropertyConverter<S, T> converter = null;
+	private Value<S> source = null;
+	
+	public Converter(Value<S> source, PropertyConverter<S, T> converter) {
+		this.converter = converter;
+		this.source = source;
 	}
+	
 	@Override
-	public void set(T value) {
-		this.value = value;
+	public void set(SecurityContext securityContext, T value) {
+		source.set(securityContext, converter.convertForSetter(value, this));
 	}
 
 	@Override
-	public T get() {
-		return value;
+	public T get(SecurityContext securityContext) {
+		return converter.convertForGetter(source.get(securityContext), this);
 	}
 }

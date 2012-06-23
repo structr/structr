@@ -108,7 +108,7 @@ public class ViewFilterResource extends WrappingResource {
 
 	@Override
 	public void configurePropertyView(Value<String> propertyView) {
-		propertyView.set(this.propertyView);
+		propertyView.set(securityContext, this.propertyView);
 	}
 
 	//~--- get methods ----------------------------------------------------

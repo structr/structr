@@ -18,7 +18,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Value;
-import org.structr.core.VetoableGraphObjectListener;
+import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
@@ -239,19 +239,6 @@ public abstract class Resource {
 		}
 
 		return null;
-
-	}
-
-	protected boolean notifyOfTraversal(List<GraphObject> traversedNodes, ErrorBuffer errorBuffer) {
-
-		boolean hasError = false;
-
-		for (VetoableGraphObjectListener listener : EntityContext.getModificationListeners()) {
-
-			hasError |= listener.wasVisited(traversedNodes, -1, errorBuffer, securityContext);
-		}
-
-		return hasError;
 
 	}
 
@@ -564,6 +551,10 @@ public abstract class Resource {
 
 	}
 
+	public static void registerNonSearchField(String parameterName) {
+		NON_SEARCH_FIELDS.add(parameterName);
+	}
+	
 	//~--- set methods ----------------------------------------------------
 
 	public void setSecurityContext(SecurityContext securityContext) {

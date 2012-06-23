@@ -19,6 +19,8 @@
 
 package org.structr.core;
 
+import org.structr.common.SecurityContext;
+
 /**
  * An unary predicate that evaluates classes of type T.
  *
@@ -27,10 +29,10 @@ package org.structr.core;
 public interface Predicate<T>
 {
 	/**
-	 * Evaluates the given object and returns a boolean value.
+	 * Evaluates the given object(s) and returns a boolean value.
 	 *
 	 * @param obj the object to evaluate
 	 * @return true or false
 	 */
-	public boolean evaluate(T obj);
+	public boolean evaluate(SecurityContext securityContext, T... obj);
 }

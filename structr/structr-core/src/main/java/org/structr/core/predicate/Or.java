@@ -19,24 +19,25 @@
 
 package org.structr.core.predicate;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.Predicate;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Or implements Predicate {
+public class Or<T> implements Predicate<T> {
 
-	Predicate p1 = null;
-	Predicate p2 = null;
+	Predicate<T> p1 = null;
+	Predicate<T> p2 = null;
 
-	public Or(Predicate p1, Predicate p2) {
+	public Or(Predicate<T> p1, Predicate<T> p2) {
 		this.p1 = p1;
 		this.p2 = p2;
 	}
 
 	@Override
-	public boolean evaluate(Object obj) {
-		return p1.evaluate(obj) || p2.evaluate(obj);
+	public boolean evaluate(SecurityContext securityContext, T... obj) {
+		return p1.evaluate(securityContext, obj) || p2.evaluate(securityContext, obj);
 	}
 }

@@ -21,8 +21,8 @@ package org.structr.core.node;
 
 import java.util.Iterator;
 import java.util.Set;
+import org.structr.common.SecurityContext;
 import org.structr.core.Predicate;
-import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -30,10 +30,11 @@ import org.structr.core.entity.AbstractNode;
  */
 public class IterableFilter<T> implements Iterable<T> {
 
+	private SecurityContext securityContext = null;
 	private Iterator<T> sourceIterator = null;
 	private Set<Predicate<T>> filters = null;
 
-	public IterableFilter(Iterable<T> source, Set<Predicate<T>> filters) {
+	public IterableFilter(SecurityContext securityContext, Iterable<T> source, Set<Predicate<T>> filters) {
 
 		this.sourceIterator = source.iterator();
 		this.filters = filters;
@@ -60,7 +61,7 @@ public class IterableFilter<T> implements Iterable<T> {
 						currentElement = null;
 					}
 
-				} while(currentElement != null && !accept(currentElement));
+				} while(currentElement != null && !accept(securityContext, currentElement));
 
 				hasNextCalled = true;
 
@@ -94,13 +95,13 @@ public class IterableFilter<T> implements Iterable<T> {
 	}
 
 	// ----- private methods -----
-	private boolean accept(T element) {
+	private boolean accept(SecurityContext securityContext, T element) {
 
 		boolean ret = true;
 
 		for(Predicate<T> predicate : filters) {
 
-			ret &= predicate.evaluate(element);
+			ret &= predicate.evaluate(securityContext, element);
 		}
 
 		return(ret);

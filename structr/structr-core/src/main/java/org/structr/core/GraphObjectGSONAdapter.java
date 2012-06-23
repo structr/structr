@@ -69,7 +69,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 	@Override
 	public JsonElement serialize(GraphObject src, Type typeOfSrc, JsonSerializationContext context) {
 
-		String localPropertyView     = propertyView.get();
+		String localPropertyView     = propertyView.get(null);
 		JsonElement serializedOutput = null;
 
 		switch (propertyFormat) {
@@ -97,7 +97,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 	@Override
 	public GraphObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
-		String localPropertyView       = propertyView.get();
+		String localPropertyView       = propertyView.get(null);
 		GraphObject deserializedOutput = null;
 
 		switch (propertyFormat) {

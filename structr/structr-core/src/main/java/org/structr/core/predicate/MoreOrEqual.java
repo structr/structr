@@ -17,28 +17,45 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.filter;
+package org.structr.core.predicate;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
+import org.structr.core.Predicate;
+
 
 /**
  *
- * @author Axel Morgner
+ * @author Christian Morgner
  */
-public class OrFilter extends Filter {
+public class MoreOrEqual<T extends Comparable> implements Predicate<T> {
 
-	private Filter filter1 = null;
-	private Filter filter2 = null;
-
-	public OrFilter(Filter filter1, Filter filter2) {
-		this.filter1 = filter1;
-		this.filter2 = filter2;
-	}
-
+	private static final Logger logger = Logger.getLogger(MoreOrEqual.class.getName());
+	
 	@Override
-	public boolean includeInResultSet(SecurityContext securityContext, GraphObject object) {
-		return filter1.includeInResultSet(securityContext, object) || filter2.includeInResultSet(securityContext, object);
+	public boolean evaluate(SecurityContext securityContext, T... objs) {
+		
+		if(objs.length == 0) {
+			return false;
+		}
+		
+		if(objs.length == 1) {
+			return true;
+		}
+		
+		if(objs.length == 2) {
+			
+			if (objs[0] != null && objs[1] != null) {
+				
+				return objs[0].compareTo(objs[1]) >= 0;
+				
+			} else {
+			
+				logger.log(Level.WARNING, "Cannot compare null value(s). Did you forget to set a default value?");
+			}
+		}
+		
+		throw new IllegalStateException("Cannot compare more than two objects yet.");
 	}
-
 }

@@ -35,7 +35,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 		if (value != null) {
 
-			Object param = value.get();
+			Object param = value.get(securityContext);
 
 			if ((param != null) && (param instanceof ParameterHolder)) {
 
@@ -68,7 +68,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 		if (value != null) {
 
-			Object param = value.get();
+			Object param = value.get(securityContext);
 
 			if ((param != null) && (param instanceof ParameterHolder)) {
 

@@ -92,7 +92,7 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                              = new LinkedHashMap<Class, Map<String, Object>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                        = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<String, String> normalizedEntityNameCache                                      = new LinkedHashMap<String, String>();
-	private static final Set<VetoableGraphObjectListener> modificationListeners                             = new LinkedHashSet<VetoableGraphObjectListener>();
+	private static final Set<StructrTransactionListener> transactionListeners                             = new LinkedHashSet<StructrTransactionListener>();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap                         = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                                      = new LinkedHashMap<String, Class>();
 	private static final EntityContextModificationListener globalModificationListener                       = new EntityContextModificationListener();
@@ -160,12 +160,12 @@ public class EntityContext {
 		}
 	}
 
-	public static void registerModificationListener(VetoableGraphObjectListener listener) {
-		modificationListeners.add(listener);
+	public static void registerTransactionListener(StructrTransactionListener listener) {
+		transactionListeners.add(listener);
 	}
 
-	public static void unregisterModificationListener(VetoableGraphObjectListener listener) {
-		modificationListeners.remove(listener);
+	public static void unregisterTransactionListener(StructrTransactionListener listener) {
+		transactionListeners.remove(listener);
 	}
 
 	public static void registerEntityCreationTransformation(Class type, Transformation<GraphObject> transformation) {
@@ -673,8 +673,8 @@ public class EntityContext {
 		return globalRelationshipNameMap.values();
 	}
 
-	public static Set<VetoableGraphObjectListener> getModificationListeners() {
-		return modificationListeners;
+	public static Set<StructrTransactionListener> getTransactionListeners() {
+		return transactionListeners;
 	}
 
 	public static Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
@@ -1409,6 +1409,11 @@ public class EntityContext {
 				NodeFactory nodeFactory                                     = new NodeFactory();
 				boolean hasError                                            = false;
 
+				// notify transaction listeners
+				for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+					listener.begin(securityContext, transactionKey);
+				}
+
 				// 1.1: collect properties of deleted nodes
 				for (PropertyEntry<Node> entry : data.removedNodeProperties()) {
 
@@ -1429,11 +1434,16 @@ public class EntityContext {
 
 						AbstractNode modifiedNode = nodeFactory.createNode(securityContext, node);
 						if(modifiedNode != null) {
+
 							modifiedNodes.add(modifiedNode);
+
+							// notify registered listeners
+							for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedNode, entry.key(), entry.previouslyCommitedValue());
+							}
 						}
 
 					}
-
 				}
 
 				// 1.2: collect properties of deleted relationships
@@ -1454,7 +1464,16 @@ public class EntityContext {
 
 					if (!data.isDeleted(rel)) {
 
-						modifiedRels.add(relFactory.createRelationship(securityContext, rel));
+						AbstractRelationship modifiedRel = relFactory.createRelationship(securityContext, rel);
+						if(modifiedRel != null) {
+							
+							modifiedRels.add(modifiedRel);
+
+							// notify registered listeners
+							for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedRel, entry.key(), entry.previouslyCommitedValue());
+							}
+						}
 					}
 
 				}
@@ -1467,6 +1486,11 @@ public class EntityContext {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
 						createdNodes.add(entity);
+						
+						// notify registered listeners
+						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
+						}
 					}
 
 				}
@@ -1479,6 +1503,11 @@ public class EntityContext {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
 						createdRels.add(entity);
+						
+						// notify registered listeners
+						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
+						}
 					}
 
 				}
@@ -1490,6 +1519,12 @@ public class EntityContext {
 					if(entity != null) {
 						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, removedRelProperties.get(rel));
+						
+						// notify registered listeners
+						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, removedRelProperties.get(rel));
+						}
+
 						deletedRels.add(entity);
 					}
 
@@ -1503,6 +1538,11 @@ public class EntityContext {
 					
 					if(entity != null) {
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, removedNodeProperties.get(node));
+						
+						// notify registered listeners
+						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, removedNodeProperties.get(node));
+						}
 					}
 
 				}
@@ -1528,6 +1568,11 @@ public class EntityContext {
 
 							}
 
+						}
+						
+						// notify registered listeners
+						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
 						}
 
 						// after successful validation, add node to index to make uniqueness constraints work
@@ -1556,7 +1601,12 @@ public class EntityContext {
 							}
 
 						}
-
+						
+						// notify registered listeners
+						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
+						}
+						
 						// after successful validation, add relationship to index to make uniqueness constraints work
 						indexRelationshipCommand.execute(entity, key);
 						modifiedRels.add(entity);
@@ -1570,6 +1620,11 @@ public class EntityContext {
 					if (!createdNodes.contains(node) &&!deletedNodes.contains(node)) {
 
 						hasError |= !node.beforeModification(securityContext, errorBuffer);
+						
+						// notify registered listeners
+						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, node);
+						}
 					}
 					
 					indexNodeCommand.execute(node);
@@ -1581,6 +1636,11 @@ public class EntityContext {
 					if (!createdRels.contains(rel) &&!deletedRels.contains(rel)) {
 
 						hasError |= !rel.beforeModification(securityContext, errorBuffer);
+						
+						// notify registered listeners
+						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
+						}
 					}
 					
 					indexRelationshipCommand.execute(rel);
@@ -1600,8 +1660,16 @@ public class EntityContext {
 
 				if (hasError) {
 
+					for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						listener.rollback(securityContext, transactionKey);
+					}
+
 					throw new FrameworkException(422, errorBuffer);
 
+				}
+
+				for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+					listener.commit(securityContext, transactionKey);
 				}
 
 				// cache change set
@@ -1642,7 +1710,7 @@ public class EntityContext {
 
 			boolean hasError = false;
 
-			for (VetoableGraphObjectListener listener : modificationListeners) {
+			for (StructrTransactionListener listener : modificationListeners) {
 
 				hasError |= listener.begin(securityContext, transactionKey, errorBuffer);
 
@@ -1656,7 +1724,7 @@ public class EntityContext {
 
 			boolean hasError = false;
 
-			for (VetoableGraphObjectListener listener : modificationListeners) {
+			for (StructrTransactionListener listener : modificationListeners) {
 
 				hasError |= listener.commit(securityContext, transactionKey, errorBuffer);
 
@@ -1670,7 +1738,7 @@ public class EntityContext {
 
 			boolean hasError = false;
 
-			for (VetoableGraphObjectListener listener : modificationListeners) {
+			for (StructrTransactionListener listener : modificationListeners) {
 
 				hasError |= listener.rollback(securityContext, transactionKey, errorBuffer);
 
@@ -1684,7 +1752,7 @@ public class EntityContext {
 
 			boolean hasError = false;
 
-			for (VetoableGraphObjectListener listener : modificationListeners) {
+			for (StructrTransactionListener listener : modificationListeners) {
 
 				hasError |= listener.propertyModified(securityContext, transactionKey, errorBuffer, graphObject, key, oldValue, newValue);
 
@@ -1698,7 +1766,7 @@ public class EntityContext {
 
 			boolean hasError = false;
 
-			for (VetoableGraphObjectListener listener : modificationListeners) {
+			for (StructrTransactionListener listener : modificationListeners) {
 
 				hasError |= listener.propertyRemoved(securityContext, transactionKey, errorBuffer, graphObject, key, oldValue);
 
@@ -1712,7 +1780,7 @@ public class EntityContext {
 
 			boolean hasError = false;
 
-			for (VetoableGraphObjectListener listener : modificationListeners) {
+			for (StructrTransactionListener listener : modificationListeners) {
 
 				hasError |= listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, graphObject);
 
@@ -1726,7 +1794,7 @@ public class EntityContext {
 
 			boolean hasError = false;
 
-			for (VetoableGraphObjectListener listener : modificationListeners) {
+			for (StructrTransactionListener listener : modificationListeners) {
 
 				hasError |= listener.graphObjectModified(securityContext, transactionKey, errorBuffer, graphObject);
 
@@ -1740,7 +1808,7 @@ public class EntityContext {
 
 			boolean hasError = false;
 
-			for (VetoableGraphObjectListener listener : modificationListeners) {
+			for (StructrTransactionListener listener : modificationListeners) {
 
 				hasError |= listener.wasVisited(traversedNodes, transactionKey, errorBuffer, securityContext);
 
@@ -1754,7 +1822,7 @@ public class EntityContext {
 
 			boolean hasError = false;
 
-			for (VetoableGraphObjectListener listener : modificationListeners) {
+			for (StructrTransactionListener listener : modificationListeners) {
 
 				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, graphObject, properties);
 

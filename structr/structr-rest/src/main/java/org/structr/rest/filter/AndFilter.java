@@ -19,6 +19,7 @@
 
 package org.structr.rest.filter;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
 /**
@@ -36,8 +37,8 @@ public class AndFilter extends Filter {
 	}
 
 	@Override
-	public boolean includeInResultSet(GraphObject object) {
-		return filter1.includeInResultSet(object) && filter2.includeInResultSet(object);
+	public boolean includeInResultSet(SecurityContext securityContext, GraphObject object) {
+		return filter1.includeInResultSet(securityContext, object) && filter2.includeInResultSet(securityContext, object);
 	}
 
 }
