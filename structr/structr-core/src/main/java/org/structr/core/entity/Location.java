@@ -7,6 +7,7 @@ package org.structr.core.entity;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.DoubleConverter;
@@ -44,7 +45,16 @@ public class Location extends AbstractNode {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+		return isValid(errorBuffer);
+	}
+	
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+		return isValid(errorBuffer);
+	}
+	
+	private  boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
 

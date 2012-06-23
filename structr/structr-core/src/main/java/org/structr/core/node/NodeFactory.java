@@ -258,6 +258,44 @@ public class NodeFactory<T extends AbstractNode> {
 
 	}
 
+	public AbstractNode createDeletedNode(final SecurityContext securityContext, final Node node, final String nodeType) throws FrameworkException {
+
+		Class nodeClass      = (Class) getEntityClassCommand.get().execute(nodeType);
+		AbstractNode newNode = null;
+
+		if (nodeClass != null) {
+
+			try {
+
+				Constructor constructor = constructors.get(nodeClass);
+
+				if (constructor == null) {
+
+					constructor = nodeClass.getConstructor();
+
+					constructors.put(nodeClass, constructor);
+
+				}
+
+				// newNode = (AbstractNode) nodeClass.newInstance();
+				newNode = (AbstractNode) constructor.newInstance();
+
+			} catch (Throwable t) {
+
+				newNode = null;
+
+			}
+
+		}
+
+		if (newNode == null) {
+
+			newNode = new GenericNode();
+		}
+		
+		return newNode;
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	private List<AbstractNode> getNodesAt(final AbstractNode locationNode) {

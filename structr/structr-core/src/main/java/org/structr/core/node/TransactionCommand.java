@@ -22,17 +22,22 @@
 package org.structr.core.node;
 
 
-import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.Set;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.kernel.DeadlockDetectedException;
+import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.neo4j.kernel.TopLevelTransaction;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,15 +56,17 @@ public class TransactionCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		FrameworkException exception = null;
-		Object ret                   = null;
+		GraphDatabaseService graphDb             = (GraphDatabaseService) arguments.get("graphDb");
+		boolean topLevelTransaction              = false;
+		FrameworkException exception             = null;
+		Object ret                               = null;
 
 		if ((parameters.length > 0) && (parameters[0] instanceof StructrTransaction)) {
 
 			StructrTransaction transaction = (StructrTransaction) parameters[0];
-			Transaction tx = graphDb.beginTx();
-
+			Transaction tx                 = graphDb.beginTx();
+			topLevelTransaction            = tx instanceof TopLevelTransaction;
+			
 			try {
 
 				ret = transaction.execute();
@@ -98,14 +105,14 @@ public class TransactionCommand extends NodeServiceCommand {
 					// transaction failed, look for "real" cause..
 					exception = EntityContext.getFrameworkException(transactionKey);
 				}
-				EntityContext.removeTransactionKey();
-				EntityContext.removeSecurityContext();
 			}
 
 		} else if ((parameters.length > 0) && (parameters[0] instanceof BatchTransaction)) {
 
 			BatchTransaction transaction = (BatchTransaction) parameters[0];
 			Transaction tx               = graphDb.beginTx();
+			topLevelTransaction          = tx instanceof TopLevelTransaction;
+			
 
 			try {
 
@@ -146,8 +153,6 @@ public class TransactionCommand extends NodeServiceCommand {
 					// transaction failed, look for "real" cause..
 					exception = EntityContext.getFrameworkException(transactionKey);
 				}
-				EntityContext.removeTransactionKey();
-				EntityContext.removeSecurityContext();
 			}
 		}
 
@@ -155,7 +160,72 @@ public class TransactionCommand extends NodeServiceCommand {
 			throw exception;
 		}
 
+		
+		if(topLevelTransaction) {
+
+			Transaction postProcessingTransaction = graphDb.beginTx();
+
+			try {
+
+				afterCreation(securityContext, EntityContext.getCreatedNodes());
+				afterCreation(securityContext, EntityContext.getCreatedRelationships());
+
+				afterModification(securityContext, EntityContext.getModifiedNodes());
+				afterModification(securityContext, EntityContext.getModifiedRelationships());
+
+				// clear aggregated transaction data
+				EntityContext.clearTransactionData();
+
+				postProcessingTransaction.success();
+
+
+			} catch (Throwable t) {
+
+				postProcessingTransaction.failure();
+
+			} finally {
+
+				// enable post-processing of the secondary transaction
+				long transactionKey = nextLong();
+				EntityContext.setSecurityContext(securityContext);
+				EntityContext.setTransactionKey(transactionKey);
+
+				try {
+					postProcessingTransaction.finish();
+				} catch (Throwable t) {
+
+					// transaction failed, look for "real" cause..
+					t.printStackTrace();
+				}
+
+				// clear transaction data
+				EntityContext.clearTransactionData();
+
+			}
+		}
+		
 		return ret;
+	}
+	
+	private void afterCreation(SecurityContext securityContext, Set<? extends GraphObject> data) {
+		
+		if(data != null && !data.isEmpty()) {
+			
+			for(GraphObject obj : data) {
+				obj.afterCreation(securityContext);
+			}
+		}
+		
+	}
+
+	private void afterModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
+		
+		if(data != null && !data.isEmpty()) {
+			
+			for(GraphObject obj : data) {
+				obj.afterModification(securityContext);
+			}
+		}
 	}
 
 	private long nextLong() {

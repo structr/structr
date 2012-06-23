@@ -179,56 +179,64 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 	private void indexNode(final AbstractNode node) {
 
-		String uuid = node.getStringProperty(AbstractNode.Key.uuid);
+		try {
 
-		// Don't index non-structr relationship
-		if (uuid == null) {
+			String uuid = node.getStringProperty(AbstractNode.Key.uuid);
 
-			return;
+			// Don't index non-structr relationship
+			if (uuid == null) {
 
-		}
-
-		for (Enum index : (NodeIndex[]) arguments.get("indices")) {
-
-			Set<String> properties = EntityContext.getSearchableProperties(node.getClass(), index.name());
-
-			for (String key : properties) {
-
-				indexProperty(node, key, index.name());
+				return;
 
 			}
 
-		}
+			for (Enum index : (NodeIndex[]) arguments.get("indices")) {
 
-		Node dbNode = node.getNode();
+				Set<String> properties = EntityContext.getSearchableProperties(node.getClass(), index.name());
 
-		if ((dbNode.hasProperty(Location.Key.latitude.name())) && (dbNode.hasProperty(Location.Key.longitude.name()))) {
+				for (String key : properties) {
 
-			LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
+					indexProperty(node, key, index.name());
 
-			try {
+				}
 
-				layerIndex.add(dbNode, "", "");
-
-				// If an exception is thrown here, the index was deleted
-				// and has to be recreated.
-
-			} catch (Exception e) {
-
-				final Map<String, String> config = new HashMap<String, String>();
-
-				config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
-				config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
-				config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
-
-				layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
-
-				indices.put(NodeIndex.layer.name(), layerIndex);
-
-				// try again
-				layerIndex.add(dbNode, "", "");
 			}
 
+			Node dbNode = node.getNode();
+
+			if ((dbNode.hasProperty(Location.Key.latitude.name())) && (dbNode.hasProperty(Location.Key.longitude.name()))) {
+
+				LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
+
+				try {
+
+					layerIndex.add(dbNode, "", "");
+
+					// If an exception is thrown here, the index was deleted
+					// and has to be recreated.
+
+				} catch (Exception e) {
+
+					final Map<String, String> config = new HashMap<String, String>();
+
+					config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
+					config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
+					config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
+
+					layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+
+					indices.put(NodeIndex.layer.name(), layerIndex);
+
+					// try again
+					layerIndex.add(dbNode, "", "");
+				}
+
+			}
+			
+		} catch(Throwable t) {
+			
+			logger.log(Level.WARNING, "Unable to index node {0}: {1}", new Object[] { node.getNode().getId(), t.getMessage() } );
+			
 		}
 	}
 

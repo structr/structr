@@ -20,7 +20,9 @@
 package org.structr.core;
 
 import java.util.Date;
+import java.util.Map;
 import org.structr.common.PropertyKey;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -57,8 +59,16 @@ public interface GraphObject {
 	public PropertyKey getDefaultSortKey();
 	public String getDefaultSortOrder();
 
-	public boolean isValid(ErrorBuffer errorBuffer);
 	public void unlockReadOnlyPropertiesOnce();
+	
+	// callback methods
+	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException;
+
+	public void afterCreation(SecurityContext securityContext);
+	public void afterModification(SecurityContext securityContext);
+	
 	// ----- rels only -----
 //	public Long getStartNodeId();
 //	public Long getEndNodeId();

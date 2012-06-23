@@ -927,13 +927,34 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		return isValid(errorBuffer);
+	}
+
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		return isValid(errorBuffer);
+	}
+
+	@Override
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+		return true;
+	}
+	
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) {
+	}
+	
+	private boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
 
-		// error |= ValidationHelper.checkStringNotBlank(this, AbstractNode.Key.uuid, errorBuffer);
-//              error |= (this.getStartNode() != null);
-//              error |= (this.getEndNode() != null);
+		error |= ValidationHelper.checkStringNotBlank(this, AbstractRelationship.Key.uuid, errorBuffer);
+
 		return !error;
 
 	}

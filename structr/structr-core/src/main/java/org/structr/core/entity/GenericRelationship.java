@@ -25,12 +25,16 @@ package org.structr.core.entity;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.node.NodeService.RelationshipIndex;
 
@@ -96,4 +100,18 @@ public class GenericRelationship extends AbstractRelationship {
 		return keys;
 	}
 
+	@Override
+	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		return true;
+	}
+
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		return true;
+	}
+
+	@Override
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+		return true;
+	}
 }

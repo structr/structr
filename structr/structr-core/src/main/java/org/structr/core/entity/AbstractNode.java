@@ -1687,7 +1687,29 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		return isValid(errorBuffer);
+	}
+
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		return isValid(errorBuffer);
+	}
+
+	@Override
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+		return true;
+	}
+	
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) {
+	}
+	
+	private boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
 

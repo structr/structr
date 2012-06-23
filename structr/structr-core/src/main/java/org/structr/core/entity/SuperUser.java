@@ -30,8 +30,10 @@ import org.structr.common.error.FrameworkException;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -188,11 +190,6 @@ public class SuperUser implements Principal {
 		return (true);
 	}
 
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-		return false;
-	}
-
 	//~--- set methods ----------------------------------------------------
 
 //	@Override
@@ -243,5 +240,28 @@ public class SuperUser implements Principal {
 
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {
+	}
+
+	@Override
+	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		return true;
+	}
+
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		return true;
+	}
+
+	@Override
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+		return true;
+	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) {
 	}
 }
