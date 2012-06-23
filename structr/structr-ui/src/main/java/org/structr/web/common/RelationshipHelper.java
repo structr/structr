@@ -85,7 +85,7 @@ public class RelationshipHelper {
 
 			if (pageId != null) {
 
-				newInRel.setProperty(Component.Key.pageId, pageId);
+				//newInRel.setProperty(Component.Key.pageId, pageId);
 				newInRel.setProperty(pageId, position);
 
 			}
@@ -120,7 +120,7 @@ public class RelationshipHelper {
 
 			if (pageId != null) {
 
-				newOutRel.setProperty(Component.Key.pageId, pageId);
+				//newOutRel.setProperty(Component.Key.pageId, pageId);
 				newOutRel.setProperty(pageId, position);
 
 			}
