@@ -19,12 +19,14 @@
 
 package org.structr.core;
 
+import org.structr.common.SecurityContext;
+
 /**
  *
  * @author Christian Morgner
  */
 public interface Value<T> {
 
-	public void set(T value);
-	public T get();
+	public void set(SecurityContext securityContext, T value);
+	public T get(SecurityContext securityContext);
 }

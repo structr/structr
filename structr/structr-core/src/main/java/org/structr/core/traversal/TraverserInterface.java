@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.structr.common.SecurityContext;
 import org.structr.core.Predicate;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
@@ -18,7 +19,7 @@ import org.structr.core.notion.Notion;
  */
 public interface TraverserInterface {
 	
-	public TraversalDescription getTraversalDescription(Object sourceProperty);
+	public TraversalDescription getTraversalDescription(SecurityContext securityContext, Object sourceProperty);
 	public List transformResult(List<AbstractNode> traversalResult);
 	public void addPredicate(Predicate<Node> predicate);
 	public Comparator<AbstractNode> getComparator();

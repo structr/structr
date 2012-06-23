@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,28 +16,43 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.structr.core.converter;
 
-package org.structr.core.predicate;
-
-import org.structr.common.SecurityContext;
-import org.structr.core.Predicate;
+import org.structr.core.Converter;
+import org.structr.core.PropertyConverter;
+import org.structr.core.Value;
 
 /**
  *
  * @author Christian Morgner
  */
-public class And<T> implements Predicate<T> {
+public class StringToInt extends Converter<String, Integer> {
+	
+	public StringToInt(Value<String> source) {
+		super(source, new PropertyConverter<String, Integer>() {
 
-	Predicate<T> p1 = null;
-	Predicate<T> p2 = null;
+			@Override
+			public String convertForSetter(Integer source, Value value) {
+				
+				if (source != null) {
+					
+					return source.toString();
+				}
+				
+				return null;
+			}
 
-	public And(Predicate<T> p1, Predicate<T> p2) {
-		this.p1 = p1;
-		this.p2 = p2;
-	}
-
-	@Override
-	public boolean evaluate(SecurityContext securityContext, T... obj) {
-		return p1.evaluate(securityContext, obj) && p2.evaluate(securityContext, obj);
+			@Override
+			public Integer convertForGetter(String source, Value value) {
+				
+				if (source != null) {
+					
+					return Integer.parseInt(source);
+				}
+				
+				return null;
+			}
+			
+		});
 	}
 }

@@ -39,7 +39,7 @@ public class RawPropertyConverter extends PropertyConverter {
 
 		if(value != null) {
 
-			Object v = value.get();
+			Object v = value.get(securityContext);
 			if(v instanceof String) {
 
 				String key = (String)v;

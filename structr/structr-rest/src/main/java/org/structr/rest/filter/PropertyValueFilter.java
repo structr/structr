@@ -21,8 +21,9 @@ package org.structr.rest.filter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.BinaryPredicate;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Predicate;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 
@@ -30,26 +31,26 @@ import org.structr.core.entity.AbstractNode;
  *
  * @author Christian Morgner
  */
-public class PropertyValueFilter<T> extends Filter {
+public class PropertyValueFilter<T extends Comparable> extends Filter {
 
 	private static final Logger logger = Logger.getLogger(PropertyValueFilter.class.getName());
 	
-	private BinaryPredicate<T> predicate = null;
+	private Predicate<T> predicate = null;
 	private String propertyKey = null;
 	private Value<T> value = null;
 
-	public PropertyValueFilter(String propertyKey, BinaryPredicate<T> predicate, Value<T> value) {
+	public PropertyValueFilter(String propertyKey, Predicate<T> predicate, Value<T> value) {
 		this.propertyKey = propertyKey;
 		this.predicate = predicate;
 		this.value = value;
 	}
 
 	@Override
-	public boolean includeInResultSet(GraphObject object) {
+	public boolean includeInResultSet(SecurityContext securityContext, GraphObject object) {
 		
 		T t = (T)object.getProperty(propertyKey);
 		if(t != null) {
-			return predicate.evaluate(t, value.get());
+			return predicate.evaluate(securityContext, t, value.get(securityContext));
 		} else {
 			logger.log(Level.WARNING, "Null property for key {0} on ID {1}", new Object[] { propertyKey, object.getProperty(AbstractNode.Key.uuid.name()) });
 		}

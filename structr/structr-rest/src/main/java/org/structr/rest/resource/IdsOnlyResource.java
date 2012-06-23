@@ -106,7 +106,7 @@ public class IdsOnlyResource extends ViewFilterResource {
 
 	@Override
 	public void configurePropertyView(Value<String> propertyView) {
-		propertyView.set("ids");
+		propertyView.set(securityContext, "ids");
 	}
 
 }

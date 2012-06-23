@@ -19,16 +19,53 @@
 
 package org.structr.core.predicate;
 
-import org.structr.core.BinaryPredicate;
+import org.structr.common.SecurityContext;
+import org.structr.core.Predicate;
 
 
 /**
  *
  * @author Christian Morgner
  */
-public class EqualTo<T extends Comparable> implements BinaryPredicate<T> {
+public class EqualTo<T extends Comparable> implements Predicate<T> {
+
+	private T wildcard = null;
+	
+	public EqualTo() { }
+	
+	public EqualTo(T wildcard) {
+		this.wildcard = wildcard;
+	}
+	
 	@Override
-	public boolean evaluate(T obj1, T obj2) {
-		return obj1.compareTo(obj2) == 0;
+	public boolean evaluate(SecurityContext securityContext, T... objs) {
+		
+		if(objs.length == 0) {
+			return false;
+		}
+		
+		if(objs.length == 1) {
+			return true;
+		}
+		
+		if(objs.length == 2) {
+			
+			if(objs[0] != null && objs[1] != null) {
+
+				if(wildcard != null && wildcard.equals(objs[1])) {
+					return true;
+				}
+				
+				return objs[0].compareTo(objs[1]) == 0;
+			}
+			
+			// check wildcard
+			if(objs[0] != null && objs[1] == null && wildcard != null) {
+				
+				return wildcard.compareTo(objs[0]) == 0;
+			}
+		}
+		
+		throw new IllegalStateException("Cannot compare more than two objects yet.");
 	}
 }

@@ -19,16 +19,32 @@
 
 package org.structr.core.predicate;
 
-import org.structr.core.BinaryPredicate;
+import org.structr.common.SecurityContext;
+import org.structr.core.Predicate;
 
 
 /**
  *
  * @author Christian Morgner
  */
-public class MoreThan<T extends Comparable> implements BinaryPredicate<T> {
+public class MoreThan<T extends Comparable> implements Predicate<T> {
+
 	@Override
-	public boolean evaluate(T obj1, T obj2) {
-		return obj1.compareTo(obj2) > 0;
+	public boolean evaluate(SecurityContext securityContext, T... objs) {
+		
+		if(objs.length == 0) {
+			return false;
+		}
+		
+		if(objs.length == 1) {
+			return false;
+		}
+		
+		if(objs.length == 2) {
+			
+			return objs[0].compareTo(objs[1]) > 0;
+		}
+		
+		throw new IllegalStateException("Cannot compare more than two objects yet.");
 	}
 }

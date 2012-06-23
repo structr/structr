@@ -37,13 +37,13 @@ public class TraversingConverter extends PropertyConverter {
 		
 		if(currentObject != null && value != null) {
 			
-			Object valueObject = value.get();
+			Object valueObject = value.get(securityContext);
 			if(valueObject != null) {
 				
 				if(valueObject instanceof TraverserInterface) {
 					
 					TraverserInterface traverserInterface = (TraverserInterface)valueObject;
-					TraversalDescription description = traverserInterface.getTraversalDescription(source);
+					TraversalDescription description = traverserInterface.getTraversalDescription(securityContext, source);
 					AbstractNode currentNode = (AbstractNode)currentObject;
 
 					Comparator<AbstractNode> comparator = traverserInterface.getComparator();

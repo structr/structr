@@ -244,7 +244,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resourceConstraint = optimizeConstraintChain(chain);
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get());
+			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
 
 			// do action
 			RestMethodResult result = resourceConstraint.doDelete();
@@ -303,14 +303,14 @@ public class JsonRestServlet extends HttpServlet {
 			SecurityContext securityContext = getSecurityContext(request, response);
 
 			// set default value for property view
-			propertyView.set(defaultPropertyView);
+			propertyView.set(securityContext, defaultPropertyView);
 
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
 			Resource resource     = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(), propertyView.get());
+			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(), propertyView.get(securityContext));
 			
 			// do action
 			Result result         = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
@@ -322,7 +322,7 @@ public class JsonRestServlet extends HttpServlet {
 			if (result != null) {
 
 				// store property view that will be used to render the results
-				result.setPropertyView(propertyView.get());
+				result.setPropertyView(propertyView.get(securityContext));
 				
 				// allow resource to modify result set
 				resource.postProcessResultSet(result);
@@ -406,7 +406,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resourceConstraint     = optimizeConstraintChain(chain);
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get());
+			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
 			
 			// do action
 			RestMethodResult result = resourceConstraint.doHead();
@@ -467,7 +467,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resourceConstraint     = optimizeConstraintChain(chain);
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get());
+			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
 			
 			// do action
 			RestMethodResult result = resourceConstraint.doOptions();
@@ -534,13 +534,13 @@ public class JsonRestServlet extends HttpServlet {
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// let authenticator examine request again
-				securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get());
+				securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
 				
 				// do action
 				RestMethodResult result = resourceConstraint.doPost(properties);
 
 				// set default value for property view
-				propertyView.set(defaultPropertyView);
+				propertyView.set(securityContext, defaultPropertyView);
 
 				// commit response
 				result.commitResponse(gson, response);
@@ -901,7 +901,7 @@ public class JsonRestServlet extends HttpServlet {
 		Class type = finalResource.getEntityClass();
 		if(type != null) {
 			
-			Transformation<List<? extends GraphObject>> transformation = EntityContext.getViewTransformation(type, propertyView.get());
+			Transformation<List<? extends GraphObject>> transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
 			if(transformation != null) {
 				pagedSortedResource = pagedSortedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
 			}
@@ -1089,6 +1089,16 @@ public class JsonRestServlet extends HttpServlet {
 		@Override
 		protected String initialValue() {
 			return defaultPropertyView;
+		}
+
+		@Override
+		public void set(SecurityContext securityContext, String value) {
+			set(value);
+		}
+
+		@Override
+		public String get(SecurityContext securityContext) {
+			return get();
 		}
 	}
 

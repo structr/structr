@@ -32,7 +32,7 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
-import org.structr.core.VetoableGraphObjectListener;
+import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.WebSocketMessage;
@@ -49,7 +49,7 @@ import java.util.logging.Logger;
  *
  * @author Christian Morgner
  */
-public class SynchronizationController implements VetoableGraphObjectListener {
+public class SynchronizationController implements StructrTransactionListener {
 
 	private static final Logger logger = Logger.getLogger(SynchronizationController.class.getName());
 
@@ -156,20 +156,17 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 	}
 
-	// ----- interface VetoableGraphObjectListener -----
+	// ----- interface StructrTransactionListener -----
 	@Override
-	public boolean begin(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
+	public void begin(SecurityContext securityContext, long transactionKey) {
 
 		messageStack = new LinkedList<WebSocketMessage>();
 
 		messageStackMap.put(transactionKey, messageStack);
-
-		return false;
-
 	}
 
 	@Override
-	public boolean commit(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
+	public void commit(SecurityContext securityContext, long transactionKey) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -187,17 +184,13 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 		messageStackMap.remove(transactionKey);
 
-		return false;
-
 	}
 
 	@Override
-	public boolean rollback(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
+	public void rollback(SecurityContext securityContext, long transactionKey) {
 
 		// roll back transaction
 		messageStackMap.remove(transactionKey);
-
-		return false;
 	}
 
 	@Override
@@ -229,7 +222,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		message.getModifiedProperties().add(key);
 		messageStack.add(message);
 
-		return false;
+		return true;
 
 	}
 
@@ -262,7 +255,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		message.getRemovedProperties().add(key);
 		messageStack.add(message);
 
-		return false;
+		return true;
 
 	}
 
@@ -305,8 +298,6 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			}
 
-			return false;
-
 		} else {
 
 			WebSocketMessage message = new WebSocketMessage();
@@ -321,10 +312,9 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			messageStack.add(message);
 			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getStringProperty(AbstractNode.Key.uuid));
 
-			return false;
-
 		}
 
+		return true;
 	}
 
 	@Override
@@ -339,7 +329,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 //              message.setCommand("UPDATE");
 //              message.setGraphObject(graphObject);
 //              messageStack.add(message);
-		return false;
+		
+		return true;
 	}
 
 	@Override
@@ -373,7 +364,6 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			}
 
 			// logger.log(Level.FINE, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() });
-			return false;
 
 		} else {
 
@@ -384,17 +374,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			message.setCommand("DELETE");
 			messageStack.add(message);
 
-			return false;
-
 		}
 
+		return true;
 	}
-
-	@Override
-	public boolean wasVisited(List<GraphObject> traversedNodes, long transactionKey, ErrorBuffer errorBuffer, SecurityContext securityContext) {
-
-		return false;
-
-	}
-
 }

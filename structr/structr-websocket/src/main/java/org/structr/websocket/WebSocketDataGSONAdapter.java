@@ -30,7 +30,7 @@ import org.structr.core.GraphObjectGSONAdapter;
 import org.structr.core.PropertySet.PropertyFormat;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.validator.GenericValue;
+import org.structr.core.StaticValue;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -49,7 +49,7 @@ import java.util.Set;
 public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage>, JsonDeserializer<WebSocketMessage> {
 
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
-	private Value<String> propertyView                   = new GenericValue<String>(PropertyView.All);
+	private Value<String> propertyView                   = new StaticValue<String>(PropertyView.All);
 
 	//~--- constructors ---------------------------------------------------
 
@@ -239,10 +239,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			if (src.getView() != null) {
 
-				propertyView.set(src.getView());
+				propertyView.set(null, src.getView());
 			} else {
 
-				propertyView.set(PropertyView.All);
+				propertyView.set(null, PropertyView.All);
 			}
 
 			JsonArray result = new JsonArray();

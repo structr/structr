@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -19,19 +19,27 @@
 
 package org.structr.core;
 
+import org.structr.common.SecurityContext;
+
 /**
+ * A generic value parameter for functional evaluation.
  *
- * @author Christian Morgner
+ * @author chrisi
  */
-public interface BinaryPredicate<T> {
+public class StaticValue<T> implements Value<T> {
 
-	/**
-	 * Evaluates the given objects and returns a boolean value.
-	 *
-	 * @param obj the first object to evaluate
-	 * @param obj the second object to evaluate
-	 * @return true or false
-	 */
-	public boolean evaluate(T obj1, T obj2);
+	private T value = null;
 
+	public StaticValue(T value) {
+		this.value = value;
+	}
+	@Override
+	public void set(SecurityContext securityContext, T value) {
+		this.value = value;
+	}
+
+	@Override
+	public T get(SecurityContext securityContext) {
+		return value;
+	}
 }

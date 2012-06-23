@@ -23,7 +23,7 @@ public class ResultCountConverter extends PropertyConverter {
 		
 		if(currentObject != null && value != null) {
 			
-			Object val = value.get();
+			Object val = value.get(securityContext);
 			
 			if(val != null) {
 				

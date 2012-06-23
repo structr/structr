@@ -98,16 +98,21 @@ public class NamedRelationResource extends WrappingResource {
 			Predicate<GraphObject> predicate = new Predicate<GraphObject>() {
 
 				@Override
-				public boolean evaluate(GraphObject obj) {
+				public boolean evaluate(SecurityContext securityContext, GraphObject... objs) {
 
-					for(SearchAttribute attr : filterAttributes) {
+					if(objs.length > 0) {
 
-						String value = ((TextualSearchAttribute)attr).getValue();
-						String key = ((TextualSearchAttribute)attr).getKey();
+						GraphObject obj = objs[0];
+						
+						for(SearchAttribute attr : filterAttributes) {
 
-						Object val = "\"" + obj.getProperty(key) + "\"";
-						if(val != null && val.equals(value)) {
-							return true;
+							String value = ((TextualSearchAttribute)attr).getValue();
+							String key = ((TextualSearchAttribute)attr).getKey();
+
+							Object val = "\"" + obj.getProperty(key) + "\"";
+							if(val != null && val.equals(value)) {
+								return true;
+							}
 						}
 					}
 
@@ -117,7 +122,7 @@ public class NamedRelationResource extends WrappingResource {
 
 			for(Iterator<GraphObject> it = relationResults.iterator(); it.hasNext();) {
 
-				if(!predicate.evaluate(it.next())) {
+				if(!predicate.evaluate(securityContext, it.next())) {
 					it.remove();
 				}
 			}
