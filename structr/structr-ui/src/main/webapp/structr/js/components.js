@@ -199,14 +199,14 @@ var _Components = {
 	var parentElement = componentElement.parent();
 	var pos = parentElement.children('.node').size();
 
-	var rel = {};
+	var relData = {};
 
 	//rel[componentId] = pos;
-	rel[pageId] = pos;
+	relData[pageId] = pos;
 
 	var parentId = getId(parentElement);
 
-	Command.createAndAdd(parentId, form, rel);
+	Command.createAndAdd(parentId, form, relData);
 
     }
 

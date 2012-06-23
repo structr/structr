@@ -24,6 +24,8 @@ var _Entities = {
     booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
     numberAttrs : ['position', 'size'],
     dateAttrs : ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
+    hiddenAttrs : ['deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'checksum', 'relativeFilePath', 'path', 'elements', 'linkingElements', 'components'],
+    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id'],
     
     changeBooleanAttribute : function(attrElement, value) {
 
@@ -267,49 +269,66 @@ var _Entities = {
                         $(keys).each(function(i, key) {
 
                             if (view == '_html_') {
-                                props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                
+                                if (key != 'id') {
+                                
+                                    props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                
+                                }
+                                
                             } else if (view == 'in' || view == 'out') {
                                 props.append('<tr><td class="key">' + key + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
                             } else {
                                 
-                                if (isIn(key, _Entities.booleanAttrs)) {
+                                if (!isIn(key, _Entities.hiddenAttrs)) {
                                     
-                                    props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
-                                    var checkbox = $(props.find('.' + key + '_'));
-                                    checkbox.on('change', function() {
-                                        console.log('set property', entity.id, key, checkbox.attr('checked') == 'checked');
-                                        Command.setProperty(entity.id, key, checkbox.attr('checked') == 'checked');
-                                    });
-                                    Command.getProperty(entity.id, key, '#dialogBox');
+                                    if (isIn(key, _Entities.readOnlyAttrs)) {
+                                        
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td></tr>');
                                 
-                                //                                } else if (isIn(key, _Entities.numberAttrs)) {
-                                } else if (isIn(key, _Entities.dateAttrs)) {
+                                    } else if (isIn(key, _Entities.booleanAttrs)) {
                                     
-                                    if (!res[key] || res[key] == 'null') {
-                                        res[key] = '';
-                                    }
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
+                                        var checkbox = $(props.find('.' + key + '_'));
+                                        checkbox.on('change', function() {
+                                            console.log('set property', entity.id, key, checkbox.attr('checked') == 'checked');
+                                            Command.setProperty(entity.id, key, checkbox.attr('checked') == 'checked');
+                                        });
+                                        Command.getProperty(entity.id, key, '#dialogBox');
+                                
+                                    //                                } else if (isIn(key, _Entities.numberAttrs)) {
+                                    } else if (isIn(key, _Entities.dateAttrs)) {
                                     
-                                    props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td></tr>');
+                                        if (!res[key] || res[key] == 'null') {
+                                            res[key] = '';
+                                        }
                                     
-                                    var dateField = $(props.find('.dateField'));
-                                    dateField.datetimepicker({
-                                        showSecond: true,
-                                        timeFormat: 'hh:mm:ssz',
-                                        dateFormat: 'yy-mm-dd',
-                                        separator: 'T'
-                                    });
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td></tr>');
+                                    
+                                        var dateField = $(props.find('.dateField'));
+                                        dateField.datetimepicker({
+                                            showSecond: true,
+                                            timeFormat: 'hh:mm:ssz',
+                                            dateFormat: 'yy-mm-dd',
+                                            separator: 'T'
+                                        });
                                     //dateField.datepicker();
                                     
-                                } else {
+                                    } else {
                                 
-                                    props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                    }
+                                
                                 }
                             }
 
                         });
 
                         $('.props tr td.value input', dialog).each(function(i,v) {
+                            
                             var input = $(v);
+                            
+                            if (input.hasClass('readonly')) return;
                             
                             input.on('focus', function() {
                                 input.addClass('active');

@@ -45,8 +45,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -100,7 +98,8 @@ public class RemoveCommand extends AbstractCommand {
 									&& ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))
 									&& ((pageId == null) || (rel.getProperty(pageId) != null))) {
 
-									// relsToShift.add(rel);
+									relsToShift.add(rel);
+
 									if (pos == null) {
 
 										deleteRel.execute(rel);
@@ -117,26 +116,27 @@ public class RemoveCommand extends AbstractCommand {
 											if (!hasPageId) {
 
 												deleteRel.execute(rel);
+												relsToShift.remove(rel);
 
-												break;
+												// After removal of a relationship, all other rels must get a new position id
+												if (!hasPageId && pos != null) {
 
-												// relsToShift.remove(rel);
+													reorderRels(rels, pageId);
+												}
+
 												// Stop after removal of one relationship!
+												break;
 
 											}
 
 										}
 
 									}
+
 								}
 
 							}
 
-							// After removal of a relationship, all other rels must get a new position id
-//                                                      if (!hasPageIds && pos != null) {
-//
-//                                                              reorderRels(rels, pageId);
-//                                                      }
 							return null;
 
 						}

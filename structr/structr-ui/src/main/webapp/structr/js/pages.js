@@ -504,7 +504,7 @@ var _Pages = {
                         var relData = {};
                         
                         if (pageId) {
-                            relData.pageId = pageId;
+                            //relData.pageId = pageId;
                             relData[pageId] = pos;
                         } else {
                             relData['*'] = pos;
@@ -682,7 +682,7 @@ var _Pages = {
     },
 
     appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
-        if (debug) console.log('_Pages.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
+        console.log('_Pages.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
         
         var div;
         if (entity.type == 'Component') {
@@ -693,10 +693,6 @@ var _Pages = {
         
         if (!div) return false;
 
-        if (debug) console.log('appendElementElement div', div);
-        var pos = Structr.numberOfNodes($(div).parent())-1;
-        if (debug) console.log('pos', entity.id, pos);
-
         if (parentId) {
 
             $('.delete_icon', div).replaceWith('<img title="Remove ' + entity.type + ' \'' + entity.name + '\' from parent ' + parentId + '" '
@@ -704,9 +700,12 @@ var _Pages = {
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
                 var self = $(this);
-                self.off('click');
-                self.off('mouseover');
-                console.log('Command.removeSourceFromTarget',entity.id, parentId, componentId, pageId, pos);
+                if (debug) console.log('appendElementElement div', div);
+                var pos = self.parent().parent().children('.node').index(self.parent());
+                
+                var pageId = getId(self.closest('.page')[0]);
+                console.log('Command.removeSourceFromTarget(',entity.id, parentId, componentId, pageId, pos,')');
+                
                 Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
             });
         }
@@ -871,7 +870,7 @@ var _Pages = {
 
                 if (page) {
                     pageId = getId(page);
-                    relData.pageId = pageId;
+                    //relData.pageId = pageId;
                     relData[pageId] = pos;
                 } else {
                     relData['*'] = pos;

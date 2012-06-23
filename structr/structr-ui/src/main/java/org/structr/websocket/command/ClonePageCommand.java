@@ -121,7 +121,7 @@ public class ClonePageCommand extends AbstractCommand {
 								Map<String, Object> relProps = new LinkedHashMap<String, Object>();
 
 								relProps.put(pageId, 0);
-								relProps.put("pageId", pageId);
+								//relProps.put("pageId", pageId);
 
 								try {
 									rel.createRelationship(securityContext, newPage, htmlNode, relProps);

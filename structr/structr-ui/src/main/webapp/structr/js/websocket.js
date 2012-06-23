@@ -242,7 +242,8 @@ function connect() {
                     _UsersAndGroups.removeUserFromGroup(entityId, parentId, position);
 
                 } else if (entity.hasClass('element') || entity.hasClass('content') || entity.hasClass('component')) {
-                    console.log('remove element from page', entityId, parentId, componentId, pageId, position);
+                    
+                    if (debug) console.log('remove element from page', entityId, parentId, componentId, pageId, position);
                     _Pages.removeFrom(entityId, parentId, componentId, pageId, position);
                     _Pages.reloadPreviews();
 
@@ -266,13 +267,14 @@ function connect() {
                 _Pages.reloadPreviews();
                 if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
 
+            //} else if (command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
-                //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
+            //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
                 //console.log(command, result, data, data.data);
 				
                 $(result).each(function(i, entity) {
-                    if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD');
+                    console.log(command, entity, parentId, componentId, pageId, command == 'ADD');
                     
                     
                     var el = Structr.node(entity.id, parentId, componentId, pageId);
@@ -306,7 +308,7 @@ function connect() {
                 }
                 
                 if (relData && removedProperties && removedProperties.length) {
-                    if (debug) console.log('removedProperties', removedProperties);
+                    console.log('removedProperties', removedProperties);
                     _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
                     
                 } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
