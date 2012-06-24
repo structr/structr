@@ -21,14 +21,16 @@
 
 package org.structr.websocket.command;
 
+import org.neo4j.graphdb.Direction;
+
+import org.structr.common.GraphObjectComparator;
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -42,6 +44,8 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -77,57 +81,46 @@ public class RemoveCommand extends AbstractCommand {
 
 			if ((nodeToRemove != null) && (parentNode != null)) {
 
-				// RelationClass rel = EntityContext.getRelationClass(nodeToRemove.getClass(), parentNode.getClass());
-				RelationClass rel = EntityContext.getRelationClass(parentNode.getClass(), nodeToRemove.getClass());
+				final List<AbstractRelationship> rels = parentNode.getRelationships(RelType.CONTAINS, Direction.OUTGOING);
+				StructrTransaction transaction        = new StructrTransaction() {
 
-				if (rel != null) {
+					@Override
+					public Object execute() throws FrameworkException {
 
-					final List<AbstractRelationship> rels = parentNode.getRelationships(rel.getRelType(), rel.getDirection());
-					StructrTransaction transaction        = new StructrTransaction() {
+						String removedRelId                      = null;
+						Command deleteRel                        = Services.command(securityContext, DeleteRelationshipCommand.class);
+						boolean hasPageId                        = true;
+						List<AbstractRelationship> relsToReorder = new ArrayList<AbstractRelationship>();
 
-						@Override
-						public Object execute() throws FrameworkException {
+						for (AbstractRelationship rel : rels) {
 
-							Command deleteRel                      = Services.command(securityContext, DeleteRelationshipCommand.class);
-							List<AbstractRelationship> relsToShift = new LinkedList<AbstractRelationship>();
-							boolean hasPageId                      = true;
+							if (pageId == null || rel.getProperty(pageId) != null) {
 
-							for (AbstractRelationship rel : rels) {
+								relsToReorder.add(rel);
+							}
 
-								if (rel.getOtherNode(parentNode).equals(nodeToRemove)
-									&& ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))
-									&& ((pageId == null) || (rel.getProperty(pageId) != null))) {
+							if (rel.getEndNode().equals(nodeToRemove) && ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))
+								&& ((pageId == null) || (rel.getProperty(pageId) != null))) {
 
-									relsToShift.add(rel);
+								if (pos == null) {
 
-									if (pos == null) {
+									deleteRel.execute(rel);
+								} else {
 
-										deleteRel.execute(rel);
-									} else {
+									if (pos.equals(rel.getLongProperty(pageId))) {
 
-										if (pos.equals(rel.getLongProperty(pageId))) {
+										rel.removeProperty(pageId);
+										RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
 
-											rel.removeProperty(pageId);
-											RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
+										hasPageId = hasPageIds(securityContext, rel);
 
-											hasPageId = hasPageIds(securityContext, rel);
+										// If no pageId property is left, remove relationship
+										if (!hasPageId) {
 
-											// If no pageId property is left, remove relationship
-											if (!hasPageId) {
+											relsToReorder.remove(rel);
+											deleteRel.execute(rel);
 
-												deleteRel.execute(rel);
-												relsToShift.remove(rel);
-
-												// After removal of a relationship, all other rels must get a new position id
-												if (!hasPageId && pos != null) {
-
-													reorderRels(rels, pageId);
-												}
-
-												// Stop after removal of one relationship!
-												break;
-
-											}
+											break;
 
 										}
 
@@ -137,24 +130,28 @@ public class RemoveCommand extends AbstractCommand {
 
 							}
 
-							return null;
-
 						}
 
-					};
+						// Always re-order relationships
+						reorderRels(relsToReorder, pageId);
 
-					// execute transaction
-					try {
-
-						Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-					} catch (FrameworkException fex) {
-
-						getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
+						return null;
 
 					}
 
+				};
+
+				// execute transaction
+				try {
+
+					Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+				} catch (FrameworkException fex) {
+
+					getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
+
 				}
+
 			} else {
 
 				getWebSocket().send(MessageBuilder.status().code(404).build(), true);
@@ -170,6 +167,8 @@ public class RemoveCommand extends AbstractCommand {
 	private void reorderRels(final List<AbstractRelationship> rels, final String pageId) throws FrameworkException {
 
 		long i = 0;
+
+		Collections.sort(rels, new GraphObjectComparator(pageId, GraphObjectComparator.ASCENDING));
 
 		for (AbstractRelationship rel : rels) {
 

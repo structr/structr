@@ -219,11 +219,11 @@ public class RelationshipHelper {
 		}
 	}
 	
-	public static void untagOutgoingRelsFromPageId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String pageId) throws FrameworkException {
+	public static void untagOutgoingRelsFromPageId(final AbstractNode startNode, final AbstractNode node, final String startPageId, final String pageId) throws FrameworkException {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
-			Long position = rel.getLongProperty(originalResourceId);
+			Long position = rel.getLongProperty(startPageId);
 
 			if (position != null) {
 
@@ -231,7 +231,7 @@ public class RelationshipHelper {
 
 			}
 
-			untagOutgoingRelsFromPageId(startNode, rel.getEndNode(), originalResourceId, pageId);
+			untagOutgoingRelsFromPageId(startNode, rel.getEndNode(), startPageId, pageId);
 
 		}
 	}
