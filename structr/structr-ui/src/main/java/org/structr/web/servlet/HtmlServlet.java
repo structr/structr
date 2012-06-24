@@ -68,7 +68,6 @@ import org.structr.web.entity.Content;
 import org.structr.web.entity.Element;
 import org.structr.web.entity.Page;
 import org.structr.web.entity.View;
-import org.structr.web.entity.html.A;
 import org.structr.web.entity.html.HtmlElement;
 
 import org.w3c.tidy.Tidy;
@@ -77,8 +76,10 @@ import org.w3c.tidy.Tidy;
 
 import java.io.*;
 
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -365,6 +366,14 @@ public class HtmlServlet extends HttpServlet {
 			Page page                         = null;
 			org.structr.core.entity.File file = null;
 
+			if (edit) {
+
+				response.setHeader("Pragma", "no-cache");
+			} else {
+
+				setCachingHeader(response, node);
+			}
+
 			if (node instanceof Page) {
 
 				page = (Page) node;
@@ -394,7 +403,6 @@ public class HtmlServlet extends HttpServlet {
 
 					// Default
 					response.setContentType("text/html; charset=utf-8");
-					response.getWriter().append("<!DOCTYPE html>\n");
 				}
 
 				if (tidy) {
@@ -412,6 +420,7 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 				// 3: output content
+				response.getWriter().append("<!DOCTYPE html>\n");
 				HttpAuthenticator.writeContent(content, response);
 
 			} else if ((file != null) && securityContext.isVisible(file)) {
@@ -844,10 +853,11 @@ public class HtmlServlet extends HttpServlet {
 			}
 
 			boolean whitespaceOnly = false;
-			
-			int lastNewline = buffer.lastIndexOf("\n");
-			
-			whitespaceOnly = StringUtils.isBlank(lastNewline > -1 ? buffer.substring(lastNewline) : buffer.toString());
+			int lastNewline        = buffer.lastIndexOf("\n");
+
+			whitespaceOnly = StringUtils.isBlank(lastNewline > -1
+				? buffer.substring(lastNewline)
+				: buffer.toString());
 
 			if ((el != null) && !el.avoidWhitespace()) {
 
@@ -943,6 +953,32 @@ public class HtmlServlet extends HttpServlet {
 
 		return resultPages;
 
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	private static void setCachingHeader(HttpServletResponse response, final AbstractNode node) {
+
+//              add some caching directives to header
+		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
+		Calendar cal = new GregorianCalendar();
+		int seconds  = 7 * 24 * 60 * 60 + 1;    // 7 days + 1 sec
+
+		cal.add(Calendar.SECOND, seconds);
+		response.addHeader("Cache-Control", "public, max-age=" + seconds + ", s-maxage=" + seconds);
+
+		// + ", must-revalidate, proxy-revalidate"
+		DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+
+		httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		response.addHeader("Expires", httpDateFormat.format(cal.getTime()));
+
+		Date lastModified = node.getLastModifiedDate();
+
+		if (lastModified != null) {
+
+			response.addHeader("Last-Modified", httpDateFormat.format(lastModified));
+		}
 	}
 
 	//~--- inner classes --------------------------------------------------
