@@ -271,22 +271,22 @@ public class Component extends AbstractNode {
 		return null;
 	}
 
-	public String getPageId() {
-
-		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
-
-			String pageId = in.getStringProperty(Key.pageId.name());
-
-			if (pageId != null) {
-
-				return pageId;
-
-			}
-
-		}
-
-		return null;
-	}
+//	public String getPageId() {
+//
+//		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
+//
+//			String pageId = in.getStringProperty(Key.pageId.name());
+//
+//			if (pageId != null) {
+//
+//				return pageId;
+//
+//			}
+//
+//		}
+//
+//		return null;
+//	}
 
 	public static List<AbstractRelationship> getChildRelationships(final HttpServletRequest request, final AbstractNode node, final String pageId, final String componentId) {
 

@@ -242,7 +242,8 @@ public class DynamicTypeResource extends TypeResource {
 
 		// use parentId from template
 		String parentComponentId = template.getComponentId();
-		String parentResourceId  = template.getPageId();
+		String parentResourceId  = (String) propertySet.get("pageId");
+		propertySet.remove("pageId");
 		final long position      = getMaxPosition(templates, parentResourceId) + 1;
 
 		if (surroundingComponentId != null) {
