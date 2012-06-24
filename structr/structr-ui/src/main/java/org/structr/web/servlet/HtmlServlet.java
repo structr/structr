@@ -666,7 +666,7 @@ public class HtmlServlet extends HttpServlet {
 				// replace newlines with <br /> for rendering
 				if (((contentType == null) || contentType.equals("text/plain")) && (content != null) && !content.isEmpty()) {
 
-					content = content.replaceAll("[\\n]{1}", "<br>\n");
+					content = content.replaceAll("[\\n]{1}", "<br>");
 				}
 
 			}
@@ -973,11 +973,15 @@ public class HtmlServlet extends HttpServlet {
 		httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 		response.addHeader("Expires", httpDateFormat.format(cal.getTime()));
 
-		Date lastModified = node.getLastModifiedDate();
+		if (node != null) {
 
-		if (lastModified != null) {
+			Date lastModified = node.getLastModifiedDate();
 
-			response.addHeader("Last-Modified", httpDateFormat.format(lastModified));
+			if (lastModified != null) {
+
+				response.addHeader("Last-Modified", httpDateFormat.format(lastModified));
+			}
+
 		}
 	}
 
