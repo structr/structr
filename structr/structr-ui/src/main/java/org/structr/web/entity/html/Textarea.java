@@ -35,4 +35,10 @@ public class Textarea extends HtmlElement {
 		EntityContext.registerPropertySet(Textarea.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Textarea.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
+	
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	};
+	
 }
