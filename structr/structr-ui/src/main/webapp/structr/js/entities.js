@@ -272,7 +272,7 @@ var _Entities = {
                                 
                                 if (key != 'id') {
                                 
-                                    props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                    props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
                                 
                                 }
                                 
@@ -327,25 +327,27 @@ var _Entities = {
                         $('.props tr td.value input', dialog).each(function(i,v) {
                             
                             var input = $(v);
-                            
-                            if (input.hasClass('readonly')) return;
-                            
-                            input.on('focus', function() {
-                                input.addClass('active');
-                            });
 
-                            input.on('change', function() {
-                                input.data('changed', true);
-                                _Pages.reloadPreviews();
-                            });
-
-                            input.on('focusout', function() {
-                                Command.setProperty(entity.id, input.prop('name'), input.val());
-                                input.removeClass('active');
-                                input.parent().children('.icon').each(function(i, img) {
-                                    $(img).remove();
+                            if (!input.hasClass('readonly')) {
+                            
+                                input.on('focus', function() {
+                                    input.addClass('active');
                                 });
-                            });
+
+                                input.on('change', function() {
+                                    input.data('changed', true);
+                                    _Pages.reloadPreviews();
+                                });
+
+                                input.on('focusout', function() {
+                                    Command.setProperty(entity.id, input.prop('name'), input.val());
+                                    input.removeClass('active');
+                                    input.parent().children('.icon').each(function(i, img) {
+                                        $(img).remove();
+                                    });
+                                });
+                            
+                            }
 
                         });
                     });
