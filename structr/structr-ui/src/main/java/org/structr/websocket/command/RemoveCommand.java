@@ -133,8 +133,8 @@ public class RemoveCommand extends AbstractCommand {
 
 						}
 
-						// Always re-order relationships
-						reorderRels(relsToReorder, pageId);
+						// Re-order relationships
+						RelationshipHelper.reorderRels(relsToReorder, pageId);
 
 						return null;
 
@@ -161,30 +161,6 @@ public class RemoveCommand extends AbstractCommand {
 		} else {
 
 			getWebSocket().send(MessageBuilder.status().code(400).message("Add needs id and data.id!").build(), true);
-		}
-
-	}
-
-	private void reorderRels(final List<AbstractRelationship> rels, final String pageId) throws FrameworkException {
-
-		long i = 0;
-
-		Collections.sort(rels, new GraphObjectComparator(pageId, GraphObjectComparator.ASCENDING));
-
-		for (AbstractRelationship rel : rels) {
-
-			try {
-
-				rel.setProperty(pageId, i);
-
-				i++;
-
-			} catch (IllegalStateException ise) {
-
-				// Silently ignore this exception and continue, omitting deleted rels
-				continue;
-			}
-
 		}
 
 	}

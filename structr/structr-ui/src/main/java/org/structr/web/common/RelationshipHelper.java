@@ -21,6 +21,7 @@
 
 package org.structr.web.common;
 
+import java.util.Collections;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 
@@ -41,6 +42,7 @@ import org.structr.web.entity.Group;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.structr.common.GraphObjectComparator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -331,4 +333,30 @@ public class RelationshipHelper {
 
 		return false;
 	}
+	
+	public static void reorderRels(final List<AbstractRelationship> rels, final String pageId) throws FrameworkException {
+
+		long i = 0;
+
+		Collections.sort(rels, new GraphObjectComparator(pageId, GraphObjectComparator.ASCENDING));
+
+		for (AbstractRelationship rel : rels) {
+
+			try {
+
+				rel.setProperty(pageId, i);
+
+				i++;
+
+			} catch (IllegalStateException ise) {
+
+				// Silently ignore this exception and continue, omitting deleted rels
+				continue;
+			}
+
+		}
+
+	}
+
+	
 }
