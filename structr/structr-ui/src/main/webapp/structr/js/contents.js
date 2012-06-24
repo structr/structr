@@ -158,8 +158,8 @@ var _Contents = {
             }
         });
         
-        element.append('<table class="props ' + entity.id + '_"></table>');
-        var t = $('.props', element);
+        $('#dialogBox .dialogMeta').append('<table class="props ' + entity.id + '_"></table>');
+        var t = $('.props', $('#dialogBox .dialogMeta'));
         
         t.append('<tr><td><label for="contentTypeSelect">Content-Type:</label></td><td>'
             + '<select class="contentType_" id="contentTypeSelect">'

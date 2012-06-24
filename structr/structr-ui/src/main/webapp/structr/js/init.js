@@ -316,6 +316,8 @@ var Structr = {
     dialog : function(text, callbackOk, callbackCancel) {
 
         $('#dialogBox .dialogMsg').empty();
+        $('#dialogBox .dialogMeta').empty();
+        $('#dialogBox .dialogBtn').empty();
 
         if (text) $('#dialogBox .dialogTitle').html(text);
         //        if (callbackOk) $('#dialogOkButton').on('click', function() {

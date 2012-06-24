@@ -390,10 +390,7 @@ ul#previewTabs {
     background-color: #fff;
     border: 1px solid #ccc;
     margin: 4px 0 8px 0;
-}
-
-.editor_box {
-    width: 540px;
+/*    height: 540px;*/
 }
 
 .link_icon {
@@ -556,7 +553,7 @@ button img {
     font-size: 11pt;
     width: 240px;
     /*    height: 96px;*/
-    padding: 14px 12px 6px 12px;
+    padding: 14px 0px 6px 24px;
     border-radius: 5px;
     border: 1px solid #999;
     background-color: #e5e5e5;
@@ -580,12 +577,26 @@ button img {
     color: #333;
 }
 
-.dialogText {
+.dialogMsg {
+    text-align: center;
+    height: 36px;
+}
+
+.dialogBtn {
+    text-align: left;
+    height: 36px;
+}
+
+.dialogText, .dialogMeta {
     text-align: left;
     font-size: 9pt;
-    height: 600px;
     width: 776px;
     overflow: auto;
+    overflow-x: hidden ! important;
+}
+
+.dialogText {
+    height: 600px;
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {

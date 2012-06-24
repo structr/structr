@@ -247,7 +247,7 @@ var _Elements = {
             if (page) {
                 var pageId = getId(page);
                 relData[pageId] = pos;
-                //relData.pageId = pageId;
+                relData.pageId = pageId;
             }
             if (debug) console.log('Wrap element in component', getId(node), nodeData, relData);
             //_Entities.createAndAdd(getId(node), nodeData, relData);

@@ -654,8 +654,8 @@ var _Files = {
 
                 editor.id = file.id;
                 
-                element.append('<button id="saveFile">Save</button>');
-                $(element.children('button#saveFile').first()).on('click', function(e) {
+                element.parent().children('.dialogBtn').append('<button id="saveFile"> Save </button>');
+                $(element.parent().find('button#saveFile').first()).on('click', function(e) {
                     e.stopPropagation();
                     
                     console.log(editor.getValue());
