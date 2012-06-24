@@ -87,45 +87,46 @@ public class RemoveCommand extends AbstractCommand {
 					@Override
 					public Object execute() throws FrameworkException {
 
-						String removedRelId                      = null;
-						Command deleteRel                        = Services.command(securityContext, DeleteRelationshipCommand.class);
-						boolean hasPageId                        = true;
+						Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+						boolean hasPageId;
 						List<AbstractRelationship> relsToReorder = new ArrayList<AbstractRelationship>();
 
 						for (AbstractRelationship rel : rels) {
 
 							if (pageId == null || rel.getProperty(pageId) != null) {
 
-								relsToReorder.add(rel);
-							}
+								if (rel.getEndNode().equals(nodeToRemove) && ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))) {
 
-							if (rel.getEndNode().equals(nodeToRemove) && ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))
-								&& ((pageId == null) || (rel.getProperty(pageId) != null))) {
+									relsToReorder.remove(rel);
 
-								if (pos == null) {
+									if (pos == null) {
 
-									deleteRel.execute(rel);
-								} else {
+										deleteRel.execute(rel);
+									} else {
 
-									if (pos.equals(rel.getLongProperty(pageId))) {
+										if (pos.equals(rel.getLongProperty(pageId))) {
 
-										rel.removeProperty(pageId);
-										RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
+											rel.removeProperty(pageId);
+											RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
 
-										hasPageId = hasPageIds(securityContext, rel);
+											hasPageId = hasPageIds(securityContext, rel);
 
-										// If no pageId property is left, remove relationship
-										if (!hasPageId) {
+											// If no pageId property is left, remove relationship
+											if (!hasPageId) {
 
-											relsToReorder.remove(rel);
-											deleteRel.execute(rel);
+												deleteRel.execute(rel);
 
-											break;
+												break;
+
+											}
 
 										}
 
 									}
 
+								} else {
+
+									relsToReorder.add(rel);
 								}
 
 							}
@@ -174,7 +175,6 @@ public class RemoveCommand extends AbstractCommand {
 
 			try {
 
-				rel.getId();
 				rel.setProperty(pageId, i);
 
 				i++;
