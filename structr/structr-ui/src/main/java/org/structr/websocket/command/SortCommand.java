@@ -27,11 +27,13 @@ import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.web.common.RelationshipHelper;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +53,7 @@ public class SortCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String pageId            = webSocketData.getId();
+		String pageId                = webSocketData.getId();
 		AbstractNode node            = getNode(pageId);
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 
@@ -59,20 +61,19 @@ public class SortCommand extends AbstractCommand {
 
 			for (String id : nodeData.keySet()) {
 
-				AbstractNode nodeToSort = getNode(id);
-				Long pos              = Long.parseLong((String) nodeData.get(id));
+				AbstractNode nodeToSort         = getNode(id);
+				Long pos                        = Long.parseLong((String) nodeData.get(id));
+				List<AbstractRelationship> rels = nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING);
 
-				for (AbstractRelationship rel : nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
+				for (AbstractRelationship rel : rels) {
 
-					Long oldPos = rel.getLongProperty(pageId);
+					try {
 
-					if ((oldPos != null) &&!(oldPos.equals(pos))) {
+						rel.setProperty(pageId, pos);
 
-						try {
-							rel.setProperty(pageId, pos);
-						} catch (FrameworkException fex) {
-							fex.printStackTrace();
-						}
+					} catch (FrameworkException fex) {
+
+						fex.printStackTrace();
 
 					}
 
@@ -86,12 +87,16 @@ public class SortCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "SORT";
+
 	}
+
 }
