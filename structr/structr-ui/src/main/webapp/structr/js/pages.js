@@ -682,7 +682,7 @@ var _Pages = {
     },
 
     appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
-        console.log('_Pages.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
+        if (debug) console.log('_Pages.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
         
         var div;
         if (entity.type == 'Component') {

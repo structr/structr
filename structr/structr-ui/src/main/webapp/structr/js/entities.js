@@ -531,11 +531,10 @@ var _Entities = {
                 var page = $(el).closest('.page');
                 if (page.length) {
                     var pageId = getId(page);
-                    //console.log('setMouseOver pageId', resId);
                     var previewNodes = $('#preview_' + pageId).contents().find('[structr_element_id]');
                     previewNodes.each(function(i,v) {
                         var self = $(v);
-                        var sid = self.prop('structr_element_id');
+                        var sid = self.attr('structr_element_id');
                         if (sid == nodeId) {
                             self.addClass('nodeHover');
                         }
@@ -571,7 +570,7 @@ var _Entities = {
             var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
             previewNodes.each(function(i,v) {
                 var self = $(v);
-                var sid = self.prop('structr_element_id');
+                var sid = self.attr('structr_element_id');
                 if (sid == nodeId) {
                     if (debug) console.log(sid);
                     self.removeClass('nodeHover');
