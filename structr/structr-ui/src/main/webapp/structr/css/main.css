@@ -610,6 +610,8 @@ button img {
 
 #login {
     padding-top: 16px;
+    padding-left: 16px;
+    width: 264px;
 }
 
 #login table, #login tr, #login td {
