@@ -28,6 +28,7 @@ import org.structr.common.RelType;
 import org.structr.core.node.NodeService;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.EntityContext;
+import org.structr.core.converter.IntConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
 import org.structr.core.entity.RelationClass;
@@ -64,6 +65,8 @@ public class Page extends Linkable {
 
 		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), Element.UiKey.values());
 		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
+		
+		EntityContext.registerPropertyConverter(Page.class, UiKey.position, IntConverter.class);
 	}
 
 	//~--- get methods ----------------------------------------------------
