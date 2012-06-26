@@ -61,6 +61,36 @@
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-spatial</artifactId>
             <version>0.8</version>
+            <exclusions>
+<!--                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j-graph-collections</artifactId>
+                </exclusion>-->
+<!--                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>server-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j-kernel</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.neo4j.app</groupId>
+                    <artifactId>neo4j-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.neo4j.examples</groupId>
+                    <artifactId>neo4j-examples</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j-graphviz</artifactId>
+                </exclusion>-->
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.tinkerpop.gremlin</groupId>
