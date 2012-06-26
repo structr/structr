@@ -197,13 +197,15 @@ public class StructrServer {
 
 		war.close();
 
-		// Create modules.conf if not existing
+		// Recreate modules.conf
 		if (!modulesConfFile.exists()) {
 
 			modulesConfFile.createNewFile();
-			FileUtils.writeLines(modulesConfFile, "UTF-8", modulesConf);
+		} else {
+			modulesConfFile.delete();
 
 		}
+		FileUtils.writeLines(modulesConfFile, "UTF-8", modulesConf);
 
 		String confPath = basePath + "/structr.conf";
 		File confFile   = new File(confPath);
