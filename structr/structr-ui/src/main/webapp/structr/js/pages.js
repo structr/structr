@@ -513,7 +513,9 @@ var _Pages = {
                         nodeData.tag = (tag != 'content' ? tag : '');
                         nodeData.id = contentId;
                         if (debug) console.log(relData);
-                        Command.createAndAdd(elementId, nodeData, relData);
+                        // suppress dropping anything in prview iframes for now
+                        console.log('suppressed command', 'Command.createAndAdd(', elementId, nodeData, relData, ')');
+                        // Command.createAndAdd(elementId, nodeData, relData);
                     }
                 });
 
