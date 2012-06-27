@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.web.entity.Page;
+import org.structr.web.entity.html.Html;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -125,6 +127,7 @@ public class AddCommand extends AbstractCommand {
 							if (r.getEndNode().equals(nodeToAdd) && r.getLongProperty(originalPageId) != null) {
 
 								r.setProperty(newPageId, Long.parseLong((String) relData.get(newPageId)));
+								logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[]{newPageId, relData.get(newPageId)});
 
 								addedPageIdProperty = true;
 								break;
@@ -134,14 +137,24 @@ public class AddCommand extends AbstractCommand {
 						}
 
 						if (!addedPageIdProperty) {
+							
+							// Debugging hook: Alert when parentNode is a page!
+							if (parentNode instanceof Page && !(nodeToAdd instanceof Html)) {
+								logger.log(Level.SEVERE, "Trying to add non Html node to Page!");
+							}
 
 							// A new node was created, no relationship exists,
 							// so we create a new one.
 							rel.createRelationship(securityContext, parentNode, nodeToAdd, relData);
+							logger.log(Level.INFO, "Created new relationship between parent node {0}, added node {1} ({2})",
+								new Object[]{parentNode.getUuid(), nodeToAdd.getUuid(), relData});
 						}
 
 						// set page ID on copied branch
 						if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {
+
+							logger.log(Level.INFO, "Tagging branch of added node {0}: originalPageId: {1}, newPageId: {2}",
+								new Object[]{nodeToAdd.getUuid(), originalPageId, newPageId});
 
 							RelationshipHelper.tagOutgoingRelsWithPageId(nodeToAdd, nodeToAdd, originalPageId, newPageId);
 						}
