@@ -53,8 +53,19 @@ public class Location extends AbstractNode {
 	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+		notifyLocatables(securityContext);
+	}
 	
-	private  boolean isValid(ErrorBuffer errorBuffer) {
+	@Override
+	public void afterModification(SecurityContext securityContext) {
+		notifyLocatables(securityContext);
+		
+	}
+	
+	private boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
 
@@ -62,6 +73,19 @@ public class Location extends AbstractNode {
 //              error |= ValidationHelper.checkPropertyNotNull(this, Key.longitude, errorBuffer);
 		return !error;
 
+	}
+	
+	private void notifyLocatables(SecurityContext securityContext) {
+		
+		for(AbstractRelationship rel : this.getRelationships()) {
+			
+			AbstractNode otherNode = rel.getOtherNode(this);
+			if(otherNode != null && otherNode instanceof Locatable) {
+				
+				// notify other node of location change
+				((Locatable)otherNode).locationChanged(securityContext);
+			}
+		}
 	}
 
 }
