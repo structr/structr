@@ -1432,7 +1432,7 @@ public class EntityContext {
 
 					if (!data.isDeleted(node)) {
 
-						AbstractNode modifiedNode = nodeFactory.createNode(securityContext, node);
+						AbstractNode modifiedNode = nodeFactory.createNode(securityContext, node, true, false);
 						if(modifiedNode != null) {
 
 							modifiedNodes.add(modifiedNode);
@@ -1481,7 +1481,7 @@ public class EntityContext {
 				// 2: notify listeners of node creation (so the modifications can later be tracked)
 				for (Node node : data.createdNodes()) {
 
-					AbstractNode entity = nodeFactory.createNode(securityContext, node);
+					AbstractNode entity = nodeFactory.createNode(securityContext, node, true, false);
 					if(entity != null) {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
@@ -1551,7 +1551,7 @@ public class EntityContext {
 				// notify listeners of property removal and modifications
 				for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
 
-					AbstractNode entity = nodeFactory.createNode(securityContext, entry.entity());
+					AbstractNode entity = nodeFactory.createNode(securityContext, entry.entity(), true, false);
 					if(entity != null) {
 						
 						String key          = entry.key();
