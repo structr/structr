@@ -584,5 +584,112 @@ public abstract class Search {
 		return names;
 
 	}
-
+	
+	/**
+	 * Expand a search string by splitting at ',' and add the parts to an exact
+	 * 'OR' search attribute group, combined by the given operator
+	 * 
+	 * @param searchValue 
+	 */
+	public static SearchAttributeGroup orMatchExactValues(final String key, final String searchValue, final SearchOperator operator) {
+		
+		SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.OR);
+		
+		if (searchValue == null || StringUtils.isBlank(searchValue)) {
+			return null;
+		}
+		
+		String[] parts = StringUtils.split(searchValue, ",");
+		
+		for (String part : parts) {
+			
+			SearchAttribute attr = new TextualSearchAttribute(key, exactMatch(part), operator);
+			
+			group.add(attr);
+			
+		}
+		
+		return group;
+	}
+	
+	/**
+	 * Expand a search string by splitting at ',' and add the parts to a loose
+	 * 'OR' search attribute group, combined by the given operator
+	 * 
+	 * @param searchValue 
+	 */
+	public static SearchAttributeGroup orMatchValues(final String key, final String searchValue, final SearchOperator operator) {
+		
+		SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.OR);
+		
+		if (searchValue == null || StringUtils.isBlank(searchValue)) {
+			return null;
+		}
+		
+		String[] parts = StringUtils.split(searchValue, ",");
+		
+		for (String part : parts) {
+			
+			SearchAttribute attr = new TextualSearchAttribute(key, part, operator);
+			
+			group.add(attr);
+			
+		}
+		
+		return group;
+	}
+	
+	/**
+	 * Expand a search string by splitting at ',' and add the parts to an exact
+	 * 'AND' search attribute group, combined by the given operator
+	 * 
+	 * @param searchValue 
+	 */
+	public static SearchAttributeGroup andMatchExactValues(final String key, final String searchValue, final SearchOperator operator) {
+		
+		SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+		
+		if (searchValue == null || StringUtils.isBlank(searchValue)) {
+			return null;
+		}
+		
+		String[] parts = StringUtils.split(searchValue, ",");
+		
+		for (String part : parts) {
+			
+			SearchAttribute attr = new TextualSearchAttribute(key, exactMatch(part), operator);
+			
+			group.add(attr);
+			
+		}
+		
+		return group;
+	}
+	
+	/**
+	 * Expand a search string by splitting at ',' and add the parts to a loose
+	 * 'AND' search attribute group, combined by the given operator
+	 * 
+	 * @param searchValue 
+	 */
+	public static SearchAttributeGroup andMatchValues(final String key, final String searchValue, final SearchOperator operator) {
+		
+		SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+		
+		if (searchValue == null || StringUtils.isBlank(searchValue)) {
+			return null;
+		}
+		
+		String[] parts = StringUtils.split(searchValue, ",");
+		
+		for (String part : parts) {
+			
+			SearchAttribute attr = new TextualSearchAttribute(key, part, operator);
+			
+			group.add(attr);
+			
+		}
+		
+		return group;
+	}	
 }
