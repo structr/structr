@@ -252,7 +252,14 @@ var _Entities = {
                     //element.append('<div class="sep"></div>');
                     //element.append('<table class="props"></table>');
                     if (debug) console.log(data.result);
+                    
+                    // Default: Edit node id
+                    var id = entity.id;
+                    // ID of graph object to edit
                     $(data.result).each(function(i, res) {
+
+                        // reset id for each object group
+                        id = entity.id;
 			
                         var keys = Object.keys(res);
 
@@ -277,7 +284,15 @@ var _Entities = {
                                 }
                                 
                             } else if (view == 'in' || view == 'out') {
-                                props.append('<tr><td class="key">' + key + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                
+                                if (key == 'id') {
+                                    // set ID to rel ID
+                                    id = res[key];
+                                    console.log('Set ID to relationship ID', id);
+                                }
+                                
+                                props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                                               
                             } else {
                                 
                                 if (!isIn(key, _Entities.hiddenAttrs)) {
@@ -291,10 +306,10 @@ var _Entities = {
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
-                                            console.log('set property', entity.id, key, checkbox.attr('checked') == 'checked');
-                                            Command.setProperty(entity.id, key, checkbox.attr('checked') == 'checked');
+                                            console.log('set property', id, key, checkbox.attr('checked') == 'checked');
+                                            Command.setProperty(id, key, checkbox.attr('checked') == 'checked');
                                         });
-                                        Command.getProperty(entity.id, key, '#dialogBox');
+                                        Command.getProperty(id, key, '#dialogBox');
                                 
                                     //                                } else if (isIn(key, _Entities.numberAttrs)) {
                                     } else if (isIn(key, _Entities.dateAttrs)) {
@@ -328,6 +343,9 @@ var _Entities = {
                             
                             var input = $(v);
 
+                            var relId = input.parent().attr('rel_id');
+                            //console.log('attaching events for saving attrs of relationship', relId);
+
                             if (!input.hasClass('readonly')) {
                             
                                 input.on('focus', function() {
@@ -340,7 +358,10 @@ var _Entities = {
                                 });
 
                                 input.on('focusout', function() {
-                                    Command.setProperty(entity.id, input.prop('name'), input.val());
+                                    console.log('relId', relId);
+                                    var objId = relId ? relId : id;
+                                    console.log('set properties of obj', objId);
+                                    Command.setProperty(objId, input.prop('name'), input.val());
                                     input.removeClass('active');
                                     input.parent().children('.icon').each(function(i, img) {
                                         $(img).remove();
