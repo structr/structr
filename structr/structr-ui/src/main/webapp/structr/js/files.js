@@ -325,6 +325,7 @@ var _Files = {
             }
             
         } else {
+            
             parent.append('<div structr_type="folder" class="node folder ' + folder.id + '_">'
                 + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
                 + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'

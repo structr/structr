@@ -193,16 +193,20 @@ function connect() {
 
             } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
 
+                var treeAddress = data.data.treeAddress;
+
                 if (debug) console.log('CHILDREN:', parentId, componentId, pageId);
                 if (debug) console.log('CHILDREN');
                 if (debug) console.log('parentId', parentId);
                 if (debug) console.log('componentId', componentId);
                 if (debug) console.log('pageId', pageId);
                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
+                if (debug) console.log('Tree address', treeAddress);
+                
                 
                 $(result).each(function(i, child) {
-                    if (debug) console.log('CHILDREN: ', child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren));
-                    _Entities.appendObj(child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren));
+                    if (debug) console.log('CHILDREN: ', child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren), treeAddress);
+                    _Entities.appendObj(child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren), treeAddress);
                 });
 
             } else if (command == 'LIST') { /*********************** LIST ************************/
@@ -274,11 +278,10 @@ function connect() {
                 //console.log(command, result, data, data.data);
 				
                 $(result).each(function(i, entity) {
-                    console.log(command, entity, parentId, componentId, pageId, command == 'ADD');
+                    if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD');
                     
                     
                     var el = Structr.node(entity.id, parentId, componentId, pageId);
-                    //console.log(el);
                     if (el) el.remove();
                     
                     _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD');
@@ -331,20 +334,20 @@ function connect() {
                     if (page && page.length) {
                                     
                         var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                        console.log('entity', entity, pageId, newPageId);
+                        if (debug) console.log('entity', entity, pageId, newPageId);
                         if (entity && newPageId) {
                             
                             parentId = relData.startNodeId;
                             
                             var parent = Structr.entity(parentId);
-                            console.log('parent type', parent, parent.type);
+                            if (debug) console.log('parent type', parent, parent.type);
                             if (parent.type == 'Page') return;
                             
                             var id = entity.id;
                             //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
                             //_Entities.appendObj(entity, relData.startNodeId, null, newPageId);
                             var el = Structr.node(id, parentId, componentId, newPageId);
-                            console.log('node already exists?', el);
+                            if (debug) console.log('node already exists?', el);
                             
                             if (!el || !el.length) {
                                 //el.remove();
