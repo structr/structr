@@ -69,15 +69,19 @@ var Command = {
      * the given pageId and within the component with the given
      * componentId to the sending client (no broadcast).
      * 
+     * If the tree address is set, the client will add the children
+     * at the given address.
+     * 
      * The server will return an array with all node ids which have child
      * nodes in this page.
      */
-    children : function(id, componentId, pageId) {
+    children : function(id, componentId, pageId, treeAddress) {
         var obj = {};
         obj.command = 'CHILDREN';
         obj.id = id;
         var data = {};
         if (componentId) data.componentId = componentId;
+        if (treeAddress) data.treeAddress = treeAddress;
         data.pageId = pageId;
         obj.data = data;
         if (debug) console.log('children()', obj);

@@ -88,9 +88,9 @@ var _Entities = {
         
     },
 
-    appendObj : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
+    appendObj : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
 
-        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, removeExisting, hasChildren);
+        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
 
         var lastAppendedObj;
 
@@ -107,12 +107,12 @@ var _Entities = {
 
         } else if (entity.type == 'Component') {
 
-            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, true, true);
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, true, true, treeAddress);
 
         } else if (entity.type == 'Content') {
 
-            if (debug) console.log('appending content element', entity, parentId, componentId, pageId, removeExisting, hasChildren);
-            lastAppendedObj = _Pages.appendContentElement(entity, parentId, componentId, pageId, removeExisting, hasChildren);
+            if (debug) console.log('appending content element', entity, parentId, componentId, pageId, treeAddress);
+            lastAppendedObj = _Pages.appendContentElement(entity, parentId, componentId, pageId, treeAddress);
 
         } else if (entity.type == 'Folder') {
 
@@ -135,7 +135,7 @@ var _Entities = {
         } else {
 
             if (debug) console.log('Entity: ', entity);
-            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, false, hasChildren);
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, false, hasChildren, treeAddress);
         }
 
         if (debug) console.log('lastAppendedObj', lastAppendedObj);
@@ -148,7 +148,7 @@ var _Entities = {
                 
                 if (debug) console.log('parent of last appended object has children');
 
-                addExpandedNode(getId(parent), null, pageId);
+                addExpandedNode(treeAddress);
                 var ent = Structr.entityFromElement(parent);
                 if (debug) console.log('entity', ent);
                 ent.pageId = pageId;
@@ -252,7 +252,14 @@ var _Entities = {
                     //element.append('<div class="sep"></div>');
                     //element.append('<table class="props"></table>');
                     if (debug) console.log(data.result);
+                    
+                    // Default: Edit node id
+                    var id = entity.id;
+                    // ID of graph object to edit
                     $(data.result).each(function(i, res) {
+
+                        // reset id for each object group
+                        id = entity.id;
 			
                         var keys = Object.keys(res);
 
@@ -277,7 +284,15 @@ var _Entities = {
                                 }
                                 
                             } else if (view == 'in' || view == 'out') {
-                                props.append('<tr><td class="key">' + key + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                
+                                if (key == 'id') {
+                                    // set ID to rel ID
+                                    id = res[key];
+                                    console.log('Set ID to relationship ID', id);
+                                }
+                                
+                                props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                                               
                             } else {
                                 
                                 if (!isIn(key, _Entities.hiddenAttrs)) {
@@ -291,10 +306,10 @@ var _Entities = {
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
-                                            console.log('set property', entity.id, key, checkbox.attr('checked') == 'checked');
-                                            Command.setProperty(entity.id, key, checkbox.attr('checked') == 'checked');
+                                            console.log('set property', id, key, checkbox.attr('checked') == 'checked');
+                                            Command.setProperty(id, key, checkbox.attr('checked') == 'checked');
                                         });
-                                        Command.getProperty(entity.id, key, '#dialogBox');
+                                        Command.getProperty(id, key, '#dialogBox');
                                 
                                     //                                } else if (isIn(key, _Entities.numberAttrs)) {
                                     } else if (isIn(key, _Entities.dateAttrs)) {
@@ -328,6 +343,9 @@ var _Entities = {
                             
                             var input = $(v);
 
+                            var relId = input.parent().attr('rel_id');
+                            //console.log('attaching events for saving attrs of relationship', relId);
+
                             if (!input.hasClass('readonly')) {
                             
                                 input.on('focus', function() {
@@ -340,7 +358,10 @@ var _Entities = {
                                 });
 
                                 input.on('focusout', function() {
-                                    Command.setProperty(entity.id, input.prop('name'), input.val());
+                                    console.log('relId', relId);
+                                    var objId = relId ? relId : id;
+                                    console.log('set properties of obj', objId);
+                                    Command.setProperty(objId, input.prop('name'), input.val());
                                     input.removeClass('active');
                                     input.parent().children('.icon').each(function(i, img) {
                                         $(img).remove();
@@ -453,7 +474,7 @@ var _Entities = {
 
     appendExpandIcon : function(el, entity, hasChildren, expanded) {
 
-        var button = $(el).children('.expand_icon').first();
+        var button = $(el.children('.expand_icon').first());
         if (button && button.length) {
             if (debug) console.log('Expand icon already existing');
             return;
@@ -471,12 +492,19 @@ var _Entities = {
             button = $(el.children('.expand_icon').first());
 
             if (button) {
-
+                
                 button.on('click', function(e) {
                     
-                    if (debug) console.log('clicked');
+                    if (debug) console.log('expand icon clicked');
                     
                     e.stopPropagation();
+                    _Entities.toggleElement($(this).parent('.node'));
+                    
+                });
+                
+                $(el).on('click', function(e) {
+                    
+                    if (debug) console.log('node clicked');
                     _Entities.toggleElement(this);
                     
                 });
@@ -485,10 +513,15 @@ var _Entities = {
                 button.on('mousedown', function(e) {
                     e.stopPropagation();
                 });
-                if (debug) console.log('appendExpandIcon', isExpanded(entity.id, null, entity.pageId), entity);
-                if (isExpanded(entity.id, null, entity.pageId)) {
+                
+                var elId = $(el).attr('id');
+                
+                var treeAddress = elId ? elId.substring(1) : undefined;
+                
+                console.log('appendExpandIcon', isExpanded(treeAddress), entity);
+                if (isExpanded(treeAddress)) {
                     if (debug) console.log('toggle', entity.id, entity.pageId);
-                    _Entities.toggleElement(button, expanded)
+                    _Entities.toggleElement(el, expanded)
                 }
             }
 
@@ -580,28 +613,37 @@ var _Entities = {
         }
     },
 
-    toggleElement : function(button, expanded) {
+    toggleElement : function(el, expanded) {
 
-        var b = $(button);
-        var src = b.prop('src');
-
+        var el = $(el);
+        var b;
+        var src = el.prop('src');
+        
+        var elId = el.attr('id');
+        
+        var treeAddress = elId ? elId.substring(1) : undefined;
+        
+        console.log('toggleElement: treeAddress', treeAddress.substring(1));
+        
+        b = el.children('.expand_icon').first();
+        src = b.prop('src');
+        
         if (!src) return;
-
-        var nodeElement = $(button).parent();
-        var id = getId(nodeElement);
-        var compId = getId(nodeElement.closest('.component'));
-        var pageId = getId(nodeElement.closest('.page'));
+        
+        var id = getId(el);
+        var compId = getId(el.closest('.component'));
+        var pageId = getId(el.closest('.page'));
 
         if (src.endsWith('icon/tree_arrow_down.png')) {
-            nodeElement.children('.node').remove();
+            el.children('.node').remove();
             b.prop('src', 'icon/tree_arrow_right.png');
 
-            removeExpandedNode(id, null, pageId);
+            removeExpandedNode(treeAddress);
         } else {
-            if (!expanded) Command.children(id, compId, pageId);
+            if (!expanded) Command.children(id, compId, pageId, treeAddress);
             b.prop('src', 'icon/tree_arrow_down.png');
 
-            addExpandedNode(id, null, pageId);
+            addExpandedNode(treeAddress);
         }
 
     },

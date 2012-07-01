@@ -292,18 +292,25 @@ public class HtmlServlet extends HttpServlet {
 			searchFor = StringUtils.substringBefore(urlParts[1], "?");
 		}
 
-		String[] pathParts = PathHelper.getParts(path);
+		String[] pathParts   = PathHelper.getParts(path);
+		boolean tryIndexPage = false;
+		String name = "";
 
-		if ((pathParts == null) && (pathParts.length == 0)) {
+		if ((pathParts == null) || (pathParts.length == 0)) {
 
-			logger.log(Level.WARNING, "Could not get path parts from path {0}", path);
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			// try to find a page with position==0
+			tryIndexPage = true;
 
-			return;
+			logger.log(Level.INFO, "No path supplied, trying to find index page");
 
+//                      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//
+//                      return;
+		} else {
+
+			name = PathHelper.getName(pathParts[0]);
 		}
 
-		String name                        = PathHelper.getName(pathParts[0]);
 		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
 		Map<String, String[]> parameterMap = request.getParameterMap();
 
@@ -362,7 +369,9 @@ public class HtmlServlet extends HttpServlet {
 			double start                = System.nanoTime();
 
 			// 1: find entry point (Page, File or Image)
-			AbstractNode node                 = findEntryPoint(name);
+			AbstractNode node                 = tryIndexPage
+				? findIndexPage()
+				: findEntryPoint(name);
 			Page page                         = null;
 			org.structr.core.entity.File file = null;
 
@@ -529,6 +538,31 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return attrs;
+
+	}
+
+	private AbstractNode findIndexPage() throws FrameworkException {
+
+		logger.log(Level.FINE, "Looking for an index page ...");
+
+		// Get all pages
+		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+
+		searchAttrs.add(Search.orExactType(Page.class.getSimpleName()));
+
+		List<Page> results = (List<Page>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+
+		logger.log(Level.FINE, "{0} results", results.size());
+
+		if (!results.isEmpty()) {
+
+			Collections.sort(results, new GraphObjectComparator(Page.UiKey.position.name(), AbstractNodeComparator.ASCENDING));
+
+			return results.get(0);
+
+		}
+
+		return null;
 
 	}
 

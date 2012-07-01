@@ -19,8 +19,12 @@
 
 package org.structr.web.entity.html;
 
+import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.RelationClass;
+import org.structr.web.entity.Content;
 
 /**
  * @author Axel Morgner
@@ -31,6 +35,8 @@ public class Code extends HtmlElement {
 		EntityContext.registerPropertySet(Code.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Code.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Code.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
+		EntityContext.registerEntityRelation(Code.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}
 	
 	@Override

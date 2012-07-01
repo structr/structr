@@ -72,6 +72,7 @@ public class NodeFactory<T extends AbstractNode> {
 	public NodeFactory() {}
 
 	//~--- methods --------------------------------------------------------
+
 	public AbstractNode createNode(final SecurityContext securityContext, final Node node) throws FrameworkException {
 
 		return createNode(securityContext, node, false, false);
@@ -88,12 +89,15 @@ public class NodeFactory<T extends AbstractNode> {
 		return createNode(securityContext, node, nodeType, includeDeletedAndHidden, publicOnly);
 
 	}
-	
+
 	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType) throws FrameworkException {
+
 		return createNode(securityContext, node, nodeType, false, false);
+
 	}
 
-	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
+	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType, final boolean includeDeletedAndHidden, final boolean publicOnly)
+		throws FrameworkException {
 
 		/*
 		 *  caching disabled for now...
@@ -151,9 +155,11 @@ public class NodeFactory<T extends AbstractNode> {
 
 		return null;
 	}
-	
+
 	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input) throws FrameworkException {
+
 		return createNodes(securityContext, input, false, false);
+
 	}
 
 	/**
@@ -186,16 +192,17 @@ public class NodeFactory<T extends AbstractNode> {
 					AbstractNode n = createNode(securityContext, graphDb.getNodeById((Long) node.getProperty("id")), includeDeletedAndHidden, publicOnly);
 
 					// Check is done in createNode already, so we don't have to do it again
-					if (n != null) {// && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
 						nodes.add(n);
-					}
 
-					for (AbstractNode nodeAt : getNodesAt(n)) {
+						for (AbstractNode nodeAt : getNodesAt(n)) {
 
-						if (nodeAt != null && isReadable(securityContext, nodeAt, includeDeletedAndHidden, publicOnly)) {
+							if (nodeAt != null && isReadable(securityContext, nodeAt, includeDeletedAndHidden, publicOnly)) {
 
-							nodes.add(nodeAt);
+								nodes.add(nodeAt);
+							}
+
 						}
 
 					}
@@ -213,7 +220,7 @@ public class NodeFactory<T extends AbstractNode> {
 					AbstractNode n = createNode(securityContext, (Node) node, includeDeletedAndHidden, publicOnly);
 
 					// Check is done in createNode already, so we don't have to do it again
-					if (n != null) {//  && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
 						nodes.add(n);
 					}
@@ -227,7 +234,7 @@ public class NodeFactory<T extends AbstractNode> {
 		return nodes;
 
 	}
-	
+
 	/**
 	 * Create structr nodes from all given underlying database nodes
 	 *
@@ -245,9 +252,8 @@ public class NodeFactory<T extends AbstractNode> {
 				AbstractNode n = createNode(securityContext, node);
 
 				if (n != null) {
-					
+
 					nodes.add(n);
-					
 				}
 
 			}
@@ -292,8 +298,9 @@ public class NodeFactory<T extends AbstractNode> {
 
 			newNode = new GenericNode();
 		}
-		
+
 		return newNode;
+
 	}
 
 	//~--- get methods ----------------------------------------------------

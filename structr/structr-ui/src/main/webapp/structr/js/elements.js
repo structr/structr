@@ -177,14 +177,27 @@ var _Elements = {
         }
     },
 
-    appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
-        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
+    appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
+        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
 
-        var parent = Structr.findParent(parentId, componentId, pageId, elements);
+        var parent;
+        
+        if (treeAddress) {
+            if (debug) console.log('tree address', treeAddress);
+            parent = $('#_' + treeAddress);
+        } else {
+            parent = Structr.findParent(parentId, componentId, pageId, elements);
+        }
+        
         if (debug) console.log('appendElementElement parent', parent);
         if (!parent) return false;
         
-        parent.append('<div class="node element ' + entity.id + '_"></div>');
+        var parentPath = getElementPath(parent);
+        
+        var id = parentPath + '_' + parent.children('.node').length;
+        if (debug) console.log(id);
+        
+        parent.append('<div id="_' + id + '" class="node element ' + entity.id + '_"></div>');
 
         var pos;
         if (parent.children('.' + entity.id + '_')) {
@@ -194,7 +207,8 @@ var _Elements = {
         if (debug) console.log('Appending element', entity.id, parentId, componentId, pageId, pos);
         if (debug) console.log('to parent', parent);
         
-        var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
+        //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
+        var div = $('#_' + id);
         
         if (!div) return;
         

@@ -58,6 +58,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.converter.DateConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -81,8 +82,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
 
 		// register uuid validator
-		EntityContext.registerPropertyValidator(AbstractRelationship.class, AbstractRelationship.Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
+		EntityContext.registerPropertyValidator(AbstractRelationship.class, Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
 
+		EntityContext.registerPropertyConverter(AbstractRelationship.class, HiddenKey.createdDate, DateConverter.class);
+		
 	}
 
 	//~--- fields ---------------------------------------------------------

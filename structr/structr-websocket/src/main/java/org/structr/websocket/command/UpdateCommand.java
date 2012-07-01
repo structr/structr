@@ -22,16 +22,15 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,15 +47,22 @@ public class UpdateCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		AbstractNode node                 = getNode(webSocketData.getId());
+		GraphObject obj                 = getNode(webSocketData.getId());
 //		final Map<String, Object> relData = webSocketData.getRelData();
 
-		if (node != null) {
-
+		if (obj == null) {
+			
+			// No node? Try to find relationship
+			obj = getRelationship(webSocketData.getId());
+			
+		}
+		
+		if (obj != null) {
+			
 			for (Entry<String, Object> entry : webSocketData.getNodeData().entrySet()) {
 
 				try {
-					node.setProperty(entry.getKey(), entry.getValue());
+					obj.setProperty(entry.getKey(), entry.getValue());
 				} catch (FrameworkException fex) {
 					fex.printStackTrace();
 				}
@@ -65,7 +71,7 @@ public class UpdateCommand extends AbstractCommand {
 
 		} else {
 
-			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
+			logger.log(Level.WARNING, "Graph object with uuid {0} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
