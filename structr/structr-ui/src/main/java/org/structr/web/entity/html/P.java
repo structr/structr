@@ -67,6 +67,29 @@ public class P extends HtmlElement {
 		EntityContext.registerEntityRelation(P.class, Ul.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(P.class, Ol.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(P.class, Script.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Code.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Strong.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Small.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, S.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Cite.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, G.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Dfn.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Abbr.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Time.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Var.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Samp.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Kbd.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Sub.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Sup.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, I.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, U.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Mark.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Ruby.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Rt.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Rp.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Bdi.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Bdo.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
+		EntityContext.registerEntityRelation(P.class, Wbr.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);		
 
 	}
 }
