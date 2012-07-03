@@ -56,6 +56,7 @@ import org.structr.core.notion.ObjectNotion;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -1402,8 +1403,9 @@ public class EntityContext {
 			}
 
 			SecurityContext securityContext  = securityContextMap.get(currentThread);
-			Command indexNodeCommand         = Services.command(securityContext, IndexNodeCommand.class);
-			Command indexRelationshipCommand = Services.command(securityContext, IndexRelationshipCommand.class);
+			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+			Command indexNodeCommand         = Services.command(superUserContext, IndexNodeCommand.class);
+			Command indexRelationshipCommand = Services.command(superUserContext, IndexRelationshipCommand.class);
 
 			try {
 
