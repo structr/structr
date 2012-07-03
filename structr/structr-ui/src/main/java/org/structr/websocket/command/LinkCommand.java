@@ -21,16 +21,14 @@
 
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
-
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Linkable;
 import org.structr.core.entity.RelationClass;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
@@ -39,6 +37,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
+import org.structr.web.entity.html.Link;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,9 +68,13 @@ public class LinkCommand extends AbstractCommand {
 					public Object execute() throws FrameworkException {
 
 						// Create a LINK relationship
-						RelationClass rel = new RelationClass(targetNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, null, RelationClass.DELETE_NONE);
+//                                              RelationClass rel = new RelationClass(targetNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, null, RelationClass.DELETE_NONE);
+						//RelationClass rel = EntityContext.getRelationClass(sourceNode.getClass(), Linkable.class);
 
-						rel.createRelationship(securityContext, sourceNode, targetNode);
+						//rel.createRelationship(securityContext, sourceNode, targetNode);
+						
+						sourceNode.setProperty(Link.UiKey.linkable_id, targetNode.getUuid());
+						
 
 						return null;
 					}

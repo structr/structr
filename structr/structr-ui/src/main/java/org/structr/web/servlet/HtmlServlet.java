@@ -70,16 +70,11 @@ import org.structr.web.entity.Page;
 import org.structr.web.entity.View;
 import org.structr.web.entity.html.HtmlElement;
 
-import org.w3c.tidy.Tidy;
-
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.*;
 
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.SimpleDateFormat;
+import java.text.*;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -113,6 +108,7 @@ public class HtmlServlet extends HttpServlet {
 	private static Set<Page> resultPages                                        = new HashSet<Page>();
 	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor     = new ThreadLocalConfluenceProcessor();
+	private static Date lastModified;
 
 	//~--- static initializers --------------------------------------------
 
@@ -294,7 +290,7 @@ public class HtmlServlet extends HttpServlet {
 
 		String[] pathParts   = PathHelper.getParts(path);
 		boolean tryIndexPage = false;
-		String name = "";
+		String name          = "";
 
 		if ((pathParts == null) || (pathParts.length == 0)) {
 
@@ -375,14 +371,6 @@ public class HtmlServlet extends HttpServlet {
 			Page page                         = null;
 			org.structr.core.entity.File file = null;
 
-			if (edit) {
-
-				response.setHeader("Pragma", "no-cache");
-			} else {
-
-				setCachingHeader(response, node);
-			}
-
 			if (node instanceof Page) {
 
 				page = (Page) node;
@@ -391,69 +379,103 @@ public class HtmlServlet extends HttpServlet {
 				file = (org.structr.core.entity.File) node;
 			}
 
+			if (edit) {
+
+				response.setHeader("Pragma", "no-cache");
+			} else {
+
+				Date nodeLastMod = node.getLastModifiedDate();
+
+				if (lastModified == null || nodeLastMod.after(lastModified)) {
+
+					lastModified = nodeLastMod;
+				}
+
+			}
+
 			if ((page != null) && securityContext.isVisible(page)) {
 
+				PrintWriter out            = response.getWriter();
 				String uuid                = page.getStringProperty(AbstractNode.Key.uuid);
-				final StringBuilder buffer = new StringBuilder(10000);
+				final StringBuilder buffer = new StringBuilder(8192);
 
 				getContent(securityContext, uuid, null, buffer, page, page, 0, false, searchFor, attrs, null, null);
 
-				String content = buffer.toString();
-				double end     = System.nanoTime();
+				if (!edit && setCachingHeader(request, response, node)) {
 
-				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
+					out.flush();
+					out.close();
 
-				String contentType = page.getStringProperty(Page.UiKey.contentType);
-
-				if (contentType != null) {
-
-					response.setContentType(contentType);
 				} else {
 
-					// Default
-					response.setContentType("text/html; charset=utf-8");
+					String content = buffer.toString();
+					double end     = System.nanoTime();
+
+					logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
+
+					String contentType = page.getStringProperty(Page.UiKey.contentType);
+
+					if (contentType != null) {
+
+						response.setContentType(contentType);
+					} else {
+
+						// Default
+						response.setContentType("text/html; charset=utf-8");
+					}
+
+//
+//                                      if (tidy) {
+//
+//                                              StringWriter tidyOutput = new StringWriter();
+//                                              Tidy tidy               = new Tidy();
+//                                              Properties tidyProps    = new Properties();
+//
+//                                              tidyProps.setProperty("indent", "auto");
+//                                              tidy.getConfiguration().addProps(tidyProps);
+//                                              tidy.parse(new StringReader(content), tidyOutput);
+//
+//                                              content = tidyOutput.toString();
+//
+//                                      }
+					// 3: output content
+					out.append("<!DOCTYPE html>\n");
+					HttpAuthenticator.writeContent(content, response);
+
 				}
-
-				if (tidy) {
-
-					StringWriter tidyOutput = new StringWriter();
-					Tidy tidy               = new Tidy();
-					Properties tidyProps    = new Properties();
-
-					tidyProps.setProperty("indent", "auto");
-					tidy.getConfiguration().addProps(tidyProps);
-					tidy.parse(new StringReader(content), tidyOutput);
-
-					content = tidyOutput.toString();
-
-				}
-
-				// 3: output content
-				response.getWriter().append("<!DOCTYPE html>\n");
-				HttpAuthenticator.writeContent(content, response);
 
 			} else if ((file != null) && securityContext.isVisible(file)) {
 
-				// 2b: stream file to response
-				InputStream in     = file.getInputStream();
-				OutputStream out   = response.getOutputStream();
-				String contentType = file.getContentType();
+				OutputStream out = response.getOutputStream();
 
-				if (contentType != null) {
+				if (!edit && setCachingHeader(request, response, node)) {
 
-					response.setContentType(contentType);
+					out.flush();
+					out.close();
+
 				} else {
 
-					// Default
-					response.setContentType("text/html; charset=utf-8");
+					// 2b: stream file to response
+					InputStream in     = file.getInputStream();
+					String contentType = file.getContentType();
+
+					if (contentType != null) {
+
+						response.setContentType(contentType);
+					} else {
+
+						// Default
+						response.setContentType("text/html; charset=utf-8");
+					}
+
+					IOUtils.copy(in, out);
+
+					// 3: output content
+					out.flush();
+					out.close();
+					response.setStatus(HttpServletResponse.SC_OK);
 				}
 
-				IOUtils.copy(in, out);
-
-				// 3: output content
-				out.flush();
-				out.close();
-				response.setStatus(HttpServletResponse.SC_OK);
 			} else {
 
 				// Check if security context has set an 401 status
@@ -642,6 +664,17 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		if (startNode != null) {
+
+			if (!edit) {
+
+				Date nodeLastMod = startNode.getLastModifiedDate();
+
+				if (lastModified == null || nodeLastMod.after(lastModified)) {
+
+					lastModified = nodeLastMod;
+				}
+
+			}
 
 			// If a search class is given, respect search attributes
 			// Filters work with AND
@@ -916,6 +949,7 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 			}
+
 		}
 
 	}
@@ -991,32 +1025,60 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- set methods ----------------------------------------------------
 
-	private static void setCachingHeader(HttpServletResponse response, final AbstractNode node) {
+	private static boolean setCachingHeader(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
 
-//              add some caching directives to header
+		boolean notModified = false;
+
+		// add some caching directives to header
 		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
-		Calendar cal = new GregorianCalendar();
-		int seconds  = 7 * 24 * 60 * 60 + 1;    // 7 days + 1 sec
-
-		cal.add(Calendar.SECOND, seconds);
-		response.addHeader("Cache-Control", "public, max-age=" + seconds + ", s-maxage=" + seconds);
-
-		// + ", must-revalidate, proxy-revalidate"
 		DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+		Calendar cal              = new GregorianCalendar();
+		Integer seconds           = node.getIntProperty(Page.UiKey.cacheForSeconds);
 
-		httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-		response.addHeader("Expires", httpDateFormat.format(cal.getTime()));
+		if (seconds != null) {
 
-		if (node != null) {
+			cal.add(Calendar.SECOND, seconds);
+			response.addHeader("Cache-Control", "public, max-age=" + seconds + ", s-maxage=" + seconds + ", must-revalidate, proxy-revalidate");
+			httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+			response.addHeader("Expires", httpDateFormat.format(cal.getTime()));
 
-			Date lastModified = node.getLastModifiedDate();
+		} else {
 
-			if (lastModified != null) {
+			response.addHeader("Cache-Control", "public, must-revalidate, proxy-revalidate");
+		}
 
-				response.addHeader("Last-Modified", httpDateFormat.format(lastModified));
+		if (lastModified != null) {
+
+			response.addHeader("Last-Modified", httpDateFormat.format(lastModified));
+
+			String ifModifiedSince = request.getHeader("If-Modified-Since");
+
+			if (StringUtils.isNotBlank(ifModifiedSince)) {
+
+				try {
+
+					Date ifModSince = httpDateFormat.parse(ifModifiedSince);
+
+					if (ifModSince != null && (lastModified.equals(ifModSince) || lastModified.before(ifModSince))) {
+
+						notModified = true;
+
+						response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+
+					}
+
+				} catch (ParseException ex) {
+
+					logger.log(Level.WARNING, "Could not parse If-Modified-Since header", ex);
+
+				}
+
 			}
 
 		}
+
+		return notModified;
+
 	}
 
 	//~--- inner classes --------------------------------------------------

@@ -45,6 +45,7 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.converter.IntConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,7 +54,7 @@ import java.util.logging.Logger;
  * @author amorgner
  *
  */
-public class File extends Linkable {
+public class File extends AbstractNode implements Linkable {
 
 	private static final Logger logger = Logger.getLogger(File.class.getName());
 
@@ -68,6 +69,7 @@ public class File extends Linkable {
 //              EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
 		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerPropertyConverter(File.class, Key.cacheForSeconds, IntConverter.class);
 
 	}
 
@@ -75,7 +77,7 @@ public class File extends Linkable {
 
 	public enum Key implements PropertyKey {
 
-		contentType, relativeFilePath, size, url, parentFolder, checksum
+		contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds
 
 	}
 
@@ -139,9 +141,9 @@ public class File extends Linkable {
 
 	}
 
-	public String getChecksum() {
+	public Long getChecksum() {
 
-		String storedChecksum = getStringProperty(Key.checksum);
+		Long storedChecksum = getLongProperty(Key.checksum);
 
 		if (storedChecksum != null) {
 
@@ -154,11 +156,11 @@ public class File extends Linkable {
 
 			String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
 			java.io.File fileOnDisk = new java.io.File(filePath);
-			String checksum;
+			Long checksum;
 
 			try {
 
-				checksum = String.valueOf(FileUtils.checksumCRC32(fileOnDisk));
+				checksum = FileUtils.checksumCRC32(fileOnDisk);
 
 				logger.log(Level.FINE, "Checksum of file {0} ({1}): {2}", new Object[] { getId(), filePath, checksum });
 				setChecksum(checksum);
@@ -272,7 +274,7 @@ public class File extends Linkable {
 
 	}
 
-	public void setChecksum(final String checksum) throws FrameworkException {
+	public void setChecksum(final long checksum) throws FrameworkException {
 
 		setProperty(Key.checksum.name(), checksum);
 
