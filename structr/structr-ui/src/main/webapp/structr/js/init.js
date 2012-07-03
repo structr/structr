@@ -125,6 +125,12 @@ $(document).ready(function() {
     });
 	
     Structr.init();
+
+    $(document).keyup(function(e) {
+        if (e.keyCode == 27) {
+            $('#dialogBox .dialogCancelButton').click();
+        }
+    });            
 	
 });
 
@@ -163,14 +169,6 @@ var Structr = {
         $.unblockUI({
             fadeOut: 25
         });
-
-        $(document).keyup(function(e) {
-            if (e.keyCode == 27) {
-                $.unblockUI({
-                    fadeOut: 25
-                });
-            }
-        });            
 
         connect();
 	

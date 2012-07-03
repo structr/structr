@@ -163,7 +163,7 @@ var _Contents = {
 
                 timer = window.setTimeout(function() {
                     Command.patch(entity.id, text1, text2);
-                }, 1000);
+                }, 5000);
 				
             }
         });
