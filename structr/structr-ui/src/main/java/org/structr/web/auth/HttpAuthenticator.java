@@ -30,6 +30,7 @@ import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.ResourceAccess;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -41,7 +42,6 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.entity.ResourceAccess;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,7 +60,8 @@ public class HttpAuthenticator implements Authenticator {
 	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException { }
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView)
+		throws FrameworkException {}
 
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
@@ -73,14 +74,19 @@ public class HttpAuthenticator implements Authenticator {
 			securityContext.setUser(user);
 
 			try {
+
 				request.login(userName, password);
+
 			} catch (ServletException ex) {
+
 				Logger.getLogger(HttpAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
+
 			}
 
 		}
 
 		return user;
+
 	}
 
 	@Override
@@ -92,8 +98,11 @@ public class HttpAuthenticator implements Authenticator {
 			securityContext.setUser(null);
 
 		} catch (ServletException ex) {
+
 			Logger.getLogger(HttpAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
+
 		}
+
 	}
 
 	private Principal checkBasicAuthentication(HttpServletRequest request, HttpServletResponse response) {
@@ -124,7 +133,6 @@ public class HttpAuthenticator implements Authenticator {
 			if ((userAndPass == null) || (userAndPass.length != 2)) {
 
 				writeUnauthorized(response);
-
 			}
 
 			user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userAndPass[0], userAndPass[1]);
@@ -134,26 +142,33 @@ public class HttpAuthenticator implements Authenticator {
 			sendBasicAuthResponse(response);
 
 			return null;
+
 		}
 
 		return user;
+
 	}
 
 	public void sendBasicAuthResponse(HttpServletResponse response) {
 
 		try {
+
 			writeUnauthorized(response);
+
 		} catch (IOException ex) {
 
 			logger.log(Level.SEVERE, null, ex);
 			writeInternalServerError(response);
+
 		}
+
 	}
 
 	public static void writeUnauthorized(HttpServletResponse response) throws IOException {
 
 		response.setHeader("WWW-Authenticate", "BASIC realm=\"Restricted Access\"");
 		response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+
 	}
 
 	public static void writeContent(String content, HttpServletResponse response) throws IOException {
@@ -162,17 +177,23 @@ public class HttpAuthenticator implements Authenticator {
 		response.getWriter().flush();
 		response.getWriter().close();
 		response.setStatus(HttpServletResponse.SC_OK);
+
 	}
 
 	public static void writeNotFound(HttpServletResponse response) throws IOException {
+
 		response.sendError(HttpServletResponse.SC_NOT_FOUND);
+
 	}
 
 	public static void writeInternalServerError(HttpServletResponse response) {
 
 		try {
+
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+
 		} catch (Exception ignore) {}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -184,7 +205,6 @@ public class HttpAuthenticator implements Authenticator {
 		if (auth == null) {
 
 			return null;
-
 		}
 
 		String usernameAndPassword = new String(Base64.decodeBase64(auth.substring(6)));
@@ -194,6 +214,7 @@ public class HttpAuthenticator implements Authenticator {
 		String[] userAndPass = StringUtils.split(usernameAndPassword, ":");
 
 		return userAndPass;
+
 	}
 
 	@Override
@@ -204,9 +225,10 @@ public class HttpAuthenticator implements Authenticator {
 		if (user == null) {
 
 			user = checkBasicAuthentication(request, response);
-
 		}
 
 		return user;
+
 	}
+
 }

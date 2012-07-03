@@ -21,7 +21,6 @@
 
 package org.structr.web.entity;
 
-
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
@@ -30,9 +29,6 @@ import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.NodeService;
-
-//~--- JDK imports ------------------------------------------------------------
-
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,7 +53,5 @@ public class SearchResultView extends View {
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey{ type, name, query }
-
-	//~--- get methods ----------------------------------------------------
 
 }

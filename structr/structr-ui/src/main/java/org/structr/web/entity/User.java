@@ -21,13 +21,14 @@
 
 package org.structr.web.entity;
 
-import java.util.LinkedList;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import org.structr.core.converter.BooleanConverter;
 import org.structr.core.converter.PasswordConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -38,9 +39,8 @@ import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.RelType;
-import org.structr.core.converter.BooleanConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,10 +64,9 @@ public class User extends Person implements Principal {
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(), UserIndexKey.values());
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(), Key.values());
-
 		EntityContext.registerPropertyConverter(User.class, User.Key.backendUser, BooleanConverter.class);
 		EntityContext.registerPropertyConverter(User.class, User.Key.frontendUser, BooleanConverter.class);
-		
+
 	}
 
 	//~--- constant enums -------------------------------------------------
@@ -81,7 +80,6 @@ public class User extends Person implements Principal {
 	public enum UserIndexKey implements PropertyKey{ name, email; }
 
 	//~--- get methods ----------------------------------------------------
-
 
 	/**
 	 * Return user's personal root node

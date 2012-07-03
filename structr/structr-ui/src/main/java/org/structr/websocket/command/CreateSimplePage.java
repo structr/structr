@@ -21,31 +21,31 @@
 
 package org.structr.websocket.command;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.*;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.web.entity.Page;
+import org.structr.web.entity.html.Body;
+import org.structr.web.entity.html.Head;
 import org.structr.web.entity.html.Html;
 import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.html.Title;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.RelType;
-import org.structr.core.node.*;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Head;
-import org.structr.web.entity.html.Title;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,55 +70,52 @@ public class CreateSimplePage extends AbstractCommand {
 
 			@Override
 			public Object execute() throws FrameworkException {
-				
+
 				Map<String, Object> nodeData = webSocketData.getNodeData();
+
 				nodeData.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true);
 				nodeData.put(AbstractNode.Key.type.name(), Page.class.getSimpleName());
-				
-				
-				Map<String, Object> relData = new HashMap<String, Object>();
 
-				AbstractNode page = (AbstractNode) createNode.execute(nodeData);
-				
-				String pageId = page.getUuid();
+				Map<String, Object> relData = new HashMap<String, Object>();
+				AbstractNode page           = (AbstractNode) createNode.execute(nodeData);
+				String pageId               = page.getUuid();
+
 				relData.put(pageId, 0);
-				
 				nodeData.put(AbstractNode.Key.type.name(), Html.class.getSimpleName());
 				nodeData.put(HtmlElement.UiKey.name.name(), "html");
 				nodeData.put(HtmlElement.UiKey.tag.name(), "html");
-				
-				AbstractNode html = (AbstractNode) createNode.execute(nodeData);
-				
-				createRel.execute(page, html, RelType.CONTAINS, relData, false);
 
+				AbstractNode html = (AbstractNode) createNode.execute(nodeData);
+
+				createRel.execute(page, html, RelType.CONTAINS, relData, false);
 				nodeData.put(AbstractNode.Key.type.name(), Head.class.getSimpleName());
 				nodeData.put(HtmlElement.UiKey.name.name(), "head");
 				nodeData.put(HtmlElement.UiKey.tag.name(), "head");
 
 				AbstractNode head = (AbstractNode) createNode.execute(nodeData);
-				
-				createRel.execute(html, head, RelType.CONTAINS, relData, false);
 
+				createRel.execute(html, head, RelType.CONTAINS, relData, false);
 				nodeData.put(AbstractNode.Key.type.name(), Body.class.getSimpleName());
 				nodeData.put(HtmlElement.UiKey.name.name(), "body");
 				nodeData.put(HtmlElement.UiKey.tag.name(), "body");
-				
+
 				AbstractNode body = (AbstractNode) createNode.execute(nodeData);
 
 				relData.put(pageId, 1);
 				createRel.execute(html, body, RelType.CONTAINS, relData, false);
-
 				relData.put(pageId, 0);
 				nodeData.put(AbstractNode.Key.type.name(), Title.class.getSimpleName());
 				nodeData.put(HtmlElement.UiKey.name.name(), "title");
 				nodeData.put(HtmlElement.UiKey.tag.name(), "title");
-				
+
 				AbstractNode title = (AbstractNode) createNode.execute(nodeData);
 
 				createRel.execute(head, title, RelType.CONTAINS, relData, false);
-				
+
 				return page;
+
 			}
+
 		};
 
 		try {
@@ -129,13 +126,18 @@ public class CreateSimplePage extends AbstractCommand {
 
 			logger.log(Level.WARNING, "Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "CREATE_SIMPLE_PAGE";
+
 	}
+
 }

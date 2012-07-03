@@ -71,14 +71,15 @@ public class SortCommand extends AbstractCommand {
 
 						Long oldPos = rel.getLongProperty(pageId);
 
-						if ((oldPos != null) &&!(oldPos.equals(pos))) {
+						if ((oldPos != null) && !(oldPos.equals(pos))) {
 
 							rel.setProperty(pageId, pos);
-
 						}
 
 					} catch (FrameworkException fex) {
+
 						fex.printStackTrace();
+
 					}
 
 				}
@@ -91,12 +92,16 @@ public class SortCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "SORT";
+
 	}
+
 }

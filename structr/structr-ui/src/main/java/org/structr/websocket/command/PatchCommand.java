@@ -63,11 +63,14 @@ public class PatchCommand extends AbstractCommand {
 			Object[] results          = dmp.patch_apply(patches, oldText);
 
 			try {
+
 				node.setProperty(Content.UiKey.content, results[0].toString());
+
 			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, "Could not apply patch {0}", patch);
 				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+
 			}
 
 		} else {
@@ -76,12 +79,16 @@ public class PatchCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "PATCH";
+
 	}
+
 }

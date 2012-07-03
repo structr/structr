@@ -51,6 +51,7 @@ import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.web.entity.Page;
 import org.structr.web.entity.html.HtmlElement;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -66,7 +67,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.web.entity.Page;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -410,7 +410,7 @@ public class Importer {
 			String foundNodePath = foundNode.getStringProperty(HtmlElement.UiKey.path);
 
 			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
-			
+
 			if (foundNodePath != null && foundNodePath.equals(nodePath)) {
 
 				logger.log(Level.INFO, "MATCH!");
@@ -700,7 +700,7 @@ public class Importer {
 		Node n      = node;
 		String path = "";
 
-		while ((n.nodeName() != null) &&!n.nodeName().equals("html")) {
+		while ((n.nodeName() != null) && !n.nodeName().equals("html")) {
 
 			int index = n.siblingIndex();
 

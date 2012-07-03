@@ -27,12 +27,12 @@ import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.ResourceAccess;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.entity.ResourceAccess;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -44,25 +44,28 @@ public class UiAuthenticator implements Authenticator {
 
 	@Override
 	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+
 		getUser(securityContext, request, response);
+
 	}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException { }
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView)
+		throws FrameworkException {}
 
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
 		String errorMsg = null;
-		Principal user       = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
+		Principal user  = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
 
 		if (errorMsg != null) {
 
 			throw new AuthenticationException(errorMsg);
-
 		}
 
 		return user;
+
 	}
 
 	@Override
@@ -76,25 +79,24 @@ public class UiAuthenticator implements Authenticator {
 		String userName = request.getHeader("X-User");
 		String password = request.getHeader("X-Password");
 		String token    = request.getHeader("X-StructrSessionToken");
-		Principal user       = null;
+		Principal user  = null;
 
 		// Try to authorize with a session token first
 		if (token != null) {
 
 			user = AuthHelper.getUserForToken(token);
-
 		} else if ((userName != null) && (password != null)) {
 
 			user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
-
 		}
 
 		if (user != null) {
 
 			securityContext.setUser(user);
-
 		}
 
 		return user;
+
 	}
+
 }

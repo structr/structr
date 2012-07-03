@@ -22,6 +22,7 @@
 package org.structr.web.entity.html;
 
 import org.apache.commons.lang.ArrayUtils;
+
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
@@ -45,8 +46,7 @@ public class Meta extends HtmlElement {
 		EntityContext.registerPropertySet(Meta.class, PropertyView.All, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Meta.class, PropertyView.Public, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Meta.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-		EntityContext.registerEntityRelation(Meta.class, Head.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Meta.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 
 	}
 
@@ -54,12 +54,16 @@ public class Meta extends HtmlElement {
 
 	@Override
 	public String[] getHtmlAttributes() {
+
 		return (String[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlAttributes);
+
 	}
 
 	@Override
 	public boolean isVoidElement() {
+
 		return true;
+
 	}
 
 }

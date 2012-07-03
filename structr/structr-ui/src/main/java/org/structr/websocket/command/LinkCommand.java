@@ -31,13 +31,13 @@ import org.structr.core.entity.Linkable;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.web.entity.html.Link;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
-import org.structr.web.entity.html.Link;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,12 +69,9 @@ public class LinkCommand extends AbstractCommand {
 
 						// Create a LINK relationship
 //                                              RelationClass rel = new RelationClass(targetNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, null, RelationClass.DELETE_NONE);
-						//RelationClass rel = EntityContext.getRelationClass(sourceNode.getClass(), Linkable.class);
-
-						//rel.createRelationship(securityContext, sourceNode, targetNode);
-						
+						// RelationClass rel = EntityContext.getRelationClass(sourceNode.getClass(), Linkable.class);
+						// rel.createRelationship(securityContext, sourceNode, targetNode);
 						sourceNode.setProperty(Link.UiKey.linkable_id, targetNode.getUuid());
-						
 
 						return null;
 					}

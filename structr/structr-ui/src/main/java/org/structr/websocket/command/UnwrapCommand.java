@@ -71,7 +71,7 @@ public class UnwrapCommand extends AbstractCommand {
 		final AbstractNode nodeToWrap      = getNode(nodeId);
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final Map<String, Object> relData  = webSocketData.getRelData();
-		final String pageId            = (String) relData.get("pageId");
+		final String pageId                = (String) relData.get("pageId");
 		final String parentId              = (String) nodeData.get("parentId");
 		final AbstractNode parentNode      = getNode(parentId);
 		final Long position                = Long.parseLong((String) relData.get(pageId));
@@ -103,9 +103,13 @@ public class UnwrapCommand extends AbstractCommand {
 							relProps.put("componentId", componentId);
 
 							try {
+
 								rel.createRelationship(securityContext, newComponent, nodeToWrap, relProps);
+
 							} catch (Throwable t) {
+
 								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+
 							}
 
 							tagOutgoingRelsWithComponentId(newComponent, newComponent, componentId);
@@ -114,19 +118,23 @@ public class UnwrapCommand extends AbstractCommand {
 					} else {
 
 						getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
 					}
 
 					return null;
+
 				}
+
 			};
 
 			try {
+
 				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
 			}
 
 		} else {
@@ -135,6 +143,7 @@ public class UnwrapCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
+
 	}
 
 	private void tagOutgoingRelsWithComponentId(final AbstractNode startNode, final AbstractNode node, final String componentId) throws FrameworkException {
@@ -148,7 +157,6 @@ public class UnwrapCommand extends AbstractCommand {
 				if (node.getType().equals(Component.class.getSimpleName())) {
 
 					return;
-
 				}
 
 			}
@@ -156,12 +164,16 @@ public class UnwrapCommand extends AbstractCommand {
 			tagOutgoingRelsWithComponentId(startNode, rel.getEndNode(), componentId);
 
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "UNWRAP";
+
 	}
+
 }
