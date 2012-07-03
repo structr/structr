@@ -30,7 +30,10 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.resource.Result;
@@ -53,6 +56,8 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 	@Override
 	public JsonElement serialize(Result src, Type typeOfSrc, JsonSerializationContext context) {
 
+		long t0 = System.nanoTime();
+		
 		JsonObject result = new JsonObject();
 
 		// result fields in alphabetical order
@@ -140,7 +145,9 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		if(sortOrder != null) {
 			result.add("sort_order", new JsonPrimitive(sortOrder));
 		}
-
+		
+		DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+		result.add("serialization_time", new JsonPrimitive(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0)));
 
 		return result;
 	}
