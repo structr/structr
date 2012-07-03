@@ -176,41 +176,41 @@ public abstract class Search {
 
 	}
 
-	public static SearchAttribute andRelType(final RelationshipMapping namedRelation) {
-
-		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
-
-	}
-
-	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
-
-		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.AND);
-
-		return attr;
-
-	}
-
-	public static SearchAttribute orRelType(final RelationshipMapping namedRelation) {
-
-		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
-
-	}
-
-	public static SearchAttribute orRelType(final RelationshipType relType, final Class sourceType, final Class destType) {
-
-		return orRelType(relType.name(), sourceType.getSimpleName(), destType.getSimpleName());
-
-	}
-
-	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
-
-		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.OR);
-
-		return attr;
-
-	}
+//	public static SearchAttribute andRelType(final RelationshipMapping namedRelation) {
+//
+//		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+//
+//	}
+//
+//	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
+//
+//		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+//		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.AND);
+//
+//		return attr;
+//
+//	}
+//
+//	public static SearchAttribute orRelType(final RelationshipMapping namedRelation) {
+//
+//		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+//
+//	}
+//
+//	public static SearchAttribute orRelType(final RelationshipType relType, final Class sourceType, final Class destType) {
+//
+//		return orRelType(relType.name(), sourceType.getSimpleName(), destType.getSimpleName());
+//
+//	}
+//
+//	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
+//
+//		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+//		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.OR);
+//
+//		return attr;
+//
+//	}
 
 	public static SearchAttribute orName(final String searchString) {
 
@@ -308,7 +308,7 @@ public abstract class Search {
 
 	public static SearchAttribute orExactRelType(final RelationshipMapping namedRelation) {
 
-		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+		return orExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 
 	}
 
