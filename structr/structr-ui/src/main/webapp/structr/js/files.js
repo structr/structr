@@ -325,6 +325,7 @@ var _Files = {
             }
             
         } else {
+            
             parent.append('<div structr_type="folder" class="node folder ' + folder.id + '_">'
                 + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
                 + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
@@ -558,7 +559,7 @@ var _Files = {
 
         var chunks = Math.ceil(text.length / chunkSize);
         
-        console.log(text, text.length, chunks);
+        //console.log(text, text.length, chunks);
                 
         for (var c=0; c<chunks; c++) {
                         
@@ -601,7 +602,7 @@ var _Files = {
         var text;
         
         $.ajax({
-            url: viewRootUrl + file.name,
+            url: viewRootUrl + file.name + '?edit',
             async: true,
             //dataType: 'json',
             contentType: 'text/plain',
@@ -658,7 +659,7 @@ var _Files = {
                 $(element.parent().find('button#saveFile').first()).on('click', function(e) {
                     e.stopPropagation();
                     
-                    console.log(editor.getValue());
+                    //console.log(editor.getValue());
                     
                     _Files.updateTextFile(file, editor.getValue());
                    

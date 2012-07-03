@@ -40,8 +40,6 @@ import org.structr.core.module.ModuleService;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.lang.Class;
-
 import java.text.Normalizer;
 
 import java.util.LinkedHashSet;
@@ -178,41 +176,41 @@ public abstract class Search {
 
 	}
 
-	public static SearchAttribute andRelType(final RelationshipMapping namedRelation) {
-
-		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
-
-	}
-
-	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
-
-		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.AND);
-
-		return attr;
-
-	}
-
-	public static SearchAttribute orRelType(final RelationshipMapping namedRelation) {
-
-		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
-
-	}
-
-	public static SearchAttribute orRelType(final RelationshipType relType, final Class sourceType, final Class destType) {
-
-		return orRelType(relType.name(), sourceType.getSimpleName(), destType.getSimpleName());
-
-	}
-
-	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
-
-		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.OR);
-
-		return attr;
-
-	}
+//	public static SearchAttribute andRelType(final RelationshipMapping namedRelation) {
+//
+//		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+//
+//	}
+//
+//	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
+//
+//		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+//		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.AND);
+//
+//		return attr;
+//
+//	}
+//
+//	public static SearchAttribute orRelType(final RelationshipMapping namedRelation) {
+//
+//		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+//
+//	}
+//
+//	public static SearchAttribute orRelType(final RelationshipType relType, final Class sourceType, final Class destType) {
+//
+//		return orRelType(relType.name(), sourceType.getSimpleName(), destType.getSimpleName());
+//
+//	}
+//
+//	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
+//
+//		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+//		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.combinedType.name(), searchString, SearchOperator.OR);
+//
+//		return attr;
+//
+//	}
 
 	public static SearchAttribute orName(final String searchString) {
 
@@ -230,22 +228,21 @@ public abstract class Search {
 
 	}
 
-//	public static SearchAttribute andTitle(final String searchString) {
+//      public static SearchAttribute andTitle(final String searchString) {
 //
-//		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.AND);
+//              SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.AND);
 //
-//		return attr;
+//              return attr;
 //
-//	}
+//      }
 //
-//	public static SearchAttribute orTitle(final String searchString) {
+//      public static SearchAttribute orTitle(final String searchString) {
 //
-//		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.OR);
+//              SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), searchString, SearchOperator.OR);
 //
-//		return attr;
+//              return attr;
 //
-//	}
-
+//      }
 	public static SearchAttribute andContent(final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(), searchString, SearchOperator.AND);
@@ -311,7 +308,7 @@ public abstract class Search {
 
 	public static SearchAttribute orExactRelType(final RelationshipMapping namedRelation) {
 
-		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
+		return orExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 
 	}
 
@@ -340,22 +337,21 @@ public abstract class Search {
 
 	}
 
-//	public static SearchAttribute orExactTitle(final String searchString) {
+//      public static SearchAttribute orExactTitle(final String searchString) {
 //
-//		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.OR);
+//              SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.OR);
 //
-//		return attr;
+//              return attr;
 //
-//	}
+//      }
 //
-//	public static SearchAttribute andExactTitle(final String searchString) {
+//      public static SearchAttribute andExactTitle(final String searchString) {
 //
-//		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.AND);
+//              SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(), exactMatch(searchString), SearchOperator.AND);
 //
-//		return attr;
+//              return attr;
 //
-//	}
-
+//      }
 	public static SearchAttribute orExactContent(final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(), exactMatch(searchString), SearchOperator.OR);
@@ -524,6 +520,11 @@ public abstract class Search {
 	}
 
 	public static String escapeForLuceneExact(String input) {
+
+		if (input == null) {
+
+			return null;
+		}
 
 		StringBuilder output = new StringBuilder();
 

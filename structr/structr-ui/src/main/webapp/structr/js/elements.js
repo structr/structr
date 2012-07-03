@@ -177,14 +177,27 @@ var _Elements = {
         }
     },
 
-    appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
-        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
+    appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
+        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
 
-        var parent = Structr.findParent(parentId, componentId, pageId, elements);
+        var parent;
+        
+        if (treeAddress) {
+            if (debug) console.log('tree address', treeAddress);
+            parent = $('#_' + treeAddress);
+        } else {
+            parent = Structr.findParent(parentId, componentId, pageId, elements);
+        }
+        
         if (debug) console.log('appendElementElement parent', parent);
         if (!parent) return false;
         
-        parent.append('<div class="node element ' + entity.id + '_"></div>');
+        var parentPath = getElementPath(parent);
+        
+        var id = parentPath + '_' + parent.children('.node').length;
+        if (debug) console.log(id);
+        
+        parent.append('<div id="_' + id + '" class="node element ' + entity.id + '_"></div>');
 
         var pos;
         if (parent.children('.' + entity.id + '_')) {
@@ -194,7 +207,8 @@ var _Elements = {
         if (debug) console.log('Appending element', entity.id, parentId, componentId, pageId, pos);
         if (debug) console.log('to parent', parent);
         
-        var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
+        //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
+        var div = $('#_' + id);
         
         if (!div) return;
         
@@ -299,9 +313,6 @@ var _Elements = {
                 
                 var headers = {};
                 headers['X-StructrSessionToken'] = token;
-                console.log('headers', headers);
-                var url = rootUrl + 'pages?pageSize=100';
-                console.log('pages URL: ' + url, headers);
                 
                 $.ajax({
                     url: rootUrl + 'pages?pageSize=100',
@@ -310,8 +321,10 @@ var _Elements = {
                     contentType: 'application/json; charset=utf-8',
                     headers: headers,
                     success: function(data) {
-                        console.log(data.result);
+                        
                         $(data.result).each(function(i, res) {
+                            
+                            //console.log(entity.id, res.linkingElements);
                             
                             dialog.append('<div class="page ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
                                 + '<b class="name_">' + res.name + '</b></div>');
@@ -352,8 +365,9 @@ var _Elements = {
                     contentType: 'application/json; charset=utf-8',
                     headers: headers,
                     success: function(data) {
-                        console.log(data.result);
                         $(data.result).each(function(i, res) {
+                            
+                            console.log(entity.id, res.name, res);
                             
                             dialog.append('<div class="file ' + res.id + '_"><img class="typeIcon" src="' + _Files.getIcon(res) + '">'
                                 + '<b class="name_">' + res.name + '</b></div>');

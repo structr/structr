@@ -49,14 +49,15 @@ public class ChildrenCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String pageId               = (String) webSocketData.getNodeData().get("pageId");
-		String componentId              = (String) webSocketData.getNodeData().get("componentId");
-		AbstractNode node               = getNode(webSocketData.getId());
-		
+		String pageId      = (String) webSocketData.getNodeData().get("pageId");
+		String componentId = (String) webSocketData.getNodeData().get("componentId");
+		AbstractNode node  = getNode(webSocketData.getId());
+
 		if (node == null) {
+
 			return;
 		}
-		
+
 		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
 		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
 		Set<String> nodesWithChildren   = new HashSet<String>();
@@ -80,7 +81,6 @@ public class ChildrenCommand extends AbstractCommand {
 			if (rel.getLongProperty(pageId) != null) {
 
 				pos = rel.getLongProperty(pageId);
-
 			} else {
 
 				// Try "*"
@@ -105,7 +105,6 @@ public class ChildrenCommand extends AbstractCommand {
 		if (!sortMap.isEmpty()) {
 
 			result = new ArrayList<GraphObject>(sortMap.values());
-
 		}
 
 		webSocketData.setView(PropertyView.Ui);
@@ -114,12 +113,16 @@ public class ChildrenCommand extends AbstractCommand {
 
 		// send only over local connection
 		getWebSocket().send(webSocketData, true);
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "CHILDREN";
+
 	}
+
 }

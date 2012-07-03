@@ -76,8 +76,8 @@ public class View extends AbstractNode {
 		try {
 
 //                      HttpServletRequest request = securityContext.getRequest();
-			String rawQuery    = getStringProperty("query");
-			String query       = rawQuery;
+			String rawQuery = getStringProperty("query");
+			String query    = rawQuery;
 
 			if (request != null) {
 
@@ -95,7 +95,6 @@ public class View extends AbstractNode {
 					if (StringUtils.isNotEmpty(value)) {
 
 						query = StringUtils.replace(rawQuery, "${request." + key + "}", value);
-
 					}
 
 				}
@@ -104,10 +103,13 @@ public class View extends AbstractNode {
 
 			return (List<GraphObject>) Services.command(securityContext, CypherQueryCommand.class).execute(query);
 		} catch (Throwable t) {
+
 			t.printStackTrace();
+
 		}
 
 		return Collections.emptyList();
+
 	}
 
 //      public static void main(String[] args) throws Exception {
@@ -127,4 +129,5 @@ public class View extends AbstractNode {
 //                      }       
 //              
 //      }
+
 }

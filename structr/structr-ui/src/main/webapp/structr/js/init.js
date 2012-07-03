@@ -37,9 +37,6 @@ $(document).ready(function() {
     header = $('#header');
     main = $('#main');
         
-    //        main.height($(window).height()-header.height());
-
-    //main.height($(window.document).height() - $('#header').height() - 13);
     $('#import_json').on('click', function(e) {
         e.stopPropagation();
         var jsonArray = $.parseJSON($('#json_input').val());
@@ -47,9 +44,8 @@ $(document).ready(function() {
             //console.log(json);
             createEntity(json);
         });
-    //var json = $.parseJSON('{ "test" : "abc" }');
-
     });
+    
     $('#loginButton').on('click', function(e) {
         e.stopPropagation();
         var username = $('#usernameField').val();
@@ -60,7 +56,6 @@ $(document).ready(function() {
         e.stopPropagation();
         Structr.doLogout();
     });
-
 
     $('#dashboard_').on('click', function(e) {
         e.stopPropagation();
@@ -130,6 +125,12 @@ $(document).ready(function() {
     });
 	
     Structr.init();
+
+    $(document).keyup(function(e) {
+        if (e.keyCode == 27) {
+            $('#dialogBox .dialogCancelButton').click();
+        }
+    });            
 	
 });
 
@@ -186,9 +187,7 @@ var Structr = {
                 Structr.login();
             } else {
                 if (debug) console.log('Current user: ' + user);
-                //            $.cookie("structrUser", username);
                 $('#logout_').html(' Logout <span class="username">' + (user ? user : '') + '</span>');
-                //				UsersAndGroups.onload();
 				
                 Structr.loadInitialModule();
 				
@@ -235,8 +234,6 @@ var Structr = {
         if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
             Structr.clearMain();
             Structr.login(text);
-            //            var url = window.location.href;
-            //            url = url.substring(0, url.lastIndexOf('#')+1);
             return true;
         }
         return false;
@@ -318,13 +315,8 @@ var Structr = {
         $('#dialogBox .dialogMsg').empty();
         $('#dialogBox .dialogMeta').empty();
         $('#dialogBox .dialogBtn').empty();
-
+            
         if (text) $('#dialogBox .dialogTitle').html(text);
-        //        if (callbackOk) $('#dialogOkButton').on('click', function() {
-        //            callbackOk();
-        //			$('#dialogBox .dialogText').empty();
-        //			$.unblockUI({ fadeOut: 25 });
-        //        });
         if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function(e) {
             e.stopPropagation();
             callbackCancel();
@@ -332,7 +324,7 @@ var Structr = {
             _Pages.reloadPreviews();
             $.unblockUI({
                 fadeOut: 25
-            });
+            });            
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -551,6 +543,14 @@ var Structr = {
     }
 };
 
+function getElementPath(element) {
+    return $(element).parents('.node').andSelf().map(function() {
+        var self = $(this);
+        if (self.hasClass('page')) return getId(self);
+        return self.prevAll('.node').length;
+    }).get().join('_');
+}
+
 function swapFgBg(el) {
     var fg = el.css('color');
     var bg = el.css('backgroundColor');
@@ -571,20 +571,12 @@ function plural(type) {
     }
 }
 
-function addExpandedNode(id, parentId, pageId) {
-    if (debug) console.log('addExpandedNode', id, parentId, pageId);
+function addExpandedNode(treeAddress) {
+    if (debug) console.log('addExpandedNode', treeAddress);
 
-    if (!id) return;
+    if (!treeAddress) return;
 
-    if (!pageId) {
-        pageId = 'generic';
-    }
-
-    if (!getExpanded()[pageId]) {
-        getExpanded()[pageId] = {};
-    }
-
-    getExpanded()[pageId][shorten(id)] = 1;
+    getExpanded()[treeAddress] = true;
     $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
         expires: 7, 
         path: '/'
@@ -592,40 +584,24 @@ function addExpandedNode(id, parentId, pageId) {
 
 }
 
-function removeExpandedNode(id, parentId, pageId) {
-    if (debug) console.log('removeExpandedNode', id, parentId, pageId);
+function removeExpandedNode(treeAddress) {
+    console.log('removeExpandedNode', treeAddress);
 
-    if (!id) return;
-
-    if (!pageId) {
-        pageId = 'generic';
-    }
+    if (!treeAddress) return;
     
-    if (!getExpanded()[pageId]) {
-        getExpanded()[pageId] = {};
-    }
-    delete getExpanded()[pageId][shorten(id)];
+    delete getExpanded()[treeAddress];
     $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
         expires: 7, 
         path: '/'
     });
 }
 
-function isExpanded(id, parentId, pageId) {
-    if (debug) console.log('isExpanded', id, parentId, pageId);
+function isExpanded(treeAddress) {
+    if (debug) console.log('isExpanded', treeAddress);
 
-    if (!id) return false;
+    if (!treeAddress) return false;
 
-    if (!pageId) {
-        pageId = 'generic';
-    }
-
-    var expRes = getExpanded()[pageId];
-    if (!expRes) {
-        expRes = {};
-        Structr.expanded[pageId] = expRes;
-    }
-    var isExpanded = expRes[shorten(id)] ? expRes[shorten(id)] : false;
+    var isExpanded = getExpanded()[treeAddress] == true ? true : false;
 
     if (debug) console.log(isExpanded);
 
@@ -665,8 +641,6 @@ function formatValue(key, obj) {
         return '<input name="' + key + '" type="text" value="' + obj + '">';
 
     }
-
-//return '<input name="' + key + '" type="text" value="' + formatValue(data.result[key]) + '">';
 }
 
 function formatKey(text) {
@@ -756,11 +730,8 @@ function refresh(parentId, id) {
     showSubEntities(parentId, id);
 }
 
-
-
 var keyEventBlocked = true;
 var keyEventTimeout;
-
 
 function getIdFromClassString(classString) {
     if (!classString) return false;

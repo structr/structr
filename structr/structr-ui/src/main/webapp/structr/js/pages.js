@@ -363,7 +363,8 @@ var _Pages = {
 
         if (debug) console.log('appendPageElement', entity, hasChildren);
 
-        pages.append('<div class="node page ' + entity.id + '_"></div>');
+        //pages.append('<div id="_' + pages.children('.page').length + '" class="node page ' + entity.id + '_"></div>');
+        pages.append('<div id="_' + entity.id + '" class="node page ' + entity.id + '_"></div>');
         var div = $('.' + entity.id + '_', pages);
 
         entity.pageId = entity.id;
@@ -683,14 +684,14 @@ var _Pages = {
 	
     },
 
-    appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren) {
-        if (debug) console.log('_Pages.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren);
+    appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
+        if (debug) console.log('_Pages.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
         
         var div;
         if (entity.type == 'Component') {
-            div = _Components.appendComponentElement(entity, parentId, componentId, pageId, removeExisting, hasChildren);
+            div = _Components.appendComponentElement(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
         } else {
-            div = _Elements.appendElementElement(entity, parentId, componentId, pageId, removeExisting, hasChildren);
+            div = _Elements.appendElementElement(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
         }
         
         if (!div) return false;
@@ -878,8 +879,8 @@ var _Pages = {
                     relData['*'] = pos;
                 }
 				
-                if (!isExpanded(elementId, null, pageId)) {
-                    _Entities.toggleElement(self.children('.expand_icon'));
+                if (!isExpanded(treeAddress)) {
+                    _Entities.toggleElement(self);
                 }
 
                 var component = self.closest( '.component')[0];
@@ -908,10 +909,10 @@ var _Pages = {
         return div;
     },
 
-    appendContentElement : function(content, parentId, componentId, pageId) {
-        if (debug) console.log('Pages.appendContentElement', content, parentId, componentId, pageId);
+    appendContentElement : function(content, parentId, componentId, pageId, treeAdress) {
+        console.log('Pages.appendContentElement', content, parentId, componentId, pageId, treeAdress);
 		
-        var div = _Contents.appendContentElement(content, parentId, componentId, pageId);
+        var div = _Contents.appendContentElement(content, parentId, componentId, pageId, treeAdress);
         if (!div) return false;
 
         if (debug) console.log('appendContentElement div', div);

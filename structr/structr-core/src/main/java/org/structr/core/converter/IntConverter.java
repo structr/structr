@@ -42,7 +42,7 @@ public class IntConverter extends PropertyConverter {
                     } else if (source instanceof Float) {
                         return Math.round((Float) source);
                     } else {
-                        return Math.round(Double.parseDouble((String) source));
+                        return Math.round(Float.parseFloat((String) source));
                     }
 		}
 

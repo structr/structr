@@ -49,11 +49,16 @@ public class Base extends HtmlElement {
 
 	@Override
 	public String[] getHtmlAttributes() {
+
 		return (String[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlAttributes);
+
 	}
 
 	@Override
 	public boolean isVoidElement() {
+
 		return true;
+
 	}
+
 }

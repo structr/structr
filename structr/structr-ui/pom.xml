@@ -62,11 +62,11 @@
             <type>jar</type>
             <version>3.2.0</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>jtidy</artifactId>
             <version>r8-20060801</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>diff_match_patch</groupId>
             <artifactId>diff_match_patch</artifactId>

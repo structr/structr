@@ -21,7 +21,6 @@
 
 package org.structr.websocket.command;
 
-
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -34,6 +33,7 @@ import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.web.common.RelationshipHelper;
 import org.structr.web.entity.Page;
 import org.structr.web.entity.html.Html;
 import org.structr.websocket.message.MessageBuilder;
@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.web.common.RelationshipHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,16 +66,18 @@ public class ClonePageCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		// Node to wrap
-		String nodeId                  = webSocketData.getId();
-		final AbstractNode nodeToClone = getNode(nodeId);
-                final Map<String, Object> nodeData = webSocketData.getNodeData();
-                
-                final String newName;
-                if (nodeData.containsKey(AbstractNode.Key.name.name())) {
-                        newName = (String) nodeData.get(AbstractNode.Key.name.name());
-                } else {
-                        newName = "unknown";
-                }
+		String nodeId                      = webSocketData.getId();
+		final AbstractNode nodeToClone     = getNode(nodeId);
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String newName;
+
+		if (nodeData.containsKey(AbstractNode.Key.name.name())) {
+
+			newName = (String) nodeData.get(AbstractNode.Key.name.name());
+		} else {
+
+			newName = "unknown";
+		}
 
 		if (nodeToClone != null) {
 
@@ -85,18 +86,16 @@ public class ClonePageCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Page newPage = (Page) Services.command(securityContext, CreateNodeCommand.class).execute(
-                                                new NodeAttribute(AbstractNode.Key.type.name(), Page.class.getSimpleName()),
-                                                new NodeAttribute(AbstractNode.Key.name.name(), newName),
-                                                new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true)
-                                                );
+					Page newPage = (Page) Services.command(securityContext,
+							       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), Page.class.getSimpleName()),
+								       new NodeAttribute(AbstractNode.Key.name.name(), newName),
+								       new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true));
 
 					if (newPage != null) {
-						
-						String pageId = newPage.getStringProperty(AbstractNode.Key.uuid);
 
+						String pageId                      = newPage.getStringProperty(AbstractNode.Key.uuid);
 						List<AbstractRelationship> relsOut = nodeToClone.getOutgoingRelationships(RelType.CONTAINS);
-						String originalPageId          = nodeToClone.getStringProperty(AbstractNode.Key.uuid);
+						String originalPageId              = nodeToClone.getStringProperty(AbstractNode.Key.uuid);
 						Html htmlNode                      = null;
 
 						for (AbstractRelationship out : relsOut) {
@@ -107,6 +106,7 @@ public class ClonePageCommand extends AbstractCommand {
 							if (endNode.getType().equals(Html.class.getSimpleName())) {
 
 								htmlNode = (Html) endNode;
+
 								break;
 
 							}
@@ -121,17 +121,20 @@ public class ClonePageCommand extends AbstractCommand {
 								Map<String, Object> relProps = new LinkedHashMap<String, Object>();
 
 								relProps.put(pageId, 0);
-								//relProps.put("pageId", pageId);
 
+								// relProps.put("pageId", pageId);
 								try {
+
 									rel.createRelationship(securityContext, newPage, htmlNode, relProps);
+
 								} catch (Throwable t) {
 
-									getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(),
-											    true);
+									getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+
 								}
 
 								RelationshipHelper.tagOutgoingRelsWithPageId(newPage, newPage, originalPageId, pageId);
+
 							}
 
 						}
@@ -139,19 +142,23 @@ public class ClonePageCommand extends AbstractCommand {
 					} else {
 
 						getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
 					}
 
 					return null;
+
 				}
+
 			};
 
 			try {
+
 				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
 			}
 
 		} else {
@@ -160,12 +167,16 @@ public class ClonePageCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "CLONE";
+
 	}
+
 }

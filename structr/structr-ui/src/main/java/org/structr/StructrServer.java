@@ -41,7 +41,9 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -59,8 +61,6 @@ import java.io.File;
 import java.util.*;
 
 import javax.servlet.DispatcherType;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlets.GzipFilter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -154,10 +154,11 @@ public class StructrServer {
 
 		// FilterHolder rewriteFilter =
 		webapp.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-		
+
 		FilterHolder gzipFilter = webapp.addFilter(GzipFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-		gzipFilter.setInitParameter("mimeTypes","text/html,text/plain,text/css,text/javascript");
-		
+
+		gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript");
+
 		// rewriteFilter.setInitParameter("logLevel", "DEBUG");
 		// Strange behaviour of jetty:
 		// If there's a directory with the same name like the WAR file in the same directory,
@@ -202,9 +203,10 @@ public class StructrServer {
 
 			modulesConfFile.createNewFile();
 		} else {
-			modulesConfFile.delete();
 
+			modulesConfFile.delete();
 		}
+
 		FileUtils.writeLines(modulesConfFile, "UTF-8", modulesConf);
 
 		String confPath = basePath + "/structr.conf";

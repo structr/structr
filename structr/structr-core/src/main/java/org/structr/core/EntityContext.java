@@ -92,12 +92,13 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                              = new LinkedHashMap<Class, Map<String, Object>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                        = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<String, String> normalizedEntityNameCache                                      = new LinkedHashMap<String, String>();
-	private static final Set<StructrTransactionListener> transactionListeners                             = new LinkedHashSet<StructrTransactionListener>();
+	private static final Set<StructrTransactionListener> transactionListeners                               = new LinkedHashSet<StructrTransactionListener>();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap                         = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                                      = new LinkedHashMap<String, Class>();
 	private static final EntityContextModificationListener globalModificationListener                       = new EntityContextModificationListener();
 	private static final Map<Long, FrameworkException> exceptionMap                                         = new LinkedHashMap<Long, FrameworkException>();
 	private static final Map<Class, Set<Class>> interfaceMap                                                = new LinkedHashMap<Class, Set<Class>>();
+	private static final Map<String, Class> reverseInterfaceMap                                             = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                                        = new LinkedHashMap<String, Class>();
 
 	private static final Map<Thread, Set<AbstractRelationship>> modifiedRelationshipMap                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
@@ -154,7 +155,7 @@ public class EntityContext {
 	public static void init() {
 
 		try {
-			cachedEntities = (Map<String, Class>) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
+			cachedEntities   = (Map<String, Class>) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
 		} catch (FrameworkException ex) {
 			Logger.getLogger(EntityContext.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -580,6 +581,12 @@ public class EntityContext {
 		if (cachedEntities.containsKey(normalizedEntityName)) {
 
 			return (Class) cachedEntities.get(normalizedEntityName);
+
+		}
+		
+		if (reverseInterfaceMap.containsKey(normalizedEntityName)) {
+
+			return (Class) reverseInterfaceMap.get(normalizedEntityName);
 
 		}
 
@@ -1196,7 +1203,11 @@ public class EntityContext {
 			interfaces = new LinkedHashSet<Class>();
 			interfaceMap.put(type, interfaces);
 			
-			interfaces.addAll(Arrays.asList(type.getInterfaces()));
+			for(Class iface : type.getInterfaces()) {
+
+				reverseInterfaceMap.put(iface.getSimpleName(), iface);
+				interfaces.add(iface);
+			}
 		}
 		
 		return interfaces;
