@@ -21,6 +21,7 @@
 
 package org.structr.websocket.command;
 
+import java.util.Date;
 import org.apache.commons.codec.binary.Base64;
 
 import org.structr.websocket.message.MessageBuilder;
@@ -30,6 +31,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,7 +71,16 @@ public class ChunkCommand extends AbstractCommand {
 
 			}
 
+			File file = (File) getNode(uuid);
+			
+			// Set proper size
+			file.setProperty(File.Key.size, (sequenceNumber * chunkSize) + data.length);
+			
 			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
+			
+			// This should trigger setting of lastModifiedDate in any case
+			file.setChecksum(0L);
+			file.getChecksum();
 			
 			getWebSocket().send(MessageBuilder.status().code(200).message("File saved successfully!").build(), true);
 
