@@ -198,14 +198,6 @@ var _Elements = {
         if (debug) console.log(id);
         
         parent.append('<div id="_' + id + '" class="node element ' + entity.id + '_"></div>');
-
-        var pos;
-        if (parent.children('.' + entity.id + '_')) {
-            pos = parent.children('.' + entity.id + '_').length-1;
-        }
-        
-        if (debug) console.log('Appending element', entity.id, parentId, componentId, pageId, pos);
-        if (debug) console.log('to parent', parent);
         
         //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
         var div = $('#_' + id);

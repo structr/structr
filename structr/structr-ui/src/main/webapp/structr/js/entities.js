@@ -613,13 +613,15 @@ var _Entities = {
         }
     },
 
-    toggleElement : function(el, expanded) {
+    toggleElement : function(element, expanded) {
 
-        var el = $(el);
+        var el = $(element);
         var b;
         var src = el.prop('src');
         
         var elId = el.attr('id');
+        
+        console.log(el);
         
         var treeAddress = elId ? elId.substring(1) : undefined;
         
