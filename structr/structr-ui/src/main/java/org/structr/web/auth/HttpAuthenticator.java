@@ -157,7 +157,7 @@ public class HttpAuthenticator implements Authenticator {
 
 		} catch (IOException ex) {
 
-			logger.log(Level.SEVERE, null, ex);
+			//logger.log(Level.SEVERE, null, ex);
 			writeInternalServerError(response);
 
 		}
