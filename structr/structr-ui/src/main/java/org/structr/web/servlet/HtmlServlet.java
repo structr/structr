@@ -481,7 +481,12 @@ public class HtmlServlet extends HttpServlet {
 				// Check if security context has set an 401 status
 				if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
 
-					HttpAuthenticator.writeUnauthorized(response);
+					try {
+						HttpAuthenticator.writeUnauthorized(response);
+					} catch (IllegalStateException ise) {
+						;
+					}
+					
 				} else {
 
 					HttpAuthenticator.writeNotFound(response);
@@ -490,7 +495,7 @@ public class HtmlServlet extends HttpServlet {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			//t.printStackTrace();
 			logger.log(Level.WARNING, "Exception while processing request", t);
 			HttpAuthenticator.writeInternalServerError(response);
 

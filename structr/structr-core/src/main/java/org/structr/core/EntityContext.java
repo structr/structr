@@ -56,6 +56,7 @@ import org.structr.core.notion.ObjectNotion;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.core.entity.*;
 
 //~--- classes ----------------------------------------------------------------
@@ -601,17 +602,36 @@ public class EntityContext {
 	public static RelationshipMapping getNamedRelation(String relationName) {
 		return globalRelationshipNameMap.get(relationName);
 	}
+	
+	private static Class getSourceType(final String combinedRelationshipType) {
+
+		String sourceType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[0];
+		Class realType  = getEntityClassForRawType(sourceType);
+
+//		try {
+//			realType = (Class) Services.command(null, GetEntityClassCommand.class).execute(StringUtils.capitalize(sourceType));
+//		} catch (FrameworkException ex) {
+//			logger.log(Level.WARNING, "No real type found for {0}", sourceType);
+//		}
+
+		return realType;
+	}
+	
+	private static RelationshipType getRelType(final String combinedRelationshipType) {
+		String relType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[1];
+		return DynamicRelationshipType.withName(relType);
+	}
 
 	private static Class getDestType(final String combinedRelationshipType) {
 
 		String destType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[2];
-		Class realType  = null;
+		Class realType  = getEntityClassForRawType(destType);
 
-		try {
-			realType = (Class) Services.command(null, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "No real type found for {0}", destType);
-		}
+//		try {
+//			realType = (Class) Services.command(null, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
+//		} catch (FrameworkException ex) {
+//			logger.log(Level.WARNING, "No real type found for {0}", destType);
+//		}
 
 		return realType;
 	}
@@ -626,18 +646,12 @@ public class EntityContext {
 
 	public static Class getNamedRelationClass(String combinedRelationshipType) {
 
-		Class namedRelationClass = globalRelationshipClassMap.get(combinedRelationshipType);
+		Class sourceType         = getSourceType(combinedRelationshipType);
 		Class destType           = getDestType(combinedRelationshipType);
+		RelationshipType relType = getRelType(combinedRelationshipType);
+		
+		return getNamedRelationClass(sourceType, destType, relType);
 
-		while ((namedRelationClass == null) &&!(destType.equals(Object.class))) {
-
-			combinedRelationshipType = createCombinedRelationshipType(combinedRelationshipType, destType);
-			namedRelationClass       = globalRelationshipClassMap.get(combinedRelationshipType);
-			destType                 = destType.getSuperclass();
-
-		}
-
-		return namedRelationClass;
 	}
 
 	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {

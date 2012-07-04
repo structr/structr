@@ -69,9 +69,9 @@ public class LinkCommand extends AbstractCommand {
 
 						// Create a LINK relationship
 //                                              RelationClass rel = new RelationClass(targetNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, null, RelationClass.DELETE_NONE);
-						// RelationClass rel = EntityContext.getRelationClass(sourceNode.getClass(), Linkable.class);
-						// rel.createRelationship(securityContext, sourceNode, targetNode);
-						sourceNode.setProperty(Link.UiKey.linkable_id, targetNode.getUuid());
+						RelationClass rel = EntityContext.getRelationClass(sourceNode.getClass(), Linkable.class);
+						rel.createRelationship(securityContext, sourceNode, targetNode);
+//						sourceNode.setProperty(Link.UiKey.linkable_id, targetNode.getUuid());
 
 						return null;
 					}

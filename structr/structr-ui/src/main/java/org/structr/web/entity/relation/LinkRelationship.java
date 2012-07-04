@@ -25,9 +25,10 @@ import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Linkable;
+import org.structr.web.entity.html.A;
+import org.structr.web.entity.html.Link;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -39,7 +40,8 @@ public class LinkRelationship extends AbstractRelationship {
 
 	static {
 
-		EntityContext.registerNamedRelation("hyperlink", LinkRelationship.class, AbstractNode.class, Linkable.class, RelType.LINK);
+		EntityContext.registerNamedRelation("resource_link", LinkRelationship.class, Link.class, Linkable.class, RelType.LINK);
+		EntityContext.registerNamedRelation("hyperlink", LinkRelationship.class, A.class, Linkable.class, RelType.LINK);
 		EntityContext.registerPropertySet(LinkRelationship.class, PropertyView.Ui, Key.values());
 
 	}

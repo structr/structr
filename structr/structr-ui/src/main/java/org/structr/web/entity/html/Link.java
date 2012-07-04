@@ -59,7 +59,7 @@ public class Link extends HtmlElement {
 		EntityContext.registerPropertyRelation(Link.class, Link.UiKey.linkable_id, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne,
 			new PropertyNotion(AbstractNode.Key.uuid), RelationClass.DELETE_NONE);
 
-		// EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, Link.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
+		//EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, Link.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
 
 	}
 
