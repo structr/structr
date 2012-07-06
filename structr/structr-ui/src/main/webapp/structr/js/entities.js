@@ -96,9 +96,10 @@ var _Entities = {
 
         if (entity.type == 'User') {
 
-            lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, removeExisting, hasChildren);
+            lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, removeExisting);
             
         } else if (entity.type == 'Group') {
+            
             lastAppendedObj = _UsersAndGroups.appendGroupElement(entity, hasChildren);
 
         } else if (entity.type == 'Page') {
@@ -123,14 +124,14 @@ var _Entities = {
             if (debug) console.log('Image:', entity);
             _Files.uploadFile(entity);
             
-            lastAppendedObj = _Files.appendImageElement(entity, parentId, removeExisting, hasChildren);
+            lastAppendedObj = _Files.appendImageElement(entity, parentId, removeExisting, hasChildren, true);
             
         } else if (entity.type == 'File') {
             
             if (debug) console.log('File: ', entity);
             _Files.uploadFile(entity);
             
-            lastAppendedObj = _Files.appendFileElement(entity, parentId, removeExisting, hasChildren);
+            lastAppendedObj = _Files.appendFileElement(entity, parentId, removeExisting, hasChildren, false);
             
         } else {
 
@@ -518,7 +519,7 @@ var _Entities = {
                 
                 var treeAddress = elId ? elId.substring(1) : undefined;
                 
-                console.log('appendExpandIcon', isExpanded(treeAddress), entity);
+                if (debug) console.log('appendExpandIcon', isExpanded(treeAddress), entity);
                 if (isExpanded(treeAddress)) {
                     if (debug) console.log('toggle', entity.id, entity.pageId);
                     _Entities.toggleElement(el, expanded)
@@ -621,11 +622,11 @@ var _Entities = {
         
         var elId = el.attr('id');
         
-        console.log(el);
+        if (debug) console.log(el);
         
         var treeAddress = elId ? elId.substring(1) : undefined;
         
-        console.log('toggleElement: treeAddress', treeAddress.substring(1));
+        if (debug) console.log('toggleElement: treeAddress', treeAddress);
         
         b = el.children('.expand_icon').first();
         src = b.prop('src');

@@ -910,7 +910,7 @@ var _Pages = {
     },
 
     appendContentElement : function(content, parentId, componentId, pageId, treeAdress) {
-        console.log('Pages.appendContentElement', content, parentId, componentId, pageId, treeAdress);
+        if (debug) console.log('Pages.appendContentElement', content, parentId, componentId, pageId, treeAdress);
 		
         var div = _Contents.appendContentElement(content, parentId, componentId, pageId, treeAdress);
         if (!div) return false;

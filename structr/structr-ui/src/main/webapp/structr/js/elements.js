@@ -193,6 +193,7 @@ var _Elements = {
         if (!parent) return false;
         
         var parentPath = getElementPath(parent);
+        if (debug) console.log(parentPath);
         
         var id = parentPath + '_' + parent.children('.node').length;
         if (debug) console.log(id);

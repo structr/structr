@@ -64,7 +64,7 @@ var _Files = {
         if (debug) console.log('onload');
         if (palette) palette.remove();
 
-        main.append('<table><tr><td id="files"></td><td id="folders"></td><td id="images"></td></tr></table>');
+        main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
         images = $('#images');
@@ -85,9 +85,9 @@ var _Files = {
         
         if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-            files.append('<h1>Drop files here</h1>');
+            files.append('<h1>Files</h1>');
             
-            drop = $('#files');
+            drop = $('#dropArea');
 
             drop.on('dragover', function(event) {
                 if (debug) console.log('dragging over #files area');
@@ -97,11 +97,16 @@ var _Files = {
             
             drop.on('drop', function(event) {
                 
+                if (!event.originalEvent.dataTransfer) {
+                    console.log(event);
+                    return;
+                }
+                
                 if (debug) console.log('dropped something in the #files area')
                 
                 event.stopPropagation();
                 event.preventDefault();
-                //                console.log(event);
+                
                 fileList = event.originalEvent.dataTransfer.files;
                 console.log(fileList);
                 var filesToUpload = [];
@@ -149,6 +154,7 @@ var _Files = {
 	
     refreshImages : function() {
         images.empty();
+        images.append('<h1>Images</h1>');
         Command.list('Image');
     },
 	
@@ -206,6 +212,11 @@ var _Files = {
         
         var parent = Structr.findParent(folderId, null, null, parentElement);
         
+        if (parent == files && file.parentFolder) {
+            return;
+        }
+        
+        
         var delIcon, newDelIcon;
         div = Structr.node(file.id);
         if (removeExisting && div && div.length) {
@@ -222,6 +233,7 @@ var _Files = {
             }            
             
             if (debug) console.log('appended existing div to parent', div, parent);
+            
         } else {
         
             parent.append('<div class="node ' + cls + ' ' + file.id + '_">'
@@ -297,16 +309,25 @@ var _Files = {
 		
     appendFolderElement : function(folder, folderId, hasChildren) {
 		
-        if (debug) console.log('Folder: ', folder, hasChildren);
-        //var parent = Structr.node(folder, null, null, folders);
-	
+        if (debug) console.log('appendFolderElement', folder, folderId, hasChildren);
+        
         var parent = Structr.findParent(folderId, null, null, folders);
+        
+        if (debug) console.log('appendFolderElement parent', parent);
+        if (!parent) return false;
+        
+        //parent.append('<div id="_' + folderId + '" class="node element ' + folderId + '_"></div>');
+        
+        //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
+        //var div = $('#_' + id);
+        
         var delIcon, newDelIcon;    
         var div;
         
         var removeExisting = true;
         
-        div = Structr.node(folder.id);
+        //div = Structr.node(folder.id);
+        div = $('#_' + folder.id);
         
         if (debug) console.log('appendFolderElement: parent, div', parent, div);
         
@@ -326,12 +347,13 @@ var _Files = {
             
         } else {
             
-            parent.append('<div structr_type="folder" class="node folder ' + folder.id + '_">'
+            parent.append('<div id="_' + folder.id + '" structr_type="folder" class="node folder ' + folder.id + '_">'
                 + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
                 + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
                 + '</div>');
         
-            div = Structr.node(folder.id, parent.id);
+            //div = Structr.node(folder.id, parent.id);
+            div = $('#_' + folder.id);
         }
         
         delIcon = $('.delete_icon', div);
@@ -380,16 +402,16 @@ var _Files = {
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
+                var self = $(this);
                 var fileId = getId(ui.draggable);
-                var folderId = getId($(this));
-                
+                var folderId = getId(self);
+                if (debug) console.log('fileId, folderId', fileId, folderId);
                 if (!(fileId == folderId)) {
                     var nodeData = {};
                     nodeData.id = fileId;
+                    addExpandedNode(folderId);
+                    if (debug) console.log('addExpandedNode(folderId)', addExpandedNode(folderId));
                     Command.createAndAdd(folderId, nodeData);
-                    
-                    if (debug) console.log('dropped here!', Structr.node(folderId));
-                    
                 }
             }
         });

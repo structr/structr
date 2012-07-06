@@ -544,9 +544,13 @@ var Structr = {
 };
 
 function getElementPath(element) {
+    var i=-1;
     return $(element).parents('.node').andSelf().map(function() {
+        i++;
         var self = $(this);
-        if (self.hasClass('page')) return getId(self);
+        //if (self.hasClass('page')) return getId(self);
+        // id for top-level element
+        if (i==0) return getId(self);
         return self.prevAll('.node').length;
     }).get().join('_');
 }
@@ -585,7 +589,7 @@ function addExpandedNode(treeAddress) {
 }
 
 function removeExpandedNode(treeAddress) {
-    console.log('removeExpandedNode', treeAddress);
+    if (debug) console.log('removeExpandedNode', treeAddress);
 
     if (!treeAddress) return;
     
@@ -597,7 +601,7 @@ function removeExpandedNode(treeAddress) {
 }
 
 function isExpanded(treeAddress) {
-    if (debug) console.log('isExpanded', treeAddress);
+    if (debug) console.log('treeAddress, getExpanded()[treeAddress]', treeAddress, getExpanded()[treeAddress]);
 
     if (!treeAddress) return false;
 
