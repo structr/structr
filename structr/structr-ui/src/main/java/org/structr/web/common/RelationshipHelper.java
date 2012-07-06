@@ -263,6 +263,10 @@ public class RelationshipHelper {
 
 	public static void reorderRels(final List<AbstractRelationship> rels, final String pageId) throws FrameworkException {
 
+		if (pageId == null) {
+			return;
+		}
+		
 		long i = 0;
 
 		Collections.sort(rels, new GraphObjectComparator(pageId, GraphObjectComparator.ASCENDING));
