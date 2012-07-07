@@ -64,6 +64,4 @@ public class Span extends HtmlElement {
 
 	}
 
-	;
-
 }
