@@ -368,6 +368,14 @@ public class HtmlServlet extends HttpServlet {
 			AbstractNode node                 = tryIndexPage
 				? findIndexPage()
 				: findEntryPoint(name);
+			
+			if (node == null) {
+				
+				HttpAuthenticator.writeNotFound(response);
+				
+			}
+			
+			
 			Page page                         = null;
 			org.structr.core.entity.File file = null;
 
