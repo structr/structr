@@ -1,42 +1,53 @@
 /*
  *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.web.node;
 
-import java.io.File;
-import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+
 import org.structr.common.Path;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
-import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Image;
+import org.structr.core.entity.Image;
 import org.structr.core.entity.Principal;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.NodeServiceCommand;
-import org.structr.core.entity.Image;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.io.File;
+
+import java.net.URL;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  * Save image by downloading it from its URL.
@@ -47,126 +58,137 @@ import org.structr.core.entity.Image;
  */
 public class SaveImageFromUrl extends NodeServiceCommand {
 
-    private static final Logger logger = Logger.getLogger(SaveImageFromUrl.class.getName());
+	private static final Logger logger = Logger.getLogger(SaveImageFromUrl.class.getName());
 
-    /**
-     * Takes either one or three parameters.
-     * 
-     * <ul>
-     * <li>1: Image node
-     * </ul>
-     * 
-     * <ul>
-     * <li>1: Principal
-     * <li>2: URL string
-     * <li>3: Parent node
-     * </ul>
-     * 
-     *
-     * @param parameters
-     * @return
-     */
-    @Override
-    public Object execute(Object... parameters) throws FrameworkException {
+	//~--- methods --------------------------------------------------------
 
-        Principal user = null;
-        String urlString = null;
-        AbstractNode parentNode = null;
+	/**
+	 * Takes either one or three parameters.
+	 *
+	 * <ul>
+	 * <li>1: Image node
+	 * </ul>
+	 *
+	 * <ul>
+	 * <li>1: Principal
+	 * <li>2: URL string
+	 * <li>3: Parent node
+	 * </ul>
+	 *
+	 *
+	 * @param parameters
+	 * @return
+	 */
+	@Override
+	public Object execute(Object... parameters) throws FrameworkException {
 
-        Image imageNode = null;
+		Principal user          = null;
+		String urlString        = null;
+		AbstractNode parentNode = null;
+		Image imageNode         = null;
 
-        switch (parameters.length) {
+		switch (parameters.length) {
 
-            case 1:
+			case 1 :
+				if (parameters[0] instanceof Image) {
 
-                if (parameters[0] instanceof Image) {
-                    imageNode = (Image) parameters[0];
-                }
-                break;
+					imageNode = (Image) parameters[0];
+				}
 
-            case 3:
+				break;
 
-                if (parameters[0] instanceof Principal) {
-                    user = (Principal) parameters[0];
-                }
-                if (parameters[1] instanceof String) {
-                    urlString = (String) parameters[1];
-                }
-                if (parameters[2] instanceof AbstractNode) {
-                    parentNode = (AbstractNode) parameters[2];
-                }
-                break;
+			case 3 :
+				if (parameters[0] instanceof Principal) {
 
-            default:
-                throw new UnsupportedArgumentError("Wrong number of arguments");
-        }
+					user = (Principal) parameters[0];
+				}
 
-        if (imageNode != null) {
+				if (parameters[1] instanceof String) {
 
-            refreshImageFromUrl(imageNode);
-            
-        } else if (user != null && urlString != null && parentNode != null) {
+					urlString = (String) parameters[1];
+				}
 
-            // Create new image node first
-            Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(user,
-                    new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
-                    new NodeAttribute(org.structr.core.entity.File.Key.url.name(), urlString),
-                    new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true),
-		    new NodeAttribute(AbstractNode.Key.visibleToPublicUsers.name(), true),
-                    true);  // Update index
+				if (parameters[2] instanceof AbstractNode) {
 
-            Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
+					parentNode = (AbstractNode) parameters[2];
+				}
 
-            // Then save image from URL
-            refreshImageFromUrl(newImageNode);
+				break;
 
-            return newImageNode;
+			default :
+				throw new UnsupportedArgumentError("Wrong number of arguments");
 
-        }
+		}
 
-        return null;
+		if (imageNode != null) {
 
-    }
+			refreshImageFromUrl(imageNode);
+		} else if (user != null && urlString != null && parentNode != null) {
 
-    /**
-     * Refresh image file of an existing image node
-     * 
-     * @param imageNode
-     */
-    private void refreshImageFromUrl(final Image imageNode) throws FrameworkException {
+			// Create new image node first
+			Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(user,
+						     new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
+						     new NodeAttribute(org.structr.core.entity.File.Key.url.name(), urlString),
+						     new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true),
+						     new NodeAttribute(AbstractNode.Key.visibleToPublicUsers.name(), true), true);    // Update index
 
-        if (imageNode != null) {
+			Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
 
-            String url = imageNode.getUrl();
-            String relativeFilePath = imageNode.getRelativeFilePath();
-            String imageName = url.substring(url.lastIndexOf("/") + 1);
+			// Then save image from URL
+			refreshImageFromUrl(newImageNode);
 
-            imageNode.setProperty(AbstractNode.Key.name, imageName);
+			return newImageNode;
+		}
 
-            if (relativeFilePath == null) {
-                relativeFilePath = imageNode.getId() + "_" + System.currentTimeMillis();
-            }
-            
-            String path = Services.getFilePath(Path.Files, relativeFilePath);
+		return null;
 
-            if (StringUtils.isNotBlank(url)) {
-                try {
+	}
 
-                    File imageFile = new File(path);
-                    URL imageUrl = new URL(url);
+	/**
+	 * Refresh image file of an existing image node
+	 *
+	 * @param imageNode
+	 */
+	private void refreshImageFromUrl(final Image imageNode) throws FrameworkException {
 
-                    // copy url to file
-                    FileUtils.copyURLToFile(imageUrl, imageFile);
-                    imageNode.setRelativeFilePath(relativeFilePath);
+		if (imageNode != null) {
 
-                    logger.log(Level.INFO, "Image {0} ({1}) saved from URL {2}", new Object[]{imageNode.getName(), imageNode.getId(), url});
+			String url              = imageNode.getUrl();
+			String relativeFilePath = imageNode.getRelativeFilePath();
+			String imageName        = url.substring(url.lastIndexOf("/") + 1);
 
-                } catch (Throwable t) {
-                    logger.log(Level.SEVERE, "Error while saving image from URL {0}", url);
-                    t.printStackTrace(System.err);
-                }
-            }
+			imageNode.setProperty(AbstractNode.Key.name, imageName);
 
-        }
-    }
+			if (relativeFilePath == null) {
+
+				relativeFilePath = imageNode.getId() + "_" + System.currentTimeMillis();
+			}
+
+			String path = Services.getFilePath(Path.Files, relativeFilePath);
+
+			if (StringUtils.isNotBlank(url)) {
+
+				try {
+
+					File imageFile = new File(path);
+					URL imageUrl   = new URL(url);
+
+					// copy url to file
+					FileUtils.copyURLToFile(imageUrl, imageFile);
+					imageNode.setRelativeFilePath(relativeFilePath);
+					logger.log(Level.INFO, "Image {0} ({1}) saved from URL {2}", new Object[] { imageNode.getName(), imageNode.getId(), url });
+
+				} catch (Throwable t) {
+
+					logger.log(Level.SEVERE, "Error while saving image from URL {0}", url);
+					t.printStackTrace(System.err);
+
+				}
+
+			}
+
+		}
+
+	}
+
 }

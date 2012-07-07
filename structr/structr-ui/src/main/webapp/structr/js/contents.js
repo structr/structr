@@ -76,7 +76,7 @@ var _Contents = {
         if (debug) console.log('Contents.appendContentElement', content, parentId, componentId, pageId, treeAddress);
 
         if (treeAddress) {
-            console.log('Contents.appendContentElement: tree address', treeAddress);
+            if (debug) console.log('Contents.appendContentElement: tree address', treeAddress);
             parent = $('#_' + treeAddress);
         } else {
             parent = Structr.findParent(parentId, componentId, pageId, contents);
@@ -84,7 +84,7 @@ var _Contents = {
         
         if (!parent) return false;
         
-        console.log(parent);
+        if (debug) console.log(parent);
 
         //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
@@ -163,7 +163,7 @@ var _Contents = {
 
                 timer = window.setTimeout(function() {
                     Command.patch(entity.id, text1, text2);
-                }, 1000);
+                }, 5000);
 				
             }
         });

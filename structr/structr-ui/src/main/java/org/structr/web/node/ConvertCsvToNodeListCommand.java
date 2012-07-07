@@ -1,40 +1,35 @@
 /*
  *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.web.node;
 
 import au.com.bytecode.opencsv.CSVReader;
-import java.io.FileReader;
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.logging.Logger;
+
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
-import org.structr.web.entity.CsvFile;
-import org.structr.core.entity.NodeList;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.NodeList;
 import org.structr.core.entity.Principal;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -44,6 +39,22 @@ import org.structr.core.node.NodeServiceCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.web.entity.CsvFile;
+import org.structr.web.entity.CsvFile;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.io.FileReader;
+
+import java.lang.reflect.Field;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  * Converts a CSV file to a node list. Each row will be represented
@@ -53,234 +64,252 @@ import org.structr.web.entity.CsvFile;
  */
 public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
-    private static final Logger logger = Logger.getLogger(ConvertCsvToNodeListCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(ConvertCsvToNodeListCommand.class.getName());
 
-    @Override
-    public Object execute(Object... parameters) throws FrameworkException {
+	//~--- methods --------------------------------------------------------
 
-        if (parameters == null || parameters.length < 2) {
-            throw new UnsupportedArgumentError("Wrong number of arguments");
-        }
+	@Override
+	public Object execute(Object... parameters) throws FrameworkException {
 
-        Long csvNodeId = null;
-        AbstractNode sourceNode = null;
-        Class targetClass = null;
-        CsvFile csvFileNode = null;
-        String filePath = null;
-        Principal user = null;
+		if (parameters == null || parameters.length < 2) {
 
-        for (Object o : parameters) {
+			throw new UnsupportedArgumentError("Wrong number of arguments");
+		}
 
-            if (o instanceof CsvFile) {
+		Long csvNodeId          = null;
+		AbstractNode sourceNode = null;
+		Class targetClass       = null;
+		CsvFile csvFileNode     = null;
+		String filePath         = null;
+		Principal user          = null;
 
-                csvFileNode = (CsvFile) o;
-                filePath = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
+		for (Object o : parameters) {
 
-            }
+			if (o instanceof CsvFile) {
 
-            if (o instanceof Long) {
-                csvNodeId = (Long) o;
-                sourceNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(csvNodeId);
+				csvFileNode = (CsvFile) o;
+				filePath    = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
 
-                if (sourceNode instanceof CsvFile) {
-                    csvFileNode = (CsvFile) sourceNode;
+			}
 
-                    filePath = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
-                }
-            }
+			if (o instanceof Long) {
 
-            if (o instanceof Class) {
-                targetClass = (Class) o;
-            }
+				csvNodeId  = (Long) o;
+				sourceNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(csvNodeId);
 
-            if (o instanceof Principal) {
-                user = (Principal) o;
-            }
+				if (sourceNode instanceof CsvFile) {
 
-        }
+					csvFileNode = (CsvFile) sourceNode;
+					filePath    = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
 
-        try {
+				}
 
-            // TODO: Implement auto-detection for field separator and quote characters
-            CSVReader reader = new CSVReader(new FileReader(filePath), '|', '\"');
+			}
 
-            // Read first line, these should be the column keys
-            String[] keys = reader.readNext();
+			if (o instanceof Class) {
 
-            // Get the fields of the target node
-            Field[] fields = targetClass.getFields();
+				targetClass = (Class) o;
+			}
 
-            // The field index stores the field name of a column
-            Map<Integer, String> fieldIndex = new HashMap<Integer, String>();
+			if (o instanceof Principal) {
 
-            // Instantiate object
-            AbstractNode o = (AbstractNode) targetClass.newInstance();
+				user = (Principal) o;
+			}
 
-            int col = 0;
-            // Match with fields
-            for (String key : keys) {
+		}
 
-                for (Field f : fields) {
+		try {
 
-                    String fieldName = (String) f.get(o);
+			// TODO: Implement auto-detection for field separator and quote characters
+			CSVReader reader = new CSVReader(new FileReader(filePath), '|', '\"');
 
-                    if (fieldName.toUpperCase().equals(key.toUpperCase())) {
-                        fieldIndex.put(col, fieldName);
-                    }
+			// Read first line, these should be the column keys
+			String[] keys = reader.readNext();
 
-                }
-                col++;
-            }
+			// Get the fields of the target node
+			Field[] fields = targetClass.getFields();
 
-            for (Entry<Integer, String> entry : fieldIndex.entrySet()) {
-                Integer i = entry.getKey();
-                String v = entry.getValue();
+			// The field index stores the field name of a column
+			Map<Integer, String> fieldIndex = new HashMap<Integer, String>();
 
-                System.out.println("v: " + v + ", i: " + i);
-            }
+			// Instantiate object
+			AbstractNode o = (AbstractNode) targetClass.newInstance();
+			int col        = 0;
 
-//			List<String[]> lines = reader.readAll();
+			// Match with fields
+			for (String key : keys) {
 
-            final Principal userCopy = user;
-            final AbstractNode sourceNodeCopy = csvFileNode;
+				for (Field f : fields) {
 
-            final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-            final Command createNode = Services.command(securityContext, CreateNodeCommand.class);
-            final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+					String fieldName = (String) f.get(o);
 
-            final NodeList<AbstractNode> nodeListNode = (NodeList<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
+					if (fieldName.toUpperCase().equals(key.toUpperCase())) {
 
-                @Override
-                public Object execute() throws FrameworkException {
+						fieldIndex.put(col, fieldName);
+					}
 
-                    // If the node list node doesn't exist, create one
-                    NodeList<AbstractNode> result = (NodeList) createNode.execute(userCopy,
-                            new NodeAttribute(AbstractNode.Key.type.name(), NodeList.class.getSimpleName()),
-                            new NodeAttribute(AbstractNode.Key.name.name(), sourceNodeCopy.getName() + " List"));
+				}
 
-                    createRel.execute(sourceNodeCopy, result, RelType.CONTAINS);
-                    return result;
-                }
-            });
-
-
-            final List<List<NodeAttribute>> creationList = new LinkedList<List<NodeAttribute>>();
-            String targetClassName = targetClass.getSimpleName();
-            String[] line = null;
-            do {
-                // read line, one at a time
-                try {
-                    line = reader.readNext();
-                } catch (Throwable t) {
-                }
+				col++;
 
-                if (line != null) {
-                    // create a new list for each item
-                    List<NodeAttribute> nodeAttributes = new LinkedList<NodeAttribute>();
-                    nodeAttributes.add(new NodeAttribute(AbstractNode.Key.type.name(), targetClassName));
-
-                    for (int i = 0; i < col; i++) {
-                        String csvValue = line[i];
-                        String key = fieldIndex.get(i);
+			}
 
-                        nodeAttributes.add(new NodeAttribute(key, csvValue));
-                    }
+			for (Entry<Integer, String> entry : fieldIndex.entrySet()) {
 
-                    // add node attributes to creation list
-                    creationList.add(nodeAttributes);
-                }
+				Integer i = entry.getKey();
+				String v  = entry.getValue();
 
+				System.out.println("v: " + v + ", i: " + i);
 
-            } while (line != null);
+			}
 
-            reader.close();
+//                      List<String[]> lines = reader.readAll();
+			final Principal userCopy                  = user;
+			final AbstractNode sourceNodeCopy         = csvFileNode;
+			final Command transactionCommand          = Services.command(securityContext, TransactionCommand.class);
+			final Command createNode                  = Services.command(securityContext, CreateNodeCommand.class);
+			final Command createRel                   = Services.command(securityContext, CreateRelationshipCommand.class);
+			final NodeList<AbstractNode> nodeListNode = (NodeList<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
 
-            // everything in one transaction
-            transactionCommand.execute(new StructrTransaction() {
+				@Override
+				public Object execute() throws FrameworkException {
 
-                @Override
-                public Object execute() throws FrameworkException {
-                    List<AbstractNode> nodesToAdd = new LinkedList<AbstractNode>();
-                    for (List<NodeAttribute> attrList : creationList) {
-                        nodesToAdd.add((AbstractNode) createNode.execute(attrList, false));  // don't index
-                    }
+					// If the node list node doesn't exist, create one
+					NodeList<AbstractNode> result = (NodeList) createNode.execute(userCopy, new NodeAttribute(AbstractNode.Key.type.name(), NodeList.class.getSimpleName()),
+										new NodeAttribute(AbstractNode.Key.name.name(), sourceNodeCopy.getName() + " List"));
+
+					createRel.execute(sourceNodeCopy, result, RelType.CONTAINS);
+
+					return result;
+				}
+
+			});
+			final List<List<NodeAttribute>> creationList = new LinkedList<List<NodeAttribute>>();
+			String targetClassName                       = targetClass.getSimpleName();
+			String[] line                                = null;
+
+			do {
+
+				// read line, one at a time
+				try {
+
+					line = reader.readNext();
+
+				} catch (Throwable t) {}
+
+				if (line != null) {
+
+					// create a new list for each item
+					List<NodeAttribute> nodeAttributes = new LinkedList<NodeAttribute>();
+
+					nodeAttributes.add(new NodeAttribute(AbstractNode.Key.type.name(), targetClassName));
+
+					for (int i = 0; i < col; i++) {
+
+						String csvValue = line[i];
+						String key      = fieldIndex.get(i);
+
+						nodeAttributes.add(new NodeAttribute(key, csvValue));
+
+					}
+
+					// add node attributes to creation list
+					creationList.add(nodeAttributes);
+				}
+			} while (line != null);
+
+			reader.close();
+
+			// everything in one transaction
+			transactionCommand.execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					List<AbstractNode> nodesToAdd = new LinkedList<AbstractNode>();
+
+					for (List<NodeAttribute> attrList : creationList) {
+
+						nodesToAdd.add((AbstractNode) createNode.execute(attrList, false));    // don't index
+					}
+
+					// use bulk add
+					nodeListNode.addAll(nodesToAdd);
+
+					return (null);
+
+				}
+
+			});
+
+			/*
+			 * final List<NodeAttribute> attrList = new LinkedList<NodeAttribute>();
+			 *
+			 * NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(), targetClass.getSimpleName());
+			 * attrList.add(typeAttr);
+			 *
+			 * String[] line = null;
+			 *
+			 * do
+			 * {
+			 * try
+			 * {
+			 * line = reader.readNext();
+			 *
+			 * } catch(Throwable t)
+			 * {
+			 * line = null;
+			 * }
+			 *
+			 * if(line != null)
+			 * {
+			 * for(int i = 0; i < col; i++)
+			 * {
+			 *
+			 * String csvValue = line[i];
+			 * String key = fieldIndex.get(i);
+			 *
+			 * System.out.println("Creating attribute " + key + " = '" + csvValue + "'..");
+			 *
+			 * NodeAttribute attr = new NodeAttribute(key, csvValue);
+			 * attrList.add(attr);
+			 *
+			 * logger.log(Level.FINEST, "Created node attribute {0}={1}", new Object[]
+			 * {
+			 * attr.getKey(), attr.getValue()
+			 * });
+			 * }
+			 *
+			 * AbstractNode newNode = (AbstractNode)transactionCommand.execute(new StructrTransaction()
+			 * {
+			 * @Override
+			 * public Object execute() throws Throwable
+			 * {
+			 * Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+			 *
+			 * // Create new node
+			 * AbstractNode newNode = (AbstractNode)createNode.execute(userCopy, attrList);
+			 * transactionCommand.setExitCode(createNode.getExitCode());
+			 * transactionCommand.setErrorMessage(createNode.getErrorMessage());
+			 * return newNode;
+			 * }
+			 * });
+			 *
+			 * nodeListNode.add(newNode);
+			 * logger.log(Level.INFO, "Node {0} added to node list", newNode.getId());
+			 * }
+			 *
+			 * } while(line != null);
+			 */
+			return nodeListNode;
+		} catch (Throwable t) {
+
+			// TODO: use logger
+			t.printStackTrace(System.out);
+		}
+
+		return null;
+
+	}
 
-                    // use bulk add
-                    nodeListNode.addAll(nodesToAdd);
-
-                    return (null);
-                }
-            });
-
-
-            /*
-            final List<NodeAttribute> attrList = new LinkedList<NodeAttribute>();
-
-            NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(), targetClass.getSimpleName());
-            attrList.add(typeAttr);
-
-            String[] line = null;
-
-            do
-            {
-            try
-            {
-            line = reader.readNext();
-
-            } catch(Throwable t)
-            {
-            line = null;
-            }
-
-            if(line != null)
-            {
-            for(int i = 0; i < col; i++)
-            {
-
-            String csvValue = line[i];
-            String key = fieldIndex.get(i);
-
-            System.out.println("Creating attribute " + key + " = '" + csvValue + "'..");
-
-            NodeAttribute attr = new NodeAttribute(key, csvValue);
-            attrList.add(attr);
-
-            logger.log(Level.FINEST, "Created node attribute {0}={1}", new Object[]
-            {
-            attr.getKey(), attr.getValue()
-            });
-            }
-
-            AbstractNode newNode = (AbstractNode)transactionCommand.execute(new StructrTransaction()
-            {
-            @Override
-            public Object execute() throws Throwable
-            {
-            Command createNode = Services.command(securityContext, CreateNodeCommand.class);
-
-            // Create new node
-            AbstractNode newNode = (AbstractNode)createNode.execute(userCopy, attrList);
-            transactionCommand.setExitCode(createNode.getExitCode());
-            transactionCommand.setErrorMessage(createNode.getErrorMessage());
-            return newNode;
-            }
-            });
-
-            nodeListNode.add(newNode);
-            logger.log(Level.INFO, "Node {0} added to node list", newNode.getId());
-            }
-
-            } while(line != null);
-             */
-
-            return nodeListNode;
-
-        } catch (Throwable t) {
-            // TODO: use logger
-            t.printStackTrace(System.out);
-        }
-
-        return null;
-
-    }
 }

@@ -641,29 +641,30 @@ button img {
     border: 1px solid #666;
 }
 
-#files h1 {
-    visibility: hidden;
-    color: #999;
+#files h1, #images h1 {
+/*    visibility: hidden;*/
+    color: #333;
     font-size: 16px;
     font-weight: bold;
-    margin: 9px 0;
+    margin: 8px 0;
     padding: 0;
     height: 22px;
+
 }
 
-#files:hover {
+#images h1 {
+    visibility: visible;
+    color: #333;
+}
+
+/*#files:hover {
     padding: 0px 8px 0px 6px ! important;
-    margin: 11px 0px 3px 8px ! important;
-/*    padding: 7px 12px 3px 12px! important;*/
+    margin: 8px 0px 3px 8px ! important;
+    padding: 7px 12px 3px 12px! important;
     border-radius: 5px;
     border: 1px dashed #999;
     background: #fff;
-}
-
-#files:hover h1 {
-    visibility: visible;
-    margin: 9px 0 0 0;
-}
+}*/
 
 .ui-draggable, .ui-sortable {
     cursor: move;

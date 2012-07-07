@@ -80,7 +80,7 @@ public class NamedRelationResource extends WrappingResource {
 
 			// fetch all relationships of a specific combinedType and return them
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-			searchAttributes.add(Search.andRelType(namedRelation));
+			searchAttributes.add(Search.andExactRelType(namedRelation));
 			
 			// add searchable attributes from EntityContext
 			hasSearchableAttributesForRelationships(namedRelation.getEntityClass().getSimpleName(), request, searchAttributes);

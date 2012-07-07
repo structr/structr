@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -178,11 +179,21 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		if (combinedKey == null) {
 
-			// add a special combinedType key, consisting of the relationship combinedType, the combinedType of the start node and the combinedType of the end node
-			String tripleKey = EntityContext.createCombinedRelationshipType(rel.getStartNode().getType(), rel.getType(), rel.getEndNode().getType());
+			AbstractNode startNode = rel.getStartNode();
+			AbstractNode endNode   = rel.getEndNode();
 
-			rel.setProperty(AbstractRelationship.HiddenKey.combinedType.name(), Search.clean(tripleKey));
-			indexProperty(rel, AbstractRelationship.HiddenKey.combinedType.name());
+			if(startNode != null && endNode != null) {
+				
+				// add a special combinedType key, consisting of the relationship combinedType, the combinedType of the start node and the combinedType of the end node
+				String tripleKey = EntityContext.createCombinedRelationshipType(startNode.getType(), rel.getType(), endNode.getType());
+
+				rel.setProperty(AbstractRelationship.HiddenKey.combinedType.name(), Search.clean(tripleKey));
+				indexProperty(rel, AbstractRelationship.HiddenKey.combinedType.name());
+				
+			} else {
+				
+				logger.log(Level.WARNING, "Unable to create combined type key, startNode or endNode was null!");
+			}
 		}
 
 		for (String key : rel.getPropertyKeys()) {

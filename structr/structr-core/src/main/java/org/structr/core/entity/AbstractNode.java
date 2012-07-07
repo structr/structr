@@ -1794,11 +1794,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
-	public void setLastModifiedDate(final Date date) throws FrameworkException {
-
-		setProperty(Key.lastModifiedDate.name(), date);
-
-	}
+//	public void setLastModifiedDate(final Date date) throws FrameworkException {
+//
+//		setProperty(Key.lastModifiedDate.name(), date);
+//
+//	}
 
 	public void setVisibilityStartDate(final Date date) throws FrameworkException {
 

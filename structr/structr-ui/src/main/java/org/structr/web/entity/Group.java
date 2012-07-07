@@ -21,9 +21,8 @@
 
 package org.structr.web.entity;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.neo4j.graphdb.Direction;
+
 import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -31,6 +30,11 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass.Cardinality;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.LinkedList;
+import java.util.List;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,53 +55,25 @@ public class Group extends AbstractNode implements Principal {
 
 	}
 
-	@Override
-	public String getEncryptedPassword() {
-		// A group has no password
-		return null;
-	}
-
-	@Override
-	public List<Principal> getParents() {
-		
-		List<Principal> parents = new LinkedList<Principal>();
-		
-		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
-		
-		for (AbstractRelationship rel : parentRels) {
-			
-			AbstractNode node = rel.getEndNode();
-			
-			if (node instanceof Principal) {
-				
-				parents.add((Principal) node);
-				
-			}
-
-		}
-		
-		return parents;
-	}
-
-	@Override
-	public void grant(Permission permission, AccessControllable obj) {
-		
-		obj.getSecurityRelationship(this).addPermission(permission);
-		
-	}
-
-	@Override
-	public void revoke(Permission permission, AccessControllable obj) {
-		
-		obj.getSecurityRelationship(this).removePermission(permission);
-		
-	}
-
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey {}
 
 	//~--- methods --------------------------------------------------------
+
+	@Override
+	public void grant(Permission permission, AccessControllable obj) {
+
+		obj.getSecurityRelationship(this).addPermission(permission);
+
+	}
+
+	@Override
+	public void revoke(Permission permission, AccessControllable obj) {
+
+		obj.getSecurityRelationship(this).removePermission(permission);
+
+	}
 
 	@Override
 	public void block() throws FrameworkException {
@@ -107,6 +83,34 @@ public class Group extends AbstractNode implements Principal {
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public String getEncryptedPassword() {
+
+		// A group has no password
+		return null;
+	}
+
+	@Override
+	public List<Principal> getParents() {
+
+		List<Principal> parents               = new LinkedList<Principal>();
+		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
+
+		for (AbstractRelationship rel : parentRels) {
+
+			AbstractNode node = rel.getEndNode();
+
+			if (node instanceof Principal) {
+
+				parents.add((Principal) node);
+			}
+
+		}
+
+		return parents;
+
+	}
 
 	@Override
 	public Boolean getBlocked() {
@@ -130,4 +134,5 @@ public class Group extends AbstractNode implements Principal {
 		throw new UnsupportedOperationException("Not supported yet.");
 
 	}
+
 }

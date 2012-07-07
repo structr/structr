@@ -771,7 +771,9 @@ var _Pages = {
 
                 if (debug) console.log('dropped', event, ui.draggable);
                 
-                
+                treeAddress = getElementPath(self);
+                if (debug) console.log('treeAddress', treeAddress);
+                addExpandedNode(treeAddress);
                 
                 if (sorting) {
                     if (debug) console.log('sorting, no drop allowed');
@@ -791,7 +793,7 @@ var _Pages = {
                 if (debug) console.log('elementId', elementId);
 
                 if (contentId == elementId) {
-                    console.log('drop on self not allowed');
+                    if (debug) console.log('drop on self not allowed');
                     return;
                 }
                 
@@ -801,7 +803,7 @@ var _Pages = {
                 if (cls == 'image') {
                     contentId = undefined;
                     name = $(ui.draggable).find('.name_').text();
-                    console.log('Image dropped, creating <img> node', name);
+                    if (debug) console.log('Image dropped, creating <img> node', name);
                     nodeData._html_src = name;
                     nodeData.name = name;
                     tag = 'img';
@@ -813,16 +815,16 @@ var _Pages = {
                     name = $(ui.draggable).children('.name_').text();
                     
                     var parentTag = self.children('.tag_').text();
-                    console.log(parentTag);
+                    if (debug) console.log(parentTag);
                     nodeData.linkable_id = contentId;
                     
                     if (parentTag == 'head') {
                         
-                        console.log('File dropped in <head>');
+                        if (debug) console.log('File dropped in <head>');
                         
                         if (name.endsWith('.css')) {
                             
-                            console.log('CSS file dropped in <head>, creating <link>');
+                            if (debug) console.log('CSS file dropped in <head>, creating <link>');
                             
                             tag = 'link';
                             nodeData._html_href = '/${link.name}';
@@ -833,7 +835,7 @@ var _Pages = {
                         } else if (name.endsWith('.js')) {
                             
                             console.log('JS file dropped in <head>, creating <script>');
-                            
+                            if (debug) 
                             tag = 'script';
                             nodeData._html_src = '/${link.name}';
                             nodeData._html_type = 'text/javascript';
@@ -841,7 +843,7 @@ var _Pages = {
                         
                     } else {
                     
-                        console.log('File dropped, creating <a> node', name);
+                        if (debug) console.log('File dropped, creating <a> node', name);
                         nodeData._html_href = '/${link.name}';
                         nodeData._html_title = '${link.name}';
                         nodeData.linkable_id = contentId;
@@ -857,8 +859,15 @@ var _Pages = {
                     if (!contentId) {
                         tag = $(ui.draggable).text();
 
-                        if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title' || tag == 'b' || tag == 'span') {
+                        if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title' || tag == 'b' || tag == 'span' || tag == 'th' || tag == 'td') {
                             nodeData.childContent = 'Initial Content for ' + tag;
+                            
+                            var pos = self.children('.node').length;
+                            if (debug) console.log('new nested child', treeAddress + '_' + pos);
+                            addExpandedNode(treeAddress + '_' + pos);
+                            
+                            // set as expanded in advance
+                            
                         }
                         
                         
@@ -879,9 +888,9 @@ var _Pages = {
                     relData['*'] = pos;
                 }
 				
-                if (!isExpanded(treeAddress)) {
-                    _Entities.toggleElement(self);
-                }
+                //if (!isExpanded(treeAddress)) {
+                //    _Entities.toggleElement(self);
+                //}
 
                 var component = self.closest( '.component')[0];
                 if (component) {
@@ -910,7 +919,7 @@ var _Pages = {
     },
 
     appendContentElement : function(content, parentId, componentId, pageId, treeAdress) {
-        console.log('Pages.appendContentElement', content, parentId, componentId, pageId, treeAdress);
+        if (debug) console.log('Pages.appendContentElement', content, parentId, componentId, pageId, treeAdress);
 		
         var div = _Contents.appendContentElement(content, parentId, componentId, pageId, treeAdress);
         if (!div) return false;

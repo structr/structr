@@ -21,8 +21,6 @@
 
 package org.structr.web.entity;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
@@ -30,8 +28,13 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.node.NodeService.NodeIndex;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -42,12 +45,10 @@ import org.structr.core.entity.RelationClass.Cardinality;
  */
 public class Element extends AbstractNode {
 
-	private static final Logger logger = Logger.getLogger(Element.class.getName());
+	private static final Logger logger           = Logger.getLogger(Element.class.getName());
+	protected static final String[] uiAttributes = { UiKey.name.name(), UiKey.tag.name() };
 
-	protected static final String[] uiAttributes = {
-		UiKey.name.name(),
-		UiKey.tag.name()
-	};
+	//~--- static initializers --------------------------------------------
 
 	static {
 
@@ -57,23 +58,21 @@ public class Element extends AbstractNode {
 		EntityContext.registerEntityRelation(Element.class, Component.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		//EntityContext.registerEntityRelation(Element.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 
+		// EntityContext.registerEntityRelation(Element.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), uiAttributes);
 		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(), uiAttributes);
 
 //              EntityContext.registerEntityRelation(Element.class,     Page.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
 
 	}
-	
+
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {
+
 		name, tag, contents, elements, components, page
+
 	}
-
-
-	
-	//~--- get methods ----------------------------------------------------
 
 }

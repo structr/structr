@@ -37,7 +37,10 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.common.Function;
+import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Element;
+import org.structr.web.entity.Page;
+import org.structr.web.servlet.HtmlServlet;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -49,10 +52,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+
 import javax.servlet.http.HttpServletRequest;
-import org.structr.web.common.ThreadLocalMatcher;
-import org.structr.web.entity.Page;
-import org.structr.web.servlet.HtmlServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -91,6 +92,7 @@ public abstract class HtmlElement extends Element {
 				return ((s != null) && (s.length > 0) && (s[0] != null))
 				       ? DigestUtils.md5Hex(s[0])
 				       : null;
+
 			}
 
 		});
@@ -102,6 +104,7 @@ public abstract class HtmlElement extends Element {
 				return ((s != null) && (s.length > 0) && (s[0] != null))
 				       ? s[0].toUpperCase()
 				       : null;
+
 			}
 
 		});
@@ -113,6 +116,7 @@ public abstract class HtmlElement extends Element {
 				return ((s != null) && (s.length > 0) && (s[0] != null))
 				       ? s[0].toLowerCase()
 				       : null;
+
 			}
 
 		});
@@ -124,6 +128,7 @@ public abstract class HtmlElement extends Element {
 				return ((s != null) && (s.length > 0) && (s[0] != null))
 				       ? StringUtils.capitalize(s[0])
 				       : null;
+
 			}
 
 		});
@@ -135,22 +140,19 @@ public abstract class HtmlElement extends Element {
 				if (s.length < 3) {
 
 					return "";
-
 				}
 
 				if (s[0].equals("true")) {
 
 					return s[1];
-
 				} else {
 
 					return s[2];
-
 				}
+
 			}
 
 		});
-		
 		functions.put("equal", new Function<String, String>() {
 
 			@Override
@@ -161,7 +163,6 @@ public abstract class HtmlElement extends Element {
 				if (s.length < 2) {
 
 					return "true";
-
 				}
 
 				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] });
@@ -169,10 +170,10 @@ public abstract class HtmlElement extends Element {
 				return s[0].equals(s[1])
 				       ? "true"
 				       : "false";
+
 			}
 
 		});
-		
 		functions.put("add", new Function<String, String>() {
 
 			@Override
@@ -185,7 +186,9 @@ public abstract class HtmlElement extends Element {
 					for (int i = 0; i < s.length; i++) {
 
 						try {
+
 							result += Integer.parseInt(s[i]);
+
 						} catch (Throwable t) {}
 
 					}
@@ -193,37 +196,39 @@ public abstract class HtmlElement extends Element {
 				}
 
 				return new Integer(result).toString();
+
 			}
 
 		});
-		
 		functions.put("active", new Function<String, String>() {
 
 			@Override
 			public String apply(String[] s) {
 
-				if(s.length == 0) {
+				if (s.length == 0) {
+
 					return "";
 				}
-				
+
 				String data = this.dataId.get();
 				String page = this.pageId.get();
-				
-				if(data != null && page != null) {
-					
-					if(data.equals(page)) {
-						
+
+				if (data != null && page != null) {
+
+					if (data.equals(page)) {
+
 						// return first argument if condition is true
 						return s[0];
-						
-					} else if(s.length > 1) {
-	
+					} else if (s.length > 1) {
+
 						// return second argument if condition is false and second argument exists
 						return s[1];
 					}
+
 				}
-				
+
 				return "";
+
 			}
 
 		});
@@ -249,13 +254,15 @@ public abstract class HtmlElement extends Element {
 	//~--- methods --------------------------------------------------------
 
 	public boolean avoidWhitespace() {
-		return false;
-	};
 
-	public boolean isVoidElement() {
 		return false;
+
 	}
-	
+
+	;
+
+	//~--- methods --------------------------------------------------------
+
 	public static String convertValueForHtml(java.lang.Object value) {
 
 		if (value != null) {
@@ -265,6 +272,7 @@ public abstract class HtmlElement extends Element {
 		}
 
 		return null;
+
 	}
 
 	// ----- static methods -----
@@ -279,6 +287,7 @@ public abstract class HtmlElement extends Element {
 
 			// re-use matcher from previous calls
 			Matcher matcher = threadLocalTemplateMatcher.get();
+
 			matcher.reset(value);
 
 			while (matcher.find()) {
@@ -292,14 +301,14 @@ public abstract class HtmlElement extends Element {
 				if (partValue != null) {
 
 					value = value.replace(group, partValue);
-
 				}
 
 			}
 
 		}
-		
+
 		return value;
+
 	}
 
 	public static String extractFunctions(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
@@ -307,11 +316,14 @@ public abstract class HtmlElement extends Element {
 
 		// re-use matcher from previous calls
 		Matcher functionMatcher = threadLocalFunctionMatcher.get();
+
 		functionMatcher.reset(source);
 
 		if (functionMatcher.matches()) {
 
-			String viewComponentId            = viewComponent != null ? viewComponent.getStringProperty(AbstractNode.Key.uuid) : null;
+			String viewComponentId            = viewComponent != null
+				? viewComponent.getStringProperty(AbstractNode.Key.uuid)
+				: null;
 			String functionGroup              = functionMatcher.group(1);
 			String parameter                  = functionMatcher.group(2);
 			String functionName               = functionGroup.substring(0, functionGroup.length());
@@ -322,7 +334,7 @@ public abstract class HtmlElement extends Element {
 				// store thread "state" in function
 				function.setDataId(viewComponentId);
 				function.setPageId(pageId);
-				
+
 				if (parameter.contains(",")) {
 
 					String[] parameters = split(parameter);
@@ -332,7 +344,6 @@ public abstract class HtmlElement extends Element {
 					for (int i = 0; i < parameters.length; i++) {
 
 						results[i] = extractFunctions(securityContext, page, startNode, pageId, componentId, viewComponent, StringUtils.strip(parameters[i]));
-
 					}
 
 					return function.apply(results);
@@ -344,7 +355,6 @@ public abstract class HtmlElement extends Element {
 					return function.apply(new String[] { result });
 
 				}
-
 			}
 
 		}
@@ -357,11 +367,9 @@ public abstract class HtmlElement extends Element {
 		} else if (source.startsWith("\"") && source.endsWith("\"")) {
 
 			return source.substring(1, source.length() - 1);
-
 		} else if (source.startsWith("'") && source.endsWith("'")) {
 
 			return source.substring(1, source.length() - 1);
-
 		} else {
 
 			// return property key
@@ -386,7 +394,6 @@ public abstract class HtmlElement extends Element {
 			if ((level != 0) || (c != ',')) {
 
 				currentToken.append(c);
-
 			}
 
 			switch (c) {
@@ -452,20 +459,24 @@ public abstract class HtmlElement extends Element {
 		if (currentToken.length() > 0) {
 
 			tokens.add(currentToken.toString().trim());
-
 		}
 
 		return tokens.toArray(new String[0]);
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	public String[] getHtmlAttributes() {
+
 		return htmlAttributes;
+
 	}
 
 	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, String key) {
+
 		return replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getStringProperty(key));
+
 	}
 
 	public static AbstractNode getNodeById(SecurityContext securityContext, String id) {
@@ -473,20 +484,24 @@ public abstract class HtmlElement extends Element {
 		if (id == null) {
 
 			return null;
-
 		}
 
 		try {
+
 			return (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(id);
+
 		} catch (Throwable t) {
+
 			logger.log(Level.WARNING, "Unable to load node with id {0}, {1}", new java.lang.Object[] { id, t.getMessage() });
+
 		}
 
 		return null;
+
 	}
 
-	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId,
-		AbstractNode viewComponent, String refKey) {
+	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
+		String refKey) {
 
 		AbstractNode node   = startNode;
 		String[] parts      = refKey.split("[\\.]+");
@@ -496,12 +511,12 @@ public abstract class HtmlElement extends Element {
 		for (int i = 0; (i < parts.length) && (node != null); i++) {
 
 			String part = parts[i];
-			
+
 			// special keyword "request"
 			if ("request".equals(part.toLowerCase())) {
-				
+
 				HttpServletRequest request = securityContext.getRequest();
-				
+
 				if (request != null) {
 
 					return StringUtils.defaultString(request.getParameter(referenceKey));
@@ -593,13 +608,14 @@ public abstract class HtmlElement extends Element {
 				continue;
 
 			}
-			
+
 			// special keyword "root": Find containing page
 			if ("root".equals(part.toLowerCase())) {
-				
+
 				List<Page> pages = getPages(securityContext, viewComponent);
-				
+
 				if (pages.isEmpty()) {
+
 					continue;
 				}
 
@@ -608,66 +624,68 @@ public abstract class HtmlElement extends Element {
 				continue;
 
 			}
-			
+
 			// special keyword "result_size"
 			if ("result_size".equals(part.toLowerCase())) {
-				
+
 				Set<Page> pages = HtmlServlet.getResultPages(securityContext, (Page) page);
-				
+
 				if (!pages.isEmpty()) {
+
 					return pages.size();
 				}
 
 				return 0;
 
 			}
-			
-			
 
 		}
 
 		if (node != null) {
 
 			return node.getProperty(referenceKey);
-
 		}
 
 		return null;
+
 	}
-	
-	
+
 	/**
 	 * Find all pages which contain the given html element node
-	 * 
+	 *
 	 * @param securityContext
 	 * @param node
-	 * @return 
+	 * @return
 	 */
 	public static List<Page> getPages(SecurityContext securityContext, final AbstractNode node) {
-		
+
 		List<Page> pages = new LinkedList<Page>();
-		
 		AbstractNode pageNode;
-		
 		List<AbstractRelationship> rels = node.getIncomingRelationships(RelType.CONTAINS);
-		
+
 		for (AbstractRelationship rel : rels) {
-			
+
 			for (String key : rel.getProperties().keySet()) {
-				
+
 				pageNode = getNodeById(securityContext, key);
-				
+
 				if (pageNode != null && pageNode instanceof Page) {
-					
+
 					pages.add((Page) pageNode);
 				}
-				
+
 			}
-			
+
 		}
-			
+
 		return pages;
-		
+
 	}
-	
+
+	public boolean isVoidElement() {
+
+		return false;
+
+	}
+
 }

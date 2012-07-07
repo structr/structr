@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 
 /**
  * Insert a node as child of the given node
- * 
+ *
  * @author Axel Morgner
  */
 public class InsertCommand extends AbstractCommand {
@@ -57,37 +57,40 @@ public class InsertCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
-                // new node properties
+		// new node properties
 		final Map<String, Object> properties = webSocketData.getNodeData();
-		String parentId                 = (String) properties.get("id");
-                final Map<String, Object> relData  = webSocketData.getRelData();
+		String parentId                      = (String) properties.get("id");
+		final Map<String, Object> relData    = webSocketData.getRelData();
 
 		if (parentId != null) {
 
-			AbstractNode parentNode = getNode(parentId);
-                        AbstractNode nodeToInsert = null;
-                        
-				StructrTransaction transaction = new StructrTransaction() {
+			AbstractNode parentNode        = getNode(parentId);
+			AbstractNode nodeToInsert      = null;
+			StructrTransaction transaction = new StructrTransaction() {
 
-					@Override
-					public Object execute() throws FrameworkException {
-						return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
-					}
-				};
-                                
-                                try {
+				@Override
+				public Object execute() throws FrameworkException {
 
-					// create node in transaction
-					nodeToInsert = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
-				} catch (FrameworkException fex) {
+					return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
 
-					logger.log(Level.WARNING, "Could not create node.", fex);
-					getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 				}
+
+			};
+
+			try {
+
+				// create node in transaction
+				nodeToInsert = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			} catch (FrameworkException fex) {
+
+				logger.log(Level.WARNING, "Could not create node.", fex);
+				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
+			}
 
 			if ((nodeToInsert != null) && (parentNode != null)) {
 
-				RelationClass rel         = EntityContext.getRelationClass(parentNode.getClass(), nodeToInsert.getClass());
+				RelationClass rel = EntityContext.getRelationClass(parentNode.getClass(), nodeToInsert.getClass());
 
 				if (rel != null) {
 
@@ -96,7 +99,9 @@ public class InsertCommand extends AbstractCommand {
 						rel.createRelationship(securityContext, parentNode, nodeToInsert, relData);
 
 					} catch (Throwable t) {
+
 						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+
 					}
 
 				}
@@ -104,21 +109,22 @@ public class InsertCommand extends AbstractCommand {
 			} else {
 
 				getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
 			}
 
 		} else {
 
 			getWebSocket().send(MessageBuilder.status().code(400).message("Insertion of new node failed.").build(), true);
-
 		}
-	}
 
+	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "INSERT";
+
 	}
+
 }

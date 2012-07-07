@@ -22,6 +22,7 @@
 package org.structr.web.entity.html;
 
 import org.apache.commons.lang.ArrayUtils;
+
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
@@ -43,12 +44,11 @@ public class Style extends HtmlElement {
 
 	static {
 
-		EntityContext.registerPropertySet(Style.class, PropertyView.All,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Style.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Style.class, PropertyView.All, HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Style.class, PropertyView.Public, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Style.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-		EntityContext.registerEntityRelation(Style.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Style.class, Head.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Style.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Style.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 
 	}
 
@@ -56,6 +56,9 @@ public class Style extends HtmlElement {
 
 	@Override
 	public String[] getHtmlAttributes() {
+
 		return (String[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlAttributes);
+
 	}
+
 }

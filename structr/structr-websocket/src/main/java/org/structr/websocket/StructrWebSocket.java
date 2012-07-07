@@ -305,7 +305,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 				newHandler = new FileUploadHandler(file);
 				
-				uploads.put(uuid, newHandler);
+				//uploads.put(uuid, newHandler);
 				
 			}
 

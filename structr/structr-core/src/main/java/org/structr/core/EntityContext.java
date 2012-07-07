@@ -56,6 +56,8 @@ import org.structr.core.notion.ObjectNotion;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.structr.core.entity.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -92,12 +94,13 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                              = new LinkedHashMap<Class, Map<String, Object>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                        = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<String, String> normalizedEntityNameCache                                      = new LinkedHashMap<String, String>();
-	private static final Set<StructrTransactionListener> transactionListeners                             = new LinkedHashSet<StructrTransactionListener>();
+	private static final Set<StructrTransactionListener> transactionListeners                               = new LinkedHashSet<StructrTransactionListener>();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap                         = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                                      = new LinkedHashMap<String, Class>();
 	private static final EntityContextModificationListener globalModificationListener                       = new EntityContextModificationListener();
 	private static final Map<Long, FrameworkException> exceptionMap                                         = new LinkedHashMap<Long, FrameworkException>();
 	private static final Map<Class, Set<Class>> interfaceMap                                                = new LinkedHashMap<Class, Set<Class>>();
+	private static final Map<String, Class> reverseInterfaceMap                                             = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                                        = new LinkedHashMap<String, Class>();
 
 	private static final Map<Thread, Set<AbstractRelationship>> modifiedRelationshipMap                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
@@ -154,7 +157,7 @@ public class EntityContext {
 	public static void init() {
 
 		try {
-			cachedEntities = (Map<String, Class>) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
+			cachedEntities   = (Map<String, Class>) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
 		} catch (FrameworkException ex) {
 			Logger.getLogger(EntityContext.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -582,6 +585,12 @@ public class EntityContext {
 			return (Class) cachedEntities.get(normalizedEntityName);
 
 		}
+		
+		if (reverseInterfaceMap.containsKey(normalizedEntityName)) {
+
+			return (Class) reverseInterfaceMap.get(normalizedEntityName);
+
+		}
 
 		return null;
 	}
@@ -593,17 +602,36 @@ public class EntityContext {
 	public static RelationshipMapping getNamedRelation(String relationName) {
 		return globalRelationshipNameMap.get(relationName);
 	}
+	
+	private static Class getSourceType(final String combinedRelationshipType) {
+
+		String sourceType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[0];
+		Class realType  = getEntityClassForRawType(sourceType);
+
+//		try {
+//			realType = (Class) Services.command(null, GetEntityClassCommand.class).execute(StringUtils.capitalize(sourceType));
+//		} catch (FrameworkException ex) {
+//			logger.log(Level.WARNING, "No real type found for {0}", sourceType);
+//		}
+
+		return realType;
+	}
+	
+	private static RelationshipType getRelType(final String combinedRelationshipType) {
+		String relType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[1];
+		return DynamicRelationshipType.withName(relType);
+	}
 
 	private static Class getDestType(final String combinedRelationshipType) {
 
 		String destType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[2];
-		Class realType  = null;
+		Class realType  = getEntityClassForRawType(destType);
 
-		try {
-			realType = (Class) Services.command(null, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "No real type found for {0}", destType);
-		}
+//		try {
+//			realType = (Class) Services.command(null, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
+//		} catch (FrameworkException ex) {
+//			logger.log(Level.WARNING, "No real type found for {0}", destType);
+//		}
 
 		return realType;
 	}
@@ -618,18 +646,12 @@ public class EntityContext {
 
 	public static Class getNamedRelationClass(String combinedRelationshipType) {
 
-		Class namedRelationClass = globalRelationshipClassMap.get(combinedRelationshipType);
+		Class sourceType         = getSourceType(combinedRelationshipType);
 		Class destType           = getDestType(combinedRelationshipType);
+		RelationshipType relType = getRelType(combinedRelationshipType);
+		
+		return getNamedRelationClass(sourceType, destType, relType);
 
-		while ((namedRelationClass == null) &&!(destType.equals(Object.class))) {
-
-			combinedRelationshipType = createCombinedRelationshipType(combinedRelationshipType, destType);
-			namedRelationClass       = globalRelationshipClassMap.get(combinedRelationshipType);
-			destType                 = destType.getSuperclass();
-
-		}
-
-		return namedRelationClass;
 	}
 
 	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
@@ -1196,7 +1218,11 @@ public class EntityContext {
 			interfaces = new LinkedHashSet<Class>();
 			interfaceMap.put(type, interfaces);
 			
-			interfaces.addAll(Arrays.asList(type.getInterfaces()));
+			for(Class iface : type.getInterfaces()) {
+
+				reverseInterfaceMap.put(iface.getSimpleName(), iface);
+				interfaces.add(iface);
+			}
 		}
 		
 		return interfaces;
@@ -1391,8 +1417,9 @@ public class EntityContext {
 			}
 
 			SecurityContext securityContext  = securityContextMap.get(currentThread);
-			Command indexNodeCommand         = Services.command(securityContext, IndexNodeCommand.class);
-			Command indexRelationshipCommand = Services.command(securityContext, IndexRelationshipCommand.class);
+			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+			Command indexNodeCommand         = Services.command(superUserContext, IndexNodeCommand.class);
+			Command indexRelationshipCommand = Services.command(superUserContext, IndexRelationshipCommand.class);
 
 			try {
 

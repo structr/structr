@@ -74,22 +74,36 @@ var _Components = {
 	}
     },
     
-    appendComponentElement : function(component, parentId, componentId, pageId, removeExisting, hasChildren) {
-	if (debug) console.log('Components.appendComponentElement: parentId: ' + parentId + ', pageId: ' + pageId);
+    appendComponentElement : function(component, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
+        if (debug) console.log('_Components.appendComponentElement', component, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
 
-	var parent = Structr.findParent(parentId, componentId, pageId, components);
+	var parent;
+        
+        if (treeAddress) {
+            if (debug) console.log('tree address', treeAddress);
+            parent = $('#_' + treeAddress);
+        } else {
+            parent = Structr.findParent(parentId, componentId, pageId, components);
+        }
         
         if (!parent) return false;
+        
+        var parentPath = getElementPath(parent);
+        
+        var id = parentPath + '_' + parent.children('.node').length;
         
         var name = component.name;
         var kind = component.kind;
 
-	parent.append('<div class="node component ' + component.id + '_">'
+	parent.append('<div id="_' + id + '" class="node component ' + component.id + '_">'
 	    + '<img class="typeIcon" src="'+ _Components.icon + '">'
 	    + '<b class="name_">' + (name ? name : '') + '</b> [<b class="kind_">' + (kind ? kind : '') + '</b>] <span class="id">' + component.id + '</span>'
 	    + '</div>');
+	
+        var div = $('#_' + id);
         
-	var div = Structr.node(component.id, parentId);
+        if (!div) return;
+        
 	div.append('<img title="Delete component \'' + name + '\' ' + component.id + '" alt="Delete component \'' + name + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 	$('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();

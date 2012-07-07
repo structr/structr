@@ -193,19 +193,12 @@ var _Elements = {
         if (!parent) return false;
         
         var parentPath = getElementPath(parent);
+        if (debug) console.log(parentPath);
         
         var id = parentPath + '_' + parent.children('.node').length;
         if (debug) console.log(id);
         
         parent.append('<div id="_' + id + '" class="node element ' + entity.id + '_"></div>');
-
-        var pos;
-        if (parent.children('.' + entity.id + '_')) {
-            pos = parent.children('.' + entity.id + '_').length-1;
-        }
-        
-        if (debug) console.log('Appending element', entity.id, parentId, componentId, pageId, pos);
-        if (debug) console.log('to parent', parent);
         
         //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
         var div = $('#_' + id);
@@ -313,9 +306,6 @@ var _Elements = {
                 
                 var headers = {};
                 headers['X-StructrSessionToken'] = token;
-                console.log('headers', headers);
-                var url = rootUrl + 'pages?pageSize=100';
-                console.log('pages URL: ' + url, headers);
                 
                 $.ajax({
                     url: rootUrl + 'pages?pageSize=100',
@@ -324,8 +314,10 @@ var _Elements = {
                     contentType: 'application/json; charset=utf-8',
                     headers: headers,
                     success: function(data) {
-                        console.log(data.result);
+                        
                         $(data.result).each(function(i, res) {
+                            
+                            //console.log(entity.id, res.linkingElements);
                             
                             dialog.append('<div class="page ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
                                 + '<b class="name_">' + res.name + '</b></div>');
@@ -366,8 +358,9 @@ var _Elements = {
                     contentType: 'application/json; charset=utf-8',
                     headers: headers,
                     success: function(data) {
-                        console.log(data.result);
                         $(data.result).each(function(i, res) {
+                            
+                            console.log(entity.id, res.name, res);
                             
                             dialog.append('<div class="file ' + res.id + '_"><img class="typeIcon" src="' + _Files.getIcon(res) + '">'
                                 + '<b class="name_">' + res.name + '</b></div>');

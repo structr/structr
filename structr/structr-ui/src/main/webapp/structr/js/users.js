@@ -125,7 +125,7 @@ var _UsersAndGroups = {
 
     appendGroupElement : function(group, hasChildren) {
         if (debug) console.log('appendGroupElement', group, hasChildren);
-        groups.append('<div class="node group ' + group.id + '_">'
+        groups.append('<div id="_' + group.id + '" class="node group ' + group.id + '_">'
             + '<img class="typeIcon" src="icon/group.png">'
             + '<b class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
             + '</div>');
@@ -145,10 +145,13 @@ var _UsersAndGroups = {
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
+                var self = $(this);
                 var userId = getId(ui.draggable);
-                var groupId = getId($(this));
+                var groupId = getId(self);
                 var nodeData = {};
                 nodeData.id = userId;
+                //console.log('addExpandedNode(groupId)', groupId);
+                addExpandedNode(groupId);
                 Command.createAndAdd(groupId, nodeData);
             }
         });
@@ -213,6 +216,7 @@ var _UsersAndGroups = {
 
             // disable delete icon on parent
             disable($('.delete_icon', parent)[0]);
+            div.draggable('disable').removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
 
         } else {
 
@@ -243,7 +247,7 @@ var _UsersAndGroups = {
 
 			
             div.draggable({
-//                helper: 'clone',
+                //                helper: 'clone',
                 revert: 'invalid',
                 containment: '#main',
                 zIndex: 1

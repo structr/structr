@@ -24,8 +24,8 @@ var _Entities = {
     booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
     numberAttrs : ['position', 'size'],
     dateAttrs : ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
-    hiddenAttrs : ['deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'checksum', 'relativeFilePath', 'path', 'elements', 'linkingElements', 'components'],
-    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id'],
+    hiddenAttrs : ['deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'relativeFilePath', 'path', 'elements', 'linkingElements', 'components'],
+    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size'],
     
     changeBooleanAttribute : function(attrElement, value) {
 
@@ -96,9 +96,10 @@ var _Entities = {
 
         if (entity.type == 'User') {
 
-            lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, removeExisting, hasChildren);
+            lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, removeExisting);
             
         } else if (entity.type == 'Group') {
+            
             lastAppendedObj = _UsersAndGroups.appendGroupElement(entity, hasChildren);
 
         } else if (entity.type == 'Page') {
@@ -123,14 +124,14 @@ var _Entities = {
             if (debug) console.log('Image:', entity);
             _Files.uploadFile(entity);
             
-            lastAppendedObj = _Files.appendImageElement(entity, parentId, removeExisting, hasChildren);
+            lastAppendedObj = _Files.appendImageElement(entity, parentId, removeExisting, hasChildren, true);
             
         } else if (entity.type == 'File') {
             
             if (debug) console.log('File: ', entity);
             _Files.uploadFile(entity);
             
-            lastAppendedObj = _Files.appendFileElement(entity, parentId, removeExisting, hasChildren);
+            lastAppendedObj = _Files.appendFileElement(entity, parentId, removeExisting, hasChildren, false);
             
         } else {
 
@@ -518,7 +519,7 @@ var _Entities = {
                 
                 var treeAddress = elId ? elId.substring(1) : undefined;
                 
-                console.log('appendExpandIcon', isExpanded(treeAddress), entity);
+                if (debug) console.log('appendExpandIcon', isExpanded(treeAddress), entity);
                 if (isExpanded(treeAddress)) {
                     if (debug) console.log('toggle', entity.id, entity.pageId);
                     _Entities.toggleElement(el, expanded)
@@ -613,17 +614,19 @@ var _Entities = {
         }
     },
 
-    toggleElement : function(el, expanded) {
+    toggleElement : function(element, expanded) {
 
-        var el = $(el);
+        var el = $(element);
         var b;
         var src = el.prop('src');
         
         var elId = el.attr('id');
         
+        if (debug) console.log(el);
+        
         var treeAddress = elId ? elId.substring(1) : undefined;
         
-        console.log('toggleElement: treeAddress', treeAddress.substring(1));
+        if (debug) console.log('toggleElement: treeAddress', treeAddress);
         
         b = el.children('.expand_icon').first();
         src = b.prop('src');

@@ -21,10 +21,10 @@
 
 package org.structr.web.common;
 
-import java.util.Collections;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -39,10 +39,10 @@ import org.structr.web.entity.Group;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.structr.common.GraphObjectComparator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,10 +57,10 @@ public class RelationshipHelper {
 
 		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
 		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
+
 	}
 
-	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String pageId, String componentId,
-		long position)
+	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String pageId, String componentId, long position)
 		throws FrameworkException {
 
 		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -73,26 +73,24 @@ public class RelationshipHelper {
 			if (!(relType.name().equals(origRelType.name()))) {
 
 				continue;
-
 			}
 
 			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, in.getProperties(), false);
 
 			// only set componentId if set and avoid setting the component id of the clone node itself
-			if ((componentId != null) &&!(cloneNode.getStringProperty(AbstractNode.Key.uuid).equals(componentId))) {
+			if ((componentId != null) && !(cloneNode.getStringProperty(AbstractNode.Key.uuid).equals(componentId))) {
 
 				newInRel.setProperty(Component.Key.componentId, componentId);
-
 			}
 
 			if (pageId != null) {
 
-				//newInRel.setProperty(Component.Key.pageId, pageId);
+				// newInRel.setProperty(Component.Key.pageId, pageId);
 				newInRel.setProperty(pageId, position);
-
 			}
 
 		}
+
 	}
 
 	public static void copyOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode cloneNode, RelType relType, String pageId, String componentId,
@@ -109,7 +107,6 @@ public class RelationshipHelper {
 			if (!relType.name().equals(origRelType.name())) {
 
 				continue;
-
 			}
 
 			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(cloneNode, endNode, relType, out.getProperties(), false);
@@ -117,17 +114,16 @@ public class RelationshipHelper {
 			if (componentId != null) {
 
 				newOutRel.setProperty(Component.Key.componentId, componentId);
-
 			}
 
 			if (pageId != null) {
 
-				//newOutRel.setProperty(Component.Key.pageId, pageId);
+				// newOutRel.setProperty(Component.Key.pageId, pageId);
 				newOutRel.setProperty(pageId, position);
-
 			}
 
 		}
+
 	}
 
 	public static void removeOutgoingRelationships(SecurityContext securityContext, final AbstractNode node, final RelType relType) throws FrameworkException {
@@ -145,7 +141,6 @@ public class RelationshipHelper {
 					if (!relType.name().equals(origRelType.name())) {
 
 						continue;
-
 					}
 
 					delRel.execute(out);
@@ -153,10 +148,13 @@ public class RelationshipHelper {
 				}
 
 				return null;
+
 			}
+
 		};
 
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
 	}
 
 	public static void removeIncomingRelationships(SecurityContext securityContext, final AbstractNode node, final RelType relType) throws FrameworkException {
@@ -174,7 +172,6 @@ public class RelationshipHelper {
 					if (!relType.name().equals(origRelType.name())) {
 
 						continue;
-
 					}
 
 					delRel.execute(in);
@@ -182,10 +179,13 @@ public class RelationshipHelper {
 				}
 
 				return null;
+
 			}
+
 		};
 
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
 	}
 
 	public static void moveIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType, String pageId, String componentId,
@@ -194,6 +194,7 @@ public class RelationshipHelper {
 
 		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
 		removeIncomingRelationships(securityContext, origNode, relType);
+
 	}
 
 	public static void moveOutgoingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType, String pageId, String componentId,
@@ -202,6 +203,7 @@ public class RelationshipHelper {
 
 		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
 		removeOutgoingRelationships(securityContext, origNode, relType);
+
 	}
 
 	public static void tagOutgoingRelsWithPageId(final AbstractNode startNode, final AbstractNode node, final String originalPageId, final String pageId) throws FrameworkException {
@@ -213,14 +215,14 @@ public class RelationshipHelper {
 			if (position != null) {
 
 				rel.setProperty(pageId, position);
-
 			}
 
 			tagOutgoingRelsWithPageId(startNode, rel.getEndNode(), originalPageId, pageId);
 
 		}
+
 	}
-	
+
 	public static void untagOutgoingRelsFromPageId(final AbstractNode startNode, final AbstractNode node, final String startPageId, final String pageId) throws FrameworkException {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
@@ -230,12 +232,12 @@ public class RelationshipHelper {
 			if (position != null) {
 
 				rel.removeProperty(pageId);
-
 			}
 
 			untagOutgoingRelsFromPageId(startNode, rel.getEndNode(), startPageId, pageId);
 
 		}
+
 	}
 
 	public static void tagOutgoingRelsWithComponentId(final AbstractNode startNode, final AbstractNode node, final String componentId) throws FrameworkException {
@@ -249,7 +251,6 @@ public class RelationshipHelper {
 				if (node.getType().equals(Component.class.getSimpleName())) {
 
 					return;
-
 				}
 
 			}
@@ -257,85 +258,15 @@ public class RelationshipHelper {
 			tagOutgoingRelsWithComponentId(startNode, rel.getEndNode(), componentId);
 
 		}
+
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	public static Set<String> getChildrenInPage(final AbstractNode parentNode, final String pageId) {
-
-		Set<String> nodesWithChildren        = new HashSet<String>();
-		List<AbstractRelationship> childRels = parentNode.getOutgoingRelationships(RelType.CONTAINS);
-
-		for (AbstractRelationship childRel : childRels) {
-
-			String parentId = parentNode.getUuid();
-
-			if (pageId == null || (parentNode instanceof Group) || (parentNode instanceof Folder)) {
-
-				nodesWithChildren.add(parentId);
-
-			}
-
-			Long childPos = null;
-
-			if (childRel.getLongProperty(pageId) != null) {
-
-				childPos = childRel.getLongProperty(pageId);
-
-			} else {
-
-				// Try "*"
-				childPos = childRel.getLongProperty("*");
-			}
-
-			if (childPos != null) {
-
-				nodesWithChildren.add(parentId);
-
-			}
-
-		}
-
-		return nodesWithChildren;
-	}
-
-	public static boolean hasChildren(final AbstractNode node, final String pageId) {
-
-		List<AbstractRelationship> childRels = node.getOutgoingRelationships(RelType.CONTAINS);
-
-		if ((node instanceof Group) || (node instanceof Folder)) {
-
-			return !childRels.isEmpty();
-
-		}
-
-		for (AbstractRelationship childRel : childRels) {
-
-			Long childPos = null;
-
-			if (childRel.getLongProperty(pageId) != null) {
-
-				childPos = childRel.getLongProperty(pageId);
-
-			} else {
-
-				// Try "*"
-				childPos = childRel.getLongProperty("*");
-			}
-
-			if (childPos != null) {
-
-				return true;
-
-			}
-
-		}
-
-		return false;
-	}
-	
 	public static void reorderRels(final List<AbstractRelationship> rels, final String pageId) throws FrameworkException {
 
+		if (pageId == null) {
+			return;
+		}
+		
 		long i = 0;
 
 		Collections.sort(rels, new GraphObjectComparator(pageId, GraphObjectComparator.ASCENDING));
@@ -358,5 +289,75 @@ public class RelationshipHelper {
 
 	}
 
-	
+	//~--- get methods ----------------------------------------------------
+
+	public static Set<String> getChildrenInPage(final AbstractNode parentNode, final String pageId) {
+
+		Set<String> nodesWithChildren        = new HashSet<String>();
+		List<AbstractRelationship> childRels = parentNode.getOutgoingRelationships(RelType.CONTAINS);
+
+		for (AbstractRelationship childRel : childRels) {
+
+			String parentId = parentNode.getUuid();
+
+			if (pageId == null || (parentNode instanceof Group) || (parentNode instanceof Folder)) {
+
+				nodesWithChildren.add(parentId);
+			}
+
+			Long childPos = null;
+
+			if (childRel.getLongProperty(pageId) != null) {
+
+				childPos = childRel.getLongProperty(pageId);
+			} else {
+
+				// Try "*"
+				childPos = childRel.getLongProperty("*");
+			}
+
+			if (childPos != null) {
+
+				nodesWithChildren.add(parentId);
+			}
+
+		}
+
+		return nodesWithChildren;
+
+	}
+
+	public static boolean hasChildren(final AbstractNode node, final String pageId) {
+
+		List<AbstractRelationship> childRels = node.getOutgoingRelationships(RelType.CONTAINS);
+
+		if ((node instanceof Group) || (node instanceof Folder)) {
+
+			return !childRels.isEmpty();
+		}
+
+		for (AbstractRelationship childRel : childRels) {
+
+			Long childPos = null;
+
+			if (childRel.getLongProperty(pageId) != null) {
+
+				childPos = childRel.getLongProperty(pageId);
+			} else {
+
+				// Try "*"
+				childPos = childRel.getLongProperty("*");
+			}
+
+			if (childPos != null) {
+
+				return true;
+			}
+
+		}
+
+		return false;
+
+	}
+
 }
