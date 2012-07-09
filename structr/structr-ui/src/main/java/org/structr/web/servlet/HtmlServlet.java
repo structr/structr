@@ -372,6 +372,7 @@ public class HtmlServlet extends HttpServlet {
 			if (node == null) {
 				
 				HttpAuthenticator.writeNotFound(response);
+				return;
 				
 			}
 			

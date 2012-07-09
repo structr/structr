@@ -303,9 +303,9 @@ public class Importer {
 				attrs.add(new NodeAttribute("content", content));
 			}
 
-			// Type and name
+			// Type
 			attrs.add(new NodeAttribute(AbstractNode.Key.type.name(), type));
-			attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type));
+			//attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type));
 
 			// Tag name
 			attrs.add(new NodeAttribute("tag", tag));
