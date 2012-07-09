@@ -4,14 +4,11 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Map;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.module.GetEntitiesCommand;
 import org.structr.rest.exception.NotFoundException;
 
 /**
@@ -37,11 +34,9 @@ public class InheritingTypedIdResource extends TypedIdResource {
 		
 		AbstractNode node = idResource.getNode();
 
+		String type       = EntityContext.normalizeEntityName(typeResource.getRawType());
+		Class parentClass = EntityContext.getEntityClassForRawType(type);
 		Class entityClass = node.getClass();
-		String type = EntityContext.normalizeEntityName(typeResource.getRawType());
-
-		Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
-		Class parentClass           = entities.get(type);
 
 		if (parentClass.isAssignableFrom(entityClass)) {
 			return node;
