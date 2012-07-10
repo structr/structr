@@ -42,6 +42,7 @@ import org.structr.web.entity.Group;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 //~--- classes ----------------------------------------------------------------
@@ -88,7 +89,10 @@ public class RelationshipHelper {
 
 			}
 
-			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, in.getProperties(), false);
+			Map<String, Object> props = in.getProperties();
+			props.remove(AbstractRelationship.Key.uuid.name());
+			
+			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, props, false);
 
 			// only set componentId if set and avoid setting the component id of the clone node itself
 			if ((componentId != null) &&!(cloneNode.getStringProperty(AbstractNode.Key.uuid).equals(componentId))) {
@@ -122,8 +126,11 @@ public class RelationshipHelper {
 				continue;
 
 			}
+			
+			Map<String, Object> props = out.getProperties();
+			props.remove(AbstractRelationship.Key.uuid.name());
 
-			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(cloneNode, endNode, relType, out.getProperties(), false);
+			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(cloneNode, endNode, relType, props, false);
 
 			if (componentId != null) {
 
