@@ -485,10 +485,21 @@ public class SecurityContext {
 
 	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {
 
-		Principal user = getUser();
+		// Ask for user only if node is visible for authenticated users
+		if (node.isVisibleToAuthenticatedUsers()) {
 
-		return node.isGranted(permission, user);
+			Principal user = getUser();
 
+			if (user != null) {
+
+				return true;
+			}
+
+			return node.isGranted(permission, user);
+
+		}
+
+		return false;
 	}
 
 	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
