@@ -78,8 +78,9 @@ public class DynamicTypeResource extends TypeResource {
 
 		// Quick fix: use superuser context here
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+
 		superUserContext.setRequest(request);
-		
+
 		this.securityContext = superUserContext;
 		this.request         = request;
 		this.rawType         = part;
@@ -88,7 +89,6 @@ public class DynamicTypeResource extends TypeResource {
 
 		// FIXME: do type check on existing dynamic resources here..
 		return rawType != null;
-
 	}
 
 	@Override
@@ -105,10 +105,11 @@ public class DynamicTypeResource extends TypeResource {
 
 		// REST path contained uuid, return result of UuidResource
 		if (uuidResource != null) {
-			
+
 			uuidResource.setSecurityContext(this.securityContext);
 
 			uuidResults = (List<GraphObject>) uuidResource.doGet();
+
 		}
 
 		// check for dynamic type, use super class otherwise
@@ -199,7 +200,10 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (uuidResource != null) {
 
+			uuidResource.setSecurityContext(this.securityContext);
+
 			return uuidResource.doPut(propertySet);
+
 		}
 
 		throw new IllegalPathException();
