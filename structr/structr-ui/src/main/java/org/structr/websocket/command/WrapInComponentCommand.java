@@ -21,17 +21,12 @@
 
 package org.structr.websocket.command;
 
-import org.apache.commons.lang.StringUtils;
-
-import org.neo4j.graphdb.Direction;
-
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
@@ -85,8 +80,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
 					String componentId     = newComponent.getStringProperty(AbstractNode.Key.uuid);
 
-					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, pageId,
-						newComponent.getStringProperty(AbstractNode.Key.uuid), position);
+					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, pageId, componentId, position);
 
 					if ((parentNode != null) && (newComponent != null)) {
 
@@ -98,17 +92,14 @@ public class WrapInComponentCommand extends AbstractCommand {
 							Map<String, Object> relProps = new LinkedHashMap<String, Object>();
 
 							relProps.put(pageId, 0);
-							relProps.put("pageId", pageId);
+
+							// relProps.put("pageId", pageId);
 							relProps.put("componentId", componentId);
 
 							try {
-
 								rel.createRelationship(securityContext, newComponent, nodeToWrap, relProps);
-
 							} catch (Throwable t) {
-
 								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
 							}
 
 							RelationshipHelper.tagOutgoingRelsWithComponentId(newComponent, newComponent, componentId);
@@ -117,23 +108,19 @@ public class WrapInComponentCommand extends AbstractCommand {
 					} else {
 
 						getWebSocket().send(MessageBuilder.status().code(404).build(), true);
+
 					}
 
 					return null;
-
 				}
-
 			};
 
 			try {
-
 				Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
-
 			}
 
 		} else {
@@ -142,16 +129,12 @@ public class WrapInComponentCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
-
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
-
 		return "WRAP";
-
 	}
-
 }

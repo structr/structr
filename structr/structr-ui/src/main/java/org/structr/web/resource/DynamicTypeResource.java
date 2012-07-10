@@ -78,6 +78,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		// Quick fix: use superuser context here
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		superUserContext.setRequest(request);
 		
 		this.securityContext = superUserContext;
 		this.request         = request;
@@ -104,6 +105,8 @@ public class DynamicTypeResource extends TypeResource {
 
 		// REST path contained uuid, return result of UuidResource
 		if (uuidResource != null) {
+			
+			uuidResource.setSecurityContext(this.securityContext);
 
 			uuidResults = (List<GraphObject>) uuidResource.doGet();
 		}
