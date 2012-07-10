@@ -198,6 +198,12 @@ public class Component extends AbstractNode {
 
 			AbstractNode endNode = rel.getEndNode();
 
+			if (endNode == null) {
+
+				continue;
+
+			}
+
 			collectChildren(children, endNode, componentId, depth + 1, rel);
 
 		}

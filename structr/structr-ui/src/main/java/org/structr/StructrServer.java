@@ -129,6 +129,7 @@ public class StructrServer {
 		if (!modulesDir.exists()) {
 
 			modulesDir.mkdir();
+
 		}
 
 		modulesPath = modulesDir.getAbsolutePath();
@@ -202,9 +203,11 @@ public class StructrServer {
 		if (!modulesConfFile.exists()) {
 
 			modulesConfFile.createNewFile();
+
 		} else {
 
 			modulesConfFile.delete();
+
 		}
 
 		FileUtils.writeLines(modulesConfFile, "UTF-8", modulesConf);
@@ -299,6 +302,7 @@ public class StructrServer {
 		if (!logDir.exists()) {
 
 			logDir.mkdir();
+
 		}
 
 		logPath = logDir.getAbsolutePath();
@@ -322,7 +326,5 @@ public class StructrServer {
 		server.start();
 		server.join();
 		System.out.println(appName + " stopped.");
-
 	}
-
 }

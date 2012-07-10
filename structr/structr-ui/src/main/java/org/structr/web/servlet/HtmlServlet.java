@@ -118,9 +118,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return pegDownProcessor.get().markdownToHtml(s);
-
 			}
 
 		});
@@ -128,9 +126,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return textileProcessor.get().parseToHtml(s);
-
 			}
 
 		});
@@ -138,9 +134,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return mediaWikiProcessor.get().parseToHtml(s);
-
 			}
 
 		});
@@ -148,9 +142,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return tracWikiProcessor.get().parseToHtml(s);
-
 			}
 
 		});
@@ -158,9 +150,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return confluenceProcessor.get().parseToHtml(s);
-
 			}
 
 		});
@@ -168,9 +158,7 @@ public class HtmlServlet extends HttpServlet {
 
 			@Override
 			public String adapt(String s) throws FrameworkException {
-
 				return StringEscapeUtils.escapeHtml(s);
-
 			}
 
 		});
@@ -180,7 +168,7 @@ public class HtmlServlet extends HttpServlet {
 	//~--- fields ---------------------------------------------------------
 
 	// area, base, br, col, command, embed, hr, img, input, keygen, link, meta, param, source, track, wbr
-	private boolean edit, tidy;
+	private boolean edit;
 	private Gson gson;
 
 	//~--- methods --------------------------------------------------------
@@ -200,6 +188,7 @@ public class HtmlServlet extends HttpServlet {
 			contentExchange = new ContentExchange();
 
 			httpClient.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
+			request.setCharacterEncoding("UTF-8");
 
 			restUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getLocalPort() + StructrServer.REST_URL + "/" + pagePath;
 
@@ -208,7 +197,7 @@ public class HtmlServlet extends HttpServlet {
 			Buffer buf = new ByteArrayBuffer(gson.toJson(parameters), "UTF-8");
 
 			contentExchange.setRequestContent(buf);
-			contentExchange.setRequestContentType("application/json");
+			contentExchange.setRequestContentType("application/json;charset=UTF-8");
 			contentExchange.setMethod("POST");
 
 			String[] userAndPass = HttpAuthenticator.getUsernameAndPassword(request);
@@ -230,9 +219,7 @@ public class HtmlServlet extends HttpServlet {
 			logger.log(Level.WARNING, "Error while POSTing to REST url " + restUrl, ex);
 
 			return false;
-
 		}
-
 	}
 
 	@Override
@@ -246,7 +233,10 @@ public class HtmlServlet extends HttpServlet {
 	public void destroy() {}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
+
+		request.setCharacterEncoding("UTF-8");
+		response.setCharacterEncoding("UTF-8");
 
 		Map<String, String[]> parameterMap = request.getParameterMap();
 		String path                        = PathHelper.clean(request.getPathInfo());
@@ -266,138 +256,139 @@ public class HtmlServlet extends HttpServlet {
 			response.sendRedirect("/" + name + "//" + pagePath);
 
 		} catch (IOException ex) {
-
 			logger.log(Level.SEVERE, "Could not redirect to " + path, ex);
-
 		}
-
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
-		String path = PathHelper.clean(request.getPathInfo());
-
-		logger.log(Level.FINE, "Path info {0}", path);
-
-		String[] urlParts = PathHelper.getParts(path);
-		String searchFor  = null;
-
-		if (urlParts.length > 1) {
-
-			searchFor = StringUtils.substringBefore(urlParts[1], "?");
-		}
-
-		String[] pathParts   = PathHelper.getParts(path);
-		boolean tryIndexPage = false;
-		String name          = "";
-
-		if ((pathParts == null) || (pathParts.length == 0)) {
-
-			// try to find a page with position==0
-			tryIndexPage = true;
-
-			logger.log(Level.INFO, "No path supplied, trying to find index page");
-
-//                      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//
-//                      return;
-		} else {
-
-			name = PathHelper.getName(pathParts[0]);
-		}
-
-		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
-		Map<String, String[]> parameterMap = request.getParameterMap();
-
-		if ((parameterMap != null) && (parameterMap.size() > 0)) {
-
-			attrs = convertToNodeAttributes(parameterMap);
-		}
-
-		edit = false;
-		tidy = false;
-
-		if (request.getParameter("edit") != null) {
-
-			edit = true;
-		}
-
-		if (request.getParameter("tidy") != null) {
-
-			tidy = true;
-		}
-
-		// first part (before "//" is page path (file etc),
-		// second part is nested component control
-		// store remaining path parts in request
-		Matcher matcher                 = threadLocalUUIDMatcher.get();
-		boolean requestUriContainsUuids = false;
-
-		for (int i = 1; i < pathParts.length; i++) {
-
-			String[] parts = pathParts[i].split("[/]+");
-
-			for (int j = 0; j < parts.length; j++) {
-
-				// FIXME: index (j) in setAttribute might be
-				// wrong here if we have multiple //-separated
-				// parts!
-				request.setAttribute(parts[j], j);
-				matcher.reset(parts[j]);
-
-				// set to "true" if part matches UUID pattern
-				requestUriContainsUuids |= matcher.matches();
-			}
-
-		}
-
-		// store information about UUIDs in path in request for later use in Component
-		request.setAttribute(Component.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
-
 		try {
-
-			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 
 			request.setCharacterEncoding("UTF-8");
 
-			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-			double start                = System.nanoTime();
+			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
+			response.setCharacterEncoding("UTF-8");
+
+			String path = PathHelper.clean(request.getPathInfo());
+
+			logger.log(Level.FINE, "Path info {0}", path);
+
+			String[] urlParts = PathHelper.getParts(path);
+			String searchFor  = null;
+
+			if (urlParts.length > 1) {
+
+				searchFor = StringUtils.substringBefore(urlParts[1], "?");
+
+			}
+
+			String[] pathParts   = PathHelper.getParts(path);
+			boolean tryIndexPage = false;
+			String name          = "";
+
+			if ((pathParts == null) || (pathParts.length == 0)) {
+
+				// try to find a page with position==0
+				tryIndexPage = true;
+
+				logger.log(Level.INFO, "No path supplied, trying to find index page");
+
+//                              response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//
+//                              return;
+			} else {
+
+				name = PathHelper.getName(pathParts[0]);
+
+			}
+
+			List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
+			Map<String, String[]> parameterMap = request.getParameterMap();
+
+			if ((parameterMap != null) && (parameterMap.size() > 0)) {
+
+				attrs = convertToNodeAttributes(parameterMap);
+
+			}
+
+			edit = false;
+
+			if (request.getParameter("edit") != null) {
+
+				edit = true;
+
+			}
+
+			// first part (before "//" is page path (file etc),
+			// second part is nested component control
+			// store remaining path parts in request
+			Matcher matcher                 = threadLocalUUIDMatcher.get();
+			boolean requestUriContainsUuids = false;
+
+			for (int i = 1; i < pathParts.length; i++) {
+
+				String[] parts = pathParts[i].split("[/]+");
+
+				for (int j = 0; j < parts.length; j++) {
+
+					// FIXME: index (j) in setAttribute might be
+					// wrong here if we have multiple //-separated
+					// parts!
+					request.setAttribute(parts[j], j);
+					matcher.reset(parts[j]);
+
+					// set to "true" if part matches UUID pattern
+					requestUriContainsUuids |= matcher.matches();
+				}
+
+			}
+
+			// store information about UUIDs in path in request for later use in Component
+			request.setAttribute(Component.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
+
+			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
+			DecimalFormat decimalFormat     = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+			double start                    = System.nanoTime();
 
 			// 1: find entry point (Page, File or Image)
-			AbstractNode node                 = tryIndexPage
-				? findIndexPage()
-				: findEntryPoint(name);
-			
+			AbstractNode node = tryIndexPage
+					    ? findIndexPage()
+					    : findEntryPoint(name);
+
 			if (node == null) {
-				
+
 				HttpAuthenticator.writeNotFound(response);
+
 				return;
-				
+
 			}
-			
-			
+
 			Page page                         = null;
 			org.structr.core.entity.File file = null;
 
 			if (node instanceof Page) {
 
 				page = (Page) node;
+
 			} else if (node instanceof org.structr.core.entity.File) {
 
 				file = (org.structr.core.entity.File) node;
+
 			}
 
 			if (edit) {
 
 				response.setHeader("Pragma", "no-cache");
+
 			} else {
 
 				Date nodeLastMod = node.getLastModifiedDate();
 
-				if (lastModified == null || nodeLastMod.after(lastModified)) {
+				if ((lastModified == null) || nodeLastMod.after(lastModified)) {
 
 					lastModified = nodeLastMod;
+
 				}
 
 			}
@@ -426,14 +417,20 @@ public class HtmlServlet extends HttpServlet {
 
 					if (contentType != null) {
 
+						if (contentType.equals("text/html")) {
+
+							contentType = contentType.concat(";charset=UTF-8");
+
+						}
+
 						response.setContentType(contentType);
+
 					} else {
 
 						// Default
-						response.setContentType("text/html; charset=utf-8");
+						response.setContentType("text/html;charset=UTF-8");
 					}
 
-//
 //                                      if (tidy) {
 //
 //                                              StringWriter tidyOutput = new StringWriter();
@@ -471,10 +468,11 @@ public class HtmlServlet extends HttpServlet {
 					if (contentType != null) {
 
 						response.setContentType(contentType);
+
 					} else {
 
 						// Default
-						response.setContentType("text/html; charset=utf-8");
+						response.setContentType("application/octet-stream");
 					}
 
 					IOUtils.copy(in, out);
@@ -495,21 +493,20 @@ public class HtmlServlet extends HttpServlet {
 					} catch (IllegalStateException ise) {
 						;
 					}
-					
+
 				} else {
 
 					HttpAuthenticator.writeNotFound(response);
+
 				}
 			}
 
 		} catch (Throwable t) {
 
-			//t.printStackTrace();
+			// t.printStackTrace();
 			logger.log(Level.WARNING, "Exception while processing request", t);
 			HttpAuthenticator.writeInternalServerError(response);
-
 		}
-
 	}
 
 	/**
@@ -531,9 +528,11 @@ public class HtmlServlet extends HttpServlet {
 			if (values.length == 1) {
 
 				val = values[0];
+
 			} else {
 
 				val = values;
+
 			}
 
 			parameters.put(param.getKey(), val);
@@ -541,7 +540,6 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return parameters;
-
 	}
 
 	/**
@@ -562,9 +560,11 @@ public class HtmlServlet extends HttpServlet {
 			if (values.length == 1) {
 
 				val = values[0];
+
 			} else {
 
 				val = values;
+
 			}
 
 			NodeAttribute attr = new NodeAttribute(param.getKey(), val);
@@ -574,7 +574,6 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return attrs;
-
 	}
 
 	private AbstractNode findIndexPage() throws FrameworkException {
@@ -599,7 +598,6 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return null;
-
 	}
 
 	private AbstractNode findEntryPoint(final String name) throws FrameworkException {
@@ -627,12 +625,12 @@ public class HtmlServlet extends HttpServlet {
 			if (!results.isEmpty()) {
 
 				return results.get(0);
+
 			}
 
 		}
 
 		return null;
-
 	}
 
 	private static String indent(final int depth, final boolean newline) {
@@ -642,15 +640,16 @@ public class HtmlServlet extends HttpServlet {
 		if (newline) {
 
 			indent.append("\n");
+
 		}
 
 		for (int d = 0; d < depth; d++) {
 
 			indent.append("  ");
+
 		}
 
 		return indent.toString();
-
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -673,6 +672,7 @@ public class HtmlServlet extends HttpServlet {
 			if (!el.avoidWhitespace()) {
 
 				ind = indent(depth, true);
+
 			}
 
 		}
@@ -683,9 +683,10 @@ public class HtmlServlet extends HttpServlet {
 
 				Date nodeLastMod = startNode.getLastModifiedDate();
 
-				if (lastModified == null || nodeLastMod.after(lastModified)) {
+				if ((lastModified == null) || nodeLastMod.after(lastModified)) {
 
 					lastModified = nodeLastMod;
+
 				}
 
 			}
@@ -707,6 +708,7 @@ public class HtmlServlet extends HttpServlet {
 					if (!val.equals(startNode.getProperty(key))) {
 
 						return;
+
 					}
 
 				}
@@ -735,9 +737,7 @@ public class HtmlServlet extends HttpServlet {
 							// apply adapter
 							content = converter.adapt(content);
 						} catch (FrameworkException fex) {
-
 							logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
-
 						}
 
 					}
@@ -745,9 +745,10 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 				// replace newlines with <br /> for rendering
-				if (((contentType == null) || contentType.equals("text/plain")) && (content != null) && !content.isEmpty()) {
+				if (((contentType == null) || contentType.equals("text/plain")) && (content != null) &&!content.isEmpty()) {
 
 					content = content.replaceAll("[\\n]{1}", "<br>");
+
 				}
 
 			}
@@ -756,6 +757,7 @@ public class HtmlServlet extends HttpServlet {
 			if (startNode instanceof Component) {
 
 				localComponentId = startNode.getStringProperty(AbstractNode.Key.uuid);
+
 			}
 
 			// In edit mode, add an artificial 'div' tag around content nodes within body
@@ -763,6 +765,7 @@ public class HtmlServlet extends HttpServlet {
 			if (edit && inBody && (startNode instanceof Content)) {
 
 				tag = "span";
+
 			}
 
 			if (StringUtils.isNotBlank(tag)) {
@@ -770,6 +773,7 @@ public class HtmlServlet extends HttpServlet {
 				if (tag.equals("body")) {
 
 					inBody = true;
+
 				}
 
 				if ((startNode instanceof Content) || (startNode instanceof HtmlElement)) {
@@ -781,6 +785,7 @@ public class HtmlServlet extends HttpServlet {
 						if (depth == 1) {
 
 							buffer.append(" structr_page_id='").append(pageId).append("'");
+
 						}
 
 						if (el != null) {
@@ -792,6 +797,7 @@ public class HtmlServlet extends HttpServlet {
 						} else {
 
 							buffer.append(" structr_content_id=\"").append(id).append("\"");
+
 						}
 
 					}
@@ -813,9 +819,7 @@ public class HtmlServlet extends HttpServlet {
 								}
 
 							} catch (Throwable t) {
-
 								t.printStackTrace();
-
 							}
 
 						}
@@ -827,6 +831,7 @@ public class HtmlServlet extends HttpServlet {
 					if (!isVoid) {
 
 						buffer.append(ind);
+
 					}
 
 				}
@@ -836,6 +841,7 @@ public class HtmlServlet extends HttpServlet {
 			if (content != null) {
 
 				buffer.append(content);
+
 			}
 
 			if (startNode instanceof SearchResultView) {
@@ -909,6 +915,7 @@ public class HtmlServlet extends HttpServlet {
 					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
 						getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
+
 					}
 
 				}
@@ -926,6 +933,7 @@ public class HtmlServlet extends HttpServlet {
 						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
 							getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
+
 						}
 
 					}
@@ -936,36 +944,38 @@ public class HtmlServlet extends HttpServlet {
 			boolean whitespaceOnly = false;
 			int lastNewline        = buffer.lastIndexOf("\n");
 
-			whitespaceOnly = StringUtils.isBlank(lastNewline > -1
+			whitespaceOnly = StringUtils.isBlank((lastNewline > -1)
 				? buffer.substring(lastNewline)
 				: buffer.toString());
 
-			if ((el != null) && !el.avoidWhitespace()) {
+			if ((el != null) &&!el.avoidWhitespace()) {
 
 				if (whitespaceOnly) {
 
 					buffer.replace(buffer.length() - 2, buffer.length(), "");
+
 				} else {
 
 					buffer.append(indent(depth - 1, true));
+
 				}
 
 			}
 
 			// render end tag, if needed (= if not singleton tags)
-			if (StringUtils.isNotBlank(tag) && ((startNode instanceof Content) || !isVoid)) {
+			if (StringUtils.isNotBlank(tag) && ((startNode instanceof Content) ||!isVoid)) {
 
 				buffer.append("</").append(tag).append(">");
 
-				if ((el != null) && !el.avoidWhitespace()) {
+				if ((el != null) &&!el.avoidWhitespace()) {
 
 					buffer.append(indent(depth - 1, true));
+
 				}
 
 			}
 
 		}
-
 	}
 
 	/**
@@ -986,15 +996,17 @@ public class HtmlServlet extends HttpServlet {
 		if ((request == null) || StringUtils.isEmpty(search)) {
 
 			return Collections.EMPTY_SET;
+
 		}
 
 		if (request != null) {
 
 			resultPages = (Set<Page>) request.getAttribute("searchResults");
 
-			if ((resultPages != null) && !resultPages.isEmpty()) {
+			if ((resultPages != null) &&!resultPages.isEmpty()) {
 
 				return resultPages;
+
 			}
 
 		}
@@ -1002,6 +1014,7 @@ public class HtmlServlet extends HttpServlet {
 		if (resultPages == null) {
 
 			resultPages = new HashSet<Page>();
+
 		}
 
 		// fetch search results
@@ -1022,19 +1035,17 @@ public class HtmlServlet extends HttpServlet {
 			for (Content contentNode : contentNodes) {
 
 				resultPages.addAll(HtmlElement.getPages(securityContext, contentNode));
+
 			}
 
 			// Remove result page itself
 			resultPages.remove((Page) displayPage);
 
 		} catch (FrameworkException fe) {
-
 			logger.log(Level.WARNING, "Error while searching in content", fe);
-
 		}
 
 		return resultPages;
-
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -1059,6 +1070,7 @@ public class HtmlServlet extends HttpServlet {
 		} else {
 
 			response.addHeader("Cache-Control", "public, must-revalidate, proxy-revalidate");
+
 		}
 
 		if (lastModified != null) {
@@ -1073,7 +1085,7 @@ public class HtmlServlet extends HttpServlet {
 
 					Date ifModSince = httpDateFormat.parse(ifModifiedSince);
 
-					if (ifModSince != null && (lastModified.equals(ifModSince) || lastModified.before(ifModSince))) {
+					if ((ifModSince != null) && (lastModified.equals(ifModSince) || lastModified.before(ifModSince))) {
 
 						notModified = true;
 
@@ -1082,9 +1094,7 @@ public class HtmlServlet extends HttpServlet {
 					}
 
 				} catch (ParseException ex) {
-
 					logger.log(Level.WARNING, "Could not parse If-Modified-Since header", ex);
-
 				}
 
 			}
@@ -1092,7 +1102,6 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return notModified;
-
 	}
 
 	//~--- inner classes --------------------------------------------------
@@ -1101,11 +1110,8 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected MarkupParser initialValue() {
-
 			return new MarkupParser(new ConfluenceDialect());
-
 		}
-
 	}
 
 
@@ -1113,11 +1119,8 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected MarkupParser initialValue() {
-
 			return new MarkupParser(new MediaWikiDialect());
-
 		}
-
 	}
 
 
@@ -1125,11 +1128,8 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected PegDownProcessor initialValue() {
-
 			return new PegDownProcessor();
-
 		}
-
 	}
 
 
@@ -1137,11 +1137,8 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected MarkupParser initialValue() {
-
 			return new MarkupParser(new TextileDialect());
-
 		}
-
 	}
 
 
@@ -1149,11 +1146,7 @@ public class HtmlServlet extends HttpServlet {
 
 		@Override
 		protected MarkupParser initialValue() {
-
 			return new MarkupParser(new TracWikiDialect());
-
 		}
-
 	}
-
 }

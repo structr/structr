@@ -278,6 +278,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Error sending message to client.", t);
+			//t.printStackTrace();
 
 		}
 	}
