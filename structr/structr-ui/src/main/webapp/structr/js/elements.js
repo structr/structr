@@ -235,7 +235,7 @@ var _Elements = {
 
             var node = $(self.closest('.node')[0]);
 
-            var pos = node.parent().children().size();
+            var pos = node.parent().children('.node').size() - 1;
 
             var nodeData = {};
             nodeData.type = 'Component';
