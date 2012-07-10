@@ -123,7 +123,19 @@ var _Contents = {
             });
             _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
         });
-
+        
+        $('.name_', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            var text = self.parent().find('.content_').text();
+            Structr.dialog('Edit content of ' + content.id, function() {
+                if (debug) console.log('content saved')
+            }, function() {
+                if (debug) console.log('cancelled')
+            });
+            _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
+        });
+        
         _Entities.appendEditPropertiesIcon(div, content);
         _Entities.appendAccessControlIcon(div, content);
 
