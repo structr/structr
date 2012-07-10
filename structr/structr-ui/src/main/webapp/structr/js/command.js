@@ -188,15 +188,18 @@ var Command = {
      * The server will set the given value as new value of the property with
      * the given key for the node with the given id and broadcast an update
      * notification.
+     * 
+     * If recursive is set and true, the property will be set on all subnodes, too.
      */
-    setProperty : function(id, key, value) {
+    setProperty : function(id, key, value, recursive) {
         var obj = {};
         obj.command = 'UPDATE';
         obj.id = id;
         var data = {};
         data[key] = value;
+        if (recursive) data['recursive'] = true;
         obj.data = data;
-        if (debug) console.log('setProperty()', obj);
+        console.log('setProperty()', obj);
         return sendObj(obj);
     },
 

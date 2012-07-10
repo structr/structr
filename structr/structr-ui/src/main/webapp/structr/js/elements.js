@@ -291,6 +291,7 @@ var _Elements = {
 
         _Entities.setMouseOver(div);
         _Entities.appendEditPropertiesIcon(div, entity);
+        _Entities.appendAccessControlIcon(div, entity);
         
         if (entity.tag == 'a' || entity.tag == 'link') {
             div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + Structr.link_icon + '">');

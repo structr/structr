@@ -125,6 +125,7 @@ var _Contents = {
         });
 
         _Entities.appendEditPropertiesIcon(div, content);
+        _Entities.appendAccessControlIcon(div, content);
 
         return div;
     },

@@ -427,6 +427,9 @@ var _Entities = {
                 });                
                 
                 dt.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
+                
+                dt.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
+                
                 var publicSwitch = $('.visibleToPublicUsers_');
                 var authSwitch = $('.visibleToAuthenticatedUsers_');
 
@@ -435,17 +438,19 @@ var _Entities = {
 
                 if (debug) console.log(publicSwitch);
                 if (debug) console.log(authSwitch);
-
+                
                 publicSwitch.on('click', function(e) {
                     e.stopPropagation();
+                    var rec = $('#recursive', dt).is(':checked');
                     if (debug) console.log('Toggle switch', publicSwitch.hasClass('disabled'))
-                    Command.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'));
+                    Command.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'), rec);
                 });
 
                 authSwitch.on('click', function(e) {
                     e.stopPropagation();
+                    var rec = $('#recursive', dt).is(':checked');
                     if (debug) console.log('Toggle switch', authSwitch.hasClass('disabled'))
-                    Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'));
+                    Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'), rec);
                 });
 
             });

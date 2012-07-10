@@ -21,7 +21,13 @@
 
 package org.structr.websocket.command;
 
+import org.apache.commons.lang.StringUtils;
+
+import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -30,7 +36,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,25 +52,27 @@ public class UpdateCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		GraphObject obj                 = getNode(webSocketData.getId());
-//		final Map<String, Object> relData = webSocketData.getRelData();
+		GraphObject obj  = getNode(webSocketData.getId());
+		String recString = (String) webSocketData.getNodeData().get("recursive");
+		
+		webSocketData.getNodeData().remove("recursive");
+		
+		boolean rec      = StringUtils.isNotBlank(recString)
+				   ? Boolean.parseBoolean(recString)
+				   : false;
 
+//              final Map<String, Object> relData = webSocketData.getRelData();
 		if (obj == null) {
-			
+
 			// No node? Try to find relationship
 			obj = getRelationship(webSocketData.getId());
-			
 		}
-		
+
 		if (obj != null) {
-			
+
 			for (Entry<String, Object> entry : webSocketData.getNodeData().entrySet()) {
 
-				try {
-					obj.setProperty(entry.getKey(), entry.getValue());
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
-				}
+				setPropertyRecursively(obj, entry.getKey(), entry.getValue(), rec);
 
 			}
 
@@ -82,5 +89,40 @@ public class UpdateCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 		return "UPDATE";
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	private void setPropertyRecursively(final GraphObject obj, final String key, final Object value, final boolean rec) {
+
+		try {
+
+			obj.setProperty(key, value);
+
+			if (rec) {
+
+				if (obj instanceof AbstractNode) {
+
+					AbstractNode node = (AbstractNode) obj;
+
+					for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
+
+						AbstractNode endNode = rel.getEndNode();
+
+						if (endNode != null) {
+
+							setPropertyRecursively(endNode, key, value, rec);
+
+						}
+
+					}
+
+				}
+
+			}
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
 	}
 }
