@@ -987,7 +987,7 @@ var _Pages = {
 
         //var parent = $(element).parent();
 
-        console.log('parent', parent);
+        if (debug) console.log('parent', parent);
         
         element.remove();
 

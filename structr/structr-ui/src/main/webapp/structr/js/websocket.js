@@ -278,15 +278,18 @@ function connect() {
             //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
                 //console.log(command, result, data, data.data);
+                
+                var treeAddress = data.data.treeAddress;
 				
                 $(result).each(function(i, entity) {
-                    if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD');
                     
+                    console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
                     var el = Structr.node(entity.id, parentId, componentId, pageId);
                     if (el) el.remove();
                     
-                    _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD');
+                    _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                    
                 });
 
                 _Pages.reloadPreviews();
@@ -477,6 +480,7 @@ function connect() {
 
         ws.onclose = function() {
             //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.reconnect);
+            //Structr.error('Connection lost or timed out. Trying automatic reconnect');
             log('Connection was lost or timed out. Trying automatic reconnect');
             Structr.reconnect();
         }

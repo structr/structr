@@ -280,6 +280,13 @@ var _Elements = {
                 var kind = $('#_kind', dialog).val();
                 
                 nodeData.kind = kind;
+                
+                dialog.empty();
+                dialogMsg.empty();
+                
+                $.unblockUI({
+                    fadeOut: 25
+                });
 
                 if (debug) console.log('start');
                 return Command.wrap(getId(node), nodeData, relData);

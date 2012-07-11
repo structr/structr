@@ -638,16 +638,17 @@ var _Entities = {
         
         if (!src) return;
         
-        var id = getId(el);
-        var compId = getId(el.closest('.component'));
-        var pageId = getId(el.closest('.page'));
-
         if (src.endsWith('icon/tree_arrow_down.png')) {
             el.children('.node').remove();
             b.prop('src', 'icon/tree_arrow_right.png');
 
             removeExpandedNode(treeAddress);
         } else {
+            
+            var id = getId(el);
+            var compId = getId(el.closest('.component'));
+            var pageId = getId(el.closest('.page'));
+
             if (!expanded) Command.children(id, compId, pageId, treeAddress);
             b.prop('src', 'icon/tree_arrow_down.png');
 
