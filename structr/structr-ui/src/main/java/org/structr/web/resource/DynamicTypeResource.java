@@ -76,16 +76,11 @@ public class DynamicTypeResource extends TypeResource {
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
-		// Quick fix: use superuser context here
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-
-		superUserContext.setRequest(request);
-
-		this.securityContext = superUserContext;
+		this.securityContext = securityContext;
 		this.request         = request;
 		this.rawType         = part;
 
-		super.checkAndConfigure(part, superUserContext, request);
+		super.checkAndConfigure(part, securityContext, request);
 
 		// FIXME: do type check on existing dynamic resources here..
 		return rawType != null;
