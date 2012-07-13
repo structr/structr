@@ -54,6 +54,8 @@ public interface GraphObject {
         public boolean getBooleanProperty(final PropertyKey key) throws FrameworkException ;
 	public Double getDoubleProperty(final String key) throws FrameworkException ;
         public Double getDoubleProperty(final PropertyKey key) throws FrameworkException ;
+	public Comparable getComparableProperty(final PropertyKey key) throws FrameworkException;
+	public Comparable getComparableProperty(final String key) throws FrameworkException;
 	public void removeProperty(final String key) throws FrameworkException;
 
 	public PropertyKey getDefaultSortKey();

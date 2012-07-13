@@ -56,4 +56,20 @@ public class DateConverter extends PropertyConverter {
 
 		return source;
 	}
+
+	@Override
+	public Comparable convertForSorting(Object source, Value value) {
+
+		if(source != null) {
+			
+			if(source instanceof Comparable) {
+				return (Comparable)source;
+			}
+			
+			// fallback to superclass
+			return super.convertForSorting(source, value);
+		}
+
+		return null;
+	}
 }

@@ -51,7 +51,6 @@ import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.converter.BooleanConverter;
-import org.structr.core.converter.LongDateConverter;
 import org.structr.core.node.*;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.FindNodeCommand;
@@ -915,6 +914,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public Object getProperty(final String key) {
+		return getProperty(key, true);
+	}
+	
+	private Object getProperty(final String key, boolean applyConverter) {
 
 		Object value = null;
 		Class type   = this.getClass();
@@ -997,17 +1000,22 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			value = EntityContext.getDefaultValue(type, key);
 		}
 
-		// apply property converters
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+		// only apply converter if requested
+		// (required for getComparableProperty())
+		if(applyConverter) {
+			
+			// apply property converters
+			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 
-		if (converter != null) {
+			if (converter != null) {
 
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+				Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
 
-			converter.setCurrentObject(this);
+				converter.setCurrentObject(this);
 
-			value = converter.convertForGetter(value, conversionValue);
+				value = converter.convertForGetter(value, conversionValue);
 
+			}
 		}
 
 		return value;
@@ -1253,6 +1261,40 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	@Override
+	public Comparable getComparableProperty(final PropertyKey propertyKey) {
+		return getComparableProperty(propertyKey.name());
+	}
+
+	@Override
+	public Comparable getComparableProperty(final String key) {
+
+		Object propertyValue = getProperty(key, false);	// get "raw" property without converter
+		Class type = getClass();
+		
+		// check property converter
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+		if (converter != null) {
+			
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			converter.setCurrentObject(this);
+
+			return converter.convertForSorting(propertyValue, conversionValue);
+		}
+		
+		// conversion failed, may the property value itself is comparable
+		if(propertyValue instanceof Comparable) {
+			return (Comparable)propertyValue;
+		}
+		
+		// last try: convert to String to make comparable
+		if(propertyValue != null) {
+			return propertyValue.toString();
+		}
+		
+		return null;
+	}
+	
 	public AbstractNode getRelatedNode(Class type) {
 
 		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);

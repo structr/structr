@@ -45,6 +45,7 @@ public class GraphObjectComparator implements Comparator<GraphObject>, Transform
 
 	//~--- fields ---------------------------------------------------------
 
+	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 	private String sortKey;
 	private String sortOrder;
 
@@ -65,31 +66,33 @@ public class GraphObjectComparator implements Comparator<GraphObject>, Transform
 		if(n1 == null || n2 == null) {
 			logger.log(Level.WARNING, "Cannot compare null objects!");
 			return -1;
-		}
-		
-		Comparable c1 = (Comparable) n1.getProperty(sortKey);
-		Comparable c2 = (Comparable) n2.getProperty(sortKey);
-
-		if(c1 == null || c2 == null) {
 			
-			try {
-				logger.log(Level.WARNING, "Cannot compare {0} of type {1} to {2} of type {3}, sort key {4} not found.",
-					new Object[] {
-						n1.getStringProperty(AbstractNode.Key.uuid.name()),
-						n1.getStringProperty(AbstractNode.Key.type.name()),
-						n2.getStringProperty(AbstractNode.Key.uuid.name()),
-						n2.getStringProperty(AbstractNode.Key.type.name()),
-						sortKey
-					});
-				
-			} catch(Throwable t) {
-				logger.log(Level.SEVERE, "Error in comparator", t);
-			}
-			
-			return -1;
+			// FIXME: this should throw a NPE!
 		}
 	
 		try {
+			
+			Comparable c1 = n1.getComparableProperty(sortKey);
+			Comparable c2 = n2.getComparableProperty(sortKey);
+
+			if(c1 == null || c2 == null) {
+
+				try {
+					logger.log(Level.WARNING, "Cannot compare {0} of type {1} to {2} of type {3}, sort key {4} not found.",
+						new Object[] {
+							n1.getStringProperty(AbstractNode.Key.uuid.name()),
+							n1.getStringProperty(AbstractNode.Key.type.name()),
+							n2.getStringProperty(AbstractNode.Key.uuid.name()),
+							n2.getStringProperty(AbstractNode.Key.type.name()),
+							sortKey
+						});
+
+				} catch(Throwable t) {
+					logger.log(Level.SEVERE, "Error in comparator", t);
+				}
+
+				return -1;
+			}
 			
 			if (DESCENDING.equals(sortOrder)) {
 

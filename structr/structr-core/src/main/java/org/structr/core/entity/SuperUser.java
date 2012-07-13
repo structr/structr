@@ -166,6 +166,16 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
+	public Comparable getComparableProperty(PropertyKey key) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public Comparable getComparableProperty(String key) throws FrameworkException {
+		return null;
+	}
+
+	@Override
 	public PropertyKey getDefaultSortKey() {
 		return null;
 	}
