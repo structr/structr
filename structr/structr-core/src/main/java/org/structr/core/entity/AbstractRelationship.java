@@ -294,6 +294,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 //
 //              }
 //      }
+	@Override
 	public void unlockReadOnlyPropertiesOnce() {
 
 		this.readOnlyPropertiesUnlocked = true;
@@ -411,7 +412,14 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return getInternalId();
 
 	}
+	
+	@Override
+	public String getUuid() {
 
+		return getStringProperty(Key.uuid);
+
+	}
+	
 	public long getRelationshipId() {
 
 		return getInternalId();

@@ -37,6 +37,7 @@ public interface GraphObject {
 
 	// ----- common to both types -----
 	public long getId();
+	public String getUuid();
 	public String getType();
 
 	public Iterable<String> getPropertyKeys(String propertyView);

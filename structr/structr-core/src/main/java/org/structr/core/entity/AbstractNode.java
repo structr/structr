@@ -684,6 +684,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	@Override
 	public String getUuid() {
 
 		return getStringProperty(Key.uuid);
