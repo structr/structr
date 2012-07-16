@@ -54,6 +54,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,7 +62,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @author Axel Morgner
  */
-public abstract class HtmlElement extends Element {
+public abstract class HtmlElement extends AbstractNode {
 
 	protected static final String[] htmlAttributes = new String[] {
 
@@ -244,12 +245,14 @@ public abstract class HtmlElement extends Element {
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), UiKey.values());
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
+		
+		EntityContext.registerPropertyRelation(HtmlElement.class, UiKey.parents, HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum UiKey implements PropertyKey{ name, tag, path }
+	public enum UiKey implements PropertyKey{ name, tag, path, parents }
 
 	//~--- methods --------------------------------------------------------
 
