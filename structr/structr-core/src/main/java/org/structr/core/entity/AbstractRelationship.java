@@ -551,12 +551,14 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
+	@Override
 	public Integer getIntProperty(final PropertyKey propertyKey) {
 
 		return (getIntProperty(propertyKey.name()));
 
 	}
 
+	@Override
 	public Integer getIntProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
