@@ -29,8 +29,12 @@ var debug = false;
 var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
+var dialog;
+
 
 $(document).ready(function() {
+    
+    dialog = $('#dialogBox .dialogText');
 
     dmp = new diff_match_patch()
     if (debug) console.log('Debug mode');
@@ -130,7 +134,7 @@ $(document).ready(function() {
         if (e.keyCode == 27) {
             $('#dialogBox .dialogCancelButton').click();
         }
-    });            
+    });     
 	
 });
 

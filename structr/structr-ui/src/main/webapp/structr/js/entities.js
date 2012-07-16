@@ -173,16 +173,100 @@ var _Entities = {
                 }
             });
     },
+    //
+    //    hideProperties : function(button, entity, element) {
+    //        enable(button, function() {
+    //            _Entities.showProperties(button, entity, element);
+    //        });
+    //        element.find('.sep').remove();
+    //        element.find('.props').remove();
+    //    },
 
-    hideProperties : function(button, entity, element) {
-        enable(button, function() {
-            _Entities.showProperties(button, entity, element);
-        });
-        element.find('.sep').remove();
-        element.find('.props').remove();
+    listContainingNodes : function(entity) {
+
+        dialog.empty();
+        Structr.dialog('Remove &lt;' + entity.tag + '&gt; from the following parent nodes:',
+            function() {
+                return true;
+            },
+            function() {
+                return true;
+            });
+                
+        var headers = {};
+        headers['X-StructrSessionToken'] = token;
+        if (debug) console.log('headers', headers);
+        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
+            
+        $.ajax({
+            url: rootUrl + entity.id + '/in',
+            async: true,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            headers: headers,
+            success: function(data) {
+                
+                if (data.result && data.result.length) {
+                    dialog.append('<table class="props containingNodes ' + entity.id + '_"></table>');
+                
+                    var cont = $('.' + entity.id + '_', dialog);
+
+                    $(data.result).each(function(i, rel) {
+
+                        var keys = Object.keys(rel);
+                        
+                        if (rel['combinedType'].match(/CONTAINS/)) {
+                            
+                            var parentId = rel['startNodeId'];
+
+                            $(keys).each(function(j, key) {
+                                
+                                if (key.match(/[a-zA-Z0-9]{32}/)) {
+                                    
+                                    var pos = parseInt(rel[key]);
+                                    
+                                    var n = i + '_' + j;
+
+                                    cont.append('<tr><td class="' + n + '"><div style="display: inline" class="node ' + entity.id + '_"><b class="tag_">' + entity.tag + '</b></div></td>'
+                                        + '<td class="parent_' + n + '_'+ parentId + '">'
+                                        + ' from ' + (pos+1) + (pos == 0 ? 'st' : (pos == 1 ? 'nd' : (pos == 2 ? 'tr' : 'th'))) + ' position '
+                                        + 'in <div style="display: inline" class="node ' + parentId + '_"><b class="tag_"></b></div></td>'
+                                        + '<td class="page_' + n + '_' + key +'">on <div style="display: inline" class="node ' + key + '_"><img src="' + _Pages.icon + '"><b class="' + key + '_ name_"></b></div></td></tr>');
+                                    
+                                    Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
+                                    Command.getProperty(key, 'name', '.page_' + n + '_'+ key);
+                                    
+                                    var node = $('div.' + entity.id + '_', $('.' + n));
+                                    _Entities.setMouseOver(node);
+                                    
+                                    var parent = $('div.' + parentId + '_', $('.parent_' + n + '_'+ parentId));
+                                    _Entities.setMouseOver(parent);
+                                    
+                                    var page = $('div.' + key + '_', $('.page_' + n + '_' + key));
+                                    
+                                    console.log('.page_' + n + '_' + key);
+                                    
+                                    _Entities.setMouseOver(page);
+                                    
+                                    node.css({'cursor': 'pointer'}).on('click', function(e) {
+                                        console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
+                                        Command.removeSourceFromTarget(entity.id, parentId, undefined, key, pos); 
+                                    });
+                                }
+
+                            });
+                        
+                        }
+
+                    });
+                                  
+                }
+
+            }
+        });        
     },
 
-    showProperties : function(button, entity, dialog) {
+    showProperties : function(entity) {
 
         var views;
 	    
@@ -474,7 +558,7 @@ var _Entities = {
         editIcon.on('click', function(e) {
             e.stopPropagation();
             if (debug) console.log('showProperties', entity);
-            _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
+            _Entities.showProperties(entity);
         });
     },
 
