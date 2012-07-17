@@ -42,7 +42,7 @@ public interface Element extends GraphObject {
 
 	public enum UiKey implements PropertyKey {
 
-		name, tag, contents, elements, components, page
+		name, tag, contents, elements, components, page, paths
 
 	}
 

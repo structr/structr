@@ -24,7 +24,7 @@ var wsRoot = '/structr/ws';
 /********************************************************************/
 
 var header, main;
-var debug = false;
+var debug = true;
 //var onload = [];
 var lastMenuEntry, activeTab;
 var dmp;

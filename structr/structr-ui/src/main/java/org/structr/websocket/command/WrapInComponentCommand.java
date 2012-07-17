@@ -78,7 +78,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 				public Object execute() throws FrameworkException {
 
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
-					String componentId     = newComponent.getStringProperty(AbstractNode.Key.uuid);
+					String componentId     = newComponent.getUuid();
 
 					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, pageId, componentId, position);
 

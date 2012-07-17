@@ -174,9 +174,9 @@ var _Contents = {
                 editorCursor = cm.getCursor();
                 if (debug) console.log(editorCursor);
 
-                timer = window.setTimeout(function() {
+                //timer = window.setTimeout(function() {
                     Command.patch(entity.id, text1, text2);
-                }, 5000);
+                //}, 5000);
 				
             }
         });

@@ -2150,7 +2150,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
 
-			setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(owner));
+			setOwner.execute(this, owner);
 
 		} catch (FrameworkException fex) {
 

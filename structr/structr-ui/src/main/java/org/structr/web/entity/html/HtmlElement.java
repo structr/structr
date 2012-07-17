@@ -55,6 +55,7 @@ import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.web.converter.PathsConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -247,12 +248,12 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
 		
 		EntityContext.registerPropertyRelation(HtmlElement.class, UiKey.parents, HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-
+		EntityContext.registerPropertyConverter(HtmlElement.class, UiKey.paths, PathsConverter.class);
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum UiKey implements PropertyKey{ name, tag, path, parents }
+	public enum UiKey implements PropertyKey{ name, tag, path, parents, paths }
 
 	//~--- methods --------------------------------------------------------
 

@@ -396,8 +396,9 @@ public class DynamicTypeResource extends TypeResource {
 				List<AbstractRelationship> rels = component.getRelationships(RelType.CONTAINS, Direction.INCOMING);
 
 				for (AbstractRelationship rel : rels) {
-
-					pos = Math.max(pos, rel.getLongProperty(pageId));
+					
+					Long p = rel.getLongProperty(pageId);
+					pos = Math.max(pos, (p == null ? 0 : p));
 				}
 
 			}
