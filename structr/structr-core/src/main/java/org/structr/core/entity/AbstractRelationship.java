@@ -93,9 +93,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	private String cachedEndNodeId = null;
 
 	// test
-	private String cachedStartNodeId           = null;
-	protected SecurityContext securityContext  = null;
-	private boolean readOnlyPropertiesUnlocked = false;
+	protected Map<String, Object> cachedConvertedProperties = new LinkedHashMap<String, Object>();
+	protected Map<String, Object> cachedRawProperties       = new LinkedHashMap<String, Object>();
+	private String cachedStartNodeId                        = null;
+	protected SecurityContext securityContext               = null;
+	private boolean readOnlyPropertiesUnlocked              = false;
 
 	// reference to database relationship
 	protected Relationship dbRelationship;
@@ -459,64 +461,98 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	private Object getProperty(final String key, boolean applyConverter) {
 
-		PropertyKey startNodeIdKey = getStartNodeIdKey();
-		PropertyKey endNodeIdKey   = getEndNodeIdKey();
-
-		if (startNodeIdKey != null) {
-
-			if (key.equals(startNodeIdKey.name())) {
-
-				return getStartNodeId();
-			}
-
-		}
-
-		if (endNodeIdKey != null) {
-
-			if (key.equals(endNodeIdKey.name())) {
-
-				return getEndNodeId();
-			}
-
-		}
-
+		Object value = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
+		boolean schemaDefault = false;
 		Class type   = this.getClass();
-		Object value = null;
+		
+		if(value == null || !applyConverter) {
 
-		// ----- BEGIN property group resolution -----
-		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+			PropertyKey startNodeIdKey = getStartNodeIdKey();
+			PropertyKey endNodeIdKey   = getEndNodeIdKey();
 
-		if (propertyGroup != null) {
+			if (startNodeIdKey != null && key.equals(startNodeIdKey.name())) {
 
-			return propertyGroup.getGroupedProperties(this);
-		}
+				value = getStartNodeId();
+				
+				if(applyConverter) {
+					
+					cachedConvertedProperties.put(key, value);
+					
+				} else {
+					
+					cachedRawProperties.put(key, value);
+				}
+				
+				return value;
 
-		if (dbRelationship.hasProperty(key)) {
-
-			value = dbRelationship.getProperty(key);
-		}
-
-		// no value found, use schema default
-		if (value == null) {
-
-			value = EntityContext.getDefaultValue(type, key);
-		}
-
-		// only apply converter if requested
-		// (required for getComparableProperty())
-		if(applyConverter) {
+			}
 			
-			// apply property converters
-			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+			if (endNodeIdKey != null && key.equals(endNodeIdKey.name())) {
 
-			if (converter != null) {
+				value = getEndNodeId();
+				
+				if(applyConverter) {
+					
+					cachedConvertedProperties.put(key, value);
+					
+				} else {
+					
+					cachedRawProperties.put(key, value);
+				}
 
-				Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+				return value;
+				
+			}
+			
+			// ----- BEGIN property group resolution -----
+			PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
 
-				converter.setCurrentObject(this);
+			if (propertyGroup != null) {
 
-				value = converter.convertForGetter(value, conversionValue);
+				return propertyGroup.getGroupedProperties(this);
+			}
 
+			if (dbRelationship.hasProperty(key)) {
+
+				value = dbRelationship.getProperty(key);
+			}
+
+			// no value found, use schema default
+			if (value == null) {
+
+				value = EntityContext.getDefaultValue(type, key);
+				schemaDefault = true;
+			}
+
+			// only apply converter if requested
+			// (required for getComparableProperty())
+			if(applyConverter) {
+
+				// apply property converters
+				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+
+				if (converter != null) {
+
+					Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
+					converter.setCurrentObject(this);
+
+					value = converter.convertForGetter(value, conversionValue);
+
+				}
+			}
+
+			if(!schemaDefault) {
+
+				// only cache value if it is NOT the schema default
+				if(applyConverter) {
+					
+					cachedConvertedProperties.put(key, value);
+					
+				} else {
+					
+					cachedRawProperties.put(key, value);
+				}
 			}
 		}
 
@@ -1070,6 +1106,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		PropertyKey startNodeIdKey = getStartNodeIdKey();
 		PropertyKey endNodeIdKey   = getEndNodeIdKey();
 
+		// clear cached property
+		cachedConvertedProperties.remove(key);
+		
 		if ((startNodeIdKey != null) && key.equals(startNodeIdKey.name())) {
 
 			setStartNodeId((String) value);

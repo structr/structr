@@ -27,7 +27,6 @@ import org.neo4j.graphdb.index.Index;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -88,7 +87,7 @@ public class RemoveRelationshipFromIndex extends NodeServiceCommand {
 
 					removeRelationshipFromAllIndices(rel);
 
-				} else if (parameters[0] instanceof AbstractNode) {
+				} else if (parameters[0] instanceof AbstractRelationship) {
 
 					rel = (AbstractRelationship) parameters[0];
 
