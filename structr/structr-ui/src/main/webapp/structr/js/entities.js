@@ -182,7 +182,7 @@ var _Entities = {
     //        element.find('.props').remove();
     //    },
 
-    listContainingNodes : function(entity) {
+    listContainingNodes : function(entity, parentElement) {
 
         dialog.empty();
         Structr.dialog('Remove &lt;' + entity.tag + '&gt; from the following parent nodes:',
@@ -227,20 +227,24 @@ var _Entities = {
                                     
                                     var n = i + '_' + j;
 
-                                    cont.append('<tr><td class="' + n + '"><div style="display: inline" class="node ' + entity.id + '_"><b class="tag_">' + entity.tag + '</b></div></td>'
-                                        + '<td class="parent_' + n + '_'+ parentId + '">'
+                                    cont.append('<tr><td class="' + n + '">'
+                                        + '<div class="parent_' + n + '_'+ parentId + ' node ' + parentId + '_"><b class="tag_"></b><div class="node ' + entity.id + '_">'
+                                        + '<b class="tag_">' + entity.tag + '</b><img style="float: right" class="remove_icon" src="' + _Elements.delete_icon +  '"></div></div></td>'
+                                        + '<td class="">'
                                         + ' from ' + (pos+1) + (pos == 0 ? 'st' : (pos == 1 ? 'nd' : (pos == 2 ? 'tr' : 'th'))) + ' position '
-                                        + 'in <div style="display: inline" class="node ' + parentId + '_"><b class="tag_"></b></div></td>'
-                                        + '<td class="page_' + n + '_' + key +'">on <div style="display: inline" class="node ' + key + '_"><img src="' + _Pages.icon + '"><b class="' + key + '_ name_"></b></div></td></tr>');
+                                        + 'in </td>'
+                                        + '<td class="page_' + n + '_' + key +'">on <div class="node ' + key + '_"><img src="' + _Pages.icon + '"><b class="' + key + '_ name_"></b></div></td></tr>');
                                     
                                     Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
                                     Command.getProperty(key, 'name', '.page_' + n + '_'+ key);
                                     
-                                    var node = $('div.' + entity.id + '_', $('.' + n));
-                                    _Entities.setMouseOver(node);
                                     
-                                    var parent = $('div.' + parentId + '_', $('.parent_' + n + '_'+ parentId));
-                                    _Entities.setMouseOver(parent);
+                                    var node = $('div.' + entity.id + '_', $('.' + n));
+                                    var removeButton = $('.remove_icon', node).css({'display': 'block'});
+                                    
+                                    var parent = $('div.' + parentId + '_');
+                                    //_Entities.setMouseOver(parent);
+                                    _Entities.setMouseOver(node, parentElement);
                                     
                                     var page = $('div.' + key + '_', $('.page_' + n + '_' + key));
                                     
@@ -248,9 +252,12 @@ var _Entities = {
                                     
                                     _Entities.setMouseOver(page);
                                     
-                                    node.css({'cursor': 'pointer'}).on('click', function(e) {
+                                    removeButton.css({'cursor': 'pointer'}).on('click', function(e) {
                                         console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
-                                        Command.removeSourceFromTarget(entity.id, parentId, undefined, key, pos); 
+                                        Command.removeSourceFromTarget(entity.id, parentId, undefined, key, pos);
+                                        
+                                        $('.' + n).parent('tr').remove();
+                                        
                                     });
                                 }
 
@@ -631,7 +638,7 @@ var _Entities = {
         });
     },
 
-    setMouseOver : function(el) {
+    setMouseOver : function(el, parentElement) {
         if (!el || !el.children) return;
 
         el.on('click', function(e) {
@@ -650,7 +657,12 @@ var _Entities = {
                 var nodeId = getId(el);
                 //window.clearTimeout(timer[nodeId]);
                 //		console.log('setMouseOver', nodeId);
-                var nodes = $('.' + nodeId + '_');
+                var nodes;
+                if (parentElement) {
+                    nodes = $('.' + nodeId + '_', parentElement);
+                } else {
+                    nodes = $('.' + nodeId + '_');
+                }
                 var page = $(el).closest('.page');
                 if (page.length) {
                     var pageId = getId(page);

@@ -722,7 +722,7 @@ var _Pages = {
 //                
 //                Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
 
-                _Entities.listContainingNodes(entity);
+                _Entities.listContainingNodes(entity, div.parent('.node'));
                 
             });
         }
@@ -891,15 +891,15 @@ var _Pages = {
                 }
                 
                 if (debug) console.log($(ui.draggable));
-                var pos = Structr.numberOfNodes(self, contentId);
-                if (debug) console.log(pos);
+                var p = Structr.numberOfNodes(self, contentId);
+                if (debug) console.log(p);
 
                 if (page) {
                     pageId = getId(page);
                     //relData.pageId = pageId;
-                    relData[pageId] = pos;
+                    relData[pageId] = p;
                 } else {
-                    relData['*'] = pos;
+                    relData['*'] = p;
                 }
 				
                 //if (!isExpanded(treeAddress)) {
