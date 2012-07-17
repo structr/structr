@@ -62,7 +62,7 @@ import org.structr.core.entity.RelationClass.Cardinality;
  *
  * @author Axel Morgner
  */
-public abstract class HtmlElement extends AbstractNode {
+public abstract class HtmlElement extends AbstractNode implements Element {
 
 	protected static final String[] htmlAttributes = new String[] {
 
