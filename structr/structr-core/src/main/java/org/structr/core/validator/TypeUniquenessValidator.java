@@ -18,7 +18,6 @@
  */
 
 
-
 package org.structr.core.validator;
 
 import org.structr.common.SecurityContext;

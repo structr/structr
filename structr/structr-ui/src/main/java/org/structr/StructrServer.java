@@ -17,8 +17,6 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 package org.structr;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
