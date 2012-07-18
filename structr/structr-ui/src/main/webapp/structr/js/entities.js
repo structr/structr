@@ -173,14 +173,6 @@ var _Entities = {
                 }
             });
     },
-    //
-    //    hideProperties : function(button, entity, element) {
-    //        enable(button, function() {
-    //            _Entities.showProperties(button, entity, element);
-    //        });
-    //        element.find('.sep').remove();
-    //        element.find('.props').remove();
-    //    },
 
     listContainingNodes : function(entity, parentElement) {
 
@@ -199,71 +191,54 @@ var _Entities = {
         if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
             
         $.ajax({
-            url: rootUrl + entity.id + '/in',
+            url: rootUrl + entity.id,
             async: true,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             headers: headers,
             success: function(data) {
-                
-                if (data.result && data.result.length) {
+                if (data.result) {
                     dialog.append('<table class="props containingNodes ' + entity.id + '_"></table>');
-                
                     var cont = $('.' + entity.id + '_', dialog);
 
-                    $(data.result).each(function(i, rel) {
+                    $(data.result.paths).each(function(i, path) {
+                        console.log(path);
 
-                        var keys = Object.keys(rel);
+                        var pageId = path.substring(32);
                         
-                        if (rel['combinedType'].match(/CONTAINS/)) {
-                            
-                            var parentId = rel['startNodeId'];
-
-                            $(keys).each(function(j, key) {
-                                
-                                if (key.match(/[a-zA-Z0-9]{32}/)) {
+                        cont.append('<tr><td class="' + path + '">'
+                            + '<div style="display: inline-block" class="node ' + entity.id + '_">'
+                            + '<b class="tag_">' + entity.tag + '</b><img style="float: right" class="remove_icon" src="' + _Elements.delete_icon +  '"></div></td>'
+                            + '</tr>');
                                     
-                                    var pos = parseInt(rel[key]);
-                                    
-                                    var n = i + '_' + j;
-
-                                    cont.append('<tr><td class="' + n + '">'
-                                        + '<div class="parent_' + n + '_'+ parentId + ' node ' + parentId + '_"><b class="tag_"></b><div class="node ' + entity.id + '_">'
-                                        + '<b class="tag_">' + entity.tag + '</b><img style="float: right" class="remove_icon" src="' + _Elements.delete_icon +  '"></div></div></td>'
-                                        + '<td class="">'
-                                        + ' from ' + (pos+1) + (pos == 0 ? 'st' : (pos == 1 ? 'nd' : (pos == 2 ? 'tr' : 'th'))) + ' position '
-                                        + 'in </td>'
-                                        + '<td class="page_' + n + '_' + key +'">on <div class="node ' + key + '_"><img src="' + _Pages.icon + '"><b class="' + key + '_ name_"></b></div></td></tr>');
-                                    
-                                    Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
-                                    Command.getProperty(key, 'name', '.page_' + n + '_'+ key);
+                        //Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
+                        //Command.getProperty(entity.id, 'name', '.'+ path);
                                     
                                     
-                                    var node = $('div.' + entity.id + '_', $('.' + n));
-                                    var removeButton = $('.remove_icon', node).css({'display': 'block'});
+                        var node = $('div.' + entity.id + '_', $('.' + path));
+                        var removeButton = $('.remove_icon', node).css({
+                            'display': 'block'
+                        });
                                     
-                                    var parent = $('div.' + parentId + '_');
-                                    //_Entities.setMouseOver(parent);
-                                    _Entities.setMouseOver(node, parentElement);
+                        node.hover(function() {
+                            $('#_' + path).addClass('nodeHover')},
+                            function() {
+                                $('#_' + path).removeClass('nodeHover')
+                            }
+                        );
                                     
-                                    var page = $('div.' + key + '_', $('.page_' + n + '_' + key));
+                        //_Entities.setMouseOver(parent);
+                        //_Entities.setMouseOver(node, parentElement);
                                     
-                                    console.log('.page_' + n + '_' + key);
-                                    
-                                    _Entities.setMouseOver(page);
-                                    
-                                    removeButton.css({'cursor': 'pointer'}).on('click', function(e) {
-                                        console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
-                                        Command.removeSourceFromTarget(entity.id, parentId, undefined, key, pos);
+                        removeButton.css({
+                            'cursor': 'pointer'
+                        }).on('click', function(e) {
+                            //console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
+                            Command.remove(entity.id, path);
                                         
-                                        $('.' + n).parent('tr').remove();
+                            $('.' + path).parent('tr').remove();
                                         
-                                    });
-                                }
-
-                            });
-                        
-                        }
+                        });
 
                     });
                                   

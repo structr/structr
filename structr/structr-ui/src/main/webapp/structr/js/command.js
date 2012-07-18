@@ -183,6 +183,24 @@ var Command = {
     },
 
     /**
+     * Send a REMOVE command to the server.
+     * 
+     * The server will remove the node at the address in the
+     * tree and broadcast a removal notification.
+     */
+    remove : function(entityId, treeAddress) {
+        if (debug) console.log('Remove ' + treeAddress);
+        var obj = {};
+        obj.command = 'REMOVE';
+        obj.id = entityId;
+        var data = {};
+        data.treeAddress = treeAddress;
+        obj.data = data;
+        if (debug) console.log('remove()', obj);
+        return sendObj(obj);
+    },
+
+    /**
      * Send an UPDATE command to the server.
      * 
      * The server will set the given value as new value of the property with
