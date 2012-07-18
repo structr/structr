@@ -24,7 +24,6 @@ package org.structr.web.entity;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 
-import org.structr.common.CaseHelper;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
@@ -37,7 +36,6 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.NodeService;
-import org.structr.web.entity.relation.ComponentRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -54,7 +52,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @author axel
  */
-public class Component extends AbstractNode {
+public class Component extends AbstractNode implements Element {
 
 	private static final int MAX_DEPTH                          = 10;
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
@@ -83,7 +81,7 @@ public class Component extends AbstractNode {
 
 	public enum Key implements PropertyKey{ componentId, pageId }
 
-	public enum UiKey implements PropertyKey{ type, name, kind }
+	public enum UiKey implements PropertyKey{ type, name, kind, paths }
 
 	//~--- methods --------------------------------------------------------
 

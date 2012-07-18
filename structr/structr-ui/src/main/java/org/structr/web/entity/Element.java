@@ -30,6 +30,8 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.web.converter.PathsConverter;
+import org.structr.web.entity.html.HtmlElement;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -66,6 +68,7 @@ public interface Element extends GraphObject {
 			// EntityContext.registerEntityRelation(Element.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), uiAttributes);
 			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(), uiAttributes);
+			EntityContext.registerPropertyConverter(Element.class, UiKey.paths, PathsConverter.class);
 
 //                      EntityContext.registerEntityRelation(Element.class,     Page.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
 

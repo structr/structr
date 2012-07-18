@@ -177,14 +177,15 @@ var _Entities = {
     listContainingNodes : function(entity, parentElement) {
 
         dialog.empty();
-        Structr.dialog('Remove &lt;' + entity.tag + '&gt; from the following parent nodes:',
+        Structr.dialog('Choose element instance to remove',
             function() {
                 return true;
             },
             function() {
                 return true;
             });
-                
+               
+        dialog.append('<p>Hover your mouse over the element instance to remove and click the remove icon.</p>')
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         if (debug) console.log('headers', headers);

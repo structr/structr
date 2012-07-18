@@ -32,7 +32,6 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.web.entity.Page;
-import org.structr.web.entity.html.HtmlElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -63,7 +62,7 @@ public class PathsConverter extends PropertyConverter {
 
 		Command searchNode              = Services.command(securityContext, SearchNodeCommand.class);
 		List<Page> containingPages      = new LinkedList<Page>();
-		List<AbstractRelationship> rels = ((HtmlElement) currentObject).getIncomingRelationships(RelType.CONTAINS);
+		List<AbstractRelationship> rels = ((AbstractNode) currentObject).getIncomingRelationships(RelType.CONTAINS);
 
 		for (AbstractRelationship rel : rels) {
 
