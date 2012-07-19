@@ -119,7 +119,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 			}
 
-		} else {
+		} else if (createIfNotExisting) {
 
 			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 

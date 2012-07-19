@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
@@ -146,18 +147,25 @@ public class NamedRelationResource extends WrappingResource {
 			AbstractNode startNode   = relationshipEntity.identifyStartNode(namedRelation, propertySet);
 			AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
 			RelationshipType relType = namedRelation.getRelType();
+			ErrorBuffer errorBuffer  = new ErrorBuffer();
+			boolean hasError         = false;
 
 			if(startNode == null) {
-				throw new FrameworkException(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getStartNodeIdKey().name()));
+				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getStartNodeIdKey().name()));
+				hasError = true;
 			}
 			
 			if(endNode == null) {
-				throw new FrameworkException(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getEndNodeIdKey().name()));
+				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getEndNodeIdKey().name()));
+				hasError = true;
+			}
+			
+			if(hasError) {
+				throw new FrameworkException(422, errorBuffer);
 			}
 			
 			Class sourceType = namedRelation.getSourceType();
 			Class destType = namedRelation.getDestType();
-
 
 			propertySet.put(AbstractRelationship.HiddenKey.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
 

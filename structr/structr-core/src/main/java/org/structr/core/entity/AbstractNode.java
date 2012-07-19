@@ -238,13 +238,25 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public int compareTo(final AbstractNode node) {
 
-		if ((node == null) || (node.getName() == null) || (this.getName() == null)) {
-
+		if(node == null) {
 			return -1;
 		}
-
-		return (this.getName().compareTo(node.getName()));
-
+		
+		
+		String name = getName();
+		
+		if(name == null) {
+			return -1;
+		}
+		
+		
+		String nodeName = node.getName();
+		
+		if(nodeName == null) {
+			return -1;
+		}
+		
+		return name.compareTo(nodeName);
 	}
 
 	/**
@@ -644,15 +656,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * If name is null, return node id as fallback
 	 */
 	public String getName() {
-
-		Object nameProperty = getProperty(Key.name.name());
-		String name = null;
-
-		if (nameProperty != null) {
-
-			name = (String) nameProperty;
-		} else {
-
+		
+		String name = getStringProperty(Key.name.name());
+		if (name == null) {
 			name = getNodeId().toString();
 		}
 
