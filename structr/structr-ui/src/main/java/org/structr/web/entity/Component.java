@@ -308,7 +308,7 @@ public class Component extends AbstractNode implements Element {
 
 				AbstractNode endNode = abstractRelationship.getEndNode();
 
-				if ((endNode instanceof Component) &&!isVisible(request, endNode, abstractRelationship, componentId)) {
+				if (endNode == null || (endNode instanceof Component && !isVisible(request, endNode, abstractRelationship, componentId))) {
 
 					continue;
 

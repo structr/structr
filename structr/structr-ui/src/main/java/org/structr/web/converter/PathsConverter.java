@@ -109,7 +109,7 @@ public class PathsConverter extends PropertyConverter {
 			AbstractNode node = (AbstractNode) currentObject;
 
 			// Stop at page node
-			while (!(node instanceof Page)) {
+			while (node != null && !(node instanceof Page)) {
 
 				List<AbstractRelationship> containsRels = node.getIncomingRelationships(RelType.CONTAINS);
 
@@ -120,7 +120,8 @@ public class PathsConverter extends PropertyConverter {
 					if (pos != null) {
 
 						path = "_" + pos + path;
-
+						
+						
 						node = r.getStartNode();
 						
 						// A node should only have one position per pageId

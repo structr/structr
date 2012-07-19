@@ -175,7 +175,10 @@ public class DynamicTypeResource extends TypeResource {
 
 			}
 
-			Component newComponent  = duplicateComponent(securityContext, propertySet, rawType, surroundingComponentId);
+			// Components have to be duplicated with super user context!
+			// Elements in the component subtree may not be visible for certain users (like f.e. an edit button),
+			// but they have to be existent anyway
+			Component newComponent  = duplicateComponent(SecurityContext.getSuperUserInstance(), propertySet, rawType, surroundingComponentId);
 			RestMethodResult result = new RestMethodResult(201);
 
 			if (newComponent != null) {

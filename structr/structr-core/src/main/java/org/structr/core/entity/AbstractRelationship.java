@@ -847,7 +847,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 
-			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+			Command nodeFactory = Services.command(SecurityContext.getSuperUserInstance(), NodeFactoryCommand.class);
 
 			return (AbstractNode) nodeFactory.execute(dbRelationship.getEndNode());
 
@@ -865,7 +865,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 
-			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+			Command nodeFactory = Services.command(SecurityContext.getSuperUserInstance(), NodeFactoryCommand.class);
 
 			return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
 
@@ -883,7 +883,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 
-			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+			Command nodeFactory = Services.command(SecurityContext.getSuperUserInstance(), NodeFactoryCommand.class);
 
 			return (AbstractNode) nodeFactory.execute(dbRelationship.getOtherNode(node.getNode()));
 
@@ -984,13 +984,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public String getStartNodeId() {
 
-		return getStartNode().getStringProperty(AbstractRelationship.Key.uuid);
+		return getStartNode().getUuid();
 
 	}
 
 	public String getEndNodeId() {
 
-		return getEndNode().getStringProperty(AbstractRelationship.Key.uuid);
+		return getEndNode().getUuid();
 
 	}
 
