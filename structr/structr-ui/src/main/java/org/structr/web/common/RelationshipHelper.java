@@ -326,6 +326,7 @@ public class RelationshipHelper {
 			if ((pageId == null) || (parentNode instanceof Group) || (parentNode instanceof Folder)) {
 
 				nodesWithChildren.add(parentId);
+				continue;
 
 			}
 

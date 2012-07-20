@@ -50,15 +50,15 @@ public class ChildrenCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String pageId      = (String) webSocketData.getNodeData().get("pageId");
-		String componentId = (String) webSocketData.getNodeData().get("componentId");
-		AbstractNode node  = getNode(webSocketData.getId());
+		AbstractNode node = getNode(webSocketData.getId());
 
-		if (node == null || pageId == null) {
+		if (node == null) {
 
 			return;
 		}
 
+		String pageId                   = (String) webSocketData.getNodeData().get("pageId");
+		String componentId              = (String) webSocketData.getNodeData().get("componentId");
 		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
 		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
 		Set<String> nodesWithChildren   = new HashSet<String>();
@@ -82,6 +82,11 @@ public class ChildrenCommand extends AbstractCommand {
 
 			}
 
+			if (pageId == null) {
+
+				return;
+			}
+
 			Long pos = null;
 
 			if (rel.getLongProperty(pageId) != null) {
@@ -93,20 +98,16 @@ public class ChildrenCommand extends AbstractCommand {
 				pos = rel.getLongProperty("*");
 			}
 
-			String relCompId    = rel.getStringProperty("componentId");
-			boolean isComponent = endNode instanceof Component;
+			String relCompId             = rel.getStringProperty("componentId");
+			boolean isComponentOrContent = ((endNode instanceof Component) || (endNode instanceof Content));
 
-			if (pos == null || (isComponent && relCompId != null && !relCompId.equals(componentId))) {
+			if (pos == null || (isComponentOrContent && relCompId != null && !relCompId.equals(componentId))) {
 
 				continue;
 			}
 
-			if ((componentId == null || !isComponent || (relCompId != null && relCompId.equals(componentId)))) {
-
-				nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, pageId));
-				sortMap.put(pos, endNode);
-
-			}
+			nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, pageId));
+			sortMap.put(pos, endNode);
 
 		}
 

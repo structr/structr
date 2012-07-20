@@ -283,10 +283,12 @@ function connect() {
 				
                 $(result).each(function(i, entity) {
                     
-                    console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                   console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
                     var el = Structr.node(entity.id, parentId, componentId, pageId);
                     if (el) el.remove();
+                    
+                    //alert(entity.id);
                     
                     _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
@@ -297,6 +299,8 @@ function connect() {
             //alert(command);
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
+                
+                console.log('UPDATE');
                 
                 var relData = data.relData;
                 if (debug) console.log('relData', relData);
@@ -354,7 +358,7 @@ function connect() {
                             var el = Structr.node(id, parentId, componentId, newPageId);
                             if (debug) console.log('node already exists?', el);
                             
-                            if (!el || !el.length) {
+                            if (id && (!el || !el.length)) {
                                 //el.remove();
                             
                                 //_Entities.resetMouseOverState(el);

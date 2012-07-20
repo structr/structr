@@ -179,11 +179,10 @@ var _Elements = {
 
     appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
         if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
-
+        console.log(entity.id);
         var parent;
         
         if (treeAddress) {
-            if (debug) console.log('tree address', treeAddress);
             parent = $('#_' + treeAddress);
         } else {
             parent = Structr.findParent(parentId, componentId, pageId, elements);
@@ -199,14 +198,13 @@ var _Elements = {
         if (debug) console.log(id);
         
         parent.append('<div id="_' + id + '" class="node element ' + entity.id + '_"></div>');
+        console.log('Element appended (div, parent)', div, parent);
         
         //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
         var div = $('#_' + id);
         
         if (!div) return;
         
-        if (debug) console.log('Element appended', div);
-
         entity.pageId = pageId;
 
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'

@@ -118,7 +118,7 @@ public class Content extends AbstractNode {
 
 	public enum UiKey implements PropertyKey {
 
-		name, tag, content, contentType, size, type, paths
+		name, tag, content, contentType, size, type, paths, dataKey
 
 	}
 

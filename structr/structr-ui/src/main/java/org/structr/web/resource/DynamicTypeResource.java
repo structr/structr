@@ -280,9 +280,12 @@ public class DynamicTypeResource extends TypeResource {
 
 						// create new content node with content from property set
 						contentTemplateProperties.clear();
-						contentTemplateProperties.put(AbstractNode.Key.type.name(), "Content");
+						contentTemplateProperties.put(AbstractNode.Key.type.name(), Content.class.getSimpleName());
 						contentTemplateProperties.put("data-key", dataKey);
-						contentTemplateProperties.put("content", propertySet.get(dataKey));
+						contentTemplateProperties.put(Content.UiKey.content.name(), propertySet.get(dataKey));
+						
+						contentTemplateProperties.put(AbstractNode.Key.visibleToPublicUsers.name(),		propertySet.get(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
+						contentTemplateProperties.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(),	propertySet.get(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
 
 						Content newContent = (Content) createNodeCommand.execute(contentTemplateProperties);
 

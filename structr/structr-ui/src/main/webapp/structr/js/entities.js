@@ -90,7 +90,7 @@ var _Entities = {
 
     appendObj : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
 
-        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
+        console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
 
         var lastAppendedObj;
 
