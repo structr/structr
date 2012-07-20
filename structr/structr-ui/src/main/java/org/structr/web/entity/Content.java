@@ -39,6 +39,7 @@ import org.structr.web.entity.html.*;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.web.converter.PathsConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,8 +53,7 @@ public class Content extends AbstractNode {
 	private static final Logger logger         = Logger.getLogger(Content.class.getName());
 	protected static final String[] attributes = new String[] {
 
-		UiKey.name.name(), UiKey.tag.name(), UiKey.content.name(), UiKey.contentType.name(), UiKey.size.name(), UiKey.type.name(),
-
+		UiKey.name.name(), UiKey.tag.name(), UiKey.content.name(), UiKey.contentType.name(), UiKey.size.name(), UiKey.type.name(), UiKey.paths.name(),
 		// support for microformats
 		"data-key"
 
@@ -63,9 +63,12 @@ public class Content extends AbstractNode {
 
 	static {
 
+		EntityContext.registerPropertyConverter(Content.class, UiKey.paths, PathsConverter.class);
+		
 		EntityContext.registerPropertySet(Content.class, PropertyView.All, attributes);
 		EntityContext.registerPropertySet(Content.class, PropertyView.Public, attributes);
 		EntityContext.registerPropertySet(Content.class, PropertyView.Ui, attributes);
+		
 		EntityContext.registerEntityRelation(Content.class, Element.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Title.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Body.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
@@ -105,6 +108,7 @@ public class Content extends AbstractNode {
 		EntityContext.registerEntityRelation(Content.class, Bdi.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Bdo.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Span.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
+		
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), UiKey.values());
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), UiKey.values());
 
@@ -114,7 +118,7 @@ public class Content extends AbstractNode {
 
 	public enum UiKey implements PropertyKey {
 
-		name, tag, content, contentType, size, type
+		name, tag, content, contentType, size, type, paths
 
 	}
 

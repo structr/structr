@@ -44,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,14 +54,14 @@ import java.util.Set;
  */
 public class RelationshipHelper {
 
-	public static void copyRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String pageId, String componentId, long position)
+	public static void copyRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String componentId)
 		throws FrameworkException {
 
-		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
-		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
+		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, componentId);
+		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, componentId);
 	}
 
-	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String pageId, String componentId, long position)
+	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String componentId)
 		throws FrameworkException {
 
 		if (cloneNode == null) {
@@ -101,17 +102,27 @@ public class RelationshipHelper {
 
 			}
 
-			if (pageId != null) {
-
-				// newInRel.setProperty(Component.Key.pageId, pageId);
-				newInRel.setProperty(pageId, position);
-			}
-
+			setPositions(cloneNode, newInRel);
+			
 		}
 	}
 
-	public static void copyOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode cloneNode, RelType relType, String pageId, String componentId,
-		long position)
+	private static void setPositions(final AbstractNode cloneNode, AbstractRelationship rel) throws FrameworkException {
+		
+			Set<String> paths = (Set<String>) cloneNode.getProperty(Component.UiKey.paths);
+			
+			for (String path : paths) {
+				
+				String pageId = path.substring(0, 32);
+				Long position	= Long.parseLong(StringUtils.substringAfterLast(path, "_"));
+				
+				rel.setProperty(pageId, position + 1);
+				
+			}
+		
+	}
+	
+	public static void copyOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode cloneNode, RelType relType, String componentId)
 		throws FrameworkException {
 
 		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -138,11 +149,7 @@ public class RelationshipHelper {
 
 			}
 
-			if (pageId != null) {
-
-				// newOutRel.setProperty(Component.Key.pageId, pageId);
-				newOutRel.setProperty(pageId, position);
-			}
+			setPositions(cloneNode, newOutRel);
 
 		}
 	}
@@ -209,7 +216,7 @@ public class RelationshipHelper {
 		long position)
 		throws FrameworkException {
 
-		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
+		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, componentId);
 		removeIncomingRelationships(securityContext, origNode, relType);
 	}
 
@@ -217,7 +224,7 @@ public class RelationshipHelper {
 		long position)
 		throws FrameworkException {
 
-		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, pageId, componentId, position);
+		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, componentId);
 		removeOutgoingRelationships(securityContext, origNode, relType);
 	}
 

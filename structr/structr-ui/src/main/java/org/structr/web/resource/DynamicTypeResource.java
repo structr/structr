@@ -23,7 +23,6 @@ package org.structr.web.resource;
 
 import org.apache.commons.collections.ListUtils;
 
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -33,7 +32,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.*;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -54,6 +52,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -175,10 +174,7 @@ public class DynamicTypeResource extends TypeResource {
 
 			}
 
-			// Components have to be duplicated with super user context!
-			// Elements in the component subtree may not be visible for certain users (like f.e. an edit button),
-			// but they have to be existent anyway
-			Component newComponent  = duplicateComponent(SecurityContext.getSuperUserInstance(), propertySet, rawType, surroundingComponentId);
+			Component newComponent  = duplicateComponent(securityContext, propertySet, rawType, surroundingComponentId);
 			RestMethodResult result = new RestMethodResult(201);
 
 			if (newComponent != null) {
@@ -237,24 +233,24 @@ public class DynamicTypeResource extends TypeResource {
 	public static Component duplicateComponent(final SecurityContext securityContext, final Map<String, Object> propertySet, final String rawType, final String surroundingComponentId)
 		throws FrameworkException {
 
-		final List<GraphObject> templates            = getComponents(securityContext, getSearchAttributes(rawType));
+		final List<GraphObject> templates            = getComponents(SecurityContext.getSuperUserInstance(), getSearchAttributes(rawType));
 		final Command createNodeCommand              = Services.command(securityContext, CreateNodeCommand.class);
 		final Map<String, Object> templateProperties = new LinkedHashMap<String, Object>();
 		final String componentId                     = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-		final Component template                     = (Component) templates.get(0);
+		final Component template                     = (Component) templates.get(templates.size()-1); // last templates wins, makes it easier to calc position of new component
 
 		// copy properties to map
 		templateProperties.put(AbstractNode.Key.type.name(), Component.class.getSimpleName());
 		templateProperties.put(Component.UiKey.kind.name(), template.getStringProperty(Component.UiKey.kind.name()));
 		templateProperties.put(AbstractNode.Key.uuid.name(), componentId);
+		
+		templateProperties.put(AbstractNode.Key.visibleToPublicUsers.name(), template.getBooleanProperty(AbstractNode.Key.visibleToPublicUsers));
+		templateProperties.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(), template.getBooleanProperty(AbstractNode.Key.visibleToAuthenticatedUsers));
 
 		// use parentId from template
 		String parentComponentId = template.getComponentId();
-		String parentResourceId  = (String) propertySet.get("pageId");
 
 		propertySet.remove("pageId");
-
-		final long position = getMaxPosition(templates, parentResourceId) + 1;
 
 		if (surroundingComponentId != null) {
 
@@ -262,7 +258,6 @@ public class DynamicTypeResource extends TypeResource {
 		}
 
 		final String finalParentComponentId = parentComponentId;
-		final String finalParentResourceId  = parentResourceId;
 		Component newComponent              = (Component) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
@@ -270,7 +265,7 @@ public class DynamicTypeResource extends TypeResource {
 
 				Component comp = (Component) createNodeCommand.execute(templateProperties);
 
-				RelationshipHelper.copyRelationships(securityContext, template, comp, RelType.CONTAINS, finalParentResourceId, finalParentComponentId, position);
+				RelationshipHelper.copyRelationships(SecurityContext.getSuperUserInstance(), template, comp, RelType.CONTAINS, finalParentComponentId);
 
 				// RelationshipHelper.tagOutgoingRelsWithComponentId(comp, comp, comp.getUuid());
 				Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
@@ -293,7 +288,7 @@ public class DynamicTypeResource extends TypeResource {
 
 						// remove non-local data key from set
 						propertySet.remove(dataKey);
-						RelationshipHelper.copyRelationships(securityContext, contentTemplate, newContent, RelType.CONTAINS, finalParentResourceId, componentId, position);
+						RelationshipHelper.copyRelationships(SecurityContext.getSuperUserInstance(), contentTemplate, newContent, RelType.CONTAINS, componentId);
 
 					}
 				}
@@ -313,47 +308,6 @@ public class DynamicTypeResource extends TypeResource {
 
 		}
 
-		/**
-		 * not used, was "link components with DATA relationships together"
-		 *
-		 * // make new component collect content properties right now
-		 * newComponent.onNodeInstantiation();
-		 *
-		 * // create linked component
-		 * for(AbstractRelationship rel : template.getRelationships(RelType.DATA, Direction.INCOMING)) {
-		 *
-		 *       AbstractNode dataNode = rel.getStartNode();
-		 *       if(dataNode instanceof Component) {
-		 *
-		 *               Component linkedComponent = (Component)dataNode;
-		 *
-		 *               // prepare property set for linked POST
-		 *               Map<String, Object> postPropertySet = new LinkedHashMap<String, Object>();
-		 *               String rawNames = rel.getStringProperty("names");
-		 *               String[] names = rawNames.split("[, ]+");
-		 *
-		 *               // copy properties from new component according to property keys on relationship
-		 *               for(String key : names) {
-		 *
-		 *                       Object value = newComponent.getProperty(key);
-		 *                       if(value != null) {
-		 *                               postPropertySet.put(key, value);
-		 *                       }
-		 *               }
-		 *
-		 *               String linkedRawType = linkedComponent.getStringProperty(Component.UiKey.structrclass);
-		 *
-		 *               Component newLinkedComponent = duplicateComponent(securityContext, postPropertySet, linkedRawType, null);
-		 *
-		 *               // create new DATA relationship from linked component to new component
-		 *               Map<String, Object> newRelProperties = new LinkedHashMap<String, Object>();
-		 *               newRelProperties.put(ReferenceRelationship.Key.names.name(), rel.getProperty(ReferenceRelationship.Key.names));
-		 *
-		 *               Services.command(securityContext, CreateRelationshipCommand.class).execute(newLinkedComponent, newComponent, RelType.DATA, newRelProperties);
-		 *       }
-		 *
-		 * }
-		 */
 		return newComponent;
 
 	}
@@ -395,12 +349,11 @@ public class DynamicTypeResource extends TypeResource {
 
 			if (template instanceof Component) {
 
-				Component component             = (Component) template;
-				List<AbstractRelationship> rels = component.getRelationships(RelType.CONTAINS, Direction.INCOMING);
-
-				for (AbstractRelationship rel : rels) {
+				Set<String> paths = (Set<String>) template.getProperty(Component.UiKey.paths);
+				
+				for (String path : paths) {
 					
-					Long p = rel.getLongProperty(pageId);
+					Long p = Long.parseLong(StringUtils.substringAfterLast(path, "_"));
 					pos = Math.max(pos, (p == null ? 0 : p));
 				}
 

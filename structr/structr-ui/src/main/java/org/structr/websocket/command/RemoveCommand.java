@@ -75,8 +75,7 @@ public class RemoveCommand extends AbstractCommand {
 		
 		if (StringUtils.isNotBlank(treeAddress)) {
 			pageId		= treeAddress.substring(0, 32);
-			int len		= treeAddress.length();
-			position	= treeAddress.substring(len-1, len);
+			position	= StringUtils.substringAfterLast(treeAddress, "_");
 		} else {
 			pageId		= (String) webSocketData.getNodeData().get("pageId");
 			position        = (String) webSocketData.getNodeData().get("position");
