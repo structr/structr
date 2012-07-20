@@ -59,7 +59,7 @@ public class RelationshipIdResource extends FilterableResource {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws FrameworkException {
+	public List<GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 
 		List<GraphObject> uuidResult = new LinkedList<GraphObject>();
 
@@ -80,7 +80,7 @@ public class RelationshipIdResource extends FilterableResource {
 
 		/*
 
-		List<? extends GraphObject> results = relationshipResource.doGet();
+		List<? extends GraphObject> results = relationshipResource.doGet(sortKey, sortDescending, pageSize, page);
 		String desiredId = idResource.getUuid();
 		GraphObject desiredObject = null;
 

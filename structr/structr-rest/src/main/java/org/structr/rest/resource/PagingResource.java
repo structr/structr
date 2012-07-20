@@ -52,9 +52,9 @@ public class PagingResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 
-		List<? extends GraphObject> results = wrappedResource.doGet();
+		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 		resultCount = results.size();
 
 		int fromIndex = Math.min(resultCount, Math.max(0, (getPage()-1) * getPageSize()));

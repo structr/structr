@@ -21,6 +21,8 @@
 
 package org.structr.core.node.search;
 
+import java.io.IOException;
+import java.util.*;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.Term;
@@ -48,13 +50,11 @@ import org.structr.core.node.NodeServiceCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.*;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -80,6 +80,14 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	public static String IMPROBABLE_SEARCH_VALUE = "×¦÷þ·";
 	private static final Logger logger            = Logger.getLogger(SearchNodeCommand.class.getName());
 
+	private static final Map<String, Integer> sortKeyTypeMap = new LinkedHashMap<String, Integer>();
+	
+	static {
+		
+		sortKeyTypeMap.put("name",       SortField.STRING);
+		sortKeyTypeMap.put("created_at", SortField.LONG);
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
@@ -93,39 +101,80 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		AbstractNode topNode = null;
-
-		if (parameters[0] instanceof AbstractNode) {
-
-			topNode = (AbstractNode) parameters[0];
-
-		}
-
-		boolean includeDeletedAndHidden = false;
-
-		if (parameters[1] instanceof Boolean) {
-
-			includeDeletedAndHidden = (Boolean) parameters[1];
-
-		}
-
-		boolean publicOnly = false;
-
-		if (parameters[2] instanceof Boolean) {
-
-			publicOnly = (Boolean) parameters[2];
-
-		}
-
 		List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
+		AbstractNode topNode              = null;
+		boolean includeDeletedAndHidden   = false;
+		boolean publicOnly                = false;
+		String sortKey                    = null;
+		boolean sortDescending            = false;
+		long pageSize                     = -1;
+		long page                         = -1;
+		
+		
+		switch (parameters.length) {
+			
+			case 8:
+				if (parameters[7] instanceof Number) {
 
-		if (parameters[3] instanceof List) {
+					page = ((Number) parameters[7]).longValue();
 
-			searchAttrs = (List<SearchAttribute>) parameters[3];
+				}
+			
+			case 7:
+				if (parameters[6] instanceof Number) {
 
+					pageSize = ((Number) parameters[6]).longValue();
+
+				}
+			
+			case 6:
+				if (parameters[5] instanceof Boolean) {
+
+					sortDescending = (Boolean) parameters[5];
+
+				}
+				
+			
+			case 5:
+				if(parameters[4] instanceof String) {
+					
+					sortKey = (String)parameters[4];
+					
+				} else if(parameters[4] instanceof PropertyKey) {
+					sortKey = ((PropertyKey)parameters[4]).name();
+				}
+			
+			case 4:
+				if (parameters[0] instanceof AbstractNode) {
+					topNode = (AbstractNode) parameters[0];
+
+				}
+
+				if (parameters[1] instanceof Boolean) {
+
+					includeDeletedAndHidden = (Boolean) parameters[1];
+
+				}
+
+
+				if (parameters[2] instanceof Boolean) {
+
+					publicOnly = (Boolean) parameters[2];
+
+				}
+
+
+				if (parameters[3] instanceof List) {
+
+					searchAttrs = (List<SearchAttribute>) parameters[3];
+
+				}
+				
+				break;
 		}
 
-		return search(securityContext, topNode, includeDeletedAndHidden, publicOnly, searchAttrs);
+
+		return search(securityContext, topNode, includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page);
 	}
 
 	/**
@@ -139,7 +188,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @return
 	 */
 	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeletedAndHidden, final boolean publicOnly,
-					  final List<SearchAttribute> searchAttrs)
+					  final List<SearchAttribute> searchAttrs, final String sortKey, final boolean sortDescending, final long pageSize, final long page)
 		throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
@@ -245,6 +294,19 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				QueryContext queryContext = new QueryContext(textualQueryString);
 				IndexHits hits            = null;
 
+				if(sortKey != null) {
+					
+					Integer type = sortKeyTypeMap.get(sortKey);
+					if(type != null) {
+						
+						queryContext.sort(new Sort(new SortField(sortKey, type, sortDescending)));
+						
+					} else {
+						
+						queryContext.sort(new Sort(new SortField(sortKey, Locale.GERMAN, sortDescending)));
+					}
+				}
+				
 				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.Key.uuid.name())) {
 
 					// Search for uuid only: Use UUID index
@@ -252,6 +314,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					synchronized(index) {
 						hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
 					}
+					
+					
+// SORTING				} else if (/*(textualAttributes.size() > 1) &&*/ allExactMatch) {
 					
 				} else if ((textualAttributes.size() > 1) && allExactMatch) {
 
@@ -293,7 +358,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					: 0 });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeletedAndHidden, publicOnly);
+				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeletedAndHidden, publicOnly, pageSize, page);
 
 				hits.close();
 				long t2 = System.currentTimeMillis();
@@ -375,18 +440,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			long t3 = System.currentTimeMillis();
 
 			logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.size() });
-
-			long t4 = System.currentTimeMillis();
-
-			// sort search results; defaults to name, (@see AbstractNode.compareTo())
-			if(distanceSearch == null) {
-				// only sort nodes if distance search is not active
-				Collections.sort(finalResult);
-			}
-
-			long t5 = System.currentTimeMillis();
-
-			logger.log(Level.FINE, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
 		}
 
 		return finalResult;

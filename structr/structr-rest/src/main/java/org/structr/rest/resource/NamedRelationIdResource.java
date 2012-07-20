@@ -57,7 +57,7 @@ public class NamedRelationIdResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 
 		List<GraphObject> uuidResult = new LinkedList<GraphObject>();
 
@@ -80,7 +80,7 @@ public class NamedRelationIdResource extends WrappingResource {
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
 
-		List<? extends GraphObject> results = doGet();
+		List<? extends GraphObject> results = doGet(null, false, -1, -1);
 		for(GraphObject o : results) {
 
 			for(Entry<String, Object> entry : propertySet.entrySet()) {

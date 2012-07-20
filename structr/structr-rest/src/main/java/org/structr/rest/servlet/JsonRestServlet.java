@@ -307,14 +307,23 @@ public class JsonRestServlet extends HttpServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
-			Resource resource     = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
+			Resource resource     = applyViewTransformation(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
 			
 			// let authenticator examine request again
 			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(), propertyView.get(securityContext));
 			
-			// do action
-			Result result         = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
+			// add sorting & paging
+			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+			String sortKey           = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
+			long pageSize            = parseLong(pageSizeParameter, -1);
+			long page                = parseLong(pageParameter, -1);
 			
+			// do action
+			Result result         = new Result(resource.doGet(sortKey, sortDescending, pageSize, page), resource.isCollectionResource(), resource.isPrimitiveArray());
+
 			// timing..
 			double queryTimeEnd   = System.nanoTime();
 
@@ -893,9 +902,9 @@ public class JsonRestServlet extends HttpServlet {
 		return propertyFormat;
 	}
 
-	private Resource addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, Resource finalResource) throws FrameworkException {
+	private Resource applyViewTransformation(HttpServletRequest request, SecurityContext securityContext, Resource finalResource) throws FrameworkException {
 
-		Resource pagedSortedResource = finalResource;
+		Resource transformedResource = finalResource;
 
 		// add view transformation
 		Class type = finalResource.getEntityClass();
@@ -903,48 +912,11 @@ public class JsonRestServlet extends HttpServlet {
 			
 			Transformation<List<? extends GraphObject>> transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
 			if(transformation != null) {
-				pagedSortedResource = pagedSortedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
+				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
 			}
 		}
-		
-		// add sorting
-		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 
-		if (sortKey != null) {
-
-			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-
-			if (sortOrder == null) {
-
-				sortOrder = DEFAULT_VALUE_SORT_ORDER;
-
-			}
-
-			// combine sort constraint
-			pagedSortedResource = pagedSortedResource.tryCombineWith(new SortResource(securityContext, sortKey, sortOrder));
-
-		}
-
-		// add paging
-		String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-
-		if (pageSizeParameter != null) {
-
-			String pageParameter = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			int pageSize         = parseInt(pageSizeParameter, DEFAULT_VALUE_PAGE_SIZE);
-			int page             = parseInt(pageParameter, 1);
-
-			if (pageSize <= 0) {
-
-				throw new IllegalPathException();
-
-			}
-
-			pagedSortedResource = pagedSortedResource.tryCombineWith(new PagingResource(securityContext, page, pageSize));
-
-		}
-
-		return pagedSortedResource;
+		return transformedResource;
 	}
 
 	/**
@@ -965,6 +937,29 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 			return Integer.parseInt(value);
+		} catch (Throwable ignore) {}
+
+		return defaultValue;
+	}
+
+	/**
+	 * Tries to parse the given String to a long value, returning
+	 * defaultValue on error.
+	 *
+	 * @param value the source String to parse
+	 * @param defaultValue the default value that will be returned when parsing fails
+	 * @return the parsed value or the given default value when parsing fails
+	 */
+	private long parseLong(String value, long defaultValue) {
+
+		if (value == null) {
+
+			return defaultValue;
+
+		}
+
+		try {
+			return Long.parseLong(value);
 		} catch (Throwable ignore) {}
 
 		return defaultValue;

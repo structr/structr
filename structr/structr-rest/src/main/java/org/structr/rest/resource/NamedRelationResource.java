@@ -64,13 +64,13 @@ public class NamedRelationResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 
 		List<GraphObject> relationResults = new LinkedList<GraphObject>();
 		if(wrappedResource != null) {
 
 			// extract relationships from wrapped resource
-			List<? extends GraphObject> results = wrappedResource.doGet();
+			List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 			for(GraphObject obj : results) {
 				if (obj instanceof AbstractNode) {
 					relationResults.addAll(namedRelation.getRelationships((AbstractNode) obj));

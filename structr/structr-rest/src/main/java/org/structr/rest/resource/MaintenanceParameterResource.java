@@ -86,7 +86,7 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 		throw new NotAllowedException();
 	}
 

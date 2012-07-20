@@ -45,6 +45,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.GraphObjectComparator;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -96,7 +98,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws FrameworkException {
+	public List<GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
@@ -140,39 +142,48 @@ public class TypeResource extends SortableResource {
 				hasSearchableAttributesForNodes(rawType, request, searchAttributes);
 
 			}
+			
+			// default sort key & order
+			if(sortKey == null) {
+				
+				try {
+					
+					GraphObject templateEntity  = ((GraphObject)entityClass.newInstance());
+					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
+					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
+					
+					if(sortKeyProperty != null) {
+						sortKey = sortKeyProperty.name();
+					}
+					
+				} catch(Throwable t) {
+					
+					// fallback to name
+					sortKey = "name";
+				}
+			}
+			
 
 			// do search
-			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly,
-							    searchAttributes);
-
-			if (!results.isEmpty()) {
-
-				// only sort if distance search is not active
-				if (distanceSearch == null) {
-
-					applyDefaultSorting(results);
-				}
-
-				return results;
-			}
+			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(
+				topNode,
+				includeDeletedAndHidden,
+				publicOnly,
+				searchAttributes,
+				sortKey,
+				sortDescending,
+				pageSize,
+				page
+			);
+			
+			return results;
+			
 		} else {
 
 			logger.log(Level.WARNING, "type was null");
 		}
 
 		return Collections.emptyList();
-
-//              // return 404 if search attributes were posted
-//              if(hasSearchableAttributesForNodes) {
-//
-//                      throw new NotFoundException();
-//
-//              } else {
-//                      // throw new NoResultsException();
-//                      return Collections.emptyList();
-//
-//              }
-
 	}
 
 	@Override

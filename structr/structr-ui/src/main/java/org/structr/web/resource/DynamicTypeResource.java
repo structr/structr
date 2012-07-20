@@ -94,7 +94,7 @@ public class DynamicTypeResource extends TypeResource {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws FrameworkException {
+	public List<GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 
 		List<GraphObject> uuidResults = null;
 
@@ -103,7 +103,7 @@ public class DynamicTypeResource extends TypeResource {
 
 			uuidResource.setSecurityContext(this.securityContext);
 
-			uuidResults = (List<GraphObject>) uuidResource.doGet();
+			uuidResults = (List<GraphObject>) uuidResource.doGet(sortKey, sortDescending, pageSize, page);
 
 		}
 
@@ -126,7 +126,7 @@ public class DynamicTypeResource extends TypeResource {
 			// check if nested DynamicTypeResources have valid results
 			for (DynamicTypeResource res : nestedResources) {
 
-				if (res.doGet().isEmpty()) {
+				if (res.doGet(sortKey, sortDescending, pageSize, page).isEmpty()) {
 
 					throw new NotFoundException();
 				}
@@ -138,7 +138,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		parentResults = true;
 
-		return super.doGet();
+		return super.doGet(sortKey, sortDescending, pageSize, page);
 
 	}
 
@@ -151,7 +151,7 @@ public class DynamicTypeResource extends TypeResource {
 			throw new IllegalPathException();
 		}
 
-		List<GraphObject> templates = doGet();
+		List<GraphObject> templates = doGet(null, false, -1, -1);
 
 		if (parentResults) {
 

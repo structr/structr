@@ -73,11 +73,11 @@ public class ViewFilterResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 
 		if (wrappedResource != null) {
 
-			return wrappedResource.doGet();
+			return wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 
 		}
 

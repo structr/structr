@@ -156,9 +156,9 @@ public class NodeFactory<T extends AbstractNode> {
 		return null;
 	}
 
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input) throws FrameworkException {
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, long pageSize, long page) throws FrameworkException {
 
-		return createNodes(securityContext, input, false, false);
+		return createNodes(securityContext, input, false, false, pageSize, page);
 
 	}
 
@@ -175,10 +175,13 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param publicOnly
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly)
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly, long pageSize, long page)
 		throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		long offset              = Math.min(0, (page-1) * pageSize);
+		long position            = 0L;
+		long count               = 0L;
 
 		if (input != null && input instanceof SpatialRecordHits) {
 
@@ -222,7 +225,15 @@ public class NodeFactory<T extends AbstractNode> {
 					// Check is done in createNode already, so we don't have to do it again
 					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
-						nodes.add(n);
+						if(++position > offset) {
+
+							nodes.add(n);
+
+							// stop if we got enough nodes
+							if(pageSize > 0 && count++ > pageSize) {
+								return nodes;
+							}
+						}
 					}
 
 				}

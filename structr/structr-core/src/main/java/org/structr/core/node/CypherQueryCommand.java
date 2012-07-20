@@ -55,23 +55,34 @@ public class CypherQueryCommand extends NodeServiceCommand {
 		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory         = (NodeFactory) arguments.get("nodeFactory");
 		ExecutionEngine engine          = new ExecutionEngine(graphDb);
+		String query                    = null;
+		Map<String, Object> params      = null;
+		boolean includeHiddenAndDeleted = false;
+		boolean publicOnly              = false;
 
-		if (parameters.length < 1) {
-
-			throw new UnsupportedArgumentError("No parameters given. Required parameters: String query");
+		switch(parameters.length) {
+				
+			case 0:
+				throw new UnsupportedArgumentError("No parameters given. Required parameters: String query");
+				
+			case 4:
+				publicOnly = (Boolean)parameters[2];
+				
+			case 3:
+				includeHiddenAndDeleted = (Boolean)parameters[2];
+				
+			case 2:
+				params = (Map<String, Object>)parameters[1];
+				
+			case 1:
+				query = (String)parameters[0];
 		}
-
+			
 		if (parameters[0] instanceof String) {
 
-			List<GraphObject> resultList = new LinkedList<GraphObject>();
-			String query                 = (String)parameters[0];
-			ExecutionResult result       = null;
-			Map<String, Object> params   = null;
+			List<GraphObject> resultList    = new LinkedList<GraphObject>();
+			ExecutionResult result          = null;
 			
-			if(parameters.length > 1 && parameters[1] instanceof Map) {
-				params = (Map<String, Object>)parameters[1];
-			}
-
 			if(params != null) {
 				
 				result = engine.execute(query, params);
@@ -87,7 +98,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 					if (o instanceof Node) {
 
-						AbstractNode node = nodeFactory.createNode(securityContext, (Node) o);
+						AbstractNode node = nodeFactory.createNode(securityContext, (Node) o, includeHiddenAndDeleted, publicOnly);
 
 						if (node != null) {
 

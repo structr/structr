@@ -60,7 +60,7 @@ public class UuidResource extends FilterableResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 
 		GraphObject obj = null;
 

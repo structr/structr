@@ -179,7 +179,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws FrameworkException {
+	public List<GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
 
 		Path path = getValidatedPath();
 
@@ -197,7 +197,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 
 			}
 
-			return lastResource.doGet();
+			return lastResource.doGet(sortKey, sortDescending, pageSize, page);
 
 		} else {
 

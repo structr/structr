@@ -92,7 +92,7 @@ public abstract class Resource {
 
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 
-	public abstract List<? extends GraphObject> doGet() throws FrameworkException;
+	public abstract List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException;
 
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
@@ -111,7 +111,7 @@ public abstract class Resource {
 
 		// catch 204, DELETE must return 200 if resource is empty
 		try {
-			results = doGet();
+			results = doGet(null, false, -1, -1);
 		} catch (NoResultsException nre) {
 			results = null;
 		}
@@ -163,7 +163,7 @@ public abstract class Resource {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final Iterable<? extends GraphObject> results = doGet();
+		final Iterable<? extends GraphObject> results = doGet(null, false, -1, -1);
 
 		if (results != null) {
 
