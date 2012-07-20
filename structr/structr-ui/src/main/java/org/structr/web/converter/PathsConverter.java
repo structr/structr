@@ -21,26 +21,24 @@
 
 package org.structr.web.converter;
 
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.kernel.Traversal;
+import org.neo4j.kernel.Uniqueness;
+
 import org.structr.common.RelType;
-import org.structr.core.Command;
 import org.structr.core.PropertyConverter;
-import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.web.entity.Page;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,6 +47,10 @@ import java.util.Set;
  * @author axel
  */
 public class PathsConverter extends PropertyConverter {
+
+	private static final Logger logger = Logger.getLogger(PathsConverter.class.getName());
+
+	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object convertForSetter(Object source, Value value) {
@@ -60,86 +62,47 @@ public class PathsConverter extends PropertyConverter {
 	@Override
 	public Object convertForGetter(Object source, Value value) {
 
-		Command searchNode              = Services.command(securityContext, SearchNodeCommand.class);
-		List<Page> containingPages      = new LinkedList<Page>();
-		List<AbstractRelationship> rels = ((AbstractNode) currentObject).getIncomingRelationships(RelType.CONTAINS);
+		AbstractNode startNode         = (AbstractNode) currentObject;
+		TraversalDescription localDesc = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_PATH).relationships(RelType.CONTAINS, Direction.INCOMING);
 
-		for (AbstractRelationship rel : rels) {
+		Set<String> treeAddresses = new HashSet<String>();
 
-			Map<String, Object> props = rel.getProperties();
+		// do traversal
+		for (Path path : localDesc.traverse(startNode.getNode())) {
 
-			for (Entry<String, Object> entry : props.entrySet()) {
+			String pageId       = (String) path.endNode().getProperty("uuid");
+			String treeAddress  = "";
+			boolean isConnected = false;
 
-				String key = entry.getKey();
+			for (Relationship r : path.relationships()) {
+				
+				isConnected = true;
 
-				// Check if key is a node id (UUID format)
-				if (key.matches("[a-zA-Z0-9]{32}")) {
+				if (!r.hasProperty(pageId)) {
 
-					List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+					// We found a relationship without pageId as key.
+					// That means that the path is invalid.
+					isConnected = false;
 
-					attrs.add(Search.andExactType(Page.class.getSimpleName()));
-					attrs.add(Search.andExactUuid(key));
-
-					List<AbstractNode> results = null;
-
-					try {
-
-						results = (List<AbstractNode>) searchNode.execute(null, false, false, attrs);
-
-					} catch (Throwable ignore) {}
-
-					if (results != null && !results.isEmpty()) {
-
-						containingPages.add((Page) results.get(0));
-					}
-
+					break;
 				}
+
+				Integer pos = Integer.parseInt(r.getProperty(pageId).toString());
+
+				treeAddress = "_" + pos + treeAddress;
+
+			}
+
+			if (isConnected) {
+
+				treeAddresses.add(pageId + treeAddress);
+				logger.log(Level.FINE, "{0}{1}", new Object[]{pageId, treeAddress});
 
 			}
 
 		}
 
-		Set<String> paths = new HashSet<String>();
-
-		// Create a path for each page
-		for (Page page : containingPages) {
-
-			String pageId     = page.getUuid();
-			String path       = "";
-			AbstractNode node = (AbstractNode) currentObject;
-
-			// Stop at page node
-			while (node != null && !(node instanceof Page)) {
-
-				List<AbstractRelationship> containsRels = node.getIncomingRelationships(RelType.CONTAINS);
-
-				for (AbstractRelationship r : containsRels) {
-
-					Long pos = r.getLongProperty(pageId);
-
-					if (pos != null) {
-
-						path = "_" + pos + path;
-						
-						
-						node = r.getStartNode();
-						
-						// A node should only have one position per pageId
-						break;
-					}
-
-				}
-				
-				
-				
-
-			}
-
-			paths.add(pageId + path);
-
-		}
-
-		return paths;
+		return treeAddresses;
 
 	}
 

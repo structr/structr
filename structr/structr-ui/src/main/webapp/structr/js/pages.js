@@ -178,9 +178,10 @@ var _Pages = {
         previewTabs.append('<li id="add_page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
         $('#add_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
-            var entity = {};
-            entity.type = 'Page';
-            Command.create(entity);
+            //var entity = {};
+            //entity.type = 'Page';
+            //Command.create(entity);
+            Command.createSimplePage();
         });        
         
     },
@@ -954,15 +955,16 @@ var _Pages = {
                 + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
-                var self = $(this);
-                //self.off('click');
-                //self.off('mouseover');
-                var component = self.closest( '.component')[0];
-                var page = self.closest( '.page')[0];
-                if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, getId(component), getId(page), pos);
-                Command.removeSourceFromTarget(content.id, parentId, getId(component), getId(page), pos)
+//                var self = $(this);
+//                //self.off('click');
+//                //self.off('mouseover');
+//                var component = self.closest( '.component')[0];
+//                var page = self.closest( '.page')[0];
+//                if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, getId(component), getId(page), pos);
+//                Command.removeSourceFromTarget(content.id, parentId, getId(component), getId(page), pos)
             //                if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, componentId, pageId, pos);
             //                Command.removeSourceFromTarget(content.id, parentId, componentId, pageId, pos)
+                _Entities.listContainingNodes(content, div.parent('.node'));
             });
         }
 

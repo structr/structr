@@ -90,7 +90,7 @@ var _Entities = {
 
     appendObj : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
 
-        console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
+        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
 
         var lastAppendedObj;
 
@@ -235,6 +235,7 @@ var _Entities = {
                             'cursor': 'pointer'
                         }).on('click', function(e) {
                             //console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
+                            console.log(path);
                             Command.remove(entity.id, path);
                                         
                             $('.' + path).parent('tr').remove();

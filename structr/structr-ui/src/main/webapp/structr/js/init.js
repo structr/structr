@@ -502,6 +502,12 @@ var Structr = {
         }
     },
     
+    entityFromAddress : function(treeAddress) {
+        var entityElement = $('#_' + treeAddress);
+        var entity = Structr.entityFromElement(entityElement);
+        return entity;
+    },
+    
     entity : function(id, parentId) {
         var entityElement = Structr.node(id, parentId);
         var entity = Structr.entityFromElement(entityElement);
@@ -542,7 +548,7 @@ var Structr = {
         if (tagEl && tagEl.length) {
             entity.tag = $(tagEl[0]).text();
         }
-
+        
         return entity;
     }
 };

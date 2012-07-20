@@ -279,11 +279,11 @@ function connect() {
                 
                 //console.log(command, result, data, data.data);
                 
-                var treeAddress = data.data.treeAddress;
+                //var treeAddress = data.data.treeAddress;
 				
                 $(result).each(function(i, entity) {
                     
-                   console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                   if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
                     var el = Structr.node(entity.id, parentId, componentId, pageId);
                     if (el) el.remove();
@@ -300,7 +300,7 @@ function connect() {
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
                 
-                console.log('UPDATE');
+                if (debug) ssconsole.log('UPDATE');
                 
                 var relData = data.relData;
                 if (debug) console.log('relData', relData);
@@ -309,8 +309,11 @@ function connect() {
                 var modifiedProperties = data.modifiedProperties;
                 
                 var isRelOp = false;
+                
                 if (relData && relData.startNodeId && relData.endNodeId) {
                     isRelOp = true;
+                    console.log('relationship', relData, relData.startNodeId, relData.endNodeId);
+                    
                 }
                 
                 if (modifiedProperties) {
@@ -320,7 +323,7 @@ function connect() {
                 }
                 
                 if (relData && removedProperties && removedProperties.length) {
-                    console.log('removedProperties', removedProperties);
+                    if (debug) console.log('removedProperties', removedProperties);
                     _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
                     
                 } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
@@ -343,14 +346,14 @@ function connect() {
                     if (page && page.length) {
                                     
                         var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                        if (debug) console.log('entity', entity, pageId, newPageId);
+                        console.log('entity', entity, pageId, newPageId);
                         if (entity && newPageId) {
                             
                             parentId = relData.startNodeId;
                             
                             var parent = Structr.entity(parentId);
-                            if (debug) console.log('parent type', parent, parent.type);
-                            if (parent.type == 'Page') return;
+                            console.log('parent type', parent, parent.type);
+                            if (!parent.type || parent.type == 'Page') return;
                             
                             var id = entity.id;
                             //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
