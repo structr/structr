@@ -241,12 +241,12 @@ var _Elements = {
 
             var relData = {};
 
-            var component = node.closest('.component')[0];
-            if (component) {
-                var componentId = getId(component);
-                relData[componentId] = pos;
-                relData.componentId = componentId;
-            }
+//            var component = node.closest('.component')[0];
+//            if (component) {
+//                var componentId = getId(component);
+//                relData[componentId] = pos;
+//                relData.componentId = componentId;
+//            }
 
             var page = node.closest('.page')[0];
             if (page) {

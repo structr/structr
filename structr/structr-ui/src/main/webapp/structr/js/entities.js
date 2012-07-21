@@ -209,7 +209,7 @@ var _Entities = {
                         
                         cont.append('<tr><td class="' + path + '">'
                             + '<div style="display: inline-block" class="node ' + entity.id + '_">'
-                            + '<b class="tag_">' + entity.tag + '</b><img style="float: right" class="remove_icon" src="' + _Elements.delete_icon +  '"></div></td>'
+                            + '<b class="tag_">' + entity.tag + '</b> <img style="float: right" class="remove_icon" src="' + _Elements.delete_icon +  '"></div></td>'
                             + '</tr>');
                                     
                         //Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
@@ -235,7 +235,7 @@ var _Entities = {
                             'cursor': 'pointer'
                         }).on('click', function(e) {
                             //console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
-                            console.log(path);
+                            if (debug) console.log(path);
                             Command.remove(entity.id, path);
                                         
                             $('.' + path).parent('tr').remove();

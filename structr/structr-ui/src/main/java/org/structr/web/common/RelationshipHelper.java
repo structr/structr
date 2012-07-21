@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -54,14 +55,14 @@ import org.apache.commons.lang.StringUtils;
  */
 public class RelationshipHelper {
 
-	public static void copyRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String componentId)
+	public static void copyRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String componentId, boolean increasePosition)
 		throws FrameworkException {
 
-		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, componentId);
+		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, componentId, true);
 		copyOutgoingRelationships(securityContext, origNode, cloneNode, relType, componentId);
 	}
 
-	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String componentId)
+	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, RelType relType, String componentId, boolean increasePosition)
 		throws FrameworkException {
 
 		if (cloneNode == null) {
@@ -92,6 +93,10 @@ public class RelationshipHelper {
 
 			Map<String, Object> props = in.getProperties();
 			props.remove(AbstractRelationship.Key.uuid.name());
+			props.remove(AbstractRelationship.HiddenKey.createdDate.name());
+			
+			// Overwrite combined rel type with new dest node type
+			props.put(AbstractRelationship.HiddenKey.combinedType.name(), EntityContext.createCombinedRelationshipType(in.getStringProperty(AbstractRelationship.HiddenKey.combinedType), cloneNode.getClass()));
 			
 			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, props, false);
 
@@ -102,12 +107,12 @@ public class RelationshipHelper {
 
 			}
 
-			setPositions(cloneNode, newInRel);
+			setPositions(cloneNode, newInRel, increasePosition);
 			
 		}
 	}
 
-	private static void setPositions(final AbstractNode cloneNode, AbstractRelationship rel) throws FrameworkException {
+	private static void setPositions(final AbstractNode cloneNode, AbstractRelationship rel, boolean increasePosition) throws FrameworkException {
 		
 			Set<String> paths = (Set<String>) cloneNode.getProperty(Component.UiKey.paths);
 			
@@ -116,7 +121,11 @@ public class RelationshipHelper {
 				String pageId = path.substring(0, 32);
 				Long position	= Long.parseLong(StringUtils.substringAfterLast(path, "_"));
 				
-				rel.setProperty(pageId, position + 1);
+				if (increasePosition) {
+					position++;
+				}
+				
+				rel.setProperty(pageId, position);
 				
 			}
 		
@@ -149,7 +158,7 @@ public class RelationshipHelper {
 
 			}
 
-			setPositions(cloneNode, newOutRel);
+			setPositions(cloneNode, newOutRel, false);
 
 		}
 	}
@@ -213,10 +222,10 @@ public class RelationshipHelper {
 	}
 
 	public static void moveIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, final RelType relType, String pageId, String componentId,
-		long position)
+		boolean increasePosition)
 		throws FrameworkException {
 
-		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, componentId);
+		copyIncomingRelationships(securityContext, origNode, cloneNode, relType, componentId, increasePosition);
 		removeIncomingRelationships(securityContext, origNode, relType);
 	}
 

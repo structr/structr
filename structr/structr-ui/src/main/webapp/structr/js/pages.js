@@ -907,12 +907,12 @@ var _Pages = {
                 //    _Entities.toggleElement(self);
                 //}
 
-                var component = self.closest( '.component')[0];
-                if (component) {
-                    var componentId = getId(component);
-                    relData.componentId = componentId;
-                    relData[componentId] = pos;
-                }
+//                var component = self.closest( '.component')[0];
+//                if (component) {
+//                    var componentId = getId(component);
+//                    relData.componentId = componentId;
+//                    relData[componentId] = pos;
+//                }
 
                 nodeData.tag = (tag != 'content' ? tag : '');
                 nodeData.type = tag.capitalize();

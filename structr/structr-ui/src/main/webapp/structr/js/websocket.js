@@ -148,7 +148,7 @@ function connect() {
                 if (debug) console.log('GET:', data);
 
                 var d = data.data.displayElementId;
-                console.log('displayElementId', d);
+                if (debug) console.log('displayElementId', d);
 
                 var parentElement;
                 if (d != null) {
@@ -173,7 +173,7 @@ function connect() {
 
                     } else {
                         
-                        console.log($(attrElement));
+                        if (debug) console.log($(attrElement));
                         
                         var tag = $(attrElement).get(0).tagName.toLowerCase();
                         
@@ -312,7 +312,7 @@ function connect() {
                 
                 if (relData && relData.startNodeId && relData.endNodeId) {
                     isRelOp = true;
-                    console.log('relationship', relData, relData.startNodeId, relData.endNodeId);
+                    if (debug) console.log('relationship', relData, relData.startNodeId, relData.endNodeId);
                     
                 }
                 
@@ -346,13 +346,13 @@ function connect() {
                     if (page && page.length) {
                                     
                         var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                        console.log('entity', entity, pageId, newPageId);
+                        if (debug) console.log('entity', entity, pageId, newPageId);
                         if (entity && newPageId) {
                             
                             parentId = relData.startNodeId;
                             
                             var parent = Structr.entity(parentId);
-                            console.log('parent type', parent, parent.type);
+                            if (debug) console.log('parent type', parent, parent.type);
                             if (!parent.type || parent.type == 'Page') return;
                             
                             var id = entity.id;

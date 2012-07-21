@@ -80,7 +80,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
 					String componentId     = newComponent.getUuid();
 
-					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, pageId, componentId, position);
+					RelationshipHelper.moveIncomingRelationships(SecurityContext.getSuperUserInstance(), nodeToWrap, newComponent, RelType.CONTAINS, pageId, componentId, false);
 
 					if ((parentNode != null) && (newComponent != null)) {
 
@@ -116,7 +116,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 			};
 
 			try {
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+				Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);

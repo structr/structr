@@ -265,7 +265,7 @@ public class DynamicTypeResource extends TypeResource {
 
 				Component comp = (Component) createNodeCommand.execute(templateProperties);
 
-				RelationshipHelper.copyRelationships(SecurityContext.getSuperUserInstance(), template, comp, RelType.CONTAINS, finalParentComponentId);
+				RelationshipHelper.copyRelationships(SecurityContext.getSuperUserInstance(), template, comp, RelType.CONTAINS, finalParentComponentId, true);
 
 				// RelationshipHelper.tagOutgoingRelsWithComponentId(comp, comp, comp.getUuid());
 				Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
@@ -291,7 +291,7 @@ public class DynamicTypeResource extends TypeResource {
 
 						// remove non-local data key from set
 						propertySet.remove(dataKey);
-						RelationshipHelper.copyRelationships(SecurityContext.getSuperUserInstance(), contentTemplate, newContent, RelType.CONTAINS, componentId);
+						RelationshipHelper.copyRelationships(SecurityContext.getSuperUserInstance(), contentTemplate, newContent, RelType.CONTAINS, componentId, false);
 
 					}
 				}
@@ -303,6 +303,9 @@ public class DynamicTypeResource extends TypeResource {
 		});
 
 		if (newComponent != null) {
+			
+			propertySet.remove(AbstractNode.Key.createdDate.name());
+			propertySet.remove(AbstractNode.Key.lastModifiedDate.name());
 
 			for (String key : propertySet.keySet()) {
 
