@@ -723,7 +723,7 @@ var _Pages = {
 //                
 //                Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
 
-                _Entities.listContainingNodes(entity, div.parent('.node'));
+                _Entities.listContainingNodes(entity, div);
                 
             });
         }
@@ -964,7 +964,7 @@ var _Pages = {
 //                Command.removeSourceFromTarget(content.id, parentId, getId(component), getId(page), pos)
             //                if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, componentId, pageId, pos);
             //                Command.removeSourceFromTarget(content.id, parentId, componentId, pageId, pos)
-                _Entities.listContainingNodes(content, div.parent('.node'));
+                _Entities.listContainingNodes(content, div);
             });
         }
 

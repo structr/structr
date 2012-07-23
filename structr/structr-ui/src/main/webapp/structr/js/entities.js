@@ -174,7 +174,9 @@ var _Entities = {
             });
     },
 
-    listContainingNodes : function(entity, parentElement) {
+    listContainingNodes : function(entity, node) {
+
+        console.log('listContainingNodes', entity, getElementPath(node));
 
         dialog.empty();
         Structr.dialog('Choose element instance to remove',
@@ -209,7 +211,7 @@ var _Entities = {
                         
                         cont.append('<tr><td class="' + path + '">'
                             + '<div style="display: inline-block" class="node ' + entity.id + '_">'
-                            + '<b class="tag_">' + entity.tag + '</b> <img style="float: right" class="remove_icon" src="' + _Elements.delete_icon +  '"></div></td>'
+                            + '<b class="tag_">' + entity.tag + '</b> [ ' + path + ' ] <img style="float: right" class="remove_icon" src="' + _Elements.delete_icon +  '"></div></td>'
                             + '</tr>');
                                     
                         //Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
@@ -357,7 +359,7 @@ var _Entities = {
                                 if (key == 'id') {
                                     // set ID to rel ID
                                     id = res[key];
-                                    console.log('Set ID to relationship ID', id);
+                                    //console.log('Set ID to relationship ID', id);
                                 }
                                 
                                 props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
@@ -375,7 +377,7 @@ var _Entities = {
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
-                                            console.log('set property', id, key, checkbox.attr('checked') == 'checked');
+                                            if (debug) console.log('set property', id, key, checkbox.attr('checked') == 'checked');
                                             Command.setProperty(id, key, checkbox.attr('checked') == 'checked');
                                         });
                                         Command.getProperty(id, key, '#dialogBox');
@@ -407,15 +409,17 @@ var _Entities = {
                             }
 
                         });
+                        
+                        props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td></tr>');
 
                         $('.props tr td.value input', dialog).each(function(i,v) {
                             
                             var input = $(v);
-
+                            
                             var relId = input.parent().attr('rel_id');
                             //console.log('attaching events for saving attrs of relationship', relId);
 
-                            if (!input.hasClass('readonly')) {
+                            if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
                             
                                 input.on('focus', function() {
                                     input.addClass('active');
@@ -430,7 +434,24 @@ var _Entities = {
                                     console.log('relId', relId);
                                     var objId = relId ? relId : id;
                                     console.log('set properties of obj', objId);
-                                    Command.setProperty(objId, input.prop('name'), input.val());
+                                    
+                                    var keyInput = input.parent().parent().children('td').children('input');
+                                    
+                                    if (keyInput) {
+                                    
+                                        // new key
+                                        if (debug) console.log('Command.setProperty(', objId, keyInput.val(), input.val());
+                                        Command.setProperty(objId, keyInput.val(), input.val());
+                                        
+                                        
+                                    } else {
+                                        
+                                        // existing key
+                                        Command.setProperty(objId, input.prop('name'), input.val());
+                                        
+                                    }
+                                    
+                                    
                                     input.removeClass('active');
                                     input.parent().children('.icon').each(function(i, img) {
                                         $(img).remove();
