@@ -315,13 +315,19 @@ public class Component extends AbstractNode implements Element {
 				}
 
 				if ((componentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
-
-					// only add relationship if (nested) componentId matches
-					if (componentId.equals(abstractRelationship.getStringProperty(Key.componentId.name()))) {
+					
+					// Add content nodes if they don't have the data-key property set
+					if (endNode instanceof Content && endNode.getStringProperty("data-key") == null) {
+						
+						rels.add(abstractRelationship);
+						
+					// Add content or component nodes if rel's componentId attribute matches
+					} else if (componentId.equals(abstractRelationship.getStringProperty(Key.componentId.name()))) {
 
 						rels.add(abstractRelationship);
 
 					}
+						
 				} else {
 
 					rels.add(abstractRelationship);
