@@ -461,9 +461,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	private Object getProperty(final String key, boolean applyConverter) {
 
-		Object value = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
-		boolean schemaDefault = false;
-		Class type   = this.getClass();
+		Object value      = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
+		boolean dontCache = false;
+		Class type         = this.getClass();
 		
 		if(value == null || !applyConverter) {
 
@@ -521,7 +521,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			if (value == null) {
 
 				value = EntityContext.getDefaultValue(type, key);
-				schemaDefault = true;
+				dontCache = true;
 			}
 
 			// only apply converter if requested
@@ -542,7 +542,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				}
 			}
 
-			if(!schemaDefault) {
+			if(!dontCache) {
 
 				// only cache value if it is NOT the schema default
 				if(applyConverter) {

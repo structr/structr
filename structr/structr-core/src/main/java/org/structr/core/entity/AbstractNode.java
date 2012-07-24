@@ -903,7 +903,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		Object value          = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
 		Class type            = this.getClass();
-		boolean schemaDefault = false;
+		boolean dontCache     = false;
 
 		// only use cached value if property is accessed the "normal" way (i.e. WITH converters)
 		if(value == null) {
@@ -943,8 +943,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 						case ManyToMany :
 						case OneToMany :
-							value = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
-
+							value     = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
+							dontCache = true;
 							break;
 
 						case OneToOne :
@@ -952,6 +952,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 							try {
 
 								value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+								dontCache = true;
 
 							} catch (FrameworkException fex) {
 
@@ -971,7 +972,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if (value == null) {
 
 				value = EntityContext.getDefaultValue(type, key);
-				schemaDefault = true;
+				dontCache = true;
 			}
 
 			// only apply converter if requested
@@ -992,7 +993,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				}
 			}
 
-			if(!schemaDefault) {
+			if(!dontCache) {
 				
 				// only cache value if it is NOT the schema default
 				if(applyConverter) {
