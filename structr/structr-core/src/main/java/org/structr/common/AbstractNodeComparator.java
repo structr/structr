@@ -16,6 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.structr.common;
 
 import java.lang.reflect.Method;
@@ -23,7 +24,6 @@ import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
-//import org.structr.core.entity.NodeLink;
 
 /**
  *

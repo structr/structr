@@ -33,9 +33,12 @@ import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import org.neo4j.graphdb.Relationship;
+import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,9 +51,10 @@ public class CypherQueryCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
-		ExecutionEngine engine       = new ExecutionEngine(graphDb);
+		RelationshipFactory relFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
+		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
+		NodeFactory nodeFactory         = (NodeFactory) arguments.get("nodeFactory");
+		ExecutionEngine engine          = new ExecutionEngine(graphDb);
 
 		if (parameters.length < 1) {
 
@@ -59,9 +63,24 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		if (parameters[0] instanceof String) {
 
-			List<AbstractNode> resultList = new LinkedList<AbstractNode>();
-			ExecutionResult result        = engine.execute((String) parameters[0]);
+			List<GraphObject> resultList = new LinkedList<GraphObject>();
+			String query                 = (String)parameters[0];
+			ExecutionResult result       = null;
+			Map<String, Object> params   = null;
+			
+			if(parameters.length > 1 && parameters[1] instanceof Map) {
+				params = (Map<String, Object>)parameters[1];
+			}
 
+			if(params != null) {
+				
+				result = engine.execute(query, params);
+				
+			} else {
+				
+				result = engine.execute(query);
+			}
+			
 			for (String column : result.columns()) {
 
 				for (Object o : IteratorUtil.asIterable(result.columnAs(column))) {
@@ -73,6 +92,15 @@ public class CypherQueryCommand extends NodeServiceCommand {
 						if (node != null) {
 
 							resultList.add(node);
+						}
+						
+					} else if (o instanceof Relationship) {
+
+						AbstractRelationship rel = relFactory.createRelationship(securityContext, (Relationship) o);
+
+						if (rel != null) {
+
+							resultList.add(rel);
 						}
 
 					}

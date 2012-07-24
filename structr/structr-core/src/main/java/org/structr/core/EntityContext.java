@@ -42,7 +42,6 @@ import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.module.GetEntitiesCommand;
-import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.*;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.IndexRelationshipCommand;
@@ -57,7 +56,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.structr.core.entity.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -81,9 +79,11 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap   = new LinkedHashMap<Class, Map<String, Set<String>>>();
 
 	// This map contains a mapping from (sourceType, propertyKey) -> RelationClass
-	private static final Map<Class, Map<String, RelationClass>> globalPropertyRelationClassMap                  = new LinkedHashMap<Class, Map<String, RelationClass>>();
-	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalAggregatedPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap           = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Map<String, RelationClass>> globalPropertyRelationClassMap                            = new LinkedHashMap<Class, Map<String, RelationClass>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                    = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 
 	// This map contains view-dependent result set transformations
 	private static final Map<Class, Map<String, Transformation<List<? extends GraphObject>>>> viewTransformations = new LinkedHashMap<Class, Map<String, Transformation<List<? extends GraphObject>>>>();
@@ -725,27 +725,32 @@ public class EntityContext {
 	}
 
 	public static PropertyGroup getPropertyGroup(Class type, String key) {
-		
-		PropertyGroup group = null;
-		Class localType     = type;
-		
-		while(group == null && localType != null && !localType.equals(Object.class)) {
 
-			group = getPropertyGroupMapForType(localType).get(key);
+		PropertyGroup group = getAggregatedPropertyGroupMapForType(type).get(key);
+		if(group == null) {
+			
+			Class localType     = type;
 
-			if(group == null) {
+			while(group == null && localType != null && !localType.equals(Object.class)) {
 
-				// try interfaces as well
-				for(Class interfaceClass : getInterfacesForType(localType)) {
+				group = getPropertyGroupMapForType(localType).get(key);
 
-					group = getPropertyGroupMapForType(interfaceClass).get(key);
-					if(group != null) {
-						break;
+				if(group == null) {
+
+					// try interfaces as well
+					for(Class interfaceClass : getInterfacesForType(localType)) {
+
+						group = getPropertyGroupMapForType(interfaceClass).get(key);
+						if(group != null) {
+							break;
+						}
 					}
 				}
+
+				localType = localType.getSuperclass();
 			}
 			
-			localType = localType.getSuperclass();
+			getAggregatedPropertyGroupMapForType(type).put(key, group);
 		}
 		
 		return group;
@@ -940,32 +945,35 @@ public class EntityContext {
 
 	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, String propertyKey) {
 
-		Map<String, Class<? extends PropertyConverter>> converterMap = null;
-		PropertyConverter propertyConverter                          = null;
-		Class localType                                              = type;
-		Class clazz                                                  = null;
+		Class clazz = getAggregatedPropertyConverterMapForType(type).get(propertyKey);
+		if(clazz == null) {
+			
+			Map<String, Class<? extends PropertyConverter>> converterMap = null;
+			Class localType                                              = type;
 
-		while ((clazz == null) &&!localType.equals(Object.class)) {
+			while ((clazz == null) &&!localType.equals(Object.class)) {
 
-			converterMap = getPropertyConverterMapForType(localType);
-			clazz        = converterMap.get(propertyKey);
-		
-			// try converters from interfaces as well
-			if(clazz == null) {
+				converterMap = getPropertyConverterMapForType(localType);
+				clazz        = converterMap.get(propertyKey);
 
-				for(Class interfaceClass : getInterfacesForType(localType)) {
-					clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
-					if(clazz != null) {
-						break;
+				// try converters from interfaces as well
+				if(clazz == null) {
+
+					for(Class interfaceClass : getInterfacesForType(localType)) {
+						clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
+						if(clazz != null) {
+							break;
+						}
 					}
 				}
+
+				localType = localType.getSuperclass();
 			}
-
-//                      logger.log(Level.INFO, "Converter class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
-			localType = localType.getSuperclass();
-
+			
+			getAggregatedPropertyConverterMapForType(type).put(propertyKey, clazz);
 		}
 
+		PropertyConverter propertyConverter = null;
 		if (clazz != null) {
 
 			try {
@@ -1090,6 +1098,21 @@ public class EntityContext {
 		return validatorMap;
 	}
 
+	private static Map<String, Class<? extends PropertyConverter>> getAggregatedPropertyConverterMapForType(Class type) {
+
+		Map<String, Class<? extends PropertyConverter>> PropertyConverterMap = globalAggregatedPropertyConverterMap.get(type);
+
+		if (PropertyConverterMap == null) {
+
+			PropertyConverterMap = new LinkedHashMap<String, Class<? extends PropertyConverter>>();
+
+			globalAggregatedPropertyConverterMap.put(type, PropertyConverterMap);
+
+		}
+
+		return PropertyConverterMap;
+	}
+
 	private static Map<String, Class<? extends PropertyConverter>> getPropertyConverterMapForType(Class type) {
 
 		Map<String, Class<? extends PropertyConverter>> PropertyConverterMap = globalPropertyConverterMap.get(type);
@@ -1178,6 +1201,21 @@ public class EntityContext {
 		}
 
 		return searchablePropertyMap;
+	}
+
+	private static Map<String, PropertyGroup> getAggregatedPropertyGroupMapForType(Class type) {
+
+		Map<String, PropertyGroup> groupMap = globalAggregatedPropertyGroupMap.get(type);
+
+		if (groupMap == null) {
+
+			groupMap = new LinkedHashMap<String, PropertyGroup>();
+
+			globalAggregatedPropertyGroupMap.put(type, groupMap);
+
+		}
+
+		return groupMap;
 	}
 
 	private static Map<String, PropertyGroup> getPropertyGroupMapForType(Class type) {

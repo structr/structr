@@ -238,13 +238,25 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public int compareTo(final AbstractNode node) {
 
-		if ((node == null) || (node.getName() == null) || (this.getName() == null)) {
-
+		if(node == null) {
 			return -1;
 		}
-
-		return (this.getName().compareTo(node.getName()));
-
+		
+		
+		String name = getName();
+		
+		if(name == null) {
+			return -1;
+		}
+		
+		
+		String nodeName = node.getName();
+		
+		if(nodeName == null) {
+			return -1;
+		}
+		
+		return name.compareTo(nodeName);
 	}
 
 	/**
@@ -644,15 +656,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * If name is null, return node id as fallback
 	 */
 	public String getName() {
-
-		Object nameProperty = getProperty(Key.name.name());
-		String name = null;
-
-		if (nameProperty != null) {
-
-			name = (String) nameProperty;
-		} else {
-
+		
+		String name = getStringProperty(Key.name.name());
+		if (name == null) {
 			name = getNodeId().toString();
 		}
 
@@ -897,7 +903,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		Object value          = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
 		Class type            = this.getClass();
-		boolean schemaDefault = false;
+		boolean dontCache     = false;
 
 		// only use cached value if property is accessed the "normal" way (i.e. WITH converters)
 		if(value == null) {
@@ -937,8 +943,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 						case ManyToMany :
 						case OneToMany :
-							value = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
-
+							value     = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
+							dontCache = true;
 							break;
 
 						case OneToOne :
@@ -946,6 +952,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 							try {
 
 								value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+								dontCache = true;
 
 							} catch (FrameworkException fex) {
 
@@ -965,7 +972,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if (value == null) {
 
 				value = EntityContext.getDefaultValue(type, key);
-				schemaDefault = true;
+				dontCache = true;
 			}
 
 			// only apply converter if requested
@@ -986,7 +993,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				}
 			}
 
-			if(!schemaDefault) {
+			if(!dontCache) {
 				
 				// only cache value if it is NOT the schema default
 				if(applyConverter) {
@@ -1971,9 +1978,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken("base"));
 
 		}
-
-		// remove property from cached properties
-		cachedConvertedProperties.remove(key);
 		
 		// check for read-only properties
 		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key))) {
@@ -2089,6 +2093,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				// Don't write directly to database, but store property values
 				// in a map for later use
 				properties.put(key, convertedValue);
+				
 			} else {
 
 				// Commit value directly to database
@@ -2142,6 +2147,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 
+		// remove property from cached properties
+		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 	}
 
 	public void setOwner(final Principal owner) {

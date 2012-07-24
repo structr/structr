@@ -19,6 +19,8 @@
 
 package org.structr.rest.filter;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
@@ -28,17 +30,26 @@ import org.structr.core.GraphObject;
  */
 public class OrFilter extends Filter {
 
-	private Filter filter1 = null;
-	private Filter filter2 = null;
+	private List<Filter> filters = new LinkedList<Filter>();
 
-	public OrFilter(Filter filter1, Filter filter2) {
-		this.filter1 = filter1;
-		this.filter2 = filter2;
+	public OrFilter(Filter... filterList) {
+		
+		for(Filter filter : filterList) {
+			filters.add(filter);
+		}
 	}
 
 	@Override
 	public boolean includeInResultSet(SecurityContext securityContext, GraphObject object) {
-		return filter1.includeInResultSet(securityContext, object) || filter2.includeInResultSet(securityContext, object);
-	}
+		
+		for (Filter filter : filters) {
+			
+			// return on first positive result
+			if (filter.includeInResultSet(securityContext, object)) {
+				return true;
+			}
+		}
 
+		return false;
+	}
 }

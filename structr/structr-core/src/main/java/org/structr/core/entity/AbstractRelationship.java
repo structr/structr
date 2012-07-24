@@ -461,9 +461,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	private Object getProperty(final String key, boolean applyConverter) {
 
-		Object value = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
-		boolean schemaDefault = false;
-		Class type   = this.getClass();
+		Object value      = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
+		boolean dontCache = false;
+		Class type         = this.getClass();
 		
 		if(value == null || !applyConverter) {
 
@@ -521,7 +521,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			if (value == null) {
 
 				value = EntityContext.getDefaultValue(type, key);
-				schemaDefault = true;
+				dontCache = true;
 			}
 
 			// only apply converter if requested
@@ -542,7 +542,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				}
 			}
 
-			if(!schemaDefault) {
+			if(!dontCache) {
 
 				// only cache value if it is NOT the schema default
 				if(applyConverter) {
@@ -1108,6 +1108,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		// clear cached property
 		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 		
 		if ((startNodeIdKey != null) && key.equals(startNodeIdKey.name())) {
 
@@ -1170,7 +1171,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 
 		final Object oldValue = getProperty(key);
-
+		
 		// don't make any changes if
 		// - old and new value both are null
 		// - old and new value are not null but equal
@@ -1213,6 +1214,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		// execute transaction
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
+		// clear cached property
+		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 	}
 
 	/**
