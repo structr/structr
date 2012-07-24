@@ -1169,7 +1169,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 
 		final Object oldValue = getProperty(key);
-
+		
 		// don't make any changes if
 		// - old and new value both are null
 		// - old and new value are not null but equal
@@ -1212,6 +1212,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		// execute transaction
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
+		// clear cached property
+		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 	}
 
 	/**

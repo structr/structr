@@ -1978,10 +1978,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken("base"));
 
 		}
-
-		// remove property from cached properties
-		cachedConvertedProperties.remove(key);
-		cachedRawProperties.remove(key);
 		
 		// check for read-only properties
 		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key))) {
@@ -2097,6 +2093,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				// Don't write directly to database, but store property values
 				// in a map for later use
 				properties.put(key, convertedValue);
+				
 			} else {
 
 				// Commit value directly to database
@@ -2150,6 +2147,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 
+		// remove property from cached properties
+		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 	}
 
 	public void setOwner(final Principal owner) {
