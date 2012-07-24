@@ -1981,6 +1981,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		// remove property from cached properties
 		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 		
 		// check for read-only properties
 		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key))) {

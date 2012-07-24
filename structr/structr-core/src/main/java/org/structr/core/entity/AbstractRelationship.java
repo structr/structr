@@ -1106,6 +1106,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		// clear cached property
 		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 		
 		if ((startNodeIdKey != null) && key.equals(startNodeIdKey.name())) {
 
