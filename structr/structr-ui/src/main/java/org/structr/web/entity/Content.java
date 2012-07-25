@@ -55,6 +55,7 @@ public class Content extends AbstractNode {
 	protected static final String[] attributes = new String[] {
 
 		UiKey.name.name(), UiKey.tag.name(), UiKey.content.name(), UiKey.contentType.name(), UiKey.size.name(), UiKey.type.name(), UiKey.paths.name(),
+		UiKey.validationExpression.name(), UiKey.validationErrorMessage.name(),
 		// support for microformats
 		"data-key"
 

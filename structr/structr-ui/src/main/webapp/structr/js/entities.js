@@ -435,18 +435,19 @@ var _Entities = {
                                     var objId = relId ? relId : id;
                                     console.log('set properties of obj', objId);
                                     
-                                    var keyInput = input.parent().parent().children('td').children('input');
-                                    
-                                    if (keyInput) {
+                                    var keyInput = input.parent().parent().children('td').first().children('input');
+                                    console.log(keyInput);
+                                    if (keyInput && keyInput.length) {
                                     
                                         // new key
-                                        if (debug) console.log('Command.setProperty(', objId, keyInput.val(), input.val());
+                                        console.log('new key: Command.setProperty(', objId, keyInput.val(), input.val());
                                         Command.setProperty(objId, keyInput.val(), input.val());
                                         
                                         
                                     } else {
                                         
                                         // existing key
+                                        console.log('existing key: Command.setProperty(', objId, input.prop('name'), input.val());
                                         Command.setProperty(objId, input.prop('name'), input.val());
                                         
                                     }

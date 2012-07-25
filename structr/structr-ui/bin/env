@@ -4,7 +4,7 @@ PATH=$PATH:.
 
 REST_URL=http://localhost:8082/structr/rest
 REST_USER=admin
-REST_PW=54840535
+REST_PW=admin
 
 export PATH
 export REST_URL
