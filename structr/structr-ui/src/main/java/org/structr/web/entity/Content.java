@@ -39,6 +39,7 @@ import org.structr.web.entity.html.*;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.validator.DynamicValidator;
 import org.structr.web.converter.PathsConverter;
 
 //~--- classes ----------------------------------------------------------------
@@ -112,13 +113,15 @@ public class Content extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), UiKey.values());
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), UiKey.values());
 
+		// example
+		EntityContext.registerPropertyValidator(Content.class, UiKey.content, new DynamicValidator("content", UiKey.validationExpression, UiKey.validationErrorMessage));
 	}
 
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {
 
-		name, tag, content, contentType, size, type, paths, dataKey
+		name, tag, content, contentType, size, type, paths, dataKey, validationExpression, validationErrorMessage
 
 	}
 
