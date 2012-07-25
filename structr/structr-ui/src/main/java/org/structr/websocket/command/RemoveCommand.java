@@ -118,7 +118,7 @@ public class RemoveCommand extends AbstractCommand {
 										if (pos.equals(rel.getLongProperty(pageId))) {
 
 											rel.removeProperty(pageId);
-											RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
+											//RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
 
 											hasPageId = hasPageIds(securityContext, rel);
 

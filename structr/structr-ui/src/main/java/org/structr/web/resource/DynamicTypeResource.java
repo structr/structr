@@ -53,6 +53,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.neo4j.graphdb.Direction;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -233,11 +234,11 @@ public class DynamicTypeResource extends TypeResource {
 	public static Component duplicateComponent(final SecurityContext securityContext, final Map<String, Object> propertySet, final String rawType, final String surroundingComponentId)
 		throws FrameworkException {
 
-		final List<GraphObject> templates            = getComponents(SecurityContext.getSuperUserInstance(), getSearchAttributes(rawType));
-		final Command createNodeCommand              = Services.command(securityContext, CreateNodeCommand.class);
-		final Map<String, Object> templateProperties = new LinkedHashMap<String, Object>();
-		final String componentId                     = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-		final Component template                     = (Component) templates.get(templates.size()-1); // last templates wins, makes it easier to calc position of new component
+		final List<GraphObject> templates		= getComponents(SecurityContext.getSuperUserInstance(), getSearchAttributes(rawType));
+		final Command createNodeCommand			= Services.command(securityContext, CreateNodeCommand.class);
+		final Map<String, Object> templateProperties	= new LinkedHashMap<String, Object>();
+		final String componentId			= UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+		final Component template				= (Component) templates.get(templates.size()-1);
 
 		// copy properties to map
 		templateProperties.put(AbstractNode.Key.type.name(), Component.class.getSimpleName());
@@ -286,6 +287,9 @@ public class DynamicTypeResource extends TypeResource {
 						
 						contentTemplateProperties.put(AbstractNode.Key.visibleToPublicUsers.name(),		propertySet.get(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
 						contentTemplateProperties.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(),	propertySet.get(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
+						
+						contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			propertySet.get(Content.UiKey.validationExpression.name()));
+						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		propertySet.get(Content.UiKey.validationErrorMessage.name()));
 
 						Content newContent = (Content) createNodeCommand.execute(contentTemplateProperties);
 
@@ -336,6 +340,16 @@ public class DynamicTypeResource extends TypeResource {
 		return searchAttributes;
 	}
 
+	/**
+	 * Get all active components.
+	 * 
+	 * Active means "has at least one incoming CONTAINS relationship"
+	 * 
+	 * @param securityContext
+	 * @param searchAttributes
+	 * @return
+	 * @throws FrameworkException 
+	 */
 	public static List<GraphObject> getComponents(final SecurityContext securityContext, List<SearchAttribute> searchAttributes) throws FrameworkException {
 
 		// check for dynamic type, use super class otherwise
@@ -344,7 +358,20 @@ public class DynamicTypeResource extends TypeResource {
 		boolean publicOnly              = false;
 
 		// do search
-		return (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+		List<GraphObject> searchResults = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+		
+		List<GraphObject> filteredResults = new LinkedList<GraphObject>();
+		
+		for (GraphObject res : searchResults) {
+			
+			if (((Component) res).hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+				filteredResults.add(res);
+			}
+			
+		}
+		
+		
+		return filteredResults;
 	}
 
 	public static long getMaxPosition(final List<GraphObject> templates, final String pageId) {
