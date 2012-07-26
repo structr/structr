@@ -288,8 +288,8 @@ public class DynamicTypeResource extends TypeResource {
 						contentTemplateProperties.put(AbstractNode.Key.visibleToPublicUsers.name(),		propertySet.get(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
 						contentTemplateProperties.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(),	propertySet.get(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
 						
-						contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			propertySet.get(Content.UiKey.validationExpression.name()));
-						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		propertySet.get(Content.UiKey.validationErrorMessage.name()));
+// FIXME					contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			propertySet.get(Content.UiKey.validationExpression.name()));
+//						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		propertySet.get(Content.UiKey.validationErrorMessage.name()));
 
 						Content newContent = (Content) createNodeCommand.execute(contentTemplateProperties);
 
