@@ -84,6 +84,7 @@ import java.util.regex.Matcher;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -109,6 +110,7 @@ public class HtmlServlet extends HttpServlet {
 	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor     = new ThreadLocalConfluenceProcessor();
 	private static Date lastModified;
+	public static final String REST_RESPONSE = "restResponse";
 
 	//~--- static initializers --------------------------------------------
 
@@ -173,7 +175,7 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- methods --------------------------------------------------------
 
-	private boolean postToRestUrl(HttpServletRequest request, final String pagePath, final Map<String, Object> parameters) {
+	private String postToRestUrl(HttpServletRequest request, final String pagePath, final Map<String, Object> parameters) {
 
 		HttpClient httpClient = new HttpClient();
 		ContentExchange contentExchange;
@@ -212,13 +214,13 @@ public class HtmlServlet extends HttpServlet {
 			httpClient.send(contentExchange);
 			contentExchange.waitForDone();
 
-			return contentExchange.isDone();
+			return contentExchange.getResponseContent();
 
 		} catch (Exception ex) {
 
 			logger.log(Level.WARNING, "Error while POSTing to REST url " + restUrl, ex);
 
-			return false;
+			return null;
 		}
 	}
 
@@ -245,14 +247,17 @@ public class HtmlServlet extends HttpServlet {
 		String[] parts  = PathHelper.getParts(path);
 		String pagePath = parts[parts.length - 1];
 
-		postToRestUrl(request, pagePath, convert(parameterMap));
+		String resp = postToRestUrl(request, pagePath, convert(parameterMap));
+		
+		if (resp != null) {
+			request.getSession().setAttribute(REST_RESPONSE, resp);
+		}
 
 		String name = null;
 
 		try {
 
 			name = PathHelper.getParts(path)[0];
-
 			response.sendRedirect("/" + name + "//" + pagePath);
 
 		} catch (IOException ex) {
@@ -265,6 +270,22 @@ public class HtmlServlet extends HttpServlet {
 
 		try {
 
+			boolean dontCache = false;
+			
+			String resp = (String) request.getSession().getAttribute(REST_RESPONSE);
+			if (resp != null) {
+				
+				request.setAttribute(REST_RESPONSE, resp);
+				
+				// empty response content after reading
+				request.getSession().removeAttribute(REST_RESPONSE);
+				
+				// don't allow to show a cached page
+				dontCache = true;
+				
+			}
+			
+			
 			request.setCharacterEncoding("UTF-8");
 
 			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
@@ -377,7 +398,7 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			if (edit) {
+			if (edit || dontCache) {
 
 				response.setHeader("Pragma", "no-cache");
 
@@ -401,7 +422,7 @@ public class HtmlServlet extends HttpServlet {
 
 				getContent(securityContext, uuid, null, buffer, page, page, 0, false, searchFor, attrs, null, null);
 
-				if (!edit && setCachingHeader(request, response, node)) {
+				if (!edit && !dontCache && setCachingHeader(request, response, node)) {
 
 					out.flush();
 					out.close();

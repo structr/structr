@@ -640,7 +640,20 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 				return 0;
 
 			}
+			
+			// special keyword "rest_result"
+			if ("rest_result".equals(part.toLowerCase())) {
 
+				HttpServletRequest request = securityContext.getRequest();
+
+				if (request != null) {
+
+					return StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE));
+				}
+
+				return 0;
+
+			}
 		}
 
 		if (node != null) {

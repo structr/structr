@@ -238,7 +238,7 @@ public class DynamicTypeResource extends TypeResource {
 		final Command createNodeCommand			= Services.command(securityContext, CreateNodeCommand.class);
 		final Map<String, Object> templateProperties	= new LinkedHashMap<String, Object>();
 		final String componentId			= UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-		final Component template				= (Component) templates.get(templates.size()-1);
+		final Component template			= (Component) templates.get(templates.size()-1);
 
 		// copy properties to map
 		templateProperties.put(AbstractNode.Key.type.name(), Component.class.getSimpleName());
@@ -285,11 +285,11 @@ public class DynamicTypeResource extends TypeResource {
 						contentTemplateProperties.put("data-key", dataKey);
 						contentTemplateProperties.put(Content.UiKey.content.name(), propertySet.get(dataKey));
 						
-						contentTemplateProperties.put(AbstractNode.Key.visibleToPublicUsers.name(),		propertySet.get(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
-						contentTemplateProperties.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(),	propertySet.get(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
+						contentTemplateProperties.put(AbstractNode.Key.visibleToPublicUsers.name(),		contentTemplate.getStringProperty(AbstractNode.Key.visibleToPublicUsers.name()));
+						contentTemplateProperties.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(),	contentTemplate.getStringProperty(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
 						
-						contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			propertySet.get(Content.UiKey.validationExpression.name()));
-						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		propertySet.get(Content.UiKey.validationErrorMessage.name()));
+						contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			contentTemplate.getStringProperty(Content.UiKey.validationExpression.name()));
+						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		contentTemplate.getStringProperty(Content.UiKey.validationErrorMessage.name()));
 
 						Content newContent = (Content) createNodeCommand.execute(contentTemplateProperties);
 
