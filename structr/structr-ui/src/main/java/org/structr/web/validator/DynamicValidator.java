@@ -16,20 +16,24 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.validator;
+package org.structr.web.validator;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.entity.AbstractNode;
+import org.structr.web.entity.Content;
+import org.structr.web.entity.TypeDefinition;
 
 /**
  *
@@ -37,17 +41,15 @@ import org.structr.core.PropertyValidator;
  */
 public class DynamicValidator extends PropertyValidator {
 
+	private static final Logger logger                 = Logger.getLogger(DynamicValidator.class.getName());
 	private static final Map<String, Pattern> patterns = new LinkedHashMap<String, Pattern>();
 	private static final long MAX_PATTERNS             = 100;	// arbitrarily chosen, may be wrong!
 	
-	private PropertyKey regexKey = null;
-	private PropertyKey msgKey = null;
 	private String errorKey = null;
 	
-	public DynamicValidator(String errorKey, PropertyKey regexKey, PropertyKey msgKey) {
-		this.regexKey = regexKey;
+	public DynamicValidator(String errorKey) {
+
 		this.errorKey = errorKey;
-		this.msgKey = msgKey;
 	}
 	
 	@Override
@@ -55,35 +57,48 @@ public class DynamicValidator extends PropertyValidator {
 		
 		if (object != null) {
 			
-			String regex   = object.getStringProperty(regexKey);
-			
-			if(value != null && regex != null) {
+			if (object instanceof Content) {
 				
-				String content = value.toString();
-				Matcher matcher = getMatcher(regex, content);
-				
-				if(!matcher.matches()) {
-				
-					final String errorMessage = object.getStringProperty(msgKey);
-					if(errorMessage != null) {
-						
-						errorBuffer.add(errorKey, new SemanticErrorToken(errorKey) {
+				TypeDefinition typeDefinition = ((Content)object).getTypeDefinition();
+				if (typeDefinition != null) {
+					
+					String regex   = typeDefinition.getValidationExpression();
+					if (value != null && regex != null) {
 
-							@Override
-							public JsonElement getContent() {
-								return new JsonPrimitive(errorMessage);
+						Matcher matcher = getMatcher(regex, value.toString());
+						if(!matcher.matches()) {
+
+							final String errorMessage = typeDefinition.getValidationErrorMessage();
+							if (errorMessage != null) {
+
+								errorBuffer.add(errorKey, new SemanticErrorToken(errorKey) {
+
+									@Override
+									public JsonElement getContent() {
+										return new JsonPrimitive(errorMessage);
+									}
+
+									@Override
+									public String getErrorToken() {
+										return errorKey;
+									}
+								});
+
 							}
 
-							@Override
-							public String getErrorToken() {
-								return errorKey;
-							}
-						});
+							return false;
+						}
 						
 					}
 					
-					return false;
+				} else {
+					
+					logger.log(Level.WARNING, "No type definition for Content entity {0}", object.getStringProperty(AbstractNode.Key.uuid));
 				}
+				
+			} else {
+					
+				logger.log(Level.WARNING, "Trying to validate node of type {0} which is not Content", object.getStringProperty(AbstractNode.Key.type));
 			}
 		}
 		

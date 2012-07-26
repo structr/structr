@@ -39,7 +39,8 @@ import org.structr.web.entity.html.*;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.validator.DynamicValidator;
+import org.structr.core.entity.RelationClass;
+import org.structr.web.validator.DynamicValidator;
 import org.structr.web.converter.PathsConverter;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,7 +56,7 @@ public class Content extends AbstractNode {
 	protected static final String[] attributes = new String[] {
 
 		UiKey.name.name(), UiKey.tag.name(), UiKey.content.name(), UiKey.contentType.name(), UiKey.size.name(), UiKey.type.name(), UiKey.paths.name(),
-		UiKey.validationExpression.name(), UiKey.validationErrorMessage.name(),
+
 		// support for microformats
 		"data-key"
 
@@ -70,6 +71,8 @@ public class Content extends AbstractNode {
 		EntityContext.registerPropertySet(Content.class, PropertyView.All, attributes);
 		EntityContext.registerPropertySet(Content.class, PropertyView.Public, attributes);
 		EntityContext.registerPropertySet(Content.class, PropertyView.Ui, attributes);
+		
+		EntityContext.registerEntityRelation(Content.class, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne);
 		
 		EntityContext.registerEntityRelation(Content.class, Element.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Title.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
@@ -115,14 +118,14 @@ public class Content extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), UiKey.values());
 
 		// example
-		EntityContext.registerPropertyValidator(Content.class, UiKey.content, new DynamicValidator("content", UiKey.validationExpression, UiKey.validationErrorMessage));
+		EntityContext.registerPropertyValidator(Content.class, UiKey.content, new DynamicValidator("content"));
 	}
 
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {
 
-		name, tag, content, contentType, size, type, paths, dataKey, validationExpression, validationErrorMessage
+		name, tag, content, contentType, size, type, paths, dataKey, typeDefinition
 
 	}
 
@@ -167,4 +170,7 @@ public class Content extends AbstractNode {
 
 	}
 
+	public TypeDefinition getTypeDefinition() {
+		return (TypeDefinition)getRelatedNode(TypeDefinition.class);
+	}
 }
