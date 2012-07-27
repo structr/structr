@@ -20,6 +20,7 @@
 package org.structr.core;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
@@ -27,6 +28,6 @@ import org.structr.common.SecurityContext;
  */
 public interface Value<T> {
 
-	public void set(SecurityContext securityContext, T value);
+	public void set(SecurityContext securityContext, T value) throws FrameworkException;
 	public T get(SecurityContext securityContext);
 }

@@ -20,6 +20,7 @@
 package org.structr.core;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  * A generic converter interface that can be used to convert
@@ -41,7 +42,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract S convertForSetter(T source, Value value);
+	public abstract S convertForSetter(T source, Value value) throws FrameworkException;
 	
 	/**
 	 * Converts from source type to destination type. Caution: source

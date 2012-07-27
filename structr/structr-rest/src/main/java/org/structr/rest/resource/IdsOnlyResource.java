@@ -21,6 +21,7 @@ package org.structr.rest.resource;
 
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
@@ -106,7 +107,14 @@ public class IdsOnlyResource extends ViewFilterResource {
 
 	@Override
 	public void configurePropertyView(Value<String> propertyView) {
-		propertyView.set(securityContext, "ids");
+		
+		try {
+			propertyView.set(securityContext, "ids");
+			
+		} catch(FrameworkException fex) {
+			
+			logger.log(Level.WARNING, "Unable to configure property view", fex);
+		}
 	}
 
 }
