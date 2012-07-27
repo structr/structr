@@ -39,6 +39,9 @@ import java.lang.reflect.Type;
 
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,6 +51,7 @@ import java.util.Set;
  */
 public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage>, JsonDeserializer<WebSocketMessage> {
 
+	private static final Logger logger                   = Logger.getLogger(WebSocketDataGSONAdapter.class.getName());
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
 	private Value<String> propertyView                   = new StaticValue<String>(PropertyView.All);
 
@@ -239,10 +243,24 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			if (src.getView() != null) {
 
-				propertyView.set(null, src.getView());
+				try {
+					propertyView.set(null, src.getView());
+					
+				} catch(FrameworkException fex) {
+					
+					logger.log(Level.WARNING, "Unable to set property view", fex);
+				}
+				
 			} else {
 
-				propertyView.set(null, PropertyView.All);
+				try {
+					propertyView.set(null, PropertyView.All);
+					
+				} catch(FrameworkException fex) {
+					
+					logger.log(Level.WARNING, "Unable to set property view", fex);
+				}
+					
 			}
 
 			JsonArray result = new JsonArray();
