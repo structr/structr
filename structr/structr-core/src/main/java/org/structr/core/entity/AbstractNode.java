@@ -70,6 +70,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.converter.DateConverter;
+import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.notion.PropertyNotion;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -102,6 +104,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
 		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
 
+		EntityContext.registerPropertyRelation(AbstractNode.class, Key.ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
+
+		
+		
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 
@@ -138,7 +144,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static enum Key implements PropertyKey {
 
 		uuid, name, type, createdBy, createdDate, deleted, hidden, lastModifiedDate, visibleToPublicUsers, visibilityEndDate, visibilityStartDate,
-		visibleToAuthenticatedUsers, categories, owner;
+		visibleToAuthenticatedUsers, categories, ownerId
 
 	}
 

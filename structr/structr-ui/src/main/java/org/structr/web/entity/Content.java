@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.entity.RelationClass;
+import org.structr.core.notion.PropertyNotion;
 import org.structr.web.validator.DynamicValidator;
 import org.structr.web.converter.PathsConverter;
 
@@ -55,12 +56,20 @@ public class Content extends AbstractNode {
 	private static final Logger logger         = Logger.getLogger(Content.class.getName());
 	protected static final String[] attributes = new String[] {
 
-		UiKey.name.name(), UiKey.tag.name(), UiKey.content.name(), UiKey.contentType.name(), UiKey.size.name(), UiKey.type.name(), UiKey.paths.name(),
+		UiKey.name.name(), UiKey.tag.name(), UiKey.content.name(), UiKey.contentType.name(), UiKey.size.name(), UiKey.type.name(), UiKey.paths.name(), UiKey.typeDefinitionId.name(),
 
 		// support for microformats
 		"data-key"
 
 	};
+	
+	//~--- constant enums -------------------------------------------------
+
+	public enum UiKey implements PropertyKey {
+
+		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
+
+	}
 
 	//~--- static initializers --------------------------------------------
 
@@ -72,7 +81,8 @@ public class Content extends AbstractNode {
 		EntityContext.registerPropertySet(Content.class, PropertyView.Public, attributes);
 		EntityContext.registerPropertySet(Content.class, PropertyView.Ui, attributes);
 		
-		EntityContext.registerEntityRelation(Content.class, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne);
+		EntityContext.registerPropertyRelation(Content.class, UiKey.typeDefinitionId, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
+		EntityContext.registerEntityRelation(Content.class, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
 		
 		EntityContext.registerEntityRelation(Content.class, Element.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Title.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
@@ -119,14 +129,6 @@ public class Content extends AbstractNode {
 
 		// example
 		EntityContext.registerPropertyValidator(Content.class, UiKey.content, new DynamicValidator("content"));
-	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum UiKey implements PropertyKey {
-
-		name, tag, content, contentType, size, type, paths, dataKey, typeDefinition
-
 	}
 
 	//~--- get methods ----------------------------------------------------

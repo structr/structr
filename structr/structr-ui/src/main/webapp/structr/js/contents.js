@@ -212,6 +212,8 @@ var _Contents = {
             Command.setProperty(entity.id, 'data-key', dataKeyInput.val());
         });
 
+        _Entities.appendSimpleSelection($('#dialogBox .dialogMeta'), entity, 'type_definitions', 'Data Type', 'typeDefinitionId');
+
         editor.id = entity.id;
 
     }

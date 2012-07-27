@@ -25,6 +25,8 @@ $(document).ready(function() {
 });
 
 var _Types = {
+    
+    type_icon : 'icon/database_table.png',
 
     init : function() {
     },
@@ -41,7 +43,7 @@ var _Types = {
     refreshTypes : function() {
         types.empty();
         if (Command.list('TypeDefinition')) {
-            groups.append('<button class="add_type_icon button"><img title="Add Type Definition" alt="Add Type Definition" src="icon/type_add.png"> Add Type Definition</button>');
+            types.append('<button class="add_type_icon button"><img title="Add Type Definition" alt="Add Type Definition" src="' + _Types.type_icon + '"> Add Type Definition</button>');
             $('.add_type_icon', main).on('click', function(e) {
                 e.stopPropagation();
                 var entity = {};
@@ -49,6 +51,26 @@ var _Types = {
                 return Command.create(entity);
             });
         }
-    }
+    },
+    
+    appendTypeElement : function(type) {
+		
+        if (debug) console.log('appendTypeElement', type);
+        
+        
+        types.append('<div id="_' + type.id + '" structr_type="folder" class="node folder ' + type.id + '_">'
+            + '<img class="typeIcon" src="'+ _Types.type_icon + '">'
+            + '<b class="name_">' + type.name + '</b> <span class="id">' + type.id + '</span>'
+            + '</div>');
+        
+        //div = Structr.node(folder.id, parent.id);
+        div = $('#_' + type.id);
+        
 
+        _Entities.appendAccessControlIcon(div, type);
+        _Entities.appendEditPropertiesIcon(div, type);
+        _Entities.setMouseOver(div);
+		
+        return div;
+    }
 };

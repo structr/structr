@@ -145,7 +145,7 @@ function connect() {
 
             } else if (command == 'GET') { /*********************** GET ************************/
 
-                if (debug) console.log('GET:', data);
+                console.log('GET:', data);
 
                 var d = data.data.displayElementId;
                 if (debug) console.log('displayElementId', d);

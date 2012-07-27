@@ -133,6 +133,11 @@ var _Entities = {
             
             lastAppendedObj = _Files.appendFileElement(entity, parentId, removeExisting, hasChildren, false);
             
+        } else if (entity.type == 'TypeDefinition') {
+            
+            if (debug) console.log('TypeDefinition: ', entity);
+            lastAppendedObj = _Types.appendTypeElement(entity);
+            
         } else {
 
             if (debug) console.log('Entity: ', entity);
@@ -224,10 +229,11 @@ var _Entities = {
                         });
                                     
                         node.hover(function() {
-                            $('#_' + path).addClass('nodeHover')},
-                            function() {
-                                $('#_' + path).removeClass('nodeHover')
-                            }
+                            $('#_' + path).addClass('nodeHover')
+                            },
+                        function() {
+                            $('#_' + path).removeClass('nodeHover')
+                        }
                         );
                                     
                         //_Entities.setMouseOver(parent);
@@ -359,7 +365,7 @@ var _Entities = {
                                 if (key == 'id') {
                                     // set ID to rel ID
                                     id = res[key];
-                                    //console.log('Set ID to relationship ID', id);
+                                //console.log('Set ID to relationship ID', id);
                                 }
                                 
                                 props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
@@ -485,36 +491,7 @@ var _Entities = {
                 Structr.dialog('Access Control and Visibility', function() {}, function() {});
                 var dt = $('#dialogBox .dialogText');
 
-                dt.append('<h3>Owner</h3><p class="ownerSelectBox" id="ownersBox"></p>');
-                
-                var element = $('#ownersBox');
-                
-                element.append('<span class="' + entity.id + '_"><select class="ownerId_" id="ownerIdSelect">');
-                
-                var ownerIdSelect = $('#ownerIdSelect');
-                var headers = {};
-                headers['X-StructrSessionToken'] = token;
-                $.ajax({
-                    url: rootUrl + 'users/all?pageSize=100',
-                    async: false,
-                    dataType: 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: headers,
-                    success: function(data) {
-                        $(data.result).each(function(i, user) {
-                            console.log(user);
-                            ownerIdSelect.append('<option value="' + user.id + '">' + user.name + '</option>');
-                        });
-                    }
-                });                
-                
-                element.append('</select></span>');
-                
-                Command.getProperty(entity.id, 'ownerId', '#dialogBox');
-                var select = $('#ownerIdSelect', element);
-                select.on('change', function() {
-                    Command.setProperty(entity.id, 'ownerId', select.val());
-                });                
+                _Entities.appendSimpleSelection(dt, entity, 'users', 'Owner', 'ownerId');
                 
                 dt.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
                 
@@ -551,6 +528,44 @@ var _Entities = {
 
             });
         }
+    },
+
+    appendSimpleSelection : function(el, entity, type, title, key) {
+        
+        el.append('<h3>' + title + '</h3><p id="' + key + 'Box"></p>');
+                
+        var element = $('#' + key + 'Box');
+                
+        element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select">');
+                
+        var selectElement = $('#' + key + 'Select');
+        
+        selectElement.append('<option></option>')
+        
+        var headers = {};
+        headers['X-StructrSessionToken'] = token;
+        $.ajax({
+            url: rootUrl + type + '/all?pageSize=100',
+            async: false,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            headers: headers,
+            success: function(data) {
+                $(data.result).each(function(i, result) {
+                    if (debug) console.log(result);
+                    selectElement.append('<option value="' + result.id + '">' + result.name + '</option>');
+                });
+            }
+        });                
+                
+        element.append('</select></span>');
+
+        if (debug) console.log('Command.getProperty(', entity.id, key, '#' + key + 'Box', ')');
+        Command.getProperty(entity.id, key, '#' + key + 'Box');
+        var select = $('#' + key + 'Select', element);
+        select.on('change', function() {
+            Command.setProperty(entity.id, key, select.val());
+        });          
     },
 
     appendEditPropertiesIcon : function(parent, entity) {

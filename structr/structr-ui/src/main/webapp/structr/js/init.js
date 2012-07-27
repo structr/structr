@@ -84,6 +84,13 @@ $(document).ready(function() {
         Structr.activateMenuEntry('components');
         Structr.modules['components'].onload();
     });
+    
+    $('#types_').on('click', function(e) {
+        e.stopPropagation();
+        main.empty();
+        Structr.activateMenuEntry('types');
+        Structr.modules['types'].onload();
+    });
 
     $('#elements_').on('click', function(e) {
         e.stopPropagation();
