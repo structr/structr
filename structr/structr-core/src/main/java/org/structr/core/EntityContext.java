@@ -21,6 +21,7 @@
 
 package org.structr.core;
 
+import org.structr.core.converter.PropertyConverter;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;

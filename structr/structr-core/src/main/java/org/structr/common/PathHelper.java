@@ -36,7 +36,7 @@ import org.structr.core.node.FindNodeCommand;
  */
 public class PathHelper {
 
-	private static final String REST_PATH_SEP = "//";
+	public static final String PATH_SEP = "/";
 
 	//~--- fields ---------------------------------------------------------
 
@@ -75,19 +75,30 @@ public class PathHelper {
 
 	public static void main(String[] args) {
 
-		String[] input = { "/blog//blog_entries/892fa9194a36427bb87e18641c217d7d/comments" };
+		String[] input = { "/blog//blog_entries/892fa9194a36427bb87e18641c217d7d/comments", "/img/blog.gif", "blog" };
 
 		for (int i = 0; i < input.length; i++) {
 
-			System.out.println(input[i]);
-
-			String[] parts = getParts(input[i]);
+			String path = input[i];
+			
+			System.out.println("################### Testing " + path + " ###################");
+			
+			String name = getName(path);
+			String pagePart = getParts(path)[0];
+			
+			
+			System.out.println("Name: " + name);
+			System.out.println("Page part: " + pagePart);
+			
+			String[] parts = getParts(path);
 
 			for (String part : parts) {
 
 				System.out.println(part);
 
 			}
+			
+			System.out.println();
 
 		}
 	}
@@ -95,7 +106,7 @@ public class PathHelper {
 	public static String clean(String path) {
 
 		// Remove leading and trailing /
-		return StringUtils.strip(path, "/");
+		return StringUtils.strip(path, PATH_SEP);
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -116,14 +127,14 @@ public class PathHelper {
 
 		}
 
-		if (basePath.equals("/") && (targetPath.length() > 1)) {
+		if (basePath.equals(PATH_SEP) && (targetPath.length() > 1)) {
 
 			// Base path is root path
 			return targetPath.substring(1);
 		}
 
-		String[] baseAncestors   = FilenameUtils.normalizeNoEndSeparator(basePath).split("/");
-		String[] targetAncestors = FilenameUtils.normalizeNoEndSeparator(targetPath).split("/");
+		String[] baseAncestors   = FilenameUtils.normalizeNoEndSeparator(basePath).split(PATH_SEP);
+		String[] targetAncestors = FilenameUtils.normalizeNoEndSeparator(targetPath).split(PATH_SEP);
 		int length               = (baseAncestors.length < targetAncestors.length)
 					   ? baseAncestors.length
 					   : targetAncestors.length;
@@ -155,7 +166,7 @@ public class PathHelper {
 
 				if (baseAncestors[i].length() > 0) {
 
-					newRelativePath.append("../");
+					newRelativePath.append(".." + PATH_SEP);
 
 				}
 
@@ -164,14 +175,14 @@ public class PathHelper {
 			// How often must we go forth from common root to get to tagret path?
 			for (i = lastCommonRoot + 1; i < targetAncestors.length; i++) {
 
-				newRelativePath.append(targetAncestors[i]).append("/");
+				newRelativePath.append(targetAncestors[i]).append(PATH_SEP);
 
 			}
 
 			// newRelativePath.append(targetAncestors[targetAncestors.length - 1]);
 			String result = newRelativePath.toString();
 
-			if (result.endsWith("/")) {
+			if (result.endsWith(PATH_SEP)) {
 
 				result = result.substring(0, result.length() - 1);
 
@@ -186,9 +197,9 @@ public class PathHelper {
 
 	public static String getName(final String pathPart) {
 
-		if (pathPart.contains("/")) {
+		if (pathPart.contains(PATH_SEP)) {
 
-			return StringUtils.substringAfterLast(pathPart, "/");
+			return StringUtils.substringAfterLast(pathPart, PATH_SEP);
 
 		} else {
 
@@ -201,6 +212,6 @@ public class PathHelper {
 
 		path = clean(path);
 
-		return StringUtils.splitByWholeSeparator(path, REST_PATH_SEP);
+		return StringUtils.splitByWholeSeparator(path, PATH_SEP);
 	}
 }

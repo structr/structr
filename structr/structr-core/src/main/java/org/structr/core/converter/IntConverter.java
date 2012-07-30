@@ -16,19 +16,17 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.converter;
 
-
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author Axel Morgner
@@ -38,21 +36,23 @@ public class IntConverter extends PropertyConverter {
 	private static final Logger logger = Logger.getLogger(IntConverter.class.getName());
 
 	//~--- methods --------------------------------------------------------
-
 	@Override
 	public Object convertForSetter(Object source, Value value) {
 
 		if (source != null) {
 
-                    if (source instanceof Integer) {
-                        return source;
-                    } else if (source instanceof Double) {
-                        return Math.round((Double) source);
-                    } else if (source instanceof Float) {
-                        return Math.round((Float) source);
-                    } else {
-                        return Math.round(Float.parseFloat((String) source));
-                    }
+			if (source instanceof Integer) {
+				return source;
+			} else if (source instanceof Double) {
+				return Math.round((Double) source);
+			} else if (source instanceof Float) {
+				return Math.round((Float) source);
+			} else if (source instanceof String) {
+				if (StringUtils.isBlank((String) source)) {
+					return null;
+				}
+				return NumberUtils.createInteger(((String) source));
+			}
 		}
 
 		return source;

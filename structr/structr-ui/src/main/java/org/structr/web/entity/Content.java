@@ -161,6 +161,34 @@ public class Content extends AbstractNode {
 		return getRelationships(RelType.CONTAINS, Direction.INCOMING).get(0);
 	}
 
+	public Component getParentComponent() {
+		
+		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
+
+			String componentId = in.getStringProperty(Component.Key.componentId.name());
+
+			if (componentId != null) {
+
+				AbstractNode node = in.getStartNode();
+				
+				while (!(node instanceof Page)) {
+					
+					if (node instanceof Component) {
+						return (Component) node;
+					}
+					
+					node = node.getIncomingRelationships(RelType.CONTAINS).get(0).getStartNode();
+				}
+				
+				
+
+			}
+
+		}
+		return null;
+		
+	}
+
 	public String getPropertyWithVariableReplacement(HttpServletRequest request, AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, String key) {
 
 		if (securityContext.getRequest() == null) {

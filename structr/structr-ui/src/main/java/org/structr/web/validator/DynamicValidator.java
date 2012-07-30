@@ -18,8 +18,7 @@
  */
 package org.structr.web.validator;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -27,13 +26,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.GetNodeByIdCommand;
+import org.structr.web.entity.Component;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.TypeDefinition;
+import org.structr.web.entity.relation.ContentRelationship;
+import org.structr.web.error.DynamicValidationError;
 
 /**
  *
@@ -59,30 +64,37 @@ public class DynamicValidator extends PropertyValidator {
 			
 			if (object instanceof Content) {
 				
-				TypeDefinition typeDefinition = ((Content)object).getTypeDefinition();
+				Content content = (Content) object;
+				
+				String dataKey = content.getStringProperty("data-key");
+				String parentComponentId = null;
+				
+				Component component = content.getParentComponent();
+				if (component != null) {
+					parentComponentId = component.getComponentId();
+				}
+				
+				TypeDefinition typeDefinition = content.getTypeDefinition();
 				if (typeDefinition != null) {
 					
 					String regex   = typeDefinition.getValidationExpression();
 					if (value != null && regex != null) {
 
 						Matcher matcher = getMatcher(regex, value.toString());
-						if(!matcher.matches()) {
+						if (!matcher.matches()) {
 
 							final String errorMessage = typeDefinition.getValidationErrorMessage();
 							if (errorMessage != null) {
+								
+								Map<String, Object> attrs = new HashMap<String, Object>();
+								
+								attrs.put("parentComponentId", parentComponentId);
+								attrs.put("data-key", dataKey);
+								attrs.put("regex", regex);
+								attrs.put("error", errorMessage);
+								attrs.put("value", value);
 
-								errorBuffer.add(errorKey, new SemanticErrorToken(errorKey) {
-
-									@Override
-									public JsonElement getContent() {
-										return new JsonPrimitive(errorMessage);
-									}
-
-									@Override
-									public String getErrorToken() {
-										return errorKey;
-									}
-								});
+								errorBuffer.add(errorKey, new DynamicValidationError(errorKey, attrs));
 
 							}
 

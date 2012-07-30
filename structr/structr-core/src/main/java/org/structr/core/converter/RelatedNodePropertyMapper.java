@@ -22,7 +22,6 @@ package org.structr.core.converter;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;

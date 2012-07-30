@@ -19,7 +19,6 @@
 
 package org.structr.core.converter;
 
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;

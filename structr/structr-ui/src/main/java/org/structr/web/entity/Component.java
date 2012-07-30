@@ -262,7 +262,7 @@ public class Component extends AbstractNode implements Element {
 	public Map<String, AbstractNode> getContentNodes() {
 		return contentNodes;
 	}
-
+	
 	public String getComponentId() {
 
 		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {

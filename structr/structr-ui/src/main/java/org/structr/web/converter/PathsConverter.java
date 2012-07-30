@@ -29,7 +29,7 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
 import org.structr.common.RelType;
-import org.structr.core.PropertyConverter;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 

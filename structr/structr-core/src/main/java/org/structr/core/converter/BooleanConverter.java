@@ -21,7 +21,6 @@ package org.structr.core.converter;
 
 import org.apache.commons.lang.BooleanUtils;
 
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
 //~--- JDK imports ------------------------------------------------------------

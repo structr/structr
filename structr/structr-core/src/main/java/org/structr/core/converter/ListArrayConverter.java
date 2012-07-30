@@ -20,7 +20,6 @@
 package org.structr.core.converter;
 
 import java.util.List;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
 /**

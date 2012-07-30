@@ -20,7 +20,6 @@
 package org.structr.core.converter;
 
 import java.util.Collections;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
