@@ -332,7 +332,7 @@ public class HtmlServlet extends HttpServlet {
 				if ((urlParts == null) || (urlParts.length == 0)) {
 
 					// try to find a page with position==0
-					page = findIndexPage(request, path);
+					page = findIndexPage();
 
 					logger.log(Level.INFO, "No path supplied, trying to find index page");
 
@@ -681,18 +681,14 @@ public class HtmlServlet extends HttpServlet {
 		return attrs;
 	}
 
-	private Page findIndexPage(HttpServletRequest request, final String path) throws FrameworkException {
+	private Page findIndexPage() throws FrameworkException {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
 
-		List<Page> results = new LinkedList<Page>();
+		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+		searchAttrs.add(Search.orExactType(Page.class.getSimpleName()));
 		
-		for (AbstractNode node : findPossibleEntryPoints(request, path)) {
-			if (node instanceof Page) {
-				results.add((Page) node);
-			}
-		}
-		
+		List<AbstractNode> results = (List<AbstractNode>) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
 
 		logger.log(Level.FINE, "{0} results", results.size());
 
@@ -700,7 +696,7 @@ public class HtmlServlet extends HttpServlet {
 
 			Collections.sort(results, new GraphObjectComparator(Page.UiKey.position.name(), AbstractNodeComparator.ASCENDING));
 
-			return results.get(0);
+			return (Page) results.get(0);
 
 		}
 
