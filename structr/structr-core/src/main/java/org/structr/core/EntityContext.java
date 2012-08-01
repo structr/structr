@@ -389,6 +389,10 @@ public class EntityContext {
 	public static void registerReadOnlyProperty(Class type, String key) {
 		getReadOnlyPropertySetForType(type).add(key);
 	}
+	
+	public static void registerReadOnlyProperty(Class type, PropertyKey key) {
+		getReadOnlyPropertySetForType(type).add(key.name());
+	}
 
 	// ----- searchable property map -----
 	public static void registerSearchablePropertySet(Class type, String index, PropertyKey... keys) {
