@@ -30,7 +30,6 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeFactory;

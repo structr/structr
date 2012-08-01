@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.time.DateUtils;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
 /**

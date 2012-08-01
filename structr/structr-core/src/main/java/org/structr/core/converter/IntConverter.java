@@ -20,7 +20,6 @@
 package org.structr.core.converter;
 
 
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
 //~--- JDK imports ------------------------------------------------------------

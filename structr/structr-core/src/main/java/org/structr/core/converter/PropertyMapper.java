@@ -21,7 +21,6 @@ package org.structr.core.converter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
 /**

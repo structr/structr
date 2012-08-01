@@ -46,7 +46,7 @@ import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
-import org.structr.core.PropertyConverter;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
 import org.structr.core.Value;
