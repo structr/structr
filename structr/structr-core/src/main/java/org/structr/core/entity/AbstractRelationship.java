@@ -1237,6 +1237,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 			throw new FrameworkException(type, new NullPropertyToken(key));
 		}
+		
+		// Do nothing if new id equals old
+		if (getStartNodeId().equals(startNodeId)) {
+			return;
+		}
 
 		Command transaction = Services.command(securityContext, TransactionCommand.class);
 
@@ -1291,6 +1296,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		if (endNodeId == null) {
 
 			throw new FrameworkException(type, new NullPropertyToken(key));
+		}
+		
+		// Do nothing if new id equals old
+		if (getEndNodeId().equals(endNodeId)) {
+			return;
 		}
 
 		Command transaction = Services.command(securityContext, TransactionCommand.class);
