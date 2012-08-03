@@ -21,7 +21,6 @@
 
 package org.structr.core.agent;
 
-import org.structr.core.node.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
