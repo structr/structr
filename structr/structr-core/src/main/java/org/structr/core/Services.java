@@ -91,7 +91,7 @@ public class Services {
 	private static Map<String, String> context    = null;
 	private static final Logger logger            = Logger.getLogger(Services.class.getName());
 
-//      private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(10, 0.9f, 8);
+	private static final Map<String, Object> attributes      = new ConcurrentHashMap<String, Object>(10, 0.9f, 8);
 	private static final Map<Class, Service> serviceCache    = new ConcurrentHashMap<Class, Service>(10, 0.9f, 8);
 	private static final Set<Class> registeredServiceClasses = new LinkedHashSet<Class>();
 	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<Class>();
@@ -317,6 +317,28 @@ public class Services {
 		}
 
 		return value.toString();
+	}
+	
+	/**
+	 * Store an attribute value in the service context
+	 * 
+	 * @param name
+	 * @param value 
+	 */
+	public static void setAttribute(final String name, final Object value) {
+		synchronized (attributes) {
+			attributes.put(name, value);
+		}
+	}
+	
+	/**
+	 * Retrieve attribute value from service context
+	 * 
+	 * @param name
+	 * @return 
+	 */
+	public static Object getAttribute(final String name) {
+		return attributes.get(name);
 	}
 	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
