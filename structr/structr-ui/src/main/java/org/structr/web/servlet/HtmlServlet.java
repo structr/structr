@@ -89,6 +89,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.node.GetNodeByIdCommand;
+import org.structr.web.common.PageHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -419,14 +420,7 @@ public class HtmlServlet extends HttpServlet {
 			} else {
 				
 				if (node != null) {
-
-					Date nodeLastMod = node.getLastModifiedDate();
-
-					if ((lastModified == null) || nodeLastMod.after(lastModified)) {
-
-						lastModified = nodeLastMod;
-
-					}
+					lastModified = node.getLastModifiedDate();
 				}
 
 			}
@@ -789,17 +783,17 @@ public class HtmlServlet extends HttpServlet {
 
 		if (startNode != null) {
 
-			if (!edit) {
-
-				Date nodeLastMod = startNode.getLastModifiedDate();
-
-				if ((lastModified == null) || nodeLastMod.after(lastModified)) {
-
-					lastModified = nodeLastMod;
-
-				}
-
-			}
+//			if (!edit) {
+//
+//				Date nodeLastMod = startNode.getLastModifiedDate();
+//
+//				if ((lastModified == null) || nodeLastMod.after(lastModified)) {
+//
+//					lastModified = nodeLastMod;
+//
+//				}
+//
+//			}
 			
 			String id   = startNode.getUuid();
 			tag = startNode.getStringProperty(Element.UiKey.tag);
@@ -1151,7 +1145,7 @@ public class HtmlServlet extends HttpServlet {
 
 			for (Content contentNode : contentNodes) {
 
-				resultPages.addAll(HtmlElement.getPages(securityContext, contentNode));
+				resultPages.addAll(PageHelper.getPages(securityContext, contentNode));
 
 			}
 

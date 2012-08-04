@@ -25,7 +25,7 @@ var _Entities = {
     numberAttrs : ['position', 'size'],
     dateAttrs : ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
     hiddenAttrs : ['deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'relativeFilePath', 'path', 'elements', 'linkingElements', 'components', 'paths', 'parents'],
-    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size'],
+    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version'],
     
     changeBooleanAttribute : function(attrElement, value) {
 

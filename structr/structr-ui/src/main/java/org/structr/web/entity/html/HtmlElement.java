@@ -31,10 +31,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.common.Function;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -46,7 +44,6 @@ import org.structr.web.servlet.HtmlServlet;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -55,6 +52,8 @@ import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.web.common.PageHelper;
+import org.structr.web.entity.PageElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -62,7 +61,7 @@ import org.structr.core.entity.RelationClass.Cardinality;
  *
  * @author Axel Morgner
  */
-public abstract class HtmlElement extends AbstractNode implements Element {
+public abstract class HtmlElement extends PageElement implements Element {
 
 	protected static final String[] htmlAttributes = new String[] {
 
@@ -481,27 +480,6 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 	}
 
-	public static AbstractNode getNodeById(SecurityContext securityContext, String id) {
-
-		if (id == null) {
-
-			return null;
-		}
-
-		try {
-
-			return (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(id);
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Unable to load node with id {0}, {1}", new java.lang.Object[] { id, t.getMessage() });
-
-		}
-
-		return null;
-
-	}
-
 	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
 		String refKey) {
 
@@ -529,7 +507,7 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 			// special keyword "component"
 			if ("component".equals(part.toLowerCase())) {
 
-				node = getNodeById(securityContext, componentId);
+				node = PageHelper.getNodeById(securityContext, componentId);
 
 				continue;
 
@@ -538,7 +516,7 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 			// special keyword "resource"
 			if ("resource".equals(part.toLowerCase())) {
 
-				node = getNodeById(securityContext, pageId);
+				node = PageHelper.getNodeById(securityContext, pageId);
 
 				continue;
 
@@ -614,7 +592,7 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 			// special keyword "root": Find containing page
 			if ("root".equals(part.toLowerCase())) {
 
-				List<Page> pages = getPages(securityContext, viewComponent);
+				List<Page> pages = PageHelper.getPages(securityContext, viewComponent);
 
 				if (pages.isEmpty()) {
 
@@ -665,42 +643,10 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 	}
 
-	/**
-	 * Find all pages which contain the given html element node
-	 *
-	 * @param securityContext
-	 * @param node
-	 * @return
-	 */
-	public static List<Page> getPages(SecurityContext securityContext, final AbstractNode node) {
-
-		List<Page> pages = new LinkedList<Page>();
-		AbstractNode pageNode;
-		List<AbstractRelationship> rels = node.getIncomingRelationships(RelType.CONTAINS);
-
-		for (AbstractRelationship rel : rels) {
-
-			for (String key : rel.getProperties().keySet()) {
-
-				pageNode = getNodeById(securityContext, key);
-
-				if (pageNode != null && pageNode instanceof Page) {
-
-					pages.add((Page) pageNode);
-				}
-
-			}
-
-		}
-
-		return pages;
-
-	}
-
 	public boolean isVoidElement() {
 
 		return false;
 
 	}
-
+	
 }

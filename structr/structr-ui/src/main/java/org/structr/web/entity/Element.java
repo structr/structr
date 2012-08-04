@@ -31,7 +31,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.converter.PathsConverter;
-import org.structr.web.entity.html.HtmlElement;
 
 //~--- interfaces -------------------------------------------------------------
 

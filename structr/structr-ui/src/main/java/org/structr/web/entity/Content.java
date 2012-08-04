@@ -21,6 +21,8 @@
 
 package org.structr.web.entity;
 
+import java.util.List;
+import java.util.logging.Level;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
@@ -39,8 +41,11 @@ import org.structr.web.entity.html.*;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.web.common.PageHelper;
 import org.structr.web.validator.DynamicValidator;
 import org.structr.web.converter.PathsConverter;
 
@@ -129,6 +134,8 @@ public class Content extends AbstractNode {
 
 		// example
 		EntityContext.registerPropertyValidator(Content.class, UiKey.content, new DynamicValidator("content"));
+		// TODO: implement dynamic converter
+		//EntityContext.registerPropertyConverter(Content.class, UiKey.content, new DynamicConverter("content"));
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -203,4 +210,34 @@ public class Content extends AbstractNode {
 	public TypeDefinition getTypeDefinition() {
 		return (TypeDefinition)getRelatedNode(TypeDefinition.class);
 	}
+
+	/**
+	 * Do necessary updates on all containing pages
+	 * 
+	 * @throws FrameworkException 
+	 */
+	private void updatePages(SecurityContext securityContext) throws FrameworkException {
+		
+		List<Page> pages = PageHelper.getPages(securityContext, this);
+		
+		for (Page page : pages) {
+
+			page.unlockReadOnlyPropertiesOnce();
+			page.increaseVersion();
+			
+		}
+	}
+	
+	@Override
+	public void afterModification(SecurityContext securityContext) {
+		try {
+			
+			updatePages(securityContext);
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "Updating page versions failed", ex);
+		}
+		
+	}
+
 }
