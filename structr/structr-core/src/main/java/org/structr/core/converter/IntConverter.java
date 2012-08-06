@@ -59,12 +59,11 @@ public class IntConverter extends PropertyConverter {
 
 	@Override
 	public Object convertForGetter(Object source, Value value) {
-
-		if (source != null) {
-
-			return source;
+		
+		if (source == null && value != null) {
+			return value.get(securityContext);
 		}
-
+		
 		return source;
 	}
 }
