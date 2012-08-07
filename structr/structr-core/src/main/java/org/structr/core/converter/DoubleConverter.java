@@ -35,11 +35,11 @@ public class DoubleConverter extends PropertyConverter {
 	@Override
 	public Object convertForSetter(Object source, Value value) {
 
-		if(source != null) {
+		if (source != null) {
 			
 			try {
 
-				if(source instanceof Double) {
+				if (source instanceof Double) {
 					return ((Double)source);
 				} else if(source instanceof String) {
 					return NumberUtils.createDouble((String) source);

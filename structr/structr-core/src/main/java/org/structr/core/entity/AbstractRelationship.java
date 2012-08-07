@@ -587,12 +587,14 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
+	@Override
 	public Integer getIntProperty(final PropertyKey propertyKey) {
 
 		return (getIntProperty(propertyKey.name()));
 
 	}
 
+	@Override
 	public Integer getIntProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -982,13 +984,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public String getStartNodeId() {
 
-		return getStartNode().getStringProperty(AbstractRelationship.Key.uuid);
+		return getStartNode().getUuid();
 
 	}
 
 	public String getEndNodeId() {
 
-		return getEndNode().getStringProperty(AbstractRelationship.Key.uuid);
+		return getEndNode().getUuid();
 
 	}
 
