@@ -341,6 +341,16 @@ public class Services {
 		return attributes.get(name);
 	}
 	
+	/**
+	 * Remove attribute value from service context
+	 * 
+	 * @param name
+	 * @return 
+	 */
+	public static void removeAttribute(final String name) {
+		attributes.remove(name);
+	}
+	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private static Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
 
