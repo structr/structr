@@ -281,20 +281,23 @@ public class DynamicTypeResource extends TypeResource {
 
 						// create new content node with content from property set
 						contentTemplateProperties.clear();
+						
 						contentTemplateProperties.put(AbstractNode.Key.type.name(), Content.class.getSimpleName());
+						contentTemplateProperties.put(Content.UiKey.typeDefinitionId.name(),			contentTemplate.getStringProperty(Content.UiKey.typeDefinitionId));
 						contentTemplateProperties.put("data-key", dataKey);
-						contentTemplateProperties.put(Content.UiKey.content.name(), propertySet.get(dataKey));
 						
 						contentTemplateProperties.put(AbstractNode.Key.visibleToPublicUsers.name(),		contentTemplate.getStringProperty(AbstractNode.Key.visibleToPublicUsers.name()));
 						contentTemplateProperties.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(),	contentTemplate.getStringProperty(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
 						
-						contentTemplateProperties.put(Content.UiKey.typeDefinitionId.name(),			contentTemplate.getStringProperty(Content.UiKey.typeDefinitionId));
 						
 //						contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			contentTemplate.getStringProperty(Content.UiKey.validationExpression.name()));
 //						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		contentTemplate.getStringProperty(Content.UiKey.validationErrorMessage.name()));
 
 						Content newContent = (Content) createNodeCommand.execute(contentTemplateProperties);
 
+						newContent.setProperty(Content.UiKey.content.name(), propertySet.get(dataKey));
+
+						
 						// remove non-local data key from set
 						propertySet.remove(dataKey);
 						RelationshipHelper.copyRelationships(SecurityContext.getSuperUserInstance(), contentTemplate, newContent, RelType.CONTAINS, componentId, false);

@@ -26,18 +26,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.TypeDefinition;
-import org.structr.web.entity.relation.ContentRelationship;
 import org.structr.web.error.DynamicValidationError;
 
 /**
@@ -77,13 +72,13 @@ public class DynamicValidator extends PropertyValidator {
 				TypeDefinition typeDefinition = content.getTypeDefinition();
 				if (typeDefinition != null) {
 					
-					String regex   = typeDefinition.getValidationExpression();
+					String regex   = typeDefinition.getStringProperty(TypeDefinition.Key.validationExpression);
 					if (value != null && regex != null) {
 
 						Matcher matcher = getMatcher(regex, value.toString());
 						if (!matcher.matches()) {
 
-							final String errorMessage = typeDefinition.getValidationErrorMessage();
+							final String errorMessage = typeDefinition.getStringProperty(TypeDefinition.Key.validationErrorMessage);
 							if (errorMessage != null) {
 								
 								Map<String, Object> attrs = new HashMap<String, Object>();
@@ -127,7 +122,7 @@ public class DynamicValidator extends PropertyValidator {
 			pattern = Pattern.compile(patternSource);
 			patterns.put(patternSource, pattern);
 			
-			if(patterns.size() > MAX_PATTERNS) {
+			if (patterns.size() > MAX_PATTERNS) {
 				
 				// remove first element in this map
 				Iterator it = patterns.entrySet().iterator();

@@ -35,10 +35,6 @@ public class DoubleConverter extends PropertyConverter {
 	@Override
 	public Object convertForSetter(Object source, Value value) {
 
-		if (value == null) {
-			return null;
-		}
-		
 		if (source != null) {
 			
 			try {

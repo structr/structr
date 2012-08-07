@@ -18,7 +18,7 @@ public class TypeDefinition extends AbstractNode {
 	private static final Logger logger = Logger.getLogger(TypeDefinition.class.getName());
 	
 	public enum Key implements PropertyKey {
-		validationExpression, validationErrorMessage
+		validationExpression, validationErrorMessage, converter, converterDefaultValue
 	}
 	
 	public enum HiddenKey implements PropertyKey {
@@ -33,11 +33,4 @@ public class TypeDefinition extends AbstractNode {
 		EntityContext.registerEntityRelation(TypeDefinition.class, Content.class, RelType.IS_A, Direction.INCOMING, RelationClass.Cardinality.OneToMany);
 	}
 	
-	public String getValidationExpression() {
-		return getStringProperty(TypeDefinition.Key.validationExpression);
-	}
-	
-	public String getValidationErrorMessage() {
-		return getStringProperty(TypeDefinition.Key.validationErrorMessage);
-	}
 }
