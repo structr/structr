@@ -69,14 +69,14 @@ public class PatchCommand extends AbstractCommand {
 			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, "Could not apply patch {0}", patch);
-				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+				getWebSocket().send(MessageBuilder.status().code(400).message("Could not apply patch. " + t.getMessage()).build(), true);
 
 			}
 
 		} else {
 
 			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
-			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
+			getWebSocket().send(MessageBuilder.status().code(404).message("Node with uuid " + webSocketData.getId() + " not found.").build(), true);
 
 		}
 
