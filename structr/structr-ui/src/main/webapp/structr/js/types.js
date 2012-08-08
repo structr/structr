@@ -63,10 +63,14 @@ var _Types = {
             + '<b class="name_">' + type.name + '</b> <span class="id">' + type.id + '</span>'
             + '</div>');
         
-        //div = Structr.node(folder.id, parent.id);
-        div = $('#_' + type.id);
+        var div = $('#_' + type.id);
         
-
+        div.append('<img title="Delete Type Definition ' + type.id + '" alt="Delete Type Definition ' + type.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        $('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            _Entities.deleteNode(this, type);
+        });
+        
         _Entities.appendAccessControlIcon(div, type);
         _Entities.appendEditPropertiesIcon(div, type);
         _Entities.setMouseOver(div);
