@@ -78,10 +78,13 @@ public class StructrServer {
 		String appName        = "structr UI 0.5";
 		String host           = System.getProperty("host", "0.0.0.0");
 		String keyStorePath   = System.getProperty("keyStorePath", "keystore.jks");
+		String keyStorePasswd = System.getProperty("keyStorePasswd", "structrKeystore");
+		
 		int httpPort          = Integer.parseInt(System.getProperty("port", "8082"));
-		int httpsPort         = Integer.parseInt(System.getProperty("httpsPort", "8083"));
+		int httpsPort         = Integer.parseInt(System.getProperty("httpsPort", "-1"));
 		int maxIdleTime       = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
 		int requestHeaderSize = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
+		
 		String contextPath    = System.getProperty("contextPath", "/");
 
 		System.out.println();
@@ -92,17 +95,22 @@ public class StructrServer {
 		HandlerCollection handlers        = new HandlerCollection();
 		ContextHandlerCollection contexts = new ContextHandlerCollection();
 
-		// setup HTTP connector
-		SslContextFactory factory = new SslContextFactory(keyStorePath);
+		SslSelectChannelConnector httpsConnector = null;
+		if (httpsPort > -1 && keyStorePasswd != null) {
+		
+			// setup HTTP connector
+			SslContextFactory factory = new SslContextFactory(keyStorePath);
 
-		factory.setKeyStorePassword("structrKeystore");
+			factory.setKeyStorePassword(keyStorePasswd);
 
-		SslSelectChannelConnector httpsConnector = new SslSelectChannelConnector(factory);
+			httpsConnector = new SslSelectChannelConnector(factory);
 
-		httpsConnector.setHost(host);
-		httpsConnector.setPort(httpsPort);
-		httpsConnector.setMaxIdleTime(maxIdleTime);
-		httpsConnector.setRequestHeaderSize(requestHeaderSize);
+			httpsConnector.setHost(host);
+
+			httpsConnector.setPort(httpsPort);
+			httpsConnector.setMaxIdleTime(maxIdleTime);
+			httpsConnector.setRequestHeaderSize(requestHeaderSize);
+		}
 
 		// ServletContextHandler context0    = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		// SelectChannelConnector connector0 = new SelectChannelConnector();
@@ -315,7 +323,13 @@ public class StructrServer {
 		contexts.setHandlers(new Handler[] { webapp, requestLogHandler });
 		handlers.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
 		server.setHandler(handlers);
-		server.setConnectors(new Connector[] { httpConnector, httpsConnector });
+
+		if (httpsConnector != null) {
+			server.setConnectors(new Connector[] { httpConnector, httpsConnector });
+		} else {
+			server.setConnectors(new Connector[] { httpConnector });
+		}
+		
 		server.setGracefulShutdown(1000);
 		server.setStopAtShutdown(true);
 		System.out.println();
