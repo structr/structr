@@ -22,7 +22,6 @@ package org.structr.core.converter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
 /**

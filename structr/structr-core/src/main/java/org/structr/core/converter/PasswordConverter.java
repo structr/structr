@@ -21,7 +21,9 @@ package org.structr.core.converter;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.structr.core.PropertyConverter;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.TooShortToken;
 import org.structr.core.Value;
 
 /**
@@ -30,13 +32,65 @@ import org.structr.core.Value;
 public class PasswordConverter extends PropertyConverter<String, String> {
 
 	@Override
-	public String convertForSetter(String clearTextPassword, Value value) {
+	public String convertForSetter(String clearTextPassword, Value value) throws FrameworkException {
+		
 		if (StringUtils.isBlank(clearTextPassword)) return null;
+
+		if (value != null) {
+			
+			ValidationInfo validationInfo = (ValidationInfo)value.get(securityContext);
+			if (validationInfo != null) {
+
+				String errorType = validationInfo.getErrorType();
+				String errorKey  = validationInfo.getErrorKey();
+				int minLength    = validationInfo.getMinLength();
+
+				if (minLength > 0 && clearTextPassword.length() < minLength) {
+
+					throw new FrameworkException(errorType, new TooShortToken(errorKey, minLength));
+				}
+			}
+		}
+		
 		return DigestUtils.sha512Hex(clearTextPassword);
 	}
 
 	@Override
 	public String convertForGetter(String passwordHash, Value value) {
 		return passwordHash;
+	}
+	
+	public static class ValidationInfo implements Value<ValidationInfo> {
+
+		private String errorType = null;
+		private String errorKey = null;
+		private int minLength = -1;
+
+		public ValidationInfo(String errorType, String errorKey, int minLength) {
+			this.errorType = errorType;
+			this.errorKey  = errorKey;
+			this.minLength = minLength;
+		}		
+		
+		@Override
+		public void set(SecurityContext securityContext, ValidationInfo value) throws FrameworkException {
+		}
+
+		@Override
+		public ValidationInfo get(SecurityContext securityContext) {
+			return this;
+		}
+
+		public String getErrorType() {
+			return errorType;
+		}
+
+		public String getErrorKey() {
+			return errorKey;
+		}
+
+		public int getMinLength() {
+			return minLength;
+		}
 	}
 }

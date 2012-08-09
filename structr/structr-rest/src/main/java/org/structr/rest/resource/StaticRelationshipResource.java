@@ -21,6 +21,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.converter.PropertyConverter;
 import org.apache.commons.collections.ListUtils;
 
 import org.structr.common.PropertyKey;

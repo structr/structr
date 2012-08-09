@@ -21,6 +21,7 @@
 
 package org.structr.core;
 
+import org.structr.core.converter.PropertyConverter;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
@@ -388,6 +389,10 @@ public class EntityContext {
 	// ----- read-only property map -----
 	public static void registerReadOnlyProperty(Class type, String key) {
 		getReadOnlyPropertySetForType(type).add(key);
+	}
+	
+	public static void registerReadOnlyProperty(Class type, PropertyKey key) {
+		getReadOnlyPropertySetForType(type).add(key.name());
 	}
 
 	// ----- searchable property map -----

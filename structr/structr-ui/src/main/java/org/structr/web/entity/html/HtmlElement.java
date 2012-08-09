@@ -31,10 +31,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.common.Function;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -46,7 +44,6 @@ import org.structr.web.servlet.HtmlServlet;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -54,6 +51,9 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.web.common.PageHelper;
+import org.structr.web.entity.PageElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,7 +61,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @author Axel Morgner
  */
-public abstract class HtmlElement extends Element {
+public abstract class HtmlElement extends PageElement implements Element {
 
 	protected static final String[] htmlAttributes = new String[] {
 
@@ -244,12 +244,13 @@ public abstract class HtmlElement extends Element {
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), UiKey.values());
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
-
+		
+		EntityContext.registerPropertyRelation(HtmlElement.class, UiKey.parents, HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum UiKey implements PropertyKey{ name, tag, path }
+	public enum UiKey implements PropertyKey{ name, tag, path, parents, paths }
 
 	//~--- methods --------------------------------------------------------
 
@@ -479,27 +480,6 @@ public abstract class HtmlElement extends Element {
 
 	}
 
-	public static AbstractNode getNodeById(SecurityContext securityContext, String id) {
-
-		if (id == null) {
-
-			return null;
-		}
-
-		try {
-
-			return (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(id);
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Unable to load node with id {0}, {1}", new java.lang.Object[] { id, t.getMessage() });
-
-		}
-
-		return null;
-
-	}
-
 	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
 		String refKey) {
 
@@ -527,7 +507,7 @@ public abstract class HtmlElement extends Element {
 			// special keyword "component"
 			if ("component".equals(part.toLowerCase())) {
 
-				node = getNodeById(securityContext, componentId);
+				node = PageHelper.getNodeById(securityContext, componentId);
 
 				continue;
 
@@ -536,7 +516,7 @@ public abstract class HtmlElement extends Element {
 			// special keyword "resource"
 			if ("resource".equals(part.toLowerCase())) {
 
-				node = getNodeById(securityContext, pageId);
+				node = PageHelper.getNodeById(securityContext, pageId);
 
 				continue;
 
@@ -612,7 +592,7 @@ public abstract class HtmlElement extends Element {
 			// special keyword "root": Find containing page
 			if ("root".equals(part.toLowerCase())) {
 
-				List<Page> pages = getPages(securityContext, viewComponent);
+				List<Page> pages = PageHelper.getPages(securityContext, viewComponent);
 
 				if (pages.isEmpty()) {
 
@@ -638,7 +618,20 @@ public abstract class HtmlElement extends Element {
 				return 0;
 
 			}
+			
+			// special keyword "rest_result"
+			if ("rest_result".equals(part.toLowerCase())) {
 
+				HttpServletRequest request = securityContext.getRequest();
+
+				if (request != null) {
+
+					return StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE));
+				}
+
+				return 0;
+
+			}
 		}
 
 		if (node != null) {
@@ -650,42 +643,10 @@ public abstract class HtmlElement extends Element {
 
 	}
 
-	/**
-	 * Find all pages which contain the given html element node
-	 *
-	 * @param securityContext
-	 * @param node
-	 * @return
-	 */
-	public static List<Page> getPages(SecurityContext securityContext, final AbstractNode node) {
-
-		List<Page> pages = new LinkedList<Page>();
-		AbstractNode pageNode;
-		List<AbstractRelationship> rels = node.getIncomingRelationships(RelType.CONTAINS);
-
-		for (AbstractRelationship rel : rels) {
-
-			for (String key : rel.getProperties().keySet()) {
-
-				pageNode = getNodeById(securityContext, key);
-
-				if (pageNode != null && pageNode instanceof Page) {
-
-					pages.add((Page) pageNode);
-				}
-
-			}
-
-		}
-
-		return pages;
-
-	}
-
 	public boolean isVoidElement() {
 
 		return false;
 
 	}
-
+	
 }

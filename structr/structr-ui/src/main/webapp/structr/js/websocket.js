@@ -145,10 +145,10 @@ function connect() {
 
             } else if (command == 'GET') { /*********************** GET ************************/
 
-                if (debug) console.log('GET:', data);
+                console.log('GET:', data);
 
                 var d = data.data.displayElementId;
-                console.log('displayElementId', d);
+                if (debug) console.log('displayElementId', d);
 
                 var parentElement;
                 if (d != null) {
@@ -173,7 +173,7 @@ function connect() {
 
                     } else {
                         
-                        console.log($(attrElement));
+                        if (debug) console.log($(attrElement));
                         
                         var tag = $(attrElement).get(0).tagName.toLowerCase();
                         
@@ -279,14 +279,16 @@ function connect() {
                 
                 //console.log(command, result, data, data.data);
                 
-                var treeAddress = data.data.treeAddress;
+                //var treeAddress = data.data.treeAddress;
 				
                 $(result).each(function(i, entity) {
                     
-                    console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                   if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
                     var el = Structr.node(entity.id, parentId, componentId, pageId);
                     if (el) el.remove();
+                    
+                    //alert(entity.id);
                     
                     _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
@@ -298,6 +300,8 @@ function connect() {
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
                 
+                if (debug) ssconsole.log('UPDATE');
+                
                 var relData = data.relData;
                 if (debug) console.log('relData', relData);
                 
@@ -305,8 +309,11 @@ function connect() {
                 var modifiedProperties = data.modifiedProperties;
                 
                 var isRelOp = false;
+                
                 if (relData && relData.startNodeId && relData.endNodeId) {
                     isRelOp = true;
+                    if (debug) console.log('relationship', relData, relData.startNodeId, relData.endNodeId);
+                    
                 }
                 
                 if (modifiedProperties) {
@@ -316,7 +323,7 @@ function connect() {
                 }
                 
                 if (relData && removedProperties && removedProperties.length) {
-                    console.log('removedProperties', removedProperties);
+                    if (debug) console.log('removedProperties', removedProperties);
                     _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
                     
                 } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
@@ -346,7 +353,7 @@ function connect() {
                             
                             var parent = Structr.entity(parentId);
                             if (debug) console.log('parent type', parent, parent.type);
-                            if (parent.type == 'Page') return;
+                            if (!parent.type || parent.type == 'Page') return;
                             
                             var id = entity.id;
                             //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
@@ -354,7 +361,7 @@ function connect() {
                             var el = Structr.node(id, parentId, componentId, newPageId);
                             if (debug) console.log('node already exists?', el);
                             
-                            if (!el || !el.length) {
+                            if (id && (!el || !el.length)) {
                                 //el.remove();
                             
                                 //_Entities.resetMouseOverState(el);

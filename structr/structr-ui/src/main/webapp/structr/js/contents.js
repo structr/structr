@@ -174,9 +174,9 @@ var _Contents = {
                 editorCursor = cm.getCursor();
                 if (debug) console.log(editorCursor);
 
-                timer = window.setTimeout(function() {
+                //timer = window.setTimeout(function() {
                     Command.patch(entity.id, text1, text2);
-                }, 5000);
+                //}, 5000);
 				
             }
         });
@@ -211,6 +211,8 @@ var _Contents = {
         dataKeyInput.on('blur', function() {
             Command.setProperty(entity.id, 'data-key', dataKeyInput.val());
         });
+
+        _Entities.appendSimpleSelection($('#dialogBox .dialogMeta'), entity, 'type_definitions', 'Data Type', 'typeDefinitionId');
 
         editor.id = entity.id;
 

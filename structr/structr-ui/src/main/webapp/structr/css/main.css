@@ -130,6 +130,7 @@ img.disabled {
 }
 
 #pages,
+#types,
 #previews,
 #elements,
 #components,
@@ -411,6 +412,7 @@ ul#previewTabs {
 
 .node .id,
 .group .id,
+.types .id,
 .user    .id,
 .page .id,
 .element .id,
@@ -436,6 +438,7 @@ span.id {
 
 .node,
 .page,
+.type,
 .component,
 .element,
 .content,

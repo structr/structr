@@ -17,9 +17,12 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.core;
+package org.structr.core.converter;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Value;
 
 /**
  * A generic converter interface that can be used to convert
@@ -41,7 +44,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract S convertForSetter(T source, Value value);
+	public abstract S convertForSetter(T source, Value value) throws FrameworkException;
 	
 	/**
 	 * Converts from source type to destination type. Caution: source

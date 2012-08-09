@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -111,6 +112,18 @@ public class CreateSimplePage extends AbstractCommand {
 				AbstractNode title = (AbstractNode) createNode.execute(nodeData);
 
 				createRel.execute(head, title, RelType.CONTAINS, relData, false);
+				
+				nodeData.put(AbstractNode.Key.type.name(), Content.class.getSimpleName());
+				nodeData.remove(HtmlElement.UiKey.tag.name());
+				nodeData.put(Content.UiKey.content.name(), "New Page");
+				//nodeData.put(HtmlElement.UiKey.tag.name(), "body");
+				AbstractNode content = (AbstractNode) createNode.execute(nodeData);
+				
+				relData.put(pageId, 0);
+				createRel.execute(title, content, RelType.CONTAINS, relData, false);
+				
+				
+				
 
 				return page;
 

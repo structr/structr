@@ -46,7 +46,7 @@ import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
-import org.structr.core.PropertyConverter;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -70,6 +70,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.converter.DateConverter;
+import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.notion.PropertyNotion;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -102,6 +104,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
 		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
 
+		EntityContext.registerPropertyRelation(AbstractNode.class, Key.ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
+
+		
+		
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 
@@ -138,7 +144,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static enum Key implements PropertyKey {
 
 		uuid, name, type, createdBy, createdDate, deleted, hidden, lastModifiedDate, visibleToPublicUsers, visibilityEndDate, visibilityStartDate,
-		visibleToAuthenticatedUsers, categories, owner;
+		visibleToAuthenticatedUsers, categories, ownerId
 
 	}
 
@@ -903,7 +909,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		Object value          = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
 		Class type            = this.getClass();
-		boolean schemaDefault = false;
+		boolean dontCache     = false;
 
 		// only use cached value if property is accessed the "normal" way (i.e. WITH converters)
 		if(value == null) {
@@ -943,8 +949,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 						case ManyToMany :
 						case OneToMany :
-							value = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
-
+							value     = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
+							dontCache = true;
 							break;
 
 						case OneToOne :
@@ -952,6 +958,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 							try {
 
 								value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+								dontCache = true;
 
 							} catch (FrameworkException fex) {
 
@@ -971,7 +978,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if (value == null) {
 
 				value = EntityContext.getDefaultValue(type, key);
-				schemaDefault = true;
+				dontCache = true;
 			}
 
 			// only apply converter if requested
@@ -992,7 +999,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				}
 			}
 
-			if(!schemaDefault) {
+			if(!dontCache) {
 				
 				// only cache value if it is NOT the schema default
 				if(applyConverter) {
@@ -1977,9 +1984,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken("base"));
 
 		}
-
-		// remove property from cached properties
-		cachedConvertedProperties.remove(key);
 		
 		// check for read-only properties
 		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key))) {
@@ -2095,6 +2099,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				// Don't write directly to database, but store property values
 				// in a map for later use
 				properties.put(key, convertedValue);
+				
 			} else {
 
 				// Commit value directly to database
@@ -2148,6 +2153,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 
+		// remove property from cached properties
+		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 	}
 
 	public void setOwner(final Principal owner) {
@@ -2156,7 +2164,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
 
-			setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(owner));
+			setOwner.execute(this, owner);
 
 		} catch (FrameworkException fex) {
 

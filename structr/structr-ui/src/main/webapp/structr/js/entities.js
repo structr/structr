@@ -24,8 +24,8 @@ var _Entities = {
     booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
     numberAttrs : ['position', 'size'],
     dateAttrs : ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
-    hiddenAttrs : ['deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'relativeFilePath', 'path', 'elements', 'linkingElements', 'components'],
-    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size'],
+    hiddenAttrs : ['deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'relativeFilePath', 'path', 'elements', 'linkingElements', 'components', 'paths', 'parents'],
+    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version'],
     
     changeBooleanAttribute : function(attrElement, value) {
 
@@ -133,6 +133,11 @@ var _Entities = {
             
             lastAppendedObj = _Files.appendFileElement(entity, parentId, removeExisting, hasChildren, false);
             
+        } else if (entity.type == 'TypeDefinition') {
+            
+            if (debug) console.log('TypeDefinition: ', entity);
+            lastAppendedObj = _Types.appendTypeElement(entity);
+            
         } else {
 
             if (debug) console.log('Entity: ', entity);
@@ -174,15 +179,86 @@ var _Entities = {
             });
     },
 
-    hideProperties : function(button, entity, element) {
-        enable(button, function() {
-            _Entities.showProperties(button, entity, element);
-        });
-        element.find('.sep').remove();
-        element.find('.props').remove();
+    listContainingNodes : function(entity, node) {
+
+        console.log('listContainingNodes', entity, getElementPath(node));
+
+        dialog.empty();
+        Structr.dialog('Choose element instance to remove',
+            function() {
+                return true;
+            },
+            function() {
+                return true;
+            });
+               
+        dialog.append('<p>Hover your mouse over the element instance to remove and click the remove icon.</p>')
+        var headers = {};
+        headers['X-StructrSessionToken'] = token;
+        if (debug) console.log('headers', headers);
+        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
+            
+        $.ajax({
+            url: rootUrl + entity.id,
+            async: true,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            headers: headers,
+            success: function(data) {
+                if (data.result) {
+                    dialog.append('<table class="props containingNodes ' + entity.id + '_"></table>');
+                    var cont = $('.' + entity.id + '_', dialog);
+
+                    $(data.result.paths).each(function(i, path) {
+                        console.log(path);
+
+                        var pageId = path.substring(32);
+                        
+                        cont.append('<tr><td class="' + path + '">'
+                            + '<div style="display: inline-block" class="node ' + entity.id + '_">'
+                            + '<b class="tag_">' + entity.tag + '</b> [ ' + path + ' ] <img style="float: right" class="remove_icon" src="' + _Elements.delete_icon +  '"></div></td>'
+                            + '</tr>');
+                                    
+                        //Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
+                        //Command.getProperty(entity.id, 'name', '.'+ path);
+                                    
+                                    
+                        var node = $('div.' + entity.id + '_', $('.' + path));
+                        var removeButton = $('.remove_icon', node).css({
+                            'display': 'block'
+                        });
+                                    
+                        node.hover(function() {
+                            $('#_' + path).addClass('nodeHover')
+                            },
+                        function() {
+                            $('#_' + path).removeClass('nodeHover')
+                        }
+                        );
+                                    
+                        //_Entities.setMouseOver(parent);
+                        //_Entities.setMouseOver(node, parentElement);
+                                    
+                        removeButton.css({
+                            'cursor': 'pointer'
+                        }).on('click', function(e) {
+                            //console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
+                            if (debug) console.log(path);
+                            Command.remove(entity.id, path);
+                                        
+                            $('.' + path).parent('tr').remove();
+                                        
+                        });
+
+                    });
+                                  
+                }
+
+            }
+        });        
     },
 
-    showProperties : function(button, entity, dialog) {
+    showProperties : function(entity) {
 
         var views;
 	    
@@ -289,7 +365,7 @@ var _Entities = {
                                 if (key == 'id') {
                                     // set ID to rel ID
                                     id = res[key];
-                                    console.log('Set ID to relationship ID', id);
+                                //console.log('Set ID to relationship ID', id);
                                 }
                                 
                                 props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
@@ -307,7 +383,7 @@ var _Entities = {
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
-                                            console.log('set property', id, key, checkbox.attr('checked') == 'checked');
+                                            if (debug) console.log('set property', id, key, checkbox.attr('checked') == 'checked');
                                             Command.setProperty(id, key, checkbox.attr('checked') == 'checked');
                                         });
                                         Command.getProperty(id, key, '#dialogBox');
@@ -339,15 +415,17 @@ var _Entities = {
                             }
 
                         });
+                        
+                        props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td></tr>');
 
                         $('.props tr td.value input', dialog).each(function(i,v) {
                             
                             var input = $(v);
-
+                            
                             var relId = input.parent().attr('rel_id');
                             //console.log('attaching events for saving attrs of relationship', relId);
 
-                            if (!input.hasClass('readonly')) {
+                            if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
                             
                                 input.on('focus', function() {
                                     input.addClass('active');
@@ -362,7 +440,25 @@ var _Entities = {
                                     console.log('relId', relId);
                                     var objId = relId ? relId : id;
                                     console.log('set properties of obj', objId);
-                                    Command.setProperty(objId, input.prop('name'), input.val());
+                                    
+                                    var keyInput = input.parent().parent().children('td').first().children('input');
+                                    console.log(keyInput);
+                                    if (keyInput && keyInput.length) {
+                                    
+                                        // new key
+                                        console.log('new key: Command.setProperty(', objId, keyInput.val(), input.val());
+                                        Command.setProperty(objId, keyInput.val(), input.val());
+                                        
+                                        
+                                    } else {
+                                        
+                                        // existing key
+                                        console.log('existing key: Command.setProperty(', objId, input.prop('name'), input.val());
+                                        Command.setProperty(objId, input.prop('name'), input.val());
+                                        
+                                    }
+                                    
+                                    
                                     input.removeClass('active');
                                     input.parent().children('.icon').each(function(i, img) {
                                         $(img).remove();
@@ -395,36 +491,7 @@ var _Entities = {
                 Structr.dialog('Access Control and Visibility', function() {}, function() {});
                 var dt = $('#dialogBox .dialogText');
 
-                dt.append('<h3>Owner</h3><p class="ownerSelectBox" id="ownersBox"></p>');
-                
-                var element = $('#ownersBox');
-                
-                element.append('<span class="' + entity.id + '_"><select class="ownerId_" id="ownerIdSelect">');
-                
-                var ownerIdSelect = $('#ownerIdSelect');
-                var headers = {};
-                headers['X-StructrSessionToken'] = token;
-                $.ajax({
-                    url: rootUrl + 'users/all?pageSize=100',
-                    async: false,
-                    dataType: 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: headers,
-                    success: function(data) {
-                        $(data.result).each(function(i, user) {
-                            console.log(user);
-                            ownerIdSelect.append('<option value="' + user.id + '">' + user.name + '</option>');
-                        });
-                    }
-                });                
-                
-                element.append('</select></span>');
-                
-                Command.getProperty(entity.id, 'ownerId', '#dialogBox');
-                var select = $('#ownerIdSelect', element);
-                select.on('change', function() {
-                    Command.setProperty(entity.id, 'ownerId', select.val());
-                });                
+                _Entities.appendSimpleSelection(dt, entity, 'users', 'Owner', 'ownerId');
                 
                 dt.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
                 
@@ -463,6 +530,44 @@ var _Entities = {
         }
     },
 
+    appendSimpleSelection : function(el, entity, type, title, key) {
+        
+        el.append('<h3>' + title + '</h3><p id="' + key + 'Box"></p>');
+                
+        var element = $('#' + key + 'Box');
+                
+        element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select">');
+                
+        var selectElement = $('#' + key + 'Select');
+        
+        selectElement.append('<option></option>')
+        
+        var headers = {};
+        headers['X-StructrSessionToken'] = token;
+        $.ajax({
+            url: rootUrl + type + '/all?pageSize=100',
+            async: false,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            headers: headers,
+            success: function(data) {
+                $(data.result).each(function(i, result) {
+                    if (debug) console.log(result);
+                    selectElement.append('<option value="' + result.id + '">' + result.name + '</option>');
+                });
+            }
+        });                
+                
+        element.append('</select></span>');
+
+        if (debug) console.log('Command.getProperty(', entity.id, key, '#' + key + 'Box', ')');
+        Command.getProperty(entity.id, key, '#' + key + 'Box');
+        var select = $('#' + key + 'Select', element);
+        select.on('change', function() {
+            Command.setProperty(entity.id, key, select.val());
+        });          
+    },
+
     appendEditPropertiesIcon : function(parent, entity) {
 
         var editIcon = $('.edit_props_icon', parent);
@@ -474,7 +579,7 @@ var _Entities = {
         editIcon.on('click', function(e) {
             e.stopPropagation();
             if (debug) console.log('showProperties', entity);
-            _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
+            _Entities.showProperties(entity);
         });
     },
 
@@ -547,7 +652,7 @@ var _Entities = {
         });
     },
 
-    setMouseOver : function(el) {
+    setMouseOver : function(el, parentElement) {
         if (!el || !el.children) return;
 
         el.on('click', function(e) {
@@ -566,7 +671,12 @@ var _Entities = {
                 var nodeId = getId(el);
                 //window.clearTimeout(timer[nodeId]);
                 //		console.log('setMouseOver', nodeId);
-                var nodes = $('.' + nodeId + '_');
+                var nodes;
+                if (parentElement) {
+                    nodes = $('.' + nodeId + '_', parentElement);
+                } else {
+                    nodes = $('.' + nodeId + '_');
+                }
                 var page = $(el).closest('.page');
                 if (page.length) {
                     var pageId = getId(page);

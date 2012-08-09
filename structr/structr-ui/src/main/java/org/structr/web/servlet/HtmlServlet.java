@@ -23,6 +23,11 @@ package org.structr.web.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
@@ -69,10 +74,9 @@ import org.structr.web.entity.Element;
 import org.structr.web.entity.Page;
 import org.structr.web.entity.View;
 import org.structr.web.entity.html.HtmlElement;
+import org.structr.core.entity.File;
 
 //~--- JDK imports ------------------------------------------------------------
-
-import java.io.*;
 
 import java.text.*;
 
@@ -84,15 +88,13 @@ import java.util.regex.Matcher;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.node.GetNodeByIdCommand;
+import org.structr.web.common.PageHelper;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * A first proof of concept for the new graph concept. This class has two modes,
- * one to create an example structure and one to traverse over the created
- * structure and return the collected content. Use the request parameter "create"
- * to create the test structure, use the request parameter "id" to retrieve the
- * pages, see log during "create" for IDs of the created pages.
+ * Main servlet for content rendering.
  *
  * @author Christian Morgner
  * @author Axel Morgner
@@ -109,7 +111,16 @@ public class HtmlServlet extends HttpServlet {
 	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor     = new ThreadLocalConfluenceProcessor();
 	private static Date lastModified;
+	public static final String REST_RESPONSE = "restResponse";
+	public static final String REDIRECT = "redirect";
+	public static final String LAST_GET_URL = "lastGetUrl";
+	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
+	
+	public static final DecimalFormat decimalFormat     = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	
+	public static Command searchNodesAsSuperuser;
 
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -167,13 +178,12 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- fields ---------------------------------------------------------
 
-	// area, base, br, col, command, embed, hr, img, input, keygen, link, meta, param, source, track, wbr
 	private boolean edit;
 	private Gson gson;
 
 	//~--- methods --------------------------------------------------------
 
-	private boolean postToRestUrl(HttpServletRequest request, final String pagePath, final Map<String, Object> parameters) {
+	private String postToRestUrl(HttpServletRequest request, final String pagePath, final Map<String, Object> parameters) {
 
 		HttpClient httpClient = new HttpClient();
 		ContentExchange contentExchange;
@@ -212,21 +222,20 @@ public class HtmlServlet extends HttpServlet {
 			httpClient.send(contentExchange);
 			contentExchange.waitForDone();
 
-			return contentExchange.isDone();
+			return contentExchange.getResponseContent();
 
 		} catch (Exception ex) {
 
 			logger.log(Level.WARNING, "Error while POSTing to REST url " + restUrl, ex);
 
-			return false;
+			return null;
 		}
 	}
 
 	@Override
 	public void init() {
-
-		// create prototype traversal description
-		// desc = Traversal.description().depthFirst().uniqueness(Uniqueness.RELATIONSHIP_PATH);    // .uniqueness(Uniqueness.NODE_GLOBAL);
+		
+		 searchNodesAsSuperuser = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
 	}
 
 	@Override
@@ -241,77 +250,142 @@ public class HtmlServlet extends HttpServlet {
 		Map<String, String[]> parameterMap = request.getParameterMap();
 		String path                        = PathHelper.clean(request.getPathInfo());
 
-		// Split by "//"
-		String[] parts  = PathHelper.getParts(path);
-		String pagePath = parts[parts.length - 1];
+		// For now, we treat the first path item as the page path.
+		// FIXME: Allow multi-segment page path (subpages)
+		
+		//String[] parts  = PathHelper.getParts(path);
+		String restPath = StringUtils.substringAfter(path, PathHelper.PATH_SEP);
 
-		postToRestUrl(request, pagePath, convert(parameterMap));
+		String resp = postToRestUrl(request, restPath, convert(parameterMap));
+		
+		if (resp != null) {
+			request.getSession().setAttribute(REST_RESPONSE, resp);
+		}
 
-		String name = null;
+		String redirect = null;
 
 		try {
+			// Check for a target URL coming from the form
+			redirect = request.getParameter(REDIRECT);
+			
+			if (redirect == null) {
+				redirect = (String) request.getSession().getAttribute(LAST_GET_URL);
+				request.getSession().removeAttribute(LAST_GET_URL);
+			}
 
-			name = PathHelper.getParts(path)[0];
-
-			response.sendRedirect("/" + name + "//" + pagePath);
+			response.sendRedirect(redirect);
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Could not redirect to " + path, ex);
+			logger.log(Level.SEVERE, "Could not redirect to " + redirect, ex);
 		}
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
-		try {
+		double start                    = System.nanoTime();
 
+		try {
+			
 			request.setCharacterEncoding("UTF-8");
 
 			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
 			response.setCharacterEncoding("UTF-8");
+			
+
+			boolean dontCache = false;
+			
+			String resp = (String) request.getSession().getAttribute(REST_RESPONSE);
+			if (resp != null) {
+				
+				request.setAttribute(REST_RESPONSE, resp);
+				
+				// empty response content after reading
+				request.getSession().removeAttribute(REST_RESPONSE);
+				
+				// don't allow to show a cached page
+				dontCache = true;
+				
+			}
 
 			String path = PathHelper.clean(request.getPathInfo());
 
 			logger.log(Level.FINE, "Path info {0}", path);
-
-			String[] urlParts = PathHelper.getParts(path);
+			
+			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
+			
+			org.structr.core.entity.File file = findFile(request, path);
+			Page page = null;
+			Component comp = null;
 			String searchFor  = null;
+			
+			if (file == null) {
+			
+				String[] urlParts = PathHelper.getParts(path);
+				
 
-			if (urlParts.length > 1) {
+				if (urlParts.length > 1) {
 
-				searchFor = StringUtils.substringBefore(urlParts[1], "?");
+					searchFor = StringUtils.substringBefore(urlParts[1], "?");
 
+				}
+
+				if ((urlParts == null) || (urlParts.length == 0)) {
+
+					// try to find a page with position==0
+					page = findIndexPage();
+
+					logger.log(Level.INFO, "No path supplied, trying to find index page");
+
+				} else {
+
+					page = findPage(request, path);
+
+				}
+
+				// store remaining path parts in request
+				Matcher matcher                 = threadLocalUUIDMatcher.get();
+				boolean requestUriContainsUuids = false;
+
+				for (int i = 0; i < urlParts.length; i++) {
+
+					request.setAttribute(urlParts[i], i);
+					matcher.reset(urlParts[i]);
+
+					// set to "true" if part matches UUID pattern
+					requestUriContainsUuids |= matcher.matches();
+
+				}
+
+				
+				
+				if (!requestUriContainsUuids) {
+
+					// Try to find a component by name
+					comp = findComponent(request, path);
+
+					if (comp != null) {
+
+						request.setAttribute(comp.getUuid(), 0);
+
+						// set to "true" if part matches UUID pattern
+						requestUriContainsUuids = true;
+
+					}
+
+				} else {
+					
+					AbstractNode n = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(PathHelper.getName(path));
+					if (n != null && n instanceof Component) {
+						comp = (Component) n;
+					}
+					
+				}
+
+				// store information about UUIDs in path in request for later use in Component
+				request.setAttribute(Component.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
 			}
-
-			String[] pathParts   = PathHelper.getParts(path);
-			boolean tryIndexPage = false;
-			String name          = "";
-
-			if ((pathParts == null) || (pathParts.length == 0)) {
-
-				// try to find a page with position==0
-				tryIndexPage = true;
-
-				logger.log(Level.INFO, "No path supplied, trying to find index page");
-
-//                              response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//
-//                              return;
-			} else {
-
-				name = PathHelper.getName(pathParts[0]);
-
-			}
-
-			List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
-			Map<String, String[]> parameterMap = request.getParameterMap();
-
-			if ((parameterMap != null) && (parameterMap.size() > 0)) {
-
-				attrs = convertToNodeAttributes(parameterMap);
-
-			}
-
+			
 			edit = false;
 
 			if (request.getParameter("edit") != null) {
@@ -320,98 +394,70 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			// first part (before "//" is page path (file etc),
-			// second part is nested component control
-			// store remaining path parts in request
-			Matcher matcher                 = threadLocalUUIDMatcher.get();
-			boolean requestUriContainsUuids = false;
-
-			for (int i = 1; i < pathParts.length; i++) {
-
-				String[] parts = pathParts[i].split("[/]+");
-
-				for (int j = 0; j < parts.length; j++) {
-
-					// FIXME: index (j) in setAttribute might be
-					// wrong here if we have multiple //-separated
-					// parts!
-					request.setAttribute(parts[j], j);
-					matcher.reset(parts[j]);
-
-					// set to "true" if part matches UUID pattern
-					requestUriContainsUuids |= matcher.matches();
+			if (page == null && file == null) {
+				
+				if (comp != null) {
+					
+					// Last path part matches a component
+					// Remove last path part and try again searching for a page
+					
+					// clear possible entry points
+					request.removeAttribute(POSSIBLE_ENTRY_POINTS);
+					
+					page = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
+					
 				}
-
+				
 			}
-
-			// store information about UUIDs in path in request for later use in Component
-			request.setAttribute(Component.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
-
-			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
-			DecimalFormat decimalFormat     = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-			double start                    = System.nanoTime();
-
-			// 1: find entry point (Page, File or Image)
-			AbstractNode node = tryIndexPage
-					    ? findIndexPage()
-					    : findEntryPoint(name);
-
-			if (node == null) {
-
-				HttpAuthenticator.writeNotFound(response);
-
-				return;
-
-			}
-
-			Page page                         = null;
-			org.structr.core.entity.File file = null;
-
-			if (node instanceof Page) {
-
-				page = (Page) node;
-
-			} else if (node instanceof org.structr.core.entity.File) {
-
-				file = (org.structr.core.entity.File) node;
-
-			}
-
-			if (edit) {
+			
+			
+			AbstractNode node = file != null ? file : page != null ? page : null;
+			
+			if (edit || dontCache) {
 
 				response.setHeader("Pragma", "no-cache");
 
 			} else {
-
-				Date nodeLastMod = node.getLastModifiedDate();
-
-				if ((lastModified == null) || nodeLastMod.after(lastModified)) {
-
-					lastModified = nodeLastMod;
-
+				
+				if (node != null) {
+					lastModified = node.getLastModifiedDate();
 				}
 
 			}
 
 			if ((page != null) && securityContext.isVisible(page)) {
+				
+				// Store last page GET URL in session
+				request.getSession().setAttribute(LAST_GET_URL, request.getPathInfo());
 
 				PrintWriter out            = response.getWriter();
 				String uuid                = page.getStringProperty(AbstractNode.Key.uuid);
 				final StringBuilder buffer = new StringBuilder(8192);
+				
+				List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
+				Map<String, String[]> parameterMap = request.getParameterMap();
 
-				getContent(securityContext, uuid, null, buffer, page, page, 0, false, searchFor, attrs, null, null);
+				if ((parameterMap != null) && (parameterMap.size() > 0)) {
 
-				if (!edit && setCachingHeader(request, response, node)) {
+					attrs = convertToNodeAttributes(parameterMap);
+
+				}
+				
+				double setup     = System.nanoTime();
+				logger.log(Level.INFO, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
+
+				if (!edit && !dontCache && setCachingHeader(request, response, node)) {
 
 					out.flush();
 					out.close();
 
 				} else {
+					
+					getContent(securityContext, uuid, null, buffer, page, page, 0, false, searchFor, attrs, null, null);
 
 					String content = buffer.toString();
 					double end     = System.nanoTime();
-
-					logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
+					logger.log(Level.INFO, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
 
 					String contentType = page.getStringProperty(Page.UiKey.contentType);
 
@@ -431,19 +477,6 @@ public class HtmlServlet extends HttpServlet {
 						response.setContentType("text/html;charset=UTF-8");
 					}
 
-//                                      if (tidy) {
-//
-//                                              StringWriter tidyOutput = new StringWriter();
-//                                              Tidy tidy               = new Tidy();
-//                                              Properties tidyProps    = new Properties();
-//
-//                                              tidyProps.setProperty("indent", "auto");
-//                                              tidy.getConfiguration().addProps(tidyProps);
-//                                              tidy.parse(new StringReader(content), tidyOutput);
-//
-//                                              content = tidyOutput.toString();
-//
-//                                      }
 					// 3: output content
 					out.append("<!DOCTYPE html>\n");
 					HttpAuthenticator.writeContent(content, response);
@@ -508,7 +541,73 @@ public class HtmlServlet extends HttpServlet {
 			HttpAuthenticator.writeInternalServerError(response);
 		}
 	}
+	
 
+	/**
+	 * Find a component with its name matching last path part
+	 * 
+	 * @param request
+	 * @param path
+	 * @return
+	 * @throws FrameworkException 
+	 */
+	private Component findComponent(HttpServletRequest request, final String path) throws FrameworkException {
+	
+		// FIXME: Take full file path into account
+		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
+		
+		for (AbstractNode node : entryPoints) {
+			if (node instanceof Component) {
+				return (Component) node;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Find a file with its name matching last path part
+	 * 
+	 * @param request
+	 * @param path
+	 * @return
+	 * @throws FrameworkException 
+	 */
+	private org.structr.core.entity.File findFile(HttpServletRequest request, final String path) throws FrameworkException {
+	
+		// FIXME: Take full page path into account
+		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
+		
+		for (AbstractNode node : entryPoints) {
+			if (node instanceof org.structr.core.entity.File) {
+				return (org.structr.core.entity.File) node;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Find a page with its name matching last path part
+	 * 
+	 * @param request
+	 * @param path
+	 * @return
+	 * @throws FrameworkException 
+	 */
+	private Page findPage(HttpServletRequest request, final String path) throws FrameworkException {
+		
+		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
+		
+		for (AbstractNode node : entryPoints) {
+			if (node instanceof Page) {
+				return (Page) node;
+			}
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * Convert parameter map so that after conversion, all map values
 	 * are a single String instead of an one-element String[]
@@ -576,16 +675,14 @@ public class HtmlServlet extends HttpServlet {
 		return attrs;
 	}
 
-	private AbstractNode findIndexPage() throws FrameworkException {
+	private Page findIndexPage() throws FrameworkException {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
 
-		// Get all pages
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
 		searchAttrs.add(Search.orExactType(Page.class.getSimpleName()));
-
-		List<Page> results = (List<Page>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+		
+		List<AbstractNode> results = (List<AbstractNode>) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
 
 		logger.log(Level.FINE, "{0} results", results.size());
 
@@ -593,15 +690,21 @@ public class HtmlServlet extends HttpServlet {
 
 			Collections.sort(results, new GraphObjectComparator(Page.UiKey.position.name(), AbstractNodeComparator.ASCENDING));
 
-			return results.get(0);
+			return (Page) results.get(0);
 
 		}
 
 		return null;
 	}
 
-	private AbstractNode findEntryPoint(final String name) throws FrameworkException {
+	private List<AbstractNode> findPossibleEntryPoints(HttpServletRequest request, final String name) throws FrameworkException {
 
+		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		
+		if (possibleEntryPoints != null) {
+			return possibleEntryPoints;
+		}
+		
 		if (name.length() > 0) {
 
 			logger.log(Level.FINE, "File name {0}", name);
@@ -613,24 +716,21 @@ public class HtmlServlet extends HttpServlet {
 			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
 
 			group.add(Search.orExactType(Page.class.getSimpleName()));
-			group.add(Search.orExactType(org.structr.core.entity.File.class.getSimpleName()));
+			group.add(Search.orExactType(Component.class.getSimpleName()));
+			group.add(Search.orExactType(File.class.getSimpleName()));
 			group.add(Search.orExactType(Image.class.getSimpleName()));
 			searchAttrs.add(group);
 
 			// Searching for pages needs super user context anyway
-			List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+			List<AbstractNode> results = (List<AbstractNode>) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
 
 			logger.log(Level.FINE, "{0} results", results.size());
-
-			if (!results.isEmpty()) {
-
-				return results.get(0);
-
-			}
-
+			request.setAttribute(POSSIBLE_ENTRY_POINTS, results);
+			
+			return results;
 		}
 
-		return null;
+		return Collections.EMPTY_LIST;
 	}
 
 	private static String indent(final int depth, final boolean newline) {
@@ -655,7 +755,7 @@ public class HtmlServlet extends HttpServlet {
 	//~--- get methods ----------------------------------------------------
 
 	private void getContent(SecurityContext securityContext, final String pageId, final String componentId, final StringBuilder buffer, final AbstractNode page, final AbstractNode startNode,
-				final int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) {
+				int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) {
 
 		String localComponentId    = componentId;
 		String content             = null;
@@ -665,12 +765,16 @@ public class HtmlServlet extends HttpServlet {
 		HtmlElement el             = null;
 		boolean isVoid             = (startNode instanceof HtmlElement) && ((HtmlElement) startNode).isVoidElement();
 
+		if (startNode instanceof Component) {
+			depth--;
+		}
+
 		if (startNode instanceof HtmlElement) {
 
 			el = (HtmlElement) startNode;
 
 			if (!el.avoidWhitespace()) {
-
+				
 				ind = indent(depth, true);
 
 			}
@@ -679,42 +783,45 @@ public class HtmlServlet extends HttpServlet {
 
 		if (startNode != null) {
 
-			if (!edit) {
-
-				Date nodeLastMod = startNode.getLastModifiedDate();
-
-				if ((lastModified == null) || nodeLastMod.after(lastModified)) {
-
-					lastModified = nodeLastMod;
-
-				}
-
-			}
-
-			// If a search class is given, respect search attributes
-			// Filters work with AND
-			String kind = startNode.getStringProperty(Component.UiKey.kind);
-			String id   = startNode.getStringProperty(AbstractNode.Key.uuid);
-
+//			if (!edit) {
+//
+//				Date nodeLastMod = startNode.getLastModifiedDate();
+//
+//				if ((lastModified == null) || nodeLastMod.after(lastModified)) {
+//
+//					lastModified = nodeLastMod;
+//
+//				}
+//
+//			}
+			
+			String id   = startNode.getUuid();
 			tag = startNode.getStringProperty(Element.UiKey.tag);
 
-			if ((kind != null) && kind.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
+			if (startNode instanceof Component && searchClass != null) {
+			
+				// If a search class is given, respect search attributes
+				// Filters work with AND
+				String kind = startNode.getStringProperty(Component.UiKey.kind);
 
-				for (NodeAttribute attr : attrs) {
+				if ((kind != null) && kind.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
 
-					String key = attr.getKey();
-					Object val = attr.getValue();
+					for (NodeAttribute attr : attrs) {
 
-					if (!val.equals(startNode.getProperty(key))) {
+						String key = attr.getKey();
+						Object val = attr.getValue();
 
-						return;
+						if (!val.equals(startNode.getProperty(key))) {
+
+							return;
+
+						}
 
 					}
 
 				}
-
 			}
-
+			
 			// this is the place where the "content" property is evaluated
 			if (startNode instanceof Content) {
 
@@ -877,8 +984,13 @@ public class HtmlServlet extends HttpServlet {
 
 			} else if (startNode instanceof View) {
 
+				double startView     = System.nanoTime();
+				
 				// fetch query results
 				List<GraphObject> results = ((View) startNode).getGraphObjects(request);
+				
+				double endView     = System.nanoTime();
+				logger.log(Level.INFO, "Get graph objects for {0} in {1} seconds", new Object[] { startNode.getUuid(), decimalFormat.format((endView - startView) / 1000000000.0)});
 
 				for (GraphObject result : results) {
 
@@ -1019,7 +1131,6 @@ public class HtmlServlet extends HttpServlet {
 
 		// fetch search results
 		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
-		Command searchNode                     = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
 		boolean includeDeletedAndHidden        = false;
@@ -1030,11 +1141,11 @@ public class HtmlServlet extends HttpServlet {
 
 		try {
 
-			List<Content> contentNodes = (List<Content>) searchNode.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+			List<Content> contentNodes = (List<Content>) searchNodesAsSuperuser.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			for (Content contentNode : contentNodes) {
 
-				resultPages.addAll(HtmlElement.getPages(securityContext, contentNode));
+				resultPages.addAll(PageHelper.getPages(securityContext, contentNode));
 
 			}
 

@@ -162,6 +162,34 @@ public class ValidationHelper {
 		return true;
 	}
 
+	public static boolean checkStringInEnum(GraphObject node, PropertyKey key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
+		
+		return checkStringInEnum(node.getType(), node, key, enumType, errorBuffer);
+	}
+	
+	public static boolean checkStringInEnum(String typeString, GraphObject node, PropertyKey key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
+
+		String value = node.getStringProperty(key.name());
+		Object[] values = enumType.getEnumConstants();
+
+		if (StringUtils.isNotBlank(value)) {
+
+			for (Object v : values) {
+				
+				String enumValue = v.toString();
+				
+				if (enumValue.equals(value)) {
+					return false;
+				}
+				
+			}
+		}
+
+		errorBuffer.add(typeString, new ValueToken(key.name(), values));
+
+		return true;
+	}
+
 	public static boolean checkNullOrStringInArray(GraphObject node, PropertyKey key, String[] values, ErrorBuffer errorBuffer) {
 
 		String value = node.getStringProperty(key.name());

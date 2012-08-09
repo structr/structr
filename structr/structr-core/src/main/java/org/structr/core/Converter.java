@@ -18,7 +18,9 @@
  */
 package org.structr.core;
 
+import org.structr.core.converter.PropertyConverter;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
@@ -35,7 +37,7 @@ public class Converter<S, T> implements Value<T> {
 	}
 	
 	@Override
-	public void set(SecurityContext securityContext, T value) {
+	public void set(SecurityContext securityContext, T value) throws FrameworkException {
 		source.set(securityContext, converter.convertForSetter(value, this));
 	}
 

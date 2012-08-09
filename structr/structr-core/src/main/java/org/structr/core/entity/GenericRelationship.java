@@ -27,12 +27,10 @@ package org.structr.core.entity;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -47,27 +45,26 @@ import org.structr.core.node.NodeService.RelationshipIndex;
  */
 public class GenericRelationship extends AbstractRelationship {
 
-	private static final Logger logger = Logger.getLogger(GenericRelationship.class.getName());
-
-
 	static {
 
 		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All, Key.values());
 
 		EntityContext.registerSearchableProperty(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
+		
+		// register start and end node for ui view
+		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.Ui, UiKey.values());
+		
 	}
-
 
 	public enum HiddenKey implements PropertyKey {
 		cascadeDelete;
 	}
 	
-	//~--- constructors ---------------------------------------------------
-
-	static {
-		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All,		Key.values());
-
+	public enum UiKey implements PropertyKey {
+		startNodeId, endNodeId
 	}
+	
+	//~--- constructors ---------------------------------------------------
 
 	public GenericRelationship() {}
 
@@ -77,18 +74,21 @@ public class GenericRelationship extends AbstractRelationship {
 
 	@Override
 	public PropertyKey getStartNodeIdKey() {
-		return null;
+		return UiKey.startNodeId;
 	}
 
 	@Override
 	public PropertyKey getEndNodeIdKey() {
-		return null;
+		return UiKey.endNodeId;
 	}
 		
 	@Override
 	public Iterable<String> getPropertyKeys(String propertyView) {
 		
 		Set<String> keys = new LinkedHashSet<String>();
+		
+		keys.add(UiKey.startNodeId.name());
+		keys.add(UiKey.endNodeId.name());
 		
 		if(dbRelationship != null) {
 			

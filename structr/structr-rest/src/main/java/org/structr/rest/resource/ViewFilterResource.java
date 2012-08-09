@@ -34,6 +34,8 @@ import org.structr.rest.exception.IllegalPathException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -48,6 +50,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class ViewFilterResource extends WrappingResource {
 
+	private static final Logger logger = Logger.getLogger(ViewFilterResource.class.getName());
 	private String propertyView = null;
 
 	//~--- constructors ---------------------------------------------------
@@ -108,7 +111,14 @@ public class ViewFilterResource extends WrappingResource {
 
 	@Override
 	public void configurePropertyView(Value<String> propertyView) {
-		propertyView.set(securityContext, this.propertyView);
+		
+		try {
+			propertyView.set(securityContext, this.propertyView);
+			
+		} catch(FrameworkException fex) {
+			
+			logger.log(Level.WARNING, "Unable to configure property view", fex);
+		}
 	}
 
 	//~--- get methods ----------------------------------------------------

@@ -24,7 +24,6 @@ package org.structr.web.entity;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 
-import org.structr.common.CaseHelper;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
@@ -37,7 +36,6 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.NodeService;
-import org.structr.web.entity.relation.ComponentRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -54,7 +52,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @author axel
  */
-public class Component extends AbstractNode {
+public class Component extends AbstractNode implements Element {
 
 	private static final int MAX_DEPTH                          = 10;
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
@@ -83,7 +81,7 @@ public class Component extends AbstractNode {
 
 	public enum Key implements PropertyKey{ componentId, pageId }
 
-	public enum UiKey implements PropertyKey{ type, name, kind }
+	public enum UiKey implements PropertyKey{ type, name, kind, paths }
 
 	//~--- methods --------------------------------------------------------
 
@@ -264,7 +262,7 @@ public class Component extends AbstractNode {
 	public Map<String, AbstractNode> getContentNodes() {
 		return contentNodes;
 	}
-
+	
 	public String getComponentId() {
 
 		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
@@ -310,20 +308,26 @@ public class Component extends AbstractNode {
 
 				AbstractNode endNode = abstractRelationship.getEndNode();
 
-				if ((endNode instanceof Component) &&!isVisible(request, endNode, abstractRelationship, componentId)) {
+				if (endNode == null || (endNode instanceof Component && !isVisible(request, endNode, abstractRelationship, componentId))) {
 
 					continue;
 
 				}
 
 				if ((componentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
-
-					// only add relationship if (nested) componentId matches
-					if (componentId.equals(abstractRelationship.getStringProperty(Key.componentId.name()))) {
+					
+					// Add content nodes if they don't have the data-key property set
+					if (endNode instanceof Content && endNode.getStringProperty("data-key") == null) {
+						
+						rels.add(abstractRelationship);
+						
+					// Add content or component nodes if rel's componentId attribute matches
+					} else if (componentId.equals(abstractRelationship.getStringProperty(Key.componentId.name()))) {
 
 						rels.add(abstractRelationship);
 
 					}
+						
 				} else {
 
 					rels.add(abstractRelationship);

@@ -87,7 +87,7 @@ public class UnwrapCommand extends AbstractCommand {
 					String componentId     = newComponent.getStringProperty(AbstractNode.Key.uuid);
 
 					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, pageId,
-						newComponent.getStringProperty(AbstractNode.Key.uuid), position);
+						newComponent.getStringProperty(AbstractNode.Key.uuid), false);
 
 					if ((parentNode != null) && (newComponent != null)) {
 
@@ -99,7 +99,7 @@ public class UnwrapCommand extends AbstractCommand {
 							Map<String, Object> relProps = new LinkedHashMap<String, Object>();
 
 							relProps.put(pageId, 0);
-							relProps.put("pageId", pageId);
+							//relProps.put("pageId", pageId);
 							relProps.put("componentId", componentId);
 
 							try {

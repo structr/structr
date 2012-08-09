@@ -29,8 +29,12 @@ var debug = false;
 var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
+var dialog;
+
 
 $(document).ready(function() {
+    
+    dialog = $('#dialogBox .dialogText');
 
     dmp = new diff_match_patch()
     if (debug) console.log('Debug mode');
@@ -79,6 +83,13 @@ $(document).ready(function() {
         main.empty();
         Structr.activateMenuEntry('components');
         Structr.modules['components'].onload();
+    });
+    
+    $('#types_').on('click', function(e) {
+        e.stopPropagation();
+        main.empty();
+        Structr.activateMenuEntry('types');
+        Structr.modules['types'].onload();
     });
 
     $('#elements_').on('click', function(e) {
@@ -130,7 +141,7 @@ $(document).ready(function() {
         if (e.keyCode == 27) {
             $('#dialogBox .dialogCancelButton').click();
         }
-    });            
+    });     
 	
 });
 
@@ -498,6 +509,12 @@ var Structr = {
         }
     },
     
+    entityFromAddress : function(treeAddress) {
+        var entityElement = $('#_' + treeAddress);
+        var entity = Structr.entityFromElement(entityElement);
+        return entity;
+    },
+    
     entity : function(id, parentId) {
         var entityElement = Structr.node(id, parentId);
         var entity = Structr.entityFromElement(entityElement);
@@ -538,7 +555,7 @@ var Structr = {
         if (tagEl && tagEl.length) {
             entity.tag = $(tagEl[0]).text();
         }
-
+        
         return entity;
     }
 };

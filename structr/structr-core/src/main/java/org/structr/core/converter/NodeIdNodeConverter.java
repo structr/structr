@@ -20,7 +20,6 @@
 package org.structr.core.converter;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;

@@ -40,7 +40,7 @@ import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyConverter;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -461,9 +461,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	private Object getProperty(final String key, boolean applyConverter) {
 
-		Object value = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
-		boolean schemaDefault = false;
-		Class type   = this.getClass();
+		Object value      = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
+		boolean dontCache = false;
+		Class type         = this.getClass();
 		
 		if(value == null || !applyConverter) {
 
@@ -521,7 +521,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			if (value == null) {
 
 				value = EntityContext.getDefaultValue(type, key);
-				schemaDefault = true;
+				dontCache = true;
 			}
 
 			// only apply converter if requested
@@ -542,7 +542,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				}
 			}
 
-			if(!schemaDefault) {
+			if(!dontCache) {
 
 				// only cache value if it is NOT the schema default
 				if(applyConverter) {
@@ -587,12 +587,14 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
+	@Override
 	public Integer getIntProperty(final PropertyKey propertyKey) {
 
 		return (getIntProperty(propertyKey.name()));
 
 	}
 
+	@Override
 	public Integer getIntProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -845,7 +847,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 
-			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+			Command nodeFactory = Services.command(SecurityContext.getSuperUserInstance(), NodeFactoryCommand.class);
 
 			return (AbstractNode) nodeFactory.execute(dbRelationship.getEndNode());
 
@@ -863,7 +865,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 
-			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+			Command nodeFactory = Services.command(SecurityContext.getSuperUserInstance(), NodeFactoryCommand.class);
 
 			return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
 
@@ -881,7 +883,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 
-			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+			Command nodeFactory = Services.command(SecurityContext.getSuperUserInstance(), NodeFactoryCommand.class);
 
 			return (AbstractNode) nodeFactory.execute(dbRelationship.getOtherNode(node.getNode()));
 
@@ -982,13 +984,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public String getStartNodeId() {
 
-		return getStartNode().getStringProperty(AbstractRelationship.Key.uuid);
+		return getStartNode().getUuid();
 
 	}
 
 	public String getEndNodeId() {
 
-		return getEndNode().getStringProperty(AbstractRelationship.Key.uuid);
+		return getEndNode().getUuid();
 
 	}
 
@@ -1106,6 +1108,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		// clear cached property
 		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 		
 		if ((startNodeIdKey != null) && key.equals(startNodeIdKey.name())) {
 
@@ -1168,7 +1171,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 
 		final Object oldValue = getProperty(key);
-
+		
 		// don't make any changes if
 		// - old and new value both are null
 		// - old and new value are not null but equal
@@ -1211,6 +1214,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		// execute transaction
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
+		// clear cached property
+		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 	}
 
 	/**
@@ -1230,6 +1236,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		if (startNodeId == null) {
 
 			throw new FrameworkException(type, new NullPropertyToken(key));
+		}
+		
+		// Do nothing if new id equals old
+		if (getStartNodeId().equals(startNodeId)) {
+			return;
 		}
 
 		Command transaction = Services.command(securityContext, TransactionCommand.class);
@@ -1285,6 +1296,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		if (endNodeId == null) {
 
 			throw new FrameworkException(type, new NullPropertyToken(key));
+		}
+		
+		// Do nothing if new id equals old
+		if (getEndNodeId().equals(endNodeId)) {
+			return;
 		}
 
 		Command transaction = Services.command(securityContext, TransactionCommand.class);

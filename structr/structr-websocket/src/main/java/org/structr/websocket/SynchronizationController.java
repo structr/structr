@@ -25,9 +25,6 @@ import com.google.gson.Gson;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 
-import org.neo4j.graphdb.RelationshipType;
-
-import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;

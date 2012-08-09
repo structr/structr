@@ -22,7 +22,6 @@ package org.structr.core.converter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.math.NumberUtils;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
 /**
@@ -36,11 +35,11 @@ public class DoubleConverter extends PropertyConverter {
 	@Override
 	public Object convertForSetter(Object source, Value value) {
 
-		if(source != null) {
+		if (source != null) {
 			
 			try {
 
-				if(source instanceof Double) {
+				if (source instanceof Double) {
 					return ((Double)source);
 				} else if(source instanceof String) {
 					return NumberUtils.createDouble((String) source);
@@ -60,10 +59,11 @@ public class DoubleConverter extends PropertyConverter {
 	@Override
 	public Object convertForGetter(Object source, Value value) {
 
-//		if(source != null) {
-//			return source.toString();
-//		}
-
+		if (source == null && value != null) {
+			return value;
+		}
+		
 		return source;
+		
 	}
 }

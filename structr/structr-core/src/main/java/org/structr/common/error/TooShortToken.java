@@ -42,7 +42,7 @@ public class TooShortToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-		obj.add(getErrorToken(), new JsonPrimitive(minLength));
+		obj.add(getErrorToken(), new JsonPrimitive(minLength - 1));
 
 		return obj;
 	}
