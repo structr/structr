@@ -25,6 +25,7 @@ import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.common.Permission;
@@ -32,7 +33,6 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Adapter;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.*;
@@ -189,18 +189,51 @@ public class NodeFactory<T extends AbstractNode> {
 
 				for (Node node : input) {
 
-					AbstractNode n = createNode(securityContext, graphDb.getNodeById((Long) node.getProperty("id")), includeDeletedAndHidden, publicOnly);
+					Long dbNodeId = null;
+					Node realNode = null;
 
-					// Check is done in createNode already, so we don't have to do it again
-					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+					if (node.hasProperty("id")) {
 
-						nodes.add(n);
+						dbNodeId = (Long) node.getProperty("id");
 
-						for (AbstractNode nodeAt : getNodesAt(n)) {
+						try {
 
-							if (nodeAt != null && isReadable(securityContext, nodeAt, includeDeletedAndHidden, publicOnly)) {
+							realNode = graphDb.getNodeById(dbNodeId);
 
-								nodes.add(nodeAt);
+						} catch (NotFoundException nfe) {
+
+							// Should not happen, but it does
+							// FIXME: Why does the spatial index return an unknown ID?
+							logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
+							
+							for (String key : node.getPropertyKeys()) {
+								
+								logger.log(Level.FINE, "{0}={1}", new Object[]{key, node.getProperty(key)});
+								
+							}
+							
+						}
+
+					}
+
+					if (realNode != null) {
+
+						AbstractNode n = createNode(securityContext, realNode, includeDeletedAndHidden, publicOnly);
+
+						// AbstractNode n = createNode(securityContext, node, includeDeletedAndHidden, publicOnly);
+
+						// Check is done in createNode already, so we don't have to do it again
+						if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+
+							nodes.add(n);
+
+							for (AbstractNode nodeAt : getNodesAt(n)) {
+
+								if (nodeAt != null && isReadable(securityContext, nodeAt, includeDeletedAndHidden, publicOnly)) {
+
+									nodes.add(nodeAt);
+								}
+
 							}
 
 						}
@@ -220,7 +253,7 @@ public class NodeFactory<T extends AbstractNode> {
 					AbstractNode n = createNode(securityContext, (Node) node, includeDeletedAndHidden, publicOnly);
 
 					// Check is done in createNode already, so we don't have to do it again
-					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+					if (n != null) {            // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
 						nodes.add(n);
 					}
