@@ -59,6 +59,7 @@ import java.util.logging.Logger;
  */
 public class NodeFactory<T extends AbstractNode> {
 
+	public static String RAW_RESULT_COUNT = "rawResultCount";
 	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
 
 	//~--- fields ---------------------------------------------------------
@@ -175,11 +176,12 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param publicOnly
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly, long pageSize, long page)
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly, long pageSize,
+		long page)
 		throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		long offset              = Math.min(0, (page-1) * pageSize);
+		long offset              = page > 0 ? (page - 1) * pageSize : 0;
 		long position            = 0L;
 		long count               = 0L;
 
@@ -208,13 +210,11 @@ public class NodeFactory<T extends AbstractNode> {
 							// Should not happen, but it does
 							// FIXME: Why does the spatial index return an unknown ID?
 							logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
-							
+
 							for (String key : node.getPropertyKeys()) {
-								
-								logger.log(Level.FINE, "{0}={1}", new Object[]{key, node.getProperty(key)});
-								
+
+								logger.log(Level.FINE, "{0}={1}", new Object[] { key, node.getProperty(key) });
 							}
-							
 						}
 
 					}
@@ -224,7 +224,6 @@ public class NodeFactory<T extends AbstractNode> {
 						AbstractNode n = createNode(securityContext, realNode, includeDeletedAndHidden, publicOnly);
 
 						// AbstractNode n = createNode(securityContext, node, includeDeletedAndHidden, publicOnly);
-
 						// Check is done in createNode already, so we don't have to do it again
 						if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
@@ -249,6 +248,9 @@ public class NodeFactory<T extends AbstractNode> {
 
 		} else {
 
+			int size = input.size();
+			Services.setAttribute(RAW_RESULT_COUNT + Thread.currentThread().getId(), size);
+			
 			if ((input != null) && input.iterator().hasNext()) {
 
 				for (Node node : input) {
@@ -258,15 +260,18 @@ public class NodeFactory<T extends AbstractNode> {
 					// Check is done in createNode already, so we don't have to do it again
 					if (n != null) {            // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
-						if(++position > offset) {
-
-							nodes.add(n);
+						if (++position > offset) {
 
 							// stop if we got enough nodes
-							if(pageSize > 0 && count++ > pageSize) {
+							if (pageSize > 0 && ++count > pageSize) {
+
 								return nodes;
 							}
+							
+							nodes.add(n);
+
 						}
+
 					}
 
 				}

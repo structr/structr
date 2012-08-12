@@ -64,7 +64,7 @@ public class TypedIdResource extends FilterableResource {
 	}
 
 	@Override
-	public List<GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<GraphObject> results = new LinkedList<GraphObject>();
 		AbstractNode node = getTypesafeNode();

@@ -98,7 +98,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public List<GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;

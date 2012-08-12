@@ -32,6 +32,7 @@ import org.structr.web.entity.TypeDefinition;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -98,7 +99,7 @@ public class DynamicConverter extends PropertyConverter {
 
 				String converterProp = typeDefinition.getStringProperty(TypeDefinition.Key.converter);
 
-				if (converterProp != null) {
+				if (StringUtils.isNotBlank(converterProp)) {
 
 					Class converterClass = null;
 

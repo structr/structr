@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public abstract class SortableResource extends PageableResource {
+public abstract class SortableResource extends FilterableResource {
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {

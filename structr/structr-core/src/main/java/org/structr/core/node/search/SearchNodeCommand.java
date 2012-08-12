@@ -78,15 +78,16 @@ import org.structr.common.PropertyKey;
 public class SearchNodeCommand extends NodeServiceCommand {
 
 	public static String IMPROBABLE_SEARCH_VALUE = "×¦÷þ·";
+	
 	private static final Logger logger            = Logger.getLogger(SearchNodeCommand.class.getName());
 
-	private static final Map<String, Integer> sortKeyTypeMap = new LinkedHashMap<String, Integer>();
-	
-	static {
-		
-		sortKeyTypeMap.put("name",       SortField.STRING);
-		sortKeyTypeMap.put("created_at", SortField.LONG);
-	}
+//	private static final Map<String, Integer> sortKeyTypeMap = new LinkedHashMap<String, Integer>();
+//	
+//	static {
+//		
+//		sortKeyTypeMap.put("name",       SortField.STRING);
+//		sortKeyTypeMap.put("created_at", SortField.LONG);
+//	}
 	
 	//~--- methods --------------------------------------------------------
 
@@ -294,39 +295,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				QueryContext queryContext = new QueryContext(textualQueryString);
 				IndexHits hits            = null;
 
-				if(sortKey != null) {
+				if (sortKey != null) {
 					
-					Integer type = sortKeyTypeMap.get(sortKey);
-					if(type != null) {
+//					Integer type = sortKeyTypeMap.get(sortKey);
+//					if (type != null) {
+//						
+//						queryContext.sort(new Sort(new SortField(sortKey, type, sortDescending)));
+//						
+//					} else {
 						
-						queryContext.sort(new Sort(new SortField(sortKey, type, sortDescending)));
-						
-					} else {
-						
-						queryContext.sort(new Sort(new SortField(sortKey, Locale.GERMAN, sortDescending)));
-					}
+						queryContext.sort(new Sort(new SortField(sortKey, Locale.getDefault(), sortDescending)));
+//					}
 				}
 				
-				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.Key.uuid.name())) {
-
-					// Search for uuid only: Use UUID index
-					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
-					synchronized(index) {
-						hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
-					}
-					
-					
-// SORTING				} else if (/*(textualAttributes.size() > 1) &&*/ allExactMatch) {
-					
-				} else if ((textualAttributes.size() > 1) && allExactMatch) {
-
-					// Only exact machtes: Use keyword index
-					index = (Index<Node>) arguments.get(NodeIndex.keyword.name());
-					synchronized(index) {
-						hits  = index.query(queryContext);
-					}
-					
-				} else if (distanceSearch != null) {
+				 if (distanceSearch != null) {
 
 					if (coords != null) {
 
@@ -342,6 +324,24 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 					}
 
+				} else if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.Key.uuid.name())) {
+
+					// Search for uuid only: Use UUID index
+					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
+					synchronized(index) {
+						hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+					}
+					
+					
+				} else if (/*(textualAttributes.size() > 1) &&*/ allExactMatch) {
+//				} else if ((textualAttributes.size() > 1) && allExactMatch) {
+
+					// Only exact machtes: Use keyword index
+					index = (Index<Node>) arguments.get(NodeIndex.keyword.name());
+					synchronized(index) {
+						hits  = index.query(queryContext);
+					}
+					
 				} else {
 
 					// Default: Mixed or fulltext-only search: Use fulltext index

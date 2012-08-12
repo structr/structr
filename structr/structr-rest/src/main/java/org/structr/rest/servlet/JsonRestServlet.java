@@ -41,11 +41,10 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
-import org.structr.rest.resource.PagingResource;
+import org.structr.rest.resource.PagingHelper;
 import org.structr.rest.resource.RelationshipFollowingResource;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.Result;
-import org.structr.rest.resource.SortResource;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 
@@ -75,6 +74,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.*;
 import org.structr.core.entity.RelationshipMapping;
+import org.structr.core.node.NodeFactory;
 import org.structr.rest.resource.*;
 
 //~--- classes ----------------------------------------------------------------
@@ -318,11 +318,14 @@ public class JsonRestServlet extends HttpServlet {
 			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
 			String sortKey           = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			long pageSize            = parseLong(pageSizeParameter, -1);
-			long page                = parseLong(pageParameter, -1);
+			int pageSize		 = parseInt(pageSizeParameter, -1);
+			int page                 = parseInt(pageParameter, -1);
 			
 			// do action
 			Result result         = new Result(resource.doGet(sortKey, sortDescending, pageSize, page), resource.isCollectionResource(), resource.isPrimitiveArray());
+			
+			PagingHelper.postProcessResultSet(result, (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId()), pageSize, page);
+			Services.removeAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
 
 			// timing..
 			double queryTimeEnd   = System.nanoTime();
@@ -871,7 +874,7 @@ public class JsonRestServlet extends HttpServlet {
 			
 			// inform final constraint about the configured ID property
 			finalConstraint.configureIdProperty(defaultIdProperty);
-
+			
 			return finalConstraint;
 
 		}

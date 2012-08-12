@@ -94,7 +94,7 @@ public class DynamicTypeResource extends TypeResource {
 	}
 
 	@Override
-	public List<GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<GraphObject> uuidResults = null;
 
@@ -151,7 +151,7 @@ public class DynamicTypeResource extends TypeResource {
 			throw new IllegalPathException();
 		}
 
-		List<GraphObject> templates = doGet(null, false, -1, -1);
+		List<? extends GraphObject> templates = doGet(null, false, -1, -1);
 
 		if (parentResults) {
 

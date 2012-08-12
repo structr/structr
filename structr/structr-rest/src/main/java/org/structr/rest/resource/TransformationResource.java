@@ -45,7 +45,7 @@ public class TransformationResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException {
+	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		
 		if(wrappedResource != null) {
 			

@@ -92,7 +92,7 @@ public abstract class Resource {
 
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 
-	public abstract List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, long pageSize, long page) throws FrameworkException;
+	public abstract List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
 
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
