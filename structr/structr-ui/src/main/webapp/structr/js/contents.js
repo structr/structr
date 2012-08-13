@@ -95,7 +95,7 @@ var _Contents = {
         
         parent.append('<div id="_' + id + '" class="node content ' + content.id + '_">'
             + '<img class="typeIcon" src="'+ _Contents.icon + '">'
-            + '<div class="content_ name_">' + nameOrContent + '</div> <span class="id">' + content.id + '</span>'
+            + '<div class="content_ name_">' + escapeTags(nameOrContent) + '</div> <span class="id">' + content.id + '</span>'
             //	    + '<b class="content_">' + content.content + '</b>'
             + '</div>');
         

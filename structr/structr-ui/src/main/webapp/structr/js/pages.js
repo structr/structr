@@ -849,8 +849,8 @@ var _Pages = {
                             
                         } else if (name.endsWith('.js')) {
                             
-                            console.log('JS file dropped in <head>, creating <script>');
-                            if (debug) 
+                            if (debug) console.log('JS file dropped in <head>, creating <script>');
+                            
                             tag = 'script';
                             nodeData._html_src = '/${link.name}';
                             nodeData._html_type = 'text/javascript';
@@ -1050,10 +1050,14 @@ var _Pages = {
         $('iframe', $('#previews')).each(function() {
             var self = $(this);
             var pageId = self.prop('id').substring('preview_'.length);
-            var name = $(Structr.node(pageId)[0]).children('b.name_').text();
-            var doc = this.contentDocument;
-            doc.location = name;
-            doc.location.reload(true);
+
+            if (pageId == activeTab) {
+                var name = $(Structr.node(pageId)[0]).children('b.name_').text();
+                var doc = this.contentDocument;
+                doc.location = name;
+                doc.location.reload(true);
+            }
+            
         });
     },
     

@@ -51,6 +51,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.web.common.PageHelper;
 import org.structr.web.entity.PageElement;
@@ -626,7 +627,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 				if (request != null) {
 
-					return StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE));
+					return StringEscapeUtils.escapeJavaScript(StringUtils.replace(StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE)), "\n", ""));
 				}
 
 				return 0;
