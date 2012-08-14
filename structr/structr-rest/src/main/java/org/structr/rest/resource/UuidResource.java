@@ -60,7 +60,7 @@ public class UuidResource extends FilterableResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		GraphObject obj = null;
 
@@ -85,7 +85,7 @@ public class UuidResource extends FilterableResource {
 
 			results.add(obj);
 
-			return results;
+			return new Result(results, isCollectionResource(), isPrimitiveArray());
 
 		}
 

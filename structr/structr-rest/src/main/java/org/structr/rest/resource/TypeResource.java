@@ -98,7 +98,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
@@ -176,14 +176,15 @@ public class TypeResource extends SortableResource {
 				page
 			);
 			
-			return results;
+			return new Result(results, isCollectionResource(), isPrimitiveArray());
 			
 		} else {
 
 			logger.log(Level.WARNING, "type was null");
 		}
 
-		return Collections.emptyList();
+		List emptyList = Collections.emptyList();
+		return new Result(emptyList, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override

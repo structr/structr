@@ -64,7 +64,7 @@ public class TypedIdResource extends FilterableResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<GraphObject> results = new LinkedList<GraphObject>();
 		AbstractNode node = getTypesafeNode();
@@ -72,7 +72,7 @@ public class TypedIdResource extends FilterableResource {
 		if(node != null) {
 
 			results.add(node);
-			return results;
+			return new Result(results, isCollectionResource(), isPrimitiveArray());
 		}
 
 		throw new NotFoundException();

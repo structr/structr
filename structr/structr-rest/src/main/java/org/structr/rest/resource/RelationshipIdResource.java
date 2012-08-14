@@ -59,7 +59,7 @@ public class RelationshipIdResource extends FilterableResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<GraphObject> uuidResult = new LinkedList<GraphObject>();
 
@@ -70,37 +70,13 @@ public class RelationshipIdResource extends FilterableResource {
 			// TODO: do additional type check here!
 			
 			uuidResult.add(rel);
-			return uuidResult;
+
+			return new Result(uuidResult, isCollectionResource(), isPrimitiveArray());
 
 		} else {
 
 			throw new NotFoundException();
 		}
-
-
-		/*
-
-		List<? extends GraphObject> results = relationshipResource.doGet(sortKey, sortDescending, pageSize, page);
-		String desiredId = idResource.getUuid();
-		GraphObject desiredObject = null;
-
-		for(GraphObject obj : results) {
-			if(obj.getId() == desiredId) {
-				desiredObject = obj;
-				break;
-			}
-		}
-
-		// if object was found, return it
-		if(desiredObject != null) {
-			List<GraphObject> resultList = new LinkedList<GraphObject>();
-			resultList.add(desiredObject);
-
-			return resultList;
-		}
-
-		throw new NotFoundException();
-		*/
 	}
 
 	@Override

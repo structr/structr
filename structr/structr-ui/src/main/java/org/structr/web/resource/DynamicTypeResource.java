@@ -54,6 +54,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.rest.resource.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -94,7 +95,7 @@ public class DynamicTypeResource extends TypeResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<GraphObject> uuidResults = null;
 
@@ -103,7 +104,7 @@ public class DynamicTypeResource extends TypeResource {
 
 			uuidResource.setSecurityContext(this.securityContext);
 
-			uuidResults = (List<GraphObject>) uuidResource.doGet(sortKey, sortDescending, pageSize, page);
+			uuidResults = (List<GraphObject>) uuidResource.doGet(sortKey, sortDescending, pageSize, page).getResults();
 
 		}
 
@@ -126,14 +127,14 @@ public class DynamicTypeResource extends TypeResource {
 			// check if nested DynamicTypeResources have valid results
 			for (DynamicTypeResource res : nestedResources) {
 
-				if (res.doGet(sortKey, sortDescending, pageSize, page).isEmpty()) {
+				if (res.doGet(sortKey, sortDescending, pageSize, page).getResults().isEmpty()) {
 
 					throw new NotFoundException();
 				}
 
 			}
 
-			return results;
+			return new Result(results, isCollectionResource(), isPrimitiveArray());
 		}
 
 		parentResults = true;
@@ -151,7 +152,7 @@ public class DynamicTypeResource extends TypeResource {
 			throw new IllegalPathException();
 		}
 
-		List<? extends GraphObject> templates = doGet(null, false, -1, -1);
+		List<? extends GraphObject> templates = doGet(null, false, -1, -1).getResults();
 
 		if (parentResults) {
 

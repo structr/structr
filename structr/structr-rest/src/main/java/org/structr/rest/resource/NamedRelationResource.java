@@ -64,13 +64,13 @@ public class NamedRelationResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<GraphObject> relationResults = new LinkedList<GraphObject>();
 		if(wrappedResource != null) {
 
 			// extract relationships from wrapped resource
-			List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
+			List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page).getResults();
 			for(GraphObject obj : results) {
 				if (obj instanceof AbstractNode) {
 					relationResults.addAll(namedRelation.getRelationships((AbstractNode) obj));
@@ -129,7 +129,7 @@ public class NamedRelationResource extends WrappingResource {
 			}
 		}
 		
-		return relationResults;
+		return new Result(relationResults, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override

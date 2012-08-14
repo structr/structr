@@ -45,27 +45,28 @@ public class TransformationResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		
 		if(wrappedResource != null) {
 			
-			List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
+			Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 			
 			if(transformation != null) {
 
 				try {
 
-					transformation.apply(securityContext, results);
+					transformation.apply(securityContext, result.getResults());
 
 				} catch(Throwable t) {
 					t.printStackTrace();
 				}
 			}
 				
-			return results;
+			return result;
 		}
 		
-		return Collections.emptyList();
+		List emptyList = Collections.emptyList();
+		return new Result(emptyList, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override

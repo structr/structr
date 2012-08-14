@@ -19,14 +19,12 @@
 
 package org.structr.rest.resource;
 
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
@@ -46,7 +44,7 @@ public class IdsOnlyResource extends ViewFilterResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		if(wrappedResource != null) {
 			return wrappedResource.doGet(sortKey, sortDescending, pageSize, page);

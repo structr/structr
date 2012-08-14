@@ -23,7 +23,6 @@ package org.structr.rest.resource;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.agent.RebuildIndexTask;
 import org.structr.core.node.BulkSetNodePropertiesCommand;
 import org.structr.core.node.ClearDatabase;
@@ -33,7 +32,6 @@ import org.structr.rest.exception.NotAllowedException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -86,7 +84,7 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		throw new NotAllowedException();
 	}
 

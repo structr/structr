@@ -322,7 +322,7 @@ public class JsonRestServlet extends HttpServlet {
 			int page                 = parseInt(pageParameter, -1);
 			
 			// do action
-			Result result         = new Result(resource.doGet(sortKey, sortDescending, pageSize, page), resource.isCollectionResource(), resource.isPrimitiveArray());
+			Result result            = resource.doGet(sortKey, sortDescending, pageSize, page);
 			
 			PagingHelper.postProcessResultSet(result, (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId()), pageSize, page);
 			Services.removeAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());

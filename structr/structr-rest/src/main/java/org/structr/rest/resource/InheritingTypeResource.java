@@ -63,7 +63,7 @@ public class InheritingTypeResource extends TypeResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
@@ -113,14 +113,15 @@ public class InheritingTypeResource extends TypeResource {
 // TODO: SORTING: remove default sorting below
 			applyDefaultSorting(results);
 			
-			return results;
+			return new Result(results, isCollectionResource(), isPrimitiveArray());
 			
 		} else {
 
 			logger.log(Level.WARNING, "type was null");
 		}
 
-		return Collections.emptyList();
+		List emptyList = Collections.emptyList();
+		return new Result(emptyList, isCollectionResource(), isPrimitiveArray());
 
 	}
 

@@ -58,21 +58,21 @@ public class SortResource extends WrappingResource {
 	}
 	
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		if(wrappedResource != null) {
 			
-			List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
+			Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 
 			try {
-				Collections.sort(results, new GraphObjectComparator(sortKey, sortOrder));
+				Collections.sort(result.getResults(), new GraphObjectComparator(sortKey, sortOrder));
 				
 			} catch(Throwable t) {
 				
 				throw new FrameworkException("base", new InvalidSortKey(sortKey));
 			}
 
-			return results;
+			return result;
 		}
 
 		throw new IllegalPathException();

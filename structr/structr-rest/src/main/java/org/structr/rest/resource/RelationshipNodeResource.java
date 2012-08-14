@@ -55,9 +55,9 @@ public class RelationshipNodeResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
-		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
+		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page).getResults();
 		if(results != null && !results.isEmpty()) {
 
 			try {
@@ -78,7 +78,7 @@ public class RelationshipNodeResource extends WrappingResource {
 					}
 				}
 
-				return resultList;
+				return new Result(resultList, isCollectionResource(), isPrimitiveArray());
 
 			} catch(Throwable t) {
 
