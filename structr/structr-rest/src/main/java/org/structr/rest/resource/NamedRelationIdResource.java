@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +70,7 @@ public class NamedRelationIdResource extends WrappingResource {
 
 			uuidResult.add(rel);
 			
-			return new Result(uuidResult, isCollectionResource(), isPrimitiveArray());
+			return new Result(uuidResult, null, isCollectionResource(), isPrimitiveArray());
 
 		} else {
 

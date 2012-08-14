@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -69,10 +70,10 @@ public class TypedIdResource extends FilterableResource {
 		List<GraphObject> results = new LinkedList<GraphObject>();
 		AbstractNode node = getTypesafeNode();
 		
-		if(node != null) {
+		if (node != null) {
 
 			results.add(node);
-			return new Result(results, isCollectionResource(), isPrimitiveArray());
+			return new Result(results, null, isCollectionResource(), isPrimitiveArray());
 		}
 
 		throw new NotFoundException();

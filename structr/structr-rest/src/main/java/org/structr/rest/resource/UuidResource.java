@@ -21,6 +21,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -85,7 +86,7 @@ public class UuidResource extends FilterableResource {
 
 			results.add(obj);
 
-			return new Result(results, isCollectionResource(), isPrimitiveArray());
+			return new Result(results, null, isCollectionResource(), isPrimitiveArray());
 
 		}
 
@@ -112,7 +113,7 @@ public class UuidResource extends FilterableResource {
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, true, false, attrs);
+		Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, true, false, attrs);
 		int size                   = results.size();
 
 		switch (size) {
@@ -121,12 +122,12 @@ public class UuidResource extends FilterableResource {
 				throw new NotFoundException();
 
 			case 1 :
-				return results.get(0);
+				return (AbstractNode) results.get(0);
 
 			default :
 				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
 
-				return results.get(0);
+				return (AbstractNode)results.get(0);
 
 		}
 

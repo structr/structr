@@ -21,6 +21,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.structr.core.converter.PropertyConverter;
 import org.apache.commons.collections.ListUtils;
 
@@ -119,7 +120,7 @@ public class StaticRelationshipResource extends SortableResource {
 							
 						applyDefaultSorting(intersection);
 
-						return new Result(intersection, isCollectionResource(), isPrimitiveArray());
+						return new Result(intersection, null, isCollectionResource(), isPrimitiveArray());
 					}
 
 					// return non-empty list
@@ -127,7 +128,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 						applyDefaultSorting(relatedNodes);
 
-						return new Result(relatedNodes, isCollectionResource(), isPrimitiveArray());
+						return new Result(relatedNodes, null, isCollectionResource(), isPrimitiveArray());
 					}
 
 					// do not return empty collection here, try getProperty
@@ -174,7 +175,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 							applyDefaultSorting(list);
 
-							return new Result(list, isCollectionResource(), isPrimitiveArray());
+							return new Result(list, null, isCollectionResource(), isPrimitiveArray());
 
 						} else if (value instanceof Iterable) {
 
@@ -196,7 +197,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 							}
 
-							return new Result(propertyListResult, isCollectionResource(), isPrimitiveArray());
+							return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
 						}
 					} else {
 
@@ -211,7 +212,7 @@ public class StaticRelationshipResource extends SortableResource {
 		}
 
 		List emptyList = Collections.emptyList();
-		return new Result(emptyList, isCollectionResource(), isPrimitiveArray());
+		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override
@@ -275,7 +276,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 								attrs.add(Search.andExactUuid(uuid));
 
-								List<AbstractNode> results = (List<AbstractNode>) searchNode.execute(null, false, false, attrs);
+								Result results = (Result) searchNode.execute(null, false, false, attrs);
 
 								if (results.isEmpty()) {
 

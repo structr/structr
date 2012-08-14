@@ -54,7 +54,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
-import org.structr.rest.resource.Result;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -134,7 +134,7 @@ public class DynamicTypeResource extends TypeResource {
 
 			}
 
-			return new Result(results, isCollectionResource(), isPrimitiveArray());
+			return new Result(results, null, isCollectionResource(), isPrimitiveArray());
 		}
 
 		parentResults = true;
@@ -364,11 +364,11 @@ public class DynamicTypeResource extends TypeResource {
 		boolean publicOnly              = false;
 
 		// do search
-		List<GraphObject> searchResults = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+		Result searchResults = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 		
 		List<GraphObject> filteredResults = new LinkedList<GraphObject>();
 		
-		for (GraphObject res : searchResults) {
+		for (GraphObject res : searchResults.getResults()) {
 			
 			if (((Component) res).hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
 				filteredResults.add(res);

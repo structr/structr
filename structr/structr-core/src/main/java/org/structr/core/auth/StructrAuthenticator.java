@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.structr.core.Result;
 import org.structr.core.node.search.SearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
@@ -103,19 +104,19 @@ public class StructrAuthenticator implements Authenticator {
 	@Override
 	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		Command findNode = Services.command(securityContext, SearchNodeCommand.class);
+		Command searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		String userName  = (String) request.getSession().getAttribute(USERNAME_KEY);
 		
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 		attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
 		attrs.add(Search.andExactName(userName));
 		
-		List<Principal> userList   = (List<Principal>) findNode.execute(null, false, false, attrs);
+		Result userList   = (Result) searchNode.execute(null, false, false, attrs);
 		
 		Principal user = null;
 		
 		if (!userList.isEmpty()) {
-			user = userList.get(0);
+			user = (Principal) userList.get(0);
 		}
 
 		return user;

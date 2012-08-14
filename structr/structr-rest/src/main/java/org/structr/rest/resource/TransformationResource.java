@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.Collections;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -49,13 +50,16 @@ public class TransformationResource extends WrappingResource {
 		
 		if(wrappedResource != null) {
 			
-			Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
+			//Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
+			// apply paging later
+			Result result = wrappedResource.doGet(sortKey, sortDescending, -1, -1);
 			
 			if(transformation != null) {
 
 				try {
 
 					transformation.apply(securityContext, result.getResults());
+					result.setRawResultCount(result.size());
 
 				} catch(Throwable t) {
 					t.printStackTrace();
@@ -66,7 +70,7 @@ public class TransformationResource extends WrappingResource {
 		}
 		
 		List emptyList = Collections.emptyList();
-		return new Result(emptyList, isCollectionResource(), isPrimitiveArray());
+		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override

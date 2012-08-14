@@ -682,13 +682,13 @@ public class HtmlServlet extends HttpServlet {
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 		searchAttrs.add(Search.orExactType(Page.class.getSimpleName()));
 		
-		List<AbstractNode> results = (List<AbstractNode>) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
+		Result results = (Result) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
 
 		logger.log(Level.FINE, "{0} results", results.size());
 
 		if (!results.isEmpty()) {
 
-			Collections.sort(results, new GraphObjectComparator(Page.UiKey.position.name(), AbstractNodeComparator.ASCENDING));
+			Collections.sort(results.getResults(), new GraphObjectComparator(Page.UiKey.position.name(), AbstractNodeComparator.ASCENDING));
 
 			return (Page) results.get(0);
 
@@ -722,12 +722,12 @@ public class HtmlServlet extends HttpServlet {
 			searchAttrs.add(group);
 
 			// Searching for pages needs super user context anyway
-			List<AbstractNode> results = (List<AbstractNode>) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
+			Result results = (Result) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
 
 			logger.log(Level.FINE, "{0} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS, results);
+			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
 			
-			return results;
+			return (List<AbstractNode>) results.getResults();
 		}
 
 		return Collections.EMPTY_LIST;
@@ -1141,11 +1141,11 @@ public class HtmlServlet extends HttpServlet {
 
 		try {
 
-			List<Content> contentNodes = (List<Content>) searchNodesAsSuperuser.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = (Result) searchNodesAsSuperuser.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 
-			for (Content contentNode : contentNodes) {
+			for (GraphObject obj : result.getResults()) {
 
-				resultPages.addAll(PageHelper.getPages(securityContext, contentNode));
+				resultPages.addAll(PageHelper.getPages(securityContext, (Content) obj));
 
 			}
 

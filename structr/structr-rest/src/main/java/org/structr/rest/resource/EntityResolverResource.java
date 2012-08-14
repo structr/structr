@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;

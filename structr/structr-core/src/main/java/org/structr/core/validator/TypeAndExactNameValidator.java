@@ -28,8 +28,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertyNotFoundToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -68,7 +68,7 @@ public class TypeAndExactNameValidator extends PropertyValidator<String> {
 
 		// just check for existance
 		try {
-			List<AbstractNode> nodes = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+			Result nodes = (Result)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
 			if(nodes != null && !nodes.isEmpty()) {
 
 				return true;

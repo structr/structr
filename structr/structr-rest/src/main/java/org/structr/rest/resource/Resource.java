@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.GraphObjectComparator;
@@ -295,9 +296,9 @@ public abstract class Resource {
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
 		searchAttributes.add(Search.andExactProperty(ResourceAccess.Key.uri, uriPart));
 
-		List<AbstractNode> nodes = (List<AbstractNode>) search.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+		Result result = (Result) search.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 
-		if (nodes.isEmpty()) {
+		if (result.isEmpty()) {
 
 			logger.log(Level.FINE, "No resource access object found for {0}", uriPart);
 
@@ -318,9 +319,9 @@ public abstract class Resource {
 
 		} else {
 
-			if (nodes.size() == 1) {
+			if (result.size() == 1) {
 
-				AbstractNode node = nodes.get(0);
+				AbstractNode node = (AbstractNode) result.get(0);
 
 				if (node instanceof ResourceAccess) {
 
@@ -334,7 +335,7 @@ public abstract class Resource {
 
 			} else {
 
-				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { nodes.size(), uriPart });
+				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), uriPart });
 
 			}
 

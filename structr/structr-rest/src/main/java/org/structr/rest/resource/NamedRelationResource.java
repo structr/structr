@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -129,7 +130,7 @@ public class NamedRelationResource extends WrappingResource {
 			}
 		}
 		
-		return new Result(relationResults, isCollectionResource(), isPrimitiveArray());
+		return new Result(relationResults, null, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override

@@ -44,7 +44,7 @@ import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.PagingHelper;
 import org.structr.rest.resource.RelationshipFollowingResource;
 import org.structr.rest.resource.Resource;
-import org.structr.rest.resource.Result;
+import org.structr.core.Result;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 
@@ -323,9 +323,13 @@ public class JsonRestServlet extends HttpServlet {
 			
 			// do action
 			Result result            = resource.doGet(sortKey, sortDescending, pageSize, page);
+			result.setIsCollection(resource.isCollectionResource());
+			result.setIsPrimitiveArray(resource.isPrimitiveArray());
 			
-			PagingHelper.postProcessResultSet(result, (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId()), pageSize, page);
-			Services.removeAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
+			//Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
+			
+			//PagingHelper.postProcessResultSet(result, pageSize, page);
+			//Services.removeAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
 
 			// timing..
 			double queryTimeEnd   = System.nanoTime();

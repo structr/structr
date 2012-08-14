@@ -47,6 +47,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -157,7 +158,7 @@ public class NodeFactory<T extends AbstractNode> {
 		return null;
 	}
 
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, long pageSize, long page) throws FrameworkException {
+	public Result createNodes(final SecurityContext securityContext, final IndexHits<Node> input, long pageSize, long page) throws FrameworkException {
 
 		return createNodes(securityContext, input, false, false, pageSize, page);
 
@@ -176,7 +177,7 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param publicOnly
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly, long pageSize,
+	public Result createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly, long pageSize,
 		long page)
 		throws FrameworkException {
 
@@ -185,55 +186,62 @@ public class NodeFactory<T extends AbstractNode> {
 		long position            = 0L;
 		long count               = 0L;
 
-		if (input != null && input instanceof SpatialRecordHits) {
+		if (input != null) {
+		
+			int size = input.size();
 
-			Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
-			GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
+			if (input instanceof SpatialRecordHits) {
 
-			if (input.iterator().hasNext()) {
 
-				for (Node node : input) {
+				Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
+				GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
-					Long dbNodeId = null;
-					Node realNode = null;
+				if (input.iterator().hasNext()) {
 
-					if (node.hasProperty("id")) {
+					for (Node node : input) {
 
-						dbNodeId = (Long) node.getProperty("id");
+						Long dbNodeId = null;
+						Node realNode = null;
 
-						try {
+						if (node.hasProperty("id")) {
 
-							realNode = graphDb.getNodeById(dbNodeId);
+							dbNodeId = (Long) node.getProperty("id");
 
-						} catch (NotFoundException nfe) {
+							try {
 
-							// Should not happen, but it does
-							// FIXME: Why does the spatial index return an unknown ID?
-							logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
+								realNode = graphDb.getNodeById(dbNodeId);
 
-							for (String key : node.getPropertyKeys()) {
+							} catch (NotFoundException nfe) {
 
-								logger.log(Level.FINE, "{0}={1}", new Object[] { key, node.getProperty(key) });
+								// Should not happen, but it does
+								// FIXME: Why does the spatial index return an unknown ID?
+								logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
+
+								for (String key : node.getPropertyKeys()) {
+
+									logger.log(Level.FINE, "{0}={1}", new Object[] { key, node.getProperty(key) });
+								}
 							}
+
 						}
 
-					}
+						if (realNode != null) {
 
-					if (realNode != null) {
+							AbstractNode n = createNode(securityContext, realNode, includeDeletedAndHidden, publicOnly);
 
-						AbstractNode n = createNode(securityContext, realNode, includeDeletedAndHidden, publicOnly);
+							// AbstractNode n = createNode(securityContext, node, includeDeletedAndHidden, publicOnly);
+							// Check is done in createNode already, so we don't have to do it again
+							if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
-						// AbstractNode n = createNode(securityContext, node, includeDeletedAndHidden, publicOnly);
-						// Check is done in createNode already, so we don't have to do it again
-						if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+								nodes.add(n);
 
-							nodes.add(n);
+								for (AbstractNode nodeAt : getNodesAt(n)) {
 
-							for (AbstractNode nodeAt : getNodesAt(n)) {
+									if (nodeAt != null && isReadable(securityContext, nodeAt, includeDeletedAndHidden, publicOnly)) {
 
-								if (nodeAt != null && isReadable(securityContext, nodeAt, includeDeletedAndHidden, publicOnly)) {
+										nodes.add(nodeAt);
+									}
 
-									nodes.add(nodeAt);
 								}
 
 							}
@@ -244,31 +252,31 @@ public class NodeFactory<T extends AbstractNode> {
 
 				}
 
-			}
 
-		} else {
+			} else {
 
-			int size = input.size();
-			Services.setAttribute(RAW_RESULT_COUNT + Thread.currentThread().getId(), size);
-			
-			if ((input != null) && input.iterator().hasNext()) {
+				//Services.setAttribute(RAW_RESULT_COUNT + Thread.currentThread().getId(), size);
 
-				for (Node node : input) {
+				if (input.iterator().hasNext()) {
 
-					AbstractNode n = createNode(securityContext, (Node) node, includeDeletedAndHidden, publicOnly);
+					for (Node node : input) {
 
-					// Check is done in createNode already, so we don't have to do it again
-					if (n != null) {            // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+						AbstractNode n = createNode(securityContext, (Node) node, includeDeletedAndHidden, publicOnly);
 
-						if (++position > offset) {
+						// Check is done in createNode already, so we don't have to do it again
+						if (n != null) {            // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
-							// stop if we got enough nodes
-							if (pageSize > 0 && ++count > pageSize) {
+							if (++position > offset) {
 
-								return nodes;
+								// stop if we got enough nodes
+								if (pageSize > 0 && ++count > pageSize) {
+
+									return new Result(nodes, size, true, false);
+								}
+
+								nodes.add(n);
+
 							}
-							
-							nodes.add(n);
 
 						}
 
@@ -277,10 +285,13 @@ public class NodeFactory<T extends AbstractNode> {
 				}
 
 			}
+			
+			return new Result(nodes, size, true, false);
 
-		}
+		}		
 
-		return nodes;
+		// is it smart to return null here?
+		return null;
 
 	}
 
@@ -290,7 +301,7 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param input
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input) throws FrameworkException {
+	public Result createNodes(final SecurityContext securityContext, final Iterable<Node> input) throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -309,7 +320,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 		}
 
-		return nodes;
+		return new Result(nodes, null, true, false);
 
 	}
 

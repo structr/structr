@@ -21,6 +21,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.traversal.Evaluation;

@@ -43,6 +43,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -101,12 +102,12 @@ public abstract class AbstractCommand {
 
 				attrs.add(Search.andExactProperty(idProperty, id));
 
-				List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null,
+				Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null,
 								     true, false, attrs);
 
 				if (!results.isEmpty()) {
 
-					return results.get(0);
+					return (AbstractNode) results.get(0);
 
 				}
 

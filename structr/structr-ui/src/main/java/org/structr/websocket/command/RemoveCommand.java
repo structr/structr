@@ -23,7 +23,6 @@ package org.structr.websocket.command;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -45,11 +44,11 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -202,7 +201,7 @@ public class RemoveCommand extends AbstractCommand {
 				attrs.add(Search.andExactType(Page.class.getSimpleName()));
 				attrs.add(Search.andExactUuid(key));
 
-				List<AbstractNode> results = (List<AbstractNode>) searchNode.execute(null, false, false, attrs);
+				Result results = (Result) searchNode.execute(null, false, false, attrs);
 
 				if (results != null && !results.isEmpty()) {
 

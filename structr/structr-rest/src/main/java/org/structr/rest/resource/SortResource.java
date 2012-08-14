@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;

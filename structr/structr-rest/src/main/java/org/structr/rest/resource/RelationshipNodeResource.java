@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,7 @@ public class RelationshipNodeResource extends WrappingResource {
 					}
 				}
 
-				return new Result(resultList, isCollectionResource(), isPrimitiveArray());
+				return new Result(resultList, null, isCollectionResource(), isPrimitiveArray());
 
 			} catch(Throwable t) {
 

@@ -21,7 +21,6 @@
 
 package org.structr.core.node.search;
 
-import java.io.IOException;
 import java.util.*;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
@@ -52,9 +51,9 @@ import org.structr.core.node.NodeServiceCommand;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.*;
 import org.structr.common.PropertyKey;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -179,7 +178,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	}
 
 	/**
-	 * Return a list of nodes which fit to all search criteria.
+	 * Return a result with a list of nodes which fit to all search criteria.
 	 *
 	 * @param securityContext		Search in this security context
 	 * @param topNode			If set, return only search results below this top node (follows the HAS_CHILD relationship)
@@ -188,13 +187,13 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @param searchAttrs			List with search attributes
 	 * @return
 	 */
-	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeletedAndHidden, final boolean publicOnly,
+	private Result search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeletedAndHidden, final boolean publicOnly,
 					  final List<SearchAttribute> searchAttrs, final String sortKey, final boolean sortDescending, final long pageSize, final long page)
 		throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory        = (NodeFactory) arguments.get("nodeFactory");
-		List<AbstractNode> finalResult = new ArrayList<AbstractNode>();
+		Result finalResult	       = new Result(new ArrayList<AbstractNode>(), null, true, false);
 		boolean allExactMatch          = true;
 		final Index<Node> index;
 
@@ -274,7 +273,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			}
 
-			List<AbstractNode> intermediateResult;
+			Result intermediateResult;
 
 			if (searchAttrs.isEmpty() && StringUtils.isBlank(textualQueryString.toString())) {
 
@@ -283,7 +282,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                                      intermediateResult = topNode.getAllChildren();
 //
 //                              } else {
-				intermediateResult = new ArrayList<AbstractNode>();
+				intermediateResult = new Result(new ArrayList<AbstractNode>(), null, false, false);
 
 //                              }
 			} else {
@@ -363,16 +362,21 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				hits.close();
 				long t2 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });
+				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.getResults().size() });
 
 			}
 
+			List<? extends GraphObject> intermediateResultList = intermediateResult.getResults();
+
+			
 			long t2 = System.currentTimeMillis();
 
 			if (!filters.isEmpty()) {
 
 				// Filter intermediate result
-				for (AbstractNode node : intermediateResult) {
+				for (GraphObject obj : intermediateResultList) {
+					
+					AbstractNode node = (AbstractNode) obj;
 
 					for (FilterSearchAttribute attr : filters) {
 
@@ -413,19 +417,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				for (FilterSearchAttribute attr : filters) {
 
 					SearchOperator op        = attr.getSearchOperator();
-					List<GraphObject> result = attr.getResult();
+					List<? extends GraphObject> result = attr.getResult();
+					
 
 					if (op.equals(SearchOperator.AND)) {
 
-						intermediateResult = ListUtils.intersection(intermediateResult, result);
+						intermediateResult = new Result(ListUtils.intersection(intermediateResultList, result), null, true, false);
 
 					} else if (op.equals(SearchOperator.OR)) {
 
-						intermediateResult = ListUtils.sum(intermediateResult, result);
+						intermediateResult = new Result(ListUtils.sum(intermediateResultList, result), null, true, false);
 
 					} else if (op.equals(SearchOperator.NOT)) {
 
-						intermediateResult = ListUtils.subtract(intermediateResult, result);
+						intermediateResult = new Result(ListUtils.subtract(intermediateResultList, result), null, true, false);
 
 					}
 
@@ -435,11 +440,11 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			// eventually filter by distance from a given point
 			if (coords != null) {}
 
-			finalResult.addAll(intermediateResult);
+			finalResult = intermediateResult;
 
 			long t3 = System.currentTimeMillis();
 
-			logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.size() });
+			logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.getResults().size() });
 		}
 
 		return finalResult;

@@ -42,6 +42,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -94,7 +95,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 			}
 
-			List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
 			int size                   = results.size();
 
 			switch (size) {

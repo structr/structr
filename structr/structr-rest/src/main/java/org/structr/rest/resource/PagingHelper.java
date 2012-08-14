@@ -21,6 +21,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.structr.core.GraphObject;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -86,7 +87,7 @@ public class PagingHelper {
 
 		if (resultCount > 0) {
 
-			result.setResultCount(resultCount);
+			result.setRawResultCount(resultCount);
 		}
 
 		if (page > 0) {

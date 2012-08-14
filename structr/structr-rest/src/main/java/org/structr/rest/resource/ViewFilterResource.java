@@ -21,6 +21,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.SecurityContext;

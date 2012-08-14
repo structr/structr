@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.resource;
+package org.structr.core;
 
 import java.util.List;
 import org.structr.core.GraphObject;
@@ -30,7 +30,7 @@ import org.structr.core.GraphObject;
 public class Result {
 
 	private List<? extends GraphObject> results = null;
-	private boolean isCollectionResource = false;
+	private boolean isCollection = false;
 	private boolean isPrimitiveArray = false;
 	private String propertyView = null;
 
@@ -44,17 +44,26 @@ public class Result {
 	private Integer pageSize = null;
 	private Integer page = null;
 
-	public Result(List<? extends GraphObject> listResult, boolean isCollectionResource, boolean isPrimitiveArray) {
-		this.isCollectionResource = isCollectionResource;
+	public Result(List<? extends GraphObject> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray) {
+		this.isCollection = isCollection;
 		this.isPrimitiveArray = isPrimitiveArray;
 		this.results = listResult;
+		this.resultCount = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
 	}
 
+	public GraphObject get(final int i) {
+		return results.get(i);
+	}
+	
+	public boolean isEmpty() {
+		return results == null || results.isEmpty();
+	}
+	
 	public List<? extends GraphObject> getResults() {
 		return results;
 	}
 
-	public void setQueryTime(String queryTime) {
+	public void setQueryTime(final String queryTime) {
 		this.queryTime = queryTime;
 	}
 
@@ -66,7 +75,7 @@ public class Result {
 		return searchString;
 	}
 
-	public void setSearchString(String searchString) {
+	public void setSearchString(final String searchString) {
 		this.searchString = searchString;
 	}
 
@@ -74,24 +83,20 @@ public class Result {
 		return sortKey;
 	}
 
-	public void setSortKey(String sortKey) {
+	public void setSortKey(final String sortKey) {
 		this.sortKey = sortKey;
 	}
 
-	public Integer getResultCount() {
+	public Integer getRawResultCount() {
 		
-		if(resultCount != null) {
+		if (resultCount != null) {
 			return resultCount;
 		}
 		
-		if(results != null) {
-			return results.size();
-		}
-
-		return 0;
+		return size();
 	}
 
-	public void setResultCount(Integer resultCount) {
+	public void setRawResultCount(final Integer resultCount) {
 		this.resultCount = resultCount;
 	}
 
@@ -99,7 +104,7 @@ public class Result {
 		return pageCount;
 	}
 
-	public void setPageCount(Integer pageCount) {
+	public void setPageCount(final Integer pageCount) {
 		this.pageCount = pageCount;
 	}
 
@@ -107,7 +112,7 @@ public class Result {
 		return page;
 	}
 
-	public void setPage(Integer page) {
+	public void setPage(final Integer page) {
 		this.page = page;
 	}
 
@@ -115,7 +120,7 @@ public class Result {
 		return sortOrder;
 	}
 
-	public void setSortOrder(String sortOrder) {
+	public void setSortOrder(final String sortOrder) {
 		this.sortOrder = sortOrder;
 	}
 
@@ -123,7 +128,7 @@ public class Result {
 		return pageSize;
 	}
 
-	public void setPageSize(Integer pageSize) {
+	public void setPageSize(final Integer pageSize) {
 		this.pageSize = pageSize;
 	}
 
@@ -131,15 +136,27 @@ public class Result {
 		return propertyView;
 	}
 
-	public void setPropertyView(String propertyView) {
+	public void setPropertyView(final String propertyView) {
 		this.propertyView = propertyView;
 	}
 
-	public boolean isCollectionResource() {
-		return isCollectionResource;
+	public boolean isCollection() {
+		return isCollection;
 	}
 
 	public boolean isPrimitiveArray() {
 		return isPrimitiveArray;
+	}
+	
+	public void setIsPrimitiveArray(final boolean isPrimitiveArray) {
+		this.isPrimitiveArray = isPrimitiveArray;
+	}
+	
+	public void setIsCollection(final boolean isCollection) {
+		this.isCollection = isCollection;
+	}
+	
+	public int size() {
+		return !isEmpty() ? results.size() : 0;
 	}
 }

@@ -38,6 +38,7 @@ import org.structr.core.node.search.TextualSearchAttribute;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,11 +75,11 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 
 			attributes.add(new TextualSearchAttribute(key, value, SearchOperator.AND));
 
-			List<AbstractNode> resultList = null;
+			Result resultList = null;
 
 			try {
 
-				resultList = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden,
+				resultList = (Result) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden,
 					publicOnly, attributes);
 				nodeExists = !resultList.isEmpty();
 

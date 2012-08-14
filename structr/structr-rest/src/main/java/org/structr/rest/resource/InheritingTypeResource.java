@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -113,7 +114,7 @@ public class InheritingTypeResource extends TypeResource {
 // TODO: SORTING: remove default sorting below
 			applyDefaultSorting(results);
 			
-			return new Result(results, isCollectionResource(), isPrimitiveArray());
+			return new Result(results, null, isCollectionResource(), isPrimitiveArray());
 			
 		} else {
 
@@ -121,7 +122,7 @@ public class InheritingTypeResource extends TypeResource {
 		}
 
 		List emptyList = Collections.emptyList();
-		return new Result(emptyList, isCollectionResource(), isPrimitiveArray());
+		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
 
 	}
 

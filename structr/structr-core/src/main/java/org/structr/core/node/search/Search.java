@@ -23,7 +23,6 @@ package org.structr.core.node.search;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
@@ -49,6 +48,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -565,13 +566,13 @@ public abstract class Search {
 
 		try {
 
-			List<AbstractNode> result = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttrs);
 
 			if (result != null) {
 
-				for (AbstractNode n : result) {
+				for (GraphObject obj : result.getResults()) {
 
-					names.add(n.getName());
+					names.add(((AbstractNode) obj).getName());
 				}
 
 			}

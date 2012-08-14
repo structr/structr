@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -144,7 +145,7 @@ public class TypeResource extends SortableResource {
 			}
 			
 			// default sort key & order
-			if(sortKey == null) {
+			if (sortKey == null) {
 				
 				try {
 					
@@ -152,7 +153,7 @@ public class TypeResource extends SortableResource {
 					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
 					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
 					
-					if(sortKeyProperty != null) {
+					if (sortKeyProperty != null) {
 						sortKey = sortKeyProperty.name();
 					}
 					
@@ -165,7 +166,7 @@ public class TypeResource extends SortableResource {
 			
 
 			// do search
-			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(
+			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
 				topNode,
 				includeDeletedAndHidden,
 				publicOnly,
@@ -176,7 +177,7 @@ public class TypeResource extends SortableResource {
 				page
 			);
 			
-			return new Result(results, isCollectionResource(), isPrimitiveArray());
+			return results;
 			
 		} else {
 
@@ -184,7 +185,7 @@ public class TypeResource extends SortableResource {
 		}
 
 		List emptyList = Collections.emptyList();
-		return new Result(emptyList, isCollectionResource(), isPrimitiveArray());
+		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override
