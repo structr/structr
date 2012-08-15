@@ -33,7 +33,11 @@
         <repository>
             <id>releases.maven.structr.org</id>
             <url>http://maven.structr.org:8082/artifactory/release</url>
+<<<<<<< HEAD
         </repository>   
+=======
+        </repository> 
+>>>>>>> cf587ddd5d4ffa4976a8ae1f3bbc8c968cb81b11
         <repository>
             <id>jboss</id>
             <url>https://repository.jboss.org/nexus/content/repositories/releases</url>

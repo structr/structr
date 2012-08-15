@@ -206,9 +206,11 @@ var _Elements = {
         if (!div) return;
         
         entity.pageId = pageId;
+        
+        var displayName = entity.tag ? entity.tag : '[' + entity.type + ']';
 
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
-            + '<b class="tag_ name_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
+            + '<b class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
             + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class : '</span>')
             + '</div>');
