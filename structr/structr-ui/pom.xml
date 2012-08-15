@@ -27,9 +27,13 @@
             <url>http://download.java.net/maven/2</url>
         </repository>
         <repository>
-            <id>structr-public-repository</id>
-            <url>http://maven.structr.org</url>
+            <id>snapshots.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
         </repository>
+        <repository>
+            <id>releases.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/release</url>
+        </repository> 
         <repository>
             <id>jboss</id>
             <url>https://repository.jboss.org/nexus/content/repositories/releases</url>
