@@ -88,11 +88,6 @@
             <version>2.2</version>
         </dependency>
         <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.8-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
             <version>2.0-m09</version>
@@ -102,6 +97,11 @@
             <artifactId>jersey-client</artifactId>
             <version>1.9-ea04</version>
         </dependency>
+	<dependency>
+	    <groupId>org.neo4j</groupId>
+	    <artifactId>neo4j-rest-graphdb</artifactId>
+	    <version>1.8-SNAPSHOT</version>
+	</dependency>
     </dependencies>
     <build>
         <plugins>
