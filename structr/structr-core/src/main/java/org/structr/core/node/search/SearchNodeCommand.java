@@ -81,7 +81,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	private static final Logger logger            = Logger.getLogger(SearchNodeCommand.class.getName());
 
 //	private static final Map<String, Integer> sortKeyTypeMap = new LinkedHashMap<String, Integer>();
-//	
+	
 //	static {
 //		
 //		sortKeyTypeMap.put("name",       SortField.STRING);

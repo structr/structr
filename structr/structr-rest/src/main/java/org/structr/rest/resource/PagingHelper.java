@@ -83,12 +83,7 @@ public class PagingHelper {
 
 	}
 
-	public static Result postProcessResultSet(Result result, int resultCount, int pageSize, int page) {
-
-		if (resultCount > 0) {
-
-			result.setRawResultCount(resultCount);
-		}
+	public static Result addPagingParameter(Result result, int pageSize, int page) {
 
 		if (page > 0) {
 
@@ -100,7 +95,7 @@ public class PagingHelper {
 			result.setPageSize(pageSize);
 		}
 
-		int pageCount = getPageCount(resultCount, pageSize);
+		int pageCount = getPageCount(result.getRawResultCount(), pageSize);
 
 		if (pageCount > 0) {
 

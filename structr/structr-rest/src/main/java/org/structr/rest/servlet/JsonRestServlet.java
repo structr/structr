@@ -328,7 +328,7 @@ public class JsonRestServlet extends HttpServlet {
 			
 			//Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
 			
-			//PagingHelper.postProcessResultSet(result, pageSize, page);
+			PagingHelper.addPagingParameter(result, pageSize, page);
 			//Services.removeAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
 
 			// timing..
