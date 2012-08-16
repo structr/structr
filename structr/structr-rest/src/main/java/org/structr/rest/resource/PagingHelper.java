@@ -74,6 +74,10 @@ public class PagingHelper {
 
 			return list;
 		}
+		
+		if (page < 1) {
+			page = 1;
+		}
 
 		int size      = list.size();
 		int fromIndex = Math.min(size, Math.max(0, (page - 1) * pageSize));
@@ -85,13 +89,13 @@ public class PagingHelper {
 
 	public static Result addPagingParameter(Result result, int pageSize, int page) {
 
-		if (page > 0) {
-
-			result.setPage(page);
+		if (page < 1) {
+			page = 1;
 		}
 
 		if (pageSize > 0) {
 
+			result.setPage(page);
 			result.setPageSize(pageSize);
 		}
 

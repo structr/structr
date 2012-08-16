@@ -19,6 +19,7 @@
 
 package org.structr.core;
 
+import java.util.Collections;
 import java.util.List;
 import org.structr.core.GraphObject;
 
@@ -43,13 +44,16 @@ public class Result {
 	private Integer pageCount = null;
 	private Integer pageSize = null;
 	private Integer page = null;
-
+	
+	public static Result EMPTY_RESULT = new Result(Collections.EMPTY_LIST, 0, false, false);
+	
 	public Result(List<? extends GraphObject> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray) {
 		this.isCollection = isCollection;
 		this.isPrimitiveArray = isPrimitiveArray;
 		this.results = listResult;
 		this.resultCount = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
 	}
+	
 
 	public GraphObject get(final int i) {
 		return results.get(i);
