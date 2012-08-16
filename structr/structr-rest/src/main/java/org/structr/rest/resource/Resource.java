@@ -266,7 +266,7 @@ public abstract class Resource {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(List<GraphObject> list) {
+	protected void applyDefaultSorting(List<? extends GraphObject> list) {
 
 		if (!list.isEmpty()) {
 

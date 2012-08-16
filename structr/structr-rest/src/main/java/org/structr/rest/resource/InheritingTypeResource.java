@@ -100,7 +100,7 @@ public class InheritingTypeResource extends TypeResource {
 			}
 			
 			// do search
-			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(
+			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
 				topNode,
 				includeDeletedAndHidden,
 				publicOnly,
@@ -111,10 +111,10 @@ public class InheritingTypeResource extends TypeResource {
 				page
 			);
 			
-// TODO: SORTING: remove default sorting below
-			applyDefaultSorting(results);
+			// TODO: SORTING: remove default sorting below
+			applyDefaultSorting(results.getResults());
 			
-			return new Result(results, null, isCollectionResource(), isPrimitiveArray());
+			return results;
 			
 		} else {
 
