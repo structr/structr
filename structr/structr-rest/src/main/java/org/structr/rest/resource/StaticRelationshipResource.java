@@ -88,7 +88,7 @@ public class StaticRelationshipResource extends SortableResource {
 	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		// fetch results from typedIdResource (should be a single node)
-		List<? extends GraphObject> results = typedIdResource.doGet(sortKey, sortDescending, pageSize, page).getResults();
+		List<? extends GraphObject> results = typedIdResource.doGet(sortKey, sortDescending, -1, -1).getResults();
 
 		if (results != null) {
 
@@ -110,7 +110,7 @@ public class StaticRelationshipResource extends SortableResource {
 					if (typeResource.hasSearchableAttributes(dummyList)) {
 
 						// use result list of doGet from typeResource and intersect with relatedNodes list.
-						List<? extends GraphObject> typeNodes = typeResource.doGet(sortKey, sortDescending, pageSize, page).getResults();
+						List<? extends GraphObject> typeNodes = typeResource.doGet(sortKey, sortDescending, -1, -1).getResults();
 						List intersection           = ListUtils.intersection(relatedNodes, typeNodes);
 
 						
