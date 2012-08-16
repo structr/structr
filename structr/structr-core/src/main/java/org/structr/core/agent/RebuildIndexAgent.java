@@ -28,7 +28,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.*;
 
@@ -37,6 +36,8 @@ import org.structr.core.node.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -97,13 +98,13 @@ public class RebuildIndexAgent extends Agent {
 
 				logger.log(Level.INFO, "Get all nodes ...");
 
-				List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(securityContext, GetAllNodes.class).execute();
+				Result allNodes = (Result) Services.command(securityContext, GetAllNodes.class).execute();
 
 				logger.log(Level.INFO, "... done. Start indexing {0} nodes ...", allNodes.size());
 
-				for (AbstractNode s : allNodes) {
+				for (GraphObject obj : allNodes.getResults()) {
 
-					indexer.execute(s);
+					indexer.execute(obj);
 
 					nodes++;
 
