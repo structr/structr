@@ -347,6 +347,42 @@ public class SecurityContext {
 
 	}
 
+	public boolean isReadable(final AbstractNode node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+
+		/**
+		 * The if-clauses in the following lines have been split
+		 * for performance reasons.
+		 */
+
+		// deleted and hidden nodes will only be returned if we are told to do so
+		if ((node.isDeleted() || node.isHidden()) && !includeDeletedAndHidden) {
+
+			return false;
+		}
+
+		// visibleToPublic overrides anything else
+		// Publicly visible nodes will always be returned
+		if (node.isVisibleToPublicUsers()) {
+
+			return true;
+		}
+
+		// Next check is only for non-public nodes, because
+		// public nodes are already added one step above.
+		if (publicOnly) {
+
+			return false;
+		}
+
+		// Ask the security context
+		if (isAllowed(node, Permission.read)) {
+
+			return true;
+		}
+
+		return false;
+	}
+	
 	// ----- private methods -----
 	private boolean isVisibleInBackend(AccessControllable node) {
 

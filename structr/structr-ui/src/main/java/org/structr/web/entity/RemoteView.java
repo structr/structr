@@ -36,7 +36,6 @@ public class RemoteView extends View {
 		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Public, Key.values());
 		EntityContext.registerPropertySet(RemoteView.class, PropertyView.All,    Key.values());
 		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Ui,     Key.values());
-		
 	}
 	
 	@Override

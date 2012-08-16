@@ -42,6 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -113,8 +114,8 @@ public class UuidResource extends FilterableResource {
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, true, false, attrs);
-		int size                   = results.size();
+		Result results = (Result) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, true, false, attrs);
+		int size       = results.size();
 
 		switch (size) {
 
@@ -122,7 +123,14 @@ public class UuidResource extends FilterableResource {
 				throw new NotFoundException();
 
 			case 1 :
-				return (AbstractNode) results.get(0);
+				
+				AbstractNode node = (AbstractNode) results.get(0);
+				
+				if (!securityContext.isReadable(node, false, false)) {
+					throw new NotAllowedException();
+				}
+				
+				return node;
 
 			default :
 				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
