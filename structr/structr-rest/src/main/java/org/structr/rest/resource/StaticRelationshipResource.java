@@ -120,7 +120,7 @@ public class StaticRelationshipResource extends SortableResource {
 							
 						applyDefaultSorting(intersection);
 
-						return new Result(intersection, null, isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(intersection, pageSize, page), intersection.size(), isCollectionResource(), isPrimitiveArray());
 					}
 
 					// return non-empty list
@@ -128,7 +128,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 						applyDefaultSorting(relatedNodes);
 
-						return new Result(relatedNodes, null, isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(relatedNodes, pageSize, page), relatedNodes.size(), isCollectionResource(), isPrimitiveArray());
 					}
 
 					// do not return empty collection here, try getProperty
@@ -211,8 +211,7 @@ public class StaticRelationshipResource extends SortableResource {
 			}
 		}
 
-		List emptyList = Collections.emptyList();
-		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
+		return Result.EMPTY_RESULT;
 	}
 
 	@Override
