@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -129,6 +130,10 @@ public class RelationClass {
 				public Object execute() throws FrameworkException {
 
                                         Map<String, Object> props = new HashMap(properties);
+
+					// create combined type
+					props.put(AbstractRelationship.HiddenKey.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceNode.getClass(), relType, destType));
+					
 					// set cascade delete value
 					if (cascadeDelete > 0) {
 
@@ -136,6 +141,7 @@ public class RelationClass {
 
 					}
 
+					
 					AbstractRelationship newRel;
 
 					if (direction.equals(Direction.OUTGOING)) {
