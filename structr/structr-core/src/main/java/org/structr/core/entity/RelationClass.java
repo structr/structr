@@ -131,9 +131,6 @@ public class RelationClass {
 
                                         Map<String, Object> props = new HashMap(properties);
 
-					// create combined type
-					props.put(AbstractRelationship.HiddenKey.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceNode.getClass(), relType, destType));
-					
 					// set cascade delete value
 					if (cascadeDelete > 0) {
 

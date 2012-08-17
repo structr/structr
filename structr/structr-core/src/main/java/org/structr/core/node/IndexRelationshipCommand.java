@@ -241,6 +241,14 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		Object valueForIndexing = rel.getPropertyForIndexing(key);
 		boolean emptyValue      = ((value instanceof String) && StringUtils.isEmpty((String) value));
 
+		/*
+		logger.log(Level.INFO, "Indexing key {0} with value {1} of ID {2}", new Object[] {
+			key,
+			value != null ? value : "null",
+			rel.getStringProperty("uuid")
+		} );
+		*/
+		
 		if (value == null) {
 
 			logger.log(Level.FINE, "Node {0} has null value for key {1}, removing property", new Object[] { id, key });
