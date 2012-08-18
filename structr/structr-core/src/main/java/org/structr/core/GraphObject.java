@@ -71,6 +71,7 @@ public interface GraphObject {
 
 	public void afterCreation(SecurityContext securityContext);
 	public void afterModification(SecurityContext securityContext);
+	public void afterDeletion(SecurityContext securityContext);
 	
 	// ----- rels only -----
 //	public Long getStartNodeId();

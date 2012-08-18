@@ -134,8 +134,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected Node dbNode;
 
 	// dirty flag, true means that some changes are not yet written to the database
-	protected boolean isDirty;
 	protected Map<String, Object> properties;
+	protected String cachedUuid = null;
+	protected boolean isDirty;
 
 //      protected Principal user;
 
@@ -203,7 +204,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		this.dbNode          = dbNode;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
-
 	}
 
 	private void init(final SecurityContext securityContext, final AbstractNode node) {
@@ -1737,6 +1737,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+		
+		cachedUuid = (String)properties.get(AbstractNode.Key.uuid.name());
+		
 		return true;
 	}
 	
@@ -1746,6 +1749,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext) {
 	}
 	
 	private boolean isValid(ErrorBuffer errorBuffer) {

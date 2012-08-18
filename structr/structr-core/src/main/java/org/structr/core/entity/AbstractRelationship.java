@@ -101,8 +101,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	// reference to database relationship
 	protected Relationship dbRelationship;
-	protected boolean isDirty;
 	protected Map<String, Object> properties;
+	protected String cachedUuid = null;
+	protected boolean isDirty;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -268,7 +269,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		this.dbRelationship  = dbRel;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
-
 	}
 
 	public void init(final SecurityContext securityContext) {
@@ -283,7 +283,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		this.dbRelationship  = rel.dbRelationship;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
-
 	}
 
 //      public void init(final SecurityContext securityContext, final RelationshipDataContainer data) {
@@ -1030,6 +1029,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	@Override
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+		
+		cachedUuid = (String)properties.get(AbstractRelationship.Key.uuid.name());
+		
 		return true;
 	}
 	
@@ -1039,6 +1041,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext) {
 	}
 	
 	private boolean isValid(ErrorBuffer errorBuffer) {

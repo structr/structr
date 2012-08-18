@@ -26,19 +26,20 @@ import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,8 +52,9 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class ViewFilterResource extends WrappingResource {
 
-	private static final Logger logger = Logger.getLogger(ViewFilterResource.class.getName());
-	private String propertyView = null;
+	private static final Logger logger       = Logger.getLogger(ViewFilterResource.class.getName());
+	private static final Pattern uuidPattern = Pattern.compile("[a-zA-Z0-9]{32}");
+	private String propertyView              = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -127,16 +129,20 @@ public class ViewFilterResource extends WrappingResource {
 	@Override
 	public String getResourceSignature() {
 
-		String uriPart    = getUriPart();
 		StringBuilder uri = new StringBuilder();
+		String uriPart    = getUriPart();
 
 		if (uriPart.contains("/")) {
 
-			String[] parts = StringUtils.split(uriPart, "/");
+			String[] parts  = StringUtils.split(uriPart, "/");
+			Matcher matcher = uuidPattern.matcher("");
 
 			for (String subPart : parts) {
 
-				if (!subPart.matches("[a-zA-Z0-9]{32}")) {
+				// re-use pattern matcher for better performance
+				matcher.reset(subPart);
+				
+				if (!matcher.matches()) {
 
 					uri.append(subPart);
 					uri.append("/");
@@ -145,12 +151,19 @@ public class ViewFilterResource extends WrappingResource {
 
 			}
 
-			return uri.toString();
-
 		} else {
 
-			return uriPart;
+			uri.append(uriPart);
 
 		}
+
+		if (propertyView != null) {
+			
+			// append view / scope part
+			uri.append("/");
+			uri.append(EntityContext.normalizeEntityName(propertyView));
+		}
+
+		return uri.toString();
 	}
 }

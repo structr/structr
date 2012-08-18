@@ -104,10 +104,12 @@ public class EntityContext {
 	private static final Map<String, Class> reverseInterfaceMap                                             = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                                        = new LinkedHashMap<String, Class>();
 
-	private static final Map<Thread, Set<AbstractRelationship>> modifiedRelationshipMap                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
 	private static final Map<Thread, Set<AbstractRelationship>> createdRelationshipMap                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
-	private static final Map<Thread, Set<AbstractNode>> modifiedNodeMap                                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
+	private static final Map<Thread, Set<AbstractRelationship>> modifiedRelationshipMap                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
+	private static final Map<Thread, Set<AbstractRelationship>> deletedRelationshipMap                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
 	private static final Map<Thread, Set<AbstractNode>> createdNodeMap                                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
+	private static final Map<Thread, Set<AbstractNode>> modifiedNodeMap                                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
+	private static final Map<Thread, Set<AbstractNode>> deletedNodeMap                                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
 	private static final Map<Thread, SecurityContext> securityContextMap                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
 	private static final Map<Thread, Long> transactionKeyMap                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 
@@ -1361,6 +1363,8 @@ public class EntityContext {
 
 		transactionKeyMap.remove(Thread.currentThread());
 		securityContextMap.remove(Thread.currentThread());
+		deletedRelationshipMap.remove(Thread.currentThread());
+		deletedNodeMap.remove(Thread.currentThread());
 		modifiedRelationshipMap.remove(Thread.currentThread());
 		modifiedNodeMap.remove(Thread.currentThread());
 		createdRelationshipMap.remove(Thread.currentThread());
@@ -1393,6 +1397,34 @@ public class EntityContext {
 		}
 		
 		return nodes;
+	}
+	
+	public static synchronized Set<AbstractNode> getDeletedNodes() {
+		
+		Thread currentThread = Thread.currentThread();
+		Set<AbstractNode> nodes = deletedNodeMap.get(currentThread);
+		
+		if(nodes == null) {
+			
+			nodes = new LinkedHashSet<AbstractNode>();
+			deletedNodeMap.put(currentThread, nodes);
+		}
+		
+		return nodes;
+	}
+
+	public static synchronized Set<AbstractRelationship> getDeletedRelationships() {
+		
+		Thread currentThread = Thread.currentThread();
+		Set<AbstractRelationship> rels = deletedRelationshipMap.get(currentThread);
+		
+		if(rels == null) {
+			
+			rels = new LinkedHashSet<AbstractRelationship>();
+			deletedRelationshipMap.put(currentThread, rels);
+		}
+		
+		return rels;
 	}
 
 	public static synchronized Set<AbstractRelationship> getCreatedRelationships() {
@@ -1607,14 +1639,16 @@ public class EntityContext {
 					AbstractNode entity = nodeFactory.createDeletedNode(securityContext, node, type);
 					
 					if(entity != null) {
+						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, removedNodeProperties.get(node));
 						
 						// notify registered listeners
 						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, removedNodeProperties.get(node));
 						}
-					}
 
+						deletedNodes.add(entity);
+					}
 				}
 
 				// 6: validate property modifications and
@@ -1745,8 +1779,10 @@ public class EntityContext {
 				// cache change set
 				getModifiedRelationships().addAll(modifiedRels);
 				getCreatedRelationships().addAll(createdRels);
+				getDeletedRelationships().addAll(deletedRels);
 				getModifiedNodes().addAll(modifiedNodes);
 				getCreatedNodes().addAll(createdNodes);
+				getDeletedNodes().addAll(deletedNodes);
 				
 				
 			} catch (FrameworkException fex) {
