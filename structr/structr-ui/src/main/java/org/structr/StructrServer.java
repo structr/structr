@@ -55,10 +55,12 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.File;
+import java.io.IOException;
 
 import java.util.*;
 
 import javax.servlet.DispatcherType;
+import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -336,7 +338,38 @@ public class StructrServer {
 		System.out.println("structr UI:        http://" + host + ":" + httpPort + contextPath + "structr/");
 		System.out.println();
 		server.start();
+
+		// The jsp directory is created by the container, but we don't need it
+		removeDir(basePath, "jsp");
+		
 		server.join();
 		System.out.println(appName + " stopped.");
+	}
+	
+	private static void clean(final String basePath) throws IOException {
+
+
+		// remove directories
+		for (String directoryName : new String[] { "modules", "etc", "jsp", "webapp", "logs" }) {
+
+			removeDir(basePath, directoryName);
+		}
+
+	}
+	
+	private static void removeDir(final String basePath, final String directoryName) throws IOException {
+
+		String strippedBasePath = StringUtils.stripEnd(basePath, "/");
+		
+		File file = new File(strippedBasePath + "/" + directoryName);
+
+		if (file.isDirectory()) {
+
+			FileUtils.deleteDirectory(file);
+		} else {
+
+			file.delete();
+		}
+		
 	}
 }
