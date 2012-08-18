@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.kernel.DeadlockDetectedException;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.kernel.TopLevelTransaction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -173,6 +172,9 @@ public class TransactionCommand extends NodeServiceCommand {
 				afterModification(securityContext, EntityContext.getModifiedNodes());
 				afterModification(securityContext, EntityContext.getModifiedRelationships());
 
+				afterDeletion(securityContext, EntityContext.getDeletedNodes());
+				afterDeletion(securityContext, EntityContext.getDeletedRelationships());
+
 				// clear aggregated transaction data
 				EntityContext.clearTransactionData();
 
@@ -224,6 +226,16 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			for(GraphObject obj : data) {
 				obj.afterModification(securityContext);
+			}
+		}
+	}
+
+	private void afterDeletion(SecurityContext securityContext, Set<? extends GraphObject> data) {
+		
+		if(data != null && !data.isEmpty()) {
+			
+			for(GraphObject obj : data) {
+				obj.afterDeletion(securityContext);
 			}
 		}
 	}

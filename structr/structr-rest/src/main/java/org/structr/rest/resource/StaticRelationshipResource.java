@@ -412,6 +412,11 @@ public class StaticRelationshipResource extends SortableResource {
 						// transaction, when all entities and relationships are created!
 						if (otherNode != null) {
 
+							// FIXME: this creates duplicate relationships when the related
+							//        node ID is already present in the property set..
+							
+							
+							
 							rel.createRelationship(securityContext, sourceNode, otherNode);
 
 							return otherNode;

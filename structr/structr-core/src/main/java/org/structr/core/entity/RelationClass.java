@@ -147,7 +147,7 @@ public class RelationClass {
 
 					} else {
 
-						newRel = (AbstractRelationship) createRel.execute(finalTargetNode, sourceNode, relType, props, false);
+						newRel = (AbstractRelationship) createRel.execute(finalTargetNode, sourceNode, relType, props, true);
 
 					}
 

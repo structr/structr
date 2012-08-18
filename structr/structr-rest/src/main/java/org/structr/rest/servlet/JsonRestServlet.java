@@ -75,6 +75,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.*;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.node.NodeFactory;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.*;
 
 //~--- classes ----------------------------------------------------------------
@@ -290,6 +291,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="GET">
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -407,6 +409,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="HEAD">
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -468,6 +471,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -529,6 +533,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="POST">
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -615,6 +620,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="PUT">
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -685,6 +691,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -699,6 +706,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private List<Resource> parsePath(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
@@ -778,7 +786,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				if (!found) {
 
-					throw new IllegalPathException();
+					throw new NotFoundException();
 
 				}
 
