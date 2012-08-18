@@ -1,0 +1,3 @@
+#!/bin/bash
+start-stop-daemon --quiet --stop --pidfile structr-ui.pid
+
