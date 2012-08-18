@@ -17,19 +17,19 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.core.log;
+
+import org.structr.core.Command;
 
 /**
  *
- * @author Christian Morgner
+ * @author Axel Morgner
  */
-public enum Path {
-
-    ConfigFile,
-    Base,
-    Database,
-    LogDatabase,
-    Files,
-    Modules,
-    Temp
+public abstract class LogServiceCommand extends Command
+{
+	@Override
+	public Class getServiceClass()
+	{
+		return(LogService.class);
+	}
 }

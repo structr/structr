@@ -26,7 +26,7 @@ import org.structr.core.Module;
  *
  * @author Christian Morgner
  */
-public class ClickModule implements Module
+public class DefaultModule implements Module
 {
 	private Set<String> rawClasses = new LinkedHashSet<String>();
 	private Set<String> properties = new LinkedHashSet<String>();
@@ -34,7 +34,7 @@ public class ClickModule implements Module
 	private Set<String> libraries = new LinkedHashSet<String>();
 	private String modulePath = null;
 
-	public ClickModule(String modulePath)
+	public DefaultModule(String modulePath)
 	{
 		this.modulePath = modulePath;
 	}

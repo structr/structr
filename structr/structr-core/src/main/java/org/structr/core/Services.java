@@ -64,6 +64,8 @@ public class Services {
 	// Database-related constants
 	public static final String DATABASE_PATH = "database.path";
 	public static final String FILES_PATH    = "files.path";
+	
+	public static final String LOG_DATABASE_PATH = "log.database.path";
 
 	// LogService-related constants
 	public static final String LOG_SERVICE_INTERVAL  = "structr.logging.interval";
@@ -101,6 +103,7 @@ public class Services {
 	private static String configFilePath;
 	private static String configuredServices;
 	private static String databasePath;
+	private static String logDatabasePath;
 	private static String filesPath;
 	private static String modulesPath;
 	private static String serverIp;
@@ -199,6 +202,7 @@ public class Services {
 		tmpPath           = getConfigValue(context, Services.TMP_PATH, "/tmp");
 		basePath          = getConfigValue(context, Services.BASE_PATH, ".");
 		databasePath      = getConfigValue(context, Services.DATABASE_PATH, "./db");
+		logDatabasePath   = getConfigValue(context, Services.LOG_DATABASE_PATH, "./logdb.dat");
 		filesPath         = getConfigValue(context, Services.FILES_PATH, "./files");
 		modulesPath       = getConfigValue(context, Services.MODULES_PATH, "./modules");
 		serverIp          = getConfigValue(context, Services.SERVER_IP, "127.0.0.1");
@@ -435,6 +439,14 @@ public class Services {
 	}
 
 	/**
+	 * Return the log database path. This is the file path of the
+	 * log database.
+	 */
+	public static String getLogDatabasePath() {
+		return getPath(Path.LogDatabase);
+	}
+
+	/**
 	 * Return the file path. This is the directory where the
 	 * binary files of file and image nodes are stored.
 	 */
@@ -565,6 +577,11 @@ public class Services {
 
 			case Database :
 				ret = getAbsolutePath(databasePath);
+
+				break;
+
+			case LogDatabase :
+				ret = getAbsolutePath(logDatabasePath);
 
 				break;
 
