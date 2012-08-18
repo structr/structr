@@ -118,14 +118,8 @@ public class AgentService extends Thread implements RunnableService {
 				}
 			}
 
-			// sleep a bit waiting for tasks..
-			try {
-				Thread.sleep(10);
-			} catch (Exception ex) {
-
-				logger.log(Level.SEVERE, "Exception happend while sleeping", ex);
-
-			}
+			// let others act
+			Thread.yield();
 		}
 	}
 
