@@ -63,7 +63,7 @@ public class WriteLogCommand extends LogServiceCommand {
 				String value = parameters[0].toString();
 
 				index.put(timestamp, value);
-				logger.log(Level.INFO, "Logged '{0}':'{1}' to log database", new Object[] { timestamp, value });
+				logger.log(Level.INFO, "Logged {0}:{1} to log database", new Object[] { timestamp, value });
 
 			} else {
 				throw new IllegalArgumentException();
