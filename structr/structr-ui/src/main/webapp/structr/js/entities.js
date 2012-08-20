@@ -181,10 +181,10 @@ var _Entities = {
 
     listContainingNodes : function(entity, node) {
 
-        console.log('listContainingNodes', entity, getElementPath(node));
+        if (debug) console.log('listContainingNodes', entity, getElementPath(node));
 
         dialog.empty();
-        Structr.dialog('Choose element instance to remove',
+        Structr.dialog('Click on element to remove it from the page tree',
             function() {
                 return true;
             },
@@ -192,7 +192,7 @@ var _Entities = {
                 return true;
             });
                
-        dialog.append('<p>Hover your mouse over the element instance to remove and click the remove icon.</p>')
+        dialog.append('<p>Hover your mouse over the element instance to detect which node is being removed.</p>')
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         if (debug) console.log('headers', headers);
@@ -212,11 +212,13 @@ var _Entities = {
                     $(data.result.paths).each(function(i, path) {
                         console.log(path);
 
-                        var pageId = path.substring(32);
+//                        var pageId = path.substring(32);
+                        
+                        var displayName = entity.tag ? entity.tag : '[' + entity.type + ']';
                         
                         cont.append('<tr><td class="' + path + '">'
                             + '<div style="display: inline-block" class="node ' + entity.id + '_">'
-                            + '<b class="tag_">' + entity.tag + '</b> [ ' + path + ' ] <img style="float: right" class="remove_icon" src="' + _Elements.delete_icon +  '"></div></td>'
+                            + '<img style="float: left" class="remove_icon" src="' + Structr.delete_icon +  '"><b class="tag_">' + displayName + '</b></div></td>'
                             + '</tr>');
                                     
                         //Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
@@ -224,9 +226,6 @@ var _Entities = {
                                     
                                     
                         var node = $('div.' + entity.id + '_', $('.' + path));
-                        var removeButton = $('.remove_icon', node).css({
-                            'display': 'block'
-                        });
                                     
                         node.hover(function() {
                             $('#_' + path).addClass('nodeHover')
@@ -239,7 +238,7 @@ var _Entities = {
                         //_Entities.setMouseOver(parent);
                         //_Entities.setMouseOver(node, parentElement);
                                     
-                        removeButton.css({
+                        node.css({
                             'cursor': 'pointer'
                         }).on('click', function(e) {
                             //console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
