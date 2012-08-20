@@ -21,6 +21,7 @@
 
 package org.structr.core.log;
 
+import java.util.UUID;
 import org.fusesource.hawtdb.api.BTreeIndexFactory;
 import org.fusesource.hawtdb.api.Transaction;
 import org.fusesource.hawtdb.api.TxPageFile;
@@ -31,6 +32,7 @@ import org.structr.common.error.FrameworkException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.fusesource.hawtdb.api.IndexFactory;
 import org.fusesource.hawtdb.api.MultiIndexFactory;
 import org.fusesource.hawtdb.api.SortedIndex;
@@ -63,13 +65,17 @@ public class WriteLogCommand extends LogServiceCommand {
 				
 				String userId = (String) parameters[0];
 				
-				SortedIndex<String, Object> index = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(userId, indexFactory);
+				if (userId != null) {
+				
+					SortedIndex<String, Object> index = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(userId, indexFactory);
 
-				String timestamp   = String.valueOf(System.nanoTime());
-				String value = parameters[1].toString();
+					String[] obj		= (String[]) parameters[1];
+					String uuid		= UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 
-				index.put(timestamp, value);
-				logger.log(Level.INFO, "Logged for user {0}: {1} {2}", new Object[] { userId, timestamp, value });
+					index.put(uuid, obj);
+					logger.log(Level.INFO, "Logged for user {0}: {1} {2}", new Object[] { userId, StringUtils.join((String[]) obj, ",") });
+				
+				}
 
 			} else {
 				throw new IllegalArgumentException();

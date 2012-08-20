@@ -74,7 +74,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.*;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.node.NodeFactory;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.*;
 

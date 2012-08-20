@@ -42,9 +42,9 @@ public class DateConverter extends PropertyConverter {
 			
 			try {
 
-				if(source instanceof Date) {
+				if (source instanceof Date) {
 					return ((Date)source).getTime();
-				} else if(source instanceof String) {
+				} else if (source instanceof String) {
 					Date date = DateUtils.parseDate(((String)source), DatePatterns);
 					return date.getTime();
 				}
@@ -73,9 +73,9 @@ public class DateConverter extends PropertyConverter {
 	@Override
 	public Comparable convertForSorting(Object source, Value value) {
 
-		if(source != null) {
+		if (source != null) {
 			
-			if(source instanceof Comparable) {
+			if (source instanceof Comparable) {
 				return (Comparable)source;
 			}
 			

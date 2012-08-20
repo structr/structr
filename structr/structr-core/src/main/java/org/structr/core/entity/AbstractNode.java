@@ -901,18 +901,25 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return null;
 
 		}
+		
+		Object value;
+		
+		if (isDirty) {
+
+			return properties.get(key);
+		}
 
 		if (dbNode == null) {
 
 			return null;
 		}
 
-		Object value          = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
+		value          = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
 		Class type            = this.getClass();
 		boolean dontCache     = false;
 
 		// only use cached value if property is accessed the "normal" way (i.e. WITH converters)
-		if(value == null) {
+		if (value == null) {
 			
 			// ----- BEGIN property group resolution -----
 			PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
@@ -923,11 +930,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			}
 
 			if (dbNode.hasProperty(key)) {
-
-				if (isDirty) {
-
-					value = properties.get(key);
-				}
 
 				if ((key != null) && (dbNode != null)) {
 
