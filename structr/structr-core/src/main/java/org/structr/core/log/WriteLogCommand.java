@@ -73,7 +73,7 @@ public class WriteLogCommand extends LogServiceCommand {
 					String uuid		= UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 
 					index.put(uuid, obj);
-					logger.log(Level.INFO, "Logged for user {0}: {1} {2}", new Object[] { userId, StringUtils.join((String[]) obj, ",") });
+					logger.log(Level.FINE, "Logged for user {0}: {1}", new Object[] { userId, StringUtils.join((String[]) obj, ",") });
 				
 				}
 
