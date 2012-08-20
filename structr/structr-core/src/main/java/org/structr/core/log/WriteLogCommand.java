@@ -29,9 +29,10 @@ import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.fusesource.hawtdb.api.IndexFactory;
+import org.fusesource.hawtdb.api.MultiIndexFactory;
 import org.fusesource.hawtdb.api.SortedIndex;
 
 //~--- classes ----------------------------------------------------------------
@@ -54,22 +55,28 @@ public class WriteLogCommand extends LogServiceCommand {
 		if (logDb != null) {
 
 			Transaction tx                                 = logDb.tx();
-			BTreeIndexFactory<String, String> indexFactory = new BTreeIndexFactory<String, String>();
-			SortedIndex<String, String> index              = indexFactory.openOrCreate(tx);
+			
+			MultiIndexFactory multiIndexFactory = new MultiIndexFactory(tx);
+			IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
 
-			if (parameters.length == 1) {
+			if (parameters.length == 2) {
+				
+				String userId = (String) parameters[0];
+				
+				SortedIndex<String, Object> index = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(userId, indexFactory);
 
 				String timestamp   = String.valueOf(System.nanoTime());
-				String value = parameters[0].toString();
+				String value = parameters[1].toString();
 
 				index.put(timestamp, value);
-				logger.log(Level.INFO, "Logged {0}:{1} to log database", new Object[] { timestamp, value });
+				logger.log(Level.INFO, "Logged for user {0}: {1} {2}", new Object[] { userId, timestamp, value });
 
 			} else {
 				throw new IllegalArgumentException();
 			}
 
 			tx.commit();
+			logDb.flush();
 
 		}
 
