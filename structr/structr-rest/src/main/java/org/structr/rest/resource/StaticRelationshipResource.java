@@ -21,6 +21,8 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
+import org.structr.core.converter.PropertyConverter;
 import org.apache.commons.collections.ListUtils;
 
 import org.structr.common.PropertyKey;
@@ -83,10 +85,10 @@ public class StaticRelationshipResource extends SortableResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		// fetch results from typedIdResource (should be a single node)
-		List<? extends GraphObject> results = typedIdResource.doGet();
+		List<? extends GraphObject> results = typedIdResource.doGet(sortKey, sortDescending, -1, -1).getResults();
 
 		if (results != null) {
 
@@ -108,7 +110,7 @@ public class StaticRelationshipResource extends SortableResource {
 					if (typeResource.hasSearchableAttributes(dummyList)) {
 
 						// use result list of doGet from typeResource and intersect with relatedNodes list.
-						List<GraphObject> typeNodes = typeResource.doGet();
+						List<? extends GraphObject> typeNodes = typeResource.doGet(sortKey, sortDescending, -1, -1).getResults();
 						List intersection           = ListUtils.intersection(relatedNodes, typeNodes);
 
 						
@@ -117,7 +119,8 @@ public class StaticRelationshipResource extends SortableResource {
 						// if (!intersection.isEmpty()) {
 							
 						applyDefaultSorting(intersection);
-						return intersection;
+
+						return new Result(PagingHelper.subList(intersection, pageSize, page), intersection.size(), isCollectionResource(), isPrimitiveArray());
 					}
 
 					// return non-empty list
@@ -125,7 +128,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 						applyDefaultSorting(relatedNodes);
 
-						return relatedNodes;
+						return new Result(PagingHelper.subList(relatedNodes, pageSize, page), relatedNodes.size(), isCollectionResource(), isPrimitiveArray());
 					}
 
 					// do not return empty collection here, try getProperty
@@ -172,7 +175,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 							applyDefaultSorting(list);
 
-							return list;
+							return new Result(list, null, isCollectionResource(), isPrimitiveArray());
 
 						} else if (value instanceof Iterable) {
 
@@ -194,7 +197,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 							}
 
-							return propertyListResult;
+							return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
 						}
 					} else {
 
@@ -208,13 +211,13 @@ public class StaticRelationshipResource extends SortableResource {
 			}
 		}
 
-		return Collections.emptyList();
+		return Result.EMPTY_RESULT;
 	}
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		List<GraphObject> results = typedIdResource.doGet();
+		List<? extends GraphObject> results = typedIdResource.doGet(null, false, -1, -1).getResults();
 		final Command searchNode  = Services.command(securityContext, SearchNodeCommand.class);
 
 		if (results != null) {
@@ -272,7 +275,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 								attrs.add(Search.andExactUuid(uuid));
 
-								List<AbstractNode> results = (List<AbstractNode>) searchNode.execute(null, false, false, attrs);
+								Result results = (Result) searchNode.execute(null, false, false, attrs);
 
 								if (results.isEmpty()) {
 
@@ -409,6 +412,11 @@ public class StaticRelationshipResource extends SortableResource {
 						// transaction, when all entities and relationships are created!
 						if (otherNode != null) {
 
+							// FIXME: this creates duplicate relationships when the related
+							//        node ID is already present in the property set..
+							
+							
+							
 							rel.createRelationship(securityContext, sourceNode, otherNode);
 
 							return otherNode;

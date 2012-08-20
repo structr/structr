@@ -114,8 +114,9 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			}
 
-			final Relationship relToDelete   = rel.getRelationship();
-			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+			final Command transactionCommand    = Services.command(securityContext, TransactionCommand.class);
+			final Relationship relToDelete      = rel.getRelationship();
+			final AbstractRelationship finalRel = rel;
 
 			transactionCommand.execute(new StructrTransaction() {
 
@@ -125,10 +126,11 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 					try {
 
 						// remove object from index
-						Services.command(securityContext, RemoveRelationshipFromIndex.class).execute(relToDelete);
+						Services.command(securityContext, RemoveRelationshipFromIndex.class).execute(finalRel);
 
 						// delete node in database
 						relToDelete.delete();
+						
 					} catch (IllegalStateException ise) {
 						logger.log(Level.WARNING, ise.getMessage());
 					}

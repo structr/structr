@@ -25,9 +25,6 @@ import com.google.gson.Gson;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 
-import org.neo4j.graphdb.RelationshipType;
-
-import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -100,7 +97,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			if ((socketConnection != null) && socket.isAuthenticated()) {
 
-				List<GraphObject> result = webSocketData.getResult();
+				List<? extends GraphObject> result = webSocketData.getResult();
 
 				if ((result != null) && (result.size() > 0)
 					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
@@ -139,7 +136,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 	}
 
-	private List<GraphObject> filter(final SecurityContext securityContext, final List<GraphObject> all) {
+	private List<? extends GraphObject> filter(final SecurityContext securityContext, final List<? extends GraphObject> all) {
 
 		List<GraphObject> filteredResult = new LinkedList<GraphObject>();
 

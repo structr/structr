@@ -21,6 +21,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.traversal.Evaluation;
@@ -179,7 +180,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		Path path = getValidatedPath();
 
@@ -197,7 +198,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 
 			}
 
-			return lastResource.doGet();
+			return lastResource.doGet(sortKey, sortDescending, pageSize, page);
 
 		} else {
 

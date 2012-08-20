@@ -41,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,19 +71,17 @@ public class AuthHelper {
 
 			try {
 
-				;
-				
-				Command findNode            = Services.command(securityContext, SearchNodeCommand.class);
+				Command searchNode            = Services.command(securityContext, SearchNodeCommand.class);
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 				attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
 //				attrs.add(Search.andExactType("User"));
 				attrs.add(Search.andExactName(userName));
 
-				List<Principal> userList = (List<Principal>) findNode.execute(null, false, false, attrs);
+				Result userList = (Result) searchNode.execute(null, false, false, attrs);
 				
 				if (!userList.isEmpty()) {
-					user = userList.get(0);
+					user = (Principal) userList.get(0);
 				}
 
 				if (user == null) {
@@ -150,7 +149,7 @@ public class AuthHelper {
 		try {
 
 			// we need to search with a super user security context here..
-			List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
+			Result results = (Result) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
 
 			if (!results.isEmpty()) {
 

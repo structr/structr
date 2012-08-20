@@ -39,6 +39,8 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -84,22 +86,24 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 				public Object execute(Transaction tx) throws FrameworkException {
 
 					long n                  = 0L;
-                                        List<AbstractNode> nodes = null;
+                                        Result result = null;
                                         
                                         if (properties.containsKey(AbstractNode.Key.type.name())) {
                                                 
                                                 List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
                                                 attrs.add(Search.andExactType((String) properties.get(AbstractNode.Key.type.name())));
                                                 
-                                                nodes = (List<AbstractNode>) searchNode.execute(null, false, false, attrs);
+                                                result = (Result) searchNode.execute(null, false, false, attrs);
                                                 properties.remove(AbstractNode.Key.type.name());
                                                 
                                         } else {
                                         
-                                                nodes = (List<AbstractNode>) nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
+                                                result = (Result) nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
                                         }
 
-					for (AbstractNode node : nodes) {
+					for (GraphObject obj : result.getResults()) {
+						
+						AbstractNode node = (AbstractNode) obj;
 
 						// Treat only "our" nodes
 						if (node.getStringProperty(AbstractNode.Key.uuid) != null) {

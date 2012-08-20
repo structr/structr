@@ -53,21 +53,21 @@ public class ContentRelationship extends AbstractRelationship {
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ parent_id, content_id, componentId, pageId }
+	public enum Key implements PropertyKey{ parentId, contentId, componentId, pageId, foo }
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public PropertyKey getStartNodeIdKey() {
 
-		return Key.parent_id;
+		return Key.parentId;
 
 	}
 
 	@Override
 	public PropertyKey getEndNodeIdKey() {
 
-		return Key.content_id;
+		return Key.contentId;
 
 	}
 
@@ -76,8 +76,8 @@ public class ContentRelationship extends AbstractRelationship {
 
 		Set<String> keys = new LinkedHashSet<String>();
 
-		keys.add(Key.parent_id.name());
-		keys.add(Key.content_id.name());
+		keys.add(Key.parentId.name());
+		keys.add(Key.contentId.name());
 		keys.add(Key.componentId.name());
 		keys.add(Key.pageId.name());
 

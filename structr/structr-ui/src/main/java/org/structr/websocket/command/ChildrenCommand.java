@@ -28,6 +28,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Folder;
 import org.structr.web.common.RelationshipHelper;
+import org.structr.web.entity.Component;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.Group;
 import org.structr.websocket.message.WebSocketMessage;
@@ -49,15 +50,15 @@ public class ChildrenCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String pageId      = (String) webSocketData.getNodeData().get("pageId");
-		String componentId = (String) webSocketData.getNodeData().get("componentId");
-		AbstractNode node  = getNode(webSocketData.getId());
+		AbstractNode node = getNode(webSocketData.getId());
 
 		if (node == null) {
 
 			return;
 		}
 
+		String pageId                   = (String) webSocketData.getNodeData().get("pageId");
+		String componentId              = (String) webSocketData.getNodeData().get("componentId");
 		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
 		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
 		Set<String> nodesWithChildren   = new HashSet<String>();
@@ -67,13 +68,23 @@ public class ChildrenCommand extends AbstractCommand {
 
 			AbstractNode endNode = rel.getEndNode();
 
-			if (endNode != null && (node instanceof Group) || (node instanceof Folder)) {
+			if (endNode == null) {
+
+				continue;
+			}
+
+			if ((node instanceof Group) || (node instanceof Folder)) {
 
 				result.add(endNode);
 				nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, null));
 
 				continue;
 
+			}
+
+			if (pageId == null) {
+
+				return;
 			}
 
 			Long pos = null;
@@ -87,18 +98,16 @@ public class ChildrenCommand extends AbstractCommand {
 				pos = rel.getLongProperty("*");
 			}
 
-			String relCompId = rel.getStringProperty("componentId");
+			String relCompId             = rel.getStringProperty("componentId");
+			boolean isComponentOrContent = ((endNode instanceof Component) || (endNode instanceof Content));
 
-			if (pos != null) {
+			if (pos == null || (isComponentOrContent && relCompId != null && !relCompId.equals(componentId))) {
 
-				if (endNode != null && (componentId == null || (!endNode.getType().equals(Content.class.getSimpleName()) || ((relCompId != null) && relCompId.equals(componentId))))) {
-
-					nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, pageId));
-					sortMap.put(pos, endNode);
-
-				}
-
+				continue;
 			}
+
+			nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, pageId));
+			sortMap.put(pos, endNode);
 
 		}
 

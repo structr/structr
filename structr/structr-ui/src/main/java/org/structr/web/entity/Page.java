@@ -26,6 +26,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.IntConverter;
 import org.structr.core.entity.AbstractNode;
@@ -63,6 +64,8 @@ public class Page extends AbstractNode implements Linkable {
 		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
 		EntityContext.registerPropertyConverter(Page.class, UiKey.position, IntConverter.class);
 		EntityContext.registerPropertyConverter(Page.class, UiKey.cacheForSeconds, IntConverter.class);
+		
+		EntityContext.registerReadOnlyProperty(Page.class, UiKey.version);
 
 	}
 
@@ -70,8 +73,20 @@ public class Page extends AbstractNode implements Linkable {
 
 	public enum UiKey implements PropertyKey {
 
-		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds
+		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
 
+	}
+	
+	public void increaseVersion() throws FrameworkException {
+		
+		Integer version = getIntProperty(UiKey.version);
+		
+		if (version == null) {
+			setProperty(UiKey.version, 1);
+		} else {
+			setProperty(UiKey.version, version+1);
+		}
+		
 	}
 
 }

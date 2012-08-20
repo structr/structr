@@ -67,6 +67,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -303,9 +305,9 @@ public class Importer {
 				attrs.add(new NodeAttribute("content", content));
 			}
 
-			// Type and name
+			// Type
 			attrs.add(new NodeAttribute(AbstractNode.Key.type.name(), type));
-			attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type));
+			//attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type));
 
 			// Tag name
 			attrs.add(new NodeAttribute("tag", tag));
@@ -393,19 +395,21 @@ public class Importer {
 
 		}
 
-		List<AbstractNode> nodes = (List<AbstractNode>) searchNode.execute(null, false, false, searchAttrs);
+		Result result = (Result) searchNode.execute(null, false, false, searchAttrs);
 
-		if (nodes.size() > 1) {
+		if (result.size() > 1) {
 
 			logger.log(Level.WARNING, "More than one node found.");
 		}
 
-		if (nodes.isEmpty()) {
+		if (result.isEmpty()) {
 
 			return null;
 		}
 
-		for (AbstractNode foundNode : nodes) {
+		for (GraphObject obj : result.getResults()) {
+			
+			AbstractNode foundNode = (AbstractNode) obj;
 
 			String foundNodePath = foundNode.getStringProperty(HtmlElement.UiKey.path);
 
@@ -474,7 +478,7 @@ public class Importer {
 		searchAttrs.add(Search.andExactProperty(File.Key.checksum.name(), String.valueOf(checksum)));
 		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
 
-		List<File> files = (List<File>) searchNode.execute(null, false, false, searchAttrs);
+		Result files = (Result) searchNode.execute(null, false, false, searchAttrs);
 
 		return !files.isEmpty();
 
@@ -491,11 +495,11 @@ public class Importer {
 		searchAttrs.add(Search.andExactProperty(AbstractNode.Key.name.name(), name));
 		searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
 
-		List<Folder> folders = (List<Folder>) searchNode.execute(null, false, false, searchAttrs);
+		Result folders = (Result) searchNode.execute(null, false, false, searchAttrs);
 
 		if (!folders.isEmpty()) {
 
-			return folders.get(0);
+			return (Folder) folders.get(0);
 		}
 
 		return (Folder) createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.Key.name.name(), name));

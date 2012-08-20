@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.Search;
@@ -47,7 +48,7 @@ public class GetNodeByIdCommand extends NodeServiceCommand {
 
 			attrs.add(Search.andExactUuid(uuid));
 
-			List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
 			int size                   = results.size();
 
 			switch (size) {

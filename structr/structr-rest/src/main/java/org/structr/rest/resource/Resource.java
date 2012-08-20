@@ -1,10 +1,25 @@
-
 /*
-* To change this template, choose Tools | Templates
-* and open the template in the editor.
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.GraphObjectComparator;
@@ -17,7 +32,6 @@ import org.structr.core.*;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.StructrTransactionListener;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -79,7 +93,7 @@ public abstract class Resource {
 
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 
-	public abstract List<? extends GraphObject> doGet() throws FrameworkException;
+	public abstract Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
 
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
@@ -98,7 +112,7 @@ public abstract class Resource {
 
 		// catch 204, DELETE must return 200 if resource is empty
 		try {
-			results = doGet();
+			results = doGet(null, false, -1, -1).getResults();
 		} catch (NoResultsException nre) {
 			results = null;
 		}
@@ -150,7 +164,7 @@ public abstract class Resource {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final Iterable<? extends GraphObject> results = doGet();
+		final Iterable<? extends GraphObject> results = doGet(null, false, -1, -1).getResults();
 
 		if (results != null) {
 
@@ -252,7 +266,7 @@ public abstract class Resource {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(List<GraphObject> list) {
+	protected void applyDefaultSorting(List<? extends GraphObject> list) {
 
 		if (!list.isEmpty()) {
 
@@ -282,9 +296,9 @@ public abstract class Resource {
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
 		searchAttributes.add(Search.andExactProperty(ResourceAccess.Key.uri, uriPart));
 
-		List<AbstractNode> nodes = (List<AbstractNode>) search.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+		Result result = (Result) search.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 
-		if (nodes.isEmpty()) {
+		if (result.isEmpty()) {
 
 			logger.log(Level.FINE, "No resource access object found for {0}", uriPart);
 
@@ -305,9 +319,9 @@ public abstract class Resource {
 
 		} else {
 
-			if (nodes.size() == 1) {
+			if (result.size() == 1) {
 
-				AbstractNode node = nodes.get(0);
+				AbstractNode node = (AbstractNode) result.get(0);
 
 				if (node instanceof ResourceAccess) {
 
@@ -321,7 +335,7 @@ public abstract class Resource {
 
 			} else {
 
-				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { nodes.size(), uriPart });
+				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), uriPart });
 
 			}
 

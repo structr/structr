@@ -17,9 +17,12 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.core;
+package org.structr.core.converter;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Value;
 
 /**
  * A generic converter interface that can be used to convert
@@ -41,7 +44,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract S convertForSetter(T source, Value value);
+	public abstract S convertForSetter(T source, Value value) throws FrameworkException;
 	
 	/**
 	 * Converts from source type to destination type. Caution: source
@@ -52,6 +55,31 @@ public abstract class PropertyConverter<S, T> {
 	 */
 	public abstract T convertForGetter(S source, Value value);
 
+	/**
+	 * Convert from source type to Comparable to allow a more
+	 * fine-grained control over the sorted results. Override 
+	 * this method to modify sorting behaviour of entities.
+	 * 
+	 * @param source
+	 * @param value
+	 * @return 
+	 */
+	public Comparable convertForSorting(S source, Value value) {
+		
+		T target = convertForGetter(source, value);
+		if(target != null) {
+			
+			if (target instanceof Comparable) {
+				
+				return (Comparable)target;
+			}
+			
+			// fallback
+			return target.toString();
+		}
+		
+		return null;
+	}
 	
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;

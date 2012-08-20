@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>0.5.1</version>
+		<version>0.5.2-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-rest</artifactId>
 	<packaging>jar</packaging>
-	<version>0.5.1</version>
+	<version>0.5.2-SNAPSHOT</version>
 	<name>structr-rest</name>
 	<url>http://structr.org</url>
 	<build>
@@ -30,10 +30,14 @@
 		</plugins>
 	</build>
 	<repositories>
-		<repository>
-			<id>maven.structr.org</id>
-			<url>http://maven.structr.org/</url>
-		</repository>
+        <repository>
+            <id>snapshots.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
+        </repository>
+        <repository>
+            <id>releases.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/release</url>
+        </repository> 
 	</repositories>		
 	<dependencies>
 		<dependency>

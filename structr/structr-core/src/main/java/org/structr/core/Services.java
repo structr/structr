@@ -64,6 +64,8 @@ public class Services {
 	// Database-related constants
 	public static final String DATABASE_PATH = "database.path";
 	public static final String FILES_PATH    = "files.path";
+	
+	public static final String LOG_DATABASE_PATH = "log.database.path";
 
 	// LogService-related constants
 	public static final String LOG_SERVICE_INTERVAL  = "structr.logging.interval";
@@ -91,7 +93,7 @@ public class Services {
 	private static Map<String, String> context    = null;
 	private static final Logger logger            = Logger.getLogger(Services.class.getName());
 
-//      private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(10, 0.9f, 8);
+	private static final Map<String, Object> attributes      = new ConcurrentHashMap<String, Object>(10, 0.9f, 8);
 	private static final Map<Class, Service> serviceCache    = new ConcurrentHashMap<Class, Service>(10, 0.9f, 8);
 	private static final Set<Class> registeredServiceClasses = new LinkedHashSet<Class>();
 	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<Class>();
@@ -101,6 +103,7 @@ public class Services {
 	private static String configFilePath;
 	private static String configuredServices;
 	private static String databasePath;
+	private static String logDatabasePath;
 	private static String filesPath;
 	private static String modulesPath;
 	private static String serverIp;
@@ -199,6 +202,7 @@ public class Services {
 		tmpPath           = getConfigValue(context, Services.TMP_PATH, "/tmp");
 		basePath          = getConfigValue(context, Services.BASE_PATH, ".");
 		databasePath      = getConfigValue(context, Services.DATABASE_PATH, "./db");
+		logDatabasePath   = getConfigValue(context, Services.LOG_DATABASE_PATH, "./logdb.dat");
 		filesPath         = getConfigValue(context, Services.FILES_PATH, "./files");
 		modulesPath       = getConfigValue(context, Services.MODULES_PATH, "./modules");
 		serverIp          = getConfigValue(context, Services.SERVER_IP, "127.0.0.1");
@@ -319,6 +323,38 @@ public class Services {
 		return value.toString();
 	}
 	
+	/**
+	 * Store an attribute value in the service context
+	 * 
+	 * @param name
+	 * @param value 
+	 */
+	public static void setAttribute(final String name, final Object value) {
+		synchronized (attributes) {
+			attributes.put(name, value);
+		}
+	}
+	
+	/**
+	 * Retrieve attribute value from service context
+	 * 
+	 * @param name
+	 * @return 
+	 */
+	public static Object getAttribute(final String name) {
+		return attributes.get(name);
+	}
+	
+	/**
+	 * Remove attribute value from service context
+	 * 
+	 * @param name
+	 * @return 
+	 */
+	public static void removeAttribute(final String name) {
+		attributes.remove(name);
+	}
+	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private static Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
 
@@ -400,6 +436,14 @@ public class Services {
 	 */
 	public static String getDatabasePath() {
 		return getPath(Path.Database);
+	}
+
+	/**
+	 * Return the log database path. This is the file path of the
+	 * log database.
+	 */
+	public static String getLogDatabasePath() {
+		return getPath(Path.LogDatabase);
 	}
 
 	/**
@@ -533,6 +577,11 @@ public class Services {
 
 			case Database :
 				ret = getAbsolutePath(databasePath);
+
+				break;
+
+			case LogDatabase :
+				ret = getAbsolutePath(logDatabasePath);
 
 				break;
 

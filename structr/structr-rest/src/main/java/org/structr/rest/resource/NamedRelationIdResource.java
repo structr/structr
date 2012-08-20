@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ public class NamedRelationIdResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<GraphObject> uuidResult = new LinkedList<GraphObject>();
 
@@ -68,7 +69,8 @@ public class NamedRelationIdResource extends WrappingResource {
 			// TODO: do additional type check here!
 
 			uuidResult.add(rel);
-			return uuidResult;
+			
+			return new Result(uuidResult, null, isCollectionResource(), isPrimitiveArray());
 
 		} else {
 
@@ -80,7 +82,7 @@ public class NamedRelationIdResource extends WrappingResource {
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
 
-		List<? extends GraphObject> results = doGet();
+		List<? extends GraphObject> results = doGet(null, false, -1, -1).getResults();
 		for(GraphObject o : results) {
 
 			for(Entry<String, Object> entry : propertySet.entrySet()) {

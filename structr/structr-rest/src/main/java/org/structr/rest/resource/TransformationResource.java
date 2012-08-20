@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.Collections;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -45,27 +46,31 @@ public class TransformationResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		
 		if(wrappedResource != null) {
 			
-			List<? extends GraphObject> results = wrappedResource.doGet();
+			//Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
+			// apply paging later
+			Result result = wrappedResource.doGet(sortKey, sortDescending, -1, -1);
 			
 			if(transformation != null) {
 
 				try {
 
-					transformation.apply(securityContext, results);
+					transformation.apply(securityContext, result.getResults());
+					result.setRawResultCount(result.size());
 
 				} catch(Throwable t) {
 					t.printStackTrace();
 				}
 			}
 				
-			return results;
+			return result;
 		}
 		
-		return Collections.emptyList();
+		List emptyList = Collections.emptyList();
+		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override

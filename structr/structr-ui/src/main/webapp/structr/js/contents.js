@@ -95,7 +95,7 @@ var _Contents = {
         
         parent.append('<div id="_' + id + '" class="node content ' + content.id + '_">'
             + '<img class="typeIcon" src="'+ _Contents.icon + '">'
-            + '<div class="content_ name_">' + nameOrContent + '</div> <span class="id">' + content.id + '</span>'
+            + '<div class="content_ name_">' + escapeTags(nameOrContent) + '</div> <span class="id">' + content.id + '</span>'
             //	    + '<b class="content_">' + content.content + '</b>'
             + '</div>');
         
@@ -123,8 +123,21 @@ var _Contents = {
             });
             _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
         });
-
+        
+        $('.name_', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            var text = self.parent().find('.content_').text();
+            Structr.dialog('Edit content of ' + content.id, function() {
+                if (debug) console.log('content saved')
+            }, function() {
+                if (debug) console.log('cancelled')
+            });
+            _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
+        });
+        
         _Entities.appendEditPropertiesIcon(div, content);
+        _Entities.appendAccessControlIcon(div, content);
 
         return div;
     },
@@ -161,9 +174,9 @@ var _Contents = {
                 editorCursor = cm.getCursor();
                 if (debug) console.log(editorCursor);
 
-                timer = window.setTimeout(function() {
+                //timer = window.setTimeout(function() {
                     Command.patch(entity.id, text1, text2);
-                }, 5000);
+                //}, 5000);
 				
             }
         });
@@ -198,6 +211,8 @@ var _Contents = {
         dataKeyInput.on('blur', function() {
             Command.setProperty(entity.id, 'data-key', dataKeyInput.val());
         });
+
+        _Entities.appendSimpleSelection($('#dialogBox .dialogMeta'), entity, 'type_definitions', 'Data Type', 'typeDefinitionId');
 
         editor.id = entity.id;
 

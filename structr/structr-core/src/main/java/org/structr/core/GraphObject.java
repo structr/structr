@@ -37,6 +37,7 @@ public interface GraphObject {
 
 	// ----- common to both types -----
 	public long getId();
+	public String getUuid();
 	public String getType();
 
 	public Iterable<String> getPropertyKeys(String propertyView);
@@ -54,6 +55,8 @@ public interface GraphObject {
         public boolean getBooleanProperty(final PropertyKey key) throws FrameworkException ;
 	public Double getDoubleProperty(final String key) throws FrameworkException ;
         public Double getDoubleProperty(final PropertyKey key) throws FrameworkException ;
+	public Comparable getComparableProperty(final PropertyKey key) throws FrameworkException;
+	public Comparable getComparableProperty(final String key) throws FrameworkException;
 	public void removeProperty(final String key) throws FrameworkException;
 
 	public PropertyKey getDefaultSortKey();
@@ -68,6 +71,7 @@ public interface GraphObject {
 
 	public void afterCreation(SecurityContext securityContext);
 	public void afterModification(SecurityContext securityContext);
+	public void afterDeletion(SecurityContext securityContext);
 	
 	// ----- rels only -----
 //	public Long getStartNodeId();

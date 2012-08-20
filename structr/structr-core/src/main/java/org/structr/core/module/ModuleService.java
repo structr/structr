@@ -670,7 +670,7 @@ public class ModuleService implements SingletonService {
 		File moduleFile   = new File(modulePath);
 
 		// create module
-		ClickModule ret        = new ClickModule(modulePath);
+		DefaultModule ret        = new DefaultModule(modulePath);
 		Set<String> classes    = ret.getClasses();
 		Set<String> properties = ret.getProperties();
 		Set<String> resources  = ret.getResources();

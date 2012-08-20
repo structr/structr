@@ -24,7 +24,6 @@ package org.structr.web.entity;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 
-import org.structr.common.CaseHelper;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
@@ -37,7 +36,6 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.NodeService;
-import org.structr.web.entity.relation.ComponentRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -54,7 +52,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @author axel
  */
-public class Component extends AbstractNode {
+public class Component extends AbstractNode implements Element {
 
 	private static final int MAX_DEPTH                          = 10;
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
@@ -83,15 +81,13 @@ public class Component extends AbstractNode {
 
 	public enum Key implements PropertyKey{ componentId, pageId }
 
-	public enum UiKey implements PropertyKey{ type, name, kind }
+	public enum UiKey implements PropertyKey{ type, name, kind, paths }
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void onNodeInstantiation() {
-
 		collectProperties(this, getStringProperty(AbstractNode.Key.uuid), 0, null);
-
 	}
 
 	@Override
@@ -105,6 +101,7 @@ public class Component extends AbstractNode {
 			for (AbstractNode contentNode : contentNodes.values()) {
 
 				deleteCommand.execute(contentNode, cascade);
+
 			}
 
 			// delete linked components
@@ -113,11 +110,8 @@ public class Component extends AbstractNode {
 //                      }
 
 		} catch (Throwable t) {
-
 			logger.log(Level.SEVERE, "Exception while deleting nested Components: {0}", t.getMessage());
-
 		}
-
 	}
 
 	// ----- private methods ----
@@ -126,6 +120,7 @@ public class Component extends AbstractNode {
 		if (depth > MAX_DEPTH) {
 
 			return;
+
 		}
 
 		if (ref != null) {
@@ -151,6 +146,12 @@ public class Component extends AbstractNode {
 
 			AbstractNode endNode = rel.getEndNode();
 
+			if (endNode == null) {
+
+				continue;
+
+			}
+
 			if (endNode instanceof Component) {
 
 				String subType = endNode.getStringProperty(Component.UiKey.kind);
@@ -158,15 +159,16 @@ public class Component extends AbstractNode {
 				if (subType != null) {
 
 					subTypes.add(subType);
+
 				}
 
 			} else {
 
 				collectProperties(endNode, componentId, depth + 1, rel);
+
 			}
 
 		}
-
 	}
 
 	private void collectChildren(List<Component> children, AbstractNode startNode, String componentId, int depth, AbstractRelationship ref) {
@@ -174,6 +176,7 @@ public class Component extends AbstractNode {
 		if (depth > MAX_DEPTH) {
 
 			return;
+
 		}
 
 		if (ref != null) {
@@ -193,10 +196,15 @@ public class Component extends AbstractNode {
 
 			AbstractNode endNode = rel.getEndNode();
 
+			if (endNode == null) {
+
+				continue;
+
+			}
+
 			collectChildren(children, endNode, componentId, depth + 1, rel);
 
 		}
-
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -209,6 +217,7 @@ public class Component extends AbstractNode {
 		for (String key : super.getPropertyKeys(propertyView)) {
 
 			augmentedPropertyKeys.add(key);
+
 		}
 
 		augmentedPropertyKeys.addAll(contentNodes.keySet());
@@ -216,10 +225,10 @@ public class Component extends AbstractNode {
 		for (String subType : subTypes) {
 
 			augmentedPropertyKeys.add(subType.toLowerCase().concat("s"));
+
 		}
 
 		return augmentedPropertyKeys;
-
 	}
 
 	@Override
@@ -233,6 +242,7 @@ public class Component extends AbstractNode {
 			if ((node != null) && (node != this)) {
 
 				return node.getStringProperty("content");
+
 			}
 
 		} else if (subTypes.contains(EntityContext.normalizeEntityName(key))) {
@@ -250,11 +260,9 @@ public class Component extends AbstractNode {
 	}
 
 	public Map<String, AbstractNode> getContentNodes() {
-
 		return contentNodes;
-
 	}
-
+	
 	public String getComponentId() {
 
 		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
@@ -264,12 +272,12 @@ public class Component extends AbstractNode {
 			if (componentId != null) {
 
 				return componentId;
+
 			}
 
 		}
 
 		return null;
-
 	}
 
 //      public String getPageId() {
@@ -300,21 +308,30 @@ public class Component extends AbstractNode {
 
 				AbstractNode endNode = abstractRelationship.getEndNode();
 
-				if ((endNode instanceof Component) && !isVisible(request, endNode, abstractRelationship, componentId)) {
+				if (endNode == null || (endNode instanceof Component && !isVisible(request, endNode, abstractRelationship, componentId))) {
 
 					continue;
+
 				}
 
 				if ((componentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
-
-					// only add relationship if (nested) componentId matches
-					if (componentId.equals(abstractRelationship.getStringProperty(Key.componentId.name()))) {
+					
+					// Add content nodes if they don't have the data-key property set
+					if (endNode instanceof Content && endNode.getStringProperty("data-key") == null) {
+						
+						rels.add(abstractRelationship);
+						
+					// Add content or component nodes if rel's componentId attribute matches
+					} else if (componentId.equals(abstractRelationship.getStringProperty(Key.componentId.name()))) {
 
 						rels.add(abstractRelationship);
+
 					}
+						
 				} else {
 
 					rels.add(abstractRelationship);
+
 				}
 
 			}
@@ -332,7 +349,6 @@ public class Component extends AbstractNode {
 					Long pos2 = getPosition(o2, pageId);
 
 					return pos1.compareTo(pos2);
-
 				}
 
 			});
@@ -340,7 +356,6 @@ public class Component extends AbstractNode {
 		}
 
 		return rels;
-
 	}
 
 	public static long getPosition(final AbstractRelationship relationship, final String pageId) {
@@ -369,6 +384,7 @@ public class Component extends AbstractNode {
 			} else {
 
 				key = null;
+
 			}
 
 			if ((key != null) && (prop != null)) {
@@ -376,15 +392,19 @@ public class Component extends AbstractNode {
 				if (prop instanceof Long) {
 
 					position = (Long) prop;
+
 				} else if (prop instanceof Integer) {
 
 					position = ((Integer) prop).longValue();
+
 				} else if (prop instanceof String) {
 
 					position = Long.parseLong((String) prop);
+
 				} else {
 
 					throw new java.lang.IllegalArgumentException("Expected Long, Integer or String");
+
 				}
 
 //
@@ -428,9 +448,7 @@ public class Component extends AbstractNode {
 	}
 
 	private static boolean hasAttribute(HttpServletRequest request, String key) {
-
-		return key != null && request.getAttribute(key) != null;
-
+		return (key != null) && (request.getAttribute(key) != null);
 	}
 
 	// ----- public static methods -----
@@ -439,6 +457,7 @@ public class Component extends AbstractNode {
 		if (request == null) {
 
 			return true;
+
 		}
 
 		// check if component is in "list" mode
@@ -450,6 +469,7 @@ public class Component extends AbstractNode {
 			if (requestContainsUuidsValue != null) {
 
 				requestContainsUuids = requestContainsUuidsValue.booleanValue();
+
 			}
 
 			String componentId = node.getStringProperty(AbstractNode.Key.uuid);
@@ -460,9 +480,10 @@ public class Component extends AbstractNode {
 			// of filtered components are not reached anyway)
 			if (requestContainsUuids) {
 
-				if (hasAttribute(request, componentId) || parentComponentId != null) {
+				if (hasAttribute(request, componentId) || (parentComponentId != null)) {
 
 					return true;
+
 				}
 
 				return false;
@@ -470,13 +491,13 @@ public class Component extends AbstractNode {
 			} else {
 
 				return true;
+
 			}
 
 		}
 
 		// we can return false here by default, as we're only examining nodes of type Component
 		return false;
-
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -491,13 +512,13 @@ public class Component extends AbstractNode {
 			if (node != null) {
 
 				node.setProperty("content", value);
+
 			}
 
 		} else {
 
 			super.setProperty(key, value);
+
 		}
-
 	}
-
 }

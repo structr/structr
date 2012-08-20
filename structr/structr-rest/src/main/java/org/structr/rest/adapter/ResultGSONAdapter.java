@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Locale;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
-import org.structr.rest.resource.Result;
+import org.structr.core.Result;
 import org.structr.core.PropertySet.PropertyFormat;
 import org.structr.core.entity.AbstractNode;
 
@@ -66,7 +66,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		Integer pageCount = src.getPageCount();
 		Integer pageSize = src.getPageSize();
 		String queryTime = src.getQueryTime();
-		Integer resultCount = src.getResultCount();
+		Integer resultCount = src.getRawResultCount();
 		String searchString = src.getSearchString();
 		String sortKey = src.getSortKey();
 		String sortOrder = src.getSortOrder();
@@ -112,11 +112,11 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 			} else {
 
-				if (results.size() > 1 && !src.isCollectionResource()){
+				if (results.size() > 1 && !src.isCollection()){
 					throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
 				}
 
-				if(src.isCollectionResource()) {
+				if(src.isCollection()) {
 
 					// serialize list of results
 					JsonArray resultArray = new JsonArray();

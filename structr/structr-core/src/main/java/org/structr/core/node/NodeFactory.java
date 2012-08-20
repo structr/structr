@@ -25,6 +25,7 @@ import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.common.Permission;
@@ -32,7 +33,6 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Adapter;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.*;
@@ -47,6 +47,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,6 +60,7 @@ import java.util.logging.Logger;
  */
 public class NodeFactory<T extends AbstractNode> {
 
+	public static String RAW_RESULT_COUNT = "rawResultCount";
 	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
 
 	//~--- fields ---------------------------------------------------------
@@ -148,7 +150,7 @@ public class NodeFactory<T extends AbstractNode> {
 		newNode.onNodeInstantiation();
 
 		// check access
-		if (isReadable(securityContext, newNode, includeDeletedAndHidden, publicOnly)) {
+		if (securityContext.isReadable(newNode, includeDeletedAndHidden, publicOnly)) {
 
 			return newNode;
 		}
@@ -156,9 +158,9 @@ public class NodeFactory<T extends AbstractNode> {
 		return null;
 	}
 
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input) throws FrameworkException {
+	public Result createNodes(final SecurityContext securityContext, final IndexHits<Node> input, long pageSize, long page) throws FrameworkException {
 
-		return createNodes(securityContext, input, false, false);
+		return createNodes(securityContext, input, false, false, pageSize, page);
 
 	}
 
@@ -175,32 +177,105 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param publicOnly
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly)
+	public Result createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly, long pageSize,
+		long page)
 		throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		long offset              = page > 0 ? (page - 1) * pageSize : 0;
+		long position            = 0L;
+		long count               = 0L;
 
-		if (input != null && input instanceof SpatialRecordHits) {
+		if (input != null) {
+		
+			int size = input.size();
 
-			Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
-			GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
+			if (input instanceof SpatialRecordHits) {
 
-			if (input.iterator().hasNext()) {
 
-				for (Node node : input) {
+				Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
+				GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
-					AbstractNode n = createNode(securityContext, graphDb.getNodeById((Long) node.getProperty("id")), includeDeletedAndHidden, publicOnly);
+				if (input.iterator().hasNext()) {
 
-					// Check is done in createNode already, so we don't have to do it again
-					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+					for (Node node : input) {
 
-						nodes.add(n);
+						Long dbNodeId = null;
+						Node realNode = null;
 
-						for (AbstractNode nodeAt : getNodesAt(n)) {
+						if (node.hasProperty("id")) {
 
-							if (nodeAt != null && isReadable(securityContext, nodeAt, includeDeletedAndHidden, publicOnly)) {
+							dbNodeId = (Long) node.getProperty("id");
 
-								nodes.add(nodeAt);
+							try {
+
+								realNode = graphDb.getNodeById(dbNodeId);
+
+							} catch (NotFoundException nfe) {
+
+								// Should not happen, but it does
+								// FIXME: Why does the spatial index return an unknown ID?
+								logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
+
+								for (String key : node.getPropertyKeys()) {
+
+									logger.log(Level.FINE, "{0}={1}", new Object[] { key, node.getProperty(key) });
+								}
+							}
+
+						}
+
+						if (realNode != null) {
+
+							AbstractNode n = createNode(securityContext, realNode, includeDeletedAndHidden, publicOnly);
+
+							// AbstractNode n = createNode(securityContext, node, includeDeletedAndHidden, publicOnly);
+							// Check is done in createNode already, so we don't have to do it again
+							if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+
+								nodes.add(n);
+
+								for (AbstractNode nodeAt : getNodesAt(n)) {
+
+									if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
+
+										nodes.add(nodeAt);
+									}
+
+								}
+
+							}
+
+						}
+
+					}
+
+				}
+
+
+			} else {
+
+				//Services.setAttribute(RAW_RESULT_COUNT + Thread.currentThread().getId(), size);
+
+				if (input.iterator().hasNext()) {
+
+					for (Node node : input) {
+
+						AbstractNode n = createNode(securityContext, (Node) node, includeDeletedAndHidden, publicOnly);
+
+						// Check is done in createNode already, so we don't have to do it again
+						if (n != null) {            // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+
+							if (++position > offset) {
+
+								// stop if we got enough nodes
+								if (pageSize > 0 && ++count > pageSize) {
+
+									return new Result(nodes, size, true, false);
+								}
+
+								nodes.add(n);
+
 							}
 
 						}
@@ -210,28 +285,13 @@ public class NodeFactory<T extends AbstractNode> {
 				}
 
 			}
+			
+			return new Result(nodes, size, true, false);
 
-		} else {
+		}		
 
-			if ((input != null) && input.iterator().hasNext()) {
-
-				for (Node node : input) {
-
-					AbstractNode n = createNode(securityContext, (Node) node, includeDeletedAndHidden, publicOnly);
-
-					// Check is done in createNode already, so we don't have to do it again
-					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
-
-						nodes.add(n);
-					}
-
-				}
-
-			}
-
-		}
-
-		return nodes;
+		// is it smart to return null here?
+		return null;
 
 	}
 
@@ -241,7 +301,7 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param input
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input) throws FrameworkException {
+	public Result createNodes(final SecurityContext securityContext, final Iterable<Node> input) throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -260,7 +320,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 		}
 
-		return nodes;
+		return new Result(nodes, null, true, false);
 
 	}
 
@@ -317,41 +377,4 @@ public class NodeFactory<T extends AbstractNode> {
 		return nodes;
 
 	}
-
-	private boolean isReadable(final SecurityContext securityContext, final AbstractNode node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
-
-		/**
-		 * The if-clauses in the following lines have been split
-		 * for performance reasons.
-		 */
-
-		// deleted and hidden nodes will only be returned if we are told to do so
-		if ((node.isDeleted() || node.isHidden()) && !includeDeletedAndHidden) {
-
-			return false;
-		}
-
-		// visibleToPublic overrides anything else
-		// Publicly visible nodes will always be returned
-		if (node.isVisibleToPublicUsers()) {
-
-			return true;
-		}
-
-		// Next check is only for non-public nodes, because
-		// public nodes are already added one step above.
-		if (publicOnly) {
-
-			return false;
-		}
-
-		// Ask the security context
-		if (securityContext.isAllowed(node, Permission.read)) {
-
-			return true;
-		}
-
-		return false;
-	}
-
 }

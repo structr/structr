@@ -35,6 +35,7 @@ import org.structr.core.entity.ResourceAccess;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -173,10 +174,13 @@ public class HttpAuthenticator implements Authenticator {
 
 	public static void writeContent(String content, HttpServletResponse response) throws IOException {
 
-		response.getWriter().append(content);
-		response.getWriter().flush();
-		response.getWriter().close();
 		response.setStatus(HttpServletResponse.SC_OK);
+		response.setCharacterEncoding("UTF-8");
+
+		PrintWriter writer = response.getWriter();
+		writer.append(content);
+		writer.flush();
+		writer.close();
 
 	}
 

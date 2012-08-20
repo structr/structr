@@ -51,6 +51,7 @@ import org.structr.core.node.TransactionCommand;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -970,7 +971,11 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 	private Iterable<AbstractNode> getNodes() {
 
 		try {
-			return new NodeFactory().createNodes(securityContext, getRawNodes());
+			
+			NodeFactory factory = new NodeFactory();
+			Result result = factory.createNodes(securityContext, getRawNodes());
+			
+			return (List<AbstractNode>) result.getResults();
 			
 		} catch(FrameworkException fex) {
 			

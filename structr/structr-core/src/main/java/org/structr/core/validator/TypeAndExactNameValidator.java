@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.structr.core.validator;
@@ -12,11 +26,10 @@ import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertyNotFoundToken;
-import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -55,7 +68,7 @@ public class TypeAndExactNameValidator extends PropertyValidator<String> {
 
 		// just check for existance
 		try {
-			List<AbstractNode> nodes = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+			Result nodes = (Result)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
 			if(nodes != null && !nodes.isEmpty()) {
 
 				return true;

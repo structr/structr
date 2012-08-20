@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -61,9 +62,9 @@ public class RelationshipResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
-		List<? extends GraphObject> results = wrappedResource.doGet();
+		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page).getResults();
 		if(results != null && !results.isEmpty()) {
 
 			try {
@@ -80,7 +81,7 @@ public class RelationshipResource extends WrappingResource {
 					}
 				}
 
-				return resultList;
+				return new Result(resultList, null, isCollectionResource(), isPrimitiveArray());
 
 			} catch(Throwable t) {
 

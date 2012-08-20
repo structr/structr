@@ -1,0 +1,4 @@
+#!/bin/bash
+echo curl -HX-User:$REST_USER -HX-Password:$REST_PW $REST_URL/cypher -d\"{'query':'$@'}\"
+curl -HX-User:$REST_USER -HX-Password:$REST_PW -XPOST $REST_URL/cypher -d"{'query':'$@'}"
+

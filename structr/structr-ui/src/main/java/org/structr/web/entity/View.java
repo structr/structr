@@ -75,33 +75,8 @@ public class View extends AbstractNode {
 
 		try {
 
-//                      HttpServletRequest request = securityContext.getRequest();
-			String rawQuery = getStringProperty("query");
-			String query    = rawQuery;
-
-			if (request != null) {
-
-				Pattern pattern = Pattern.compile("\\$\\{request.(.*)\\}");
-				Matcher matcher = pattern.matcher(rawQuery);
-
-				while (matcher.find()) {
-
-					String key = matcher.group(1);
-
-					System.out.println("key: " + key);
-
-					String value = request.getParameter(key);
-
-					if (StringUtils.isNotEmpty(value)) {
-
-						query = StringUtils.replace(rawQuery, "${request." + key + "}", value);
-					}
-
-				}
-
-			}
-
-			return (List<GraphObject>) Services.command(securityContext, CypherQueryCommand.class).execute(query);
+			return (List<GraphObject>) Services.command(securityContext, CypherQueryCommand.class).execute(getQuery(request));
+			
 		} catch (Throwable t) {
 
 			t.printStackTrace();
@@ -112,6 +87,34 @@ public class View extends AbstractNode {
 
 	}
 
+	protected String getQuery(HttpServletRequest request) {
+		
+		String rawQuery = getStringProperty("query");
+		String query    = rawQuery;
+
+		if (request != null) {
+
+			Pattern pattern = Pattern.compile("\\$\\{request.(.*)\\}");
+			Matcher matcher = pattern.matcher(rawQuery);
+
+			while (matcher.find()) {
+
+				String key = matcher.group(1);
+
+				String value = request.getParameter(key);
+
+				if (StringUtils.isNotEmpty(value)) {
+
+					query = StringUtils.replace(rawQuery, "${request." + key + "}", value);
+				}
+
+			}
+
+		}
+		
+		return query;
+	}
+	
 //      public static void main(String[] args) throws Exception {
 //              
 //              String rawQuery = "START n=node:keywordAllNodes(type='Page') MATCH n-[:CONTAINS*]->child WHERE (child.type = 'Content' AND child.content =~ /.*${request.search}.*/) RETURN DISTINCT n";

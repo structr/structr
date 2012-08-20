@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.5.1</version>
+        <version>0.5.2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>war</packaging>
-    <version>0.5.1</version>
+    <version>0.5.2-SNAPSHOT</version>
     <name>structr-ui</name>
     <url>http://structr.org</url>
 
@@ -27,9 +27,13 @@
             <url>http://download.java.net/maven/2</url>
         </repository>
         <repository>
-            <id>structr-public-repository</id>
-            <url>http://maven.structr.org</url>
+            <id>snapshots.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
         </repository>
+        <repository>
+            <id>releases.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/release</url>
+        </repository> 
         <repository>
             <id>jboss</id>
             <url>https://repository.jboss.org/nexus/content/repositories/releases</url>
@@ -87,6 +91,21 @@
             <artifactId>textile-j</artifactId>
             <version>2.2</version>
         </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0-m09</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.9-ea04</version>
+        </dependency>
+	<dependency>
+	    <groupId>org.neo4j</groupId>
+	    <artifactId>neo4j-rest-graphdb</artifactId>
+	    <version>1.8-SNAPSHOT</version>
+	</dependency>
     </dependencies>
     <build>
         <plugins>

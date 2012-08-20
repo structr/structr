@@ -46,12 +46,11 @@ import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
-import org.structr.core.PropertyConverter;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.converter.BooleanConverter;
-import org.structr.core.converter.LongDateConverter;
 import org.structr.core.node.*;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.FindNodeCommand;
@@ -71,6 +70,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.converter.DateConverter;
+import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.notion.PropertyNotion;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -103,6 +104,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
 		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
 
+		EntityContext.registerPropertyRelation(AbstractNode.class, Key.ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
+
+		
+		
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 
@@ -113,16 +118,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	//~--- fields ---------------------------------------------------------
 
-	private List<AbstractRelationship> allRelationships = null;
-	protected Boolean cachedDeletedFlag                 = null;
-	protected Boolean cachedHiddenFlag                  = null;
-	protected String cachedName                         = null;
-	protected Principal cachedOwnerNode                 = null;
-
-	// we can assume that the name of this node won't change much during the lifetime
-	// of an AbstractNode, because AbstractNodes are newly instantiated on each request.
-	protected Boolean cachedVisibleToAuthenticatedUsersFlag  = null;
-	protected Boolean cachedVisibleToPublicUsersFlag         = null;
+	protected Map<String, Object> cachedConvertedProperties  = new LinkedHashMap<String, Object>();
+	protected Map<String, Object> cachedRawProperties        = new LinkedHashMap<String, Object>();
+	private List<AbstractRelationship> allRelationships      = null;
+	protected Principal cachedOwnerNode                      = null;
 	private List<AbstractRelationship> incomingRelationships = null;
 	private List<AbstractRelationship> outgoingRelationships = null;
 
@@ -135,8 +134,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected Node dbNode;
 
 	// dirty flag, true means that some changes are not yet written to the database
-	protected boolean isDirty;
 	protected Map<String, Object> properties;
+	protected String cachedUuid = null;
+	protected boolean isDirty;
 
 //      protected Principal user;
 
@@ -145,7 +145,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static enum Key implements PropertyKey {
 
 		uuid, name, type, createdBy, createdDate, deleted, hidden, lastModifiedDate, visibleToPublicUsers, visibilityEndDate, visibilityStartDate,
-		visibleToAuthenticatedUsers, categories, owner;
+		visibleToAuthenticatedUsers, categories, ownerId
 
 	}
 
@@ -204,7 +204,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		this.dbNode          = dbNode;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
-
 	}
 
 	private void init(final SecurityContext securityContext, final AbstractNode node) {
@@ -245,13 +244,25 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public int compareTo(final AbstractNode node) {
 
-		if ((node == null) || (node.getName() == null) || (this.getName() == null)) {
-
+		if(node == null) {
 			return -1;
 		}
-
-		return (this.getName().compareTo(node.getName()));
-
+		
+		
+		String name = getName();
+		
+		if(name == null) {
+			return -1;
+		}
+		
+		
+		String nodeName = node.getName();
+		
+		if(nodeName == null) {
+			return -1;
+		}
+		
+		return name.compareTo(nodeName);
 	}
 
 	/**
@@ -651,23 +662,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * If name is null, return node id as fallback
 	 */
 	public String getName() {
-
-		// cache name locally for faster access (during sorting etc.)
-		if (cachedName == null) {
-
-			Object nameProperty = getProperty(Key.name.name());
-
-			if (nameProperty != null) {
-
-				cachedName = (String) nameProperty;
-			} else {
-
-				cachedName = getNodeId().toString();
-			}
-
+		
+		String name = getStringProperty(Key.name.name());
+		if (name == null) {
+			name = getNodeId().toString();
 		}
 
-		return cachedName;
+		return name;
 	}
 
 	/**
@@ -685,6 +686,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	@Override
 	public String getUuid() {
 
 		return getStringProperty(Key.uuid);
@@ -765,47 +767,19 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	public boolean getVisibleToPublicUsers() {
-
-		if (cachedVisibleToPublicUsersFlag == null) {
-
-			cachedVisibleToPublicUsersFlag = getBooleanProperty(Key.visibleToPublicUsers.name());
-		}
-
-		return cachedVisibleToPublicUsersFlag.booleanValue();
-
+		return getBooleanProperty(Key.visibleToPublicUsers.name());
 	}
 
 	public boolean getVisibleToAuthenticatedUsers() {
-
-		if (cachedVisibleToPublicUsersFlag == null) {
-
-			cachedVisibleToAuthenticatedUsersFlag = getBooleanProperty(Key.visibleToPublicUsers.name());
-		}
-
-		return cachedVisibleToPublicUsersFlag.booleanValue();
-
+		return getBooleanProperty(Key.visibleToPublicUsers.name());
 	}
 
 	public boolean getHidden() {
-
-		if (cachedHiddenFlag == null) {
-
-			cachedHiddenFlag = getBooleanProperty(Key.hidden.name());
-		}
-
-		return cachedHiddenFlag.booleanValue();
-
+		return getBooleanProperty(Key.hidden.name());
 	}
 
 	public boolean getDeleted() {
-
-		if (cachedDeletedFlag == null) {
-
-			cachedDeletedFlag = getBooleanProperty(Key.deleted.name());
-		}
-
-		return cachedDeletedFlag.booleanValue();
-
+		return getBooleanProperty(Key.deleted.name());
 	}
 
 	/**
@@ -915,9 +889,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public Object getProperty(final String key) {
-
-		Object value = null;
-		Class type   = this.getClass();
+		return getProperty(key, true);
+	}
+	
+	private Object getProperty(final String key, boolean applyConverter) {
 
 		if (key == null) {
 
@@ -926,90 +901,120 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return null;
 
 		}
+		
+		Object value;
+		
+		if (isDirty) {
+
+			return properties.get(key);
+		}
 
 		if (dbNode == null) {
 
 			return null;
 		}
 
-		// ----- BEGIN property group resolution -----
-		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+		value          = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
+		Class type            = this.getClass();
+		boolean dontCache     = false;
 
-		if (propertyGroup != null) {
+		// only use cached value if property is accessed the "normal" way (i.e. WITH converters)
+		if (value == null) {
+			
+			// ----- BEGIN property group resolution -----
+			PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
 
-			return propertyGroup.getGroupedProperties(this);
-		}
+			if (propertyGroup != null) {
 
-		if (dbNode.hasProperty(key)) {
-
-			if (isDirty) {
-
-				value = properties.get(key);
+				return propertyGroup.getGroupedProperties(this);
 			}
 
-			if ((key != null) && (dbNode != null)) {
+			if (dbNode.hasProperty(key)) {
 
-				value = dbNode.getProperty(key);
+				if ((key != null) && (dbNode != null)) {
+
+					value = dbNode.getProperty(key);
+				}
+
+			} else {
+
+				// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
+				RelationClass rel = EntityContext.getRelationClass(type, key);
+
+				if (rel != null) {
+
+					// apply notion (default is "as-is")
+					Notion notion = rel.getNotion();
+
+					// return collection or single element depending on cardinality of relationship
+					switch (rel.getCardinality()) {
+
+						case ManyToMany :
+						case OneToMany :
+							value     = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
+							dontCache = true;
+							break;
+
+						case OneToOne :
+						case ManyToOne :
+							try {
+
+								value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+								dontCache = true;
+
+							} catch (FrameworkException fex) {
+
+								logger.log(Level.WARNING, "Error while adapting related node", fex);
+
+							}
+
+							break;
+
+					}
+				}
+
+				// ----- END automatic property resolution -----
 			}
 
-		} else {
+			// no value found, use schema default
+			if (value == null) {
 
-			// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-			RelationClass rel = EntityContext.getRelationClass(type, key);
+				value = EntityContext.getDefaultValue(type, key);
+				dontCache = true;
+			}
 
-			if (rel != null) {
+			// only apply converter if requested
+			// (required for getComparableProperty())
+			if(applyConverter) {
 
-				// apply notion (default is "as-is")
-				Notion notion = rel.getNotion();
+				// apply property converters
+				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 
-				// return collection or single element depending on cardinality of relationship
-				switch (rel.getCardinality()) {
+				if (converter != null) {
 
-					case ManyToMany :
-					case OneToMany :
-						value = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
+					Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
 
-						break;
+					converter.setCurrentObject(this);
 
-					case OneToOne :
-					case ManyToOne :
-						try {
-
-							value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
-
-						} catch (FrameworkException fex) {
-
-							logger.log(Level.WARNING, "Error while adapting related node", fex);
-
-						}
-
-						break;
+					value = converter.convertForGetter(value, conversionValue);
 
 				}
 			}
 
-			// ----- END automatic property resolution -----
+			if(!dontCache) {
+				
+				// only cache value if it is NOT the schema default
+				if(applyConverter) {
+					
+					cachedConvertedProperties.put(key, value);
+					
+				} else {
+					
+					cachedRawProperties.put(key, value);
+				}
+			}
 		}
-
-		// no value found, use schema default
-		if (value == null) {
-
-			value = EntityContext.getDefaultValue(type, key);
-		}
-
-		// apply property converters
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-
-		if (converter != null) {
-
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
-			converter.setCurrentObject(this);
-
-			value = converter.convertForGetter(value, conversionValue);
-
-		}
-
+		
 		return value;
 
 	}
@@ -1253,6 +1258,40 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	@Override
+	public Comparable getComparableProperty(final PropertyKey propertyKey) {
+		return getComparableProperty(propertyKey.name());
+	}
+
+	@Override
+	public Comparable getComparableProperty(final String key) {
+
+		Object propertyValue = getProperty(key, false);	// get "raw" property without converter
+		Class type = getClass();
+		
+		// check property converter
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+		if (converter != null) {
+			
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			converter.setCurrentObject(this);
+
+			return converter.convertForSorting(propertyValue, conversionValue);
+		}
+		
+		// conversion failed, may the property value itself is comparable
+		if(propertyValue instanceof Comparable) {
+			return (Comparable)propertyValue;
+		}
+		
+		// last try: convert to String to make comparable
+		if(propertyValue != null) {
+			return propertyValue.toString();
+		}
+		
+		return null;
+	}
+	
 	public AbstractNode getRelatedNode(Class type) {
 
 		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
@@ -1700,6 +1739,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+		
+		cachedUuid = (String)properties.get(AbstractNode.Key.uuid.name());
+		
 		return true;
 	}
 	
@@ -1709,6 +1751,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext) {
 	}
 	
 	private boolean isValid(ErrorBuffer errorBuffer) {
@@ -1947,7 +1993,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken("base"));
 
 		}
-
+		
 		// check for read-only properties
 		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key))) {
 
@@ -2062,6 +2108,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				// Don't write directly to database, but store property values
 				// in a map for later use
 				properties.put(key, convertedValue);
+				
 			} else {
 
 				// Commit value directly to database
@@ -2115,6 +2162,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 
+		// remove property from cached properties
+		cachedConvertedProperties.remove(key);
+		cachedRawProperties.remove(key);
 	}
 
 	public void setOwner(final Principal owner) {
@@ -2123,7 +2173,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
 
-			setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(owner));
+			setOwner.execute(this, owner);
 
 		} catch (FrameworkException fex) {
 

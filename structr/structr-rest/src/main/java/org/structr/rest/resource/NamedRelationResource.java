@@ -19,6 +19,7 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
@@ -63,13 +65,13 @@ public class NamedRelationResource extends WrappingResource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<GraphObject> relationResults = new LinkedList<GraphObject>();
 		if(wrappedResource != null) {
 
 			// extract relationships from wrapped resource
-			List<? extends GraphObject> results = wrappedResource.doGet();
+			List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page).getResults();
 			for(GraphObject obj : results) {
 				if (obj instanceof AbstractNode) {
 					relationResults.addAll(namedRelation.getRelationships((AbstractNode) obj));
@@ -128,7 +130,7 @@ public class NamedRelationResource extends WrappingResource {
 			}
 		}
 		
-		return relationResults;
+		return new Result(relationResults, null, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override
@@ -146,18 +148,25 @@ public class NamedRelationResource extends WrappingResource {
 			AbstractNode startNode   = relationshipEntity.identifyStartNode(namedRelation, propertySet);
 			AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
 			RelationshipType relType = namedRelation.getRelType();
+			ErrorBuffer errorBuffer  = new ErrorBuffer();
+			boolean hasError         = false;
 
 			if(startNode == null) {
-				throw new FrameworkException(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getStartNodeIdKey().name()));
+				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getStartNodeIdKey().name()));
+				hasError = true;
 			}
 			
 			if(endNode == null) {
-				throw new FrameworkException(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getEndNodeIdKey().name()));
+				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getEndNodeIdKey().name()));
+				hasError = true;
+			}
+			
+			if(hasError) {
+				throw new FrameworkException(422, errorBuffer);
 			}
 			
 			Class sourceType = namedRelation.getSourceType();
 			Class destType = namedRelation.getDestType();
-
 
 			propertySet.put(AbstractRelationship.HiddenKey.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
 

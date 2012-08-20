@@ -1,13 +1,27 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.GraphObjectComparator;
@@ -45,21 +59,21 @@ public class SortResource extends WrappingResource {
 	}
 	
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		if(wrappedResource != null) {
 			
-			List<? extends GraphObject> results = wrappedResource.doGet();
+			Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 
 			try {
-				Collections.sort(results, new GraphObjectComparator(sortKey, sortOrder));
+				Collections.sort(result.getResults(), new GraphObjectComparator(sortKey, sortOrder));
 				
 			} catch(Throwable t) {
 				
 				throw new FrameworkException("base", new InvalidSortKey(sortKey));
 			}
 
-			return results;
+			return result;
 		}
 
 		throw new IllegalPathException();

@@ -55,7 +55,7 @@ public class WebSocketMessage {
 	private Map<String, Object> relData    = new LinkedHashMap<String, Object>();
 	private Set<String> modifiedProperties = new LinkedHashSet<String>();
 	private Set<String> removedProperties = new LinkedHashSet<String>();
-	private List<GraphObject> result       = null;
+	private List<? extends GraphObject> result       = null;
 	private TreeNode resultTree            = null;
 	private boolean sessionValid           = false;
 	private String sortKey                 = null;
@@ -131,7 +131,7 @@ public class WebSocketMessage {
 		return view;
 	}
 
-	public List<GraphObject> getResult() {
+	public List<? extends GraphObject> getResult() {
 		return result;
 	}
 
@@ -236,7 +236,7 @@ public class WebSocketMessage {
 		this.view = view;
 	}
 
-	public void setResult(List<GraphObject> result) {
+	public void setResult(List<? extends GraphObject> result) {
 		this.result = result;
 	}
 

@@ -121,6 +121,7 @@ var _Components = {
         _Entities.appendExpandIcon(div, component, hasChildren);
 	_Entities.setMouseOver(div);
 	_Entities.appendEditPropertiesIcon(div, component);
+        _Entities.appendAccessControlIcon(div, component);
 
 	div.droppable({
 	    accept: '.element',

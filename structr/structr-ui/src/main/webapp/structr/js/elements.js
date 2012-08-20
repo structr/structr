@@ -179,11 +179,10 @@ var _Elements = {
 
     appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
         if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
-
+        if (debug) console.log(entity.id);
         var parent;
         
         if (treeAddress) {
-            if (debug) console.log('tree address', treeAddress);
             parent = $('#_' + treeAddress);
         } else {
             parent = Structr.findParent(parentId, componentId, pageId, elements);
@@ -202,15 +201,16 @@ var _Elements = {
         
         //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
         var div = $('#_' + id);
+        if (debug) console.log('Element appended (div, parent)', div, parent);
         
         if (!div) return;
         
-        if (debug) console.log('Element appended', div);
-
         entity.pageId = pageId;
+        
+        var displayName = entity.tag ? entity.tag : '[' + entity.type + ']';
 
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
-            + '<b class="tag_ name_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
+            + '<b class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
             + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class : '</span>')
             + '</div>');
@@ -235,7 +235,7 @@ var _Elements = {
 
             var node = $(self.closest('.node')[0]);
 
-            var pos = node.parent().children().size();
+            var pos = node.parent().children('.node').size() - 1;
 
             var nodeData = {};
             nodeData.type = 'Component';
@@ -243,12 +243,12 @@ var _Elements = {
 
             var relData = {};
 
-            var component = node.closest('.component')[0];
-            if (component) {
-                var componentId = getId(component);
-                relData[componentId] = pos;
-                relData.componentId = componentId;
-            }
+//            var component = node.closest('.component')[0];
+//            if (component) {
+//                var componentId = getId(component);
+//                relData[componentId] = pos;
+//                relData.componentId = componentId;
+//            }
 
             var page = node.closest('.page')[0];
             if (page) {
@@ -280,6 +280,13 @@ var _Elements = {
                 var kind = $('#_kind', dialog).val();
                 
                 nodeData.kind = kind;
+                
+                dialog.empty();
+                dialogMsg.empty();
+                
+                $.unblockUI({
+                    fadeOut: 25
+                });
 
                 if (debug) console.log('start');
                 return Command.wrap(getId(node), nodeData, relData);
@@ -291,6 +298,7 @@ var _Elements = {
 
         _Entities.setMouseOver(div);
         _Entities.appendEditPropertiesIcon(div, entity);
+        _Entities.appendAccessControlIcon(div, entity);
         
         if (entity.tag == 'a' || entity.tag == 'link') {
             div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + Structr.link_icon + '">');

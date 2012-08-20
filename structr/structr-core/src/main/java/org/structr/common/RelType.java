@@ -49,5 +49,6 @@ public enum RelType implements RelationshipType {
         SUBTYPE,
 
 	// web
-	CONTAINS
+	CONTAINS,
+	IS_A
 }

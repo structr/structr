@@ -21,7 +21,6 @@
 
 package org.structr.core.node;
 
-import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
@@ -30,13 +29,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GenericNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,9 +71,11 @@ public class ClearDatabase extends NodeServiceCommand {
 				public Object execute(Transaction tx) throws FrameworkException {
 
 					long nodes                  = 0L;
-					List<AbstractNode> allNodes = (List<AbstractNode>) nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
+					Result result = (Result) nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
 
-					for (AbstractNode node : allNodes) {
+					for (GraphObject obj : result.getResults()) {
+						
+						AbstractNode node = (AbstractNode) obj;
 
 						// Delete only "our" nodes
 						if (node.getStringProperty(AbstractNode.Key.uuid) != null) {

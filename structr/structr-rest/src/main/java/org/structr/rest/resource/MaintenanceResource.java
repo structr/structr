@@ -21,10 +21,10 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.Task;
@@ -35,7 +35,6 @@ import org.structr.rest.exception.SystemException;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,7 +70,7 @@ public class MaintenanceResource extends Resource {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		throw new NotAllowedException();
 	}
 

@@ -1,10 +1,25 @@
-
 /*
-* To change this template, choose Tools | Templates
-* and open the template in the editor.
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.structr.rest.resource;
 
+import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -12,7 +27,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CypherQueryCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.*;
@@ -32,6 +46,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.GraphObjectComparator;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -83,7 +99,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
@@ -127,39 +143,49 @@ public class TypeResource extends SortableResource {
 				hasSearchableAttributesForNodes(rawType, request, searchAttributes);
 
 			}
+			
+			// default sort key & order
+			if (sortKey == null) {
+				
+				try {
+					
+					GraphObject templateEntity  = ((GraphObject)entityClass.newInstance());
+					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
+					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
+					
+					if (sortKeyProperty != null) {
+						sortKey = sortKeyProperty.name();
+					}
+					
+				} catch(Throwable t) {
+					
+					// fallback to name
+					sortKey = "name";
+				}
+			}
+			
 
 			// do search
-			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly,
-							    searchAttributes);
-
-			if (!results.isEmpty()) {
-
-				// only sort if distance search is not active
-				if (distanceSearch == null) {
-
-					applyDefaultSorting(results);
-				}
-
-				return results;
-			}
+			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
+				topNode,
+				includeDeletedAndHidden,
+				publicOnly,
+				searchAttributes,
+				sortKey,
+				sortDescending,
+				pageSize,
+				page
+			);
+			
+			return results;
+			
 		} else {
 
 			logger.log(Level.WARNING, "type was null");
 		}
 
-		return Collections.emptyList();
-
-//              // return 404 if search attributes were posted
-//              if(hasSearchableAttributesForNodes) {
-//
-//                      throw new NotFoundException();
-//
-//              } else {
-//                      // throw new NoResultsException();
-//                      return Collections.emptyList();
-//
-//              }
-
+		List emptyList = Collections.emptyList();
+		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override

@@ -37,6 +37,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.PropertySet;
+import org.structr.core.Result;
 import org.structr.core.node.NodeAttribute;
 
 //~--- classes ----------------------------------------------------------------
@@ -75,15 +76,15 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 			}
 
 			// just check for existance
-			List<AbstractNode> nodes = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
-			if(nodes.size() == 1) {
+			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+			if (result.size() == 1) {
 				
-				AbstractNode node = nodes.get(0);
+				GraphObject obj = result.get(0);
 				
-				if(!type.isAssignableFrom(node.getClass())) {
+				if(!type.isAssignableFrom(obj.getClass())) {
 					throw new FrameworkException(type.getSimpleName(), new TypeToken("base", type.getSimpleName()));
 				}
-				return nodes.get(0);
+				return result.get(0);
 			}
 
 			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("base", attributes));

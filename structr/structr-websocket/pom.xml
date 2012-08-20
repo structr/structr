@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.5.1</version>
+        <version>0.5.2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-websocket</artifactId>
     <packaging>jar</packaging>
-    <version>0.5.1</version>
+    <version>0.5.2-SNAPSHOT</version>
     <name>structr-websocket</name>
     <url>http://structr.org</url>
     <build>
@@ -31,9 +31,13 @@
     </build>
     <repositories>
         <repository>
-            <id>maven.structr.org</id>
-            <url>http://maven.structr.org/</url>
+            <id>snapshots.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
         </repository>
+        <repository>
+            <id>releases.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/release</url>
+        </repository> 
     </repositories>
     <dependencies>
         <dependency>

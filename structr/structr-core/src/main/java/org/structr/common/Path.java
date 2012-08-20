@@ -16,6 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.structr.common;
 
 /**
@@ -27,6 +28,7 @@ public enum Path {
     ConfigFile,
     Base,
     Database,
+    LogDatabase,
     Files,
     Modules,
     Temp

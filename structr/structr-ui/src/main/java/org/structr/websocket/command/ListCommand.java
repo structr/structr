@@ -36,6 +36,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,8 +64,10 @@ public class ListCommand extends AbstractCommand {
 		try {
 
 			// do search
-			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly,
+			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly,
 							    searchAttributes);
+			
+			List<? extends GraphObject> resultList = result.getResults();
 
 			// sorting
 			if (webSocketData.getSortKey() != null) {
@@ -111,7 +114,7 @@ public class ListCommand extends AbstractCommand {
 
 					if (comparator != null) {
 
-						Collections.sort(results, comparator);
+						Collections.sort(resultList, comparator);
 					}
 
 				} catch (Throwable t) {
@@ -121,13 +124,17 @@ public class ListCommand extends AbstractCommand {
 
 			}
 
-			for (GraphObject obj : results) {
+			for (GraphObject obj : resultList) {
 
-				AbstractNode node = (AbstractNode) obj;
 
-				if ((obj instanceof AbstractNode) && RelationshipHelper.hasChildren(node, node.getUuid())) {
+				if (obj instanceof AbstractNode) {
+					
+					AbstractNode node = (AbstractNode) obj;
+					
+					if (RelationshipHelper.hasChildren(node, node.getUuid())) {
 
-					nodesWithChildren.add(node.getUuid());
+						nodesWithChildren.add(node.getUuid());
+					}
 				}
 
 			}
@@ -140,17 +147,17 @@ public class ListCommand extends AbstractCommand {
 
 				int pageSize    = webSocketData.getPageSize();
 				int page        = webSocketData.getPage();
-				int resultCount = results.size();
+				int resultCount = result.size();
 				int fromIndex   = Math.min(resultCount, Math.max(0, (page - 1) * pageSize));
 				int toIndex     = Math.min(resultCount, page * pageSize);
 
 				// set paged results
-				webSocketData.setResult(results.subList(fromIndex, toIndex));
+				webSocketData.setResult(resultList.subList(fromIndex, toIndex));
 
 			} else {
 
 				// set full result list
-				webSocketData.setResult(results);
+				webSocketData.setResult(resultList);
 			}
 
 			// send only over local connection

@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.structr.core.converter;
@@ -10,7 +24,6 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.time.DateUtils;
-import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
 /**
@@ -29,9 +42,9 @@ public class DateConverter extends PropertyConverter {
 			
 			try {
 
-				if(source instanceof Date) {
+				if (source instanceof Date) {
 					return ((Date)source).getTime();
-				} else if(source instanceof String) {
+				} else if (source instanceof String) {
 					Date date = DateUtils.parseDate(((String)source), DatePatterns);
 					return date.getTime();
 				}
@@ -55,5 +68,21 @@ public class DateConverter extends PropertyConverter {
 		}
 
 		return source;
+	}
+
+	@Override
+	public Comparable convertForSorting(Object source, Value value) {
+
+		if (source != null) {
+			
+			if (source instanceof Comparable) {
+				return (Comparable)source;
+			}
+			
+			// fallback to superclass
+			return super.convertForSorting(source, value);
+		}
+
+		return null;
 	}
 }

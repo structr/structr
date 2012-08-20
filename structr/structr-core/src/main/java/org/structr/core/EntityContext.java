@@ -21,6 +21,7 @@
 
 package org.structr.core;
 
+import org.structr.core.converter.PropertyConverter;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
@@ -42,7 +43,6 @@ import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.module.GetEntitiesCommand;
-import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.*;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.IndexRelationshipCommand;
@@ -57,7 +57,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.structr.core.entity.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -81,9 +80,11 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap   = new LinkedHashMap<Class, Map<String, Set<String>>>();
 
 	// This map contains a mapping from (sourceType, propertyKey) -> RelationClass
-	private static final Map<Class, Map<String, RelationClass>> globalPropertyRelationClassMap                  = new LinkedHashMap<Class, Map<String, RelationClass>>();
-	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalAggregatedPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap           = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Map<String, RelationClass>> globalPropertyRelationClassMap                            = new LinkedHashMap<Class, Map<String, RelationClass>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                    = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 
 	// This map contains view-dependent result set transformations
 	private static final Map<Class, Map<String, Transformation<List<? extends GraphObject>>>> viewTransformations = new LinkedHashMap<Class, Map<String, Transformation<List<? extends GraphObject>>>>();
@@ -103,10 +104,12 @@ public class EntityContext {
 	private static final Map<String, Class> reverseInterfaceMap                                             = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                                        = new LinkedHashMap<String, Class>();
 
-	private static final Map<Thread, Set<AbstractRelationship>> modifiedRelationshipMap                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
 	private static final Map<Thread, Set<AbstractRelationship>> createdRelationshipMap                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
-	private static final Map<Thread, Set<AbstractNode>> modifiedNodeMap                                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
+	private static final Map<Thread, Set<AbstractRelationship>> modifiedRelationshipMap                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
+	private static final Map<Thread, Set<AbstractRelationship>> deletedRelationshipMap                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
 	private static final Map<Thread, Set<AbstractNode>> createdNodeMap                                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
+	private static final Map<Thread, Set<AbstractNode>> modifiedNodeMap                                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
+	private static final Map<Thread, Set<AbstractNode>> deletedNodeMap                                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
 	private static final Map<Thread, SecurityContext> securityContextMap                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
 	private static final Map<Thread, Long> transactionKeyMap                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 
@@ -388,6 +391,10 @@ public class EntityContext {
 	// ----- read-only property map -----
 	public static void registerReadOnlyProperty(Class type, String key) {
 		getReadOnlyPropertySetForType(type).add(key);
+	}
+	
+	public static void registerReadOnlyProperty(Class type, PropertyKey key) {
+		getReadOnlyPropertySetForType(type).add(key.name());
 	}
 
 	// ----- searchable property map -----
@@ -725,27 +732,32 @@ public class EntityContext {
 	}
 
 	public static PropertyGroup getPropertyGroup(Class type, String key) {
-		
-		PropertyGroup group = null;
-		Class localType     = type;
-		
-		while(group == null && localType != null && !localType.equals(Object.class)) {
 
-			group = getPropertyGroupMapForType(localType).get(key);
+		PropertyGroup group = getAggregatedPropertyGroupMapForType(type).get(key);
+		if(group == null) {
+			
+			Class localType     = type;
 
-			if(group == null) {
+			while(group == null && localType != null && !localType.equals(Object.class)) {
 
-				// try interfaces as well
-				for(Class interfaceClass : getInterfacesForType(localType)) {
+				group = getPropertyGroupMapForType(localType).get(key);
 
-					group = getPropertyGroupMapForType(interfaceClass).get(key);
-					if(group != null) {
-						break;
+				if(group == null) {
+
+					// try interfaces as well
+					for(Class interfaceClass : getInterfacesForType(localType)) {
+
+						group = getPropertyGroupMapForType(interfaceClass).get(key);
+						if(group != null) {
+							break;
+						}
 					}
 				}
+
+				localType = localType.getSuperclass();
 			}
 			
-			localType = localType.getSuperclass();
+			getAggregatedPropertyGroupMapForType(type).put(key, group);
 		}
 		
 		return group;
@@ -940,32 +952,35 @@ public class EntityContext {
 
 	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, String propertyKey) {
 
-		Map<String, Class<? extends PropertyConverter>> converterMap = null;
-		PropertyConverter propertyConverter                          = null;
-		Class localType                                              = type;
-		Class clazz                                                  = null;
+		Class clazz = getAggregatedPropertyConverterMapForType(type).get(propertyKey);
+		if(clazz == null) {
+			
+			Map<String, Class<? extends PropertyConverter>> converterMap = null;
+			Class localType                                              = type;
 
-		while ((clazz == null) &&!localType.equals(Object.class)) {
+			while ((clazz == null) &&!localType.equals(Object.class)) {
 
-			converterMap = getPropertyConverterMapForType(localType);
-			clazz        = converterMap.get(propertyKey);
-		
-			// try converters from interfaces as well
-			if(clazz == null) {
+				converterMap = getPropertyConverterMapForType(localType);
+				clazz        = converterMap.get(propertyKey);
 
-				for(Class interfaceClass : getInterfacesForType(localType)) {
-					clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
-					if(clazz != null) {
-						break;
+				// try converters from interfaces as well
+				if(clazz == null) {
+
+					for(Class interfaceClass : getInterfacesForType(localType)) {
+						clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
+						if(clazz != null) {
+							break;
+						}
 					}
 				}
+
+				localType = localType.getSuperclass();
 			}
-
-//                      logger.log(Level.INFO, "Converter class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
-			localType = localType.getSuperclass();
-
+			
+			getAggregatedPropertyConverterMapForType(type).put(propertyKey, clazz);
 		}
 
+		PropertyConverter propertyConverter = null;
 		if (clazz != null) {
 
 			try {
@@ -1090,6 +1105,21 @@ public class EntityContext {
 		return validatorMap;
 	}
 
+	private static Map<String, Class<? extends PropertyConverter>> getAggregatedPropertyConverterMapForType(Class type) {
+
+		Map<String, Class<? extends PropertyConverter>> PropertyConverterMap = globalAggregatedPropertyConverterMap.get(type);
+
+		if (PropertyConverterMap == null) {
+
+			PropertyConverterMap = new LinkedHashMap<String, Class<? extends PropertyConverter>>();
+
+			globalAggregatedPropertyConverterMap.put(type, PropertyConverterMap);
+
+		}
+
+		return PropertyConverterMap;
+	}
+
 	private static Map<String, Class<? extends PropertyConverter>> getPropertyConverterMapForType(Class type) {
 
 		Map<String, Class<? extends PropertyConverter>> PropertyConverterMap = globalPropertyConverterMap.get(type);
@@ -1178,6 +1208,21 @@ public class EntityContext {
 		}
 
 		return searchablePropertyMap;
+	}
+
+	private static Map<String, PropertyGroup> getAggregatedPropertyGroupMapForType(Class type) {
+
+		Map<String, PropertyGroup> groupMap = globalAggregatedPropertyGroupMap.get(type);
+
+		if (groupMap == null) {
+
+			groupMap = new LinkedHashMap<String, PropertyGroup>();
+
+			globalAggregatedPropertyGroupMap.put(type, groupMap);
+
+		}
+
+		return groupMap;
 	}
 
 	private static Map<String, PropertyGroup> getPropertyGroupMapForType(Class type) {
@@ -1318,6 +1363,8 @@ public class EntityContext {
 
 		transactionKeyMap.remove(Thread.currentThread());
 		securityContextMap.remove(Thread.currentThread());
+		deletedRelationshipMap.remove(Thread.currentThread());
+		deletedNodeMap.remove(Thread.currentThread());
 		modifiedRelationshipMap.remove(Thread.currentThread());
 		modifiedNodeMap.remove(Thread.currentThread());
 		createdRelationshipMap.remove(Thread.currentThread());
@@ -1350,6 +1397,34 @@ public class EntityContext {
 		}
 		
 		return nodes;
+	}
+	
+	public static synchronized Set<AbstractNode> getDeletedNodes() {
+		
+		Thread currentThread = Thread.currentThread();
+		Set<AbstractNode> nodes = deletedNodeMap.get(currentThread);
+		
+		if(nodes == null) {
+			
+			nodes = new LinkedHashSet<AbstractNode>();
+			deletedNodeMap.put(currentThread, nodes);
+		}
+		
+		return nodes;
+	}
+
+	public static synchronized Set<AbstractRelationship> getDeletedRelationships() {
+		
+		Thread currentThread = Thread.currentThread();
+		Set<AbstractRelationship> rels = deletedRelationshipMap.get(currentThread);
+		
+		if(rels == null) {
+			
+			rels = new LinkedHashSet<AbstractRelationship>();
+			deletedRelationshipMap.put(currentThread, rels);
+		}
+		
+		return rels;
 	}
 
 	public static synchronized Set<AbstractRelationship> getCreatedRelationships() {
@@ -1564,14 +1639,16 @@ public class EntityContext {
 					AbstractNode entity = nodeFactory.createDeletedNode(securityContext, node, type);
 					
 					if(entity != null) {
+						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, removedNodeProperties.get(node));
 						
 						// notify registered listeners
 						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, removedNodeProperties.get(node));
 						}
-					}
 
+						deletedNodes.add(entity);
+					}
 				}
 
 				// 6: validate property modifications and
@@ -1702,8 +1779,10 @@ public class EntityContext {
 				// cache change set
 				getModifiedRelationships().addAll(modifiedRels);
 				getCreatedRelationships().addAll(createdRels);
+				getDeletedRelationships().addAll(deletedRels);
 				getModifiedNodes().addAll(modifiedNodes);
 				getCreatedNodes().addAll(createdNodes);
+				getDeletedNodes().addAll(deletedNodes);
 				
 				
 			} catch (FrameworkException fex) {

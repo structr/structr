@@ -23,7 +23,6 @@ package org.structr.websocket.command;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -45,10 +44,11 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import org.apache.commons.lang.StringUtils;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,21 +67,30 @@ public class RemoveCommand extends AbstractCommand {
 		// create static relationship
 		String id                = webSocketData.getId();
 		String parentId          = (String) webSocketData.getNodeData().get("id");
-		final String componentId = (String) webSocketData.getNodeData().get("componentId");
-		final String pageId      = (String) webSocketData.getNodeData().get("pageId");
-		String position          = (String) webSocketData.getNodeData().get("position");
+		//final String componentId = (String) webSocketData.getNodeData().get("componentId");
+		final String treeAddress = (String) webSocketData.getNodeData().get("treeAddress");
+		final String pageId;
+		String position;
+		
+		if (StringUtils.isNotBlank(treeAddress)) {
+			pageId		= treeAddress.substring(0, 32);
+			position	= StringUtils.substringAfterLast(treeAddress, "_");
+		} else {
+			pageId		= (String) webSocketData.getNodeData().get("pageId");
+			position        = (String) webSocketData.getNodeData().get("position");
+		}
 
-		if ((id != null) && (parentId != null)) {
+		if (id != null) {
 
 			final AbstractNode nodeToRemove = getNode(id);
-			final AbstractNode parentNode   = getNode(parentId);
+			//final AbstractNode parentNode   = getNode(parentId);
 			final Long pos                  = (position != null)
 							  ? Long.parseLong(position)
 							  : null;
+			
+			if (nodeToRemove != null) {
 
-			if ((nodeToRemove != null) && (parentNode != null)) {
-
-				final List<AbstractRelationship> rels = parentNode.getRelationships(RelType.CONTAINS, Direction.OUTGOING);
+				final List<AbstractRelationship> rels = nodeToRemove.getRelationships(RelType.CONTAINS, Direction.INCOMING);
 				StructrTransaction transaction        = new StructrTransaction() {
 
 					@Override
@@ -108,7 +117,7 @@ public class RemoveCommand extends AbstractCommand {
 										if (pos.equals(rel.getLongProperty(pageId))) {
 
 											rel.removeProperty(pageId);
-											RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
+											//RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
 
 											hasPageId = hasPageIds(securityContext, rel);
 
@@ -192,7 +201,7 @@ public class RemoveCommand extends AbstractCommand {
 				attrs.add(Search.andExactType(Page.class.getSimpleName()));
 				attrs.add(Search.andExactUuid(key));
 
-				List<AbstractNode> results = (List<AbstractNode>) searchNode.execute(null, false, false, attrs);
+				Result results = (Result) searchNode.execute(null, false, false, attrs);
 
 				if (results != null && !results.isEmpty()) {
 

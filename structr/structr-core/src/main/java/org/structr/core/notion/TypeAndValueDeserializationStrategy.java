@@ -40,6 +40,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.TypeToken;
+import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -80,9 +81,9 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 		// attrs.addAll(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
 		// just check for existance
-		List<AbstractNode> nodes = (List<AbstractNode>) Services.command(securityContext,
+		Result result = (Result) Services.command(securityContext,
 						   SearchNodeCommand.class).execute(null, false, false, attrs);
-		int resultCount = nodes.size();
+		int resultCount = result.size();
 
 		switch (resultCount) {
 
@@ -111,12 +112,12 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				break;
 
 			case 1 :
-				AbstractNode node = nodes.get(0);
+				GraphObject obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
-				if (!type.isAssignableFrom(node.getClass())) {
+				if (!type.isAssignableFrom(obj.getClass())) {
 					throw new FrameworkException("base", new TypeToken(propertyKey.name(), type.getSimpleName()));
 				}
-				return node;
+				return obj;
 		}
 
 		if (source != null) {

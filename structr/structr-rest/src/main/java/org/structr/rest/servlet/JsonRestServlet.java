@@ -41,11 +41,10 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
-import org.structr.rest.resource.PagingResource;
+import org.structr.rest.resource.PagingHelper;
 import org.structr.rest.resource.RelationshipFollowingResource;
 import org.structr.rest.resource.Resource;
-import org.structr.rest.resource.Result;
-import org.structr.rest.resource.SortResource;
+import org.structr.core.Result;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 
@@ -75,6 +74,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.*;
 import org.structr.core.entity.RelationshipMapping;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.*;
 
 //~--- classes ----------------------------------------------------------------
@@ -290,6 +290,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="GET">
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -307,14 +308,30 @@ public class JsonRestServlet extends HttpServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
-			Resource resource     = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
+			Resource resource     = applyViewTransformation(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
 			
 			// let authenticator examine request again
 			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(), propertyView.get(securityContext));
 			
-			// do action
-			Result result         = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
+			// add sorting & paging
+			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+			String sortKey           = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
+			int pageSize		 = parseInt(pageSizeParameter, -1);
+			int page                 = parseInt(pageParameter, -1);
 			
+			// do action
+			Result result            = resource.doGet(sortKey, sortDescending, pageSize, page);
+			result.setIsCollection(resource.isCollectionResource());
+			result.setIsPrimitiveArray(resource.isPrimitiveArray());
+			
+			//Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
+			
+			PagingHelper.addPagingParameter(result, pageSize, page);
+			//Services.removeAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
+
 			// timing..
 			double queryTimeEnd   = System.nanoTime();
 
@@ -391,6 +408,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="HEAD">
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -452,6 +470,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -513,6 +532,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="POST">
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -599,6 +619,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="PUT">
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -669,6 +690,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -683,6 +705,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private List<Resource> parsePath(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
@@ -762,7 +785,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				if (!found) {
 
-					throw new IllegalPathException();
+					throw new NotFoundException();
 
 				}
 
@@ -862,7 +885,7 @@ public class JsonRestServlet extends HttpServlet {
 			
 			// inform final constraint about the configured ID property
 			finalConstraint.configureIdProperty(defaultIdProperty);
-
+			
 			return finalConstraint;
 
 		}
@@ -893,9 +916,9 @@ public class JsonRestServlet extends HttpServlet {
 		return propertyFormat;
 	}
 
-	private Resource addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, Resource finalResource) throws FrameworkException {
+	private Resource applyViewTransformation(HttpServletRequest request, SecurityContext securityContext, Resource finalResource) throws FrameworkException {
 
-		Resource pagedSortedResource = finalResource;
+		Resource transformedResource = finalResource;
 
 		// add view transformation
 		Class type = finalResource.getEntityClass();
@@ -903,48 +926,11 @@ public class JsonRestServlet extends HttpServlet {
 			
 			Transformation<List<? extends GraphObject>> transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
 			if(transformation != null) {
-				pagedSortedResource = pagedSortedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
+				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
 			}
 		}
-		
-		// add sorting
-		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 
-		if (sortKey != null) {
-
-			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-
-			if (sortOrder == null) {
-
-				sortOrder = DEFAULT_VALUE_SORT_ORDER;
-
-			}
-
-			// combine sort constraint
-			pagedSortedResource = pagedSortedResource.tryCombineWith(new SortResource(securityContext, sortKey, sortOrder));
-
-		}
-
-		// add paging
-		String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-
-		if (pageSizeParameter != null) {
-
-			String pageParameter = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			int pageSize         = parseInt(pageSizeParameter, DEFAULT_VALUE_PAGE_SIZE);
-			int page             = parseInt(pageParameter, 1);
-
-			if (pageSize <= 0) {
-
-				throw new IllegalPathException();
-
-			}
-
-			pagedSortedResource = pagedSortedResource.tryCombineWith(new PagingResource(securityContext, page, pageSize));
-
-		}
-
-		return pagedSortedResource;
+		return transformedResource;
 	}
 
 	/**
@@ -965,6 +951,29 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 			return Integer.parseInt(value);
+		} catch (Throwable ignore) {}
+
+		return defaultValue;
+	}
+
+	/**
+	 * Tries to parse the given String to a long value, returning
+	 * defaultValue on error.
+	 *
+	 * @param value the source String to parse
+	 * @param defaultValue the default value that will be returned when parsing fails
+	 * @return the parsed value or the given default value when parsing fails
+	 */
+	private long parseLong(String value, long defaultValue) {
+
+		if (value == null) {
+
+			return defaultValue;
+
+		}
+
+		try {
+			return Long.parseLong(value);
 		} catch (Throwable ignore) {}
 
 		return defaultValue;

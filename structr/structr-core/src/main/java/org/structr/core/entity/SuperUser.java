@@ -21,19 +21,19 @@
 
 package org.structr.core.entity;
 
-import java.util.Collections;
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.structr.common.AccessControllable;
-import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,152 +53,273 @@ public class SuperUser implements Principal {
 	@Override
 	public void removeProperty(String key) throws FrameworkException {}
 
+	@Override
+	public void grant(Permission permission, AccessControllable obj) {}
+
+	@Override
+	public void revoke(Permission permission, AccessControllable obj) {}
+
+	@Override
+	public void unlockReadOnlyPropertiesOnce() {}
+
+	@Override
+	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		return true;
+
+	}
+
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		return true;
+
+	}
+
+	@Override
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+
+		return true;
+
+	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) {}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) {}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext) {}
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public long getId() {
+
 		return -1L;
+
 	}
 
-//	@Override
+//      @Override
 	public String getRealName() {
+
 		return "Super User";
+
 	}
 
 	@Override
 	public Boolean getBlocked() {
+
 		return false;
+
 	}
 
 	@Override
 	public String getEncryptedPassword() {
+
 		return null;
+
 	}
 
-//	@Override
+//      @Override
 	public Object getPropertyForIndexing(String key) {
+
 		return null;
+
 	}
 
-//	@Override
+//      @Override
 	public String getPassword() {
+
 		return null;
+
 	}
 
-//	@Override
+//      @Override
 	public String getConfirmationKey() {
+
 		return null;
+
 	}
 
-//	@Override
+//      @Override
 	public String getSessionId() {
+
 		return null;
+
 	}
 
 	@Override
 	public String getType() {
+
 		return null;
+
 	}
 
 	@Override
 	public Iterable<String> getPropertyKeys(String propertyView) {
+
 		return null;
+
 	}
 
 	@Override
 	public Object getProperty(String key) {
+
 		return null;
+
 	}
 
 	@Override
 	public Object getProperty(PropertyKey propertyKey) {
+
 		return null;
+
 	}
 
 	@Override
 	public String getStringProperty(String key) {
+
 		return null;
+
 	}
 
 	@Override
 	public String getStringProperty(PropertyKey propertyKey) {
+
 		return null;
+
 	}
 
 	@Override
 	public Integer getIntProperty(String key) {
+
 		return null;
+
 	}
 
 	@Override
 	public Integer getIntProperty(PropertyKey propertyKey) {
+
 		return null;
+
 	}
 
 	@Override
 	public Date getDateProperty(String key) {
+
 		return null;
+
 	}
 
 	@Override
 	public Date getDateProperty(PropertyKey key) {
+
 		return null;
+
 	}
 
 	@Override
 	public boolean getBooleanProperty(String key) throws FrameworkException {
+
 		return false;
+
 	}
 
 	@Override
 	public boolean getBooleanProperty(PropertyKey key) throws FrameworkException {
+
 		return false;
+
 	}
 
 	@Override
 	public Double getDoubleProperty(String key) throws FrameworkException {
+
 		return null;
+
 	}
 
 	@Override
 	public Double getDoubleProperty(PropertyKey key) throws FrameworkException {
+
 		return null;
+
+	}
+
+	@Override
+	public Comparable getComparableProperty(PropertyKey key) throws FrameworkException {
+
+		return null;
+
+	}
+
+	@Override
+	public Comparable getComparableProperty(String key) throws FrameworkException {
+
+		return null;
+
 	}
 
 	@Override
 	public PropertyKey getDefaultSortKey() {
+
 		return null;
+
 	}
 
 	@Override
 	public String getDefaultSortOrder() {
+
 		return null;
+
+	}
+
+	@Override
+	public List<Principal> getParents() {
+
+		return Collections.emptyList();
+
+	}
+
+	@Override
+	public String getUuid() {
+
+		return null;
+
 	}
 
 	@Override
 	public Boolean isBlocked() {
+
 		return false;
+
 	}
 
-//	@Override
+//      @Override
 	public boolean isFrontendUser() {
+
 		return (true);
+
 	}
 
-//	@Override
+//      @Override
 	public boolean isBackendUser() {
+
 		return (true);
+
 	}
 
 	//~--- set methods ----------------------------------------------------
 
-//	@Override
+//      @Override
 	public void setPassword(final String passwordValue) {
 
 		// not supported
 	}
 
-//	@Override
+//      @Override
 	public void setRealName(final String realName) {
 
 		// not supported
@@ -210,13 +331,13 @@ public class SuperUser implements Principal {
 		// not supported
 	}
 
-//	@Override
+//      @Override
 	public void setConfirmationKey(String value) throws FrameworkException {}
 
-//	@Override
+//      @Override
 	public void setFrontendUser(boolean isFrontendUser) throws FrameworkException {}
 
-//	@Override
+//      @Override
 	public void setBackendUser(boolean isBackendUser) throws FrameworkException {}
 
 	@Override
@@ -225,43 +346,4 @@ public class SuperUser implements Principal {
 	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
 
-	@Override
-	public List<Principal> getParents() {
-		return Collections.emptyList();
-	}
-
-	@Override
-	public void grant(Permission permission, AccessControllable obj) {
-	}
-
-	@Override
-	public void revoke(Permission permission, AccessControllable obj) {
-	}
-
-	@Override
-	public void unlockReadOnlyPropertiesOnce() {
-	}
-
-	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return true;
-	}
-
-	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return true;
-	}
-
-	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
-		return true;
-	}
-
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) {
-	}
 }

@@ -28,7 +28,6 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
 import org.structr.core.node.NodeFactory;
@@ -36,11 +35,13 @@ import org.structr.core.node.NodeFactory;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.Query;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -94,7 +95,7 @@ public class NodeQueryCommand extends NodeServiceCommand {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	private List<AbstractNode> search(final SecurityContext securityContext, final NodeIndex whichIndex, final Query query) throws FrameworkException {
+	private Result search(final SecurityContext securityContext, final NodeIndex whichIndex, final Query query) throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory        = (NodeFactory) arguments.get("nodeFactory");
@@ -103,17 +104,17 @@ public class NodeQueryCommand extends NodeServiceCommand {
 
 			Index<Node> index         = (Index<Node>)arguments.get(whichIndex.name());
 			IndexHits hits            = index.query(query.toString());
-			List<AbstractNode> nodes  = nodeFactory.createNodes(securityContext, hits);
+			Result result		  = nodeFactory.createNodes(securityContext, hits);
 
 			// close hits
 			hits.close();
 
-			Collections.sort(nodes);
+			//Collections.sort(result.getResults());
 
-			return nodes;
+			return result;
 		}
 
-		return Collections.emptyList();
+		return new Result(new LinkedList<AbstractNode>(), null, false, false);
 	}
 
 }
