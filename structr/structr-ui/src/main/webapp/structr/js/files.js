@@ -212,7 +212,7 @@ var _Files = {
 
         if (debug) console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
         
-        if (!folderId && file.folder) return false;
+        if (!folderId && file.parentFolder) return false;
         
         removeExisting = true;
 
