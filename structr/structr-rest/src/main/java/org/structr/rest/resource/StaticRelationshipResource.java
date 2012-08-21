@@ -175,7 +175,8 @@ public class StaticRelationshipResource extends SortableResource {
 
 							applyDefaultSorting(list);
 
-							return new Result(list, null, isCollectionResource(), isPrimitiveArray());
+							//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
+							return new Result(PagingHelper.subList(list, pageSize, page), list.size(), isCollectionResource(), isPrimitiveArray());
 
 						} else if (value instanceof Iterable) {
 
@@ -197,7 +198,8 @@ public class StaticRelationshipResource extends SortableResource {
 
 							}
 
-							return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
+							//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
+							return new Result(PagingHelper.subList(propertyListResult, pageSize, page), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
 						}
 					} else {
 
