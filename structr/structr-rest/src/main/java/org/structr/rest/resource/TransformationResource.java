@@ -54,7 +54,7 @@ public class TransformationResource extends WrappingResource {
 			// apply paging later
 			Result result = wrappedResource.doGet(sortKey, sortDescending, -1, -1);
 			
-			if(transformation != null) {
+			if (transformation != null) {
 
 				try {
 
@@ -66,7 +66,7 @@ public class TransformationResource extends WrappingResource {
 				}
 			}
 				
-			return result;
+			return PagingHelper.subResult(result, pageSize, page);
 		}
 		
 		List emptyList = Collections.emptyList();

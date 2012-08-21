@@ -21,8 +21,8 @@
 
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -42,24 +42,6 @@ public class PagingHelper {
 
 	//~--- methods --------------------------------------------------------
 
-//      @Override
-//      public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
-//              return false;
-//      }
-//
-//      @Override
-//      public List<? extends GraphObject> doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
-//
-//              List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
-//              
-//              return subList(results, pageSize, page);
-//      }
-//
-//      @Override
-//      public Resource tryCombineWith(Resource next) throws FrameworkException {
-//              return super.tryCombineWith(next);
-//      }
-
 	/**
 	 * Return a single page of the list with the given paging parameters.
 	 *
@@ -74,8 +56,9 @@ public class PagingHelper {
 
 			return list;
 		}
-		
+
 		if (page < 1) {
+
 			page = 1;
 		}
 
@@ -87,23 +70,75 @@ public class PagingHelper {
 
 	}
 
-	public static Result addPagingParameter(Result result, int pageSize, int page) {
+	/**
+	 * Return a single page of the result with the given paging parameters.
+	 *
+	 * @param result
+	 * @param pageSize
+	 * @param page
+	 * @return
+	 */
+	public static Result subResult(final Result result, int pageSize, int page) {
+
+		if (pageSize <= 0) {
+
+			return result;
+		}
 
 		if (page < 1) {
+
 			page = 1;
 		}
 
 		if (pageSize > 0) {
+			
+			int pageCount = getPageCount(result.getRawResultCount(), pageSize);
+
+			if (pageCount > 0) {
+
+				result.setPageCount(pageCount);
+			}
+
+			if (page > pageCount) {
+
+				page = pageCount;
+
+			}
 
 			result.setPage(page);
 			result.setPageSize(pageSize);
+
+		}
+		
+		return new Result(subList(result.getResults(), pageSize, page), result.getResults().size(), result.isCollection(), result.isPrimitiveArray());
+
+	}
+
+	public static Result addPagingParameter(Result result, int pageSize, int page) {
+
+		if (page < 1) {
+
+			page = 1;
 		}
 
-		int pageCount = getPageCount(result.getRawResultCount(), pageSize);
+		if (pageSize > 0) {
+			
+			int pageCount = getPageCount(result.getRawResultCount(), pageSize);
 
-		if (pageCount > 0) {
+			if (pageCount > 0) {
 
-			result.setPageCount(pageCount);
+				result.setPageCount(pageCount);
+			}
+
+//			if (page > pageCount) {
+//
+//				page = pageCount;
+//
+//			}
+
+			result.setPage(page);
+			result.setPageSize(pageSize);
+
 		}
 
 		return result;
