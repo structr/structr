@@ -126,7 +126,7 @@ public class UuidResource extends FilterableResource {
 				
 				AbstractNode node = (AbstractNode) results.get(0);
 				
-				if (!securityContext.isReadable(node, false, false)) {
+				if (!securityContext.isReadable(node, true, false)) {
 					throw new NotAllowedException();
 				}
 				
