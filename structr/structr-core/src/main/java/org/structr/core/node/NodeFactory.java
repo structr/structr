@@ -34,6 +34,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
@@ -47,7 +48,6 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,7 +61,7 @@ import org.structr.core.Result;
 public class NodeFactory<T extends AbstractNode> {
 
 	public static String RAW_RESULT_COUNT = "rawResultCount";
-	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
+	private static final Logger logger    = Logger.getLogger(NodeFactory.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -177,21 +177,21 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param publicOnly
 	 * @return
 	 */
-	public Result createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly, long pageSize,
-		long page)
+	public Result createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly, long pageSize, long page)
 		throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		long offset              = page > 0 ? (page - 1) * pageSize : 0;
+		long offset              = page > 0
+					   ? (page - 1) * pageSize
+					   : 0;
 		long position            = 0L;
 		long count               = 0L;
 
 		if (input != null) {
-		
+
 			int size = input.size();
 
 			if (input instanceof SpatialRecordHits) {
-
 
 				Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
 				GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
@@ -233,13 +233,35 @@ public class NodeFactory<T extends AbstractNode> {
 							// Check is done in createNode already, so we don't have to do it again
 							if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
-								nodes.add(n);
+//								if (++position > offset) {
+//
+//									// stop if we got enough nodes
+//									if (pageSize > 0 && ++count > pageSize) {
+//
+//										return new Result(nodes, size, true, false);
+//									}
+//
+//									nodes.add(n);
+//								}
 
-								for (AbstractNode nodeAt : getNodesAt(n)) {
+								List<AbstractNode> nodesAt = getNodesAt(n);
+								size += nodesAt.size();
+								
+								for (AbstractNode nodeAt : nodesAt) {
 
 									if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
 
-										nodes.add(nodeAt);
+										if (++position > offset) {
+
+											// stop if we got enough nodes
+											if (pageSize > 0 && ++count > pageSize) {
+
+												return new Result(nodes, size, true, false);
+											}
+
+											nodes.add(nodeAt);
+										}
+
 									}
 
 								}
@@ -252,11 +274,9 @@ public class NodeFactory<T extends AbstractNode> {
 
 				}
 
-
 			} else {
 
-				//Services.setAttribute(RAW_RESULT_COUNT + Thread.currentThread().getId(), size);
-
+				// Services.setAttribute(RAW_RESULT_COUNT + Thread.currentThread().getId(), size);
 				if (input.iterator().hasNext()) {
 
 					for (Node node : input) {
@@ -275,7 +295,6 @@ public class NodeFactory<T extends AbstractNode> {
 								}
 
 								nodes.add(n);
-
 							}
 
 						}
@@ -283,12 +302,11 @@ public class NodeFactory<T extends AbstractNode> {
 					}
 
 				}
-
 			}
-			
+
 			return new Result(nodes, size, true, false);
 
-		}		
+		}
 
 		// is it smart to return null here?
 		return null;
@@ -377,4 +395,5 @@ public class NodeFactory<T extends AbstractNode> {
 		return nodes;
 
 	}
+
 }

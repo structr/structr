@@ -408,7 +408,13 @@ public abstract class Resource {
 
 				String name = (String) names.nextElement();
 
-				if (!name.equals(Search.DISTANCE_SEARCH_KEYWORD)) {
+				if (!name.equals(Search.DISTANCE_SEARCH_KEYWORD)
+					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)
+					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE)
+					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER)
+					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY)
+					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER)
+					) {
 
 					searchKey.append(request.getParameter(name)).append(" ");
 
