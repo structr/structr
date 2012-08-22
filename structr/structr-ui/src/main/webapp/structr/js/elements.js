@@ -32,6 +32,9 @@ var _Elements = {
 
     elementNames : [
 
+    // Active components
+    'Component', 'View', 'RemoteView',
+
     // The root element
     'html',
 
@@ -69,6 +72,10 @@ var _Elements = {
     ],
 
     elementGroups : [
+    {
+        'name' : 'Components',
+        'elements' : ['Component', 'View', 'RemoteView']
+    },
     {
         'name' : 'Root',
         'elements' : ['html', 'content']
