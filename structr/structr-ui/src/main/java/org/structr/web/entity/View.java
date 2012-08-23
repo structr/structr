@@ -92,7 +92,7 @@ public class View extends AbstractNode {
 		String rawQuery = getStringProperty("query");
 		String query    = rawQuery;
 
-		if (request != null) {
+		if (request != null && query != null) {
 
 			Pattern pattern = Pattern.compile("\\$\\{request.(.*)\\}");
 			Matcher matcher = pattern.matcher(rawQuery);
