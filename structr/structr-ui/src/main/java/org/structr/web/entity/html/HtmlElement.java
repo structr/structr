@@ -54,7 +54,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.web.common.PageHelper;
+import org.structr.web.entity.Component;
 import org.structr.web.entity.PageElement;
+import org.structr.web.entity.RemoteView;
+import org.structr.web.entity.View;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -247,6 +250,10 @@ public abstract class HtmlElement extends PageElement implements Element {
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
 		
 		EntityContext.registerPropertyRelation(HtmlElement.class, UiKey.parents, HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
+		
+		EntityContext.registerEntityRelation(HtmlElement.class, Component.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(HtmlElement.class, View.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(HtmlElement.class, RemoteView.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 	}
 
 	//~--- constant enums -------------------------------------------------

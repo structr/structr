@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -13,12 +14,16 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeFactory;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.RelationshipFactory;
+import org.structr.web.entity.html.HtmlElement.UiKey;
 
 /**
  *
@@ -36,6 +41,10 @@ public class RemoteView extends View {
 		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Public, Key.values());
 		EntityContext.registerPropertySet(RemoteView.class, PropertyView.All,    Key.values());
 		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Ui,     Key.values());
+		EntityContext.registerEntityRelation(RemoteView.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(RemoteView.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.fulltext.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.keyword.name(), UiKey.values());
 	}
 	
 	@Override
