@@ -112,7 +112,7 @@ public class InheritingTypeResource extends TypeResource {
 			);
 			
 			// TODO: SORTING: remove default sorting below
-			applyDefaultSorting(results.getResults());
+			//applyDefaultSorting(results.getResults());
 			
 			return results;
 			
