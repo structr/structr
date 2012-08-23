@@ -224,6 +224,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 					config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
 
 					layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+					logger.log(Level.WARNING, "Created layer node index due to exception", e);
 
 					indices.put(NodeIndex.layer.name(), layerIndex);
 
@@ -283,7 +284,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 		Object value            = node.getProperty(key);    // dbNode.getProperty(key);
 		Object valueForIndexing = node.getPropertyForIndexing(key);
 		
-		if(value == null || (value != null && (value instanceof String) && StringUtils.isEmpty((String) value))) {
+		if (value == null || (value != null && (value instanceof String) && StringUtils.isEmpty((String) value))) {
 			valueForIndexing = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 			value = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 		}
