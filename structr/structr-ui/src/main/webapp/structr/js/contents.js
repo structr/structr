@@ -156,29 +156,57 @@ var _Contents = {
             lineNumbers: true,
             onChange: function(cm, changes) {
                 
-                window.clearTimeout(timer);
-                
-                var element = $( '.' + entity.id + '_')[0];
-                
-                text1 = $(element).children('.content_').text();
-                text2 = editor.getValue();
-                
-                if (!text1) text1 = '';
-                if (!text2) text2 = '';
-		
-                if (debug) console.log('Element', element);
-                if (debug) console.log(text1);
-                if (debug) console.log(text2);
-                
-                if (text1 == text2) return;
-                editorCursor = cm.getCursor();
-                if (debug) console.log(editorCursor);
-
-                //timer = window.setTimeout(function() {
-                    Command.patch(entity.id, text1, text2);
-                //}, 5000);
+//                window.clearTimeout(timer);
+//                
+//                var element = $( '.' + entity.id + '_')[0];
+//                
+//                text1 = $(element).children('.content_').text();
+//                text2 = editor.getValue();
+//                
+//                if (!text1) text1 = '';
+//                if (!text2) text2 = '';
+//		
+//                if (debug) console.log('Element', element);
+//                if (debug) console.log(text1);
+//                if (debug) console.log(text2);
+//                
+//                if (text1 == text2) return;
+//                editorCursor = cm.getCursor();
+//                if (debug) console.log(editorCursor);
+//
+//                //timer = window.setTimeout(function() {
+//                Command.patch(entity.id, text1, text2);
+//            //}, 5000);
 				
             }
+        });
+        
+        element.append('<button id="editorSave">Save</button>');
+        $('#editorSave', element).on('click', function() {
+            window.clearTimeout(timer);
+                
+            var contentNode = $( '.' + entity.id + '_')[0];
+                
+            text1 = $(contentNode).children('.content_').text();
+            text2 = editor.getValue();
+                
+            if (!text1) text1 = '';
+            if (!text2) text2 = '';
+		
+            if (debug) {
+                console.log('Element', contentNode);
+                console.log(text1);
+                console.log(text2);
+            }
+                
+            if (text1 == text2) return;
+//            editorCursor = cm.getCursor();
+//            if (debug) console.log(editorCursor);
+
+            //timer = window.setTimeout(function() {
+            Command.patch(entity.id, text1, text2);
+        //}, 5000);
+            
         });
         
         $('#dialogBox .dialogMeta').append('<table class="props ' + entity.id + '_"></table>');

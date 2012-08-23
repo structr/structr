@@ -442,7 +442,7 @@ function connect() {
                             if (editor && editor.id == data.id && key == 'content') {
                                 if (debug) console.log(editor.id);
                                 editor.setValue(newValue);
-                                editor.setCursor(editorCursor);
+                                //editor.setCursor(editorCursor);
                             }
                         }
                     
