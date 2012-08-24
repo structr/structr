@@ -883,6 +883,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public Object getPropertyForIndexing(final String key) {
 
+		Object rawValue = getProperty(key, false);
+		
+		if (rawValue != null) {
+			
+			return rawValue;
+			
+		}
+		
 		return getProperty(key);
 
 	}
