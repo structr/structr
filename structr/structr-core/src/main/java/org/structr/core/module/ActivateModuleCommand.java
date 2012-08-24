@@ -35,7 +35,7 @@ public class ActivateModuleCommand extends ModuleServiceCommand
 		if(service != null && parameters.length > 0)
 		{
 			String moduleName = (String)parameters[0];
-			service.activateModule(moduleName);
+			service.scanResource(moduleName);
 		}
 
 		return(null);

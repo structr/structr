@@ -71,9 +71,6 @@ public class Services {
 	public static final String LOG_SERVICE_INTERVAL  = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
 
-	// ModuleService-related constants
-	public static final String MODULES_PATH = "modules.path";
-
 	// Network-related constants
 	public static final String SERVER_IP       = "server.ip";
 	public static final String SERVLET_REAL_ROOT_PATH = "servlet.context";
@@ -204,7 +201,6 @@ public class Services {
 		databasePath      = getConfigValue(context, Services.DATABASE_PATH, "./db");
 		logDatabasePath   = getConfigValue(context, Services.LOG_DATABASE_PATH, "./logdb.dat");
 		filesPath         = getConfigValue(context, Services.FILES_PATH, "./files");
-		modulesPath       = getConfigValue(context, Services.MODULES_PATH, "./modules");
 		serverIp          = getConfigValue(context, Services.SERVER_IP, "127.0.0.1");
 		tcpPort           = getConfigValue(context, Services.TCP_PORT, "54555");
 		udpPort           = getConfigValue(context, Services.UDP_PORT, "57555");

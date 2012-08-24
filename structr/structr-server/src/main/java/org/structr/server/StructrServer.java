@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,31 +16,14 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.structr.core.module;
-
-import org.w3c.dom.Document;
+package org.structr.server;
 
 /**
- *
- * @author chrisi
+ * A marker interface to identify a structr server's main application class.
+ * The main class of your structr server must implement this interface in order
+ * for structr to be able to identify the 
+ * 
+ * @author Christian Morgner
  */
-public class ExtendConfigCommand extends ModuleServiceCommand
-{
-	@Override
-	public Object execute(Object... parameters)
-	{
-		ModuleService service = (ModuleService)getArgument("moduleService");
-
-		if(service != null && parameters != null && parameters.length == 1)
-		{
-			if(parameters[0] instanceof Document)
-			{
-				Document xmlConfig = (Document)parameters[0];
-				service.extendConfigDocument(xmlConfig);
-			}
-		}
-
-		return(null);
-	}
+public interface StructrServer {
 }
