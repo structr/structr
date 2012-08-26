@@ -38,6 +38,8 @@ public class DefaultResourceProvider implements ResourceProvider {
 
 		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"),	UuidResource.class);			// matches a UUID without dashes
 
+		resourceMap.put(Pattern.compile("cypher"),		CypherQueryResource.class);		// include experimental cypher support
+
 		resourceMap.put(Pattern.compile("maintenance"),		MaintenanceResource.class);		// maintenance
 
 		resourceMap.put(Pattern.compile("in"),			RelationshipResource.class);		// incoming relationship

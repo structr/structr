@@ -26,6 +26,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.SuperUser;
 
 /**
  * A default authenticator implementation for structr.
@@ -33,6 +34,8 @@ import org.structr.core.entity.ResourceAccess;
  * @author Christian Morgner
  */
 public class DefaultAuthenticator implements Authenticator {
+	
+	private static final SuperUser superUser = new SuperUser();
 
 	@Override
 	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
@@ -44,7 +47,7 @@ public class DefaultAuthenticator implements Authenticator {
 
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
-		return null;
+		return superUser;
 	}
 
 	@Override
@@ -53,6 +56,6 @@ public class DefaultAuthenticator implements Authenticator {
 
 	@Override
 	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
-		return null;
+		return superUser;
 	}
 }
