@@ -57,7 +57,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 		ExecutionEngine engine          = new ExecutionEngine(graphDb);
 		String query                    = null;
 		Map<String, Object> params      = null;
-		boolean includeHiddenAndDeleted = false;
+		boolean includeHiddenAndDeleted = true; // makes more sense as default here
 		boolean publicOnly              = false;
 
 		switch(parameters.length) {
