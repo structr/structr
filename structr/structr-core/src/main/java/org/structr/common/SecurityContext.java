@@ -29,7 +29,6 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.*;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 

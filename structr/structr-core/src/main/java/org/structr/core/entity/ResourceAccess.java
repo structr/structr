@@ -21,42 +21,54 @@ package org.structr.core.entity;
 import java.util.logging.Logger;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import org.structr.core.converter.IntConverter;
 import org.structr.core.node.NodeService;
 
 /**
- * The database representation of a REST resource.
+ * Controls access to REST resources
  * 
- * This class exists because we need to be able to control access to
- * specific REST resources in the database, i.e. grant access to
- * Principals (Users or Groups etc.).
+ * Objects of this class act as a doorkeeper for REST resources
+ * that match the signature string in the 'signature' field.
+ * <p>
+ * A ResourceAccess object defines access granted
+ * <ul>
+ * <li>to everyone (public)
+ * <li>to authenticated principals
+ * <li>to invidual principals (when connected to a {link @Principal} node
+ * </ul>
  * 
- * ResourceAccess objects are created automatically for every
- * REST resource on access. The
  * 
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class ResourceAccess extends AbstractNode {
 
 	private static final Logger logger = Logger.getLogger(ResourceAccess.class.getName());
 
-	private String cachedUriPart = null;
+	private String cachedResourceSignature = null;
 	private Long cachedFlags     = null;
 	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
+		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.Public, Key.values());
 		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.Ui, Key.values());
 
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  Key.values());
 		
-		// uri and type must be read-only
+		// signature and type must be read-only
 		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.Key.type.name());
-		EntityContext.registerWriteOnceProperty(ResourceAccess.class, Key.uri.name());
+		EntityContext.registerWriteOnceProperty(ResourceAccess.class, Key.signature.name());
+		
+		EntityContext.registerPropertyConverter(ResourceAccess.class, Key.flags, IntConverter.class);
 
 	}
 
@@ -64,7 +76,7 @@ public class ResourceAccess extends AbstractNode {
 
 	public enum Key implements PropertyKey {
 
-		uri, flags
+		signature, flags
 
 	}
 
@@ -75,7 +87,7 @@ public class ResourceAccess extends AbstractNode {
 		
 		StringBuilder buf = new StringBuilder();
 		
-		buf.append("('").append(getUriPart()).append("', flags: ").append(getFlags()).append(")");
+		buf.append("('").append(getResourceSignature()).append("', flags: ").append(getFlags()).append(")");
 		
 		return buf.toString();
 	}
@@ -104,23 +116,43 @@ public class ResourceAccess extends AbstractNode {
 	
 	public long getFlags() {
 		
-		if(cachedFlags == null) {
+		if (cachedFlags == null) {
 			cachedFlags = getLongProperty(Key.flags);
 		}
 		
-		if(cachedFlags != null) {
+		if (cachedFlags != null) {
 			return cachedFlags.longValue();
 		}
 		
 		return 0;
 	}
 	
-	public String getUriPart() {
+	public String getResourceSignature() {
 		
-		if(cachedUriPart == null) {
-			cachedUriPart = getStringProperty(Key.uri);
+		if (cachedResourceSignature == null) {
+			cachedResourceSignature = getStringProperty(Key.signature);
 		}
 		
-		return cachedUriPart;
+		return cachedResourceSignature;
 	}
-}
+
+	@Override
+	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+		return isValid(errorBuffer);
+	}
+	
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+		return isValid(errorBuffer);
+	}
+	
+	private  boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean error = false;
+
+		error |= ValidationHelper.checkStringNotBlank(this, Key.signature, errorBuffer);
+		error |= ValidationHelper.checkPropertyNotNull(this, Key.flags, errorBuffer);
+//		error |= checkPropertyNotNull(Key.city, errorBuffer);
+
+		return !error;
+	}}
