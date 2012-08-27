@@ -75,6 +75,7 @@ public class Structr {
 	private int requestHeaderSize               = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
 
 	private Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
+	private Map<String, String> servletParams   = new HashMap<String, String>();
 
 	private boolean enableRewriteFilter         = false;
 	private boolean quiet                       = false;
@@ -178,6 +179,11 @@ public class Structr {
 
 	public Structr addServlet(String servletMapping, ServletHolder servletHolder) {
 		servlets.put(servletMapping, servletHolder);
+		return this;
+	}
+	
+	public Structr defaultPropertyView(String defaultPropertyView) {
+		servletParams.put("DefaultPropertyView", defaultPropertyView);
 		return this;
 	}
 	
@@ -297,14 +303,13 @@ public class Structr {
 		// configure JSON REST servlet
 		JsonRestServlet structrRestServlet     = new JsonRestServlet();
 		ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
-		Map<String, String> structrRestParams  = new HashMap<String, String>();
 
-		structrRestParams.put("PropertyFormat", "FlatNameValue");
-		structrRestParams.put("ResourceProvider", resourceProvider.getName());
-		structrRestParams.put("Authenticator", authenticator.getName());
-		structrRestParams.put("IdProperty", "uuid");
+		servletParams.put("PropertyFormat", "FlatNameValue");
+		servletParams.put("ResourceProvider", resourceProvider.getName());
+		servletParams.put("Authenticator", authenticator.getName());
+		servletParams.put("IdProperty", "uuid");
 
-		structrRestServletHolder.setInitParameters(structrRestParams);
+		structrRestServletHolder.setInitParameters(servletParams);
 		structrRestServletHolder.setInitOrder(0);
 
 		// add to servlets
