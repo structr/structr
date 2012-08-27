@@ -48,7 +48,7 @@ public class Ui implements org.structr.server.StructrServer {
 				.authenticator(UiAuthenticator.class)
 				
 			    
-				.start(args);
+				.start(true);
 
 		} catch(Throwable t) {
 

@@ -72,14 +72,15 @@ public class Services {
 	public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
 
 	// Network-related constants
-	public static final String SERVER_IP       = "server.ip";
+	public static final String SERVER_IP              = "server.ip";
 	public static final String SERVLET_REAL_ROOT_PATH = "servlet.context";
-	public static final String SMTP_HOST       = "smtp.host";
-	public static final String SMTP_PORT       = "smtp.port";
-	public static final String SMTP_USER       = "smtp.user";
-	public static final String SMTP_PASSWORD   = "smtp.password";
+	public static final String SMTP_HOST              = "smtp.host";
+	public static final String SMTP_PORT              = "smtp.port";
+	public static final String SMTP_USER              = "smtp.user";
+	public static final String SMTP_PASSWORD          = "smtp.password";
 
 //      public static final String ENTITY_PACKAGES = "entity.packages";
+	public static final String RESOURCES              = "resources";
 	public static final String SUPERUSER_PASSWORD     = "superuser.password";
 
 	// Security-related constants
@@ -87,6 +88,9 @@ public class Services {
 	public static final String TCP_PORT           = "tcp.port";
 	public static final String TMP_PATH           = "tmp.path";
 	public static final String UDP_PORT           = "udp.port";
+	
+	public static final String JSON_OUTPUT_DEPTH  = "json.depth";
+	
 	private static Map<String, String> context    = null;
 	private static final Logger logger            = Logger.getLogger(Services.class.getName());
 
@@ -102,7 +106,7 @@ public class Services {
 	private static String databasePath;
 	private static String logDatabasePath;
 	private static String filesPath;
-	private static String modulesPath;
+	private static String resources;
 	private static String serverIp;
 	private static String smtpHost;
 	private static String smtpPort;
@@ -113,6 +117,7 @@ public class Services {
 	private static String tcpPort;
 	private static String tmpPath;
 	private static String udpPort;
+	private static String jsonDepth;
 
 	//~--- methods --------------------------------------------------------
 
@@ -201,6 +206,7 @@ public class Services {
 		databasePath      = getConfigValue(context, Services.DATABASE_PATH, "./db");
 		logDatabasePath   = getConfigValue(context, Services.LOG_DATABASE_PATH, "./logdb.dat");
 		filesPath         = getConfigValue(context, Services.FILES_PATH, "./files");
+		resources         = getConfigValue(context, Services.RESOURCES, "");
 		serverIp          = getConfigValue(context, Services.SERVER_IP, "127.0.0.1");
 		tcpPort           = getConfigValue(context, Services.TCP_PORT, "54555");
 		udpPort           = getConfigValue(context, Services.UDP_PORT, "57555");
@@ -210,6 +216,8 @@ public class Services {
 		smtpPassword      = getConfigValue(context, Services.SMTP_PASSWORD, "");
 		superuserUsername = getConfigValue(context, Services.SUPERUSER_USERNAME, "superadmin");
 		superuserPassword = getConfigValue(context, Services.SUPERUSER_PASSWORD, "");    // intentionally no default password!
+		jsonDepth         = getConfigValue(context, Services.JSON_OUTPUT_DEPTH, "3");
+		
 		logger.log(Level.INFO, "Starting services");
 
 		try {
@@ -351,7 +359,6 @@ public class Services {
 		attributes.remove(name);
 	}
 	
-	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private static Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
 
 		logger.log(Level.FINE, "Creating service ", serviceClass.getName());
@@ -451,11 +458,11 @@ public class Services {
 	}
 
 	/**
-	 * Return the modules path. This is the directory where the
-	 * modules are stored.
+	 * Return the resources. This is a list of files that
+	 * need to be scanned for entities, agents, services etc.
 	 */
-	public static String getModulesPath() {
-		return getPath(Path.Modules);
+	public static String getResources() {
+		return resources;
 	}
 
 	/**
@@ -586,11 +593,6 @@ public class Services {
 
 				break;
 
-			case Modules :
-				ret = getAbsolutePath(modulesPath);
-
-				break;
-
 			case Temp :
 				ret = getAbsolutePath(tmpPath);
 
@@ -617,6 +619,13 @@ public class Services {
 		return (ret.toString());
 	}
 
+	public static int getOutputNestingDepth() {
+		
+		try { return Integer.parseInt(jsonDepth); } catch(Throwable t) {}
+		
+		return 3;
+	}
+	
 	private static String getAbsolutePath(String path) {
 
 		if (path.startsWith("/")) {
@@ -701,6 +710,4 @@ public class Services {
 	public static void setContext(final Map<String, String> envContext) {
 		context = envContext;
 	}
-
-	// </editor-fold>
 }

@@ -461,6 +461,20 @@ public class ModuleService implements SingletonService {
 				ret.add(jarPath);
 			}
 		}
+
+		String resources = Services.getResources();
+		if (resources != null) {
+			
+			for (String resource : resources.split("[:]+")) {
+
+				String lowerResource = resource.toLowerCase();
+
+				if (lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
+
+					ret.add(resource);
+				}
+			}
+		}
 		
 		return (ret);
 	}

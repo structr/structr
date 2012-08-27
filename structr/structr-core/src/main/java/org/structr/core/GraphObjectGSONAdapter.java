@@ -50,8 +50,8 @@ import java.util.logging.Logger;
 public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, JsonDeserializer<GraphObject> {
 
 	private static final Logger logger    = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
+	private int outputNestingDepth        = Services.getOutputNestingDepth();
 	private String idProperty             = null;
-	private int outputNestingDepth        = 3;
 	private PropertyFormat propertyFormat = null;
 	private Value<String> propertyView    = null;
 

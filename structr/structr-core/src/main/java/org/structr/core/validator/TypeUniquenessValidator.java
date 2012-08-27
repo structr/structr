@@ -56,9 +56,9 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 
 	//~--- constructors ---------------------------------------------------
 
-	public TypeUniquenessValidator(String type) {
+	public TypeUniquenessValidator(Class type) {
 
-		this.type = type;
+		this.type = type.getSimpleName();
 
 	}
 

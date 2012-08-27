@@ -30,6 +30,5 @@ public enum Path {
     Database,
     LogDatabase,
     Files,
-    Modules,
     Temp
 }

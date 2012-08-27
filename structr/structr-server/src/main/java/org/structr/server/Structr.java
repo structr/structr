@@ -66,6 +66,7 @@ public class Structr {
 	private String keyStorePath                 = null;
 	private String keyStorePassword             = null;
 	private String contextPath                  = System.getProperty("contextPath", "/");
+	private String basePath                     = "";
 
 	private int restPort                        = -1;
 	private int httpsPort                       = -1;
@@ -83,7 +84,6 @@ public class Structr {
 	private Class<? extends StructrServer> app  = null;
 	private Class resourceProvider              = null;
 	private Class authenticator                 = null;
-	
 	
 	//~--- methods --------------------------------------------------------
 
@@ -151,6 +151,11 @@ public class Structr {
 		return this;
 	}
 	
+	public Structr basePath(String basePath) {
+		this.basePath = basePath;
+		return this;
+	}
+	
 	public Structr httpPort(int httpPort) {
 		this.restPort = httpPort;
 		return this;
@@ -203,17 +208,17 @@ public class Structr {
 	 * @throws InterruptedException
 	 * @throws Exception 
 	 */
-	public void start(String[] args) throws IOException, InterruptedException, Exception {
+	public Server start(boolean waitForExit) throws IOException, InterruptedException, Exception {
 		
-		File baseDir                         = new File(System.getProperty("home", ""));
+		String sourceJarName                 = app.getProtectionDomain().getCodeSource().getLocation().toString();
+		File baseDir                         = new File(System.getProperty("home", basePath));
 		String basePath                      = baseDir.getAbsolutePath();
-		File confFile                        = checkStructrConf(basePath);
+		File confFile                        = checkStructrConf(basePath, sourceJarName);
 		Properties configuration             = getConfiguration(confFile);
 
 		checkPrerequisites(configuration);
 		
 		Server server                        = new Server(restPort);
-		String sourceJarName                 = app.getProtectionDomain().getCodeSource().getLocation().toString();
 		List<Connector> connectors           = new LinkedList<Connector>();
 		HandlerCollection handlerCollection  = new HandlerCollection();
 		boolean startingFromWARFile          = false;
@@ -396,18 +401,22 @@ public class Structr {
 		// The jsp directory is created by the container, but we don't need it
 		removeDir(basePath, "jsp");
 		
-		server.join();
-		
-		if (!quiet) {
+		if (waitForExit) {
 			
-			System.out.println();
-			System.out.println(applicationName + " stopped.");
-			System.out.println();
+			server.join();
+		
+			if (!quiet) {
+
+				System.out.println();
+				System.out.println(applicationName + " stopped.");
+				System.out.println();
+			}
 		}
 		
+		return server;
 	}
 
-	private File checkStructrConf(String basePath) throws IOException {
+	private File checkStructrConf(String basePath, String sourceJarName) throws IOException {
 
 		// create and register config file
 		String confPath = basePath + "/structr.conf";
@@ -422,6 +431,17 @@ public class Structr {
 			config.add("##################################");
 			config.add("# structr global config file     #");
 			config.add("##################################");
+			config.add("");
+			
+			if (sourceJarName.endsWith(".jar") || sourceJarName.endsWith(".war")) {
+				
+				config.add("# resources");
+				config.add("resources = " + sourceJarName);
+				config.add("");
+			}
+			
+			config.add("# JSON output nesting depth");
+			config.add("json.depth = 1");
 			config.add("");
 			config.add("# base directory");
 			config.add("base.path = " + basePath);
