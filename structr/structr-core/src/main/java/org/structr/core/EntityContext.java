@@ -453,6 +453,12 @@ public class EntityContext {
 			return null;
 
 		}
+		
+		if ("/".equals(possibleEntityString)) {
+			
+			return "/";
+			
+		}
 
                 StringBuilder result = new StringBuilder();
                 
