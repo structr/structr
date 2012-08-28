@@ -46,7 +46,6 @@ import org.eclipse.jetty.io.ByteArrayBuffer;
 
 import org.pegdown.PegDownProcessor;
 
-import org.structr.StructrServer;
 import org.structr.common.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -200,7 +199,7 @@ public class HtmlServlet extends HttpServlet {
 			httpClient.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
 			request.setCharacterEncoding("UTF-8");
 
-			restUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getLocalPort() + StructrServer.REST_URL + "/" + pagePath;
+			restUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getLocalPort() + Services.getRestPath() + "/" + pagePath;
 
 			contentExchange.setURL(restUrl);
 

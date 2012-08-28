@@ -1,6 +1,0 @@
-#!/bin/bash
-mvn exec:java -Dexec.mainClass="org.structr.StructrServer" -Dhost=localhost -Dport=8082
-#sleep 10
-#xdg-open http://localhost:8082/structr/ &
-
-

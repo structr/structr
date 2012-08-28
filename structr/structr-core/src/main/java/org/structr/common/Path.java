@@ -27,6 +27,7 @@ public enum Path {
 
     ConfigFile,
     Base,
+    Rest,
     Database,
     LogDatabase,
     Files,

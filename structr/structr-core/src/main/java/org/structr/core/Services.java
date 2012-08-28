@@ -67,6 +67,8 @@ public class Services {
 	
 	public static final String LOG_DATABASE_PATH = "log.database.path";
 
+	public static final String REST_PATH     = "application.rest.path";
+	
 	// LogService-related constants
 	public static final String LOG_SERVICE_INTERVAL  = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
@@ -101,6 +103,7 @@ public class Services {
 	private static boolean initializationDone = false;
 	private static String appTitle;
 	private static String basePath;
+	private static String restPath;
 	private static String configFilePath;
 	private static String configuredServices;
 	private static String databasePath;
@@ -203,6 +206,7 @@ public class Services {
 		appTitle          = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
 		tmpPath           = getConfigValue(context, Services.TMP_PATH, "/tmp");
 		basePath          = getConfigValue(context, Services.BASE_PATH, ".");
+		restPath          = getConfigValue(context, Services.REST_PATH, "/structr/rest");
 		databasePath      = getConfigValue(context, Services.DATABASE_PATH, "./db");
 		logDatabasePath   = getConfigValue(context, Services.LOG_DATABASE_PATH, "./logdb.dat");
 		filesPath         = getConfigValue(context, Services.FILES_PATH, "./files");
@@ -410,6 +414,15 @@ public class Services {
 	}
 
 	/**
+	 * Return the static rest path
+	 *
+	 * @return
+	 */
+	public static String getRestPath() {
+		return getPath(Path.Rest);
+	}
+
+	/**
 	 * Return the configured services
 	 *
 	 * @return
@@ -575,6 +588,11 @@ public class Services {
 
 			case Base :
 				ret = basePath;
+
+				break;
+
+			case Rest :
+				ret = restPath;
 
 				break;
 
