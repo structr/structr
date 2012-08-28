@@ -277,7 +277,7 @@ function connect() {
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
             //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                //console.log(command, result, data, data.data);
+                if (debug) console.log(command, result, data, data.data);
                 
                 //var treeAddress = data.data.treeAddress;
 				
@@ -285,12 +285,18 @@ function connect() {
                     
                    if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
-                    var el = Structr.node(entity.id, parentId, componentId, pageId);
+                    //var el = Structr.node(entity.id, parentId, componentId, pageId);
+                    var el = Structr.elementFromAddress(treeAddress);
                     if (el) el.remove();
                     
                     //alert(entity.id);
                     
                     _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                    
+                    if (command == 'CREATE' && entity.type == 'Page') {
+                        var tab = $('#show_' + entity.id, previews);
+                        setTimeout(function() { _Pages.activateTab(tab) }, 200);
+                    }
                     
                 });
 

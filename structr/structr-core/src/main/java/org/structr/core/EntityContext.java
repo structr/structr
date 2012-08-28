@@ -57,6 +57,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.PropertyContainer;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -1587,7 +1588,7 @@ public class EntityContext {
 				}
 
 				// 2: notify listeners of node creation (so the modifications can later be tracked)
-				for (Node node : data.createdNodes()) {
+				for (Node node : sortNodes(data.createdNodes())) {
 
 					AbstractNode entity = nodeFactory.createNode(securityContext, node, true, false);
 					if(entity != null) {
@@ -1604,7 +1605,7 @@ public class EntityContext {
 				}
 
 				// 3: notify listeners of relationship creation
-				for (Relationship rel : data.createdRelationships()) {
+				for (Relationship rel : sortRelationships(data.createdRelationships())) {
 
 					AbstractRelationship entity = relFactory.createRelationship(securityContext, rel);
 					if(entity != null) {
@@ -1947,4 +1948,54 @@ public class EntityContext {
 	}
 
 	// </editor-fold>
+	
+	private static ArrayList<Node> sortNodes(final Iterable<Node> it) {
+		
+		ArrayList<Node> list = new ArrayList<Node>();
+		
+		for (Node p : it) {
+			
+			list.add(p);
+			
+		}
+		
+		
+		Collections.sort(list, new Comparator<Node>() {
+
+			@Override
+			public int compare(Node o1, Node o2) {
+				Long id1 = o1.getId();
+				Long id2 = o2.getId();
+				return id1.compareTo(id2);
+			}
+		});
+		
+		return list;
+		
+	}
+	
+	private static ArrayList<Relationship> sortRelationships(final Iterable<Relationship> it) {
+		
+		ArrayList<Relationship> list = new ArrayList<Relationship>();
+		
+		for (Relationship p : it) {
+			
+			list.add(p);
+			
+		}
+		
+		
+		Collections.sort(list, new Comparator<Relationship>() {
+
+			@Override
+			public int compare(Relationship o1, Relationship o2) {
+				Long id1 = o1.getId();
+				Long id2 = o2.getId();
+				return id1.compareTo(id2);
+			}
+		});
+		
+		return list;
+		
+	}
 }

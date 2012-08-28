@@ -509,8 +509,12 @@ var Structr = {
         }
     },
     
+    elementFromAddress : function(treeAddress) {
+        return $('#_' + treeAddress);
+    },
+    
     entityFromAddress : function(treeAddress) {
-        var entityElement = $('#_' + treeAddress);
+        var entityElement = Structr.elementFromAddress(treeAddress);
         var entity = Structr.entityFromElement(entityElement);
         return entity;
     },
@@ -593,7 +597,7 @@ function plural(type) {
 }
 
 function addExpandedNode(treeAddress) {
-    if (debug) console.log('addExpandedNode', treeAddress);
+    console.log('addExpandedNode', treeAddress);
 
     if (!treeAddress) return;
 
@@ -606,7 +610,7 @@ function addExpandedNode(treeAddress) {
 }
 
 function removeExpandedNode(treeAddress) {
-    if (debug) console.log('removeExpandedNode', treeAddress);
+    console.log('removeExpandedNode', treeAddress);
 
     if (!treeAddress) return;
     
