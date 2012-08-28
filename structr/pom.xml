@@ -15,6 +15,7 @@
     </properties>
 
     <modules>
+        <module>structr-archetype</module>
         <module>structr-core</module>
         <module>structr-rest</module>
         <module>structr-websocket</module>

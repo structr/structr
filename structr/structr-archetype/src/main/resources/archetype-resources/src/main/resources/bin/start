@@ -1,0 +1,27 @@
+#!/bin/bash
+
+. bin/config
+
+if [ -e $PID_FILE ]; then
+
+	echo
+	echo "        ERROR: server already running."
+	echo
+	echo "        Please stop any running instances before starting a"
+	echo "        new one. (Remove $PID_FILE if this message appears"
+	echo "        even if no server is running.)"
+	echo 
+	
+	exit 0
+	
+fi
+	
+echo 
+echo -n "        Starting structr server $DISPLAY_NAME: "
+
+java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >$LOG_FILE 2>&1 & echo $!! >$PID_FILE
+
+sleep 1
+
+echo "OK"
+echo

@@ -34,11 +34,6 @@
         </repository>
     </repositories>	
     <dependencies>
-        <!--		<dependency>
-             			<groupId>org.freemarker</groupId>
-             			<artifactId>freemarker</artifactId>
-             			<version>2.3.19</version>
-      		</dependency>-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -62,34 +57,6 @@
             <artifactId>neo4j-spatial</artifactId>
             <version>0.9-SNAPSHOT</version>
             <exclusions>
-                <!--                <exclusion>
-                    <groupId>org.neo4j</groupId>
-                    <artifactId>neo4j-graph-collections</artifactId>
-                </exclusion>-->
-                <!--                <exclusion>
-                    <groupId>org.neo4j</groupId>
-                    <artifactId>neo4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.neo4j</groupId>
-                    <artifactId>server-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.neo4j</groupId>
-                    <artifactId>neo4j-kernel</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.neo4j.app</groupId>
-                    <artifactId>neo4j-server</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.neo4j.examples</groupId>
-                    <artifactId>neo4j-examples</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.neo4j</groupId>
-                    <artifactId>neo4j-graphviz</artifactId>
-                </exclusion>-->
             </exclusions>
         </dependency>
         <dependency>
@@ -120,29 +87,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--        <dependency>
-            <groupId>com.tinkerpop.gremlin</groupId>
-            <artifactId>gremlin-java</artifactId>
-            <version>1.4</version>
-            <type>jar</type>
-            <exclusions>
-         Sail support not needed 
-                <exclusion>
-                    <groupId>com.tinkerpop.blueprints</groupId>
-                    <artifactId>blueprints-sail-graph</artifactId>
-                </exclusion>
-         Maven support in groovy not needed 
-                <exclusion>
-                    <groupId>org.codehaus.groovy.maven</groupId>
-                    <artifactId>gmaven-plugin</artifactId>
-                </exclusion>
-         "readline" not needed - we only expose gremlin through webadmin 
-                <exclusion>
-                    <groupId>jline</groupId>
-                    <artifactId>jline</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>-->
         <dependency>
             <groupId>org.beanshell</groupId>
             <artifactId>bsh-core</artifactId>
@@ -215,11 +159,6 @@
             <artifactId>transform</artifactId>
             <version>3.0.2</version>
         </dependency>
-        <!--		<dependency>
-             			<groupId>org.htmlparser</groupId>
-             			<artifactId>htmlparser</artifactId>
-             			<version>2.1</version>
-      		</dependency>-->
         <dependency>
             <groupId>jmimemagic</groupId>
             <artifactId>jmimemagic</artifactId>
@@ -266,11 +205,6 @@
             <artifactId>gson</artifactId>
             <version>2.1</version>
         </dependency>
-        <!--		<dependency>
-             			<groupId>xerces</groupId>
-             			<artifactId>xercesImpl</artifactId>
-             			<version>2.10.0</version>
-      		</dependency>-->
         <dependency>
             <groupId>org.fusesource.hawtdb</groupId>
             <artifactId>hawtdb</artifactId>
@@ -346,20 +280,3 @@
     </scm>
 
 </project>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
