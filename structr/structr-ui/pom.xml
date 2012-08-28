@@ -11,7 +11,7 @@
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-ui</artifactId>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<version>0.5.3-SNAPSHOT</version>
 	<name>structr-ui</name>
 	<url>http://structr.org</url>
@@ -133,25 +133,20 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>2.1.1</version>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
 				<configuration>
-					<failOnMissingWebXml>false</failOnMissingWebXml>
 					<archive>
-						<index>true</index>
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib</classpathPrefix>
 						</manifest>
 					</archive>
-					<webResources>
-						<resource>
-							<directory>target/classes/</directory>
-						</resource>
-					</webResources>
-					<packagingExcludes>
-						assemblies/**, bin/**, logs/**, WEB-INF/lib/**
-					</packagingExcludes>
+					<excludes>
+						<exclude>assemblies/**</exclude>
+						<exclude>bin/**</exclude>
+						<exclude>logs/**</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>
