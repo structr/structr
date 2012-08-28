@@ -185,7 +185,7 @@ var _Elements = {
     },
 
     appendElementElement : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
-        console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
         if (debug) console.log(entity.id);
         var parent;
         

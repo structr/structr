@@ -150,15 +150,15 @@ var _Entities = {
             expand = isExpanded(getElementPath(lastAppendedObj));
         }
 
-        console.log('lastAppendedObj', lastAppendedObj);
+        if (debug) console.log('lastAppendedObj', lastAppendedObj);
 
         if (lastAppendedObj) {
             
             var t = getElementPath(lastAppendedObj);
-            console.log(t);
+            if (debug) console.log(t);
             
             if (expand) {
-                console.log('expand', lastAppendedObj);
+                if (debug) console.log('expand', lastAppendedObj);
                 _Entities.ensureExpanded(lastAppendedObj);
             }
 
@@ -166,7 +166,7 @@ var _Entities = {
             if (debug) console.log('lastAppendedObj.parent()', parent);
             if (parent.children('.node') && parent.children('.node').length==1) {
                 
-                console.log('parent of last appended object has children');
+                if (debug) console.log('parent of last appended object has children');
 
                 //addExpandedNode(treeAddress);
                 var ent = Structr.entityFromElement(parent);
@@ -756,7 +756,7 @@ var _Entities = {
         
         var treeAddress = elId ? elId.substring(1) : undefined;
         
-        console.log('ensureExpanded: elId, treeAddress', elId, treeAddress);
+        if (debug) console.log('ensureExpanded: elId, treeAddress', elId, treeAddress);
         addExpandedNode(treeAddress);
         
         b = el.children('.expand_icon').first();
@@ -792,7 +792,7 @@ var _Entities = {
         
         var treeAddress = elId ? elId.substring(1) : undefined;
         
-        console.log('toggleElement: treeAddress', treeAddress);
+        if (debug) console.log('toggleElement: treeAddress', treeAddress);
         
         b = el.children('.expand_icon').first();
         src = b.prop('src');

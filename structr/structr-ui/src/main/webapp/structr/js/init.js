@@ -597,7 +597,7 @@ function plural(type) {
 }
 
 function addExpandedNode(treeAddress) {
-    console.log('addExpandedNode', treeAddress);
+    if (debug) console.log('addExpandedNode', treeAddress);
 
     if (!treeAddress) return;
 
@@ -610,7 +610,7 @@ function addExpandedNode(treeAddress) {
 }
 
 function removeExpandedNode(treeAddress) {
-    console.log('removeExpandedNode', treeAddress);
+    if (debug) console.log('removeExpandedNode', treeAddress);
 
     if (!treeAddress) return;
     

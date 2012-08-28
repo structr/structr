@@ -474,12 +474,15 @@ var _Pages = {
                         'left' : offset.left
                     },
                     drop: function(event, ui) {
+                        
                         var self = $(this);
                         var page = self.closest( '.page')[0];
                         var pageId;
                         var pos;
                         var nodeData = {};
-    
+                        
+//                        console.log('drop event', self, page);
+                        
                         if (page) {
 
                             // we're in the main page
@@ -788,7 +791,8 @@ var _Pages = {
                 
                 treeAddress = getElementPath(self);
                 if (debug) console.log('treeAddress', treeAddress);
-                addExpandedNode(treeAddress);
+                //addExpandedNode(treeAddress);
+                _Entities.ensureExpanded(self);
                 
                 if (sorting) {
                     if (debug) console.log('sorting, no drop allowed');
