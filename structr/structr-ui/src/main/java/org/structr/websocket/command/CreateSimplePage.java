@@ -91,16 +91,20 @@ public class CreateSimplePage extends AbstractCommand {
 				Head head       = (Head) createElement(nodeData, page, Head.class.getSimpleName(), 0, html);
 				Body body       = (Body) createElement(nodeData, page, Body.class.getSimpleName(), 1, html);
 				Title title     = (Title) createElement(nodeData, page, Title.class.getSimpleName(), 0, head);
+				//nodeData.put(Content.UiKey.content.name(), "Page Title");
 				Content content = (Content) createElement(nodeData, page, Content.class.getSimpleName(), 0, title);
+				//nodeData.remove(Content.UiKey.content.name());
 
 				content.setProperty(Content.UiKey.content, "Page Title");
-
 				H1 h1             = (H1) createElement(nodeData, page, H1.class.getSimpleName(), 0, body);
+				//nodeData.put(Content.UiKey.content.name(), "Page Title");
 				Content h1Content = (Content) createElement(nodeData, page, Content.class.getSimpleName(), 0, h1);
+				//nodeData.remove(Content.UiKey.content.name());
 
 				h1Content.setProperty(Content.UiKey.content, "Page Title");
 
 				Div div            = (Div) createElement(nodeData, page, Div.class.getSimpleName(), 1, body);
+				//nodeData.put(Content.UiKey.content.name(), "Body Text");
 				Content divContent = (Content) createElement(nodeData, page, Content.class.getSimpleName(), 0, div);
 
 				divContent.setProperty(Content.UiKey.content, "Body Text");

@@ -145,7 +145,7 @@ function connect() {
 
             } else if (command == 'GET') { /*********************** GET ************************/
 
-                console.log('GET:', data);
+                if (debug) console.log('GET:', data);
 
                 var d = data.data.displayElementId;
                 if (debug) console.log('displayElementId', d);
@@ -157,7 +157,7 @@ function connect() {
                     parentElement = $($('.' + data.id + '_')[0]);
                 }
 
-                console.log('parentElement', parentElement);
+                if (debug) console.log('parentElement', parentElement);
                 var key = data.data.key;
                 var value = data.data[key];
 
@@ -306,13 +306,15 @@ function connect() {
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
                 
-                if (debug) ssconsole.log('UPDATE');
+                if (debug) console.log('UPDATE');
                 
                 var relData = data.relData;
                 if (debug) console.log('relData', relData);
                 
                 var removedProperties = data.removedProperties;
                 var modifiedProperties = data.modifiedProperties;
+                
+                if (debug) console.log(removedProperties, modifiedProperties);
                 
                 var isRelOp = false;
                 
@@ -444,11 +446,18 @@ function connect() {
                                 inputElement.val(newValue);
                             }
 
-                            // hook for CodeMirror edit areas
-                            if (editor && editor.id == data.id && key == 'content') {
-                                if (debug) console.log(editor.id);
-                                editor.setValue(newValue);
-                                //editor.setCursor(editorCursor);
+                            if (key == 'content') {
+
+                                if (debug) console.log(attrElement.text(), newValue);
+
+                                attrElement.text(newValue);
+
+                                // hook for CodeMirror edit areas
+                                if (editor && editor.id == data.id) {
+                                    if (debug) console.log(editor.id);
+                                    editor.setValue(newValue);
+                                    //editor.setCursor(editorCursor);
+                                }
                             }
                         }
                     

@@ -88,14 +88,14 @@ var _Contents = {
 
         //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
-        var nameOrContent = content.content ? content.content : content.name;
+        //var nameOrContent = content.content ? content.content : content.name;
         
         var parentPath = getElementPath(parent);
         var id = parentPath + '_' + parent.children('.node').length;
         
         parent.append('<div id="_' + id + '" class="node content ' + content.id + '_">'
             + '<img class="typeIcon" src="'+ _Contents.icon + '">'
-            + '<div class="content_ name_">' + escapeTags(nameOrContent) + '</div> <span class="id">' + content.id + '</span>'
+            + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
             //	    + '<b class="content_">' + content.content + '</b>'
             + '</div>');
         
@@ -124,7 +124,7 @@ var _Contents = {
             _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
         });
         
-        $('.name_', div).on('click', function(e) {
+        $('.content_', div).on('click', function(e) {
             e.stopPropagation();
             var self = $(this);
             var text = self.parent().find('.content_').text();

@@ -432,6 +432,10 @@ ul#previewTabs {
     white-space: nowrap;
 }
 
+.content .content_:hover {
+    cursor: text ! important;    
+}
+
 span.id {
     color: #999;
 }
