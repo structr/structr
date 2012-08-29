@@ -55,6 +55,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.Permission;
+import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -127,13 +129,19 @@ public abstract class Resource {
 				public Object execute() throws FrameworkException {
 
 					for (GraphObject obj : finalResults) {
-
+						
 						if (obj instanceof AbstractRelationship) {
 
 							deleteRel.execute(obj);
 
 						} else if (obj instanceof AbstractNode) {
 
+							if (!securityContext.isAllowed((AbstractNode) obj, Permission.delete)) {
+								
+								throw new NotAllowedException();
+								
+							}
+							
 //                                                      // 2: delete relationships
 //                                                      if (obj instanceof AbstractNode) {
 //
