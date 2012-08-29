@@ -16,11 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.core.module;
-
 
 import org.structr.core.Command;
 import org.structr.core.Module;
@@ -55,33 +51,26 @@ import org.structr.core.*;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
- * Modules need to be installed and uninstalled manually
- * This service keeps an index of installed / activated modules for efficient access
- * files:
- *  - $BASEDIR/modules/modules.conf             -> properties file
+ * Modules need to be installed and uninstalled manually This service keeps an index of installed / activated modules for efficient access files: - $BASEDIR/modules/modules.conf -> properties file
  *
- * The entity class cache needs to be initialized with the structr core entities even
- * when no modules exist.
+ * The entity class cache needs to be initialized with the structr core entities even when no modules exist.
  *
  *
  * @author Christian Morgner
  */
 public class ModuleService implements SingletonService {
 
-	private static final Logger logger				= Logger.getLogger(ModuleService.class.getName());
-	
-	private static final Set<String> nodeEntityPackages		= new LinkedHashSet<String>();
-	private static final Set<String> relationshipPackages		= new LinkedHashSet<String>();
-	private static final Map<String, Class> nodeEntityClassCache	= new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
-	private static final Map<String, Class> relationshipClassCache	= new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Map<String, Class> agentClassCache		= new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Map<String, Set<Class>> interfaceCache	= new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
-	private static final Set<String> agentPackages			= new LinkedHashSet<String>();
+	private static final Logger logger = Logger.getLogger(ModuleService.class.getName());
+	private static final Set<String> nodeEntityPackages = new LinkedHashSet<String>();
+	private static final Set<String> relationshipPackages = new LinkedHashSet<String>();
+	private static final Map<String, Class> nodeEntityClassCache = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
+	private static final Map<String, Class> relationshipClassCache = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
+	private static final Map<String, Class> agentClassCache = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
+	private static final Map<String, Set<Class>> interfaceCache = new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
+	private static final Set<String> agentPackages = new LinkedHashSet<String>();
 
 	//~--- methods --------------------------------------------------------
-
 	/**
 	 * Loads and activates the given module.
 	 *
@@ -94,7 +83,7 @@ public class ModuleService implements SingletonService {
 
 			Module module = loadResource(resourceName);
 
-			if (module != null) {
+			if(module != null) {
 
 				importResource(module);
 
@@ -104,10 +93,10 @@ public class ModuleService implements SingletonService {
 
 			}
 
-		} catch (IOException ioex) {
+		} catch(IOException ioex) {
 
-			logger.log(Level.WARNING, "Error loading module {0}: {1}", new Object[] { resourceName, ioex });
-			
+			logger.log(Level.WARNING, "Error loading module {0}: {1}", new Object[]{resourceName, ioex});
+
 			ioex.printStackTrace();
 		}
 	}
@@ -116,7 +105,7 @@ public class ModuleService implements SingletonService {
 	@Override
 	public void injectArguments(Command command) {
 
-		if (command != null) {
+		if(command != null) {
 
 			command.setArgument("moduleService", this);
 
@@ -141,7 +130,7 @@ public class ModuleService implements SingletonService {
 
 		Set<String> resourcePaths = getResourcesToScan();
 
-		for (String resourcePath : resourcePaths) {
+		for(String resourcePath : resourcePaths) {
 
 			scanResource(resourcePath);
 		}
@@ -150,8 +139,7 @@ public class ModuleService implements SingletonService {
 	}
 
 	/**
-	 * Processes the information from the given module and makes them available for the
-	 * service layer.
+	 * Processes the information from the given module and makes them available for the service layer.
 	 *
 	 * @param module the module to process
 	 *
@@ -160,7 +148,7 @@ public class ModuleService implements SingletonService {
 	private void importResource(Module module) throws IOException {
 
 		Set<String> classes = module.getClasses();
-		for (final String className : classes) {
+		for(final String className : classes) {
 
 			logger.log(Level.FINE, "Instantiating class {0} ", className);
 
@@ -169,17 +157,17 @@ public class ModuleService implements SingletonService {
 				// instantiate class..
 				Class clazz = Class.forName(className);
 
-				logger.log(Level.FINE, "Class {0} instantiated: {1}", new Object[] { className, clazz });
+				logger.log(Level.FINE, "Class {0} instantiated: {1}", new Object[]{className, clazz});
 
-				if (!Modifier.isAbstract(clazz.getModifiers())) {
+				if(!Modifier.isAbstract(clazz.getModifiers())) {
 
 					// register node entity classes
-					if (AbstractNode.class.isAssignableFrom(clazz)) {
+					if(AbstractNode.class.isAssignableFrom(clazz)) {
 
 						EntityContext.init(clazz);
 
 						String simpleName = clazz.getSimpleName();
-						String fullName   = clazz.getName();
+						String fullName = clazz.getName();
 
 						nodeEntityClassCache.put(simpleName, clazz);
 						nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
@@ -197,14 +185,14 @@ public class ModuleService implements SingletonService {
 
 							classesForInterface.add(clazz);
 						}
-						
+
 					}
 
 					// register entity classes
-					if (AbstractRelationship.class.isAssignableFrom(clazz)) {
+					if(AbstractRelationship.class.isAssignableFrom(clazz)) {
 
 						String simpleName = clazz.getSimpleName();
-						String fullName   = clazz.getName();
+						String fullName = clazz.getName();
 
 						relationshipClassCache.put(simpleName, clazz);
 						relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
@@ -212,24 +200,25 @@ public class ModuleService implements SingletonService {
 					}
 
 					// register services
-					if (Service.class.isAssignableFrom(clazz)) {
+					if(Service.class.isAssignableFrom(clazz)) {
 
 						Services.registerServiceClass(clazz);
 					}
 
 					// register agents
-					if (Agent.class.isAssignableFrom(clazz)) {
+					if(Agent.class.isAssignableFrom(clazz)) {
 
 						String simpleName = clazz.getSimpleName();
-						String fullName   = clazz.getName();
+						String fullName = clazz.getName();
 
 						agentClassCache.put(simpleName, clazz);
 						agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
 					}
 				}
-				
-			} catch (Throwable t) { }
+
+			} catch(Throwable t) {
+			}
 
 		}
 	}
@@ -237,41 +226,47 @@ public class ModuleService implements SingletonService {
 	private Module loadResource(String resource) throws IOException {
 
 		// create module
-		DefaultModule ret      = new DefaultModule(resource);
-		Set<String> classes    = ret.getClasses();
-		
-		ZipFile zipFile        = new ZipFile(new File(resource), ZipFile.OPEN_READ);
-		
-		// conventions that might be useful here:
-		// ignore entries beginning with meta-inf/
-		// handle entries beginning with images/ as IMAGE
-		// handle entries beginning with pages/ as PAGES
-		// handle entries ending with .jar as libraries, to be deployed to WEB-INF/lib
-		// handle other entries as potential page and/or entity classes
-		// .. to be extended
-		// (entries that end with "/" are directories)
-		
-		for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements(); ) {
+		DefaultModule ret = new DefaultModule(resource);
+		Set<String> classes = ret.getClasses();
 
-			ZipEntry entry   = entries.nextElement();
-			String entryName = entry.getName();
+		if (resource.endsWith(".jar") || resource.endsWith(".war")) {
 
-			if (entryName.endsWith(".class")) {
+			ZipFile zipFile = new ZipFile(new File(resource), ZipFile.OPEN_READ);
 
-				String fileEntry = entry.getName().replaceAll("[/]+", ".");
+			// conventions that might be useful here:
+			// ignore entries beginning with meta-inf/
+			// handle entries beginning with images/ as IMAGE
+			// handle entries beginning with pages/ as PAGES
+			// handle entries ending with .jar as libraries, to be deployed to WEB-INF/lib
+			// handle other entries as potential page and/or entity classes
+			// .. to be extended
+			// (entries that end with "/" are directories)
 
-				// add class entry to Module
-				classes.add(fileEntry.substring(0, fileEntry.length() - 6));
+			for(Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
+
+				ZipEntry entry = entries.nextElement();
+				String entryName = entry.getName();
+
+				if(entryName.endsWith(".class")) {
+
+					String fileEntry = entry.getName().replaceAll("[/]+", ".");
+
+					// add class entry to Module
+					classes.add(fileEntry.substring(0, fileEntry.length() - 6));
+				}
 			}
+
+			zipFile.close();
+			
+		} else if (resource.endsWith("/classes")) {
+			
+			addClassesRecursively(new File(resource), "/classes", classes);
 		}
-		
-		zipFile.close();
 
 		return ret;
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	public Set<String> getNodeEntityPackages() {
 		return nodeEntityPackages;
 	}
@@ -316,31 +311,30 @@ public class ModuleService implements SingletonService {
 
 		Class ret = GenericNode.class;
 
-		if ((name != null) && (!name.isEmpty())) {
+		if((name != null) && (!name.isEmpty())) {
 
 			ret = nodeEntityClassCache.get(name);
 
-			if (ret == null) {
+			if(ret == null) {
 
-				for (String possiblePath : nodeEntityPackages) {
+				for(String possiblePath : nodeEntityPackages) {
 
-					if (possiblePath != null) {
+					if(possiblePath != null) {
 
 						try {
 
 							Class nodeClass = Class.forName(possiblePath + "." + name);
 
-							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
+							if(!Modifier.isAbstract(nodeClass.getModifiers())) {
 
 								nodeEntityClassCache.put(name, nodeClass);
-								
+
 								// first match wins
 								break;
 
 							}
 
-						} catch (ClassNotFoundException ex) {
-
+						} catch(ClassNotFoundException ex) {
 							// ignore
 						}
 
@@ -359,21 +353,21 @@ public class ModuleService implements SingletonService {
 
 		Class ret = AbstractNode.class;
 
-		if ((name != null) && (name.length() > 0)) {
+		if((name != null) && (name.length() > 0)) {
 
 			ret = relationshipClassCache.get(name);
 
-			if (ret == null) {
+			if(ret == null) {
 
-				for (String possiblePath : relationshipPackages) {
+				for(String possiblePath : relationshipPackages) {
 
-					if (possiblePath != null) {
+					if(possiblePath != null) {
 
 						try {
 
 							Class nodeClass = Class.forName(possiblePath + "." + name);
 
-							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
+							if(!Modifier.isAbstract(nodeClass.getModifiers())) {
 
 								relationshipClassCache.put(name, nodeClass);
 
@@ -382,8 +376,7 @@ public class ModuleService implements SingletonService {
 
 							}
 
-						} catch (ClassNotFoundException ex) {
-
+						} catch(ClassNotFoundException ex) {
 							// ignore
 						}
 
@@ -402,15 +395,15 @@ public class ModuleService implements SingletonService {
 
 		Class ret = null;
 
-		if ((name != null) && (name.length() > 0)) {
+		if((name != null) && (name.length() > 0)) {
 
 			ret = agentClassCache.get(name);
 
-			if (ret == null) {
+			if(ret == null) {
 
-				for (String possiblePath : agentPackages) {
+				for(String possiblePath : agentPackages) {
 
-					if (possiblePath != null) {
+					if(possiblePath != null) {
 
 						try {
 
@@ -421,8 +414,7 @@ public class ModuleService implements SingletonService {
 							// first match wins
 							break;
 
-						} catch (ClassNotFoundException ex) {
-
+						} catch(ClassNotFoundException ex) {
 							// ignore
 						}
 
@@ -445,37 +437,44 @@ public class ModuleService implements SingletonService {
 	public Set<String> getResourcesToScan() {
 
 		String classPath = System.getProperty("java.class.path");
-		Set<String> ret  = new LinkedHashSet<String>();
-		Pattern pattern  = Pattern.compile(".*(structr).*(war|jar)");
+		Set<String> ret = new LinkedHashSet<String>();
+		Pattern pattern = Pattern.compile(".*(structr).*(war|jar)");
 		Matcher matcher = pattern.matcher("");
-		
-		for (String jarPath : classPath.split("[:]+")) {
 
-			String lowerPath  = jarPath.toLowerCase();
-			String moduleName = lowerPath.substring(lowerPath.lastIndexOf("/") + 1);
+		for(String jarPath : classPath.split("[:]+")) {
 
-			matcher.reset(moduleName);
+			String lowerPath = jarPath.toLowerCase();
 			
-			if (matcher.matches()) {
+			if (lowerPath.endsWith("/classes")) {
 
 				ret.add(jarPath);
+				
+			} else {
+
+				String moduleName = lowerPath.substring(lowerPath.lastIndexOf("/") + 1);
+				matcher.reset(moduleName);
+
+				if(matcher.matches()) {
+
+					ret.add(jarPath);
+				}
 			}
 		}
 
 		String resources = Services.getResources();
-		if (resources != null) {
-			
-			for (String resource : resources.split("[:]+")) {
+		if(resources != null) {
+
+			for(String resource : resources.split("[:]+")) {
 
 				String lowerResource = resource.toLowerCase();
 
-				if (lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
+				if(lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
 
 					ret.add(resource);
 				}
 			}
 		}
-		
+
 		return (ret);
 	}
 
@@ -485,11 +484,41 @@ public class ModuleService implements SingletonService {
 	}
 
 	// </editor-fold>
-
 	@Override
 	public boolean isRunning() {
 
 		// we're always running :)
 		return (true);
+	}
+
+	private void addClassesRecursively(File dir, String prefix, Set<String> classes) {
+
+		int prefixLen = prefix.length();
+		
+		for(File file : dir.listFiles()) {
+
+			if(file.isDirectory()) {
+
+				addClassesRecursively(file, prefix, classes);
+
+			} else {
+
+				try {
+
+					String fileEntry = file.getAbsolutePath();
+
+					fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
+					fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
+					fileEntry = fileEntry.replaceAll("[/]+", ".");
+
+					classes.add(fileEntry);
+
+				} catch(Throwable t) {
+					// ignore
+				}
+
+			}
+
+		}
 	}
 }

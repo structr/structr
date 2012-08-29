@@ -142,6 +142,7 @@
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib</classpathPrefix>
+							<mainClass>org.structr.Ui</mainClass>
 						</manifest>
 					</archive>
 					<webResources>
@@ -170,6 +171,14 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<configuration>
+					<mainClass>org.structr.Ui</mainClass>
+				</configuration>
 			</plugin>
 		</plugins>
 		<finalName>${artifactId}-${version}</finalName>
