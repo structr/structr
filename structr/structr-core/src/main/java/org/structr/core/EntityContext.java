@@ -1641,6 +1641,8 @@ public class EntityContext {
 
 				// 5: notify listeners of node and relationship deletion
 				for (Node node : data.deletedNodes()) {
+					
+					logger.log(Level.FINEST, "Node deleted: {0}", node.getId());
 
 					String type = (String)removedNodeProperties.get(node).get(AbstractNode.Key.type.name());
 					AbstractNode entity = nodeFactory.createDeletedNode(securityContext, node, type);
