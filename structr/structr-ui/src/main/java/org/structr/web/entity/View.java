@@ -51,7 +51,7 @@ import org.structr.core.node.NodeService.NodeIndex;
  *
  * @author Christian Morgner
  */
-public class View extends AbstractNode {
+public class View extends AbstractNode implements Element {
 
 	static {
 
@@ -67,7 +67,7 @@ public class View extends AbstractNode {
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ type, name, query }
+	public enum Key implements PropertyKey{ type, name, query, paths }
 
 	//~--- get methods ----------------------------------------------------
 

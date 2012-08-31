@@ -136,7 +136,12 @@ public class AddCommand extends AbstractCommand {
 
 							}
 
-							maxPos = Math.max(r.getLongProperty(newPageId), maxPos);
+							Long pos = r.getLongProperty(newPageId);
+
+							if (pos != null) {
+
+								maxPos = Math.max(pos, maxPos);
+							}
 
 						}
 
