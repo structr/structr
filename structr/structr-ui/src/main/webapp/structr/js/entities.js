@@ -210,7 +210,7 @@ var _Entities = {
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         if (debug) console.log('headers', headers);
-        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
+        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id, headers);
             
         $.ajax({
             url: rootUrl + entity.id,
@@ -224,7 +224,7 @@ var _Entities = {
                     var cont = $('.' + entity.id + '_', dialog);
 
                     $(data.result.paths).each(function(i, path) {
-                        console.log(path);
+                        if (debug) console.log(path);
 
                         //                        var pageId = path.substring(32);
                         
