@@ -1617,6 +1617,20 @@ public class EntityContext {
 						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 							hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 						}
+						
+// ****************************************************** TEST
+						try {
+							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
+							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
+								modifiedNodes.add(startNode);
+							}
+							
+							AbstractNode endNode = nodeFactory.createNode(securityContext, rel.getEndNode());
+							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
+								modifiedNodes.add(endNode);
+							}
+							
+						} catch(Throwable ignore) {} 
 					}
 
 				}
@@ -1635,6 +1649,20 @@ public class EntityContext {
 						}
 
 						deletedRels.add(entity);
+
+// ****************************************************** TEST
+						try {
+							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
+							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
+								modifiedNodes.add(startNode);
+							}
+							
+							AbstractNode endNode = nodeFactory.createNode(securityContext, rel.getEndNode());
+							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
+								modifiedNodes.add(endNode);
+							}
+							
+						} catch(Throwable ignore) {} 
 					}
 
 				}
