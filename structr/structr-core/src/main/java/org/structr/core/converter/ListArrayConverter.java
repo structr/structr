@@ -20,6 +20,7 @@
 package org.structr.core.converter;
 
 import java.util.List;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.Value;
 
 /**
@@ -28,12 +29,22 @@ import org.structr.core.Value;
  * @author Christian Morgner
  */
 public class ListArrayConverter extends PropertyConverter {
+	
+	public static final String SEP = ",";
 
 	@Override
 	public Object convertForSetter(Object source, Value value) {
 
-		if(source != null && source instanceof List) {
+		if (source == null) {
+			return source;
+		}
+		
+		if (source instanceof List) {
 			return ((List)source).toArray(new String[0]);
+		}
+		
+		if (source instanceof String) {
+			return StringUtils.split((String) source, SEP);
 		}
 
 		return source;
@@ -41,6 +52,7 @@ public class ListArrayConverter extends PropertyConverter {
 
 	@Override
 	public Object convertForGetter(Object source, Value value) {
-		return source;
+		
+		return StringUtils.join((String[]) source, SEP);
 	}
 }
