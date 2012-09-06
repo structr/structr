@@ -41,6 +41,8 @@ public class Ui implements org.structr.server.StructrServer {
 			    
 				.addServlet("/structr/html/*", htmlServletHolder)
 				.addServlet("/structr/ws/*", wsServletHolder)
+				
+				.addResourceHandler("src/main/webapp", true, new String[] { "index.html"})
 			    
 				.enableRewriteFilter()
 				
