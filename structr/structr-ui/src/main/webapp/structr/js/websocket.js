@@ -145,7 +145,7 @@ function connect() {
 
             } else if (command == 'GET') { /*********************** GET ************************/
 
-                console.log('GET:', data);
+                if (debug) console.log('GET:', data);
 
                 var d = data.data.displayElementId;
                 if (debug) console.log('displayElementId', d);
@@ -157,7 +157,7 @@ function connect() {
                     parentElement = $($('.' + data.id + '_')[0]);
                 }
 
-                console.log('parentElement', parentElement);
+                if (debug) console.log('parentElement', parentElement);
                 var key = data.data.key;
                 var value = data.data[key];
 
@@ -277,7 +277,7 @@ function connect() {
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
             //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                //console.log(command, result, data, data.data);
+                if (debug) console.log(command, result, data, data.data);
                 
                 //var treeAddress = data.data.treeAddress;
 				
@@ -285,12 +285,18 @@ function connect() {
                     
                    if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
-                    var el = Structr.node(entity.id, parentId, componentId, pageId);
+                    //var el = Structr.node(entity.id, parentId, componentId, pageId);
+                    var el = Structr.elementFromAddress(treeAddress);
                     if (el) el.remove();
                     
                     //alert(entity.id);
                     
                     _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                    
+                    if (command == 'CREATE' && entity.type == 'Page') {
+                        var tab = $('#show_' + entity.id, previews);
+                        setTimeout(function() { _Pages.activateTab(tab) }, 200);
+                    }
                     
                 });
 
@@ -300,13 +306,15 @@ function connect() {
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
                 
-                if (debug) ssconsole.log('UPDATE');
+                if (debug) console.log('UPDATE');
                 
                 var relData = data.relData;
                 if (debug) console.log('relData', relData);
                 
                 var removedProperties = data.removedProperties;
                 var modifiedProperties = data.modifiedProperties;
+                
+                if (debug) console.log(removedProperties, modifiedProperties);
                 
                 var isRelOp = false;
                 
@@ -438,11 +446,18 @@ function connect() {
                                 inputElement.val(newValue);
                             }
 
-                            // hook for CodeMirror edit areas
-                            if (editor && editor.id == data.id && key == 'content') {
-                                if (debug) console.log(editor.id);
-                                editor.setValue(newValue);
-                                editor.setCursor(editorCursor);
+                            if (key == 'content') {
+
+                                if (debug) console.log(attrElement.text(), newValue);
+
+                                attrElement.text(newValue);
+
+                                // hook for CodeMirror edit areas
+                                if (editor && editor.id == data.id) {
+                                    if (debug) console.log(editor.id);
+                                    editor.setValue(newValue);
+                                    //editor.setCursor(editorCursor);
+                                }
                             }
                         }
                     

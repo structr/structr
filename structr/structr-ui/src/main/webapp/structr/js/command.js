@@ -217,7 +217,7 @@ var Command = {
         data[key] = value;
         if (recursive) data['recursive'] = true;
         obj.data = data;
-        console.log('setProperty()', obj);
+        if (debug) console.log('setProperty()', obj);
         return sendObj(obj);
     },
 
@@ -306,7 +306,7 @@ var Command = {
             nodeData.name = 'New Page ' + Math.floor(Math.random() * (999999 - 1));
         }
         obj.data = nodeData;
-        console.log('createSimplePage()', obj);
+        if (debug) console.log('createSimplePage()', obj);
         return sendObj(obj);
     },
     

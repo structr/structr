@@ -65,8 +65,6 @@ public abstract class PrincipalImpl extends AbstractNode implements Principal {
 
 				secRel = createSecurityRelationshipTo(obj);
 
-				secRel.addPermission(permission);
-
 			} catch (FrameworkException ex) {
 
 				Logger.getLogger(PrincipalImpl.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
@@ -74,6 +72,8 @@ public abstract class PrincipalImpl extends AbstractNode implements Principal {
 			}
 
 		}
+
+		secRel.addPermission(permission);
 
 	}
 
@@ -88,8 +88,6 @@ public abstract class PrincipalImpl extends AbstractNode implements Principal {
 
 				secRel = createSecurityRelationshipTo(obj);
 
-				secRel.removePermission(permission);
-
 			} catch (FrameworkException ex) {
 
 				Logger.getLogger(PrincipalImpl.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
@@ -97,6 +95,8 @@ public abstract class PrincipalImpl extends AbstractNode implements Principal {
 			}
 
 		}
+
+		secRel.removePermission(permission);
 
 	}
 

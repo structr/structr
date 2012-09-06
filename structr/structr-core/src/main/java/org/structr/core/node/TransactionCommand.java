@@ -197,7 +197,8 @@ public class TransactionCommand extends NodeServiceCommand {
 				} catch (Throwable t) {
 
 					// transaction failed, look for "real" cause..
-					t.printStackTrace();
+					//t.printStackTrace();
+					logger.log(Level.FINE, "Transaction failure", t);
 				}
 
 				// clear transaction data

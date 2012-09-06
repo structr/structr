@@ -21,11 +21,10 @@
 
 package org.structr.core.log;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.fusesource.hawtdb.api.BTreeIndexFactory;
+import org.fusesource.hawtdb.api.IndexFactory;
+import org.fusesource.hawtdb.api.MultiIndexFactory;
+import org.fusesource.hawtdb.api.SortedIndex;
 import org.fusesource.hawtdb.api.Transaction;
 import org.fusesource.hawtdb.api.TxPageFile;
 
@@ -33,10 +32,12 @@ import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.fusesource.hawtdb.api.IndexFactory;
-import org.fusesource.hawtdb.api.MultiIndexFactory;
-import org.fusesource.hawtdb.api.SortedIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,37 +54,42 @@ public class ReadLogCommand extends LogServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		TxPageFile logDb = (TxPageFile) arguments.get("logDb");
-
+		TxPageFile logDb           = (TxPageFile) arguments.get("logDb");
 		Map<String, Object> result = new HashMap<String, Object>();
-		
+
 		if (logDb != null) {
 
-			Transaction tx                                 = logDb.tx();
-			
-			MultiIndexFactory multiIndexFactory = new MultiIndexFactory(tx);
+			Transaction tx                            = logDb.tx();
+			MultiIndexFactory multiIndexFactory       = new MultiIndexFactory(tx);
 			IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
 
 			if (parameters.length == 1) {
-				
+
 				String userId = (String) parameters[0];
-				
-				SortedIndex<String, Object> index = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(userId, indexFactory);
-				
-				Iterator<Entry<String, Object>> it = index.iterator();
-					
-				while (it.hasNext()) {
-					
-					Entry<String, Object> entry = it.next();
-					
-					String key = entry.getKey();
-					Object val = entry.getValue();
-					
-					result.put(key, val);
-					
+
+				try {
+
+					SortedIndex<String, Object> index  = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(userId, indexFactory);
+					Iterator<Entry<String, Object>> it = index.iterator();
+
+					while (it.hasNext()) {
+
+						Entry<String, Object> entry = it.next();
+						String key                  = entry.getKey();
+						Object val                  = entry.getValue();
+
+						result.put(key, val);
+
+					}
+
+				} catch (org.fusesource.hawtdb.api.IndexException e) {
+
+					logger.log(Level.WARNING, "Could not read log db page for user {0}", userId);
+
 				}
 
 			}
+
 		}
 
 		return result;

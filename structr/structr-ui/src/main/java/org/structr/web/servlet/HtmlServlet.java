@@ -1074,7 +1074,7 @@ public class HtmlServlet extends HttpServlet {
 			}
 
 			// render end tag, if needed (= if not singleton tags)
-			if (StringUtils.isNotBlank(tag) && ((startNode instanceof Content) ||!isVoid)) {
+			if ((startNode instanceof HtmlElement || startNode instanceof Content) && StringUtils.isNotBlank(tag) && (!isVoid)) {
 
 				buffer.append("</").append(tag).append(">");
 

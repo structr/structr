@@ -509,8 +509,12 @@ var Structr = {
         }
     },
     
+    elementFromAddress : function(treeAddress) {
+        return $('#_' + treeAddress);
+    },
+    
     entityFromAddress : function(treeAddress) {
-        var entityElement = $('#_' + treeAddress);
+        var entityElement = Structr.elementFromAddress(treeAddress);
         var entity = Structr.entityFromElement(entityElement);
         return entity;
     },

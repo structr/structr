@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.NotFoundException;
 import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -210,25 +211,34 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 				try {
 
-					layerIndex.add(dbNode, "", "");
+					synchronized (layerIndex) {
+					
+						layerIndex.add(dbNode, "", "");
+					}
 
 					// If an exception is thrown here, the index was deleted
 					// and has to be recreated.
-
+				} catch (NotFoundException nfe) {
+					
+					logger.log(Level.SEVERE, "Could not add node to layer index because the db could not find the node", nfe);
+					
 				} catch (Exception e) {
+					
+					logger.log(Level.SEVERE, "Could add node to layer index", e);
 
-					final Map<String, String> config = new HashMap<String, String>();
-
-					config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
-					config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
-					config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
-
-					layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
-
-					indices.put(NodeIndex.layer.name(), layerIndex);
-
-					// try again
-					layerIndex.add(dbNode, "", "");
+//					final Map<String, String> config = new HashMap<String, String>();
+//
+//					config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
+//					config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
+//					config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
+//
+//					layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+//					logger.log(Level.WARNING, "Created layer node index due to exception", e);
+//
+//					indices.put(NodeIndex.layer.name(), layerIndex);
+//
+//					// try again
+//					layerIndex.add(dbNode, "", "");
 				}
 
 			}
@@ -283,7 +293,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 		Object value            = node.getProperty(key);    // dbNode.getProperty(key);
 		Object valueForIndexing = node.getPropertyForIndexing(key);
 		
-		if(value == null || (value != null && (value instanceof String) && StringUtils.isEmpty((String) value))) {
+		if (value == null || (value != null && (value instanceof String) && StringUtils.isEmpty((String) value))) {
 			valueForIndexing = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 			value = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 		}

@@ -21,8 +21,12 @@
 
 package org.structr.core.log;
 
-import java.util.UUID;
+import org.apache.commons.lang.StringUtils;
+
 import org.fusesource.hawtdb.api.BTreeIndexFactory;
+import org.fusesource.hawtdb.api.IndexFactory;
+import org.fusesource.hawtdb.api.MultiIndexFactory;
+import org.fusesource.hawtdb.api.SortedIndex;
 import org.fusesource.hawtdb.api.Transaction;
 import org.fusesource.hawtdb.api.TxPageFile;
 
@@ -30,12 +34,9 @@ import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
-import org.fusesource.hawtdb.api.IndexFactory;
-import org.fusesource.hawtdb.api.MultiIndexFactory;
-import org.fusesource.hawtdb.api.SortedIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,33 +57,34 @@ public class WriteLogCommand extends LogServiceCommand {
 
 		if (logDb != null) {
 
-			Transaction tx                                 = logDb.tx();
-			
-			MultiIndexFactory multiIndexFactory = new MultiIndexFactory(tx);
-			IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
-
 			if (parameters.length == 2) {
-				
+
 				String userId = (String) parameters[0];
-				
+
 				if (userId != null) {
-				
-					SortedIndex<String, Object> index = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(userId, indexFactory);
 
-					String[] obj		= (String[]) parameters[1];
-					String uuid		= UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+					synchronized (logDb) {
 
-					index.put(uuid, obj);
-					logger.log(Level.FINE, "Logged for user {0}: {1}", new Object[] { userId, StringUtils.join((String[]) obj, ",") });
-				
+						Transaction tx                            = logDb.tx();
+						MultiIndexFactory multiIndexFactory       = new MultiIndexFactory(tx);
+						IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
+						SortedIndex<String, Object> index         = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(userId, indexFactory);
+						String[] obj                              = (String[]) parameters[1];
+						String uuid                               = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+
+						index.put(uuid, obj);
+						logger.log(Level.FINE, "Logged for user {0}: {1}", new Object[] { userId, StringUtils.join((String[]) obj, ",") });
+						tx.commit();
+						logDb.flush();
+
+					}
+
 				}
 
 			} else {
+
 				throw new IllegalArgumentException();
 			}
-
-			tx.commit();
-			logDb.flush();
 
 		}
 

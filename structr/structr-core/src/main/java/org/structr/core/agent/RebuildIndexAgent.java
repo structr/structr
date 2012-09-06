@@ -101,20 +101,26 @@ public class RebuildIndexAgent extends Agent {
 				Result allNodes = (Result) Services.command(securityContext, GetAllNodes.class).execute();
 
 				logger.log(Level.INFO, "... done. Start indexing {0} nodes ...", allNodes.size());
+				
+				List<? extends GraphObject> list = allNodes.getResults();
 
-				for (GraphObject obj : allNodes.getResults()) {
+				for (GraphObject obj : list) {
 
 					indexer.execute(obj);
+					
+					obj = null; // help GC
 
 					nodes++;
 
-					if (nodes > 1000 && nodes % 1000 == 0) {
+					if (nodes % 1000 == 0) {
 
 						logger.log(Level.INFO, "Indexed {0} nodes, committing results to database.", nodes);
 						tx.success();
 						tx.finish();
 
 						tx = graphDb.beginTx();
+						indexer = null; // help GC
+						indexer = Services.command(securityContext, IndexNodeCommand.class);
 
 						logger.log(Level.FINE, "######## committed ########", nodes);
 
@@ -155,10 +161,12 @@ public class RebuildIndexAgent extends Agent {
 				for (AbstractRelationship s : allRelationships) {
 
 					indexer.execute(s);
+					
+					s = null; // help GC
 
 					rels++;
 
-					if (rels % 100 == 0) {
+					if (rels % 1000 == 0) {
 
 						logger.log(Level.INFO, "Indexed {0} relationships, committing results to database.", rels);
 						tx.success();

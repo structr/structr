@@ -474,12 +474,15 @@ var _Pages = {
                         'left' : offset.left
                     },
                     drop: function(event, ui) {
+                        
                         var self = $(this);
                         var page = self.closest( '.page')[0];
                         var pageId;
                         var pos;
                         var nodeData = {};
-    
+                        
+//                        console.log('drop event', self, page);
+                        
                         if (page) {
 
                             // we're in the main page
@@ -689,14 +692,14 @@ var _Pages = {
 	
     },
 
-    appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
-        if (debug) console.log('_Pages.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
+    appendElementElement : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
+        if (debug) console.log('_Pages.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
         
         var div;
         if (entity.type == 'Component') {
-            div = _Components.appendComponentElement(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
+            div = _Components.appendComponentElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
         } else {
-            div = _Elements.appendElementElement(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
+            div = _Elements.appendElementElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
         }
         
         if (!div) return false;
@@ -788,7 +791,8 @@ var _Pages = {
                 
                 treeAddress = getElementPath(self);
                 if (debug) console.log('treeAddress', treeAddress);
-                addExpandedNode(treeAddress);
+                //addExpandedNode(treeAddress);
+                _Entities.ensureExpanded(self);
                 
                 if (sorting) {
                     if (debug) console.log('sorting, no drop allowed');
@@ -879,9 +883,8 @@ var _Pages = {
                             
                             var pos = self.children('.node').length;
                             if (debug) console.log('new nested child', treeAddress + '_' + pos);
-                            addExpandedNode(treeAddress + '_' + pos);
-                            
                             // set as expanded in advance
+                            addExpandedNode(treeAddress + '_' + pos);
                             
                         }
                         

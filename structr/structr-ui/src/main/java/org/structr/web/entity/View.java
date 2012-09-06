@@ -34,7 +34,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.CypherQueryCommand;
-import org.structr.core.node.NodeService;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -44,6 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,7 +51,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @author Christian Morgner
  */
-public class View extends AbstractNode {
+public class View extends AbstractNode implements Element {
 
 	static {
 
@@ -60,14 +60,14 @@ public class View extends AbstractNode {
 		EntityContext.registerPropertySet(View.class, PropertyView.Ui, Key.values());
 		EntityContext.registerEntityRelation(View.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(View.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(View.class, NodeService.NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(View.class, NodeService.NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.fulltext.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(), Key.values());
 
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ type, name, query }
+	public enum Key implements PropertyKey{ type, name, query, paths }
 
 	//~--- get methods ----------------------------------------------------
 
@@ -92,7 +92,7 @@ public class View extends AbstractNode {
 		String rawQuery = getStringProperty("query");
 		String query    = rawQuery;
 
-		if (request != null) {
+		if (request != null && query != null) {
 
 			Pattern pattern = Pattern.compile("\\$\\{request.(.*)\\}");
 			Matcher matcher = pattern.matcher(rawQuery);

@@ -47,6 +47,7 @@ public class UiResourceProvider implements ResourceProvider {
 		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
 
 		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"), UuidResource.class);       // matches a UUID without dashes
+		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);                 // cypher query
 		resourceMap.put(Pattern.compile("maintenance"), MaintenanceResource.class);    // maintenance
 		resourceMap.put(Pattern.compile("in"), RelationshipResource.class);            // incoming relationship
 		resourceMap.put(Pattern.compile("out"), RelationshipResource.class);           // outgoing relationship
@@ -67,7 +68,6 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("[a-z_]+"), DynamicTypeResource.class);               // any type match
 		resourceMap.put(Pattern.compile("[0-9]+"), UuidResource.class);                       // this matches the ID resource
 		
-		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);                 // public view (default)
 
 		return resourceMap;
 

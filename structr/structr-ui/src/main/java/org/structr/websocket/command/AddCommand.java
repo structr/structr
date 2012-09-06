@@ -119,25 +119,38 @@ public class AddCommand extends AbstractCommand {
 
 					try {
 
-						boolean addedPageIdProperty = false;
+						AbstractRelationship existingRel = null;
+						long maxPos                      = 0;
 
 						// Search for an existing relationship between the node to add and the parent
 						for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
 
 							if (r.getEndNode().equals(nodeToAdd) && r.getLongProperty(originalPageId) != null) {
 
-								r.setProperty(newPageId, Long.parseLong((String) relData.get(newPageId)));
-								logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[] { newPageId, relData.get(newPageId) });
+								existingRel = r;
 
-								addedPageIdProperty = true;
+//                                                              r.setProperty(newPageId, Long.parseLong((String) relData.get(newPageId)));
+//                                                              logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[] { newPageId, relData.get(newPageId) });
+//
+//                                                              addedPageIdProperty = true;
 
-								break;
+							}
 
+							Long pos = r.getLongProperty(newPageId);
+
+							if (pos != null) {
+
+								maxPos = Math.max(pos, maxPos);
 							}
 
 						}
 
-						if (!addedPageIdProperty) {
+						if (existingRel != null) {
+
+							existingRel.setProperty(newPageId, Long.parseLong((String) relData.get(newPageId)));
+							logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[] { newPageId, maxPos + 1 });
+
+						} else {
 
 							// Debugging hook: Alert when parentNode is a page!
 							if (parentNode instanceof Page && !(nodeToAdd instanceof Html)) {
@@ -147,6 +160,8 @@ public class AddCommand extends AbstractCommand {
 
 							// A new node was created, no relationship exists,
 							// so we create a new one.
+							// overwrite with new position
+							relData.put(newPageId, maxPos + 1);
 							rel.createRelationship(securityContext, parentNode, nodeToAdd, relData);
 							logger.log(Level.INFO, "Created new relationship between parent node {0}, added node {1} ({2})", new Object[] { parentNode.getUuid(),
 								nodeToAdd.getUuid(), relData });

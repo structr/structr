@@ -30,7 +30,7 @@ public enum Permission implements PropertyKey {
 	
 	showTree,
 
-	read, write, execute,
+	read, write, delete, execute,
 
 	createNode, deleteNode,
 

@@ -32,6 +32,9 @@ var _Elements = {
 
     elementNames : [
 
+    // Active components
+    'Component', 'View', 'RemoteView',
+
     // The root element
     'html',
 
@@ -69,6 +72,10 @@ var _Elements = {
     ],
 
     elementGroups : [
+    {
+        'name' : 'Components',
+        'elements' : ['Component', 'View', 'RemoteView']
+    },
     {
         'name' : 'Root',
         'elements' : ['html', 'content']
@@ -177,8 +184,8 @@ var _Elements = {
         }
     },
 
-    appendElementElement : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
-        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
+    appendElementElement : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
+        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
         if (debug) console.log(entity.id);
         var parent;
         
@@ -193,6 +200,11 @@ var _Elements = {
         
         var parentPath = getElementPath(parent);
         if (debug) console.log(parentPath);
+        
+        _Entities.ensureExpanded(parent);
+        
+        var pos = parent.children('.node').length;
+        if (debug) console.log(pos);
         
         var id = parentPath + '_' + parent.children('.node').length;
         if (debug) console.log(id);

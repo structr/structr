@@ -55,6 +55,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.Permission;
+import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -127,13 +129,19 @@ public abstract class Resource {
 				public Object execute() throws FrameworkException {
 
 					for (GraphObject obj : finalResults) {
-
+						
 						if (obj instanceof AbstractRelationship) {
 
 							deleteRel.execute(obj);
 
 						} else if (obj instanceof AbstractNode) {
 
+							if (!securityContext.isAllowed((AbstractNode) obj, Permission.delete)) {
+								
+								throw new NotAllowedException();
+								
+							}
+							
 //                                                      // 2: delete relationships
 //                                                      if (obj instanceof AbstractNode) {
 //
@@ -294,7 +302,7 @@ public abstract class Resource {
 		ResourceAccess grant                   = null;
 
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
-		searchAttributes.add(Search.andExactProperty(ResourceAccess.Key.uri, uriPart));
+		searchAttributes.add(Search.andExactProperty(ResourceAccess.Key.signature, uriPart));
 
 		Result result = (Result) search.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -307,7 +315,7 @@ public abstract class Resource {
 //                      final Map<String, Object> newGrantAttributes = new LinkedHashMap<String, Object>();
 //                      
 //                      newGrantAttributes.put(AbstractNode.Key.type.name(), ResourceAccess.class.getSimpleName());
-//                      newGrantAttributes.put(ResourceAccess.Key.uri.name(), uriPart);
+//                      newGrantAttributes.put(ResourceAccess.Key.signature.name(), uriPart);
 //                      newGrantAttributes.put(ResourceAccess.Key.flags.name(), SecurityContext.getResourceFlags(uriPart));
 //                      
 //                      grant = (ResourceAccess)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {

@@ -208,13 +208,12 @@ var _Files = {
         return icon;
     },
 
-    appendFileElement : function(file, folderId, removeExisting, hasChildren, isImage) {
+    appendFileElement : function(file, folderId, add, hasChildren, isImage) {
 
-        if (debug) console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
+        if (debug) console.log('Files.appendFileElement', file, folderId, add, hasChildren, isImage);
         
         if (!folderId && file.parentFolder) return false;
         
-        removeExisting = true;
 
         var div;
         var parentElement, cls;
@@ -235,10 +234,11 @@ var _Files = {
             return;
         }
         
+        if (add) _Entities.ensureExpanded(parent);
         
         var delIcon, newDelIcon;
         div = Structr.node(file.id);
-        if (removeExisting && div && div.length) {
+        if (add && div && div.length) {
             
             var formerParent = div.parent();
             parent.append(div.css({
@@ -268,7 +268,7 @@ var _Files = {
             e.stopPropagation();
             window.open(viewRootUrl + file.name, 'Download ' + file.name);
         });
-        if (debug) console.log(folderId, removeExisting);
+        if (debug) console.log(folderId, add);
         
         delIcon = $('.delete_icon', div);
 
@@ -289,7 +289,7 @@ var _Files = {
 			
         } else {
             newDelIcon = '<img title="Delete ' + file.name + ' \'' + file.name + '\'" alt="Delete ' + file.name + ' \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
-            if (removeExisting && delIcon && delIcon.length) {
+            if (add && delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);

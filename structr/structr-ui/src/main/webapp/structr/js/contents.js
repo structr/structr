@@ -88,14 +88,14 @@ var _Contents = {
 
         //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
-        var nameOrContent = content.content ? content.content : content.name;
+        //var nameOrContent = content.content ? content.content : content.name;
         
         var parentPath = getElementPath(parent);
         var id = parentPath + '_' + parent.children('.node').length;
         
         parent.append('<div id="_' + id + '" class="node content ' + content.id + '_">'
             + '<img class="typeIcon" src="'+ _Contents.icon + '">'
-            + '<div class="content_ name_">' + escapeTags(nameOrContent) + '</div> <span class="id">' + content.id + '</span>'
+            + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
             //	    + '<b class="content_">' + content.content + '</b>'
             + '</div>');
         
@@ -124,7 +124,7 @@ var _Contents = {
             _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
         });
         
-        $('.name_', div).on('click', function(e) {
+        $('.content_', div).on('click', function(e) {
             e.stopPropagation();
             var self = $(this);
             var text = self.parent().find('.content_').text();
@@ -156,29 +156,57 @@ var _Contents = {
             lineNumbers: true,
             onChange: function(cm, changes) {
                 
-                window.clearTimeout(timer);
-                
-                var element = $( '.' + entity.id + '_')[0];
-                
-                text1 = $(element).children('.content_').text();
-                text2 = editor.getValue();
-                
-                if (!text1) text1 = '';
-                if (!text2) text2 = '';
-		
-                if (debug) console.log('Element', element);
-                if (debug) console.log(text1);
-                if (debug) console.log(text2);
-                
-                if (text1 == text2) return;
-                editorCursor = cm.getCursor();
-                if (debug) console.log(editorCursor);
-
-                //timer = window.setTimeout(function() {
-                    Command.patch(entity.id, text1, text2);
-                //}, 5000);
+//                window.clearTimeout(timer);
+//                
+//                var element = $( '.' + entity.id + '_')[0];
+//                
+//                text1 = $(element).children('.content_').text();
+//                text2 = editor.getValue();
+//                
+//                if (!text1) text1 = '';
+//                if (!text2) text2 = '';
+//		
+//                if (debug) console.log('Element', element);
+//                if (debug) console.log(text1);
+//                if (debug) console.log(text2);
+//                
+//                if (text1 == text2) return;
+//                editorCursor = cm.getCursor();
+//                if (debug) console.log(editorCursor);
+//
+//                //timer = window.setTimeout(function() {
+//                Command.patch(entity.id, text1, text2);
+//            //}, 5000);
 				
             }
+        });
+        
+        element.append('<button id="editorSave">Save</button>');
+        $('#editorSave', element).on('click', function() {
+            window.clearTimeout(timer);
+                
+            var contentNode = $( '.' + entity.id + '_')[0];
+                
+            text1 = $(contentNode).children('.content_').text();
+            text2 = editor.getValue();
+                
+            if (!text1) text1 = '';
+            if (!text2) text2 = '';
+		
+            if (debug) {
+                console.log('Element', contentNode);
+                console.log(text1);
+                console.log(text2);
+            }
+                
+            if (text1 == text2) return;
+//            editorCursor = cm.getCursor();
+//            if (debug) console.log(editorCursor);
+
+            //timer = window.setTimeout(function() {
+            Command.patch(entity.id, text1, text2);
+        //}, 5000);
+            
         });
         
         $('#dialogBox .dialogMeta').append('<table class="props ' + entity.id + '_"></table>');

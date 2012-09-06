@@ -88,27 +88,31 @@ var _Entities = {
         
     },
 
-    appendObj : function(entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
+    appendObj : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
 
-        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
+        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
 
         var lastAppendedObj;
+        var expand = false;
 
         if (entity.type == 'User') {
 
-            lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, removeExisting);
+            lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, add);
             
         } else if (entity.type == 'Group') {
             
             lastAppendedObj = _UsersAndGroups.appendGroupElement(entity, hasChildren);
+            expand = isExpanded(entity.id);
 
         } else if (entity.type == 'Page') {
             
             lastAppendedObj = _Pages.appendPageElement(entity, hasChildren);
+            expand = isExpanded(entity.id);
 
         } else if (entity.type == 'Component') {
 
             lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, true, true, treeAddress);
+            expand = isExpanded(getElementPath(lastAppendedObj));
 
         } else if (entity.type == 'Content') {
 
@@ -118,20 +122,21 @@ var _Entities = {
         } else if (entity.type == 'Folder') {
 
             lastAppendedObj = _Files.appendFolderElement(entity, parentId, hasChildren);
+            expand = isExpanded(entity.id);
 
         } else if (entity.type == 'Image') {
             
             if (debug) console.log('Image:', entity);
             _Files.uploadFile(entity);
             
-            lastAppendedObj = _Files.appendImageElement(entity, parentId, removeExisting, hasChildren, true);
+            lastAppendedObj = _Files.appendImageElement(entity, parentId, add, hasChildren, true);
             
         } else if (entity.type == 'File') {
             
             if (debug) console.log('File: ', entity);
             _Files.uploadFile(entity);
             
-            lastAppendedObj = _Files.appendFileElement(entity, parentId, removeExisting, hasChildren, false);
+            lastAppendedObj = _Files.appendFileElement(entity, parentId, add, hasChildren, false);
             
         } else if (entity.type == 'TypeDefinition') {
             
@@ -141,12 +146,21 @@ var _Entities = {
         } else {
 
             if (debug) console.log('Entity: ', entity);
-            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, false, hasChildren, treeAddress);
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+            expand = isExpanded(getElementPath(lastAppendedObj));
         }
 
         if (debug) console.log('lastAppendedObj', lastAppendedObj);
 
         if (lastAppendedObj) {
+            
+            var t = getElementPath(lastAppendedObj);
+            if (debug) console.log(t);
+            
+            if (expand) {
+                if (debug) console.log('expand', lastAppendedObj);
+                _Entities.ensureExpanded(lastAppendedObj);
+            }
 
             var parent = lastAppendedObj.parent();
             if (debug) console.log('lastAppendedObj.parent()', parent);
@@ -154,7 +168,7 @@ var _Entities = {
                 
                 if (debug) console.log('parent of last appended object has children');
 
-                addExpandedNode(treeAddress);
+                //addExpandedNode(treeAddress);
                 var ent = Structr.entityFromElement(parent);
                 if (debug) console.log('entity', ent);
                 ent.pageId = pageId;
@@ -196,7 +210,7 @@ var _Entities = {
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         if (debug) console.log('headers', headers);
-        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
+        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id, headers);
             
         $.ajax({
             url: rootUrl + entity.id,
@@ -210,9 +224,9 @@ var _Entities = {
                     var cont = $('.' + entity.id + '_', dialog);
 
                     $(data.result.paths).each(function(i, path) {
-                        console.log(path);
+                        if (debug) console.log(path);
 
-//                        var pageId = path.substring(32);
+                        //                        var pageId = path.substring(32);
                         
                         var displayName = entity.tag ? entity.tag : '[' + entity.type + ']';
                         
@@ -229,7 +243,7 @@ var _Entities = {
                                     
                         node.hover(function() {
                             $('#_' + path).addClass('nodeHover')
-                            },
+                        },
                         function() {
                             $('#_' + path).removeClass('nodeHover')
                         }
@@ -582,7 +596,7 @@ var _Entities = {
         });
     },
 
-    appendExpandIcon : function(el, entity, hasChildren, expanded) {
+    appendExpandIcon : function(el, entity, hasChildren, expand) {
 
         var button = $(el.children('.expand_icon').first());
         if (button && button.length) {
@@ -594,10 +608,14 @@ var _Entities = {
 
             var typeIcon = $(el.children('.typeIcon').first());
 
+            var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
+            //var icon = Structr.expand_icon;
+            if (debug) console.log(icon);
+            
             typeIcon.css({
                 paddingRight: 0 + 'px'
             })
-            .after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expand_icon + '">');
+            .after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
 
             button = $(el.children('.expand_icon').first());
 
@@ -626,12 +644,10 @@ var _Entities = {
                 
                 var elId = $(el).attr('id');
                 
-                var treeAddress = elId ? elId.substring(1) : undefined;
+                //var treeAddress = elId ? elId.substring(1) : undefined;
                 
-                if (debug) console.log('appendExpandIcon', isExpanded(treeAddress), entity);
-                if (isExpanded(treeAddress)) {
-                    if (debug) console.log('toggle', entity.id, entity.pageId);
-                    _Entities.toggleElement(el, expanded)
+                if (expand) {
+                    _Entities.ensureExpanded(el);
                 }
             }
 
@@ -726,6 +742,42 @@ var _Entities = {
                 }
             });
         }
+    },
+
+    ensureExpanded : function(element) {
+        
+        var el = $(element);
+        var b;
+        var src = el.prop('src');
+        
+        var elId = el.attr('id');
+        
+        if (debug) console.log(el);
+        
+        var treeAddress = elId ? elId.substring(1) : undefined;
+        
+        if (debug) console.log('ensureExpanded: elId, treeAddress', elId, treeAddress);
+        addExpandedNode(treeAddress);
+        
+        b = el.children('.expand_icon').first();
+        src = b.prop('src');
+        
+        if (!src) return;
+        
+        if (src.endsWith('icon/tree_arrow_down.png')) {
+            return;
+        } else {
+            
+            var id = getId(el);
+            var compId = getId(el.closest('.component'));
+            var pageId = getId(el.closest('.page'));
+
+            Command.children(id, compId, pageId, treeAddress);
+            b.prop('src', 'icon/tree_arrow_down.png');
+            
+        }
+      
+        
     },
 
     toggleElement : function(element, expanded) {

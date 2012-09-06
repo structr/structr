@@ -38,6 +38,7 @@ import org.structr.core.entity.AbstractNode;
 //import org.structr.common.xpath.JXPathFinder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Services;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,6 +78,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 		}
 
 		return (null);
+
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
@@ -87,7 +89,6 @@ public class FindNodeCommand extends NodeServiceCommand {
 		if (argument instanceof Node) {
 
 			result = nodeFactory.createNode(securityContext, (Node) argument);
-
 		} else if (argument instanceof Long) {
 
 			// single long value: find node by id
@@ -104,18 +105,43 @@ public class FindNodeCommand extends NodeServiceCommand {
 				logger.log(Level.WARNING, "Node with id {0} not found in database!", id);
 
 				throw new FrameworkException("FindNodeCommand", new IdNotFoundToken(id));
+
 			}
 		} else if (argument instanceof String) {
 
+			Long id = null;
+
 			// single string value, try to parse to long
 			try {
-				long id   = Long.parseLong((String) argument);
-				Node node = graphDb.getNodeById(id);
 
-				result = nodeFactory.createNode(securityContext, node);
-				
-			} catch(NumberFormatException nfex) { }
-			
+				id = Long.parseLong((String) argument);
+
+			} catch (NumberFormatException nfex) {}
+
+			if (id != null) {
+
+				try {
+
+					Node node = graphDb.getNodeById(id);
+
+					result = nodeFactory.createNode(securityContext, node);
+
+				} catch (NotFoundException nfe) {
+
+					result = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute((String) argument);
+					
+					if (result == null) {
+					
+						//logger.log(Level.WARNING, "Node with id {0} not found in database!", id);
+
+						throw new FrameworkException("FindNodeCommand", new IdNotFoundToken(id));
+						
+					}
+
+				}
+
+			}
+
 		} else if (argument instanceof ReferenceNode) {
 
 			// return reference node
@@ -129,9 +155,10 @@ public class FindNodeCommand extends NodeServiceCommand {
 		} else if (argument instanceof AbstractNode) {
 
 			result = (AbstractNode) argument;
-
 		}
 
 		return result;
+
 	}
+
 }
