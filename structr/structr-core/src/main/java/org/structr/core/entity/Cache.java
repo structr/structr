@@ -59,7 +59,8 @@ public class Cache extends AbstractNode {
 	
 	@Override
 	public void onNodeInstantiation() {
-		this.size = getIntProperty(Key.size);
+		Integer size = getIntProperty(Key.size);
+		this.size = size != null ? size : 0;
 	}
 	
 }
