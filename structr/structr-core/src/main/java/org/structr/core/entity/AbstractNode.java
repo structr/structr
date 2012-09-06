@@ -1460,66 +1460,51 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Cached list of all relationships
+	 * Convenience method to get all relationships of this node
 	 *
 	 * @return
 	 */
 	public List<AbstractRelationship> getRelationships() {
 
-		if (allRelationships == null) {
-
-			allRelationships = getRelationships(null, Direction.BOTH);
-		}
-
-		return allRelationships;
+		return getRelationships(null, Direction.BOTH);
 
 	}
 
 	/**
-	 * Get all relationships of given direction
+	 * Convenience method to get all relationships of this node of given direction
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getRelationships(Direction dir) {
+	public List<AbstractRelationship> getRelationships(final Direction dir) {
 
 		return getRelationships(null, dir);
 
 	}
 
 	/**
-	 * Cached list of incoming relationships
+	 * Convenience method to get all incoming relationships of this node
 	 *
 	 * @return
 	 */
 	public List<AbstractRelationship> getIncomingRelationships() {
 
-		if (incomingRelationships == null) {
-
-			incomingRelationships = getRelationships(null, Direction.INCOMING);
-		}
-
-		return incomingRelationships;
+		return getRelationships(null, Direction.INCOMING);
 
 	}
 
 	/**
-	 * Cached list of outgoing relationships
+	 * Convenience method to get all outgoing relationships of this node
 	 *
 	 * @return
 	 */
 	public List<AbstractRelationship> getOutgoingRelationships() {
 
-		if (outgoingRelationships == null) {
-
-			outgoingRelationships = getRelationships(null, Direction.OUTGOING);
-		}
-
-		return outgoingRelationships;
+		return getRelationships(null, Direction.OUTGOING);
 
 	}
 
 	/**
-	 * Non-cached list of incoming relationships
+	 * Convenience method to get all incoming relationships of this node of given type
 	 *
 	 * @return
 	 */
@@ -1530,30 +1515,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 	
 	/**
-	 * Non-cached list of outgoing relationships
+	 * Convenience method to get all outgoing relationships of this node of given type
 	 *
 	 * @return
 	 */
 	public List<AbstractRelationship> getOutgoingRelationships(final RelationshipType type) {
 
 		return getRelationships(type, Direction.OUTGOING);
-
-	}
-	public List<AbstractNode> getAllChildrenForRemotePush() {
-
-		try {
-
-			// FIXME: add handling for remote user here
-			Command findNode = Services.command(securityContext, FindNodeCommand.class);
-
-			return ((List<AbstractNode>) findNode.execute(this));
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to get child nodes", fex);
-
-		}
-
-		return null;
 
 	}
 
