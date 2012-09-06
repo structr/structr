@@ -45,7 +45,7 @@ public class Ol extends HtmlElement {
 		EntityContext.registerPropertySet(Ol.class, PropertyView.Public, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Ol.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 		EntityContext.registerEntityRelation(Ol.class, Div.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Ol.class, Li.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Ol.class, Li.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 
 	}
 
