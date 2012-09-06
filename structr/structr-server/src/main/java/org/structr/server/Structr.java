@@ -34,6 +34,7 @@ import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -76,6 +77,7 @@ public class Structr {
 
 	private Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
 	private Map<String, String> servletParams   = new HashMap<String, String>();
+	private ResourceHandler resourceHandler     = null;
 
 	private boolean enableRewriteFilter         = false;
 	private boolean quiet                       = false;
@@ -179,6 +181,14 @@ public class Structr {
 
 	public Structr addServlet(String servletMapping, ServletHolder servletHolder) {
 		servlets.put(servletMapping, servletHolder);
+		return this;
+	}
+	
+	public Structr addResourceHandler(String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
+		resourceHandler = new ResourceHandler();
+		resourceHandler.setDirectoriesListed(directoriesListed);
+		resourceHandler.setWelcomeFiles(welcomeFiles);
+		resourceHandler.setResourceBase(resourceBase);		
 		return this;
 	}
 	
@@ -332,6 +342,13 @@ public class Structr {
 		// register structr application context listener
 		servletContext.addEventListener(new ApplicationContextListener());
 		handlerCollection.addHandler(servletContext);
+		
+		// add possible resource handler
+		if (resourceHandler != null) {
+
+			handlerCollection.addHandler(resourceHandler);
+		
+		}
 		
 		server.setHandler(handlerCollection);
 		
