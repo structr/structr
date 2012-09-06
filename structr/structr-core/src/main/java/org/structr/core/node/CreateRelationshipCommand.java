@@ -86,7 +86,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			if (arg2 instanceof String) {
 
-				relType = DynamicRelationshipType.withName((String) arg2);
+				relType = getRelationshipTypeFor((String) arg2);
 
 			} else if (arg2 instanceof RelationshipType) {
 
@@ -115,7 +115,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			Object arg0 = parameters[0];                 // start node
 			Object arg1 = parameters[1];                 // end node
-			Object arg2 = parameters[2];                 // relationship combinedType
+			Object arg2 = parameters[2];                 // relationship type or combinedType
 			Object arg3 = parameters[3];                 // properties
 			Object arg4 = parameters[4];                 // check duplicates
 
