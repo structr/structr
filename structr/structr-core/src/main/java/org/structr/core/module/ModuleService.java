@@ -16,8 +16,13 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.module;
 
+import antlr.StringUtils;
+import org.structr.core.*;
 import org.structr.core.Command;
 import org.structr.core.Module;
 import org.structr.core.Service;
@@ -25,8 +30,8 @@ import org.structr.core.Services;
 import org.structr.core.SingletonService;
 import org.structr.core.agent.Agent;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
-
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -47,10 +52,8 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.structr.core.*;
-import org.structr.core.entity.AbstractRelationship;
-
 //~--- classes ----------------------------------------------------------------
+
 /**
  * Modules need to be installed and uninstalled manually This service keeps an index of installed / activated modules for efficient access files: - $BASEDIR/modules/modules.conf -> properties file
  *
@@ -61,16 +64,17 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public class ModuleService implements SingletonService {
 
-	private static final Logger logger = Logger.getLogger(ModuleService.class.getName());
-	private static final Set<String> nodeEntityPackages = new LinkedHashSet<String>();
-	private static final Set<String> relationshipPackages = new LinkedHashSet<String>();
-	private static final Map<String, Class> nodeEntityClassCache = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
+	private static final Logger logger                             = Logger.getLogger(ModuleService.class.getName());
+	private static final Set<String> nodeEntityPackages            = new LinkedHashSet<String>();
+	private static final Set<String> relationshipPackages          = new LinkedHashSet<String>();
 	private static final Map<String, Class> relationshipClassCache = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Map<String, Class> agentClassCache = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Map<String, Set<Class>> interfaceCache = new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
-	private static final Set<String> agentPackages = new LinkedHashSet<String>();
+	private static final Map<String, Class> nodeEntityClassCache   = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
+	private static final Map<String, Set<Class>> interfaceCache    = new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
+	private static final Set<String> agentPackages                 = new LinkedHashSet<String>();
+	private static final Map<String, Class> agentClassCache        = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
 
 	//~--- methods --------------------------------------------------------
+
 	/**
 	 * Loads and activates the given module.
 	 *
@@ -83,39 +87,39 @@ public class ModuleService implements SingletonService {
 
 			Module module = loadResource(resourceName);
 
-			if(module != null) {
+			if (module != null) {
 
 				importResource(module);
-
 			} else {
 
 				logger.log(Level.WARNING, "Module was null!");
-
 			}
 
-		} catch(IOException ioex) {
+		} catch (IOException ioex) {
 
-			logger.log(Level.WARNING, "Error loading module {0}: {1}", new Object[]{resourceName, ioex});
-
+			logger.log(Level.WARNING, "Error loading module {0}: {1}", new Object[] { resourceName, ioex });
 			ioex.printStackTrace();
+
 		}
+
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="interface SingletonService">
 	@Override
 	public void injectArguments(Command command) {
 
-		if(command != null) {
+		if (command != null) {
 
 			command.setArgument("moduleService", this);
-
 		}
+
 	}
 
 	@Override
 	public void initialize(Map<String, String> context) {
 
 		scanResources();
+
 	}
 
 	@Override
@@ -124,18 +128,20 @@ public class ModuleService implements SingletonService {
 		nodeEntityClassCache.clear();
 		relationshipClassCache.clear();
 		agentClassCache.clear();
+
 	}
 
 	private void scanResources() {
 
 		Set<String> resourcePaths = getResourcesToScan();
 
-		for(String resourcePath : resourcePaths) {
+		for (String resourcePath : resourcePaths) {
 
 			scanResource(resourcePath);
 		}
 
 		logger.log(Level.INFO, "{0} JARs scanned", resourcePaths.size());
+
 	}
 
 	/**
@@ -148,7 +154,10 @@ public class ModuleService implements SingletonService {
 	private void importResource(Module module) throws IOException {
 
 		Set<String> classes = module.getClasses();
-		for(final String className : classes) {
+
+		for (final String name : classes) {
+			
+			String className = StringUtils.stripFront(name, ".");
 
 			logger.log(Level.FINE, "Instantiating class {0} ", className);
 
@@ -157,42 +166,45 @@ public class ModuleService implements SingletonService {
 				// instantiate class..
 				Class clazz = Class.forName(className);
 
-				logger.log(Level.FINE, "Class {0} instantiated: {1}", new Object[]{className, clazz});
+				logger.log(Level.FINE, "Class {0} instantiated: {1}", new Object[] { className, clazz });
 
-				if(!Modifier.isAbstract(clazz.getModifiers())) {
+				if (!Modifier.isAbstract(clazz.getModifiers())) {
 
 					// register node entity classes
-					if(AbstractNode.class.isAssignableFrom(clazz)) {
+					if (AbstractNode.class.isAssignableFrom(clazz)) {
 
 						EntityContext.init(clazz);
 
 						String simpleName = clazz.getSimpleName();
-						String fullName = clazz.getName();
+						String fullName   = clazz.getName();
 
 						nodeEntityClassCache.put(simpleName, clazz);
 						nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
+						for (Class interfaceClass : clazz.getInterfaces()) {
 
-						for(Class interfaceClass : clazz.getInterfaces()) {
-
-							String interfaceName = interfaceClass.getSimpleName();
-
+							String interfaceName           = interfaceClass.getSimpleName();
 							Set<Class> classesForInterface = interfaceCache.get(interfaceName);
-							if(classesForInterface == null) {
+
+							if (classesForInterface == null) {
+
 								classesForInterface = new LinkedHashSet<Class>();
+
 								interfaceCache.put(interfaceName, classesForInterface);
+
 							}
 
 							classesForInterface.add(clazz);
+
 						}
 
 					}
 
 					// register entity classes
-					if(AbstractRelationship.class.isAssignableFrom(clazz)) {
+					if (AbstractRelationship.class.isAssignableFrom(clazz)) {
 
 						String simpleName = clazz.getSimpleName();
-						String fullName = clazz.getName();
+						String fullName   = clazz.getName();
 
 						relationshipClassCache.put(simpleName, clazz);
 						relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
@@ -200,33 +212,32 @@ public class ModuleService implements SingletonService {
 					}
 
 					// register services
-					if(Service.class.isAssignableFrom(clazz)) {
+					if (Service.class.isAssignableFrom(clazz)) {
 
 						Services.registerServiceClass(clazz);
 					}
 
 					// register agents
-					if(Agent.class.isAssignableFrom(clazz)) {
+					if (Agent.class.isAssignableFrom(clazz)) {
 
 						String simpleName = clazz.getSimpleName();
-						String fullName = clazz.getName();
+						String fullName   = clazz.getName();
 
 						agentClassCache.put(simpleName, clazz);
 						agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
 					}
 				}
-
-			} catch(Throwable t) {
-			}
+			} catch (Throwable t) {}
 
 		}
+
 	}
 
 	private Module loadResource(String resource) throws IOException {
 
 		// create module
-		DefaultModule ret = new DefaultModule(resource);
+		DefaultModule ret   = new DefaultModule(resource);
 		Set<String> classes = ret.getClasses();
 
 		if (resource.endsWith(".jar") || resource.endsWith(".war")) {
@@ -241,266 +252,41 @@ public class ModuleService implements SingletonService {
 			// handle other entries as potential page and/or entity classes
 			// .. to be extended
 			// (entries that end with "/" are directories)
+			for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements(); ) {
 
-			for(Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
-
-				ZipEntry entry = entries.nextElement();
+				ZipEntry entry   = entries.nextElement();
 				String entryName = entry.getName();
 
-				if(entryName.endsWith(".class")) {
+				if (entryName.endsWith(".class")) {
 
 					String fileEntry = entry.getName().replaceAll("[/]+", ".");
 
 					// add class entry to Module
 					classes.add(fileEntry.substring(0, fileEntry.length() - 6));
+
 				}
+
 			}
 
 			zipFile.close();
-			
+
 		} else if (resource.endsWith("/classes")) {
-			
+
 			addClassesRecursively(new File(resource), "/classes", classes);
 		}
 
 		return ret;
 	}
 
-	//~--- get methods ----------------------------------------------------
-	public Set<String> getNodeEntityPackages() {
-		return nodeEntityPackages;
-	}
-
-	public Set<String> getAgentPackages() {
-		return agentPackages;
-	}
-
-	public Set<String> getCachedNodeEntityTypes() {
-		return nodeEntityClassCache.keySet();
-	}
-
-	public Set<String> getCachedAgentTypes() {
-		return agentClassCache.keySet();
-	}
-
-	public Set<Class> getClassesForInterface(String simpleName) {
-		return interfaceCache.get(simpleName);
-	}
-
-	public Map<String, Class> getCachedNodeEntities() {
-		return nodeEntityClassCache;
-	}
-
-	public Map<String, Class> getCachedAgents() {
-		return agentClassCache;
-	}
-
-	public Set<String> getRelationshipPackages() {
-		return relationshipPackages;
-	}
-
-	public Set<String> getCachedRelationshipTypes() {
-		return relationshipClassCache.keySet();
-	}
-
-	public Map<String, Class> getCachedRelationships() {
-		return relationshipClassCache;
-	}
-
-	public Class getNodeEntityClass(final String name) {
-
-		Class ret = GenericNode.class;
-
-		if((name != null) && (!name.isEmpty())) {
-
-			ret = nodeEntityClassCache.get(name);
-
-			if(ret == null) {
-
-				for(String possiblePath : nodeEntityPackages) {
-
-					if(possiblePath != null) {
-
-						try {
-
-							Class nodeClass = Class.forName(possiblePath + "." + name);
-
-							if(!Modifier.isAbstract(nodeClass.getModifiers())) {
-
-								nodeEntityClassCache.put(name, nodeClass);
-
-								// first match wins
-								break;
-
-							}
-
-						} catch(ClassNotFoundException ex) {
-							// ignore
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		return (ret);
-	}
-
-	public Class getRelationshipClass(final String name) {
-
-		Class ret = AbstractNode.class;
-
-		if((name != null) && (name.length() > 0)) {
-
-			ret = relationshipClassCache.get(name);
-
-			if(ret == null) {
-
-				for(String possiblePath : relationshipPackages) {
-
-					if(possiblePath != null) {
-
-						try {
-
-							Class nodeClass = Class.forName(possiblePath + "." + name);
-
-							if(!Modifier.isAbstract(nodeClass.getModifiers())) {
-
-								relationshipClassCache.put(name, nodeClass);
-
-								// first match wins
-								break;
-
-							}
-
-						} catch(ClassNotFoundException ex) {
-							// ignore
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		return (ret);
-	}
-
-	public Class getAgentClass(final String name) {
-
-		Class ret = null;
-
-		if((name != null) && (name.length() > 0)) {
-
-			ret = agentClassCache.get(name);
-
-			if(ret == null) {
-
-				for(String possiblePath : agentPackages) {
-
-					if(possiblePath != null) {
-
-						try {
-
-							Class nodeClass = Class.forName(possiblePath + "." + name);
-
-							agentClassCache.put(name, nodeClass);
-
-							// first match wins
-							break;
-
-						} catch(ClassNotFoundException ex) {
-							// ignore
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		return (ret);
-	}
-
-	/**
-	 * Scans the class path and returns a Set containing all structr modules.
-	 *
-	 * @return a Set of active module names
-	 */
-	public Set<String> getResourcesToScan() {
-
-		String classPath = System.getProperty("java.class.path");
-		Set<String> ret = new LinkedHashSet<String>();
-		Pattern pattern = Pattern.compile(".*(structr).*(war|jar)");
-		Matcher matcher = pattern.matcher("");
-
-		for(String jarPath : classPath.split("[:]+")) {
-
-			String lowerPath = jarPath.toLowerCase();
-			
-			if (lowerPath.endsWith("/classes")) {
-
-				ret.add(jarPath);
-				
-			} else {
-
-				String moduleName = lowerPath.substring(lowerPath.lastIndexOf("/") + 1);
-				matcher.reset(moduleName);
-
-				if(matcher.matches()) {
-
-					ret.add(jarPath);
-				}
-			}
-		}
-
-		String resources = Services.getResources();
-		if(resources != null) {
-
-			for(String resource : resources.split("[:]+")) {
-
-				String lowerResource = resource.toLowerCase();
-
-				if(lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
-
-					ret.add(resource);
-				}
-			}
-		}
-
-		return (ret);
-	}
-
-	@Override
-	public String getName() {
-		return (ModuleService.class.getSimpleName());
-	}
-
-	// </editor-fold>
-	@Override
-	public boolean isRunning() {
-
-		// we're always running :)
-		return (true);
-	}
-
 	private void addClassesRecursively(File dir, String prefix, Set<String> classes) {
 
 		int prefixLen = prefix.length();
-		
-		for(File file : dir.listFiles()) {
 
-			if(file.isDirectory()) {
+		for (File file : dir.listFiles()) {
+
+			if (file.isDirectory()) {
 
 				addClassesRecursively(file, prefix, classes);
-
 			} else {
 
 				try {
@@ -513,12 +299,275 @@ public class ModuleService implements SingletonService {
 
 					classes.add(fileEntry);
 
-				} catch(Throwable t) {
+				} catch (Throwable t) {
+
 					// ignore
 				}
 
 			}
 
 		}
+
 	}
+
+	//~--- get methods ----------------------------------------------------
+
+	public Set<String> getNodeEntityPackages() {
+
+		return nodeEntityPackages;
+
+	}
+
+	public Set<String> getAgentPackages() {
+
+		return agentPackages;
+
+	}
+
+	public Set<String> getCachedNodeEntityTypes() {
+
+		return nodeEntityClassCache.keySet();
+
+	}
+
+	public Set<String> getCachedAgentTypes() {
+
+		return agentClassCache.keySet();
+
+	}
+
+	public Set<Class> getClassesForInterface(String simpleName) {
+
+		return interfaceCache.get(simpleName);
+
+	}
+
+	public Map<String, Class> getCachedNodeEntities() {
+
+		return nodeEntityClassCache;
+
+	}
+
+	public Map<String, Class> getCachedAgents() {
+
+		return agentClassCache;
+
+	}
+
+	public Set<String> getRelationshipPackages() {
+
+		return relationshipPackages;
+
+	}
+
+	public Set<String> getCachedRelationshipTypes() {
+
+		return relationshipClassCache.keySet();
+
+	}
+
+	public Map<String, Class> getCachedRelationships() {
+
+		return relationshipClassCache;
+
+	}
+
+	public Class getNodeEntityClass(final String name) {
+
+		Class ret = GenericNode.class;
+
+		if ((name != null) && (!name.isEmpty())) {
+
+			ret = nodeEntityClassCache.get(name);
+
+			if (ret == null) {
+
+				for (String possiblePath : nodeEntityPackages) {
+
+					if (possiblePath != null) {
+
+						try {
+
+							Class nodeClass = Class.forName(possiblePath + "." + name);
+
+							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
+
+								nodeEntityClassCache.put(name, nodeClass);
+
+								// first match wins
+								break;
+
+							}
+
+						} catch (ClassNotFoundException ex) {
+
+							// ignore
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return (ret);
+
+	}
+
+	public Class getRelationshipClass(final String name) {
+
+		Class ret = AbstractNode.class;
+
+		if ((name != null) && (name.length() > 0)) {
+
+			ret = relationshipClassCache.get(name);
+
+			if (ret == null) {
+
+				for (String possiblePath : relationshipPackages) {
+
+					if (possiblePath != null) {
+
+						try {
+
+							Class nodeClass = Class.forName(possiblePath + "." + name);
+
+							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
+
+								relationshipClassCache.put(name, nodeClass);
+
+								// first match wins
+								break;
+
+							}
+
+						} catch (ClassNotFoundException ex) {
+
+							// ignore
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return (ret);
+
+	}
+
+	public Class getAgentClass(final String name) {
+
+		Class ret = null;
+
+		if ((name != null) && (name.length() > 0)) {
+
+			ret = agentClassCache.get(name);
+
+			if (ret == null) {
+
+				for (String possiblePath : agentPackages) {
+
+					if (possiblePath != null) {
+
+						try {
+
+							Class nodeClass = Class.forName(possiblePath + "." + name);
+
+							agentClassCache.put(name, nodeClass);
+
+							// first match wins
+							break;
+
+						} catch (ClassNotFoundException ex) {
+
+							// ignore
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return (ret);
+
+	}
+
+	/**
+	 * Scans the class path and returns a Set containing all structr modules.
+	 *
+	 * @return a Set of active module names
+	 */
+	public Set<String> getResourcesToScan() {
+
+		String classPath = System.getProperty("java.class.path");
+		Set<String> ret  = new LinkedHashSet<String>();
+		Pattern pattern  = Pattern.compile(".*(structr).*(war|jar)");
+		Matcher matcher  = pattern.matcher("");
+
+		for (String jarPath : classPath.split("[:]+")) {
+
+			String lowerPath = jarPath.toLowerCase();
+
+			if (lowerPath.endsWith("/classes")) {
+
+				ret.add(jarPath);
+			} else {
+
+				String moduleName = lowerPath.substring(lowerPath.lastIndexOf("/") + 1);
+
+				matcher.reset(moduleName);
+
+				if (matcher.matches()) {
+
+					ret.add(jarPath);
+				}
+
+			}
+
+		}
+
+		String resources = Services.getResources();
+
+		if (resources != null) {
+
+			for (String resource : resources.split("[:]+")) {
+
+				String lowerResource = resource.toLowerCase();
+
+				if (lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
+
+					ret.add(resource);
+				}
+
+			}
+
+		}
+
+		return (ret);
+
+	}
+
+	@Override
+	public String getName() {
+
+		return (ModuleService.class.getSimpleName());
+
+	}
+
+	// </editor-fold>
+	@Override
+	public boolean isRunning() {
+
+		// we're always running :)
+		return (true);
+	}
+
 }
