@@ -21,22 +21,33 @@
 
 package org.structr.common;
 
-
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Cache;
+import org.structr.core.entity.Category;
+import org.structr.core.entity.File;
+import org.structr.core.entity.Folder;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.GenericRelationship;
+import org.structr.core.entity.Image;
+import org.structr.core.entity.Location;
+import org.structr.core.entity.NodeList;
+import org.structr.core.entity.Person;
+import org.structr.core.entity.PlainText;
+import org.structr.core.entity.PrincipalImpl;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+
+import scala.actors.threadpool.Arrays;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.IOException;
-
-
 
 import java.util.HashMap;
 import java.util.List;
@@ -56,9 +67,6 @@ import java.util.logging.Logger;
 public class GraphObjectOperationsTest extends StructrTest {
 
 	private static final Logger logger = Logger.getLogger(GraphObjectOperationsTest.class.getName());
-
-	//~--- fields ---------------------------------------------------------
-
 
 	//~--- methods --------------------------------------------------------
 
@@ -143,52 +151,49 @@ public class GraphObjectOperationsTest extends StructrTest {
 		}
 
 	}
-	
+
 	/**
 	 * Creation of duplicate relationships is blocked.
-	 * 
+	 *
 	 * A relationship is considered duplicate if all of the following criteria are met:
-	 * 
+	 *
 	 * - same start node
 	 * - same end node
 	 * - same relationship type
 	 * - same set of property keys and values
-	 * 
+	 *
 	 */
 	public void testDuplicateRelationships() {
 
 		try {
 
-			List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
-			final AbstractNode startNode   = nodes.get(0);
-			final AbstractNode endNode     = nodes.get(1);
-			final RelationshipType relType = RelType.UNDEFINED;
-			
+			List<AbstractNode> nodes        = createTestNodes("UnknownTestType", 2);
+			final AbstractNode startNode    = nodes.get(0);
+			final AbstractNode endNode      = nodes.get(1);
+			final RelationshipType relType  = RelType.UNDEFINED;
 			final Map<String, Object> props = new HashMap<String, Object>();
-			
+
 			props.put("foo", "bar");
 			props.put("bar", 123);
-
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
 					AbstractRelationship rel1 = (AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType, props, true);
-					
+
 					assertTrue(rel1 != null);
-					
+
 					AbstractRelationship rel2 = (AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType, props, true);
-					
+
 					assertTrue(rel2 == null);
-					
+
 					return null;
 
 				}
 
 			});
 
-
 		} catch (FrameworkException ex) {
 
 			Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
@@ -200,71 +205,9 @@ public class GraphObjectOperationsTest extends StructrTest {
 	/**
 	 * Create a node for each configured entity class and check the type
 	 */
-	public void testCreateAbstractNodeTypes() {
+	public void testCheckNodeEntities() {
 
 		final Map<String, Object> props = new HashMap<String, Object>();
-		StructrTransaction tx           = new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				// Command getEntities         = Services.command(securityContext, GetEntitiesCommand.class);
-				// Map<String, Class> entities = (Map<String, Class>) getEntities.execute();
-				Class[] entities = null;
-
-				try {
-
-					entities = getClasses("org.structr.core.entity");
-
-				} catch (ClassNotFoundException ex) {
-
-					Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
-
-				} catch (IOException ex) {
-
-					Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
-
-				}
-
-				for (Class entityClass : entities) {
-
-					// for (Entry<String, Class> entity : entities.entrySet()) {
-					// Class entityClass = entity.getValue();
-					if (AbstractNode.class.isAssignableFrom(entityClass)) {
-
-						String type = entityClass.getSimpleName();
-
-						logger.log(Level.INFO, "Creating node of type {0}", type);
-						props.put(AbstractNode.Key.type.name(), type);
-
-						AbstractNode node = (AbstractNode) createNodeCommand.execute(props);
-
-						assertTrue(type.equals(node.getStringProperty(AbstractNode.Key.type)));
-
-					}
-				}
-
-				return null;
-			}
-
-		};
-
-		try {
-
-			Services.command(securityContext, TransactionCommand.class).execute(tx);
-
-		} catch (FrameworkException ex) {
-
-			Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
-
-		}
-
-	}
-
-	/**
-	 * Create a node for each configured entity class and check the type
-	 */
-	public void testCreateRelationshipTypes() {
 
 		try {
 
@@ -290,6 +233,88 @@ public class GraphObjectOperationsTest extends StructrTest {
 						Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
 
 					}
+
+					List<Class> entityList = Arrays.asList(entities);
+
+					assertTrue(entityList.contains(AbstractNode.class));
+					assertTrue(entityList.contains(Cache.class));
+					assertTrue(entityList.contains(Category.class));
+					assertTrue(entityList.contains(File.class));
+					assertTrue(entityList.contains(GenericNode.class));
+					assertTrue(entityList.contains(Image.class));
+					assertTrue(entityList.contains(Location.class));
+					assertTrue(entityList.contains(NodeList.class));
+					assertTrue(entityList.contains(Folder.class));
+					assertTrue(entityList.contains(PlainText.class));
+					assertTrue(entityList.contains(PrincipalImpl.class));
+					assertTrue(entityList.contains(Person.class));
+					assertTrue(entityList.contains(ResourceAccess.class));
+
+					for (Class entityClass : entities) {
+
+						// for (Entry<String, Class> entity : entities.entrySet()) {
+						// Class entityClass = entity.getValue();
+						if (AbstractNode.class.isAssignableFrom(entityClass)) {
+
+							String type = entityClass.getSimpleName();
+
+							logger.log(Level.INFO, "Creating node of type {0}", type);
+							props.put(AbstractNode.Key.type.name(), type);
+
+							AbstractNode node = (AbstractNode) createNodeCommand.execute(props);
+
+							assertTrue(type.equals(node.getStringProperty(AbstractNode.Key.type)));
+
+						}
+					}
+
+					return null;
+				}
+
+			});
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, null, ex);
+
+		}
+
+	}
+
+	/**
+	 * Create a node for each configured entity class and check the type
+	 */
+	public void testCheckRelationshipEntities() {
+
+		try {
+
+			transactionCommand.execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					// Command getEntities         = Services.command(securityContext, GetEntitiesCommand.class);
+					// Map<String, Class> entities = (Map<String, Class>) getEntities.execute();
+					Class[] entities = null;
+
+					try {
+
+						entities = getClasses("org.structr.core.entity");
+
+					} catch (ClassNotFoundException ex) {
+
+						Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
+
+					} catch (IOException ex) {
+
+						Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
+
+					}
+
+					List<Class> entityList = Arrays.asList(entities);
+
+					assertTrue(entityList.contains(AbstractRelationship.class));
+					assertTrue(entityList.contains(GenericRelationship.class));
 
 					for (Class entityClass : entities) {
 
@@ -325,6 +350,5 @@ public class GraphObjectOperationsTest extends StructrTest {
 		}
 
 	}
-
 
 }
