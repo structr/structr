@@ -181,7 +181,7 @@
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>${artifactId}-${version}</finalName>
+        <finalName>${project.artifactId}-${project.version}</finalName>
     </build>
 
     <licenses>
