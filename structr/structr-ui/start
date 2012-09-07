@@ -1,5 +1,5 @@
 #!/bin/bash
-export MAVEN_OPTS="-Xms2g -Xmx2g -XX:+UseNUMA"
+export MAVEN_OPTS="-Xms2g -Xmx2g -XX:+UseNUMA -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=n $MAVEN_OPTS"
 mvn exec:java -Dexec.mainClass="org.structr.StructrServer" -Dhost=localhost -Dport=8082
 #sleep 10
 #xdg-open http://localhost:8082/structr/ &
