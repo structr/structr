@@ -50,11 +50,22 @@ public class PerformanceTest extends StructrTest {
 
 	//~--- methods --------------------------------------------------------
 
-	public void testPerformanceOfNodeCreation() {
+	/**
+	 * Tests basic throughput of node creation operations
+	 * 
+	 * Note that this is just a very rought test as performance is heavily
+	 * depending on hardware and setup (cache parameters etc.)
+	 * 
+	 * The assumed rate is low so if this test fails, there may be issues
+	 * with the test setup.
+	 * 
+	 * If the test passes, one can expect structr to create nodes with typical performance.
+	 */
+	public void test01PerformanceOfNodeCreation() {
 
 		try {
 
-			int number               = 2000;
+			int number               = 1000;
 			long t0                  = System.nanoTime();
 			List<AbstractNode> nodes = createTestNodes("UnknownTestType", number);
 			long t1                  = System.nanoTime();
@@ -70,13 +81,25 @@ public class PerformanceTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
 
 		}
 
 	}
 
-	public void testPerformanceOfRelationshipCreation() {
+	/**
+	 * Tests basic throughput of relationship creation operations
+	 * 
+	 * Note that this is just a very rought test as performance is heavily
+	 * depending on hardware and setup (cache parameters etc.)
+	 * 
+	 * The assumed rate is low so if this test fails, there may be issues
+	 * with the test setup.
+	 * 
+	 * If the test passes, one can expect structr to create relationship with typical performance.
+	 */
+	public void test02PerformanceOfRelationshipCreation() {
 
 		try {
 
@@ -96,7 +119,8 @@ public class PerformanceTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
 
 		}
 

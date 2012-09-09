@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
@@ -35,6 +36,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -44,7 +46,6 @@ import java.io.File;
 import java.io.IOException;
 
 import java.net.URL;
-
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,8 +57,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.structr.core.node.GraphDatabaseCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,61 +76,49 @@ public class StructrTest extends TestCase {
 	protected Map<String, String> context = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
 	protected Command createNodeCommand;
 	protected Command createRelationshipCommand;
+	protected Command graphDbCommand;
 	protected SecurityContext securityContext;
 	protected Command transactionCommand;
 
 	//~--- methods --------------------------------------------------------
 
-
 	protected void init() {
 
-		try {
+		Date now       = new Date();
+		long timestamp = now.getTime();
 
-			Date now       = new Date();
-			long timestamp = now.getTime();
-
-			context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService");
-			context.put(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
-			context.put(Services.TMP_PATH, "/tmp/");
-			context.put(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
-			context.put(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
-			context.put(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
-			context.put(Services.TCP_PORT, "13465");
-			context.put(Services.SERVER_IP, "127.0.0.1");
-			context.put(Services.UDP_PORT, "13466");
-			context.put(Services.SUPERUSER_USERNAME, "superadmin");
-			context.put(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-
-		} catch (Throwable t) {
-
-			// handle error
-			logger.log(Level.WARNING, "Could not inititialize all values");
-		}
-
+		context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService");
+		context.put(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		context.put(Services.TMP_PATH, "/tmp/");
+		context.put(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
+		context.put(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
+		context.put(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
+		context.put(Services.TCP_PORT, "13465");
+		context.put(Services.SERVER_IP, "127.0.0.1");
+		context.put(Services.UDP_PORT, "13466");
+		context.put(Services.SUPERUSER_USERNAME, "superadmin");
+		context.put(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		Services.initialize(context);
 
 	}
-	
-	public void testDbAvailable() {
+
+	public void test00DbAvailable() {
 
 		try {
 
-			Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
-			
-			
 			GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
-			
+
 			assertTrue(graphDb != null);
-			
 
 		} catch (FrameworkException ex) {
 
-			Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
 
 		}
 
 	}
-	
+
 	@Override
 	protected void tearDown() throws Exception {
 
@@ -244,14 +231,14 @@ public class StructrTest extends TestCase {
 	//~--- get methods ----------------------------------------------------
 
 	/**
-	 * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
+	 * Get classes in given package and subpackages, accessible from the context class loader
 	 *
 	 * @param packageName The base package
 	 * @return The classes
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 */
-	protected static Class[] getClasses(String packageName) throws ClassNotFoundException, IOException {
+	protected static List<Class> getClasses(String packageName) throws ClassNotFoundException, IOException {
 
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
@@ -269,14 +256,14 @@ public class StructrTest extends TestCase {
 
 		}
 
-		ArrayList<Class> classes = new ArrayList<Class>();
+		List<Class> classList = new ArrayList<Class>();
 
 		for (File directory : dirs) {
 
-			classes.addAll(findClasses(directory, packageName));
+			classList.addAll(findClasses(directory, packageName));
 		}
 
-		return classes.toArray(new Class[classes.size()]);
+		return classList;
 
 	}
 
@@ -288,9 +275,10 @@ public class StructrTest extends TestCase {
 		init();
 
 		securityContext           = SecurityContext.getSuperUserInstance();
-		createNodeCommand         = Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class);
-		createRelationshipCommand = Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class);
+		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
+		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
 		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
+		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
 
 	}
 
