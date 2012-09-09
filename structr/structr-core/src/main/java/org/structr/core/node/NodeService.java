@@ -21,6 +21,8 @@
 
 package org.structr.core.node;
 
+import org.apache.commons.collections.map.LRUMap;
+
 import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
 import org.neo4j.gis.spatial.indexprovider.SpatialIndexProvider;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -31,8 +33,6 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.RunnableService;
@@ -48,7 +48,6 @@ import java.io.File;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.collections.map.LRUMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,12 +57,11 @@ import org.apache.commons.collections.map.LRUMap;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger = Logger.getLogger(NodeService.class.getName());
+	private static final Logger logger                       = Logger.getLogger(NodeService.class.getName());
+	private static final Map<String, AbstractNode> nodeCache = (Map<String, AbstractNode>) Collections.synchronizedMap(new LRUMap(100000));
 
 	//~--- fields ---------------------------------------------------------
 
-	private static final Map<String, AbstractNode> nodeCache = (Map<String, AbstractNode>)Collections.synchronizedMap(new LRUMap(100000));
-	
 	private Index<Node> fulltextIndex               = null;
 	private GraphDatabaseService graphDb            = null;
 	private Index<Node> keywordIndex                = null;
@@ -110,6 +108,7 @@ public class NodeService implements SingletonService {
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
 
 		}
+
 	}
 
 	@Override
@@ -118,115 +117,108 @@ public class NodeService implements SingletonService {
 //              String dbPath = (String) context.get(Services.DATABASE_PATH);
 		String dbPath = Services.getDatabasePath();
 
+		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
+
+		if (graphDb != null) {
+
+			logger.log(Level.INFO, "Database already running ({0}) ...", dbPath);
+
+			return;
+
+		}
+
 		try {
 
-			logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
 
-			if (graphDb != null) {
+		} catch (Throwable t) {
 
-				logger.log(Level.INFO, "Database already running ({0}) ...", dbPath);
+			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
 
-				return;
+			graphDb = new EmbeddedGraphDatabase(dbPath);
 
-			}
-
-			try {
-				graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
-			} catch (Throwable t) {
-
-				logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
-
-				graphDb = new EmbeddedGraphDatabase(dbPath);
-			}
-
-			if (graphDb != null) {
-
-				graphDb.registerTransactionEventHandler(EntityContext.getTransactionEventHandler());
-
-			}
-
-			if (graphDb == null) {
-
-				logger.log(Level.SEVERE, "Database could not be started ({0}) ...", dbPath);
-
-				return;
-
-			}
-
-			String filesPath = Services.getFilesPath();
-
-			// check existence of files path
-			File files = new File(filesPath);
-
-			if (!files.exists()) {
-
-				files.mkdir();
-
-			}
-
-			logger.log(Level.INFO, "Database ready.");
-			logger.log(Level.FINE, "Initializing UUID index...");
-
-			uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
-
-			logger.log(Level.FINE, "UUID index ready.");
-			logger.log(Level.FINE, "Initializing user index...");
-
-			userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
-
-			logger.log(Level.FINE, "UUID index ready.");
-			logger.log(Level.FINE, "Initializing fulltext index...");
-
-			fulltextIndex = graphDb.index().forNodes("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
-
-			logger.log(Level.FINE, "Fulltext index ready.");
-			logger.log(Level.FINE, "Initializing keyword index...");
-
-			keywordIndex = graphDb.index().forNodes("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
-
-			logger.log(Level.FINE, "Keyword index ready.");
-			logger.log(Level.FINE, "Initializing layer index...");
-
-			final Map<String, String> config = new HashMap<String, String>();
-
-			config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
-			config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
-			config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
-
-			layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
-
-			logger.log(Level.FINE, "Layer index ready.");
-			logger.log(Level.FINE, "Initializing node factory...");
-
-			nodeFactory = new NodeFactory();
-
-			logger.log(Level.FINE, "Node factory ready.");
-			logger.log(Level.FINE, "Initializing relationship UUID index...");
-
-			relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
-
-			logger.log(Level.FINE, "Relationship relationship UUID index ready.");
-			logger.log(Level.FINE, "Initializing relationship index...");
-
-			relFulltextIndex = graphDb.index().forRelationships("fulltextAllRelationships", LuceneIndexImplementation.FULLTEXT_CONFIG);
-
-			logger.log(Level.FINE, "Relationship index ready.");
-			logger.log(Level.FINE, "Initializing relationship keyword index...");
-
-			relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
-
-			logger.log(Level.FINE, "Relationship keyword index ready.");
-			logger.log(Level.FINE, "Initializing relationship factory...");
-
-			relationshipFactory = new RelationshipFactory();
-
-			logger.log(Level.FINE, "Relationship factory ready.");
-
-		} catch (Exception e) {
-
-			logger.log(Level.SEVERE, "Database could not be initialized. {0}", e.getMessage());
-			e.printStackTrace(System.out);
 		}
+
+		if (graphDb != null) {
+
+			graphDb.registerTransactionEventHandler(EntityContext.getTransactionEventHandler());
+		}
+
+		if (graphDb == null) {
+
+			logger.log(Level.SEVERE, "Database could not be started ({0}) ...", dbPath);
+
+			return;
+
+		}
+
+		String filesPath = Services.getFilesPath();
+
+		// check existence of files path
+		File files = new File(filesPath);
+
+		if (!files.exists()) {
+
+			files.mkdir();
+		}
+
+		logger.log(Level.INFO, "Database ready.");
+		logger.log(Level.FINE, "Initializing UUID index...");
+
+		uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+
+		logger.log(Level.FINE, "UUID index ready.");
+		logger.log(Level.FINE, "Initializing user index...");
+
+		userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
+
+		logger.log(Level.FINE, "UUID index ready.");
+		logger.log(Level.FINE, "Initializing fulltext index...");
+
+		fulltextIndex = graphDb.index().forNodes("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
+
+		logger.log(Level.FINE, "Fulltext index ready.");
+		logger.log(Level.FINE, "Initializing keyword index...");
+
+		keywordIndex = graphDb.index().forNodes("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+
+		logger.log(Level.FINE, "Keyword index ready.");
+		logger.log(Level.FINE, "Initializing layer index...");
+
+		final Map<String, String> config = new HashMap<String, String>();
+
+		config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
+		config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
+		config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
+
+		layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+
+		logger.log(Level.FINE, "Layer index ready.");
+		logger.log(Level.FINE, "Initializing node factory...");
+
+		nodeFactory = new NodeFactory();
+
+		logger.log(Level.FINE, "Node factory ready.");
+		logger.log(Level.FINE, "Initializing relationship UUID index...");
+
+		relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
+
+		logger.log(Level.FINE, "Relationship relationship UUID index ready.");
+		logger.log(Level.FINE, "Initializing relationship index...");
+
+		relFulltextIndex = graphDb.index().forRelationships("fulltextAllRelationships", LuceneIndexImplementation.FULLTEXT_CONFIG);
+
+		logger.log(Level.FINE, "Relationship index ready.");
+		logger.log(Level.FINE, "Initializing relationship keyword index...");
+
+		relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
+
+		logger.log(Level.FINE, "Relationship keyword index ready.");
+		logger.log(Level.FINE, "Initializing relationship factory...");
+
+		relationshipFactory = new RelationshipFactory();
+
+		logger.log(Level.FINE, "Relationship factory ready.");
 
 		isInitialized = true;
 	}
@@ -239,7 +231,6 @@ public class NodeService implements SingletonService {
 			for (RunnableService s : registeredServices) {
 
 				s.stopService();
-
 			}
 
 			// Wait for all registered services to end
@@ -250,14 +241,19 @@ public class NodeService implements SingletonService {
 			isInitialized = false;
 
 		}
+
 	}
 
 	public void registerService(final RunnableService service) {
+
 		registeredServices.add(service);
+
 	}
 
 	public void unregisterService(final RunnableService service) {
+
 		registeredServices.remove(service);
+
 	}
 
 	private void waitFor(final boolean condition) {
@@ -265,35 +261,48 @@ public class NodeService implements SingletonService {
 		while (!condition) {
 
 			try {
+
 				Thread.sleep(10);
+
 			} catch (Throwable t) {}
 
 		}
+
+	}
+
+	public static void addNodeToCache(String uuid, AbstractNode node) {
+
+		nodeCache.put(uuid, node);
+
+	}
+
+	public static void removeNodeFromCache(String uuid) {
+
+		nodeCache.remove(uuid);
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getName() {
+
 		return NodeService.class.getSimpleName();
+
+	}
+
+	public static AbstractNode getNodeFromCache(String uuid) {
+
+		return nodeCache.get(uuid);
+
 	}
 
 	// </editor-fold>
-	
 	@Override
 	public boolean isRunning() {
+
 		return ((graphDb != null) && isInitialized);
+
 	}
-	
-	public static AbstractNode getNodeFromCache(String uuid) {
-		return nodeCache.get(uuid);
-	}
-	
-	public static void addNodeToCache(String uuid, AbstractNode node) {
-		nodeCache.put(uuid, node);
-	}
-	
-	public static void removeNodeFromCache(String uuid) {
-		nodeCache.remove(uuid);
-	}
+
 }
