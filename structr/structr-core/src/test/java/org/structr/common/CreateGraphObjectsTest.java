@@ -54,18 +54,23 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Test basic operations with graph objects (nodes, relationships)
+ * Test basic create operations with graph objects (nodes, relationships)
  *
  * All tests are executed in superuser context
  *
  * @author Axel Morgner
  */
-public class GraphObjectOperationsTest extends StructrTest {
+public class CreateGraphObjectsTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(GraphObjectOperationsTest.class.getName());
+	private static final Logger logger = Logger.getLogger(CreateGraphObjectsTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
+	@Override
+	public void test00DbAvailable() {
+		super.test00DbAvailable();
+	}
+	
 	public void test01CreateNode() {
 
 		try {
@@ -79,7 +84,6 @@ public class GraphObjectOperationsTest extends StructrTest {
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
 
-			// Create node out of transaction => should give a NotInTransactionException
 			final Map<String, Object> props = new HashMap<String, Object>();
 
 			props.put(AbstractNode.Key.type.name(), "UnknownTestTypeÄÖLß");
@@ -201,14 +205,14 @@ public class GraphObjectOperationsTest extends StructrTest {
 						if (AbstractNode.class.isAssignableFrom(entityClass)) {
 
 							String type = entityClass.getSimpleName();
-							
-							
+
 							// For ResourceAccess, fill mandatory fields
 							if (type.equals(ResourceAccess.class.getSimpleName())) {
+
 								props.put(ResourceAccess.Key.signature.name(), "/");
 								props.put(ResourceAccess.Key.flags.name(), 6);
+
 							}
-							
 
 							logger.log(Level.INFO, "Creating node of type {0}", type);
 							props.put(AbstractNode.Key.type.name(), type);
@@ -216,13 +220,14 @@ public class GraphObjectOperationsTest extends StructrTest {
 							AbstractNode node = (AbstractNode) createNodeCommand.execute(props);
 
 							assertTrue(type.equals(node.getStringProperty(AbstractNode.Key.type)));
-							
+
 							// Remove mandatory fields for ResourceAccess from props map
 							if (type.equals(ResourceAccess.class.getSimpleName())) {
+
 								props.remove(ResourceAccess.Key.signature.name());
 								props.remove(ResourceAccess.Key.flags.name());
-							}
 
+							}
 
 						}
 					}
@@ -234,7 +239,7 @@ public class GraphObjectOperationsTest extends StructrTest {
 			});
 
 		} catch (FrameworkException ex) {
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -262,11 +267,11 @@ public class GraphObjectOperationsTest extends StructrTest {
 
 					} catch (ClassNotFoundException ex) {
 
-						Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
+						Logger.getLogger(CreateGraphObjectsTest.class.getName()).log(Level.SEVERE, null, ex);
 
 					} catch (IOException ex) {
 
-						Logger.getLogger(GraphObjectOperationsTest.class.getName()).log(Level.SEVERE, null, ex);
+						Logger.getLogger(CreateGraphObjectsTest.class.getName()).log(Level.SEVERE, null, ex);
 
 					}
 

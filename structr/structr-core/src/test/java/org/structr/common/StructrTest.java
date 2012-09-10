@@ -33,9 +33,10 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.DeleteNodeCommand;
+import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -76,6 +77,8 @@ public class StructrTest extends TestCase {
 	protected Map<String, String> context = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
 	protected Command createNodeCommand;
 	protected Command createRelationshipCommand;
+	protected Command deleteNodeCommand;
+	protected Command findNodeCommand;
 	protected Command graphDbCommand;
 	protected SecurityContext securityContext;
 	protected Command transactionCommand;
@@ -277,8 +280,10 @@ public class StructrTest extends TestCase {
 		securityContext           = SecurityContext.getSuperUserInstance();
 		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
 		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
+		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
 		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
 		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
+		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
 
 	}
 
