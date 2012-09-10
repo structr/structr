@@ -57,7 +57,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.PropertyContainer;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -921,7 +920,10 @@ public class EntityContext {
 
 		}
 
-		return propertySet;
+		// FIXME: this method (and all other methods in this class) should return unmodifiable collections,
+		//        because otherwise, users of this class may accidently modify system properties etc.
+		
+		return Collections.unmodifiableSet(propertySet);
 	}
 
 	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, String propertyKey) {

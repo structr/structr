@@ -273,6 +273,10 @@ public class ModuleService implements SingletonService {
 		} else if (resource.endsWith("/classes")) {
 
 			addClassesRecursively(new File(resource), "/classes", classes);
+
+		} else if (resource.endsWith("/test-classes")) {
+
+			addClassesRecursively(new File(resource), "/test-classes", classes);
 		}
 
 		return ret;
@@ -297,6 +301,10 @@ public class ModuleService implements SingletonService {
 					fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
 					fileEntry = fileEntry.replaceAll("[/]+", ".");
 
+					if (fileEntry.startsWith(".")) {
+						fileEntry = fileEntry.substring(1);
+					}
+					
 					classes.add(fileEntry);
 
 				} catch (Throwable t) {
@@ -516,9 +524,10 @@ public class ModuleService implements SingletonService {
 
 			String lowerPath = jarPath.toLowerCase();
 
-			if (lowerPath.endsWith("/classes")) {
+			if (lowerPath.endsWith("/classes") || lowerPath.endsWith("/test-classes")) {
 
 				ret.add(jarPath);
+				
 			} else {
 
 				String moduleName = lowerPath.substring(lowerPath.lastIndexOf("/") + 1);
@@ -563,6 +572,7 @@ public class ModuleService implements SingletonService {
 	}
 
 	// </editor-fold>
+	
 	@Override
 	public boolean isRunning() {
 

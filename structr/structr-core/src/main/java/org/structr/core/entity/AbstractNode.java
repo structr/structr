@@ -120,10 +120,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	protected Map<String, Object> cachedConvertedProperties  = new LinkedHashMap<String, Object>();
 	protected Map<String, Object> cachedRawProperties        = new LinkedHashMap<String, Object>();
-	private List<AbstractRelationship> allRelationships      = null;
 	protected Principal cachedOwnerNode                      = null;
-	private List<AbstractRelationship> incomingRelationships = null;
-	private List<AbstractRelationship> outgoingRelationships = null;
 
 	// request parameters
 	protected SecurityContext securityContext                     = null;
