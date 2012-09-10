@@ -18,6 +18,8 @@
  */
 package org.structr.server;
 
+import ch.qos.logback.access.jetty.RequestLogImpl;
+import ch.qos.logback.access.servlet.TeeFilter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,8 +32,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.NCSARequestLog;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -47,7 +51,14 @@ import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.structr.context.ApplicationContextListener;
+import org.structr.core.Service;
+import org.structr.core.agent.AgentService;
+import org.structr.core.agent.Task;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.cron.CronService;
+import org.structr.core.log.LogService;
+import org.structr.core.module.ModuleService;
+import org.structr.core.node.NodeService;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
@@ -72,6 +83,13 @@ public class Structr {
 	private int restPort                        = -1;
 	private int httpsPort                       = -1;
 	
+	private int jsonDepth                       = 1;
+	private boolean logRequests                 = false;
+	private String logPrefix                    = "structr";
+	
+	private String smtpHost                     = "localhost";
+	private int smtpPort                        = 25;
+	
 	private int maxIdleTime                     = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
 	private int requestHeaderSize               = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
 
@@ -87,6 +105,10 @@ public class Structr {
 	private Class<? extends StructrServer> app  = null;
 	private Class resourceProvider              = null;
 	private Class authenticator                 = null;
+	private String defaultPropertyView          = null;
+	
+	private Set<Class<? extends Service>> configuredServices	= new HashSet<Class<? extends Service>>();
+	private Map<String, String> cronServiceTasks			= new LinkedHashMap<String, String>();
 	
 	//~--- methods --------------------------------------------------------
 
@@ -159,6 +181,11 @@ public class Structr {
 		return this;
 	}
 	
+	public Structr jsonDepth(int jsonDepth) {
+		this.jsonDepth = jsonDepth;
+		return this;
+	}
+	
 	public Structr httpPort(int httpPort) {
 		this.restPort = httpPort;
 		return this;
@@ -166,6 +193,26 @@ public class Structr {
 	
 	public Structr httpsPort(int httpsPort) {
 		this.httpsPort = httpsPort;
+		return this;
+	}
+	
+	public Structr smtpHost(String smtpHost) {
+		this.smtpHost = smtpHost;
+		return this;
+	}
+	
+	public Structr smtpPort(int smtpPort) {
+		this.smtpPort = smtpPort;
+		return this;
+	}
+	
+	public Structr logRequests(boolean logRequests) {
+		this.logRequests = logRequests;
+		return this;
+	}
+		
+	public Structr logName(String logName) {
+		this.logPrefix = logName;
 		return this;
 	}
 	
@@ -193,7 +240,17 @@ public class Structr {
 	}
 	
 	public Structr defaultPropertyView(String defaultPropertyView) {
-		servletParams.put("DefaultPropertyView", defaultPropertyView);
+		this.defaultPropertyView = defaultPropertyView;
+		return this;
+	}
+
+	public Structr addConfiguredServices(Class<? extends Service> configuredService) {
+		this.configuredServices.add(configuredService);
+		return this;
+	}
+	
+	public Structr addCronServiceTask(String cronServiceTask, String cronExpression) {
+		this.cronServiceTasks.put(cronServiceTask, cronExpression);
 		return this;
 	}
 	
@@ -229,6 +286,14 @@ public class Structr {
 		String sourceJarName                 = app.getProtectionDomain().getCodeSource().getLocation().toString();
 		File baseDir                         = new File(System.getProperty("home", basePath));
 		String basePath                      = baseDir.getAbsolutePath();
+		
+		configuredServices.add(ModuleService.class);
+		configuredServices.add(NodeService.class);
+		configuredServices.add(AgentService.class);
+		configuredServices.add(CronService.class);
+		configuredServices.add(LogService.class);
+		
+		
 		File confFile                        = checkStructrConf(basePath, sourceJarName);
 		Properties configuration             = getConfiguration(confFile);
 
@@ -282,9 +347,43 @@ public class Structr {
 		}
 		
 		// enable request logging
-		if ("true".equals(configuration.getProperty("log.requests", "false"))) {
+		//if ("true".equals(configuration.getProperty("log.requests", "false"))) {
+		if (logRequests) {
 
-			String logFile                      = configuration.getProperty("log.name", "structr-yyyy_mm_dd.request.log");
+			String etcPath = basePath + "/etc";
+			File etcDir    = new File(etcPath);
+
+			if (!etcDir.exists()) {
+
+				etcDir.mkdir();
+			}
+		
+			String logbackConfFilePath = basePath + "/etc/logback-access.xml";
+			File logbackConfFile       = new File(logbackConfFilePath);
+
+			if (!logbackConfFile.exists()) {
+
+				// synthesize a logback accees log config file
+				List<String> config = new LinkedList<String>();
+
+				config.add("<configuration>");
+				config.add("  <appender name=\"FILE\" class=\"ch.qos.logback.core.rolling.RollingFileAppender\">");
+				config.add("    <rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">");
+				config.add("      <fileNamePattern>logs/" + logPrefix + "-%d{yyyy_MM_dd}.request.log.zip</fileNamePattern>");
+				config.add("    </rollingPolicy>");
+				config.add("    <encoder>");
+				config.add("      <pattern>%h %l %u %t \"%r\" %s %b %n%fullRequest%n%n%fullResponse</pattern>");
+				config.add("    </encoder>");
+				config.add("  </appender>");
+				config.add("<appender-ref ref=\"FILE\" />");
+				config.add("</configuration>");
+				logbackConfFile.createNewFile();
+				FileUtils.writeLines(logbackConfFile, "UTF-8", config);
+			}
+
+			FilterHolder loggingFilter = servletContext.addFilter(TeeFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			loggingFilter.setInitParameter("includes", "");
+			
 			RequestLogHandler requestLogHandler = new RequestLogHandler();
 			String logPath                      = basePath + "/logs";
 			File logDir                         = new File(logPath);
@@ -296,18 +395,15 @@ public class Structr {
 
 			}
 
-			logPath = logDir.getAbsolutePath();
-
-			NCSARequestLog requestLog = new NCSARequestLog(logPath + "/" + logFile);
-
-			requestLog.setRetainDays(90);
-			requestLog.setAppend(true);
-			requestLog.setExtended(false);
-			requestLog.setLogTimeZone("GMT");
+			RequestLogImpl requestLog = new RequestLogImpl();
 			requestLogHandler.setRequestLog(requestLog);
 			
-			// add log handler
-			handlerCollection.addHandler(requestLogHandler);
+			ContextHandlerCollection contexts = new ContextHandlerCollection();
+			contexts.setHandlers(new Handler[] { servletContext, requestLogHandler });
+			handlerCollection.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
+
+			//handlerCollection.addHandler(contexts);
+			
 		}
 
 		// configure JSON REST servlet
@@ -317,6 +413,7 @@ public class Structr {
 		servletParams.put("PropertyFormat", "FlatNameValue");
 		servletParams.put("ResourceProvider", resourceProvider.getName());
 		servletParams.put("Authenticator", authenticator.getName());
+		servletParams.put("DefaultPropertyView", defaultPropertyView);
 		servletParams.put("IdProperty", "uuid");
 
 		structrRestServletHolder.setInitParameters(servletParams);
@@ -463,7 +560,7 @@ public class Structr {
 			}
 			
 			config.add("# JSON output nesting depth");
-			config.add("json.depth = 1");
+			config.add("json.depth = " + jsonDepth);
 			config.add("");
 			config.add("# base directory");
 			config.add("base.path = " + basePath);
@@ -478,27 +575,45 @@ public class Structr {
 			config.add("files.path = " + basePath + "/files");
 			config.add("");
 			config.add("# REST server settings");
-			config.add("application.host = 0.0.0.0");
-			config.add("application.rest.port = 8082");
-			config.add("application.rest.path = /structr/rest");
+			config.add("application.host = " + host);
+			config.add("application.rest.port = " + restPort);
+			config.add("application.rest.path = " + restUrl);
 			config.add("");
-			config.add("application.https.enabled = false");
-			config.add("application.https.port = ");
-			config.add("application.keystore.path = ");
-			config.add("application.keystore.password = ");
+			config.add("application.https.enabled = " + enableHttps);
+			config.add("application.https.port = " + httpsPort);
+			config.add("application.keystore.path = " + keyStorePath);
+			config.add("application.keystore.password = " + keyStorePassword);
 			config.add("");
 			config.add("# SMPT settings");
-			config.add("smtp.host = localhost");
-			config.add("smtp.port = 25");
+			config.add("smtp.host = " + smtpHost);
+			config.add("smtp.port = " + smtpPort);
 			config.add("");
 			config.add("superuser.username = superadmin");
 			config.add("superuser.password = " + RandomStringUtils.randomAlphanumeric(12));    // Intentionally, no default password here
 			config.add("");
 			config.add("# services");
-			config.add("configured.services = ModuleService NodeService AgentService");
+			
+			StringBuilder configuredServicesLine = new StringBuilder("configured.services = ");
+			for (Class<? extends Service> serviceClass : configuredServices) {
+				configuredServicesLine.append(" ").append(serviceClass.getSimpleName());
+			}
+			config.add(configuredServicesLine.toString());
+			
 			config.add("");
-			config.add("log.requests = false");
+			config.add("log.requests = " + logRequests);
 			config.add("log.name = structr-yyyy_mm_dd.request.log");
+			
+			config.add("CronService.tasks = \\");
+			StringBuilder cronServiceTasksLines = new StringBuilder();
+			StringBuilder cronExpressions = new StringBuilder();
+			for (Entry<String, String> task : cronServiceTasks.entrySet()) {
+				String taskClassName = task.getKey();
+				String cronExpression = task.getValue();
+				cronServiceTasksLines.append(" ").append(taskClassName).append(" \\\n");
+				cronExpressions.append(taskClassName).append(".cronExpression = ").append(cronExpression).append("\n");
+			}
+			config.add(cronServiceTasksLines.toString());
+			config.add(cronExpressions.toString());
 
 			confFile.createNewFile();
 			FileUtils.writeLines(confFile, "UTF-8", config);
