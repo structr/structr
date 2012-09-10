@@ -90,6 +90,8 @@ public class Structr {
 	private String smtpHost                     = "localhost";
 	private int smtpPort                        = 25;
 	
+	private String logDbName		    = "logDb.dat";
+	
 	private int maxIdleTime                     = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
 	private int requestHeaderSize               = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
 
@@ -213,6 +215,11 @@ public class Structr {
 		
 	public Structr logName(String logName) {
 		this.logPrefix = logName;
+		return this;
+	}
+	
+	public Structr logDbName(String logDbName) {
+		this.logDbName = logDbName;
 		return this;
 	}
 	
@@ -573,6 +580,9 @@ public class Structr {
 			config.add("");
 			config.add("# binary files directory");
 			config.add("files.path = " + basePath + "/files");
+			config.add("");
+			config.add("# log database file");
+			config.add("log.database.path = " + basePath + "/" + logDbName);
 			config.add("");
 			config.add("# REST server settings");
 			config.add("application.host = " + host);
