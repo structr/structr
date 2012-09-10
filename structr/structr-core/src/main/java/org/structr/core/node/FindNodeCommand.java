@@ -21,15 +21,13 @@
 
 package org.structr.core.node;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.kernel.Traversal;
 
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
+import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 
@@ -38,7 +36,6 @@ import org.structr.core.entity.AbstractNode;
 //import org.structr.common.xpath.JXPathFinder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.Services;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,13 +49,18 @@ public class FindNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(FindNodeCommand.class.getName());
 
+	//~--- fields ---------------------------------------------------------
+
+	private GraphDatabaseService graphDb;
+	private NodeFactory nodeFactory;
+
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
+		graphDb     = (GraphDatabaseService) arguments.get("graphDb");
+		nodeFactory = (NodeFactory) arguments.get("nodeFactory");
 
 		if (graphDb != null) {
 
@@ -84,80 +86,136 @@ public class FindNodeCommand extends NodeServiceCommand {
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private Object handleSingleArgument(GraphDatabaseService graphDb, NodeFactory nodeFactory, Object argument) throws FrameworkException {
 
-		Object result = null;
+		Object result;
 
 		if (argument instanceof Node) {
 
+			/*
+			 * If argument is a Neo4j node, just let the node factory create
+			 * an instance of AbstractNode out of it.
+			 */
 			result = nodeFactory.createNode(securityContext, (Node) argument);
+
+			if (result != null) {
+
+				return result;
+			}
 		} else if (argument instanceof Long) {
 
-			// single long value: find node by id
-			long id   = ((Long) argument).longValue();
-			Node node = null;
+			/*
+			 * In case of a numerical id, let Neo4j find the node
+			 */
+			long id = ((Long) argument).longValue();
 
 			try {
 
-				node   = graphDb.getNodeById(id);
-				result = nodeFactory.createNode(securityContext, node);
+				result = findByDbId(id);
+
+				if (result != null) {
+
+					return result;
+				}
 
 			} catch (NotFoundException nfe) {
 
-				logger.log(Level.WARNING, "Node with id {0} not found in database!", id);
-
-				throw new FrameworkException("FindNodeCommand", new IdNotFoundToken(id));
+				logger.log(Level.WARNING, "Node with long id {0} not found in database!", id);
 
 			}
 		} else if (argument instanceof String) {
 
-			Long id = null;
+			/*
+			 * If given id is a string, try to find in the UUID index
+			 */
+			result = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute((String) argument);
 
-			// single string value, try to parse to long
-			try {
+			if (result != null) {
 
-				id = Long.parseLong((String) argument);
+				return result;
+			} else {
 
-			} catch (NumberFormatException nfex) {}
-
-			if (id != null) {
+				/*
+				 * Lookup by index failed, so we try to parse it
+				 * to long
+				 */
+				Long id = null;
 
 				try {
 
-					Node node = graphDb.getNodeById(id);
+					id = Long.parseLong((String) argument);
 
-					result = nodeFactory.createNode(securityContext, node);
+				} catch (NumberFormatException nfex) {
 
-				} catch (NotFoundException nfe) {
-
-					result = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute((String) argument);
-					
-					if (result == null) {
-					
-						//logger.log(Level.WARNING, "Node with id {0} not found in database!", id);
-
-						throw new FrameworkException("FindNodeCommand", new IdNotFoundToken(id));
-						
-					}
+					logger.log(Level.WARNING, "Could not parse {0} to long", argument);
 
 				}
 
-			}
+				if (id != null) {
 
+					try {
+
+						result = findByDbId(id);
+
+						if (result != null) {
+
+							return result;
+						}
+
+					} catch (NotFoundException nfe) {
+
+						logger.log(Level.WARNING, "id {0} was parsed from argument {1}, but was not found in database!", new Object[] { id, argument });
+
+					}
+
+				}
+			}
 		} else if (argument instanceof ReferenceNode) {
 
-			// return reference node
+			/*
+			 * Return reference node
+			 */
 			Node node = graphDb.getReferenceNode();
 
 			result = nodeFactory.createNode(securityContext, node);
+
+			if (result != null) {
+
+				return result;
+			}
 		} else if (argument instanceof NodeAttribute) {
 
-			// single node attribute: find node by attribute..
-			throw new UnsupportedOperationException("Not supported yet, use SearchNodeCommand instead!");
+			/*
+			 * Single node attribute: find node by attribute is not supported by this command
+			 */
+			throw new UnsupportedOperationException("Not supported, use SearchNodeCommand instead!");
 		} else if (argument instanceof AbstractNode) {
 
+			/*
+			 * If argument is already an AbstractNode, return it directly
+			 */
 			result = (AbstractNode) argument;
+
+			if (result != null) {
+
+				return result;
+			}
 		}
 
-		return result;
+		throw new FrameworkException("FindNodeCommand", new IdNotFoundToken(argument));
+
+	}
+
+	/**
+	 * Lookup a db node by numerical id and create a framework node from it
+	 *
+	 * @param id
+	 * @return
+	 * @throws FrameworkException
+	 */
+	private AbstractNode findByDbId(final long id) throws FrameworkException {
+
+		Node node = graphDb.getNodeById(id);
+
+		return nodeFactory.createNode(securityContext, node);
 
 	}
 

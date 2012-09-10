@@ -59,45 +59,13 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		switch (parameters.length) {
 
-			case 1 :    // first parameter: node
-				if (parameters[0] instanceof Long) {
-
-					long id = ((Long) parameters[0]).longValue();
-
-					node = (AbstractNode) findNode.execute(id);
-
-				} else if (parameters[0] instanceof AbstractNode) {
-
-					node = ((AbstractNode) parameters[0]);
-
-				} else if (parameters[0] instanceof String) {
-
-					long id = Long.parseLong((String) parameters[0]);
-
-					node = (AbstractNode) findNode.execute(id);
-
-				}
+			case 1 :    // single parameter: node
+				node = (AbstractNode) findNode.execute(parameters[0]);
 
 				break;
 
 			case 2 :    // first parameter: node, second parameter: cascade
-				if (parameters[0] instanceof Long) {
-
-					long id = ((Long) parameters[0]).longValue();
-
-					node = (AbstractNode) findNode.execute(id);
-
-				} else if (parameters[0] instanceof AbstractNode) {
-
-					node = ((AbstractNode) parameters[0]);
-
-				} else if (parameters[0] instanceof String) {
-
-					long id = Long.parseLong((String) parameters[0]);
-
-					node = (AbstractNode) findNode.execute(id);
-
-				}
+				node = (AbstractNode) findNode.execute(parameters[0]);
 
 				if (parameters[1] instanceof String) {
 
