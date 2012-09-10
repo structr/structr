@@ -920,10 +920,7 @@ public class EntityContext {
 
 		}
 
-		// FIXME: this method (and all other methods in this class) should return unmodifiable collections,
-		//        because otherwise, users of this class may accidently modify system properties etc.
-		
-		return Collections.unmodifiableSet(propertySet);
+		return propertySet;
 	}
 
 	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, String propertyKey) {
