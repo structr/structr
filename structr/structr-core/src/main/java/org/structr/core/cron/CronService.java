@@ -133,7 +133,7 @@ public class CronService extends Thread implements RunnableService {
 				CronEntry entry = CronEntry.parse(task, expression);
 				if(entry != null) {
 
-					logger.log(Level.INFO, "Adding cron entry {0}", entry);
+					logger.log(Level.INFO, "Adding cron entry {0} for {1}", new Object[]{ entry, task });
 					
 					cronEntries.add(entry);
 
