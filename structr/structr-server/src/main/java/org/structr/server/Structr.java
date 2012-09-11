@@ -112,6 +112,8 @@ public class Structr {
 	private Set<Class<? extends Service>> configuredServices	= new HashSet<Class<? extends Service>>();
 	private Map<String, String> cronServiceTasks			= new LinkedHashMap<String, String>();
 	
+	private List<String> customConfigLines      = new LinkedList<String>();
+	
 	//~--- methods --------------------------------------------------------
 
 	private Structr(Class<? extends StructrServer> applicationClass, String applicationName, int httpPort, int httpsPort) {
@@ -258,6 +260,11 @@ public class Structr {
 	
 	public Structr addCronServiceTask(String cronServiceTask, String cronExpression) {
 		this.cronServiceTasks.put(cronServiceTask, cronExpression);
+		return this;
+	}
+	
+	public Structr addCustomConfig(String configLine) {
+		this.customConfigLines.add(configLine);
 		return this;
 	}
 	
@@ -594,7 +601,7 @@ public class Structr {
 			config.add("application.keystore.path = " + keyStorePath);
 			config.add("application.keystore.password = " + keyStorePassword);
 			config.add("");
-			config.add("# SMPT settings");
+			config.add("# SMTP settings");
 			config.add("smtp.host = " + smtpHost);
 			config.add("smtp.port = " + smtpPort);
 			config.add("");
@@ -603,29 +610,44 @@ public class Structr {
 			config.add("");
 			config.add("# services");
 			
-			StringBuilder configuredServicesLine = new StringBuilder("configured.services = ");
+			StringBuilder configuredServicesLine = new StringBuilder("configured.services =");
 			for (Class<? extends Service> serviceClass : configuredServices) {
 				configuredServicesLine.append(" ").append(serviceClass.getSimpleName());
 			}
 			config.add(configuredServicesLine.toString());
 			
 			config.add("");
+			config.add("# logging");
 			config.add("log.requests = " + logRequests);
 			config.add("log.name = structr-yyyy_mm_dd.request.log");
-			
+
+			config.add("");
+			config.add("# cron tasks");
 			config.add("CronService.tasks = \\");
+			
 			StringBuilder cronServiceTasksLines = new StringBuilder();
 			StringBuilder cronExpressions = new StringBuilder();
+			
 			for (Entry<String, String> task : cronServiceTasks.entrySet()) {
+				
 				String taskClassName = task.getKey();
 				String cronExpression = task.getValue();
-				cronServiceTasksLines.append(" ").append(taskClassName).append(" \\\n");
+				cronServiceTasksLines.append(taskClassName).append(" \\\n");
 				cronExpressions.append(taskClassName).append(".cronExpression = ").append(cronExpression).append("\n");
+				
 			}
-			config.add(cronServiceTasksLines.toString());
+			
+			config.add(cronServiceTasksLines.substring(0, cronServiceTasksLines.length()-3));
 			config.add(cronExpressions.toString());
+			
+			config.add("# custom configuration");
+			
+			for (String configLine : customConfigLines) {
+				config.add(configLine);
+			}
 
 			confFile.createNewFile();
+			
 			FileUtils.writeLines(confFile, "UTF-8", config);
 		}
 		
