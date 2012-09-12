@@ -133,40 +133,40 @@ public class FindNodeCommand extends NodeServiceCommand {
 				return result;
 			} else {
 
-				/*
-				 * Lookup by index failed, so we try to parse it
-				 * to long
-				 */
-				Long id = null;
-
-				try {
-
-					id = Long.parseLong((String) argument);
-
-				} catch (NumberFormatException nfex) {
-
-					logger.log(Level.WARNING, "Could not parse {0} to long", argument);
-
-				}
-
-				if (id != null) {
-
-					try {
-
-						result = findByDbId(id);
-
-						if (result != null) {
-
-							return result;
-						}
-
-					} catch (NotFoundException nfe) {
-
-						logger.log(Level.WARNING, "id {0} was parsed from argument {1}, but was not found in database!", new Object[] { id, argument });
-
-					}
-
-				}
+//				/*
+//				 * Lookup by index failed, so we try to parse it
+//				 * to long
+//				 */
+//				Long id = null;
+//
+//				try {
+//
+//					id = Long.parseLong((String) argument);
+//
+//				} catch (NumberFormatException nfex) {
+//
+//					logger.log(Level.WARNING, "Could not parse {0} to long", argument);
+//
+//				}
+//
+//				if (id != null) {
+//
+//					try {
+//
+//						result = findByDbId(id);
+//
+//						if (result != null) {
+//
+//							return result;
+//						}
+//
+//					} catch (NotFoundException nfe) {
+//
+//						logger.log(Level.WARNING, "id {0} was parsed from argument {1}, but was not found in database!", new Object[] { id, argument });
+//
+//					}
+//
+//				}
 			}
 		} else if (argument instanceof ReferenceNode) {
 
