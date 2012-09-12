@@ -218,6 +218,14 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 							}
 
+							// For Location, set coordinates
+							if (type.equals(Location.class.getSimpleName())) {
+
+								props.put(Location.Key.latitude.name(), 12.34);
+								props.put(Location.Key.longitude.name(), 56.78);
+
+							}
+							
 							logger.log(Level.INFO, "Creating node of type {0}", type);
 							props.put(AbstractNode.Key.type.name(), type);
 
