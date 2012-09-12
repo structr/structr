@@ -22,6 +22,7 @@ package org.structr.core.entity;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.DoubleConverter;
@@ -60,7 +61,7 @@ public class Location extends AbstractNode {
 
 	@Override
 	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
-		return !notifyLocatables(securityContext) && isValid(errorBuffer);
+		return isValid(errorBuffer);
 	}
 	
 	@Override
@@ -70,12 +71,12 @@ public class Location extends AbstractNode {
 
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
-		notifyLocatables(securityContext);
+		notifyLocatables();
 	}
 	
 	@Override
 	public void afterModification(SecurityContext securityContext) {
-		notifyLocatables(securityContext);
+		notifyLocatables();
 		
 	}
 	
@@ -86,13 +87,15 @@ public class Location extends AbstractNode {
 
 //              error |= ValidationHelper.checkPropertyNotNull(this, Key.latitude, errorBuffer);
 //              error |= ValidationHelper.checkPropertyNotNull(this, Key.longitude, errorBuffer);
+		error |= notifyLocatables();
+		
 		return !error;
 
 	}
 	
-	private boolean notifyLocatables(SecurityContext securityContext) {
+	private boolean notifyLocatables() {
 		
-		boolean error = false;
+		boolean allLocatablesAreValid = false;
 		
 		for(AbstractRelationship rel : this.getRelationships()) {
 			
@@ -100,11 +103,11 @@ public class Location extends AbstractNode {
 			if(otherNode != null && otherNode instanceof Locatable) {
 				
 				// notify other node of location change
-				error |= ((Locatable)otherNode).locationChanged(securityContext);
+				allLocatablesAreValid |= !((Locatable)otherNode).locationChanged();
 			}
 		}
 		
-		return error;
+		return allLocatablesAreValid;
 	}
 
 }
