@@ -23,6 +23,12 @@ package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.TestFour;
+import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestThree;
+import org.structr.core.entity.TestTwo;
 import org.structr.core.node.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -102,13 +108,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			try {
 
 				// Node should not be found after deletion
-				AbstractNode nodeAfterDelete = (AbstractNode) findNodeCommand.execute(nodeId);
-
+				findNodeCommand.execute(nodeId);
 				fail("Should have raised a not found exception");
 			} catch (FrameworkException fe) {}
-
-			// Old node object should be non-accessible
-			// node.getUuid();
 
 		} catch (FrameworkException ex) {
 
@@ -116,6 +118,263 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
+
+	}
+
+	/**
+	 * DELETE_NONE should not trigger any delete cascade
+	 */
+	public void test02CascadeDeleteNone() {
+
+		try {
+
+			// Create a relationship with DELETE_NONE
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_NONE);
+			AbstractNode startNode   = rel.getStartNode();
+			AbstractNode endNode     = rel.getEndNode();
+			final String startNodeId = startNode.getUuid();
+			final String endNodeId   = endNode.getUuid();
+
+			deleteCascade(startNode);
+			assertNodeNotFound(startNodeId);
+			assertNodeExists(endNodeId);
+
+			// Create another relationship with DELETE_NONE
+			rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_NONE);
+
+			final String startNodeId2 = rel.getStartNode().getUuid();
+			final String endNodeId2   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getEndNode());
+			assertNodeNotFound(endNodeId2);
+			assertNodeExists(startNodeId2);
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	/**
+	 * DELETE_INCOMING should not trigger delete cascade from start to end node,
+	 * but from end to start node
+	 */
+	public void test03CascadeDeleteIncoming() {
+
+		try {
+
+			// Create a relationship with DELETE_INCOMING
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_INCOMING);
+			final String startNodeId = rel.getStartNode().getUuid();
+			final String endNodeId   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getStartNode());
+
+			// Start node should not be found after deletion
+			assertNodeNotFound(startNodeId);
+
+			// End node should be found after deletion of start node
+			assertNodeExists(endNodeId);
+
+			// Create another relationship with DELETE_INCOMING
+			rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_INCOMING);
+
+			final String startNodeId2 = rel.getStartNode().getUuid();
+			final String endNodeId2   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getEndNode());
+
+			// End node should not be found after deletion
+			assertNodeNotFound(endNodeId2);
+
+			// Start node should not be found after deletion of end node
+			assertNodeNotFound(startNodeId2);
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	/**
+	 * DELETE_OUTGOING should trigger delete cascade from start to end node,
+	 * but not from end to start node.
+	 */
+	public void test04CascadeDeleteOutgoing() {
+
+		try {
+
+			// Create a relationship with DELETE_OUTGOING
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_OUTGOING);
+			final String startNodeId = rel.getStartNode().getUuid();
+			final String endNodeId   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getStartNode());
+
+			// Start node should not be found after deletion
+			assertNodeNotFound(startNodeId);
+
+			// End node should not be found after deletion
+			assertNodeNotFound(endNodeId);
+
+			// Create another relationship with DELETE_OUTGOING
+			rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_OUTGOING);
+
+			final String startNodeId2 = rel.getStartNode().getUuid();
+			final String endNodeId2   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getEndNode());
+
+			// End node should not be found after deletion
+			assertNodeNotFound(endNodeId2);
+
+			// Start node should still exist deletion of end node
+			assertNodeExists(startNodeId2);
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	/**
+	 * DELETE_INCOMING + DELETE_OUTGOING should trigger delete cascade from start to end node
+	 * and from end node to start node
+	 */
+	public void test05CascadeDeleteBidirectional() {
+
+		try {
+
+			// Create a relationship with DELETE_INCOMING
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_INCOMING | RelationClass.DELETE_OUTGOING);
+			final String startNodeId = rel.getStartNode().getUuid();
+			final String endNodeId   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getStartNode());
+
+			// Start node should not be found after deletion
+			assertNodeNotFound(startNodeId);
+
+			// End node should not be found after deletion of start node
+			assertNodeNotFound(endNodeId);
+
+			// Create a relationship with DELETE_INCOMING
+			rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_INCOMING | RelationClass.DELETE_OUTGOING);
+
+			final String startNodeId2 = rel.getStartNode().getUuid();
+			final String endNodeId2   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getEndNode());
+
+			// End node should not be found after deletion
+			assertNodeNotFound(endNodeId2);
+
+			// Start node should not be found after deletion of end node
+			assertNodeNotFound(startNodeId2);
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	/**
+	 * DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED should
+	 * trigger delete cascade from start to end node only
+	 * if the remote node would not be valid afterwards
+	 */
+	public void test06CascadeDeleteConditional() {
+
+		try {
+
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+			final String startNodeId = rel.getStartNode().getUuid();
+			final String endNodeId   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getStartNode());
+
+			// Start node should be deleted
+			assertNodeNotFound(startNodeId);
+
+			// End node should be deleted
+			assertNodeNotFound(endNodeId);
+
+			rel = cascadeRel(TestOne.class, TestThree.class, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+
+			final String startNodeId2 = rel.getStartNode().getUuid();
+			final String endNodeId2   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getStartNode());
+
+			// Start node should be deleted
+			assertNodeNotFound(startNodeId2);
+
+			// End node should still be there
+			assertNodeExists(endNodeId2);
+
+			rel = cascadeRel(TestOne.class, TestFour.class, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+
+			final String startNodeId3 = rel.getStartNode().getUuid();
+			final String endNodeId3   = rel.getEndNode().getUuid();
+
+			deleteCascade(rel.getStartNode());
+
+			// Start node should be deleted
+			assertNodeNotFound(startNodeId3);
+
+			// End node should still be there
+			assertNodeExists(endNodeId3);
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	private AbstractRelationship cascadeRel(final Class type1, final Class type2, final int cascadeDeleteFlag) throws FrameworkException {
+
+		return (AbstractRelationship) transactionCommand.execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				AbstractNode start       = createTestNode(type1.getSimpleName());
+				AbstractNode end         = createTestNode(type2.getSimpleName());
+				AbstractRelationship rel = createTestRelationship(start, end, RelType.UNDEFINED);
+
+				rel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDeleteFlag);
+
+				return rel;
+
+			}
+
+		});
+
+	}
+
+	private void deleteCascade(final AbstractNode node) throws FrameworkException {
+
+		transactionCommand.execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				return deleteNodeCommand.execute(node, true);
+
+			}
+
+		});
 
 	}
 

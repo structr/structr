@@ -26,6 +26,7 @@ import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
@@ -205,6 +206,28 @@ public class StructrTest extends TestCase {
 
 	}
 
+	protected AbstractNode createTestNode(final String type) throws FrameworkException {
+
+		return createTestNode(type, new HashMap<String, Object>());
+	}
+	
+	protected AbstractNode createTestNode(final String type, final Map<String, Object> props) throws FrameworkException {
+
+		props.put(AbstractNode.Key.type.name(), type);
+
+		return (AbstractNode) transactionCommand.execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				return (AbstractNode) createNodeCommand.execute(props);
+
+			}
+
+		});
+
+	}
+
 	protected List<AbstractRelationship> createTestRelationships(final RelationshipType relType, final int number) throws FrameworkException {
 
 		List<AbstractNode> nodes     = createTestNodes("UnknownTestType", 2);
@@ -228,6 +251,46 @@ public class StructrTest extends TestCase {
 			}
 
 		});
+
+	}
+
+	protected AbstractRelationship createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final RelType relType) throws FrameworkException {
+
+		return (AbstractRelationship) transactionCommand.execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				return (AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType);
+
+			}
+
+		});
+
+	}
+
+	protected void assertNodeExists(final String nodeId) throws FrameworkException {
+
+		AbstractNode node = null;
+
+		try {
+
+			node = (AbstractNode) findNodeCommand.execute(nodeId);
+
+		} catch (Throwable t) {}
+
+		assertTrue(node != null);
+
+	}
+
+	protected void assertNodeNotFound(final String nodeId) {
+
+		try {
+
+			findNodeCommand.execute(nodeId);
+			fail("Node exists!");
+
+		} catch (FrameworkException fe) {}
 
 	}
 

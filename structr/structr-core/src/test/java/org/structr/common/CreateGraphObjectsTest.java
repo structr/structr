@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.TestTwo;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -197,6 +198,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 					assertTrue(entityList.contains(PrincipalImpl.class));
 					assertTrue(entityList.contains(Person.class));
 					assertTrue(entityList.contains(ResourceAccess.class));
+					
+					// Don't test this one, it would fail due to violated constraints
+					entityList.remove(TestTwo.class);
 
 					for (Class entityClass : entityList) {
 
