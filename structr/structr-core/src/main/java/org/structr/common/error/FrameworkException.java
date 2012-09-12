@@ -96,6 +96,8 @@ public class FrameworkException extends Exception {
 
 					out.append(et.getStatus()).append(": ").append(et.getKey()).append(" ").append(et.getErrorToken()).append(", ");
 				}
+				
+				out.delete(out.length()-2, out.length());
 
 			}
 

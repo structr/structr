@@ -1730,7 +1730,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public void afterDeletion(SecurityContext securityContext) {
 	}
 	
-	private boolean isValid(ErrorBuffer errorBuffer) {
+	public boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
 

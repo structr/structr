@@ -65,7 +65,8 @@ import org.structr.core.EntityContext;
  */
 public class RelationClass {
 
-	public static final int DELETE_BOTH     = 3;
+	public static final int DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED = 4;
+//	public static final int DELETE_BOTH     = 3;
 	public static final int DELETE_INCOMING = 2;
 	public static final int DELETE_NONE     = 0;
 	public static final int DELETE_OUTGOING = 1;

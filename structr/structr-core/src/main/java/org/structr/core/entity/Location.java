@@ -60,7 +60,7 @@ public class Location extends AbstractNode {
 
 	@Override
 	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
-		return isValid(errorBuffer);
+		return !notifyLocatables(securityContext) && isValid(errorBuffer);
 	}
 	
 	@Override
@@ -79,7 +79,8 @@ public class Location extends AbstractNode {
 		
 	}
 	
-	private boolean isValid(ErrorBuffer errorBuffer) {
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
 
@@ -89,7 +90,9 @@ public class Location extends AbstractNode {
 
 	}
 	
-	private void notifyLocatables(SecurityContext securityContext) {
+	private boolean notifyLocatables(SecurityContext securityContext) {
+		
+		boolean error = false;
 		
 		for(AbstractRelationship rel : this.getRelationships()) {
 			
@@ -97,9 +100,11 @@ public class Location extends AbstractNode {
 			if(otherNode != null && otherNode instanceof Locatable) {
 				
 				// notify other node of location change
-				((Locatable)otherNode).locationChanged(securityContext);
+				error |= ((Locatable)otherNode).locationChanged(securityContext);
 			}
 		}
+		
+		return error;
 	}
 
 }

@@ -146,7 +146,8 @@ public class ResourceAccess extends AbstractNode {
 		return isValid(errorBuffer);
 	}
 	
-	private  boolean isValid(ErrorBuffer errorBuffer) {
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
 

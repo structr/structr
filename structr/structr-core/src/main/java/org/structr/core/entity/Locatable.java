@@ -28,5 +28,5 @@ import org.structr.common.SecurityContext;
  * @author Christian Morgner
  */
 public interface Locatable {
-	public void locationChanged(SecurityContext securityContext);
+	public boolean locationChanged(SecurityContext securityContext);
 }

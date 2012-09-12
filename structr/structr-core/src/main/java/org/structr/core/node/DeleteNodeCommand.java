@@ -30,9 +30,13 @@ import org.structr.core.entity.RelationClass;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.ErrorBuffer;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,7 +50,8 @@ import java.util.logging.Logger;
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(DeleteNodeCommand.class.getName());
+	private static final Logger logger            = Logger.getLogger(DeleteNodeCommand.class.getName());
+	private static Set<AbstractNode> deletedNodes = new LinkedHashSet<AbstractNode>();
 
 	//~--- methods --------------------------------------------------------
 
@@ -70,11 +75,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				if (parameters[1] instanceof String) {
 
 					cascade = Boolean.parseBoolean((String) parameters[2]);
-
 				} else if (parameters[1] instanceof Boolean) {
 
 					cascade = (Boolean) parameters[1];
-
 				}
 
 				break;
@@ -102,11 +105,15 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 //              EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, node);
 		doDeleteNode(node, cascade);
+		deletedNodes.clear();
 
 		return null;
+
 	}
 
 	private AbstractNode doDeleteNode(final AbstractNode node, final Boolean cascade) throws FrameworkException {
+
+		deletedNodes.add(node);
 
 		if (node.getStringProperty(AbstractNode.Key.uuid) == null) {
 
@@ -128,45 +135,52 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 				try {
 
+					List<AbstractNode> nodesToCheckAfterDeletion = new LinkedList<AbstractNode>();
+
 					if (cascade) {
 
 						// Delete all end nodes of outgoing relationships which are connected
-						// by relationships which have a cascadeDelete value of DELETE_OUTGOING or DELETE_INCOMING
+						// by relationships which are marked with DELETE_OUTGOING
 						List<AbstractRelationship> outgoingRels = node.getOutgoingRelationships();
 
 						for (AbstractRelationship rel : outgoingRels) {
 
-							int cascadeDelete = rel.cascadeDelete();
+							int cascadeDelete    = rel.cascadeDelete();
+							AbstractNode endNode = rel.getEndNode();
 
-							if ((cascadeDelete == RelationClass.DELETE_OUTGOING) || (cascadeDelete == RelationClass.DELETE_BOTH)) {
+							if ((cascadeDelete & RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) == RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) {
 
-								AbstractNode endNode = rel.getEndNode();
+								nodesToCheckAfterDeletion.add(endNode);
+							}
+
+							if (!deletedNodes.contains(endNode) && ((cascadeDelete & RelationClass.DELETE_OUTGOING) == RelationClass.DELETE_OUTGOING)) {
 
 								// remove end node from index
 								removeNodeFromIndex.execute(endNode);
 								doDeleteNode(endNode, cascade);
-
 							}
 
 						}
 
 						// Delete all start nodes of incoming relationships which are connected
-						// by relationships which have a cascadeDelete value of DELETE_INCOMING or DELETE_BOTH
+						// by relationships which are marked with DELETE_INCOMING
 						List<AbstractRelationship> incomingRels = node.getIncomingRelationships();
 
 						for (AbstractRelationship rel : incomingRels) {
 
-							int cascadeDelete = rel.cascadeDelete();
+							int cascadeDelete      = rel.cascadeDelete();
+							AbstractNode startNode = rel.getStartNode();
 
-							if ((cascadeDelete == RelationClass.DELETE_INCOMING) || (cascadeDelete == RelationClass.DELETE_BOTH)) {
+							if ((cascadeDelete & RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) == RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) {
 
-								AbstractNode startNode = rel.getStartNode();
+								nodesToCheckAfterDeletion.add(startNode);
+							}
+
+							if (!deletedNodes.contains(startNode) && ((cascadeDelete & RelationClass.DELETE_INCOMING) == RelationClass.DELETE_INCOMING)) {
 
 								// remove start node from index
 								removeNodeFromIndex.execute(startNode);
 								doDeleteNode(startNode, cascade);
-								doDeleteNode(rel.getStartNode(), cascade);
-
 							}
 
 						}
@@ -181,7 +195,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					for (AbstractRelationship r : rels) {
 
 						deleteRel.execute(r);
-
 					}
 
 					// remove node from index
@@ -190,15 +203,39 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					// delete node in database
 					node.getNode().delete();
 
+					// now check again the deletion cascade for violated constraints
+					if (cascade) {
+
+						// Check all end nodes of outgoing relationships which are connected if they are
+						// still valid after node deletion
+						for (AbstractNode nodeToCheck : nodesToCheckAfterDeletion) {
+
+							ErrorBuffer errorBuffer = new ErrorBuffer();
+							
+							if (!nodeToCheck.isValid(errorBuffer)) {
+
+								// remove end node from index
+								removeNodeFromIndex.execute(nodeToCheck);
+								doDeleteNode(nodeToCheck, cascade);
+							}
+
+						}
+					}
+
 				} catch (Throwable t) {
+
 					logger.log(Level.WARNING, "Exception while deleting node: {0}", t);
+
 				}
 
 				return null;
+
 			}
 
 		});
 
 		return null;
+
 	}
+
 }
