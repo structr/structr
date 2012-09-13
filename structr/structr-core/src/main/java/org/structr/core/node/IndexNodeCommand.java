@@ -298,11 +298,11 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			value = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 		}
 
-		// logger.log(Level.INFO, "Indexing value {0} for key {1}", new Object[] { valueForIndexing, key });
+		logger.log(Level.FINE, "Indexing value {0} for key {1} on node {2} in {3} index", new Object[] { valueForIndexing, key, id, indexName });
 		
 		// index.remove(node, key, value);
 		removeNodePropertyFromIndex(dbNode, key, indexName);
-		logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from all indices", new Object[] { id, key });
+		logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from {2} index", new Object[] { id, key, indexName });
 		addNodePropertyToIndex(dbNode, key, valueForIndexing, indexName);
 
 		if ((node instanceof Principal) && (key.equals(AbstractNode.Key.name.name()) || key.equals(Person.Key.email.name()))) {
