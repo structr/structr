@@ -30,9 +30,11 @@ import org.structr.core.node.StructrTransaction;
 
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,7 +57,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 	}
 	
 	/**
-	 * Test the results of setProperty and getProperty
+	 * Test the results of setProperty and getProperty of a node
 	 */
 	public void test01ModifyNode() {
 
@@ -111,5 +113,34 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 	}
 
+	/**
+	 * Test the results of setProperty and getProperty of a relationship
+	 */
+	public void test02ModifyRelationship() {
+
+		try {
+
+			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.UNDEFINED, 1)).get(0);
+
+			String key1 = "jghsdkhgshdhgsdjkfgh";
+			String val1 = "54354354546806849870";
+
+			// Modify values
+			rel.setProperty(key1, val1);
+			assertTrue(rel.getStringProperty(key1).equals(val1));
+			
+			val1 = "öljkhöohü8osdfhoödhi";
+			rel.setProperty(key1, val1);
+			assertTrue(rel.getStringProperty(key1).equals(val1));
+			
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
 
 }

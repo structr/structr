@@ -26,7 +26,6 @@ import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
@@ -41,6 +40,7 @@ import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.node.search.SearchRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -81,6 +82,8 @@ public class StructrTest extends TestCase {
 	protected Command deleteNodeCommand;
 	protected Command findNodeCommand;
 	protected Command graphDbCommand;
+	protected Command searchNodeCommand;
+	protected Command searchRelationshipCommand;
 	protected SecurityContext securityContext;
 	protected Command transactionCommand;
 
@@ -209,8 +212,9 @@ public class StructrTest extends TestCase {
 	protected AbstractNode createTestNode(final String type) throws FrameworkException {
 
 		return createTestNode(type, new HashMap<String, Object>());
+
 	}
-	
+
 	protected AbstractNode createTestNode(final String type, final Map<String, Object> props) throws FrameworkException {
 
 		props.put(AbstractNode.Key.type.name(), type);
@@ -347,6 +351,8 @@ public class StructrTest extends TestCase {
 		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
 		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
 		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
+		searchNodeCommand         = Services.command(securityContext, SearchNodeCommand.class);
+		searchRelationshipCommand = Services.command(securityContext, SearchRelationshipCommand.class);
 
 	}
 
