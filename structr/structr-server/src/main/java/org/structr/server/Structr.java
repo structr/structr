@@ -114,6 +114,13 @@ public class Structr {
 	
 	private List<String> customConfigLines      = new LinkedList<String>();
 	
+	private List<Callback> callbacks            = new LinkedList<Callback>();
+
+	public static class Callback {
+		public Callback() {};
+		public void execute() {};
+	}
+
 	//~--- methods --------------------------------------------------------
 
 	private Structr(Class<? extends StructrServer> applicationClass, String applicationName, int httpPort, int httpsPort) {
@@ -265,6 +272,11 @@ public class Structr {
 	
 	public Structr addCustomConfig(String configLine) {
 		this.customConfigLines.add(configLine);
+		return this;
+	}
+	
+	public Structr addCallback(Callback callback) {
+		this.callbacks.add(callback);
 		return this;
 	}
 	
@@ -533,6 +545,15 @@ public class Structr {
 
 		// The jsp directory is created by the container, but we don't need it
 		removeDir(basePath, "jsp");
+		
+		if (!callbacks.isEmpty()) {
+			
+			for (Callback callback : callbacks) {
+				
+				callback.execute();
+			}
+			
+		}
 		
 		if (waitForExit) {
 			
