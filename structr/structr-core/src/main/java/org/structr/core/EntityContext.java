@@ -1518,7 +1518,7 @@ public class EntityContext {
 				boolean hasError                                            = false;
 
 				// notify transaction listeners
-				for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+				for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 					listener.begin(securityContext, transactionKey);
 				}
 
@@ -1541,12 +1541,12 @@ public class EntityContext {
 					if (!data.isDeleted(node)) {
 
 						AbstractNode modifiedNode = nodeFactory.createNode(securityContext, node, true, false);
-						if(modifiedNode != null) {
+						if (modifiedNode != null) {
 
 							modifiedNodes.add(modifiedNode);
 
 							// notify registered listeners
-							for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedNode, entry.key(), entry.previouslyCommitedValue());
 							}
 						}
@@ -1573,12 +1573,12 @@ public class EntityContext {
 					if (!data.isDeleted(rel)) {
 
 						AbstractRelationship modifiedRel = relFactory.createRelationship(securityContext, rel);
-						if(modifiedRel != null) {
+						if (modifiedRel != null) {
 							
 							modifiedRels.add(modifiedRel);
 
 							// notify registered listeners
-							for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedRel, entry.key(), entry.previouslyCommitedValue());
 							}
 						}
@@ -1590,13 +1590,13 @@ public class EntityContext {
 				for (Node node : sortNodes(data.createdNodes())) {
 
 					AbstractNode entity = nodeFactory.createNode(securityContext, node, true, false);
-					if(entity != null) {
+					if (entity != null) {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
 						createdNodes.add(entity);
 						
 						// notify registered listeners
-						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 							hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 						}
 					}
@@ -1607,13 +1607,13 @@ public class EntityContext {
 				for (Relationship rel : sortRelationships(data.createdRelationships())) {
 
 					AbstractRelationship entity = relFactory.createRelationship(securityContext, rel);
-					if(entity != null) {
+					if (entity != null) {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
 						createdRels.add(entity);
 						
 						// notify registered listeners
-						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 							hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 						}
 						
@@ -1638,12 +1638,12 @@ public class EntityContext {
 				for (Relationship rel : data.deletedRelationships()) {
 
 					AbstractRelationship entity = relFactory.createRelationship(securityContext, rel);
-					if(entity != null) {
+					if (entity != null) {
 						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, removedRelProperties.get(rel));
 						
 						// notify registered listeners
-						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, removedRelProperties.get(rel));
 						}
 
@@ -1674,7 +1674,7 @@ public class EntityContext {
 					String type = (String)removedNodeProperties.get(node).get(AbstractNode.Key.type.name());
 					AbstractNode entity = nodeFactory.createDeletedNode(securityContext, node, type);
 					
-					if(entity != null) {
+					if (entity != null) {
 						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, removedNodeProperties.get(node));
 						
@@ -1687,89 +1687,118 @@ public class EntityContext {
 					}
 				}
 
+				Node n = null;
+				AbstractNode nodeEntity = null;
+				
 				// 6: validate property modifications and
 				// notify listeners of property removal and modifications
 				for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
+					
+					// performance optimization: don't instantiate new AbstractRelationship on each property but only if entity has changed
+					Node nodeFromPropertyEntry = entry.entity();
+					
+					if (!(nodeFromPropertyEntry.equals(n))) {
+						nodeEntity = nodeFactory.createNode(securityContext, nodeFromPropertyEntry, true, false);
+						n = nodeFromPropertyEntry;
+					}
 
-					AbstractNode entity = nodeFactory.createNode(securityContext, entry.entity(), true, false);
-					if(entity != null) {
+					
+					if (nodeEntity != null) {
 						
 						String key          = entry.key();
 						Object value        = entry.value();
 
 						// iterate over validators
-						Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
+						Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, nodeEntity.getClass(), key);
 
 						if (validators != null) {
 
 							for (PropertyValidator validator : validators) {
 
-								hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+								hasError |= !(validator.isValid(nodeEntity, key, value, errorBuffer));
 
 							}
 
 						}
 						
 						// notify registered listeners
-						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
+						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, nodeEntity, key, entry.previouslyCommitedValue(), value);
 						}
 
 						// after successful validation, add node to index to make uniqueness constraints work
-						indexNodeCommand.execute(entity, key);
-						modifiedNodes.add(entity);
+						
+						if (!createdNodes.contains(nodeEntity) && !deletedNodes.contains(nodeEntity)) {
+							indexNodeCommand.execute(nodeEntity, key);
+						}
+						
+						modifiedNodes.add(nodeEntity);
+
 					}
 				}
 
+				Relationship r = null;
+				AbstractRelationship relEntity = null;
+				
 				for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
-
-					AbstractRelationship entity = relFactory.createRelationship(securityContext, entry.entity());
-					if(entity != null) {
+					
+					// performance optimization: don't instantiate new AbstractRelationship on each property but only if entity has changed
+					Relationship relFromPropertyEntry = entry.entity();
+					
+					if (!(relFromPropertyEntry.equals(r))) {
+						relEntity = relFactory.createRelationship(securityContext, relFromPropertyEntry);
+						r = relFromPropertyEntry;
+					}
+					
+					if (relEntity != null) {
 						
 						String key                  = entry.key();
 						Object value                = entry.value();
 
 						// iterate over validators
-						Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
+						Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, relEntity.getClass(), key);
 
 						if (validators != null) {
 
 							for (PropertyValidator validator : validators) {
 
-								hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+								hasError |= !(validator.isValid(relEntity, key, value, errorBuffer));
 
 							}
 
 						}
 						
 						// notify registered listeners
-						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
+						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, relEntity, key, entry.previouslyCommitedValue(), value);
 						}
 						
 						// after successful validation, add relationship to index to make uniqueness constraints work
-						indexRelationshipCommand.execute(entity, key);
-						modifiedRels.add(entity);
+						//if (!createdRels.contains(entity) && !deletedRels.contains(entity)) {
+							indexRelationshipCommand.execute(relEntity, key);
+						//}
+						
+						modifiedRels.add(relEntity);
 					}
 				}
 
 				// 7: notify listeners of modified nodes (to check for non-existing properties etc)
 				for (AbstractNode node : modifiedNodes) {
 
-					// only send UPDATE if node was not created or deleted in this transaction
+					// only send UPDATE and index if node was not created or deleted in this transaction
 					if (!createdNodes.contains(node) &&!deletedNodes.contains(node)) {
 
 						hasError |= !node.beforeModification(securityContext, errorBuffer);
 						
 						// notify registered listeners
-						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 							hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, node);
 						}
+						
+						indexNodeCommand.execute(node);
 					}
-					
-					indexNodeCommand.execute(node);
 				}
-
+				
 				for (AbstractRelationship rel : modifiedRels) {
 
 					// only send UPDATE if relationship was not created or deleted in this transaction
@@ -1778,12 +1807,14 @@ public class EntityContext {
 						hasError |= !rel.beforeModification(securityContext, errorBuffer);
 						
 						// notify registered listeners
-						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 							hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
 						}
+						
+						indexRelationshipCommand.execute(rel);
+						
 					}
 					
-					indexRelationshipCommand.execute(rel);
 				}
 
 				for (AbstractNode node : createdNodes) {
@@ -1800,7 +1831,7 @@ public class EntityContext {
 
 				if (hasError) {
 
-					for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 						listener.rollback(securityContext, transactionKey);
 					}
 
@@ -1808,7 +1839,7 @@ public class EntityContext {
 
 				}
 
-				for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+				for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 					listener.commit(securityContext, transactionKey);
 				}
 
