@@ -54,6 +54,7 @@ import java.util.logging.Logger;
 import org.apache.lucene.search.*;
 import org.structr.common.PropertyKey;
 import org.structr.core.Result;
+import org.structr.core.UnsupportedArgumentError;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -273,6 +274,13 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			}
 
+			// Check if all prerequisites are met
+			if (distanceSearch == null && textualAttributes.size() < 1) {
+				
+				throw new UnsupportedArgumentError("At least one texutal search attribute or distance search have to be present in search attributes!");
+				
+			}
+			
 			Result intermediateResult;
 
 			if (searchAttrs.isEmpty() && StringUtils.isBlank(textualQueryString.toString())) {
