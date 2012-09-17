@@ -50,7 +50,7 @@
             <artifactId>structr-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--        <dependency>
+        <!--        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-websocket</artifactId>
             <version>${project.version}</version>

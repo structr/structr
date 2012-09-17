@@ -25,6 +25,14 @@
 
     <repositories>
         <repository>
+            <id>snapshots.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
+        </repository>
+        <repository>
+            <id>releases.maven.structr.org</id>
+            <url>http://maven.structr.org:8082/artifactory/release</url>
+        </repository> 
+        <repository>
             <id>neo4j-public-repository</id>
             <url>http://m2.neo4j.org/content/groups/everything</url>
         </repository>
