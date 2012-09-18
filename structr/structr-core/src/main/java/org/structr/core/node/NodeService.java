@@ -298,6 +298,11 @@ public class NodeService implements SingletonService {
 	}
 
 	// </editor-fold>
+	
+	public GraphDatabaseService getGraphDb() {
+		return graphDb;
+	}
+	
 	@Override
 	public boolean isRunning() {
 
