@@ -19,9 +19,11 @@
 package org.structr.core.entity;
 
 import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.converter.IntConverter;
 
 /**
  * A simple entity for the most basic tests.
@@ -31,12 +33,35 @@ import org.structr.core.EntityContext;
  */
 public class TestOne extends AbstractNode {
 	
+	public enum Key implements PropertyKey {
+		
+		anInt, aLong
+		
+	}
+	
 	static {
 		
 		EntityContext.registerPropertySet(TestOne.class, PropertyView.Public, Key.values());
 		EntityContext.registerEntityRelation(TestOne.class, TestTwo.class, RelType.UNDEFINED, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 		EntityContext.registerEntityRelation(TestOne.class, TestThree.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 		EntityContext.registerEntityRelation(TestOne.class, TestFour.class, RelType.DATA, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+		
+		EntityContext.registerPropertyConverter(TestOne.class, Key.anInt, IntConverter.class);
 	}
+	
+//	@Override
+//	public Object getPropertyForIndexing(final String key) {
+//		
+//		Object rawValue = super.getPropertyForIndexing(key);
+//		
+//		if (key.equals(Key.anInt.name())) {
+//			
+//			return rawValue.toString();
+//			
+//		} else {
+//			return rawValue;
+//		}
+//		
+//	}
 	
 }
