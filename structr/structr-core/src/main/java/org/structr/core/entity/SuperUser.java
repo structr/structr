@@ -291,6 +291,20 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
+	public Long getLongProperty(String key) {
+
+		return null;
+
+	}
+
+	@Override
+	public Long getLongProperty(PropertyKey propertyKey) {
+
+		return null;
+
+	}
+
+	@Override
 	public Boolean isBlocked() {
 
 		return false;

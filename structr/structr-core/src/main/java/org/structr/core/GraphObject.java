@@ -49,6 +49,8 @@ public interface GraphObject {
 	public String getStringProperty(final PropertyKey propertyKey);
 	public Integer getIntProperty(final String key);
 	public Integer getIntProperty(final PropertyKey propertyKey);
+	public Long getLongProperty(final String key);
+	public Long getLongProperty(final PropertyKey propertyKey);
 	public Date getDateProperty(final String key);
         public Date getDateProperty(final PropertyKey key);
 	public boolean getBooleanProperty(final String key) throws FrameworkException ;
