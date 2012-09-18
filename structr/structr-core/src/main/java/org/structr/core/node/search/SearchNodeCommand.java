@@ -52,6 +52,7 @@ import org.structr.core.node.NodeServiceCommand;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.*;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyKey;
 import org.structr.core.Result;
 import org.structr.core.UnsupportedArgumentError;
@@ -110,10 +111,18 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		boolean sortDescending            = false;
 		long pageSize                     = -1;
 		long page                         = -1;
+		Integer sortType                  = null;
 		
 		
 		switch (parameters.length) {
 			
+			case 9:
+				if (parameters[8] instanceof Integer) {
+
+					sortType = ((Integer) parameters[8]).intValue();
+
+				}
+				
 			case 8:
 				if (parameters[7] instanceof Number) {
 
@@ -175,7 +184,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 
 
-		return search(securityContext, topNode, includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page);
+		return search(securityContext, topNode, includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, sortType);
 	}
 
 	/**
@@ -189,7 +198,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @return
 	 */
 	private Result search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeletedAndHidden, final boolean publicOnly,
-					  final List<SearchAttribute> searchAttrs, final String sortKey, final boolean sortDescending, final long pageSize, final long page)
+					  final List<SearchAttribute> searchAttrs, final String sortKey, final boolean sortDescending, final long pageSize, final long page, final Integer sortType)
 		throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
@@ -295,7 +304,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                              }
 			} else {
 
-				long t0 = System.currentTimeMillis();
+				long t0 = System.nanoTime();
 
 				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
@@ -304,15 +313,14 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				if (sortKey != null) {
 					
-//					Integer type = sortKeyTypeMap.get(sortKey);
-//					if (type != null) {
-//						
-//						queryContext.sort(new Sort(new SortField(sortKey, type, sortDescending)));
-//						
-//					} else {
+					if (sortType != null) {
+						
+						queryContext.sort(new Sort(new SortField(sortKey, sortType, sortDescending)));
+						
+					} else {
 						
 						queryContext.sort(new Sort(new SortField(sortKey, Locale.getDefault(), sortDescending)));
-//					}
+					}
 				}
 				
 				 if (distanceSearch != null) {
@@ -358,9 +366,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					}
 				}
 
-				long t1 = System.currentTimeMillis();
+				long t1 = System.nanoTime();
 
-				logger.log(Level.FINE, "Querying index took {0} ms, size() says {1} results.", new Object[] { t1 - t0, (hits != null)
+				logger.log(Level.FINE, "Querying index took {0} ns, size() says {1} results.", new Object[] { t1 - t0, (hits != null)
 					? hits.size()
 					: 0 });
 
@@ -368,16 +376,16 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeletedAndHidden, publicOnly, pageSize, page);
 
 				hits.close();
-				long t2 = System.currentTimeMillis();
+				long t2 = System.nanoTime();
 
-				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.getResults().size() });
+				logger.log(Level.FINE, "Creating structr nodes took {0} ns, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.getResults().size() });
 
 			}
 
 			List<? extends GraphObject> intermediateResultList = intermediateResult.getResults();
 
 			
-			long t2 = System.currentTimeMillis();
+			long t2 = System.nanoTime();
 
 			if (!filters.isEmpty()) {
 
@@ -449,10 +457,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			if (coords != null) {}
 
 			finalResult = intermediateResult;
+			
+			long t3 = System.nanoTime();
+			logger.log(Level.FINE, "Filtering nodes took {0} ns. Result size now {1}.", new Object[] { t3 - t2, finalResult.getResults().size() });
+			
+			if (sortKey != null) {
+				
+				Collections.sort(finalResult.getResults(), new GraphObjectComparator(sortKey, sortDescending ? GraphObjectComparator.DESCENDING : GraphObjectComparator.ASCENDING));
 
-			long t3 = System.currentTimeMillis();
+				long t4 = System.nanoTime();
+			
+				logger.log(Level.FINE, "Sorting nodes took {0} ns.", new Object[] { t4 - t3 });
+			
+			}
 
-			logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[] { t3 - t2, finalResult.getResults().size() });
 		}
 
 		return finalResult;
