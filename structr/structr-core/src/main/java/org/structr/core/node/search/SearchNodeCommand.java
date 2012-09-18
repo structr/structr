@@ -461,15 +461,15 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			long t3 = System.nanoTime();
 			logger.log(Level.FINE, "Filtering nodes took {0} ns. Result size now {1}.", new Object[] { t3 - t2, finalResult.getResults().size() });
 			
-			if (sortKey != null) {
-				
-				Collections.sort(finalResult.getResults(), new GraphObjectComparator(sortKey, sortDescending ? GraphObjectComparator.DESCENDING : GraphObjectComparator.ASCENDING));
-
-				long t4 = System.nanoTime();
-			
-				logger.log(Level.FINE, "Sorting nodes took {0} ns.", new Object[] { t4 - t3 });
-			
-			}
+//			if (sortKey != null) {
+//				
+//				Collections.sort(finalResult.getResults(), new GraphObjectComparator(sortKey, sortDescending ? GraphObjectComparator.DESCENDING : GraphObjectComparator.ASCENDING));
+//
+//				long t4 = System.nanoTime();
+//			
+//				logger.log(Level.FINE, "Sorting nodes took {0} ns.", new Object[] { t4 - t3 });
+//			
+//			}
 
 		}
 

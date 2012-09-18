@@ -21,7 +21,8 @@
 
 package org.structr.common;
 
-import java.util.Collections;
+import org.apache.lucene.search.SortField;
+
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -32,11 +33,12 @@ import org.structr.core.node.search.SearchAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.lucene.search.SortField;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,11 +71,12 @@ public class SortingTest extends StructrTest {
 			String type                     = TestOne.class.getSimpleName();
 			int number                      = 43;
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
+			int offset                      = 10;
+			int i                           = offset;
 			String name;
-			int i = 10;
 
 			Collections.shuffle(nodes);
-			
+
 			for (AbstractNode node : nodes) {
 
 				name = Integer.toString(i);
@@ -107,17 +110,17 @@ public class SortingTest extends StructrTest {
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
 			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-			assertTrue(result.size() == pageSize);
-			assertTrue(result.get(0).getStringProperty(AbstractNode.Key.name).equals("10"));
-			assertTrue(result.get(1).getStringProperty(AbstractNode.Key.name).equals("11"));
-			assertTrue(result.get(2).getStringProperty(AbstractNode.Key.name).equals("12"));
-			assertTrue(result.get(3).getStringProperty(AbstractNode.Key.name).equals("13"));
-			assertTrue(result.get(4).getStringProperty(AbstractNode.Key.name).equals("14"));
-			assertTrue(result.get(5).getStringProperty(AbstractNode.Key.name).equals("15"));
-			assertTrue(result.get(6).getStringProperty(AbstractNode.Key.name).equals("16"));
-			assertTrue(result.get(7).getStringProperty(AbstractNode.Key.name).equals("17"));
-			assertTrue(result.get(8).getStringProperty(AbstractNode.Key.name).equals("18"));
-			assertTrue(result.get(9).getStringProperty(AbstractNode.Key.name).equals("19"));
+			assertTrue(result.size() == Math.min(number, pageSize));
+
+			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
+
+				int expectedNumber = offset + j;
+				String gotName     = result.get(j).getStringProperty(AbstractNode.Key.name);
+
+				System.out.println(expectedNumber + ", got: " + gotName);
+				assertTrue(gotName.equals(Integer.toString(expectedNumber)));
+
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -137,8 +140,9 @@ public class SortingTest extends StructrTest {
 			String type                     = TestOne.class.getSimpleName();
 			int number                      = 43;
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
+			int offset                      = 10;
+			int i                           = offset;
 			String name;
-			int i = 10;
 
 			Collections.shuffle(nodes);
 
@@ -175,17 +179,17 @@ public class SortingTest extends StructrTest {
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
 			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-			assertTrue(result.size() == pageSize);
-			assertTrue(result.get(0).getStringProperty(AbstractNode.Key.name).equals("52"));
-			assertTrue(result.get(1).getStringProperty(AbstractNode.Key.name).equals("51"));
-			assertTrue(result.get(2).getStringProperty(AbstractNode.Key.name).equals("50"));
-			assertTrue(result.get(3).getStringProperty(AbstractNode.Key.name).equals("49"));
-			assertTrue(result.get(4).getStringProperty(AbstractNode.Key.name).equals("48"));
-			assertTrue(result.get(5).getStringProperty(AbstractNode.Key.name).equals("47"));
-			assertTrue(result.get(6).getStringProperty(AbstractNode.Key.name).equals("46"));
-			assertTrue(result.get(7).getStringProperty(AbstractNode.Key.name).equals("45"));
-			assertTrue(result.get(8).getStringProperty(AbstractNode.Key.name).equals("44"));
-			assertTrue(result.get(9).getStringProperty(AbstractNode.Key.name).equals("43"));
+			assertTrue(result.size() == Math.min(number, pageSize));
+
+			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
+
+				int expectedNumber = number + offset - 1 - j;
+				String gotName     = result.get(j).getStringProperty(AbstractNode.Key.name);
+
+				System.out.println(expectedNumber + ", got: " + gotName);
+				assertTrue(gotName.equals(Integer.toString(expectedNumber)));
+
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -203,10 +207,11 @@ public class SortingTest extends StructrTest {
 			boolean includeDeletedAndHidden = true;
 			boolean publicOnly              = false;
 			String type                     = TestOne.class.getSimpleName();
-			int number                      = 43;
+			int number                      = 97;
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
+			int offset                      = 10;
+			int i                           = offset;
 			String name;
-			int i = 10;
 
 			Collections.shuffle(nodes);
 
@@ -222,42 +227,47 @@ public class SortingTest extends StructrTest {
 //                              }
 				node.setName(name);
 
+				long timestamp = (new Date()).getTime();
+
+				node.setProperty(TestOne.Key.aDate, timestamp);
+
+				// System.out.println(node.getStringProperty(AbstractNode.Key.name) + ", " + node.getProperty(TestOne.Key.aDate) + " (set: " + timestamp + ")");
+
 			}
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 			searchAttributes.add(Search.andType(type));
-				
+
 			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = AbstractNode.Key.lastModifiedDate.name();
+			String sortKey   = TestOne.Key.aDate.name();
 			boolean sortDesc = false;
 			int pageSize     = 10;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
 
 //                      for (GraphObject obj : result.getResults()) {
-//                              
-//                              System.out.println(obj.getStringProperty(AbstractNode.Key.name) + ", " + obj.getDateProperty(AbstractNode.Key.lastModifiedDate));
-//                              
+//
+//                              System.out.println(obj.getStringProperty(AbstractNode.Key.name) + ", " + obj.getProperty(TestOne.Key.aDate.name()));
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
 			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-			assertTrue(result.size() == pageSize);
-			assertTrue(result.get(0).getStringProperty(AbstractNode.Key.name).equals("10"));
-			assertTrue(result.get(1).getStringProperty(AbstractNode.Key.name).equals("11"));
-			assertTrue(result.get(2).getStringProperty(AbstractNode.Key.name).equals("12"));
-			assertTrue(result.get(3).getStringProperty(AbstractNode.Key.name).equals("13"));
-			assertTrue(result.get(4).getStringProperty(AbstractNode.Key.name).equals("14"));
-			assertTrue(result.get(5).getStringProperty(AbstractNode.Key.name).equals("15"));
-			assertTrue(result.get(6).getStringProperty(AbstractNode.Key.name).equals("16"));
-			assertTrue(result.get(7).getStringProperty(AbstractNode.Key.name).equals("17"));
-			assertTrue(result.get(8).getStringProperty(AbstractNode.Key.name).equals("18"));
-			assertTrue(result.get(9).getStringProperty(AbstractNode.Key.name).equals("19"));
+			assertTrue(result.size() == Math.min(number, pageSize));
+
+			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
+
+				int expectedNumber = offset + j;
+				String gotName     = result.get(j).getStringProperty(AbstractNode.Key.name);
+
+				System.out.println(expectedNumber + ", got: " + gotName);
+				assertTrue(gotName.equals(Integer.toString(expectedNumber)));
+
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -275,11 +285,12 @@ public class SortingTest extends StructrTest {
 			boolean includeDeletedAndHidden = true;
 			boolean publicOnly              = false;
 			String type                     = TestOne.class.getSimpleName();
-			int number                      = 43;
+			int number                      = 131;
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
 			String name;
-			int i = 10;
-			
+			int offset = 10;
+			int i      = offset;
+
 			Collections.shuffle(nodes);
 
 			for (AbstractNode node : nodes) {
@@ -309,27 +320,26 @@ public class SortingTest extends StructrTest {
 			int pageSize     = 10;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
 
-			for (GraphObject obj : result.getResults()) {
-
-				System.out.println(obj.getStringProperty(AbstractNode.Key.name) + ", " + obj.getDateProperty(AbstractNode.Key.lastModifiedDate));
-			}
-
+//                      for (GraphObject obj : result.getResults()) {
+//
+//                              System.out.println(obj.getStringProperty(AbstractNode.Key.name) + ", " + obj.getDateProperty(AbstractNode.Key.lastModifiedDate));
+//                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
 			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-			assertTrue(result.size() == pageSize);
-			assertTrue(result.get(0).getStringProperty(AbstractNode.Key.name).equals("52"));
-			assertTrue(result.get(1).getStringProperty(AbstractNode.Key.name).equals("51"));
-			assertTrue(result.get(2).getStringProperty(AbstractNode.Key.name).equals("50"));
-			assertTrue(result.get(3).getStringProperty(AbstractNode.Key.name).equals("49"));
-			assertTrue(result.get(4).getStringProperty(AbstractNode.Key.name).equals("48"));
-			assertTrue(result.get(5).getStringProperty(AbstractNode.Key.name).equals("47"));
-			assertTrue(result.get(6).getStringProperty(AbstractNode.Key.name).equals("46"));
-			assertTrue(result.get(7).getStringProperty(AbstractNode.Key.name).equals("45"));
-			assertTrue(result.get(8).getStringProperty(AbstractNode.Key.name).equals("44"));
-			assertTrue(result.get(9).getStringProperty(AbstractNode.Key.name).equals("43"));
+			assertTrue(result.size() == Math.min(number, pageSize));
+
+			for (int j = 0; j < pageSize; j++) {
+
+				int expectedNumber = number + offset - 1 - j;
+				String gotName     = result.get(j).getStringProperty(AbstractNode.Key.name);
+
+				System.out.println(expectedNumber + ", got: " + gotName);
+				assertTrue(gotName.equals(Integer.toString(expectedNumber)));
+
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -340,145 +350,156 @@ public class SortingTest extends StructrTest {
 
 	}
 
-//	public void test05SortByInt() {
+	public void test05SortByInt() {
+
+		try {
+
+			boolean includeDeletedAndHidden = true;
+			boolean publicOnly              = false;
+			String type                     = TestOne.class.getSimpleName();
+			int number                      = 61;
+			List<AbstractNode> nodes        = this.createTestNodes(type, number);
+			String key                      = TestOne.Key.anInt.name();
+			int offset                      = 10;
+			int i                           = offset;
+
+			Collections.shuffle(nodes);
+
+			for (AbstractNode node : nodes) {
+
+				node.setName(Integer.toString(i));
+
+//                              try {
+//                                      Thread.sleep(1000L);
+//                              } catch (InterruptedException ex) {
+//                              }
+				node.setProperty(key, i);
+
+				i++;
+
+			}
+
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.andType(type));
+
+			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertTrue(result.size() == number);
+
+			String sortKey   = key;
+			boolean sortDesc = false;
+			int pageSize     = 5;
+			int page         = 1;
+
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.INT);
+
+//                      for (GraphObject obj : result.getResults()) {
 //
-//		try {
-//
-//			boolean includeDeletedAndHidden = true;
-//			boolean publicOnly              = false;
-//			String type                     = TestOne.class.getSimpleName();
-//			int number                      = 130;
-//			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-//			String key                      = TestOne.Key.anInt.name();
-//			int i                           = 10;
-//
-//			Collections.shuffle(nodes);
-//			
-//			for (AbstractNode node : nodes) {
-//
-//				node.setName(Integer.toString(i));
-//				
-////                              try {
-////                                      Thread.sleep(1000L);
-////                              } catch (InterruptedException ex) {
-////                              }
-//				node.setProperty(key, i);
-//
-//				i++;
-//			}
-//
-//			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-//
-//			searchAttributes.add(Search.andType(type));
-//
-//			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
-//
-//			assertTrue(result.size() == number);
-//
-//			String sortKey   = key;
-//			boolean sortDesc = false;
-//			int pageSize     = 10;
-//			int page         = 1;
-//
-//			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.INT);
-//
-//			for (GraphObject obj : result.getResults()) {
-//
-//				System.out.println(obj.getStringProperty(AbstractNode.Key.name) + ": " + obj.getIntProperty(key));
-//			}
-//
-//			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-//			assertTrue(result.getRawResultCount() == number);
-//			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-//			assertTrue(result.size() == pageSize);
-//			assertTrue(result.get(0).getIntProperty(key) == 10);
-//			assertTrue(result.get(1).getIntProperty(key) == 11);
-//			assertTrue(result.get(2).getIntProperty(key) == 12);
-//			assertTrue(result.get(3).getIntProperty(key) == 13);
-//			assertTrue(result.get(4).getIntProperty(key) == 14);
-//			assertTrue(result.get(5).getIntProperty(key) == 15);
-//			assertTrue(result.get(6).getIntProperty(key) == 16);
-//			assertTrue(result.get(7).getIntProperty(key) == 17);
-//			assertTrue(result.get(8).getIntProperty(key) == 18);
-//			assertTrue(result.get(9).getIntProperty(key) == 19);
-//
-//		} catch (FrameworkException ex) {
-//
-//			logger.log(Level.SEVERE, ex.toString());
-//			fail("Unexpected exception");
-//
-//		}
-//
-//	}
-//	public void test06SortByLong() {
-//
-//		try {
-//
-//			boolean includeDeletedAndHidden = true;
-//			boolean publicOnly              = false;
-//			String type                     = TestOne.class.getSimpleName();
-//			int number                      = 13;
-//			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-//			String key                      = TestOne.Key.aLong.name();
-//			long i                          = 10;
-//
-//			for (AbstractNode node : nodes) {
-//
-//				node.setName(Long.toString(i));
-//				
-////                              try {
-////                                      Thread.sleep(1000L);
-////                              } catch (InterruptedException ex) {
-////                              }
-//				node.setProperty(key, i);
-//
-//				i++;
-//			}
-//
-//			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-//
-//			searchAttributes.add(Search.andType(type));
-//			//searchAttributes.add(Search.orExactProperty(TestOne.Key.aLong, "10"));
-//				
-//
-//			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
-//
-//			assertTrue(result.size() == number);
-//
-//			String sortKey   = key;
-//			boolean sortDesc = false;
-//			int pageSize     = 10;
-//			int page         = 1;
-//
-//			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
-//
-//			for (GraphObject obj : result.getResults()) {
-//
-//				System.out.println(obj.getStringProperty(AbstractNode.Key.name) + ": " + obj.getLongProperty(key));
-//			}
-//
-//			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-//			assertTrue(result.getRawResultCount() == number);
-//			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-//			assertTrue(result.size() == pageSize);
-//			assertTrue(result.get(0).getLongProperty(key) == 10);
-//			assertTrue(result.get(1).getLongProperty(key) == 11);
-//			assertTrue(result.get(2).getLongProperty(key) == 12);
-//			assertTrue(result.get(3).getLongProperty(key) == 13);
-//			assertTrue(result.get(4).getLongProperty(key) == 14);
-//			assertTrue(result.get(5).getLongProperty(key) == 15);
-//			assertTrue(result.get(6).getLongProperty(key) == 16);
-//			assertTrue(result.get(7).getLongProperty(key) == 17);
-//			assertTrue(result.get(8).getLongProperty(key) == 18);
-//			assertTrue(result.get(9).getLongProperty(key) == 19);
-//
-//		} catch (FrameworkException ex) {
-//
-//			logger.log(Level.SEVERE, ex.toString());
-//			fail("Unexpected exception");
-//
-//		}
-//
-//	}
+//                              System.out.println(obj.getStringProperty(AbstractNode.Key.name) + ": " + obj.getIntProperty(key));
+//                      }
+			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+			assertTrue(result.getRawResultCount() == number);
+			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+			assertTrue(result.size() == Math.min(number, pageSize));
+
+			for (int j = 0; j < pageSize; j++) {
+
+				int expectedNumber = offset + j;
+				int gotNumber      = result.get(j).getIntProperty(key);
+
+				System.out.println("expected: " + expectedNumber + ", got: " + gotNumber);
+				assertTrue(gotNumber == expectedNumber);
+
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	public void test06SortByLong() {
+
+		try {
+
+			boolean includeDeletedAndHidden = true;
+			boolean publicOnly              = false;
+			String type                     = TestOne.class.getSimpleName();
+			int number                      = 43;
+			List<AbstractNode> nodes        = this.createTestNodes(type, number);
+			String key                      = TestOne.Key.aLong.name();
+			long offset                     = 10;
+			long i                          = offset;
+
+			Collections.shuffle(nodes);
+
+			for (AbstractNode node : nodes) {
+
+				node.setName(Long.toString(i));
+
+//                              try {
+//                                      Thread.sleep(1000L);
+//                              } catch (InterruptedException ex) {
+//                              }
+				node.setProperty(key, i);
+
+				i++;
+
+				System.out.println(node.getStringProperty(AbstractNode.Key.name) + ": " + node.getLongProperty(key));
+
+			}
+
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.andType(type));
+
+			// searchAttributes.add(Search.orExactProperty(TestOne.Key.aLong, "10"));
+			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertTrue(result.size() == number);
+
+			String sortKey   = key;
+			boolean sortDesc = false;
+			int pageSize     = 20;
+			int page         = 1;
+
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
+
+			for (GraphObject obj : result.getResults()) {
+
+				System.out.println(obj.getStringProperty(AbstractNode.Key.name) + ": " + obj.getLongProperty(key));
+			}
+
+			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+			assertTrue(result.getRawResultCount() == number);
+			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+
+			if (result.size() >= pageSize) {
+
+				assertTrue(result.size() == pageSize);
+			}
+
+			for (int j = 0; j < pageSize; j++) {
+
+				long expectedNumber = offset + j;
+				long gotNumber      = result.get(j).getLongProperty(key);
+
+				System.out.println("expected: " + expectedNumber + ", got: " + gotNumber);
+				assertTrue(gotNumber == expectedNumber);
+
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
 
 }

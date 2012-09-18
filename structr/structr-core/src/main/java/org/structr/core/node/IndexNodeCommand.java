@@ -24,7 +24,6 @@ package org.structr.core.node;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
-import org.neo4j.gis.spatial.indexprovider.SpatialIndexProvider;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
@@ -48,6 +47,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -332,7 +332,12 @@ public class IndexNodeCommand extends NodeServiceCommand {
 	private void addNodePropertyToIndex(final Node node, final String key, final Object value, final String indexName) {
 		Index<Node> index = indices.get(indexName);
 		synchronized(index) {
-			index.add(node, key, value);
+			
+			if (value instanceof Number) {
+				index.add(node, key, new ValueContext(value).indexNumeric());
+			} else {
+				index.add(node, key, value);
+			}
 		}
 	}
 }

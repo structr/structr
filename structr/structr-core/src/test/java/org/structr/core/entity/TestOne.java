@@ -23,7 +23,9 @@ import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.converter.DateConverter;
 import org.structr.core.converter.IntConverter;
+import org.structr.core.node.NodeService.NodeIndex;
 
 /**
  * A simple entity for the most basic tests.
@@ -35,7 +37,7 @@ public class TestOne extends AbstractNode {
 	
 	public enum Key implements PropertyKey {
 		
-		anInt, aLong
+		anInt, aLong, aDate
 		
 	}
 	
@@ -47,6 +49,11 @@ public class TestOne extends AbstractNode {
 		EntityContext.registerEntityRelation(TestOne.class, TestFour.class, RelType.DATA, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 		
 		EntityContext.registerPropertyConverter(TestOne.class, Key.anInt, IntConverter.class);
+		EntityContext.registerPropertyConverter(TestOne.class, Key.aDate, DateConverter.class);
+		
+//		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.numeric.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), Key.values());
 	}
 	
 //	@Override
