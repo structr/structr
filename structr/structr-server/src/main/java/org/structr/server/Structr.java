@@ -53,7 +53,6 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.structr.context.ApplicationContextListener;
 import org.structr.core.Service;
 import org.structr.core.agent.AgentService;
-import org.structr.core.agent.Task;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.cron.CronService;
 import org.structr.core.log.LogService;
@@ -300,6 +299,11 @@ public class Structr {
 		String sourceJarName                 = app.getProtectionDomain().getCodeSource().getLocation().toString();
 		File baseDir                         = new File(System.getProperty("home", basePath));
 		String basePath                      = baseDir.getAbsolutePath();
+		
+		// create base directory if it does not exist
+		if (!baseDir.exists()) {
+			baseDir.mkdirs();
+		}
 		
 		configuredServices.add(ModuleService.class);
 		configuredServices.add(NodeService.class);

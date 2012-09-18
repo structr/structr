@@ -53,7 +53,6 @@ import org.structr.core.Value;
 import org.structr.core.converter.BooleanConverter;
 import org.structr.core.node.*;
 import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeRelationshipStatisticsCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.NodeService.NodeIndex;
@@ -919,9 +918,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return null;
 		}
 
-		value          = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
-		Class type            = this.getClass();
-		boolean dontCache     = false;
+		value             = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
+		Class type        = this.getClass();
+		boolean dontCache = false;
 
 		// only use cached value if property is accessed the "normal" way (i.e. WITH converters)
 		if (value == null) {
@@ -1917,6 +1916,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Store a non-persistent value in this entity.
+	 * 
+	 * @param key
+	 * @param value 
+	 */
+	public void setTemporaryProperty(final PropertyKey key, Object value) {
+		cachedConvertedProperties.put(key.name(), value);
+		cachedRawProperties.put(key.name(), value);
+	}
+	
 	/**
 	 * Set a property in database backend
 	 *

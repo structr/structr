@@ -559,6 +559,19 @@ public class Services {
 
 		return services;
 	}
+	
+	public static Service getService(Class type) {
+		
+		for (Service service : serviceCache.values()) {
+			
+			if (type.equals(service.getClass())) {
+				
+				return service;
+			}
+		}
+		
+		return null;
+	}
 
 	public static Map<String, String> getContext() {
 		return context;
