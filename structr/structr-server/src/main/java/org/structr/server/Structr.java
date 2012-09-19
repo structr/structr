@@ -662,8 +662,11 @@ public class Structr {
 				
 			}
 			
-			config.add(cronServiceTasksLines.substring(0, cronServiceTasksLines.length()-3));
-			config.add(cronExpressions.toString());
+			if (cronServiceTasksLines.length() > 0) {
+				
+				config.add(cronServiceTasksLines.substring(0, cronServiceTasksLines.length()-3));
+				config.add(cronExpressions.toString());
+			}
 			
 			config.add("# custom configuration");
 			
