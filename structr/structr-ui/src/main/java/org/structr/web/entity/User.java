@@ -111,7 +111,7 @@ public class User extends Person implements Principal {
 			return "";
 		} else {
 
-			return getProperty(key);
+			return super.getPropertyForIndexing(key);
 		}
 
 	}
