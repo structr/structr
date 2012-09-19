@@ -20,16 +20,16 @@ package org.structr.rest.test;
 
 import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
-import java.util.Map.Entry;
 import net.sf.json.JSONNull;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestObject;
+import org.structr.rest.entity.TestOne;
 
 /**
  *
  * @author Christian Morgner
  */
-public class TestCollectionResourceBasic extends StructrRestTest {
+public class CollectionResourceBasicTest extends StructrRestTest {
 	
 	/**
 	 * Test the correct response for a non-existing resource.
@@ -157,4 +157,5 @@ public class TestCollectionResourceBasic extends StructrRestTest {
 				.get("/test_objects");
 		    
 	}
+
 }

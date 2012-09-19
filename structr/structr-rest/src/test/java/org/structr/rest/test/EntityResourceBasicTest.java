@@ -21,9 +21,6 @@ package org.structr.rest.test;
 import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
 import net.sf.json.JSONNull;
-import org.hamcrest.Matcher;
-import org.structr.core.entity.AbstractNode;
-import org.structr.rest.common.EntityMatcher;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestObject;
 
@@ -31,7 +28,7 @@ import org.structr.rest.entity.TestObject;
  *
  * @author Christian Morgner
  */
-public class TestEntityResourceBasic extends StructrRestTest {
+public class EntityResourceBasicTest extends StructrRestTest {
 	
 	/**
 	 * Test the correct response for a non-existing entity

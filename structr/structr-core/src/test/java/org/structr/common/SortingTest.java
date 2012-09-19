@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -66,20 +67,22 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = true;
+			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
 			String type                     = TestOne.class.getSimpleName();
-			int number                      = 43;
+			int number                      = 4; // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
 			int offset                      = 10;
 			int i                           = offset;
 			String name;
 
-			Collections.shuffle(nodes);
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			for (AbstractNode node : nodes) {
 
-				name = Integer.toString(i);
+				//System.out.println("Node ID: " + node.getNodeId());
+				
+				name = "TestOne-" + i;
 
 				i++;
 
@@ -89,7 +92,7 @@ public class SortingTest extends StructrTest {
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andType(type));
+			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
 			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -114,11 +117,11 @@ public class SortingTest extends StructrTest {
 
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
-				int expectedNumber = offset + j;
+				String expectedName = "TestOne-" + (offset + j);
 				String gotName     = result.get(j).getStringProperty(AbstractNode.Key.name);
 
-				System.out.println(expectedNumber + ", got: " + gotName);
-				assertTrue(gotName.equals(Integer.toString(expectedNumber)));
+				System.out.println(expectedName + ", got: " + gotName);
+				assertTrue(gotName.equals(expectedName));
 
 			}
 
@@ -135,7 +138,7 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = true;
+			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
 			String type                     = TestOne.class.getSimpleName();
 			int number                      = 43;
@@ -144,7 +147,7 @@ public class SortingTest extends StructrTest {
 			int i                           = offset;
 			String name;
 
-			Collections.shuffle(nodes);
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			for (AbstractNode node : nodes) {
 
@@ -204,7 +207,7 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = true;
+			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
 			String type                     = TestOne.class.getSimpleName();
 			int number                      = 97;
@@ -213,7 +216,7 @@ public class SortingTest extends StructrTest {
 			int i                           = offset;
 			String name;
 
-			Collections.shuffle(nodes);
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			for (AbstractNode node : nodes) {
 
@@ -225,7 +228,7 @@ public class SortingTest extends StructrTest {
 //                                      Thread.sleep(1000L);
 //                              } catch (InterruptedException ex) {
 //                              }
-				node.setName(name);
+				node.setName("TestOne-" + name);
 
 				long timestamp = (new Date()).getTime();
 
@@ -261,11 +264,11 @@ public class SortingTest extends StructrTest {
 
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
-				int expectedNumber = offset + j;
+				String expectedName = "TestOne-" + (offset + j);
 				String gotName     = result.get(j).getStringProperty(AbstractNode.Key.name);
 
-				System.out.println(expectedNumber + ", got: " + gotName);
-				assertTrue(gotName.equals(Integer.toString(expectedNumber)));
+				System.out.println(expectedName + ", got: " + gotName);
+				assertTrue(gotName.equals(expectedName));
 
 			}
 
@@ -282,7 +285,7 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = true;
+			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
 			String type                     = TestOne.class.getSimpleName();
 			int number                      = 131;
@@ -291,7 +294,7 @@ public class SortingTest extends StructrTest {
 			int offset = 10;
 			int i      = offset;
 
-			Collections.shuffle(nodes);
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			for (AbstractNode node : nodes) {
 
@@ -354,7 +357,7 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = true;
+			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
 			String type                     = TestOne.class.getSimpleName();
 			int number                      = 61;
@@ -363,7 +366,7 @@ public class SortingTest extends StructrTest {
 			int offset                      = 10;
 			int i                           = offset;
 
-			Collections.shuffle(nodes);
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			for (AbstractNode node : nodes) {
 
@@ -426,7 +429,7 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = true;
+			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
 			String type                     = TestOne.class.getSimpleName();
 			int number                      = 43;
@@ -435,7 +438,7 @@ public class SortingTest extends StructrTest {
 			long offset                     = 10;
 			long i                          = offset;
 
-			Collections.shuffle(nodes);
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			for (AbstractNode node : nodes) {
 
