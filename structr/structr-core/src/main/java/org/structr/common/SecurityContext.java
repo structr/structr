@@ -584,6 +584,10 @@ public class SecurityContext {
 
 	}
 
+	public Authenticator getAuthenticator() {
+		return authenticator;
+	}
+	
 	//~--- inner classes --------------------------------------------------
 
 	// ----- nested classes -----

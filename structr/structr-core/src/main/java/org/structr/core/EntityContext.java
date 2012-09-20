@@ -54,6 +54,7 @@ import org.structr.core.notion.ObjectNotion;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -531,6 +532,22 @@ public class EntityContext {
 			return normalizedType;
 		}
 	}
+	
+	public static String denormalizeEntityName(String normalizedEntityName) {
+		
+		StringBuilder buf = new StringBuilder();
+		
+		for (char c : normalizedEntityName.toCharArray()) {
+			
+			if (Character.isUpperCase(c) && buf.length() > 0) {
+				buf.append("_");
+			}
+			
+			buf.append(Character.toLowerCase(c));
+		}
+		
+		return buf.toString();
+	}
 
 	private static void registerPropertyRelationInternal(Class sourceType, PropertyKey[] properties, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
 		Notion notion, int cascadeDelete) {
@@ -889,6 +906,18 @@ public class EntityContext {
 	
 
 	// ----- property set methods -----
+	public static Set<String> getPropertyViews() {
+
+		Set<String> views = new LinkedHashSet<String>();
+		
+		// add all existing views
+		for (Map<String, Set<String>> view : globalPropertyViewMap.values()) {
+			views.addAll(view.keySet());
+		}
+		
+		return views;
+	}
+	
 	public static Set<String> getPropertySet(Class type, String propertyView) {
 
 		Map<String, Set<String>> propertyViewMap = getPropertyViewMapForType(type);

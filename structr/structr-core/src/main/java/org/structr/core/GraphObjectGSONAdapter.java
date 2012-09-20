@@ -499,6 +499,10 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 						}
 
+					} else if(value instanceof Map) {
+						
+						object.add(key, serializeMap((Map)value, typeOfT, context, localPropertyView, false, false, depth + 1));
+
 					} else if(value instanceof Iterable) {
 						
 						object.add(key, serializeIterable((Iterable)value, typeOfT, context, localPropertyView, depth));
