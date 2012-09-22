@@ -73,14 +73,14 @@ public class Structr {
 	private String applicationName              = "structr server";
 	private String restUrl                      = "/structr/rest";
 	
-	private String host                         = null;
+	private String host                         = "0.0.0.0";
 	private String keyStorePath                 = null;
 	private String keyStorePassword             = null;
 	private String contextPath                  = System.getProperty("contextPath", "/");
 	private String basePath                     = "";
 
-	private int restPort                        = -1;
-	private int httpsPort                       = -1;
+	private int restPort                        = 8082;
+	private int httpsPort                       = 8083;
 	
 	private int jsonDepth                       = 1;
 	private boolean logRequests                 = false;
@@ -632,48 +632,63 @@ public class Structr {
 			config.add("");
 			config.add("superuser.username = superadmin");
 			config.add("superuser.password = " + RandomStringUtils.randomAlphanumeric(12));    // Intentionally, no default password here
-			config.add("");
-			config.add("# services");
 			
-			StringBuilder configuredServicesLine = new StringBuilder("configured.services =");
-			for (Class<? extends Service> serviceClass : configuredServices) {
-				configuredServicesLine.append(" ").append(serviceClass.getSimpleName());
+			if (!configuredServices.isEmpty()) {
+			
+				config.add("");
+				config.add("# services");
+
+				StringBuilder configuredServicesLine = new StringBuilder("configured.services =");
+
+				for (Class<? extends Service> serviceClass : configuredServices) {
+					configuredServicesLine.append(" ").append(serviceClass.getSimpleName());
+				}
+
+				config.add(configuredServicesLine.toString());
+			
 			}
-			config.add(configuredServicesLine.toString());
 			
 			config.add("");
 			config.add("# logging");
 			config.add("log.requests = " + logRequests);
 			config.add("log.name = structr-yyyy_mm_dd.request.log");
 
-			config.add("");
-			config.add("# cron tasks");
-			config.add("CronService.tasks = \\");
+			if (!cronServiceTasks.isEmpty()) {
 			
-			StringBuilder cronServiceTasksLines = new StringBuilder();
-			StringBuilder cronExpressions = new StringBuilder();
-			
-			for (Entry<String, String> task : cronServiceTasks.entrySet()) {
-				
-				String taskClassName = task.getKey();
-				String cronExpression = task.getValue();
-				cronServiceTasksLines.append(taskClassName).append(" \\\n");
-				cronExpressions.append(taskClassName).append(".cronExpression = ").append(cronExpression).append("\n");
-				
-			}
-			
-			if (cronServiceTasksLines.length() > 0) {
-				
-				config.add(cronServiceTasksLines.substring(0, cronServiceTasksLines.length()-3));
-				config.add(cronExpressions.toString());
-			}
-			
-			config.add("# custom configuration");
-			
-			for (String configLine : customConfigLines) {
-				config.add(configLine);
-			}
+				config.add("");
+				config.add("# cron tasks");
+				config.add("CronService.tasks = \\");
 
+				StringBuilder cronServiceTasksLines = new StringBuilder();
+				StringBuilder cronExpressions = new StringBuilder();
+
+				for (Entry<String, String> task : cronServiceTasks.entrySet()) {
+
+					String taskClassName = task.getKey();
+					String cronExpression = task.getValue();
+					cronServiceTasksLines.append(taskClassName).append(" \\\n");
+					cronExpressions.append(taskClassName).append(".cronExpression = ").append(cronExpression).append("\n");
+
+				}
+
+				if (cronServiceTasksLines.length() > 0) {
+
+					config.add(cronServiceTasksLines.substring(0, cronServiceTasksLines.length()-3));
+					config.add(cronExpressions.toString());
+				}
+			
+			}
+			
+			if (!customConfigLines.isEmpty()) {
+			
+				config.add("# custom configuration");
+
+				for (String configLine : customConfigLines) {
+					config.add(configLine);
+				}
+
+			}
+			
 			confFile.createNewFile();
 			
 			FileUtils.writeLines(confFile, "UTF-8", config);
