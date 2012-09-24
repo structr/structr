@@ -20,7 +20,7 @@
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
 			<includes>
-				<include>*.war</include>
+				<include>*.jar</include>
 			</includes>
 		</fileSet>
 		<fileSet>

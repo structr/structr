@@ -96,7 +96,6 @@ public class Structr {
 
 	private Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
 	private Map<String, String> servletParams   = new HashMap<String, String>();
-	private ResourceHandler resourceHandler     = null;
 
 	private boolean enableRewriteFilter         = false;
 	private boolean quiet                       = false;
@@ -245,15 +244,7 @@ public class Structr {
 		servlets.put(servletMapping, servletHolder);
 		return this;
 	}
-	
-	public Structr addResourceHandler(String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
-		resourceHandler = new ResourceHandler();
-		resourceHandler.setDirectoriesListed(directoriesListed);
-		resourceHandler.setWelcomeFiles(welcomeFiles);
-		resourceHandler.setResourceBase(resourceBase);		
-		return this;
-	}
-	
+		
 	public Structr defaultPropertyView(String defaultPropertyView) {
 		this.defaultPropertyView = defaultPropertyView;
 		return this;
@@ -309,6 +300,17 @@ public class Structr {
 	public Server start(boolean waitForExit) throws IOException, InterruptedException, Exception {
 		
 		String sourceJarName                 = app.getProtectionDomain().getCodeSource().getLocation().toString();
+		if (StringUtils.stripEnd(sourceJarName, "/").endsWith("classes")) {
+			
+			String jarFile = System.getProperty("jarFile");
+			if (StringUtils.isEmpty(jarFile)) {
+				throw new IllegalArgumentException(app.getName() + " was started in an environment where the classloader cannot determine the JAR file containing the main class.\n"
+					+ "Please specify the path to the JAR file in the parameter -DjarFile.\n"
+					+ "Example: -DjarFile=${project.build.directory}/${project.artifactId}-${project.version}.jar");
+			}
+			sourceJarName = jarFile;
+		}
+
 		File baseDir                         = new File(System.getProperty("home", basePath));
 		String basePath                      = baseDir.getAbsolutePath();
 		
@@ -332,48 +334,24 @@ public class Structr {
 		Server server                        = new Server(restPort);
 		List<Connector> connectors           = new LinkedList<Connector>();
 		HandlerCollection handlerCollection  = new HandlerCollection();
-		boolean startingFromWARFile          = false;
-		ServletContextHandler servletContext = null;
 
-		// support for WAR files and JARs
-		if (sourceJarName.endsWith(".war")) {
+		ServletContextHandler context        = new WebAppContext(server, basePath, contextPath);
 
-			WebAppContext webAppContext = new WebAppContext(server, basePath + "/" + sourceJarName, contextPath);
-			// webAppContext.setDescriptor(webAppContext + "/WEB-INF/web.xml");
-			webAppContext.setWar(basePath + sourceJarName);
-			
-			servletContext = webAppContext;
-			
-			startingFromWARFile = true;
-			
-		} else {
-			
-			servletContext = new ServletContextHandler(server, contextPath, ServletContextHandler.SESSIONS);
-		}
-			
 		// create resource collection from base path & source JAR
-		servletContext.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
-		servletContext.setInitParameter("configfile.path", confFile.getAbsolutePath());
+		context.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
+		context.setInitParameter("configfile.path", confFile.getAbsolutePath());
 
 		if (enableGzipCompression) {
 
-			FilterHolder gzipFilter = servletContext.addFilter(GzipFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			FilterHolder gzipFilter = context.addFilter(GzipFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript");
 
 		}
 		
 		if (enableRewriteFilter) {
 			
-			FilterHolder rewriteFilter = servletContext.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-			
-			if (startingFromWARFile) {
-				
-				rewriteFilter.setInitParameter("confPath", "/WEB-INF/urlrewrite.xml");
-				
-			} else {
-				
-				rewriteFilter.setInitParameter("confPath", "/urlrewrite.xml");
-			}
+			FilterHolder rewriteFilter = context.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			rewriteFilter.setInitParameter("confPath", "/urlrewrite.xml");
 		}
 		
 		// enable request logging
@@ -411,7 +389,7 @@ public class Structr {
 				FileUtils.writeLines(logbackConfFile, "UTF-8", config);
 			}
 
-			FilterHolder loggingFilter = servletContext.addFilter(TeeFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			FilterHolder loggingFilter = context.addFilter(TeeFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 			loggingFilter.setInitParameter("includes", "");
 			
 			RequestLogHandler requestLogHandler = new RequestLogHandler();
@@ -429,11 +407,11 @@ public class Structr {
 			requestLogHandler.setRequestLog(requestLog);
 			
 			ContextHandlerCollection contexts = new ContextHandlerCollection();
-			contexts.setHandlers(new Handler[] { servletContext, requestLogHandler });
-			handlerCollection.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
-
-			//handlerCollection.addHandler(contexts);
+			contexts.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
 			
+			handlerCollection.addHandler(contexts);
+
+
 		}
 
 		// configure JSON REST servlet
@@ -463,21 +441,15 @@ public class Structr {
 			
 			logger.log(Level.INFO, "Adding servlet {0} for {1}", new Object[] { servletHolder, path } );
 			
-			servletContext.addServlet(servletHolder, path);
+			context.addServlet(servletHolder, path);
 		}
 		
 		// register structr application context listener
-		servletContext.addEventListener(new ApplicationContextListener());
-		handlerCollection.addHandler(servletContext);
-		
-		// add possible resource handler
-		if (resourceHandler != null) {
+		context.addEventListener(new ApplicationContextListener());
 
-			handlerCollection.addHandler(resourceHandler);
-		
-		}
-		
+		handlerCollection.addHandler(context);
 		server.setHandler(handlerCollection);
+
 		
 		// HTTPs can be disabled
 		if (enableHttps) {
@@ -505,7 +477,7 @@ public class Structr {
 				logger.log(Level.WARNING, "Unable to configure SSL, please make sure that application.https.port, application.keystore.path and application.keystore.password are set correctly in structr.conf.");
 			}
 		}
-
+		
 		if (host != null && !host.isEmpty() && restPort > -1) {
 
 			SelectChannelConnector httpConnector = new SelectChannelConnector();

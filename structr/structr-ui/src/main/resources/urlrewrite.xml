@@ -7,16 +7,17 @@
 <urlrewrite>
 
     <rule match-type="regex">
+        <name>RedirectToConsole</name>
+        <!--<condition type="request-uri" operator="equal">^/structr</condition>-->
+        <from>^/structr$</from>
+        <to type="redirect" last="true">/structr/</to>
+    </rule>
+
+    <rule match-type="regex">
         <name>RedirectToHtmlServlet</name>
-<!--        <condition type="request-uri" operator="notequal">^/$</condition>-->
         <condition type="request-uri" operator="notequal">^/structr/</condition>
         <from>^/(.*)$</from>
         <to type="forward" last="true">/structr/html/$1</to>
     </rule>
-
-<!--    <rule match-type="wildcard">
-        <from>/blog/archive/**</from>
-        <to type="redirect">/roller/history/$1</to>
-    </rule>-->
 
 </urlrewrite>
