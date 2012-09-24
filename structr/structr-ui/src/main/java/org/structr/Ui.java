@@ -37,7 +37,7 @@ public class Ui implements org.structr.server.StructrServer {
 			wsInitParams.put("IdProperty", "uuid");
 			wsServletHolder.setInitParameters(wsInitParams);
 
-			Structr.createServer(Ui.class, "structr UI")
+			Structr.createServer(Ui.class, "structr UI", 8082)
 			    
 				.addServlet("/structr/html/*", htmlServletHolder)
 				.addServlet("/structr/ws/*", wsServletHolder)
