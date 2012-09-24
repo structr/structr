@@ -61,7 +61,7 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(0))
-				.body("query_time",         lessThan("0.2"))
+				.body("query_time",         lessThan("0.5"))
 				.body("serialization_time", lessThan("0.001"))
 			.when()
 				.get("/test_objects");
