@@ -96,6 +96,7 @@ public class Structr {
 
 	private Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
 	private Map<String, String> servletParams   = new HashMap<String, String>();
+	private ResourceHandler resourceHandler     = null;
 
 	private boolean enableRewriteFilter         = false;
 	private boolean quiet                       = false;
@@ -245,6 +246,14 @@ public class Structr {
 		return this;
 	}
 		
+	public Structr addResourceHandler(String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
+		resourceHandler = new ResourceHandler();
+		resourceHandler.setDirectoriesListed(directoriesListed);
+		resourceHandler.setWelcomeFiles(welcomeFiles);
+		resourceHandler.setResourceBase(resourceBase);		
+		return this;
+	}
+	
 	public Structr defaultPropertyView(String defaultPropertyView) {
 		this.defaultPropertyView = defaultPropertyView;
 		return this;
@@ -335,6 +344,14 @@ public class Structr {
 		List<Connector> connectors           = new LinkedList<Connector>();
 		HandlerCollection handlerCollection  = new HandlerCollection();
 
+
+		// add possible resource handler
+		if (resourceHandler != null) {
+
+			handlerCollection.addHandler(resourceHandler);
+		
+		}
+		
 		ServletContextHandler context        = new WebAppContext(server, basePath, contextPath);
 
 		// create resource collection from base path & source JAR
