@@ -1928,6 +1928,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 	
 	/**
+	 * Retrieve a previously stored non-persistent value from this entity.
+	 */
+	public Object getTemporaryProperty(final PropertyKey key) {
+		return cachedConvertedProperties.get(key.name());
+	}
+	
+	/**
 	 * Set a property in database backend
 	 *
 	 * Set property only if value has changed
