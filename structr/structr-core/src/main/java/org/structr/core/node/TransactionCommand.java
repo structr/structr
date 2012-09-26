@@ -65,7 +65,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			StructrTransaction transaction = (StructrTransaction) parameters[0];
 			Transaction tx                 = graphDb.beginTx();
 			topLevelTransaction            = tx instanceof TopLevelTransaction;
-			
+
 			try {
 
 				ret = transaction.execute();
@@ -88,21 +88,24 @@ public class TransactionCommand extends NodeServiceCommand {
 				logger.log(Level.SEVERE, "Neo4j detected a deadlock!", ddex.getMessage());
 
 				/*
-					* Maybe the transaction can be restarted here
-					*/
+				* Maybe the transaction can be restarted here
+				*/
 
 			} finally {
 
-				long transactionKey = nextLong();
-				EntityContext.setSecurityContext(securityContext);
-				EntityContext.setTransactionKey(transactionKey);
+				synchronized(TransactionCommand.class) {
 
-				try {
-					tx.finish();
-				} catch (Throwable t) {
+					long transactionKey = nextLong();
+					EntityContext.setSecurityContext(securityContext);
+					EntityContext.setTransactionKey(transactionKey);
 
-					// transaction failed, look for "real" cause..
-					exception = EntityContext.getFrameworkException(transactionKey);
+					try {
+						tx.finish();
+					} catch (Throwable t) {
+
+						// transaction failed, look for "real" cause..
+						exception = EntityContext.getFrameworkException(transactionKey);
+					}
 				}
 			}
 
@@ -111,7 +114,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			BatchTransaction transaction = (BatchTransaction) parameters[0];
 			Transaction tx               = graphDb.beginTx();
 			topLevelTransaction          = tx instanceof TopLevelTransaction;
-			
+
 
 			try {
 
@@ -141,16 +144,19 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			} finally {
 
-				long transactionKey = nextLong();
-				EntityContext.setSecurityContext(securityContext);
-				EntityContext.setTransactionKey(transactionKey);
+				synchronized(TransactionCommand.class) {
 
-				try {
-					tx.finish();
-				} catch (Throwable t) {
+					long transactionKey = nextLong();
+					EntityContext.setSecurityContext(securityContext);
+					EntityContext.setTransactionKey(transactionKey);
 
-					// transaction failed, look for "real" cause..
-					exception = EntityContext.getFrameworkException(transactionKey);
+					try {
+						tx.finish();
+					} catch (Throwable t) {
+
+						// transaction failed, look for "real" cause..
+						exception = EntityContext.getFrameworkException(transactionKey);
+					}
 				}
 			}
 		}
