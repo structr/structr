@@ -21,6 +21,7 @@
 
 package org.structr.core.log;
 
+import java.util.HashMap;
 import org.fusesource.hawtdb.api.BTreeIndexFactory;
 import org.fusesource.hawtdb.api.IndexFactory;
 import org.fusesource.hawtdb.api.MultiIndexFactory;
@@ -32,7 +33,6 @@ import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -65,26 +65,24 @@ public class ReadLogCommand extends LogServiceCommand {
 
 			if (parameters.length == 1) {
 
-				String userId = (String) parameters[0];
+				String key = (String) parameters[0];
 
 				try {
 
-					SortedIndex<String, Object> index  = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(userId, indexFactory);
+					SortedIndex<String, Object> index  = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(key, indexFactory);
 					Iterator<Entry<String, Object>> it = index.iterator();
 
 					while (it.hasNext()) {
 
 						Entry<String, Object> entry = it.next();
-						String key                  = entry.getKey();
-						Object val                  = entry.getValue();
 
-						result.put(key, val);
+						result.put(entry.getKey(), entry.getValue());
 
 					}
 
 				} catch (org.fusesource.hawtdb.api.IndexException e) {
 
-					logger.log(Level.WARNING, "Could not read log db page for user {0}", userId);
+					logger.log(Level.WARNING, "Could not read log db page for key {0}", key);
 
 				}
 

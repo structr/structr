@@ -33,6 +33,8 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.log.ReadLogCommand;
+import org.structr.core.log.WriteLogCommand;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteNodeCommand;
@@ -41,6 +43,7 @@ import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchRelationshipCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -59,7 +62,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.node.search.SearchRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -82,10 +84,12 @@ public class StructrTest extends TestCase {
 	protected Command deleteNodeCommand;
 	protected Command findNodeCommand;
 	protected Command graphDbCommand;
+	protected Command readLogCommand;
 	protected Command searchNodeCommand;
 	protected Command searchRelationshipCommand;
 	protected SecurityContext securityContext;
 	protected Command transactionCommand;
+	protected Command writeLogCommand;
 
 	//~--- methods --------------------------------------------------------
 
@@ -94,12 +98,13 @@ public class StructrTest extends TestCase {
 		Date now       = new Date();
 		long timestamp = now.getTime();
 
-		context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService");
+		context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService LogService");
 		context.put(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		context.put(Services.TMP_PATH, "/tmp/");
 		context.put(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
 		context.put(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
 		context.put(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
+		context.put(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
 		context.put(Services.TCP_PORT, "13465");
 		context.put(Services.SERVER_IP, "127.0.0.1");
 		context.put(Services.UDP_PORT, "13466");
@@ -353,6 +358,8 @@ public class StructrTest extends TestCase {
 		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
 		searchNodeCommand         = Services.command(securityContext, SearchNodeCommand.class);
 		searchRelationshipCommand = Services.command(securityContext, SearchRelationshipCommand.class);
+		writeLogCommand           = Services.command(securityContext, WriteLogCommand.class);
+		readLogCommand            = Services.command(securityContext, ReadLogCommand.class);
 
 	}
 
