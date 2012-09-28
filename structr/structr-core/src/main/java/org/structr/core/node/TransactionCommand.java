@@ -37,6 +37,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.TransactionChangeSet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -172,15 +173,21 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			try {
 
-				afterCreation(securityContext, EntityContext.getCreatedNodes());
-				afterCreation(securityContext, EntityContext.getCreatedRelationships());
+				TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet();
+				
+				afterCreation(securityContext, changeSet.getCreatedNodes());
+				afterCreation(securityContext, changeSet.getCreatedRelationships());
 
-				afterModification(securityContext, EntityContext.getModifiedNodes());
-				afterModification(securityContext, EntityContext.getModifiedRelationships());
+				afterModification(securityContext, changeSet.getModifiedNodes());
+				afterModification(securityContext, changeSet.getModifiedRelationships());
 
-				afterDeletion(securityContext, EntityContext.getDeletedNodes());
-				afterDeletion(securityContext, EntityContext.getDeletedRelationships());
+				afterDeletion(securityContext, changeSet.getDeletedNodes());
+				afterDeletion(securityContext, changeSet.getDeletedRelationships());
 
+				afterOwnerModification(securityContext, changeSet.getOwnerModifiedNodes());
+				afterSecurityModification(securityContext, changeSet.getSecurityModifiedNodes());
+				afterLocationModification(securityContext, changeSet.getLocationModifiedNodes());
+				
 				// clear aggregated transaction data
 				EntityContext.clearTransactionData();
 
@@ -243,6 +250,36 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			for(GraphObject obj : data) {
 				obj.afterDeletion(securityContext);
+			}
+		}
+	}
+
+	private void afterOwnerModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
+		
+		if(data != null && !data.isEmpty()) {
+			
+			for(GraphObject obj : data) {
+				obj.ownerModified(securityContext);
+			}
+		}
+	}
+
+	private void afterSecurityModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
+		
+		if(data != null && !data.isEmpty()) {
+			
+			for(GraphObject obj : data) {
+				obj.securityModified(securityContext);
+			}
+		}
+	}
+
+	private void afterLocationModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
+		
+		if(data != null && !data.isEmpty()) {
+			
+			for(GraphObject obj : data) {
+				obj.locationModified(securityContext);
 			}
 		}
 	}

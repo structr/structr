@@ -1046,6 +1046,18 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	@Override
 	public void afterDeletion(SecurityContext securityContext) {
 	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+	}
 	
 	private boolean isValid(ErrorBuffer errorBuffer) {
 
