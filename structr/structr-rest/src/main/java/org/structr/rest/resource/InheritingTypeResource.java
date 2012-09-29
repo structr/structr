@@ -40,8 +40,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.lucene.search.SortField;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyKey;
+import org.structr.core.converter.DateConverter;
+import org.structr.core.converter.IntConverter;
+import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -99,6 +103,16 @@ public class InheritingTypeResource extends TypeResource {
 				}
 			}
 			
+			Integer sortType = null;
+			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
+			if (converter != null) {
+				if (converter instanceof IntConverter) {
+					sortType = SortField.INT;
+				} else if (converter instanceof DateConverter) {
+					sortType = SortField.LONG;
+				}
+			}
+			
 			// do search
 			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
 				topNode,
@@ -108,7 +122,8 @@ public class InheritingTypeResource extends TypeResource {
 				sortKey,
 				sortDescending,
 				pageSize,
-				page
+				page,
+				sortType
 			);
 			
 			// TODO: SORTING: remove default sorting below
