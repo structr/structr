@@ -1569,7 +1569,7 @@ public class EntityContext {
 								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
 							}
 							
-						} catch(Throwable ignore) {} 
+						} catch(Throwable t) {}
 					}
 
 				}
@@ -1605,9 +1605,7 @@ public class EntityContext {
 								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
 							}
 							
-						} catch(Throwable t) {
-							logger.log(Level.SEVERE, "Error while determining start/end node of deleted relationship", t);
-						} 
+						} catch(Throwable ignore) {}
 					}
 
 				}
