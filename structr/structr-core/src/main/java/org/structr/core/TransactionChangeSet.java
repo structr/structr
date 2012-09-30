@@ -20,6 +20,7 @@ package org.structr.core;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -119,25 +120,31 @@ public class TransactionChangeSet {
 		deletedRels.add(deleted);
 	}
 	
-	public void modifyRelationshipEndpoint(AbstractNode node, RelType relationshipType) {
+	public void modifyRelationshipEndpoint(AbstractNode node, RelationshipType relationshipType) {
 		
-		switch (relationshipType) {
+		if (relationshipType instanceof RelType) {
+		
+			switch ((RelType) relationshipType) {
 
-			case OWNS:
-				modifyOwner(node);
-				break;
+				case OWNS:
+					modifyOwner(node);
+					break;
 
-			case SECURITY:
-				modifySecurity(node);
-				break;
+				case SECURITY:
+					modifySecurity(node);
+					break;
 
-			case IS_AT:
-				modifyLocation(node);
-				break;
+				case IS_AT:
+					modifyLocation(node);
+					break;
 
-			default:
-				modify(node);
-				break;
+				default:
+					modify(node);
+					break;
+			}
+		} else {
+			modify(node);
+			
 		}
 	}
 	

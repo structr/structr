@@ -57,7 +57,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.structr.common.RelType;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -1557,7 +1556,7 @@ public class EntityContext {
 						
 						try {
 							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
-							RelType relationshipType = (RelType)entity.getRelType();
+							RelationshipType relationshipType = entity.getRelType();
 							
 							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
 								
@@ -1593,7 +1592,7 @@ public class EntityContext {
 // ****************************************************** TEST
 						try {
 							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
-							RelType relationshipType = (RelType)entity.getRelType();
+							RelationshipType relationshipType = entity.getRelType();
 
 							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
 
@@ -1606,7 +1605,9 @@ public class EntityContext {
 								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
 							}
 							
-						} catch(Throwable ignore) {} 
+						} catch(Throwable t) {
+							logger.log(Level.SEVERE, "Error while determining start/end node of deleted relationship", t);
+						} 
 					}
 
 				}

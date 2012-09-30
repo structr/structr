@@ -902,7 +902,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public RelationshipType getRelType() {
 
-		return (dbRelationship.getType());
+		return dbRelationship.getType();
 
 	}
 
@@ -981,7 +981,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	@Override
 	public String getType() {
 
-		return this.getRelType().name();
+		return getRelType().name();
 
 	}
 
