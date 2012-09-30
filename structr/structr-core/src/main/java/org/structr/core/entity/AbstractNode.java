@@ -1728,6 +1728,18 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public void afterDeletion(SecurityContext securityContext) {
 	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+	}
 	
 	public boolean isValid(ErrorBuffer errorBuffer) {
 

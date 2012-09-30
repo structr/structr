@@ -190,6 +190,18 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	public void afterDeletion(SecurityContext securityContext) {
 	}
 
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+	}
+
 	// ----- interface map -----
 	@Override
 	public int size() {

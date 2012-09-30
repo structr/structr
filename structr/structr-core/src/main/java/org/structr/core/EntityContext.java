@@ -54,7 +54,6 @@ import org.structr.core.notion.ObjectNotion;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -105,14 +104,9 @@ public class EntityContext {
 	private static final Map<String, Class> reverseInterfaceMap                                             = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                                        = new LinkedHashMap<String, Class>();
 
-	private static final Map<Thread, Set<AbstractRelationship>> createdRelationshipMap                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
-	private static final Map<Thread, Set<AbstractRelationship>> modifiedRelationshipMap                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
-	private static final Map<Thread, Set<AbstractRelationship>> deletedRelationshipMap                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractRelationship>>());
-	private static final Map<Thread, Set<AbstractNode>> createdNodeMap                                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
-	private static final Map<Thread, Set<AbstractNode>> modifiedNodeMap                                     = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
-	private static final Map<Thread, Set<AbstractNode>> deletedNodeMap                                      = Collections.synchronizedMap(new WeakHashMap<Thread, Set<AbstractNode>>());
 	private static final Map<Thread, SecurityContext> securityContextMap                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
 	private static final Map<Thread, Long> transactionKeyMap                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
+	private static final ThreadLocalChangeSet globalChangeSet                                               = new ThreadLocalChangeSet();
 
 	//~--- methods --------------------------------------------------------
 
@@ -1394,100 +1388,15 @@ public class EntityContext {
 
 	//~--- set methods ----------------------------------------------------
 
+	public static synchronized TransactionChangeSet getTransactionChangeSet() {
+		return globalChangeSet.get();
+	}
+	
 	public static synchronized void clearTransactionData() {
 
-		transactionKeyMap.remove(Thread.currentThread());
 		securityContextMap.remove(Thread.currentThread());
-		deletedRelationshipMap.remove(Thread.currentThread());
-		deletedNodeMap.remove(Thread.currentThread());
-		modifiedRelationshipMap.remove(Thread.currentThread());
-		modifiedNodeMap.remove(Thread.currentThread());
-		createdRelationshipMap.remove(Thread.currentThread());
-		createdNodeMap.remove(Thread.currentThread());
-	}
-
-	public static synchronized Set<AbstractRelationship> getModifiedRelationships() {
-		
-		Thread currentThread = Thread.currentThread();
-		Set<AbstractRelationship> rels = modifiedRelationshipMap.get(currentThread);
-		
-		if(rels == null) {
-			
-			rels = new LinkedHashSet<AbstractRelationship>();
-			modifiedRelationshipMap.put(currentThread, rels);
-		}
-		
-		return rels;
-	}
-	
-	public static synchronized Set<AbstractNode> getModifiedNodes() {
-		
-		Thread currentThread = Thread.currentThread();
-		Set<AbstractNode> nodes = modifiedNodeMap.get(currentThread);
-		
-		if(nodes == null) {
-			
-			nodes = new LinkedHashSet<AbstractNode>();
-			modifiedNodeMap.put(currentThread, nodes);
-		}
-		
-		return nodes;
-	}
-	
-	public static synchronized Set<AbstractNode> getDeletedNodes() {
-		
-		Thread currentThread = Thread.currentThread();
-		Set<AbstractNode> nodes = deletedNodeMap.get(currentThread);
-		
-		if(nodes == null) {
-			
-			nodes = new LinkedHashSet<AbstractNode>();
-			deletedNodeMap.put(currentThread, nodes);
-		}
-		
-		return nodes;
-	}
-
-	public static synchronized Set<AbstractRelationship> getDeletedRelationships() {
-		
-		Thread currentThread = Thread.currentThread();
-		Set<AbstractRelationship> rels = deletedRelationshipMap.get(currentThread);
-		
-		if(rels == null) {
-			
-			rels = new LinkedHashSet<AbstractRelationship>();
-			deletedRelationshipMap.put(currentThread, rels);
-		}
-		
-		return rels;
-	}
-
-	public static synchronized Set<AbstractRelationship> getCreatedRelationships() {
-		
-		Thread currentThread = Thread.currentThread();
-		Set<AbstractRelationship> rels = createdRelationshipMap.get(currentThread);
-		
-		if(rels == null) {
-			
-			rels = new LinkedHashSet<AbstractRelationship>();
-			createdRelationshipMap.put(currentThread, rels);
-		}
-		
-		return rels;
-	}
-	
-	public static synchronized Set<AbstractNode> getCreatedNodes() {
-		
-		Thread currentThread = Thread.currentThread();
-		Set<AbstractNode> nodes = createdNodeMap.get(currentThread);
-		
-		if(nodes == null) {
-			
-			nodes = new LinkedHashSet<AbstractNode>();
-			createdNodeMap.put(currentThread, nodes);
-		}
-		
-		return nodes;
+		transactionKeyMap.remove(Thread.currentThread());
+		globalChangeSet.get().clear();
 	}
 	
 	public static synchronized void setSecurityContext(SecurityContext securityContext) {
@@ -1536,12 +1445,7 @@ public class EntityContext {
 				Map<Relationship, Map<String, Object>> removedRelProperties = new LinkedHashMap<Relationship, Map<String, Object>>();
 				Map<Node, Map<String, Object>> removedNodeProperties        = new LinkedHashMap<Node, Map<String, Object>>();
 				RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
-				Set<AbstractNode> modifiedNodes                             = new LinkedHashSet<AbstractNode>();
-				Set<AbstractNode> createdNodes                              = new LinkedHashSet<AbstractNode>();
-				Set<AbstractNode> deletedNodes                              = new LinkedHashSet<AbstractNode>();
-				Set<AbstractRelationship> modifiedRels                      = new LinkedHashSet<AbstractRelationship>();
-				Set<AbstractRelationship> createdRels                       = new LinkedHashSet<AbstractRelationship>();
-				Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
+				TransactionChangeSet changeSet                              = new TransactionChangeSet();
 				ErrorBuffer errorBuffer                                     = new ErrorBuffer();
 				NodeFactory nodeFactory                                     = new NodeFactory();
 				boolean hasError                                            = false;
@@ -1572,7 +1476,7 @@ public class EntityContext {
 						AbstractNode modifiedNode = nodeFactory.createNode(securityContext, node, true, false);
 						if (modifiedNode != null) {
 
-							modifiedNodes.add(modifiedNode);
+							changeSet.modify(modifiedNode);
 
 							// notify registered listeners
 							for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
@@ -1604,7 +1508,7 @@ public class EntityContext {
 						AbstractRelationship modifiedRel = relFactory.createRelationship(securityContext, rel);
 						if (modifiedRel != null) {
 							
-							modifiedRels.add(modifiedRel);
+							changeSet.modify(modifiedRel);
 
 							// notify registered listeners
 							for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
@@ -1622,7 +1526,8 @@ public class EntityContext {
 					if (entity != null) {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
-						createdNodes.add(entity);
+						
+						changeSet.create(entity);
 						
 						// notify registered listeners
 						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
@@ -1639,7 +1544,8 @@ public class EntityContext {
 					if (entity != null) {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
-						createdRels.add(entity);
+						
+						changeSet.create(entity);
 						
 						// notify registered listeners
 						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
@@ -1647,15 +1553,20 @@ public class EntityContext {
 						}
 						
 // ****************************************************** TEST
+						
 						try {
 							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
+							RelationshipType relationshipType = entity.getRelType();
+							
 							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
-								modifiedNodes.add(startNode);
+								
+								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 							}
 							
 							AbstractNode endNode = nodeFactory.createNode(securityContext, rel.getEndNode());
 							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
-								modifiedNodes.add(endNode);
+								
+								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
 							}
 							
 						} catch(Throwable ignore) {} 
@@ -1676,21 +1587,27 @@ public class EntityContext {
 							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, removedRelProperties.get(rel));
 						}
 
-						deletedRels.add(entity);
+						changeSet.delete(entity);
 
 // ****************************************************** TEST
 						try {
 							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
+							RelationshipType relationshipType = entity.getRelType();
+
 							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
-								modifiedNodes.add(startNode);
+
+								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 							}
 							
 							AbstractNode endNode = nodeFactory.createNode(securityContext, rel.getEndNode());
 							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
-								modifiedNodes.add(endNode);
+								
+								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
 							}
 							
-						} catch(Throwable ignore) {} 
+						} catch(Throwable t) {
+							logger.log(Level.SEVERE, "Error while determining start/end node of deleted relationship", t);
+						} 
 					}
 
 				}
@@ -1712,7 +1629,7 @@ public class EntityContext {
 							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, removedNodeProperties.get(node));
 						}
 
-						deletedNodes.add(entity);
+						changeSet.delete(entity);
 					}
 				}
 
@@ -1757,11 +1674,11 @@ public class EntityContext {
 
 						// after successful validation, add node to index to make uniqueness constraints work
 						
-						if (!createdNodes.contains(nodeEntity) && !deletedNodes.contains(nodeEntity)) {
+						if (!changeSet.isNewOrDeleted(nodeEntity)) {
+							
 							indexNodeCommand.execute(nodeEntity, key);
+							changeSet.modify(nodeEntity);
 						}
-						
-						modifiedNodes.add(nodeEntity);
 
 					}
 				}
@@ -1807,15 +1724,15 @@ public class EntityContext {
 							indexRelationshipCommand.execute(relEntity, key);
 						//}
 						
-						modifiedRels.add(relEntity);
+						changeSet.modify(relEntity);
 					}
 				}
 
 				// 7: notify listeners of modified nodes (to check for non-existing properties etc)
-				for (AbstractNode node : modifiedNodes) {
+				for (AbstractNode node : changeSet.getModifiedNodes()) {
 
 					// only send UPDATE and index if node was not created or deleted in this transaction
-					if (!createdNodes.contains(node) &&!deletedNodes.contains(node)) {
+					if (!changeSet.isNewOrDeleted(node)) {
 
 						hasError |= !node.beforeModification(securityContext, errorBuffer);
 						
@@ -1828,10 +1745,10 @@ public class EntityContext {
 					}
 				}
 				
-				for (AbstractRelationship rel : modifiedRels) {
+				for (AbstractRelationship rel : changeSet.getModifiedRelationships()) {
 
 					// only send UPDATE if relationship was not created or deleted in this transaction
-					if (!createdRels.contains(rel) &&!deletedRels.contains(rel)) {
+					if (!changeSet.isNewOrDeleted(relEntity)) {
 
 						hasError |= !rel.beforeModification(securityContext, errorBuffer);
 						
@@ -1846,13 +1763,13 @@ public class EntityContext {
 					
 				}
 
-				for (AbstractNode node : createdNodes) {
+				for (AbstractNode node : changeSet.getCreatedNodes()) {
 
 					indexNodeCommand.execute(node);
 
 				}
 
-				for (AbstractRelationship rel : createdRels) {
+				for (AbstractRelationship rel : changeSet.getCreatedRelationships()) {
 
 					indexRelationshipCommand.execute(rel);
 
@@ -1872,13 +1789,7 @@ public class EntityContext {
 					listener.commit(securityContext, transactionKey);
 				}
 
-				// cache change set
-				getModifiedRelationships().addAll(modifiedRels);
-				getCreatedRelationships().addAll(createdRels);
-				getDeletedRelationships().addAll(deletedRels);
-				getModifiedNodes().addAll(modifiedNodes);
-				getCreatedNodes().addAll(createdNodes);
-				getDeletedNodes().addAll(deletedNodes);
+				globalChangeSet.get().include(changeSet);
 				
 				
 			} catch (FrameworkException fex) {
@@ -1905,137 +1816,7 @@ public class EntityContext {
 				throw new IllegalArgumentException(t);
 			}
 		}
-
-		/*
-		@Override
-		public boolean begin(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
-
-			boolean hasError = false;
-
-			for (StructrTransactionListener listener : modificationListeners) {
-
-				hasError |= listener.begin(securityContext, transactionKey, errorBuffer);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean commit(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
-
-			boolean hasError = false;
-
-			for (StructrTransactionListener listener : modificationListeners) {
-
-				hasError |= listener.commit(securityContext, transactionKey, errorBuffer);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean rollback(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
-
-			boolean hasError = false;
-
-			for (StructrTransactionListener listener : modificationListeners) {
-
-				hasError |= listener.rollback(securityContext, transactionKey, errorBuffer);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
-
-			boolean hasError = false;
-
-			for (StructrTransactionListener listener : modificationListeners) {
-
-				hasError |= listener.propertyModified(securityContext, transactionKey, errorBuffer, graphObject, key, oldValue, newValue);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue) {
-
-			boolean hasError = false;
-
-			for (StructrTransactionListener listener : modificationListeners) {
-
-				hasError |= listener.propertyRemoved(securityContext, transactionKey, errorBuffer, graphObject, key, oldValue);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException {
-
-			boolean hasError = false;
-
-			for (StructrTransactionListener listener : modificationListeners) {
-
-				hasError |= listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, graphObject);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException {
-
-			boolean hasError = false;
-
-			for (StructrTransactionListener listener : modificationListeners) {
-
-				hasError |= listener.graphObjectModified(securityContext, transactionKey, errorBuffer, graphObject);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean wasVisited(List<GraphObject> traversedNodes, long transactionKey, ErrorBuffer errorBuffer, SecurityContext securityContext) {
-
-			boolean hasError = false;
-
-			for (StructrTransactionListener listener : modificationListeners) {
-
-				hasError |= listener.wasVisited(traversedNodes, transactionKey, errorBuffer, securityContext);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, Map<String, Object> properties) throws FrameworkException {
-
-			boolean hasError = false;
-
-			for (StructrTransactionListener listener : modificationListeners) {
-
-				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, graphObject, properties);
-
-			}
-
-			return hasError;
-		}
-		*/
-
 	}
-
 	// </editor-fold>
 	
 	private static ArrayList<Node> sortNodes(final Iterable<Node> it) {
@@ -2086,5 +1867,12 @@ public class EntityContext {
 		
 		return list;
 		
+	}
+	
+	private static class ThreadLocalChangeSet extends ThreadLocal<TransactionChangeSet> {
+		@Override
+		protected TransactionChangeSet initialValue() {
+			return new TransactionChangeSet();
+		}
 	}
 }

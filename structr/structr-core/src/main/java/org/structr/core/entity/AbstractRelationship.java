@@ -902,7 +902,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public RelationshipType getRelType() {
 
-		return (dbRelationship.getType());
+		return dbRelationship.getType();
 
 	}
 
@@ -981,7 +981,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	@Override
 	public String getType() {
 
-		return this.getRelType().name();
+		return getRelType().name();
 
 	}
 
@@ -1049,6 +1049,18 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	@Override
 	public void afterDeletion(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void locationModified(SecurityContext securityContext) {
 	}
 	
 	private boolean isValid(ErrorBuffer errorBuffer) {

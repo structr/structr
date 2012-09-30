@@ -61,8 +61,6 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(0))
-				.body("query_time",         lessThan("0.5"))
-				.body("serialization_time", lessThan("0.001"))
 			.when()
 				.get("/test_objects");
 		    
@@ -102,8 +100,6 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(1))
-				.body("query_time",         lessThan("0.1"))
-				.body("serialization_time", lessThan("0.001"))
 				.body("result[0].id",       equalTo(uuid))
 			.when()
 				.get("/test_objects")
@@ -150,8 +146,6 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(1))
-				.body("query_time",         lessThan("0.1"))
-				.body("serialization_time", lessThan("0.001"))
 				.body("result[0]",          isEntity(TestObject.class))
 			.when()
 				.get("/test_objects");
