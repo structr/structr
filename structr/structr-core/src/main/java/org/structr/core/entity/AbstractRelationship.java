@@ -285,16 +285,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		this.securityContext = securityContext;
 	}
 
-//      public void init(final SecurityContext securityContext, final RelationshipDataContainer data) {
-//
-//              if (data != null) {
-//
-//                      this.properties      = data.getProperties();
-//                      this.isDirty         = true;
-//                      this.securityContext = securityContext;
-//
-//              }
-//      }
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {
 
@@ -303,10 +293,24 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public void removeProperty(final String key) {
+	public void removeProperty(final String key) throws FrameworkException {
 
-		dbRelationship.removeProperty(key);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				try {
+					
+					dbRelationship.removeProperty(key);
+
+				} finally {}
+
+				return null;
+
+			}
+
+		});
 	}
 
 	@Override
