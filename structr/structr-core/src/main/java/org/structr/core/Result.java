@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
  * Encapsulates the result of a query operation.
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class Result {
 

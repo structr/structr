@@ -75,16 +75,7 @@ public interface GraphObject {
 	public void afterModification(SecurityContext securityContext);
 	public void afterDeletion(SecurityContext securityContext);
 	
-	// ----- rels only -----
-//	public Long getStartNodeId();
-//	public Long getEndNodeId();
-//	public Long getOtherNodeId(final AbstractNode node);
-
-	// ----- nodes only -----
-//	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction);
-//	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir);
-
-	// ----- editing methods -----
-//	public void delete(SecurityContext seucrityContext);
-
+	public void ownerModified(SecurityContext securityContext);
+	public void securityModified(SecurityContext securityContext);
+	public void locationModified(SecurityContext securityContext);
 }

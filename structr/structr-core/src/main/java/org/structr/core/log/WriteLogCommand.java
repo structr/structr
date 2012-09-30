@@ -41,7 +41,11 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * Simple and fast key/value logger
+ * 
+ * The execute method takes two parameters: A key (String) and a String[] with arbitrary data.
+ * Each log entry gets a unique id (UUID).
+ * 
  * @author Axel Morgner
  */
 public class WriteLogCommand extends LogServiceCommand {
@@ -59,21 +63,34 @@ public class WriteLogCommand extends LogServiceCommand {
 
 			if (parameters.length == 2) {
 
-				String userId = (String) parameters[0];
+				String key = (String) parameters[0];
 
-				if (userId != null) {
+				if (key != null) {
 
 					synchronized (logDb) {
 
 						Transaction tx                            = logDb.tx();
 						MultiIndexFactory multiIndexFactory       = new MultiIndexFactory(tx);
 						IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
-						SortedIndex<String, Object> index         = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(userId, indexFactory);
-						String[] obj                              = (String[]) parameters[1];
-						String uuid                               = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+						SortedIndex<String, Object> index         = null;
+
+						try {
+
+							index = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(key, indexFactory);
+
+						} catch (org.fusesource.hawtdb.api.IndexException e) {
+
+							logger.log(Level.WARNING, "Could not open or create log db page for key {0}", key);
+
+							index = (SortedIndex<String, Object>) multiIndexFactory.create(key, indexFactory);
+
+						}
+
+						String[] obj = (String[]) parameters[1];
+						String uuid  = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 
 						index.put(uuid, obj);
-						logger.log(Level.FINE, "Logged for user {0}: {1}", new Object[] { userId, StringUtils.join((String[]) obj, ",") });
+						logger.log(Level.FINE, "Logged for key {0}: {1}", new Object[] { key, StringUtils.join((String[]) obj, ",") });
 						tx.commit();
 						logDb.flush();
 

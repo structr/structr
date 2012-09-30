@@ -1728,6 +1728,18 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public void afterDeletion(SecurityContext securityContext) {
 	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+	}
 	
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
@@ -1925,6 +1937,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public void setTemporaryProperty(final PropertyKey key, Object value) {
 		cachedConvertedProperties.put(key.name(), value);
 		cachedRawProperties.put(key.name(), value);
+	}
+	
+	/**
+	 * Retrieve a previously stored non-persistent value from this entity.
+	 */
+	public Object getTemporaryProperty(final PropertyKey key) {
+		return cachedConvertedProperties.get(key.name());
 	}
 	
 	/**

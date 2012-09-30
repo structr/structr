@@ -93,6 +93,16 @@ public abstract class Resource {
 
 	//~--- methods --------------------------------------------------------
 
+	/**
+	 * Check and configure this instance with the given values. Please note that you need to
+	 * set the security context of your class in this method.
+	 * 
+	 * @param part the uri part that matched this resource
+	 * @param securityContext the security context of the current request
+	 * @param request the current request
+	 * @return whether this resource accepts the given uri part
+	 * @throws FrameworkException 
+	 */
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 
 	public abstract Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
@@ -327,21 +337,19 @@ public abstract class Resource {
 
 		} else {
 
-			if (result.size() == 1) {
+			AbstractNode node = (AbstractNode) result.get(0);
 
-				AbstractNode node = (AbstractNode) result.get(0);
+			if (node instanceof ResourceAccess) {
 
-				if (node instanceof ResourceAccess) {
-
-					grant = (ResourceAccess) node;
-
-				} else {
-
-					logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { uriPart, node.getClass().getName() });
-
-				}
+				grant = (ResourceAccess) node;
 
 			} else {
+
+				logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { uriPart, node.getClass().getName() });
+
+			}
+
+			if (result.size() > 1) {
 
 				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), uriPart });
 

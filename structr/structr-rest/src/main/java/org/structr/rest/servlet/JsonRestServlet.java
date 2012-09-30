@@ -734,6 +734,18 @@ public class JsonRestServlet extends HttpServlet {
 
 				boolean found = false;
 
+				// TEST: schema information
+				if ("_schema".equals(part)) {
+					
+					SchemaResource resource = new SchemaResource();
+					resource.checkAndConfigure("_schema", securityContext, request);
+					constraintChain.add(resource);
+					
+					found = true;
+					break;
+					
+				}
+				
 				// look for matching pattern
 				for (Entry<Pattern, Class> entry : resourceMap.entrySet()) {
 
