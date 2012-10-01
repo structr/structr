@@ -11,7 +11,7 @@
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <version>0.5.4-SNAPSHOT</version>
     <name>structr-ui</name>
     <url>http://structr.org</url>
@@ -93,6 +93,11 @@
         </dependency>
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -123,6 +128,19 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib</classpathPrefix>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <!--            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.1.1</version>
                 <configuration>
@@ -144,7 +162,7 @@
                         assemblies/**, bin/**, logs/**, WEB-INF/lib/**
                     </packagingExcludes>
                 </configuration>
-            </plugin>
+            </plugin>-->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -162,14 +180,50 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+<!--            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.structr</groupId>
+                        <artifactId>structr-ui</artifactId>
+                        <version>0.5.4-SNAPSHOT</version>
+                        <scope>compile</scope>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.structr</groupId>
+                        <artifactId>structr-server</artifactId>
+                        <version>0.5.4-SNAPSHOT</version>
+                        <scope>compile</scope>
+                    </dependency>
+                </dependencies>                
                 <configuration>
+                    <includePluginDependencies>true</includePluginDependencies>
+                    <includeProjectDependencies>true</includeProjectDependencies>
                     <mainClass>org.structr.Ui</mainClass>
+                    <classpathScope>runtime</classpathScope>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-cp ${project.build.directory}/lib/*:${project.build.directory}/${project.artifactId}-${project.version}.jar</argument>
+                        <argument>-classpath</argument>
+                        <argument>-DjarFile=${project.build.directory}/${project.artifactId}-${project.version}.jar</argument>
+                    </arguments>
+                                        <systemProperties>
+                        <systemProperty>
+                            <key>myproperty</key>
+                            <value>myvalue</value>
+                        </systemProperty>
+                    </systemProperties>
                 </configuration>
-            </plugin>
+            </plugin>-->
         </plugins>
         <finalName>${project.artifactId}-${project.version}</finalName>
     </build>

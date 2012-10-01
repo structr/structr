@@ -273,6 +273,27 @@ var Command = {
     },
 
     /**
+     * Send a MOVE command to the server.
+     * 
+     * Add the node with the given id to the children of the node with the
+     * id given as 'id' property of the 'nodeData' hash. If the 'relData'
+     * contains a page id in both property fields 'sourcePageId' and 
+     * 'targetPageId', the node will be copied from the source to the
+     * target page,
+     * 
+     * When finished, the server will broadcast a MOVE notification.
+     */
+    move : function(id, nodeData) {
+        var obj = {};
+        obj.command = 'MOVE';
+        obj.id = id;
+        obj.data = nodeData;
+        //obj.relData = relData;
+        if (debug) console.log('move()', obj);
+        return sendObj(obj);
+    },
+
+    /**
      * Send a CREATE command to the server.
      * 
      * The server will create a new node with the given properties contained

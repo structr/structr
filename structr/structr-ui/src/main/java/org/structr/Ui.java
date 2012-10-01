@@ -38,11 +38,11 @@ public class Ui implements org.structr.server.StructrServer {
 			wsServletHolder.setInitParameters(wsInitParams);
 
 			Structr.createServer(Ui.class, "structr UI", 8082)
-			    
+				
 				.addServlet("/structr/html/*", htmlServletHolder)
 				.addServlet("/structr/ws/*", wsServletHolder)
-				
-				.addResourceHandler("src/main/webapp", true, new String[] { "index.html"})
+			    
+				.addResourceHandler("src/main/resources", true, new String[] { "index.html"})
 			    
 				.enableRewriteFilter()
 				

@@ -19,6 +19,7 @@
 
 package org.structr.core.validator;
 
+import java.util.Date;
 import java.util.logging.Logger;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -43,7 +44,7 @@ public class FutureDateValidator extends PropertyValidator {
 
 			if(value instanceof Long) {
 				
-				if(((Long)value).longValue() < System.currentTimeMillis()) {
+				if(((Long)value).longValue() < new Date().getTime()) {
 
 					errorBuffer.add(object.getType(), new FutureDateToken(key));
 					return false;
