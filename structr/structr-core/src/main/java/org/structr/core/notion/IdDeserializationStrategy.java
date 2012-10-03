@@ -146,6 +146,6 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 		}
 
-		return (GraphObject) Services.command(securityContext, FindNodeCommand.class).execute(source);
+		return null;
 	}
 }
