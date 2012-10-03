@@ -71,14 +71,14 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source)
 		throws FrameworkException {
 
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> attrs = new LinkedList();
+
+		attrs.add(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
 		if (source != null) {
 			attrs.add(Search.andExactProperty(propertyKey, source.toString()));
 		}
 
-		// FIXME: type check omitted here!
-		// attrs.addAll(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
 		// just check for existance
 		Result result = (Result) Services.command(securityContext,

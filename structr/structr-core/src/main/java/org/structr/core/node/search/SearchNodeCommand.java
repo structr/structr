@@ -478,23 +478,28 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 	private String toQueryString(final TextualSearchAttribute singleAttribute, final boolean isFirst) {
 
+		String queryString = "";
+		
 		String key        = singleAttribute.getKey();
 		String value      = singleAttribute.getValue();
 		SearchOperator op = singleAttribute.getSearchOperator();
 
 		if (StringUtils.isBlank(value) || value.equals("\"\"")) {
 
-			return " AND " + key + ":\"" + IMPROBABLE_SEARCH_VALUE + "\"";
-//			return " " + key + ":" + IMPROBABLE_SEARCH_VALUE + "";
-
-		}
-
-		// NOT operator should always be applied
-		
-		
-		return ((isFirst && !(op.equals(SearchOperator.NOT)))
+			queryString = ((isFirst && !(op.equals(SearchOperator.NOT)))
 			? ""
-			: " " + op + " ") + expand(key, value);
+			: " " + op + " ") + key + ":\"" + IMPROBABLE_SEARCH_VALUE + "\"";
+
+		} else {
+
+			// NOT operator should always be applied
+			queryString = ((isFirst && !(op.equals(SearchOperator.NOT)))
+				? ""
+				: " " + op + " ") + expand(key, value);
+			
+		}
+		
+		return queryString;
 	}
 
 	private Query toQuery(final TextualSearchAttribute singleAttribute) {
