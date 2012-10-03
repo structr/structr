@@ -299,6 +299,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //			logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
 			SecurityContext securityContext = getSecurityContext(request, response);
@@ -417,6 +418,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //			logRequest("HEAD", request);
 			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			SecurityContext securityContext = getSecurityContext(request, response);
@@ -479,6 +481,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //			logRequest("OPTIONS", request);
 			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			SecurityContext securityContext = getSecurityContext(request, response);
@@ -540,7 +543,8 @@ public class JsonRestServlet extends HttpServlet {
 		try {
 
 //			logRequest("POST", request);
-			request.setCharacterEncoding("UTF-8");
+			request.setCharacterEncoding("ISO-8859-1");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
@@ -628,6 +632,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //			logRequest("PUT", request);
 			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
@@ -697,6 +702,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //		logRequest("TRACE", request);
 		response.setContentType("application/json; charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
 
 		int code = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 
