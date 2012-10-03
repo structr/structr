@@ -543,7 +543,7 @@ public class JsonRestServlet extends HttpServlet {
 		try {
 
 //			logRequest("POST", request);
-			request.setCharacterEncoding("ISO-8859-1");
+			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
