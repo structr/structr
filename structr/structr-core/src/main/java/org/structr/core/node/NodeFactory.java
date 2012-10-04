@@ -27,11 +27,13 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.helpers.collection.Iterables;
 
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Command;
 import org.structr.core.Result;
 import org.structr.core.Services;
@@ -47,7 +49,6 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.IdNotFoundToken;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,12 +61,10 @@ import org.structr.common.error.IdNotFoundToken;
  */
 public class NodeFactory<T extends AbstractNode> {
 
-	public static String RAW_RESULT_COUNT = "rawResultCount";
-	
-	public static final int DEFAULT_PAGE	= 1;
+	public static final int DEFAULT_PAGE      = 1;
+	public static String RAW_RESULT_COUNT     = "rawResultCount";
 	public static final int DEFAULT_PAGE_SIZE = Integer.MAX_VALUE;
-
-	private static final Logger logger    = Logger.getLogger(NodeFactory.class.getName());
+	private static final Logger logger        = Logger.getLogger(NodeFactory.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -196,23 +195,29 @@ public class NodeFactory<T extends AbstractNode> {
 		throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		long position            = 0L;
-		long count               = 0L;
+		int position             = 0;
+		int count                = 0;
+		int offset;
 
 		if (input != null) {
+		
+			int size                 = input.size();
+			// FIXME: IndexHits#size() is not always accurate, see
+			// https://github.com/neo4j/community/blob/master/kernel/src/main/java/org/neo4j/graphdb/index/IndexHits.java
+			
+			// If we have no offsetId and a negative page number,
+			// we need to know the exact number of index hits
+			// This breaks lazy loading :-(
+			if (offsetId == null && page < 0) {
 
-			int size = input.size();
+				size = realSize(input);
+				offset = size + (page * pageSize);
 
-			if (size == 0) {
+			} else {
 
-				return Result.EMPTY_RESULT;
+				// may be overwritten later
+				offset = (page - 1) * pageSize;
 			}
-
-			long offset = page > 0
-				      ? (page - 1) * pageSize
-				      : size + (page * pageSize);
-
-			logger.log(Level.FINE, "page: {0}, pageSize: {1}, result size: {2}, offset: {3}", new Object[] { page, pageSize, size, offset });
 
 			if (input instanceof SpatialRecordHits) {
 
@@ -251,7 +256,7 @@ public class NodeFactory<T extends AbstractNode> {
 						AbstractNode n = createNode(securityContext, realNode, includeDeletedAndHidden, publicOnly);
 
 						// Check is done in createNode already, so we don't have to do it again
-						if (n != null) {       // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+						if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
 							List<AbstractNode> nodesAt = getNodesAt(n);
 
@@ -279,9 +284,8 @@ public class NodeFactory<T extends AbstractNode> {
 						}
 
 					}
-
 				}
-				
+
 				return new Result(nodes, size, true, false);
 
 			} else {
@@ -290,7 +294,6 @@ public class NodeFactory<T extends AbstractNode> {
 
 					// We have an offsetId, so first we need to
 					// find the node with this uuid to get the offset
-					
 					List<AbstractNode> allNodes = new LinkedList();
 					int i                       = 0;
 					boolean gotOffset           = false;
@@ -312,19 +315,20 @@ public class NodeFactory<T extends AbstractNode> {
 							}
 
 							gotOffset = true;
-							offset    = page > 0 ? i : i + (page * pageSize);
+							offset    = page > 0
+								    ? i
+								    : i + (page * pageSize);
 
 							break;
 
 						}
 
 					}
-					
+
 					if (!gotOffset) {
+
 						throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
 					}
-
-
 
 					for (AbstractNode node : allNodes) {
 
@@ -344,16 +348,15 @@ public class NodeFactory<T extends AbstractNode> {
 
 						}
 					}
-					
+
 					// If we get here, the result was not complete, so we need to iterate
 					// through the index result (input) to get more items.
-					
 					for (Node node : input) {
 
 						AbstractNode n = createNode(securityContext, (Node) node, includeDeletedAndHidden, publicOnly);
-						
+
 						// Check is done in createNode already, so we don't have to do it again
-						if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+						if (n != null) {       // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
 							if (++position > offset) {
 
@@ -367,8 +370,8 @@ public class NodeFactory<T extends AbstractNode> {
 							}
 
 						}
+
 					}
-					
 				} else {
 
 					for (Node node : input) {
@@ -394,10 +397,10 @@ public class NodeFactory<T extends AbstractNode> {
 					}
 
 				}
-				
-				return new Result(nodes, size, true, false);
-			}
 
+				return new Result(nodes, size, true, false);
+
+			}
 		}
 
 		return Result.EMPTY_RESULT;
@@ -469,6 +472,30 @@ public class NodeFactory<T extends AbstractNode> {
 		}
 
 		return newNode;
+
+	}
+
+	private int realSize(final Iterable it) {
+
+		if (it instanceof Collection<?>) {
+
+			return ((Collection<?>) it).size();
+		} else {
+
+			int c                = 0;
+			Iterator<?> iterator = it.iterator();
+
+			while (iterator.hasNext()) {
+
+				iterator.next();
+
+				c++;
+
+			}
+
+			return c;
+
+		}
 
 	}
 
