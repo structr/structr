@@ -62,10 +62,8 @@ public class AdvancedPagingTest extends PagingTest {
 	}
 
 	@Override
-	public void test01Paging() {
-		
-	}
-	
+	public void test01Paging() {}
+
 	public void test02PagingAndCreate() {
 
 		try {
@@ -101,22 +99,190 @@ public class AdvancedPagingTest extends PagingTest {
 
 			String sortKey   = AbstractNode.Key.name.name();
 			boolean sortDesc = false;
-
-			int pageSize = 2;
-			int page = 1;
+			int pageSize     = 2;
+			int page         = 1;
 
 			testPaging(pageSize, page, number, offset, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc);
-			
+
 			Map<String, Object> props = new HashMap();
+
 			props.put(sortKey, "TestOne-09");
-			
 			this.createTestNode(type, props);
-
-			testPaging(pageSize, page+1, number+1, offset-1, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc);
-
+			testPaging(pageSize, page + 1, number + 1, offset - 1, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc);
 			System.out.println("paging test finished");
 
+		} catch (FrameworkException ex) {
 
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	public void test03NegativeOffsetPaging() {
+
+		try {
+
+			boolean includeDeletedAndHidden = false;
+			boolean publicOnly              = false;
+			String type                     = TestOne.class.getSimpleName();
+			int number                      = 8;
+			List<AbstractNode> nodes        = this.createTestNodes(type, number);
+			int offset                      = 0;
+			int i                           = offset;
+			String name;
+
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
+
+			for (AbstractNode node : nodes) {
+
+				// System.out.println("Node ID: " + node.getNodeId());
+				name = "TestOne-" + i;
+
+				i++;
+
+				node.setName(name);
+			}
+
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
+
+			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertTrue(result.size() == number);
+
+			String sortKey   = AbstractNode.Key.name.name();
+			boolean sortDesc = false;
+			int pageSize     = 2;
+			int page         = 1;
+
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+
+			assertTrue(result.size() == 2);
+			
+			assertEquals("TestOne-0", result.get(0).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-1", result.get(1).getStringProperty(AbstractNode.Key.name));
+			
+			page = -1;
+			
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+
+			assertTrue(result.size() == 2);
+			assertEquals("TestOne-6", result.get(0).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-7", result.get(1).getStringProperty(AbstractNode.Key.name));
+			
+			page = -2;
+			
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+
+			assertTrue(result.size() == 2);
+			assertEquals("TestOne-4", result.get(0).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-5", result.get(1).getStringProperty(AbstractNode.Key.name));
+
+			page = -3;
+			
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+
+			assertTrue(result.size() == 2);
+			assertEquals("TestOne-2", result.get(0).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-3", result.get(1).getStringProperty(AbstractNode.Key.name));
+
+			page = -4;
+			
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+
+			assertTrue(result.size() == 2);
+			assertEquals("TestOne-0", result.get(0).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-1", result.get(1).getStringProperty(AbstractNode.Key.name));
+
+			// now with offsetId
+			
+			page = 1;
+			
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
+
+			assertTrue(result.size() == 2);
+			assertEquals("TestOne-3", result.get(0).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-4", result.get(1).getStringProperty(AbstractNode.Key.name));
+
+			page = -1;
+			
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
+
+			assertTrue(result.size() == 2);
+			assertEquals("TestOne-1", result.get(0).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-2", result.get(1).getStringProperty(AbstractNode.Key.name));
+			
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+	
+
+	public void test04UnkownOffsetId() {
+
+		try {
+
+			boolean includeDeletedAndHidden = false;
+			boolean publicOnly              = false;
+			String type                     = TestOne.class.getSimpleName();
+			int number                      = 8;
+			List<AbstractNode> nodes        = this.createTestNodes(type, number);
+			int offset                      = 0;
+			int i                           = offset;
+			String name;
+
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
+
+			for (AbstractNode node : nodes) {
+
+				// System.out.println("Node ID: " + node.getNodeId());
+				name = "TestOne-" + i;
+
+				i++;
+
+				node.setName(name);
+			}
+
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
+
+			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertTrue(result.size() == number);
+
+			String sortKey   = AbstractNode.Key.name.name();
+			boolean sortDesc = false;
+			int pageSize     = 2;
+			int page         = -5;
+			
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+
+			assertTrue(result.size() == 2);
+			assertEquals("TestOne-0", result.get(0).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-1", result.get(1).getStringProperty(AbstractNode.Key.name));
+
+			// unknown offsetId
+			
+			page = 1;
+			
+			try {
+				searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, "00000000000000000000");
+				
+				fail("Should have failed with a FrameworkException with 'id not found' token");
+				
+			} catch (FrameworkException fex) {
+				logger.log(Level.INFO, "Exception logged", fex);
+			}
+
+			
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());

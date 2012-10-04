@@ -186,4 +186,6 @@ public class SearchTest extends StructrRestTest {
 				.get(resource + "?sort=anInt&pageSize=10&page=1");
 	
 	}
+	
+	
 }

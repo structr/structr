@@ -26,8 +26,10 @@ import org.structr.core.Result;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,24 +50,48 @@ public class PagingHelper {
 	 * @param list
 	 * @param pageSize
 	 * @param page
+	 * @param offsetId
 	 * @return
 	 */
-	public static List<? extends GraphObject> subList(final List<? extends GraphObject> list, int pageSize, int page) {
+	public static List<? extends GraphObject> subList(final List<? extends GraphObject> list, int pageSize, int page, String offsetId) {
 
-		if (pageSize <= 0) {
+		if (pageSize <= 0 || page == 0) {
 
-			return list;
+			return Collections.EMPTY_LIST;
 		}
 
-		if (page < 1) {
+		int size        = list.size();
+		int fromIndex = 0;
+		int toIndex = size-1;
+		if (StringUtils.isNotBlank(offsetId)) {
 
-			page = 1;
+			int offsetIndex = 0;
+			int i=0;
+			for (GraphObject obj : list) {
+				if (obj.getUuid().equals(offsetId)) {
+					offsetIndex = i;
+					break;
+				} else {
+					i++;
+					continue;
+				}
+			}
+			
+			fromIndex = page > 0
+				     ? offsetIndex
+				     : offsetIndex + (page * pageSize);
+			
+		} else {
+		
+			fromIndex   = page > 0
+				     ? (page - 1) * pageSize
+				     : size + (page * pageSize);
+			
+			
 		}
 
-		int size      = list.size();
-		int fromIndex = Math.min(size, Math.max(0, (page - 1) * pageSize));
-		int toIndex   = Math.min(size, page * pageSize);
-
+		toIndex     = Math.min(size-1, fromIndex + (page * pageSize));
+		
 		return list.subList(fromIndex, toIndex);
 
 	}
@@ -76,41 +102,32 @@ public class PagingHelper {
 	 * @param result
 	 * @param pageSize
 	 * @param page
+	 * @param offsetId
 	 * @return
 	 */
-	public static Result subResult(final Result result, int pageSize, int page) {
+	public static Result subResult(final Result result, int pageSize, int page, String offsetId) {
 
-		if (pageSize <= 0) {
+		if (pageSize <= 0 || page == 0) {
 
 			return result;
 		}
 
-		if (page < 1) {
+		int pageCount = getPageCount(result.getRawResultCount(), pageSize);
 
-			page = 1;
+		if (pageCount > 0) {
+
+			result.setPageCount(pageCount);
 		}
 
-		if (pageSize > 0) {
-			
-			int pageCount = getPageCount(result.getRawResultCount(), pageSize);
+		if (page > pageCount) {
 
-			if (pageCount > 0) {
-
-				result.setPageCount(pageCount);
-			}
-
-			if (page > pageCount) {
-
-				page = pageCount;
-
-			}
-
-			result.setPage(page);
-			result.setPageSize(pageSize);
-
+			page = pageCount;
 		}
-		
-		return new Result(subList(result.getResults(), pageSize, page), result.getResults().size(), result.isCollection(), result.isPrimitiveArray());
+
+		result.setPage(page);
+		result.setPageSize(pageSize);
+
+		return new Result(subList(result.getResults(), pageSize, page, offsetId), result.getResults().size(), result.isCollection(), result.isPrimitiveArray());
 
 	}
 
@@ -122,7 +139,7 @@ public class PagingHelper {
 		}
 
 		if (pageSize > 0) {
-			
+
 			int pageCount = getPageCount(result.getRawResultCount(), pageSize);
 
 			if (pageCount > 0) {
@@ -130,12 +147,11 @@ public class PagingHelper {
 				result.setPageCount(pageCount);
 			}
 
-//			if (page > pageCount) {
+//                      if (page > pageCount) {
 //
-//				page = pageCount;
+//                              page = pageCount;
 //
-//			}
-
+//                      }
 			result.setPage(page);
 			result.setPageSize(pageSize);
 

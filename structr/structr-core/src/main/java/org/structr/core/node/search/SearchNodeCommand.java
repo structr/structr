@@ -52,7 +52,6 @@ import org.structr.core.node.NodeServiceCommand;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.*;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyKey;
 import org.structr.core.Result;
 import org.structr.core.UnsupportedArgumentError;
@@ -109,31 +108,39 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		boolean publicOnly                = false;
 		String sortKey                    = null;
 		boolean sortDescending            = false;
-		long pageSize                     = -1;
-		long page                         = -1;
+		int pageSize                      = NodeFactory.DEFAULT_PAGE_SIZE;
+		int page                          = NodeFactory.DEFAULT_PAGE;
+		String offsetId                   = null;
 		Integer sortType                  = null;
 		
 		
 		switch (parameters.length) {
 			
-			case 9:
-				if (parameters[8] instanceof Integer) {
+			case 10:
+				if (parameters[9] instanceof Integer) {
 
-					sortType = ((Integer) parameters[8]).intValue();
+					sortType = ((Integer) parameters[9]).intValue();
+
+				}
+				
+			case 9:
+				if (parameters[8] instanceof String) {
+
+					offsetId = (String) parameters[8];
 
 				}
 				
 			case 8:
-				if (parameters[7] instanceof Number) {
+				if (parameters[7] instanceof Integer) {
 
-					page = ((Number) parameters[7]).longValue();
+					page = ((Integer) parameters[7]).intValue();
 
 				}
 			
 			case 7:
-				if (parameters[6] instanceof Number) {
+				if (parameters[6] instanceof Integer) {
 
-					pageSize = ((Number) parameters[6]).longValue();
+					pageSize = ((Integer) parameters[6]).intValue();
 
 				}
 			
@@ -184,7 +191,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 
 
-		return search(securityContext, topNode, includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, sortType);
+		return search(securityContext, topNode, includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, offsetId, sortType);
 	}
 
 	/**
@@ -195,12 +202,22 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @param includeDeletedAndHidden       If true, include nodes marked as deleted or hidden
 	 * @param publicOnly			If true, don't include nodes which are not public
 	 * @param searchAttrs			List with search attributes
+	 * @param sortKey			Key to sort results
+	 * @param sortDescending		If true, sort results in descending order (higher values first)
+	 * @param pageSize			Return a portion of the overall result of this size
+	 * @param page				Return the page of the result set with this page size
+	 * @param offsetId			If given, start pagination at the object with this UUID
+	 * @param sortType			The entity type to sort the results (needed for lucene)
 	 * @return
 	 */
 	private Result search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeletedAndHidden, final boolean publicOnly,
-					  final List<SearchAttribute> searchAttrs, final String sortKey, final boolean sortDescending, final long pageSize, final long page, final Integer sortType)
+					  final List<SearchAttribute> searchAttrs, final String sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId, final Integer sortType)
 		throws FrameworkException {
 
+		if (page == 0 || pageSize <= 0) {
+			return Result.EMPTY_RESULT;
+		}
+		
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory        = (NodeFactory) arguments.get("nodeFactory");
 		Result finalResult	       = new Result(new ArrayList<AbstractNode>(), null, true, false);
@@ -373,7 +390,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					: 0 });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeletedAndHidden, publicOnly, pageSize, page);
+				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 
 				hits.close();
 				long t2 = System.nanoTime();

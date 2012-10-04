@@ -180,7 +180,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		Path path = getValidatedPath();
 
@@ -198,7 +198,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 
 			}
 
-			return lastResource.doGet(sortKey, sortDescending, pageSize, page);
+			return lastResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 
 		} else {
 

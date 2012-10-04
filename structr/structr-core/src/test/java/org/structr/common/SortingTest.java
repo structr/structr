@@ -251,7 +251,7 @@ public class SortingTest extends StructrTest {
 			int pageSize     = 10;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -323,7 +323,7 @@ public class SortingTest extends StructrTest {
 			int pageSize     = 10;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -395,7 +395,7 @@ public class SortingTest extends StructrTest {
 			int pageSize     = 5;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.INT);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.INT);
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -470,7 +470,7 @@ public class SortingTest extends StructrTest {
 			int pageSize     = 20;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
 
 			for (GraphObject obj : result.getResults()) {
 
