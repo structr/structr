@@ -61,8 +61,8 @@ public class PagingHelper {
 		}
 
 		int size        = list.size();
-		int fromIndex = 0;
-		int toIndex = size-1;
+		int fromIndex;
+		int toIndex;
 		if (StringUtils.isNotBlank(offsetId)) {
 
 			int offsetIndex = 0;
@@ -90,7 +90,7 @@ public class PagingHelper {
 			
 		}
 
-		toIndex     = Math.min(size-1, fromIndex + (page * pageSize));
+		toIndex     = Math.min(size, fromIndex + (page * pageSize));
 		
 		return list.subList(fromIndex, toIndex);
 
