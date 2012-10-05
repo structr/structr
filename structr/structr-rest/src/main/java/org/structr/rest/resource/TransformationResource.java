@@ -20,13 +20,14 @@ package org.structr.rest.resource;
 
 import org.structr.core.Result;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Transformation;
 import org.structr.core.node.NodeFactory;
+import org.structr.core.ViewTransformation;
 
 /**
  *
@@ -34,9 +35,9 @@ import org.structr.core.node.NodeFactory;
  */
 public class TransformationResource extends WrappingResource {
 
-	private Transformation<List<? extends GraphObject>> transformation = null;
+	private ViewTransformation transformation = null;
 	
-	public TransformationResource(SecurityContext securityContext, Transformation<List<? extends GraphObject>> transformation) {
+	public TransformationResource(SecurityContext securityContext, ViewTransformation transformation) {
 		this.securityContext = securityContext;
 		this.transformation  = transformation;
 	}
@@ -49,14 +50,13 @@ public class TransformationResource extends WrappingResource {
 	@Override
 	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		
-		if(wrappedResource != null) {
-			
-			//Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
-			// apply paging later
-			Result result = wrappedResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null);
-			
-			if (transformation != null) {
+		if(wrappedResource != null && transformation != null) {
 
+			// allow view transformation to avoid evaluation of wrapped resource
+			if (transformation.evaluateWrappedResource()) {
+				
+				Result result = wrappedResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null);
+			
 				try {
 
 					transformation.apply(securityContext, result.getResults());
@@ -65,9 +65,21 @@ public class TransformationResource extends WrappingResource {
 				} catch(Throwable t) {
 					t.printStackTrace();
 				}
-			}
+
+				// apply paging later
+				return PagingHelper.subResult(result, pageSize, page, offsetId);
 				
-			return PagingHelper.subResult(result, pageSize, page, offsetId);
+			} else {
+				
+				List<? extends GraphObject> listToTransform = new LinkedList<GraphObject>();
+				transformation.apply(securityContext, listToTransform);
+
+				Result result = new Result(listToTransform, listToTransform.size(), wrappedResource.isCollectionResource(), wrappedResource.isPrimitiveArray());
+
+				// apply paging later
+				return PagingHelper.subResult(result, pageSize, page, offsetId);
+				
+			}
 		}
 		
 		List emptyList = Collections.emptyList();

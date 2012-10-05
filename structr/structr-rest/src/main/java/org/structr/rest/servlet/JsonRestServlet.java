@@ -945,7 +945,7 @@ public class JsonRestServlet extends HttpServlet {
 		Class type = finalResource.getEntityClass();
 		if(type != null) {
 			
-			Transformation<List<? extends GraphObject>> transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
+			ViewTransformation transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
 			if(transformation != null) {
 				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
 			}

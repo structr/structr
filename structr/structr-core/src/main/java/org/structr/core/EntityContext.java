@@ -64,6 +64,7 @@ import org.neo4j.graphdb.DynamicRelationshipType;
  * A global context for functional mappings between nodes and
  * relationships, property views and property validators.
  *
+ * @author Axel Morgner
  * @author Christian Morgner
  */
 public class EntityContext {
@@ -87,7 +88,7 @@ public class EntityContext {
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                    = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 
 	// This map contains view-dependent result set transformations
-	private static final Map<Class, Map<String, Transformation<List<? extends GraphObject>>>> viewTransformations = new LinkedHashMap<Class, Map<String, Transformation<List<? extends GraphObject>>>>();
+	private static final Map<Class, Map<String, ViewTransformation>> viewTransformations = new LinkedHashMap<Class, Map<String, ViewTransformation>>();
 	
 	// This set contains all known properties
 	private static final Set<String> globalKnownPropertyKeys                                                = new LinkedHashSet<String>();
@@ -1162,19 +1163,19 @@ public class EntityContext {
 	}
 	
 	// ----- view transformations -----
-	public static void registerViewTransformation(Class type, String view, Transformation<List<? extends GraphObject>> transformation) {
+	public static void registerViewTransformation(Class type, String view, ViewTransformation transformation) {
 		getViewTransformationMapForType(type).put(view, transformation);
 	}
 	
-	public static Transformation<List<? extends GraphObject>> getViewTransformation(Class type, String view) {
+	public static ViewTransformation getViewTransformation(Class type, String view) {
 		return getViewTransformationMapForType(type).get(view);
 	}
 	
-	private static Map<String, Transformation<List<? extends GraphObject>>> getViewTransformationMapForType(Class type) {
+	private static Map<String, ViewTransformation> getViewTransformationMapForType(Class type) {
 		
-		Map<String, Transformation<List<? extends GraphObject>>> viewTransformationMap = viewTransformations.get(type);
+		Map<String, ViewTransformation> viewTransformationMap = viewTransformations.get(type);
 		if(viewTransformationMap == null) {
-			viewTransformationMap = new LinkedHashMap<String, Transformation<List<? extends GraphObject>>>();
+			viewTransformationMap = new LinkedHashMap<String, ViewTransformation>();
 			viewTransformations.put(type, viewTransformationMap);
 		}
 		
