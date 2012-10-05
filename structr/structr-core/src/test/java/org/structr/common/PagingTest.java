@@ -171,10 +171,10 @@ public class PagingTest extends StructrTest {
 //                      
 //              }
 		logger.log(Level.INFO, "Raw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
-		assertTrue(result.getRawResultCount() == number);
+		assertTrue(result.getRawResultCount() == ((pageSize == 0 || page == 0) ? 0 : number));
 
-		long expectedResultCount = pageSize == 0
-					   ? result.getRawResultCount()
+		long expectedResultCount = (pageSize == 0 || page == 0)
+					   ? 0
 					   : Math.min(number, pageSize);
 
 		int startIndex = (Math.max(page, 1) - 1) * pageSize;
@@ -189,7 +189,7 @@ public class PagingTest extends StructrTest {
 			String gotName      = result.get(j).getStringProperty(AbstractNode.Key.name);
 
 			System.out.println(expectedName + ", got: " + gotName);
-			assertTrue(gotName.equals(expectedName));
+			assertEquals(expectedName, gotName);
 
 		}
 		

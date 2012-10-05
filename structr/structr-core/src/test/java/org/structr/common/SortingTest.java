@@ -112,7 +112,7 @@ public class SortingTest extends StructrTest {
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
 			assertTrue(result.size() == Math.min(number, pageSize));
 
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -181,7 +181,7 @@ public class SortingTest extends StructrTest {
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
 			assertTrue(result.size() == Math.min(number, pageSize));
 
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -251,7 +251,7 @@ public class SortingTest extends StructrTest {
 			int pageSize     = 10;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -323,7 +323,7 @@ public class SortingTest extends StructrTest {
 			int pageSize     = 10;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -395,7 +395,7 @@ public class SortingTest extends StructrTest {
 			int pageSize     = 5;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.INT);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.INT);
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -470,7 +470,7 @@ public class SortingTest extends StructrTest {
 			int pageSize     = 20;
 			int page         = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, SortField.LONG);
+			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
 
 			for (GraphObject obj : result.getResults()) {
 

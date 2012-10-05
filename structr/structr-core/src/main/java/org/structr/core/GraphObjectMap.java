@@ -262,4 +262,9 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	public Set entrySet() {
 		return values.entrySet();
 	}
+
+	@Override
+	public Object getPropertyForIndexing(String key) {
+		return getProperty(key);
+	}
 }

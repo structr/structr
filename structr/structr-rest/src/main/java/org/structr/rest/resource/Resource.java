@@ -82,6 +82,7 @@ public abstract class Resource {
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
 	}
@@ -105,7 +106,7 @@ public abstract class Resource {
 	 */
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 
-	public abstract Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
+	public abstract Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException;
 
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
@@ -124,7 +125,7 @@ public abstract class Resource {
 
 		// catch 204, DELETE must return 200 if resource is empty
 		try {
-			results = doGet(null, false, -1, -1).getResults();
+			results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 		} catch (NoResultsException nre) {
 			results = null;
 		}
@@ -182,7 +183,7 @@ public abstract class Resource {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final Iterable<? extends GraphObject> results = doGet(null, false, -1, -1).getResults();
+		final Iterable<? extends GraphObject> results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 
 		if (results != null) {
 

@@ -98,13 +98,13 @@ public class NodeQueryCommand extends NodeServiceCommand {
 	private Result search(final SecurityContext securityContext, final NodeIndex whichIndex, final Query query) throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		NodeFactory nodeFactory        = (NodeFactory) arguments.get("nodeFactory");
+		NodeFactory nodeFactory        = new NodeFactory(securityContext);
 
 		if (graphDb != null) {
 
 			Index<Node> index         = (Index<Node>)arguments.get(whichIndex.name());
 			IndexHits hits            = index.query(query.toString());
-			Result result		  = nodeFactory.createNodes(securityContext, hits);
+			Result result		  = nodeFactory.createNodes(hits);
 
 			// close hits
 			hits.close();

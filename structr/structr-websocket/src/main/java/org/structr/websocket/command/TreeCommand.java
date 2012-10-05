@@ -61,7 +61,7 @@ public class TreeCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		AbstractNode rootNode                 = getNode(webSocketData.getId());
 		TraversalDescription localDesc        =	Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).expand(new ResourceExpander(rootNode.getStringProperty(AbstractNode.Key.uuid.name())));
-		final NodeFactory factory             = new NodeFactory();
+		final NodeFactory factory             = new NodeFactory(securityContext);
 		final TreeNode root                   = new TreeNode(null);
 
 		localDesc = localDesc.evaluator(new Evaluator() {
@@ -74,8 +74,7 @@ public class TreeCommand extends AbstractCommand {
 				if (node.hasProperty(AbstractNode.Key.type.name())) {
 
 					try {
-						String type          = (String) node.getProperty(AbstractNode.Key.type.name());
-						TreeNode newTreeNode = new TreeNode(factory.createNode(securityContext, node, type));
+						TreeNode newTreeNode = new TreeNode(factory.createNode(node));
 						Relationship rel     = path.lastRelationship();
 
 						if (rel != null) {

@@ -57,6 +57,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.entity.RelationClass;
+import org.structr.core.node.NodeFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -85,10 +86,10 @@ public class StaticRelationshipResource extends SortableResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		// fetch results from typedIdResource (should be a single node)
-		List<? extends GraphObject> results = typedIdResource.doGet(sortKey, sortDescending, -1, -1).getResults();
+		List<? extends GraphObject> results = typedIdResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 
 		if (results != null) {
 
@@ -110,7 +111,7 @@ public class StaticRelationshipResource extends SortableResource {
 					if (typeResource.hasSearchableAttributes(dummyList)) {
 
 						// use result list of doGet from typeResource and intersect with relatedNodes list.
-						List<? extends GraphObject> typeNodes = typeResource.doGet(sortKey, sortDescending, -1, -1).getResults();
+						List<? extends GraphObject> typeNodes = typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 						List intersection           = ListUtils.intersection(relatedNodes, typeNodes);
 
 						
@@ -120,7 +121,7 @@ public class StaticRelationshipResource extends SortableResource {
 							
 						applyDefaultSorting(intersection);
 
-						return new Result(PagingHelper.subList(intersection, pageSize, page), intersection.size(), isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(intersection, pageSize, page, offsetId), intersection.size(), isCollectionResource(), isPrimitiveArray());
 					}
 
 					// return non-empty list
@@ -128,7 +129,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 						applyDefaultSorting(relatedNodes);
 
-						return new Result(PagingHelper.subList(relatedNodes, pageSize, page), relatedNodes.size(), isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(relatedNodes, pageSize, page, offsetId), relatedNodes.size(), isCollectionResource(), isPrimitiveArray());
 					}
 
 					// do not return empty collection here, try getProperty
@@ -176,7 +177,7 @@ public class StaticRelationshipResource extends SortableResource {
 							applyDefaultSorting(list);
 
 							//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
-							return new Result(PagingHelper.subList(list, pageSize, page), list.size(), isCollectionResource(), isPrimitiveArray());
+							return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
 
 						} else if (value instanceof Iterable) {
 
@@ -199,7 +200,7 @@ public class StaticRelationshipResource extends SortableResource {
 							}
 
 							//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
-							return new Result(PagingHelper.subList(propertyListResult, pageSize, page), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
+							return new Result(PagingHelper.subList(propertyListResult, pageSize, page, offsetId), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
 						}
 					} else {
 
@@ -219,7 +220,7 @@ public class StaticRelationshipResource extends SortableResource {
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		List<? extends GraphObject> results = typedIdResource.doGet(null, false, -1, -1).getResults();
+		List<? extends GraphObject> results = typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 		final Command searchNode  = Services.command(securityContext, SearchNodeCommand.class);
 
 		if (results != null) {

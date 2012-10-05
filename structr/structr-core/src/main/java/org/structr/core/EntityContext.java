@@ -1447,7 +1447,7 @@ public class EntityContext {
 				RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
 				TransactionChangeSet changeSet                              = new TransactionChangeSet();
 				ErrorBuffer errorBuffer                                     = new ErrorBuffer();
-				NodeFactory nodeFactory                                     = new NodeFactory();
+				NodeFactory nodeFactory                                     = new NodeFactory(securityContext);
 				boolean hasError                                            = false;
 
 				// notify transaction listeners
@@ -1473,7 +1473,7 @@ public class EntityContext {
 
 					if (!data.isDeleted(node)) {
 
-						AbstractNode modifiedNode = nodeFactory.createNode(securityContext, node, true, false);
+						AbstractNode modifiedNode = nodeFactory.createNode(node, true, false);
 						if (modifiedNode != null) {
 
 							changeSet.modify(modifiedNode);
@@ -1522,7 +1522,7 @@ public class EntityContext {
 				// 2: notify listeners of node creation (so the modifications can later be tracked)
 				for (Node node : sortNodes(data.createdNodes())) {
 
-					AbstractNode entity = nodeFactory.createNode(securityContext, node, true, false);
+					AbstractNode entity = nodeFactory.createNode(node, true, false);
 					if (entity != null) {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
@@ -1555,7 +1555,7 @@ public class EntityContext {
 // ****************************************************** TEST
 						
 						try {
-							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
+							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
 							RelationshipType relationshipType = entity.getRelType();
 							
 							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
@@ -1563,7 +1563,7 @@ public class EntityContext {
 								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 							}
 							
-							AbstractNode endNode = nodeFactory.createNode(securityContext, rel.getEndNode());
+							AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
 							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
 								
 								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
@@ -1591,7 +1591,7 @@ public class EntityContext {
 
 // ****************************************************** TEST
 						try {
-							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
+							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
 							RelationshipType relationshipType = entity.getRelType();
 
 							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
@@ -1599,7 +1599,7 @@ public class EntityContext {
 								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 							}
 							
-							AbstractNode endNode = nodeFactory.createNode(securityContext, rel.getEndNode());
+							AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
 							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
 								
 								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
@@ -1616,7 +1616,7 @@ public class EntityContext {
 					logger.log(Level.FINEST, "Node deleted: {0}", node.getId());
 
 					String type = (String)removedNodeProperties.get(node).get(AbstractNode.Key.type.name());
-					AbstractNode entity = nodeFactory.createDeletedNode(securityContext, node, type);
+					AbstractNode entity = nodeFactory.createDummyNode(type);
 					
 					if (entity != null) {
 						
@@ -1642,7 +1642,7 @@ public class EntityContext {
 					Node nodeFromPropertyEntry = entry.entity();
 					
 					if (!(nodeFromPropertyEntry.equals(n))) {
-						nodeEntity = nodeFactory.createNode(securityContext, nodeFromPropertyEntry, true, false);
+						nodeEntity = nodeFactory.createNode(nodeFromPropertyEntry, true, false);
 						n = nodeFromPropertyEntry;
 					}
 

@@ -56,7 +56,7 @@ public class ClearDatabase extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		final NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
+		final NodeFactory nodeFactory      = new NodeFactory(securityContext);
 
 		if (graphDb != null) {
 
@@ -71,7 +71,7 @@ public class ClearDatabase extends NodeServiceCommand {
 				public Object execute(Transaction tx) throws FrameworkException {
 
 					long nodes                  = 0L;
-					Result result = (Result) nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
+					Result result = (Result) nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 
 					for (GraphObject obj : result.getResults()) {
 						
