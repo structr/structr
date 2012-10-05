@@ -112,7 +112,7 @@ public class SortingTest extends StructrTest {
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
 			assertTrue(result.size() == Math.min(number, pageSize));
 
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -181,7 +181,7 @@ public class SortingTest extends StructrTest {
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
 			assertTrue(result.size() == Math.min(number, pageSize));
 
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {

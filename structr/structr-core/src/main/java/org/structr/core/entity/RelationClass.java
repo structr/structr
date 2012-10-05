@@ -436,7 +436,7 @@ public class RelationClass {
 	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
 
 		// final Class realType              = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-		final NodeFactory nodeFactory     = new NodeFactory<AbstractNode>();
+		final NodeFactory nodeFactory     = new NodeFactory<AbstractNode>(securityContext);
 		final List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 
 		// use traverser
@@ -459,7 +459,7 @@ public class RelationClass {
 					} else {
 
 						try {
-							AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
+							AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(path.endNode());
 							if(abstractNode != null) {
 
 								// use inheritance

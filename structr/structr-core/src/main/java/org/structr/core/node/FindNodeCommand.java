@@ -60,7 +60,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		graphDb     = (GraphDatabaseService) arguments.get("graphDb");
-		nodeFactory = (NodeFactory) arguments.get("nodeFactory");
+		nodeFactory = new NodeFactory(securityContext);
 
 		if (graphDb != null) {
 
@@ -70,7 +70,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 					throw new UnsupportedArgumentError("No arguments supplied");
 
 				case 1 :
-					return (handleSingleArgument(graphDb, nodeFactory, parameters[0]));
+					return (handleSingleArgument(nodeFactory, parameters[0]));
 
 				default :
 					throw new UnsupportedArgumentError("Too many arguments supplied");
@@ -79,12 +79,12 @@ public class FindNodeCommand extends NodeServiceCommand {
 
 		}
 
-		return (null);
+		return null;
 
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private Object handleSingleArgument(GraphDatabaseService graphDb, NodeFactory nodeFactory, Object argument) throws FrameworkException {
+	private Object handleSingleArgument(final NodeFactory nodeFactory, final Object argument) throws FrameworkException {
 
 		Object result;
 
@@ -94,7 +94,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 			 * If argument is a Neo4j node, just let the node factory create
 			 * an instance of AbstractNode out of it.
 			 */
-			result = nodeFactory.createNode(securityContext, (Node) argument);
+			result = nodeFactory.createNode((Node) argument);
 
 			if (result != null) {
 
@@ -127,55 +127,6 @@ public class FindNodeCommand extends NodeServiceCommand {
 			 * If given id is a string, try to find in the UUID index
 			 */
 			result = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute((String) argument);
-
-			if (result != null) {
-
-				return result;
-			} else {
-
-//				/*
-//				 * Lookup by index failed, so we try to parse it
-//				 * to long
-//				 */
-//				Long id = null;
-//
-//				try {
-//
-//					id = Long.parseLong((String) argument);
-//
-//				} catch (NumberFormatException nfex) {
-//
-//					logger.log(Level.WARNING, "Could not parse {0} to long", argument);
-//
-//				}
-//
-//				if (id != null) {
-//
-//					try {
-//
-//						result = findByDbId(id);
-//
-//						if (result != null) {
-//
-//							return result;
-//						}
-//
-//					} catch (NotFoundException nfe) {
-//
-//						logger.log(Level.WARNING, "id {0} was parsed from argument {1}, but was not found in database!", new Object[] { id, argument });
-//
-//					}
-//
-//				}
-			}
-		} else if (argument instanceof ReferenceNode) {
-
-			/*
-			 * Return reference node
-			 */
-			Node node = graphDb.getReferenceNode();
-
-			result = nodeFactory.createNode(securityContext, node);
 
 			if (result != null) {
 
@@ -215,7 +166,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 
 		Node node = graphDb.getNodeById(id);
 
-		return nodeFactory.createNode(securityContext, node);
+		return nodeFactory.createNode(node);
 
 	}
 

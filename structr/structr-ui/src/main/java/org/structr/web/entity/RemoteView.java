@@ -60,9 +60,7 @@ public class RemoteView extends View {
 			
 			// fetch factories
 			RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
-			NodeFactory nodeFactory         = new NodeFactory();
-			boolean includeHiddenAndDeleted = false;
-			boolean publicOnly              = false;
+			NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
 			// initialize remote cypher engine
 			GraphDatabaseService gds        = new RestGraphDatabase(repositoryUrl, username, password);
@@ -78,7 +76,7 @@ public class RemoteView extends View {
 
 					if (o instanceof Node) {
 
-						AbstractNode node = nodeFactory.createNode(securityContext, (Node) o, includeHiddenAndDeleted, publicOnly);
+						AbstractNode node = nodeFactory.createNode((Node) o);
 
 						if (node != null) {
 

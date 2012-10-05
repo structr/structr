@@ -219,7 +219,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 		
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		NodeFactory nodeFactory        = (NodeFactory) arguments.get("nodeFactory");
+		NodeFactory nodeFactory        = new NodeFactory(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 		Result finalResult	       = new Result(new ArrayList<AbstractNode>(), null, true, false);
 		boolean allExactMatch          = true;
 		final Index<Node> index;
@@ -390,7 +390,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					: 0 });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
+				intermediateResult = nodeFactory.createNodes(hits);
 
 				hits.close();
 				long t2 = System.nanoTime();

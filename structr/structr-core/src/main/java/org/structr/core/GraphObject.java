@@ -59,6 +59,7 @@ public interface GraphObject {
         public Double getDoubleProperty(final PropertyKey key) throws FrameworkException ;
 	public Comparable getComparableProperty(final PropertyKey key) throws FrameworkException;
 	public Comparable getComparableProperty(final String key) throws FrameworkException;
+	public Object getPropertyForIndexing(final String key);
 	public void removeProperty(final String key) throws FrameworkException;
 
 	public PropertyKey getDefaultSortKey();

@@ -186,17 +186,10 @@ public class RelationshipFollowingResource extends SortableResource implements E
 
 		if (path != null) {
 
-			NodeFactory nodeFactory     = new NodeFactory<AbstractNode>();
-			List<GraphObject> nodeList  = new LinkedList<GraphObject>();
+			NodeFactory nodeFactory     = new NodeFactory<AbstractNode>(securityContext, pageSize, page, offsetId);
 
 			// traverse path to force evaluation
-			for (Node node : path.nodes()) {
-
-				AbstractNode traversedNode = nodeFactory.createNode(securityContext, node);
-
-				nodeList.add(traversedNode);
-
-			}
+			nodeFactory.createAllNodes(path.nodes());
 
 			return lastResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 
@@ -237,7 +230,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 			// traverse path to force evaluation, add nodes in reverse order
 			for (Node node : path.nodes()) {
 
-				AbstractNode traversedNode = nodeFactory.createNode(securityContext, node);
+				AbstractNode traversedNode = nodeFactory.createNodeWithType(securityContext, node);
 
 				nodeList.add(0, traversedNode);
 

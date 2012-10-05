@@ -27,7 +27,7 @@ import org.structr.core.Predicate;
  *
  * @author Christian Morgner
  */
-public class MoreThan<T extends Comparable> implements Predicate<T> {
+public class GreaterThan<T extends Comparable> implements Predicate<T> {
 
 	@Override
 	public boolean evaluate(SecurityContext securityContext, T... objs) {
