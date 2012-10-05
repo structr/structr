@@ -23,6 +23,7 @@ package org.structr.rest.common;
 
 
 import com.jayway.restassured.RestAssured;
+import java.io.ByteArrayOutputStream;
 import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -45,15 +46,17 @@ import org.structr.core.node.TransactionCommand;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 import java.net.URL;
+import java.nio.charset.Charset;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerCollection;
@@ -104,11 +107,13 @@ public class StructrRestTest extends TestCase {
 	
 	static {
 
-		// configure RestAssured
+		// check character set
+		checkCharset();
 		
+		// configure RestAssured
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI = "http://" + host + ":" + restPort;
-		RestAssured.port = restPort;		
+		RestAssured.port = restPort;
 	}
 	
 	//~--- methods --------------------------------------------------------
@@ -503,4 +508,27 @@ public class StructrRestTest extends TestCase {
 	protected static Matcher isEntity(Class<? extends AbstractNode> type) {
 		return new EntityMatcher(type);
 	}
+	
+	private static void checkCharset() {
+		
+		System.out.println("######### Charset settings ##############");
+		System.out.println("Default Charset=" + Charset.defaultCharset());
+		System.out.println("file.encoding=" + System.getProperty("file.encoding"));
+		System.out.println("Default Charset=" + Charset.defaultCharset());
+		System.out.println("Default Charset in Use=" + getEncodingInUse());
+		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");		
+		System.out.println("#########################################");
+		
+	}
+	
+
+	private static String getEncodingInUse() {
+		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
+		return writer.getEncoding();
+	}
+	
+	public void testCharset() {
+		assertTrue(StringUtils.remove(getEncodingInUse().toLowerCase(), "-").equals("utf8"));
+	}
+
 }

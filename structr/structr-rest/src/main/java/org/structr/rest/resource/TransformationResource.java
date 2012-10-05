@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
+import org.structr.core.node.NodeFactory;
 
 /**
  *
@@ -46,13 +47,13 @@ public class TransformationResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		
 		if(wrappedResource != null) {
 			
 			//Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 			// apply paging later
-			Result result = wrappedResource.doGet(sortKey, sortDescending, -1, -1);
+			Result result = wrappedResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null);
 			
 			if (transformation != null) {
 
@@ -66,7 +67,7 @@ public class TransformationResource extends WrappingResource {
 				}
 			}
 				
-			return PagingHelper.subResult(result, pageSize, page);
+			return PagingHelper.subResult(result, pageSize, page, offsetId);
 		}
 		
 		List emptyList = Collections.emptyList();

@@ -44,7 +44,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 	private static final Logger logger = Logger.getLogger(CypherQueryHandler.class.getName());
 	
 	protected RelationshipFactory relFactory  = new RelationshipFactory();
-	protected NodeFactory nodeFactory         = new NodeFactory();
+	protected NodeFactory nodeFactory;
 	protected SecurityContext securityContext = null;
 	protected String query                    = null;
 	
@@ -67,6 +67,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
+		this.nodeFactory     = new NodeFactory(securityContext);
 	}
 	
 	// ----- interface Value<CypherQueryHandler> -----
@@ -101,7 +102,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 	}
 	
 	protected AbstractNode getAsAbstractNode(Map<String, Object> row, String columnName) throws FrameworkException {
-		return nodeFactory.createNode(securityContext, (Node)row.get(columnName));
+		return nodeFactory.createNode((Node)row.get(columnName));
 	}
 	
 	protected AbstractRelationship getAsAbstractRelationship(Map<String, Object> row, String columnName) throws FrameworkException {
@@ -116,7 +117,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 			
 			if (obj instanceof Node) {
 				
-				return nodeFactory.createNode(securityContext, (Node)obj);
+				return nodeFactory.createNode((Node)obj);
 			}
 			
 			if (obj instanceof Relationship) {

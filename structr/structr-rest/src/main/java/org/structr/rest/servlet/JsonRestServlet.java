@@ -74,6 +74,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.*;
 import org.structr.core.entity.RelationshipMapping;
+import org.structr.core.node.NodeFactory;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.*;
 
@@ -93,6 +94,7 @@ public class JsonRestServlet extends HttpServlet {
 	public static final String REQUEST_PARAMETER_LOOSE_SEARCH           = "loose";
 	public static final String REQUEST_PARAMETER_PAGE_NUMBER            = "page";
 	public static final String REQUEST_PARAMETER_PAGE_SIZE              = "pageSize";
+	public static final String REQUEST_PARAMETER_OFFSET_ID              = "pageStartId";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
 	private static final String SERVLET_PARAMETER_RESOURCE_PROVIDER     = "ResourceProvider";
@@ -299,6 +301,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //			logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
 			SecurityContext securityContext = getSecurityContext(request, response);
@@ -316,14 +319,15 @@ public class JsonRestServlet extends HttpServlet {
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
 			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
 			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
 			String sortKey           = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize		 = parseInt(pageSizeParameter, -1);
-			int page                 = parseInt(pageParameter, -1);
+			int pageSize		 = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 			
 			// do action
-			Result result            = resource.doGet(sortKey, sortDescending, pageSize, page);
+			Result result            = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 			result.setIsCollection(resource.isCollectionResource());
 			result.setIsPrimitiveArray(resource.isPrimitiveArray());
 			
@@ -417,6 +421,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //			logRequest("HEAD", request);
 			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			SecurityContext securityContext = getSecurityContext(request, response);
@@ -479,6 +484,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //			logRequest("OPTIONS", request);
 			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			SecurityContext securityContext = getSecurityContext(request, response);
@@ -541,6 +547,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //			logRequest("POST", request);
 			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
@@ -628,6 +635,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //			logRequest("PUT", request);
 			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
@@ -697,6 +705,7 @@ public class JsonRestServlet extends HttpServlet {
 
 //		logRequest("TRACE", request);
 		response.setContentType("application/json; charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
 
 		int code = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 

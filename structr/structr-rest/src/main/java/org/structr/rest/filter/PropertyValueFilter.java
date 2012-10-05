@@ -48,8 +48,8 @@ public class PropertyValueFilter<T extends Comparable> extends Filter {
 	@Override
 	public boolean includeInResultSet(SecurityContext securityContext, GraphObject object) {
 		
-		T t = (T)object.getProperty(propertyKey);
-		if(t != null) {
+		T t = (T) object.getPropertyForIndexing(propertyKey);
+		if (t != null) {
 			return predicate.evaluate(securityContext, t, value.get(securityContext));
 		} else {
 			logger.log(Level.WARNING, "Null property for key {0} on ID {1}", new Object[] { propertyKey, object.getProperty(AbstractNode.Key.uuid.name()) });

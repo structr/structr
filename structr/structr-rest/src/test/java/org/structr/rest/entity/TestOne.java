@@ -39,7 +39,7 @@ public class TestOne extends AbstractNode {
 	
 	public enum Key implements PropertyKey {
 		
-		anInt, aLong, aDate
+		name, anInt, aLong, aDate
 		
 	}
 	

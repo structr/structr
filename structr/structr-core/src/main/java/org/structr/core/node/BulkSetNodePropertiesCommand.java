@@ -21,35 +21,35 @@
 
 package org.structr.core.node;
 
-import java.util.LinkedList;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.Result;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * This command takes a property set as parameter.
- * 
+ *
  * Sets the properties found in the property set on all nodes matching the type.
  * If no type property is found, set the properties on all nodes.
  *
@@ -64,17 +64,17 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		final NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
-                final Command searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
-                
-                if (!((parameters != null) && (parameters.length == 1) && (parameters[0] instanceof Map) && !((Map) parameters[0]).isEmpty())) {
-                        
-                        throw new IllegalArgumentException("This command requires one argument of type Map. Map must not be empty.");
-                        
-                }
-                
-                final Map<String, Object> properties = (Map<String, Object>) parameters[0];
+		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
+		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
+		final Command searchNode               = Services.command(superUserContext, SearchNodeCommand.class);
+
+		if (!((parameters != null) && (parameters.length == 1) && (parameters[0] instanceof Map) && !((Map) parameters[0]).isEmpty())) {
+
+			throw new IllegalArgumentException("This command requires one argument of type Map. Map must not be empty.");
+		}
+
+		final Map<String, Object> properties = (Map<String, Object>) parameters[0];
 
 		if (graphDb != null) {
 
@@ -85,38 +85,40 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 				@Override
 				public Object execute(Transaction tx) throws FrameworkException {
 
-					long n                  = 0L;
-                                        Result result = null;
-                                        
-                                        if (properties.containsKey(AbstractNode.Key.type.name())) {
-                                                
-                                                List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-                                                attrs.add(Search.andExactType((String) properties.get(AbstractNode.Key.type.name())));
-                                                
-                                                result = (Result) searchNode.execute(null, false, false, attrs);
-                                                properties.remove(AbstractNode.Key.type.name());
-                                                
-                                        } else {
-                                        
-                                                result = (Result) nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
-                                        }
+					long n        = 0L;
+					Result result = null;
+
+					if (properties.containsKey(AbstractNode.Key.type.name())) {
+
+						List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+
+						attrs.add(Search.andExactType((String) properties.get(AbstractNode.Key.type.name())));
+
+						result = (Result) searchNode.execute(null, false, false, attrs);
+
+						properties.remove(AbstractNode.Key.type.name());
+
+					} else {
+
+						result = (Result) nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+					}
 
 					for (GraphObject obj : result.getResults()) {
-						
+
 						AbstractNode node = (AbstractNode) obj;
 
 						// Treat only "our" nodes
 						if (node.getStringProperty(AbstractNode.Key.uuid) != null) {
 
 							for (Entry entry : properties.entrySet()) {
-                                                                
-                                                                String key = (String) entry.getKey();
-                                                                Object val = entry.getValue();
-                                                                
+
+								String key = (String) entry.getKey();
+								Object val = entry.getValue();
+
 								node.unlockReadOnlyPropertiesOnce();
-                                                                node.setProperty(key, val);
-                                                                
-                                                        }
+								node.setProperty(key, val);
+
+							}
 
 							if (n > 1000 && n % 1000 == 0) {
 
@@ -133,11 +135,13 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 							n++;
 
 						}
+
 					}
-                                        
-                                        logger.log(Level.INFO, "Finished setting properties on {0} nodes", n);
+
+					logger.log(Level.INFO, "Finished setting properties on {0} nodes", n);
 
 					return null;
+
 				}
 
 			});
@@ -145,5 +149,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 		}
 
 		return null;
+
 	}
+
 }

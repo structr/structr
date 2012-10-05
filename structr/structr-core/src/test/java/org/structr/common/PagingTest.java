@@ -159,7 +159,7 @@ public class PagingTest extends StructrTest {
 
 	}
 
-	private void testPaging(final int pageSize, final int page, final int number, final int offset, final boolean includeDeletedAndHidden, final boolean publicOnly,
+	protected void testPaging(final int pageSize, final int page, final int number, final int offset, final boolean includeDeletedAndHidden, final boolean publicOnly,
 				final List<SearchAttribute> searchAttributes, final String sortKey, final boolean sortDesc)
 		throws FrameworkException {
 
@@ -171,23 +171,29 @@ public class PagingTest extends StructrTest {
 //                      
 //              }
 		logger.log(Level.INFO, "Raw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
-		assertTrue(result.getRawResultCount() == number);
-		
-		long expectedResultCount =  pageSize==0 ? result.getRawResultCount(): Math.min(number, pageSize);
-		
-		logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), expectedResultCount});
+		assertTrue(result.getRawResultCount() == ((pageSize == 0 || page == 0) ? 0 : number));
+
+		long expectedResultCount = (pageSize == 0 || page == 0)
+					   ? 0
+					   : Math.min(number, pageSize);
+
+		int startIndex = (Math.max(page, 1) - 1) * pageSize;
+
+		logger.log(Level.INFO, "Result size: {0}, expected: {1}, start index: {2}", new Object[] { result.size(), expectedResultCount, startIndex });
 		assertTrue(result.size() == expectedResultCount);
+		
 
-		for (int j = (Math.max(page,1) - 1) * pageSize; j < expectedResultCount; j++) {
+		for (int j = 0; j < expectedResultCount; j++) {
 
-			String expectedName = "TestOne-" + (offset + j);
+			String expectedName = "TestOne-" + (offset + j + startIndex);
 			String gotName      = result.get(j).getStringProperty(AbstractNode.Key.name);
 
 			System.out.println(expectedName + ", got: " + gotName);
-			assertTrue(gotName.equals(expectedName));
+			assertEquals(expectedName, gotName);
 
 		}
-
+		
 	}
+
 
 }

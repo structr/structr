@@ -972,8 +972,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		try {
 			
-			NodeFactory factory = new NodeFactory();
-			Result result = factory.createNodes(securityContext, getRawNodes());
+			NodeFactory factory = new NodeFactory(securityContext);
+			Result result = factory.createAllNodes(getRawNodes());
 			
 			return (List<AbstractNode>) result.getResults();
 			

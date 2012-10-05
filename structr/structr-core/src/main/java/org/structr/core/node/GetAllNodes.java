@@ -36,10 +36,10 @@ public class GetAllNodes extends NodeServiceCommand {
     public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
+        NodeFactory nodeFactory = new NodeFactory(securityContext);
 
         if (graphDb != null) {
-            return nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
+            return nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
         }
         
         return Collections.emptyList();

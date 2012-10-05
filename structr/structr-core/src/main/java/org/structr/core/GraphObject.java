@@ -208,6 +208,15 @@ public interface GraphObject {
 	public Comparable getComparableProperty(final PropertyKey key) throws FrameworkException;
 
 	/**
+	 * Returns the property value for the given key that will be used
+	 * for indexing.
+	 * 
+	 * @param key the key to index the value for
+	 * @return the property value for indexing
+	 */
+	public Object getPropertyForIndexing(final String key);
+
+	/**
 	 * Returns the property value for the given key as a Comparable
 	 * 
 	 * @param key the property key to retrieve the value for
@@ -222,7 +231,7 @@ public interface GraphObject {
 	 * @throws FrameworkException 
 	 */
 	public void removeProperty(final String key) throws FrameworkException;
-
+	
 	/**
 	 * Returns the default sort key for this entitiy.
 	 * 

@@ -30,6 +30,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.NodeFactory;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
@@ -58,7 +59,7 @@ public class NamedRelationIdResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		List<GraphObject> uuidResult = new LinkedList<GraphObject>();
 
@@ -82,7 +83,7 @@ public class NamedRelationIdResource extends WrappingResource {
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
 
-		List<? extends GraphObject> results = doGet(null, false, -1, -1).getResults();
+		List<? extends GraphObject> results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 		for(GraphObject o : results) {
 
 			for(Entry<String, Object> entry : propertySet.entrySet()) {

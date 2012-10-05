@@ -28,12 +28,13 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.index.IndexHits;
 
-import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Command;
+import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.*;
@@ -46,6 +47,7 @@ import org.structr.core.module.GetEntityClassCommand;
 import java.lang.reflect.Constructor;
 
 import java.util.*;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,63 +58,70 @@ import java.util.logging.Logger;
  * way to instantiate and initialize structr nodes, as this is the most-
  * used operation.
  *
- * @author cmorgner
+ * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class NodeFactory<T extends AbstractNode> {
 
-	public static String RAW_RESULT_COUNT = "rawResultCount";
-	private static final Logger logger    = Logger.getLogger(NodeFactory.class.getName());
+	public static final int DEFAULT_PAGE      = 1;
+	public static final int DEFAULT_PAGE_SIZE = Integer.MAX_VALUE;
+	private static final Logger logger        = Logger.getLogger(NodeFactory.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
 	private ThreadLocalCommand getEntityClassCommand = new ThreadLocalCommand(GetEntityClassCommand.class);
 	private Map<Class, Constructor> constructors     = new LinkedHashMap<Class, Constructor>();
 
+	// encapsulates all criteria for node creation
+	private FactoryProfile factoryProfile;
+
 	//~--- constructors ---------------------------------------------------
 
-	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 	public NodeFactory() {}
 
-	//~--- methods --------------------------------------------------------
+	public NodeFactory(final SecurityContext securityContext) {
 
-	public AbstractNode createNode(final SecurityContext securityContext, final Node node) throws FrameworkException {
-
-		return createNode(securityContext, node, false, false);
+		factoryProfile = new FactoryProfile(securityContext);
 
 	}
 
-	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
+	public NodeFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+
+		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly);
+
+	}
+
+	public NodeFactory(final SecurityContext securityContext, final int pageSize, final int page, final String offsetId) {
+
+		factoryProfile = new FactoryProfile(securityContext);
+
+		factoryProfile.setPageSize(pageSize);
+		factoryProfile.setPage(page);
+		factoryProfile.setOffsetId(offsetId);
+
+	}
+
+	public NodeFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId) {
+
+		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
+
+	}
+
+	//~--- methods --------------------------------------------------------
+
+	public AbstractNode createNode(final Node node) throws FrameworkException {
 
 		String type     = AbstractNode.Key.type.name();
 		String nodeType = node.hasProperty(type)
 				  ? (String) node.getProperty(type)
-				  : "";
+				  : "GenericNode";
 
-		return createNode(securityContext, node, nodeType, includeDeletedAndHidden, publicOnly);
-
-	}
-
-	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType) throws FrameworkException {
-
-		return createNode(securityContext, node, nodeType, false, false);
+		return createNodeWithType(node, nodeType);
 
 	}
 
-	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType, final boolean includeDeletedAndHidden, final boolean publicOnly)
-		throws FrameworkException {
+	public AbstractNode createNodeWithType(final Node node, final String nodeType) throws FrameworkException {
 
-		/*
-		 *  caching disabled for now...
-		 * AbstractNode cachedNode = null;
-		 *
-		 * // only look up node in cache if uuid is already present
-		 * if(node.hasProperty(AbstractNode.Key.uuid.name())) {
-		 *       String uuid = (String)node.getProperty(AbstractNode.Key.uuid.name());
-		 *       cachedNode = NodeService.getNodeFromCache(uuid);
-		 * }
-		 *
-		 * if(cachedNode == null) {
-		 */
 		Class nodeClass      = (Class) getEntityClassCommand.get().execute(nodeType);
 		AbstractNode newNode = null;
 
@@ -146,21 +155,26 @@ public class NodeFactory<T extends AbstractNode> {
 			newNode = new GenericNode();
 		}
 
-		newNode.init(securityContext, node);
+		newNode.init(factoryProfile.getSecurityContext(), node);
 		newNode.onNodeInstantiation();
+		newNode.setType(nodeType);
 
 		// check access
-		if (securityContext.isReadable(newNode, includeDeletedAndHidden, publicOnly)) {
+              if (factoryProfile.getSecurityContext().isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
+		return newNode;
 
-			return newNode;
-		}
+              }
 
-		return null;
+	      return null;
+
 	}
 
-	public Result createNodes(final SecurityContext securityContext, final IndexHits<Node> input, long pageSize, long page) throws FrameworkException {
+	public AbstractNode createNode(final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
 
-		return createNodes(securityContext, input, false, false, pageSize, page);
+		factoryProfile.setIncludeDeletedAndHidden(includeDeletedAndHidden);
+		factoryProfile.setPublicOnly(publicOnly);
+
+		return createNode(node);
 
 	}
 
@@ -171,155 +185,43 @@ public class NodeFactory<T extends AbstractNode> {
 	 * If includeDeletedAndHidden is true, include nodes with 'deleted' flag
 	 * If publicOnly is true, filter by 'visibleToPublicUsers' flag
 	 *
-	 * @param securityContext
 	 * @param input
-	 * @param includeDeletedAndHidden
-	 * @param publicOnly
 	 * @return
 	 */
-	public Result createNodes(final SecurityContext securityContext, final IndexHits<Node> input, final boolean includeDeletedAndHidden, final boolean publicOnly, long pageSize, long page)
-		throws FrameworkException {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		long offset              = page > 0
-					   ? (page - 1) * pageSize
-					   : 0;
-		long position            = 0L;
-		long count               = 0L;
+	public Result createNodes(final IndexHits<Node> input) throws FrameworkException {
 
 		if (input != null) {
 
-			int size = input.size();
-
 			if (input instanceof SpatialRecordHits) {
 
-				Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
-				GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
-
-				if (input.iterator().hasNext()) {
-
-					for (Node node : input) {
-
-						Long dbNodeId = null;
-						Node realNode = null;
-
-						if (node.hasProperty("id")) {
-
-							dbNodeId = (Long) node.getProperty("id");
-
-							try {
-
-								realNode = graphDb.getNodeById(dbNodeId);
-
-							} catch (NotFoundException nfe) {
-
-								// Should not happen, but it does
-								// FIXME: Why does the spatial index return an unknown ID?
-								logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
-
-								for (String key : node.getPropertyKeys()) {
-
-									logger.log(Level.FINE, "{0}={1}", new Object[] { key, node.getProperty(key) });
-								}
-							}
-
-						}
-
-						if (realNode != null) {
-
-							AbstractNode n = createNode(securityContext, realNode, includeDeletedAndHidden, publicOnly);
-
-							// AbstractNode n = createNode(securityContext, node, includeDeletedAndHidden, publicOnly);
-							// Check is done in createNode already, so we don't have to do it again
-							if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
-
-//								if (++position > offset) {
-//
-//									// stop if we got enough nodes
-//									if (pageSize > 0 && ++count > pageSize) {
-//
-//										return new Result(nodes, size, true, false);
-//									}
-//
-//									nodes.add(n);
-//								}
-
-								List<AbstractNode> nodesAt = getNodesAt(n);
-								size += nodesAt.size();
-								
-								for (AbstractNode nodeAt : nodesAt) {
-
-									if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
-
-										if (++position > offset) {
-
-											// stop if we got enough nodes
-											if (pageSize > 0 && ++count > pageSize) {
-
-												return new Result(nodes, size, true, false);
-											}
-
-											nodes.add(nodeAt);
-										}
-
-									}
-
-								}
-
-							}
-
-						}
-
-					}
-
-				}
-
+				return resultFromSpatialRecords((SpatialRecordHits) input);
 			} else {
 
-				// Services.setAttribute(RAW_RESULT_COUNT + Thread.currentThread().getId(), size);
-				if (input.iterator().hasNext()) {
+				if (factoryProfile.getOffsetId() != null) {
 
-					for (Node node : input) {
+					return resultWithOffsetId(input);
+				} else {
 
-						AbstractNode n = createNode(securityContext, (Node) node, includeDeletedAndHidden, publicOnly);
-
-						// Check is done in createNode already, so we don't have to do it again
-						if (n != null) {            // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
-
-							if (++position > offset) {
-
-								// stop if we got enough nodes
-								if (pageSize > 0 && ++count > pageSize) {
-
-									return new Result(nodes, size, true, false);
-								}
-
-								nodes.add(n);
-							}
-
-						}
-
-					}
-
+					return resultWithoutOffsetId(input);
 				}
-			}
 
-			return new Result(nodes, size, true, false);
+			}
 
 		}
 
-		// is it smart to return null here?
-		return null;
+		return Result.EMPTY_RESULT;
 
 	}
 
 	/**
 	 * Create structr nodes from all given underlying database nodes
+	 * No paging, but security check
 	 *
+	 * @param securityContext
 	 * @param input
 	 * @return
 	 */
-	public Result createNodes(final SecurityContext securityContext, final Iterable<Node> input) throws FrameworkException {
+	public Result createAllNodes(final Iterable<Node> input) throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -327,7 +229,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 			for (Node node : input) {
 
-				AbstractNode n = createNode(securityContext, node);
+				AbstractNode n = createNode(node);
 
 				if (n != null) {
 
@@ -338,11 +240,20 @@ public class NodeFactory<T extends AbstractNode> {
 
 		}
 
-		return new Result(nodes, null, true, false);
+		return new Result(nodes, nodes.size(), true, false);
 
 	}
 
-	public AbstractNode createDeletedNode(final SecurityContext securityContext, final Node node, final String nodeType) throws FrameworkException {
+	/**
+	 * Create a dummy node (useful when you need an instance
+	 * of an {@see AbstractNode} for a db node which was deleted
+	 * in current transaction
+	 *
+	 * @param nodeType
+	 * @return
+	 * @throws FrameworkException
+	 */
+	public AbstractNode createDummyNode(final String nodeType) throws FrameworkException {
 
 		Class nodeClass      = (Class) getEntityClassCommand.get().execute(nodeType);
 		AbstractNode newNode = null;
@@ -381,8 +292,289 @@ public class NodeFactory<T extends AbstractNode> {
 
 	}
 
+	// <editor-fold defaultstate="collapsed" desc="private methods">
+
+	private List<Node> read(final Iterable<Node> it) {
+
+		List<Node> nodes = new LinkedList();
+
+		while (it.iterator().hasNext()) {
+
+			nodes.add(it.iterator().next());
+		}
+
+		return nodes;
+
+	}
+
+	private Result resultWithOffsetId(final IndexHits<Node> input) throws FrameworkException {
+
+		final int pageSize       = factoryProfile.getPageSize();
+		final int page           = factoryProfile.getPage();
+		final String offsetId    = factoryProfile.getOffsetId();
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		int position             = 0;
+		int count                = 0;
+		int offset;
+		int size = input.size();
+
+		if (page < 0) {
+
+			offset = size + (page * pageSize);
+		} else {
+
+			// may be overwritten later
+			offset = (page - 1) * pageSize;
+		}
+
+		// We have an offsetId, so first we need to
+		// find the node with this uuid to get the offset
+		List<AbstractNode> allNodes = new LinkedList();
+		int i                       = 0;
+		boolean gotOffset           = false;
+
+		for (Node node : input) {
+
+			AbstractNode n = createNode(node);
+
+			allNodes.add(n);
+
+			if (!gotOffset) {
+
+				if (!offsetId.equals(n.getUuid())) {
+
+					i++;
+
+					continue;
+
+				}
+
+				gotOffset = true;
+				offset    = page > 0
+					    ? i
+					    : i + (page * pageSize);
+
+				break;
+
+			}
+
+		}
+
+		if (!gotOffset) {
+
+			throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
+		}
+
+		for (AbstractNode node : allNodes) {
+
+			if (node != null) {
+
+				if (++position > offset) {
+
+					// stop if we got enough nodes
+					if (++count > pageSize) {
+
+						return new Result(nodes, size, true, false);
+					}
+
+					nodes.add(node);
+				}
+
+			}
+
+		}
+
+		// If we get here, the result was not complete, so we need to iterate
+		// through the index result (input) to get more items.
+		for (Node node : input) {
+
+			AbstractNode n = createNode(node);
+
+			if (n != null) {
+
+				if (++position > offset) {
+
+					// stop if we got enough nodes
+					if (++count > pageSize) {
+
+						return new Result(nodes, size, true, false);
+					}
+
+					nodes.add(n);
+				}
+
+			}
+
+		}
+
+		return new Result(nodes, size, true, false);
+
+	}
+
+	private Result resultWithoutOffsetId(final IndexHits<Node> input) throws FrameworkException {
+
+		final int pageSize = factoryProfile.getPageSize();
+		final int page     = factoryProfile.getPage();
+		int offset;
+
+		// FIXME: IndexHits#size() may be inaccurate!
+		int size = input.size();
+
+		if (page < 0) {
+
+			offset = Math.max(0, size + (page * pageSize));
+
+			List<Node> rawNodes            = read(input);
+			final List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+
+			for (Node n : rawNodes.subList(offset, offset + pageSize)) {
+
+				nodes.add(createNode(n));
+			}
+
+			// We've run completely through the iterator,
+			// so the overall count from here is accurate.
+			return new Result(nodes, rawNodes.size(), true, false);
+
+		} else {
+
+			offset = (page - 1) * pageSize;
+
+			// The overall count may be inaccurate
+			return page(input, size, offset, pageSize);
+
+		}
+
+	}
+
+	private Result page(final IndexHits<Node> input, final int overallResultCount, final int offset, final int pageSize) throws FrameworkException {
+
+		final List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		int position                   = 0;
+		int count                      = 0;
+		int overallCount               = 0;
+
+		for (Node node : input) {
+
+			AbstractNode n = createNode(node);
+
+			overallCount++;
+
+			if (n != null) {
+
+				if (++position > offset) {
+
+					// stop if we got enough nodes
+					if (++count > pageSize) {
+
+						// The overall count may be inaccurate
+						return new Result(nodes, overallResultCount, true, false);
+					}
+
+					nodes.add(n);
+				}
+
+			}
+
+		}
+
+		// We've run completely through the iterator,
+		// so the overall count from here is accurate.
+		return new Result(nodes, overallCount, true, false);
+
+	}
+
+	private Result resultFromSpatialRecords(final SpatialRecordHits spatialRecordHits) throws FrameworkException {
+
+		final int pageSize                    = factoryProfile.getPageSize();
+		final int page                        = factoryProfile.getPage();
+		final String offsetId                 = factoryProfile.getOffsetId();
+		final SecurityContext securityContext = factoryProfile.getSecurityContext();
+		final boolean includeDeletedAndHidden = factoryProfile.includeDeletedAndHidden();
+		final boolean publicOnly              = factoryProfile.publicOnly();
+		List<AbstractNode> nodes              = new LinkedList<AbstractNode>();
+		int position                          = 0;
+		int count                             = 0;
+		int offset                            = 0;
+		int size                              = spatialRecordHits.size();
+		Command graphDbCommand                = Services.command(securityContext, GraphDatabaseCommand.class);
+		GraphDatabaseService graphDb          = (GraphDatabaseService) graphDbCommand.execute();
+
+		for (Node node : spatialRecordHits) {
+
+			Long dbNodeId = null;
+			Node realNode = null;
+
+			if (node.hasProperty("id")) {
+
+				dbNodeId = (Long) node.getProperty("id");
+
+				try {
+
+					realNode = graphDb.getNodeById(dbNodeId);
+
+				} catch (NotFoundException nfe) {
+
+					// Should not happen, but it does
+					// FIXME: Why does the spatial index return an unknown ID?
+					logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
+
+					for (String key : node.getPropertyKeys()) {
+
+						logger.log(Level.FINE, "{0}={1}", new Object[] { key, node.getProperty(key) });
+					}
+				}
+
+			}
+
+			if (realNode != null) {
+
+				AbstractNode n = createNode(realNode);
+
+				// Check is done in createNodeWithType already, so we don't have to do it again
+				if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
+
+					List<AbstractNode> nodesAt = getNodesAt(n);
+
+					size += nodesAt.size();
+
+					for (AbstractNode nodeAt : nodesAt) {
+
+						if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
+
+							if (++position > offset) {
+
+								// stop if we got enough nodes
+								if (++count > pageSize) {
+
+									return new Result(nodes, size, true, false);
+								}
+
+								nodes.add(nodeAt);
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return new Result(nodes, size, true, false);
+
+	}
+
 	//~--- get methods ----------------------------------------------------
 
+	/**
+	 * Return all nodes which are connected by an incoming IS_AT relationship
+	 *
+	 * @param locationNode
+	 * @return
+	 */
 	private List<AbstractNode> getNodesAt(final AbstractNode locationNode) {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
@@ -395,5 +587,162 @@ public class NodeFactory<T extends AbstractNode> {
 		return nodes;
 
 	}
+
+	//~--- inner classes --------------------------------------------------
+
+	private class FactoryProfile {
+
+		private boolean includeDeletedAndHidden = false;
+		private String offsetId                 = null;
+		private boolean publicOnly              = false;
+		private int pageSize                    = DEFAULT_PAGE_SIZE;
+		private int page                        = DEFAULT_PAGE;
+		private SecurityContext securityContext = null;
+
+		//~--- constructors -------------------------------------------
+
+		public FactoryProfile(final SecurityContext securityContext) {
+
+			this.securityContext = securityContext;
+
+		}
+
+		public FactoryProfile(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+
+			this.securityContext         = securityContext;
+			this.includeDeletedAndHidden = includeDeletedAndHidden;
+			this.publicOnly              = publicOnly;
+
+		}
+
+		public FactoryProfile(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page,
+				      final String offsetId) {
+
+			this.securityContext         = securityContext;
+			this.includeDeletedAndHidden = includeDeletedAndHidden;
+			this.publicOnly              = publicOnly;
+			this.pageSize                = pageSize;
+			this.page                    = page;
+			this.offsetId                = offsetId;
+
+		}
+
+		//~--- methods ------------------------------------------------
+
+		/**
+		 * @return the includeDeletedAndHidden
+		 */
+		public boolean includeDeletedAndHidden() {
+
+			return includeDeletedAndHidden;
+
+		}
+
+		/**
+		 * @return the publicOnly
+		 */
+		public boolean publicOnly() {
+
+			return publicOnly;
+
+		}
+
+		//~--- get methods --------------------------------------------
+
+		/**
+		 * @return the offsetId
+		 */
+		public String getOffsetId() {
+
+			return offsetId;
+
+		}
+
+		/**
+		 * @return the pageSize
+		 */
+		public int getPageSize() {
+
+			return pageSize;
+
+		}
+
+		/**
+		 * @return the page
+		 */
+		public int getPage() {
+
+			return page;
+
+		}
+
+		/**
+		 * @return the securityContext
+		 */
+		public SecurityContext getSecurityContext() {
+
+			return securityContext;
+
+		}
+
+		//~--- set methods --------------------------------------------
+
+		/**
+		 * @param includeDeletedAndHidden the includeDeletedAndHidden to set
+		 */
+		public void setIncludeDeletedAndHidden(boolean includeDeletedAndHidden) {
+
+			this.includeDeletedAndHidden = includeDeletedAndHidden;
+
+		}
+
+		/**
+		 * @param offsetId the offsetId to set
+		 */
+		public void setOffsetId(String offsetId) {
+
+			this.offsetId = offsetId;
+
+		}
+
+		/**
+		 * @param publicOnly the publicOnly to set
+		 */
+		public void setPublicOnly(boolean publicOnly) {
+
+			this.publicOnly = publicOnly;
+
+		}
+
+		/**
+		 * @param pageSize the pageSize to set
+		 */
+		public void setPageSize(int pageSize) {
+
+			this.pageSize = pageSize;
+
+		}
+
+		/**
+		 * @param page the page to set
+		 */
+		public void setPage(int page) {
+
+			this.page = page;
+
+		}
+
+		/**
+		 * @param securityContext the securityContext to set
+		 */
+		public void setSecurityContext(SecurityContext securityContext) {
+
+			this.securityContext = securityContext;
+
+		}
+
+	}
+
+	// </editor-fold>
 
 }

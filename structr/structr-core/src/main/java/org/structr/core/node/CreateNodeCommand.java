@@ -63,7 +63,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
 		Principal user               = securityContext.getUser();
 		AbstractNode node            = null;
 
@@ -108,8 +107,11 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					    ? typeObject.toString()
 					    : "GenericNode";
 
+			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+
+			
 			// Create node with type
-			node = nodeFactory.createNode(SecurityContext.getSuperUserInstance(), graphDb.createNode(), nodeType);
+			node = nodeFactory.createNodeWithType(graphDb.createNode(), nodeType);
 			if(node != null) {
 				if ((user != null) && !(user instanceof SuperUser)) {
 

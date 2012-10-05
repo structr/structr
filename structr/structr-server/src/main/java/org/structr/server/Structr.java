@@ -401,10 +401,11 @@ public class Structr {
 				config.add("      <fileNamePattern>logs/" + logPrefix + "-%d{yyyy_MM_dd}.request.log.zip</fileNamePattern>");
 				config.add("    </rollingPolicy>");
 				config.add("    <encoder>");
+				config.add("      <charset>UTF-8</charset>");
 				config.add("      <pattern>%h %l %u %t \"%r\" %s %b %n%fullRequest%n%n%fullResponse</pattern>");
 				config.add("    </encoder>");
 				config.add("  </appender>");
-				config.add("<appender-ref ref=\"FILE\" />");
+				config.add("  <appender-ref ref=\"FILE\" />");
 				config.add("</configuration>");
 				logbackConfFile.createNewFile();
 				FileUtils.writeLines(logbackConfFile, "UTF-8", config);

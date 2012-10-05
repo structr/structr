@@ -103,7 +103,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
@@ -187,6 +187,7 @@ public class TypeResource extends SortableResource {
 				sortDescending,
 				pageSize,
 				page,
+				offsetId,
 				sortType
 			);
 			
