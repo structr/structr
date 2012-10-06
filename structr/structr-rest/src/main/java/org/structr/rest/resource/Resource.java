@@ -431,6 +431,7 @@ public abstract class Resource {
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER)
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY)
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER)
+					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID)
 					) {
 
 					searchKey.append(request.getParameter(name)).append(" ");
