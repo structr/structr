@@ -30,7 +30,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.*;
-import org.structr.common.AbstractComponent;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyKey;
@@ -52,7 +51,6 @@ import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.converter.BooleanConverter;
 import org.structr.core.node.*;
-import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeRelationshipStatisticsCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.NodeService.NodeIndex;
@@ -77,8 +75,8 @@ import org.structr.core.notion.PropertyNotion;
 /**
  * The base class for all node types in structr.
  *
- * @author amorgner
- *
+ * @author Axel Morgner
+ * @author Christian Morgner
  */
 public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, AccessControllable {
 
@@ -168,33 +166,16 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	/**
-	 * Called when a node of this type is created in the UI.
-	 */
+	
 	public void onNodeCreation() {
-
-		// override me
 	}
 
-	/**
-	 * Called when a node of this type is instatiated. Please note that a
-	 * node can (and will) be instantiated several times during a normal
-	 * rendering turn.
-	 */
 	public void onNodeInstantiation() {
-
-		// override me
 	}
-
-	/**
-	 * Called when a node of this type is deleted.
-	 */
+	
 	public void onNodeDeletion() {
-
-		// override me
 	}
-
+	
 	public final void init(final SecurityContext securityContext, final Node dbNode) {
 
 		this.dbNode          = dbNode;
@@ -293,67 +274,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Discard changes and overwrite the properties map with the values
-	 * from database
-	 */
-	public void discard() {
-
-		// TODO: Implement the full pattern with commit(), discard(), init() etc.
-	}
-
-	/**
-	 * Commit unsaved property values to the database node.
-	 */
-	public void commit(final Principal user) throws FrameworkException {
-
-		isDirty = false;
-
-		// Create an outer transaction to combine any inner neo4j transactions
-		// to one single transaction
-		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-
-		transactionCommand.execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				Command createNode = Services.command(securityContext, CreateNodeCommand.class);
-				AbstractNode s     = (AbstractNode) createNode.execute(user);
-
-				init(securityContext, s);
-
-				Set<String> keys = properties.keySet();
-
-				for (String key : keys) {
-
-					Object value = properties.get(key);
-
-					if ((key != null) && (value != null)) {
-
-						setProperty(key, value, false);    // Don't update index now!
-					}
-
-				}
-
-				return null;
-
-			}
-
-		});
-
-	}
-
-	/**
-	 * Test: Evaluate BeanShell script in this text node.
-	 *
-	 * @return the output
-	 */
-
-//      public String evaluate(HttpServletRequest request) {
-//              return ("");
-//      }
-
-	/**
 	 * Populate the security relationship cache map
 	 */
 	private void populateSecurityRelationshipCacheMap() {
@@ -373,140 +293,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				securityRelationships.put(owner.getId(), r);
 			}
 		}
-
-	}
-
-	/**
-	 * Check if given node may be read by current user.
-	 *
-	 * @return
-	 */
-
-//      public boolean readAllowed() {
-//
-//              // Check global settings first
-//              if (isVisible()) {
-//
-//                      return true;
-//
-//              }
-//
-//              // Then check per-user permissions
-//              return isGranted(AbstractRelationship.Permission.read.name(), user);
-//      }
-
-	/**
-	 * Check if given node may see the navigation tree
-	 *
-	 * @return
-	 */
-//      public boolean showTreeAllowed() {
-//              return isGranted(AbstractRelationship.Permission.showTree.name(), user);
-//      }
-
-	/**
-	 * Check if given node may be written by current user.
-	 *
-	 * @return
-	 */
-//      public boolean writeAllowed() {
-//              return isGranted(AbstractRelationship.Permission.showTree.name(), user);
-//      }
-
-	/**
-	 * Check if given user may create new sub nodes.
-	 *
-	 * @return
-	 */
-//      public boolean createSubnodeAllowed() {
-//              return isGranted(AbstractRelationship.Permission.createNode.name(), user);
-//      }
-
-	/**
-	 * Check if given user may delete this node
-	 *
-	 * @return
-	 */
-//      public boolean deleteNodeAllowed() {
-//              return isGranted(AbstractRelationship.Permission.deleteNode.name(), user);
-//      }
-
-	/**
-	 * Check if given user may add new relationships to this node
-	 *
-	 * @return
-	 */
-//      public boolean addRelationshipAllowed() {
-//              return isGranted(AbstractRelationship.Permission.addRelationship.name(), user);
-//      }
-
-	/**
-	 * Check if given user may edit (set) properties of this node
-	 *
-	 * @return
-	 */
-//      public boolean editPropertiesAllowed() {
-//              return isGranted(AbstractRelationship.Permission.editProperties.name(), user);
-//      }
-
-	/**
-	 * Check if given user may remove relationships to this node
-	 *
-	 * @return
-	 */
-//      public boolean removeRelationshipAllowed() {
-//              return isGranted(AbstractRelationship.Permission.removeRelationship.name(), user);
-//      }
-
-	/**
-	 * Check if access of given node may be controlled by current user.
-	 *
-	 * @return
-	 */
-//      public boolean accessControlAllowed() {
-//
-//              // just in case ...
-//              if (user == null) {
-//
-//                      return false;
-//
-//              }
-//
-//              // superuser
-//              if (user instanceof SuperUser) {
-//
-//                      return true;
-//
-//              }
-//
-//              // node itself
-//              if (this.equals(user)) {
-//
-//                      return true;
-//
-//              }
-//
-//              // owner has always access control
-//              if (user.equals(getOwnerNode())) {
-//
-//                      return true;
-//
-//              }
-//
-//              AbstractRelationship r = getSecurityRelationship(user);
-//
-//              if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
-//
-//                      return true;
-//
-//              }
-//
-//              return false;
-//      }
-	// ----- protected methods -----
-	public static String toGetter(String name) {
-
-		return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
 
 	}
 
@@ -589,6 +375,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Checks if the given object is an Iterable and collects the elements
+	 * into a set. Returns null otherwise.
+	 * 
+	 * @param source
+	 * @return the elements of the given iterable object in a set, or null
+	 */
 	protected Set toSet(Object source) {
 
 		if (source instanceof Iterable) {
@@ -609,6 +402,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Checks if the given object is an Interable and collects the elements
+	 * into a list. Returns null otherwise.
+	 * 
+	 * @param source
+	 * @return the elements of the given iterable object in a list, or null
+	 */
 	protected List toList(Object source) {
 
 		if (source instanceof Iterable) {
@@ -701,6 +501,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a Date object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Date object
+	 */
 	@Override
 	public Date getDateProperty(final PropertyKey key) {
 
@@ -708,6 +514,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a Date object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Date object
+	 */
 	@Override
 	public Date getDateProperty(final String key) {
 
@@ -762,98 +574,47 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Indicates whether this node is visible to public users.
+	 * 
+	 * @return whether this node is visible to public users
+	 */
 	public boolean getVisibleToPublicUsers() {
 		return getBooleanProperty(Key.visibleToPublicUsers.name());
 	}
 
+	/**
+	 * Indicates whether this node is visible to authenticated users.
+	 * 
+	 * @return whether this node is visible to authenticated users
+	 */
 	public boolean getVisibleToAuthenticatedUsers() {
 		return getBooleanProperty(Key.visibleToPublicUsers.name());
 	}
 
+	/**
+	 * Indicates whether this node is hidden.
+	 * 
+	 * @return whether this node is hidden
+	 */
 	public boolean getHidden() {
 		return getBooleanProperty(Key.hidden.name());
 	}
 
+	/**
+	 * Indicates whether this node is deleted.
+	 * 
+	 * @return whether this node is deleted
+	 */
 	public boolean getDeleted() {
 		return getBooleanProperty(Key.deleted.name());
 	}
 
 	/**
-	 * Return a map with all properties of this node. Caution, this method can
-	 * not be used to retrieve the full map of persistent properties. Use
-	 * {@see #getPropertyKeys} instead.
-	 *
-	 * @return
-	 */
-	public Map<String, Object> getPropertyMap() {
-
-		return properties;
-
-	}
-
-	/**
-	 * Return the property signature of a node
-	 *
-	 * @return
-	 */
-	public Map<String, Class> getSignature() {
-
-		Map<String, Class> signature = new HashMap<String, Class>();
-
-		for (String key : getPropertyKeys()) {
-
-			Object prop = getProperty(key);
-
-			if (prop != null) {
-
-				signature.put(key, prop.getClass());
-			}
-
-		}
-
-		return signature;
-
-	}
-
-	/**
-	 * Return all property keys of the underlying database node
-	 *
-	 * @return
-	 */
-	public final Iterable<String> getDatabasePropertyKeys() {
-
-		if (dbNode == null) {
-
-			return null;
-		}
-
-		return dbNode.getPropertyKeys();
-
-	}
-
-	/**
-	 * Return all property keys.
-	 *
-	 * @return
-	 */
-	public Iterable<String> getPropertyKeys() {
-
-		return getPropertyKeys(PropertyView.All);
-
-	}
-
-	/**
-	 * Depending on the given value, return different set of properties for
-	 * a node.
-	 *
-	 * F.e. in Public mode, only the properties suitable for public users should
-	 * be returned.
-	 *
-	 * This method should be overwritten in any subclass where you want to
-	 * hide certain properties in different view modes.
+	 * Returns the property set for the given view as an Iterable.
 	 *
 	 * @param propertyView
-	 * @return
+	 * @return the property set for the given view
 	 */
 	@Override
 	public Iterable<String> getPropertyKeys(final String propertyView) {
@@ -862,6 +623,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the (converted, validated, transformed, etc.) property for the given
+	 * property key.
+	 * 
+	 * @param propertyKey the property key to retrieve the value for
+	 * @return the converted, validated, transformed property value
+	 */
 	@Override
 	public Object getProperty(final PropertyKey propertyKey) {
 
@@ -893,6 +661,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the (converted, validated, transformed, etc.) property for the given
+	 * property key.
+	 * 
+	 * @param propertyKey the property key to retrieve the value for
+	 * @return the converted, validated, transformed property value
+	 */
 	@Override
 	public Object getProperty(final String key) {
 		return getProperty(key, true);
@@ -1025,6 +800,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a String object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a String object
+	 */
 	@Override
 	public String getStringProperty(final PropertyKey propertyKey) {
 
@@ -1050,6 +831,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a String object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a String object
+	 */
 	@Override
 	public String getStringProperty(final String key) {
 
@@ -1070,12 +857,26 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a List of Strings,
+	 * split on [\r\n].
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a List of Strings
+	 */
 	public List<String> getStringListProperty(final PropertyKey propertyKey) {
 
 		return (getStringListProperty(propertyKey.name()));
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a List of Strings,
+	 * split on [\r\n].
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a List of Strings
+	 */
 	public List<String> getStringListProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -1104,12 +905,24 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as an Array of Strings.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as an Array of Strings
+	 */
 	public String getStringArrayPropertyAsString(final PropertyKey propertyKey) {
 
 		return (getStringArrayPropertyAsString(propertyKey.name()));
 
 	}
 
+	/**
+	 * Returns the property value for the given key as an Array of Strings.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as an Array of Strings
+	 */
 	public String getStringArrayPropertyAsString(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -1137,6 +950,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as an Integer object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as an Integer object
+	 */
 	@Override
 	public Integer getIntProperty(final PropertyKey propertyKey) {
 
@@ -1144,6 +963,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as an Integer object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as an Integer object
+	 */
 	@Override
 	public Integer getIntProperty(final String key) {
 
@@ -1173,12 +998,26 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a Long object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Long object
+	 */
+	@Override
 	public Long getLongProperty(final PropertyKey propertyKey) {
 
 		return (getLongProperty(propertyKey.name()));
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a Long object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Long object
+	 */
+	@Override
 	public Long getLongProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -1210,6 +1049,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a Double object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Double object
+	 */
 	@Override
 	public Double getDoubleProperty(final PropertyKey propertyKey) throws FrameworkException {
 
@@ -1217,6 +1062,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a Double object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Double object
+	 */
 	@Override
 	public Double getDoubleProperty(final String key) throws FrameworkException {
 
@@ -1257,6 +1108,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a Boolean object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Boolean object
+	 */
 	@Override
 	public boolean getBooleanProperty(final PropertyKey propertyKey) {
 
@@ -1264,11 +1121,23 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a Comparable
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Comparable
+	 */
 	@Override
 	public Comparable getComparableProperty(final PropertyKey propertyKey) {
 		return getComparableProperty(propertyKey.name());
 	}
 
+	/**
+	 * Returns the property value for the given key as a Comparable
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Comparable
+	 */
 	@Override
 	public Comparable getComparableProperty(final String key) {
 
@@ -1298,6 +1167,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return null;
 	}
 	
+	/**
+	 * Returns a single related node of the given type, following the relationship(s) defined in
+	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
+	 * relationship is not set to OneToMany or ManyToMany.
+	 * 
+	 * @param type the type of the related node to fetch
+	 * @return a single related node of the given type
+	 */
 	public AbstractNode getRelatedNode(Class type) {
 
 		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
@@ -1311,6 +1188,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns a single related node of the given type, following the relationship(s) defined in
+	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
+	 * relationship is not set to OneToOne or ManyToOne.
+	 * 
+	 * @param type the type of the related node to fetch
+	 * @return a single related node of the given type
+	 */
 	public AbstractNode getRelatedNode(PropertyKey propertyKey) {
 
 		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey.name());
@@ -1324,6 +1209,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns a list of related nodes of the given type, following the relationship(s) defined in
+	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
+	 * relationship is not set to OneToMany or ManyToMany.
+	 * 
+	 * @param type the type of the related node to fetch
+	 * @return a single related node of the given type
+	 */
 	public List<AbstractNode> getRelatedNodes(Class type) {
 
 		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
@@ -1337,6 +1230,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns a list of related nodes of the given type, following the relationship(s) defined in
+	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
+	 * relationship is not set to OneToMany or ManyToMany.
+	 * 
+	 * @param type the type of the related node to fetch
+	 * @return a single related node of the given type
+	 */
 	public List<AbstractNode> getRelatedNodes(PropertyKey propertyKey) {
 
 		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey.name());
@@ -1350,6 +1251,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the property value for the given key as a Boolean object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Boolean object
+	 */
 	@Override
 	public boolean getBooleanProperty(final String key) {
 
@@ -1374,9 +1281,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Return database node
+	 * Returns database node.
 	 *
-	 * @return
+	 * @return the database node
 	 */
 	public Node getNode() {
 
@@ -1524,9 +1431,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Return owner node
+	 * Returns the owner node of this node, following an INCOMING OWNS relationship.
 	 *
-	 * @return
+	 * @return the owner node of this node
 	 */
 	@Override
 	public Principal getOwnerNode() {
@@ -1562,26 +1469,16 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns the database ID of the owner node of this node.
+	 * 
+	 * @return the database ID of the owner node of this node
+	 */
 	public Long getOwnerId() {
 
 		return getOwnerNode().getId();
 
 	}
-
-	/**
-	 * Return owner
-	 *
-	 * @return
-	 */
-
-//      public String getOwner() {
-//
-//              Principal owner = getOwnerNode();
-//
-//              return ((owner != null)
-//                      ? owner.getRealName() + " (" + owner.getStringProperty(AbstractNode.Key.name) + ")"
-//                      : null);
-//      }
 
 	/**
 	 * Return a list with the connected principals (user, group, role)
@@ -1601,40 +1498,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return principalList;
-
-	}
-
-	@Override
-	public Date getVisibilityStartDate() {
-
-		return getDateProperty(Key.visibilityStartDate.name());
-
-	}
-
-	@Override
-	public Date getVisibilityEndDate() {
-
-		return getDateProperty(Key.visibilityEndDate.name());
-
-	}
-
-	@Override
-	public Date getCreatedDate() {
-
-		return getDateProperty(Key.createdDate.name());
-
-	}
-
-	@Override
-	public Date getLastModifiedDate() {
-
-		return getDateProperty(Key.lastModifiedDate.name());
-
-	}
-
-	public AbstractComponent getHelpContent() {
-
-		return (null);
 
 	}
 
@@ -1780,6 +1643,26 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		return getHidden();
 
+	}
+	
+	@Override
+	public Date getVisibilityStartDate() {
+		return getDateProperty(Key.visibilityStartDate);
+	}
+	
+	@Override
+	public Date getVisibilityEndDate() {
+		return getDateProperty(Key.visibilityEndDate);
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return getDateProperty(Key.createdDate);
+	}
+	
+	@Override
+	public Date getLastModifiedDate() {
+		return getDateProperty(Key.lastModifiedDate);
 	}
 
 	// ----- end interface AccessControllable -----

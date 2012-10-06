@@ -35,48 +35,311 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public interface GraphObject {
 
-	// ----- common to both types -----
+	// ----- methods common to both types -----
+	/**
+	 * Returns the database ID of this graph object.
+	 * 
+	 * @return the database ID
+	 */
 	public long getId();
+	
+	/**
+	 * Returns the UUID of this graph object.
+	 * 
+	 * @return the UUID
+	 */
 	public String getUuid();
+	
+	/**
+	 * Returns the type of this graph object.
+	 * 
+	 * @return the type
+	 */
 	public String getType();
 
+	/**
+	 * Returns the property set for the given view as an Iterable.
+	 *
+	 * @param propertyView
+	 * @return the property set for the given view
+	 */
 	public Iterable<String> getPropertyKeys(String propertyView);
+	
+	/**
+	 * Sets the property with the given key to the given value.
+	 * 
+	 * @param key the property key to set
+	 * @param value the value to set
+	 * @throws FrameworkException 
+	 */
 	public void setProperty(final String key, Object value) throws FrameworkException;
-	public void setProperty(final PropertyKey key, Object value) throws FrameworkException;
-	public Object getProperty(final String key);
-        public Object getProperty(final PropertyKey propertyKey);
-	public String getStringProperty(final String key);
-	public String getStringProperty(final PropertyKey propertyKey);
-	public Integer getIntProperty(final String key);
-	public Integer getIntProperty(final PropertyKey propertyKey);
-	public Long getLongProperty(final String key);
-	public Long getLongProperty(final PropertyKey propertyKey);
-	public Date getDateProperty(final String key);
-        public Date getDateProperty(final PropertyKey key);
-	public boolean getBooleanProperty(final String key) throws FrameworkException ;
-        public boolean getBooleanProperty(final PropertyKey key) throws FrameworkException ;
-	public Double getDoubleProperty(final String key) throws FrameworkException ;
-        public Double getDoubleProperty(final PropertyKey key) throws FrameworkException ;
-	public Comparable getComparableProperty(final PropertyKey key) throws FrameworkException;
-	public Comparable getComparableProperty(final String key) throws FrameworkException;
-	public Object getPropertyForIndexing(final String key);
-	public void removeProperty(final String key) throws FrameworkException;
 
+	/**
+	 * Sets the property with the given key to the given value.
+	 * 
+	 * @param key the property key to set
+	 * @param value the value to set
+	 * @throws FrameworkException 
+	 */
+	public void setProperty(final PropertyKey key, Object value) throws FrameworkException;
+	
+
+	/**
+	 * Returns the (converted, validated, transformed, etc.) property for the given
+	 * property key.
+	 * 
+	 * @param propertyKey the property key to retrieve the value for
+	 * @return the converted, validated, transformed property value
+	 */
+	public Object getProperty(final String key);
+
+
+	/**
+	 * Returns the (converted, validated, transformed, etc.) property for the given
+	 * property key.
+	 * 
+	 * @param propertyKey the property key to retrieve the value for
+	 * @return the converted, validated, transformed property value
+	 */
+	public Object getProperty(final PropertyKey propertyKey);
+
+	/**
+	 * Returns the property value for the given key as a String object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a String object
+	 */
+	public String getStringProperty(final String key);
+
+	/**
+	 * Returns the property value for the given key as a String object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a String object
+	 */
+	public String getStringProperty(final PropertyKey propertyKey);
+
+	/**
+	 * Returns the property value for the given key as an Integer object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as an Integer object
+	 */
+	public Integer getIntProperty(final String key);
+
+	/**
+	 * Returns the property value for the given key as an Integer object.
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as an Integer object
+	 */
+	public Integer getIntProperty(final PropertyKey propertyKey);
+
+	/**
+	 * Returns the property value for the given key as a Long object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Long object
+	 */
+	public Long getLongProperty(final String key);
+
+	/**
+	 * Returns the property value for the given key as a Long object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Long object
+	 */
+	public Long getLongProperty(final PropertyKey propertyKey);
+
+	/**
+	 * Returns the property value for the given key as a Date object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Date object
+	 */
+	public Date getDateProperty(final String key);
+
+	/**
+	 * Returns the property value for the given key as a Date object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Date object
+	 */
+        public Date getDateProperty(final PropertyKey key);
+
+	/**
+	 * Returns the property value for the given key as a Boolean object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Boolean object
+	 */
+	public boolean getBooleanProperty(final String key) throws FrameworkException ;
+
+	/**
+	 * Returns the property value for the given key as a Boolean object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Boolean object
+	 */
+        public boolean getBooleanProperty(final PropertyKey key) throws FrameworkException ;
+
+	/**
+	 * Returns the property value for the given key as a Double object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Double object
+	 */
+	public Double getDoubleProperty(final String key) throws FrameworkException ;
+
+	/**
+	 * Returns the property value for the given key as a Double object
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Double object
+	 */
+        public Double getDoubleProperty(final PropertyKey key) throws FrameworkException ;
+
+	/**
+	 * Returns the property value for the given key as a Comparable
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Comparable
+	 */
+	public Comparable getComparableProperty(final PropertyKey key) throws FrameworkException;
+
+	/**
+	 * Returns the property value for the given key that will be used
+	 * for indexing.
+	 * 
+	 * @param key the key to index the value for
+	 * @return the property value for indexing
+	 */
+	public Object getPropertyForIndexing(final String key);
+
+	/**
+	 * Returns the property value for the given key as a Comparable
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Comparable
+	 */
+	public Comparable getComparableProperty(final String key) throws FrameworkException;
+
+	/**
+	 * Removes the property value for the given key from this graph object.
+	 * 
+	 * @param key the key to remove the value for
+	 * @throws FrameworkException 
+	 */
+	public void removeProperty(final String key) throws FrameworkException;
+	
+	/**
+	 * Returns the default sort key for this entitiy.
+	 * 
+	 * @return the default sort key
+	 */
 	public PropertyKey getDefaultSortKey();
+
+	/**
+	 * Returns the default sort order for this entity.
+	 * 
+	 * @return the default sort order
+	 */
 	public String getDefaultSortOrder();
 
+	/**
+	 * Unlock all read-only properties in this entitiy for a single <code>setProperty</code>
+	 * call.
+	 */
 	public void unlockReadOnlyPropertiesOnce();
 	
-	// callback methods
+	// ----- callback methods -----
+	/**
+	 * Called when an entity of this type is created in the database. This method can cause
+	 * the underlying transaction to be rolled back in case of an error, either by throwing
+	 * an exception, or by returning false.
+	 * 
+	 * @param securityContext the context in which the creation takes place
+	 * @param errorBuffer the error buffer to put error tokens into
+	 * @return true if the transaction can go on, false if an error occurred
+	 * @throws FrameworkException 
+	 */
 	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+
+	/**
+	 * Called when an entity of this type is modified. This method can cause the underlying
+	 * transaction to be rolled back in case of an error, either by throwing an exception,
+	 * or by returning false.
+	 * 
+	 * @param securityContext the context in which the modification takes place
+	 * @param errorBuffer the error buffer to put error tokens into
+	 * @return true if the transaction can go on, false if an error occurred
+	 * @throws FrameworkException 
+	 */
 	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+
+	/**
+	 * Called when an entity of this type is deleted. This method can cause the underlying
+	 * transaction to be rolled back in case of an error, either by throwing an exception,
+	 * or by returning false.
+	 * 
+	 * @param securityContext the context in which the deletion takes place
+	 * @param errorBuffer the error buffer to put error tokens into
+	 * @return true if the transaction can go on, false if an error occurred
+	 * @throws FrameworkException 
+	 */
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException;
 
+	/**
+	 * Called when an entity was successfully created. Please note that this method
+	 * will run in its own toplevel transaction and can NOT cause the creation
+	 * transaction to be rolled back.
+	 * 
+	 * @param securityContext the context in which the creation took place
+	 */
 	public void afterCreation(SecurityContext securityContext);
+
+	/**
+	 * Called when an entity was successfully modified. Please note that this method
+	 * will run in its own toplevel transaction and can NOT cause the modification
+	 * transaction to be rolled back.
+	 * 
+	 * @param securityContext the context in which the modification took place
+	 */
 	public void afterModification(SecurityContext securityContext);
+
+	/**
+	 * Called when an entity was successfully deleted. Please note that this method
+	 * will run in its own toplevel transaction and can NOT cause the deletion
+	 * transaction to be rolled back.
+	 * 
+	 * @param securityContext the context in which the deletion took place
+	 */
 	public void afterDeletion(SecurityContext securityContext);
 	
+	/**
+	 * Called when the owner of this entity was successfully modified. Please note
+	 * that this method will run in its own toplevel transaction and can NOT prevent
+	 * the owner modification.
+	 * 
+	 * @param securityContext the context in which the owner modification took place
+	 */
 	public void ownerModified(SecurityContext securityContext);
+	
+	/**
+	 * Called when the permissions of this entity were successfully modified. Please note
+	 * that this method will run in its own toplevel transaction and can NOT prevent the
+	 * permission modification.
+	 * 
+	 * @param securityContext the context in which the permission modification took place
+	 */
 	public void securityModified(SecurityContext securityContext);
+	
+	/**
+	 * Called when the location of this entity was successfully modified. Please note
+	 * that this method will run in its own toplevel transaction and can NOT prevent the
+	 * permission modification.
+	 * 
+	 * @param securityContext the context in which the location modification took place
+	 */
 	public void locationModified(SecurityContext securityContext);
 }
