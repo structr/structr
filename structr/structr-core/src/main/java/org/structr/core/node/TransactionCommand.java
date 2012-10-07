@@ -178,6 +178,11 @@ public class TransactionCommand extends NodeServiceCommand {
 			final Queue<AbstractNode> propagationQueue = changeSet.getPropagationQueue();
 			final Set<AbstractNode> propagationSet     = new LinkedHashSet<AbstractNode>();
 
+			// add initial set of modified nodes; this line makes sure that the
+			// modified nodes themselves are notified of a propagated change
+			// as well.
+			propagationSet.addAll(propagationQueue);
+			
 			if (!propagationQueue.isEmpty()) {
 				
 				do {

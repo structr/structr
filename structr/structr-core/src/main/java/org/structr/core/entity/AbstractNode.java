@@ -1174,7 +1174,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the property value for the given key as a Iterable
 	 */
 	public Iterable getIterableProperty(final PropertyKey propertyKey) {
-		return getIterableProperty(propertyKey);
+		return (Iterable)getProperty(propertyKey);
 	}
 
 	/**
@@ -1649,7 +1649,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {
-		logger.log(Level.INFO, "Propagated modification: type {0}, UUID {1}", new Object[] { getType(), getUuid() } );
 	}
 	
 	public boolean isValid(ErrorBuffer errorBuffer) {
