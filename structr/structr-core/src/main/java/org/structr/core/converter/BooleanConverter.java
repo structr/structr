@@ -30,6 +30,7 @@ import org.structr.core.Value;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.ArrayUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,6 +41,7 @@ import java.util.logging.Logger;
 public class BooleanConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(BooleanConverter.class.getName());
+	private static final String[] TRUE_VALUES = { "true", "1", "on" };
 
 	//~--- methods --------------------------------------------------------
 
@@ -63,7 +65,15 @@ public class BooleanConverter extends PropertyConverter {
 					return false;
 				}
 
-				return BooleanUtils.toBoolean((String) source, "true", "false");
+				return ArrayUtils.contains(TRUE_VALUES, (String) source);
+			} else if (source instanceof Integer) {
+
+				return ((Integer) source) == 1;
+
+			} else if (source instanceof Long) {
+
+				return ((Long) source) == 1L;
+
 
 			}
 
