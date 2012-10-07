@@ -1166,11 +1166,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		
 		return null;
 	}
-	
-	public Iterable getIterableProperty(final PropertyKey key) {
-		return (Iterable)getProperty(key);
+
+	/**
+	 * Returns the property value for the given key as a Iterable
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Iterable
+	 */
+	public Iterable getIterableProperty(final PropertyKey propertyKey) {
+		return getIterableProperty(propertyKey);
 	}
-	
+
 	/**
 	 * Returns a single related node of the given type, following the relationship(s) defined in
 	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
