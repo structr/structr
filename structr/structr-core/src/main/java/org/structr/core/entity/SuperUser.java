@@ -93,16 +93,16 @@ public class SuperUser implements Principal {
 	public void afterDeletion(SecurityContext securityContext) {}
 
 	@Override
-	public void ownerModified(SecurityContext securityContext) {
-	}
+	public void ownerModified(SecurityContext securityContext) {}
 
 	@Override
-	public void securityModified(SecurityContext securityContext) {
-	}
+	public void securityModified(SecurityContext securityContext) {}
 
 	@Override
-	public void locationModified(SecurityContext securityContext) {
-	}
+	public void locationModified(SecurityContext securityContext) {}
+
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -371,5 +371,4 @@ public class SuperUser implements Principal {
 
 	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
-
 }

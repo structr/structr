@@ -120,7 +120,7 @@ public class PerformanceTest extends StructrTest {
 			Double rate                 = number / ((t1 - t0) / 1000000000.0);
 
 			logger.log(Level.INFO, "Created {0} relationships in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
-			assertTrue(rate > 100);
+			assertTrue(rate > 50);
 
 		} catch (FrameworkException ex) {
 
