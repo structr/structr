@@ -22,6 +22,8 @@
 package org.structr.core.node;
 
 
+import java.util.LinkedHashSet;
+import java.util.Queue;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import java.util.concurrent.atomic.AtomicLong;
@@ -38,6 +40,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.TransactionChangeSet;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -169,12 +172,39 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 		if(topLevelTransaction) {
 
+			TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet();
+
+			// determine propagation set
+			final Queue<AbstractNode> propagationQueue = changeSet.getPropagationQueue();
+			final Set<AbstractNode> propagationSet     = new LinkedHashSet<AbstractNode>();
+
+			// add initial set of modified nodes; this line makes sure that the
+			// modified nodes themselves are notified of a propagated change
+			// as well.
+			propagationSet.addAll(propagationQueue);
+			
+			if (!propagationQueue.isEmpty()) {
+				
+				do {
+
+					final AbstractNode node = propagationQueue.poll();
+					if (!propagationSet.contains(node)) {
+
+						propagationSet.addAll(node.getNodesForModificationPropagation());
+					}
+
+				} while(!propagationQueue.isEmpty());
+			}
+			
+			
 			Transaction postProcessingTransaction = graphDb.beginTx();
 
 			try {
 
-				TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet();
+				// TEST: propagated modification event
+				propagateModification(securityContext, propagationSet);
 				
+				// after transaction callbacks
 				afterCreation(securityContext, changeSet.getCreatedNodes());
 				afterCreation(securityContext, changeSet.getCreatedRelationships());
 
@@ -280,6 +310,16 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			for(GraphObject obj : data) {
 				obj.locationModified(securityContext);
+			}
+		}
+	}
+
+	private void propagateModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
+		
+		if(data != null && !data.isEmpty()) {
+			
+			for(GraphObject obj : data) {
+				obj.propagatedModification(securityContext);
 			}
 		}
 	}

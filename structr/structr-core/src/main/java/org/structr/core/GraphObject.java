@@ -342,4 +342,11 @@ public interface GraphObject {
 	 * @param securityContext the context in which the location modification took place
 	 */
 	public void locationModified(SecurityContext securityContext);
+	
+	/**
+	 * Called when a non-local modification occurred in the neighbourhood of this node.
+	 * 
+	 * @param securityContext 
+	 */
+	public void propagatedModification(SecurityContext securityContext);
 }

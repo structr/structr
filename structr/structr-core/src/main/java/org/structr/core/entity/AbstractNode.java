@@ -1166,7 +1166,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		
 		return null;
 	}
-	
+
+	/**
+	 * Returns the property value for the given key as a Iterable
+	 * 
+	 * @param key the property key to retrieve the value for
+	 * @return the property value for the given key as a Iterable
+	 */
+	public Iterable getIterableProperty(final PropertyKey propertyKey) {
+		return (Iterable)getProperty(propertyKey);
+	}
+
 	/**
 	 * Returns a single related node of the given type, following the relationship(s) defined in
 	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
@@ -1251,6 +1261,37 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	/**
+	 * Returns a list of related nodes for which a modification propagation is configured
+	 * via the relationship.
+	 * 
+	 * @return a list of nodes to which modifications should be propagated
+	 */
+	public Set<AbstractNode> getNodesForModificationPropagation() {
+		
+		Set<AbstractNode> propagationNodes = new LinkedHashSet<AbstractNode>();
+		
+		// iterate over incoming relationships
+		for (AbstractRelationship rel : getIncomingRelationships()) {
+			
+			if (rel.propagatesModifications(Direction.INCOMING)) {
+				
+				propagationNodes.add(rel.getStartNode());
+			}
+		}
+		
+		// iterate over outgoing relationships
+		for (AbstractRelationship rel : getOutgoingRelationships()) {
+			
+			if (rel.propagatesModifications(Direction.OUTGOING)) {
+				
+				propagationNodes.add(rel.getEndNode());
+			}
+		}
+		
+		return propagationNodes;
+	}
+	
 	/**
 	 * Returns the property value for the given key as a Boolean object
 	 * 
@@ -1604,6 +1645,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	
 	@Override
 	public void locationModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {
 	}
 	
 	public boolean isValid(ErrorBuffer errorBuffer) {
