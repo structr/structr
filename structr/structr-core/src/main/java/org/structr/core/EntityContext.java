@@ -57,6 +57,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.core.node.NodeService.RelationshipIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -560,6 +562,16 @@ public class EntityContext {
 		}
 
 		validators.add(validator);
+		
+		// Automatically register the property key as searchable key,
+		// so that the uniqueness validators work
+		
+		if (AbstractNode.class.isAssignableFrom(type)) {
+			EntityContext.registerSearchableProperty(type, NodeIndex.keyword.name(), propertyKey);
+		} else if (AbstractRelationship.class.isAssignableFrom(type)) {
+			EntityContext.registerSearchableProperty(type, RelationshipIndex.rel_keyword.name(), propertyKey);
+		}
+		
 	}
 
 
