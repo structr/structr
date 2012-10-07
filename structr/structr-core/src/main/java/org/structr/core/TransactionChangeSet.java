@@ -19,7 +19,9 @@
 package org.structr.core;
 
 import java.util.LinkedHashSet;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
@@ -30,6 +32,8 @@ import org.structr.core.entity.AbstractRelationship;
  * @author Christian Morgner
  */
 public class TransactionChangeSet {
+
+	private Queue<AbstractNode> propagationQueue    = new ConcurrentLinkedQueue<AbstractNode>();
 	
 	private Set<AbstractRelationship> modifiedRels  = new LinkedHashSet<AbstractRelationship>();
 	private Set<AbstractRelationship> createdRels   = new LinkedHashSet<AbstractRelationship>();
@@ -56,6 +60,8 @@ public class TransactionChangeSet {
 		ownerModifiedNodes.addAll(changeSet.getOwnerModifiedNodes());
 		securityModifiedNodes.addAll(changeSet.getSecurityModifiedNodes());
 		locationModifiedNodes.addAll(changeSet.getLocationModifiedNodes());
+		
+		propagationQueue.addAll(changeSet.getPropagationQueue());
 	}
 	
 	public void clear() {
@@ -70,6 +76,8 @@ public class TransactionChangeSet {
 		ownerModifiedNodes.clear();
 		securityModifiedNodes.clear();
 		locationModifiedNodes.clear();
+		
+		propagationQueue.clear();
 	}
 	
 	public boolean isNew(AbstractNode node) {
@@ -98,10 +106,12 @@ public class TransactionChangeSet {
 	
 	public void create(AbstractNode created) {
 		createdNodes.add(created);
+		propagationQueue.add(created);
 	}
 
 	public void modify(AbstractNode modified) {
 		modifiedNodes.add(modified);
+		propagationQueue.add(modified);
 	}
 	
 	public void delete(AbstractNode deleted) {
@@ -142,6 +152,7 @@ public class TransactionChangeSet {
 					modify(node);
 					break;
 			}
+			
 		} else {
 			modify(node);
 			
@@ -150,14 +161,17 @@ public class TransactionChangeSet {
 	
 	public void modifyOwner(AbstractNode ownerModified) {
 		ownerModifiedNodes.add(ownerModified);
+		propagationQueue.add(ownerModified);
 	}
 	
 	public void modifySecurity(AbstractNode securityModified) {
 		securityModifiedNodes.add(securityModified);
+		propagationQueue.add(securityModified);
 	}
 	
 	public void modifyLocation(AbstractNode locationModified) {
 		locationModifiedNodes.add(locationModified);
+		propagationQueue.add(locationModified);
 	}
 	
 	public Set<AbstractRelationship> getModifiedRelationships() {
@@ -194,5 +208,9 @@ public class TransactionChangeSet {
 
 	public Set<AbstractNode> getLocationModifiedNodes() {
 		return locationModifiedNodes;
+	}
+	
+	public Queue<AbstractNode> getPropagationQueue() {
+		return propagationQueue;
 	}
 }

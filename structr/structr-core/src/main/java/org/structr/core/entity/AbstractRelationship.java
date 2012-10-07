@@ -379,6 +379,20 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		setAllowed((String[]) ArrayUtils.removeElement(allowed, permission.name()));
 
 	}
+	
+	/**
+	 * Indicates whether this relationship type propagates modifications
+	 * in the given direction. Overwrite this method and return true for
+	 * the desired direction to enable a callback on non-local node
+	 * modification.
+	 * 
+	 * @param direction the direction for which the propagation should is to be returned
+	 * @return the propagation status for the given direction
+	 */
+	public boolean propagatesModifications(Direction direction) {
+		return false;
+	}
+	
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -1061,6 +1075,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	
 	@Override
 	public void locationModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {
 	}
 	
 	private boolean isValid(ErrorBuffer errorBuffer) {
