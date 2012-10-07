@@ -133,12 +133,7 @@ public class PagingHelper {
 
 	public static Result addPagingParameter(Result result, int pageSize, int page) {
 
-		if (page < 1) {
-
-			page = 1;
-		}
-
-		if (pageSize > 0) {
+		if (pageSize > 0 && pageSize < Integer.MAX_VALUE) {
 
 			int pageCount = getPageCount(result.getRawResultCount(), pageSize);
 
@@ -147,11 +142,6 @@ public class PagingHelper {
 				result.setPageCount(pageCount);
 			}
 
-//                      if (page > pageCount) {
-//
-//                              page = pageCount;
-//
-//                      }
 			result.setPage(page);
 			result.setPageSize(pageSize);
 
