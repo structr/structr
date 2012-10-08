@@ -21,22 +21,28 @@
 
 package org.structr.core.converter;
 
+import net.sf.jmimemagic.Magic;
+import net.sf.jmimemagic.MagicMatch;
+
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.ImageHelper;
 import org.structr.core.Value;
+import org.structr.core.entity.Image;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicMatch;
+import org.structr.common.PropertyKey;
+import org.structr.core.Services;
+import org.structr.core.node.IndexNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Converts image data into an image node and returns its uuid for the setter
+ * Converts image data into an image node sets its id as the property
+ * with the key from the given value
  *
  * @author Axel Morgner
  */
@@ -56,22 +62,31 @@ public class ImageConverter extends PropertyConverter {
 
 		try {
 
+			Image img = null;
+			
 			if (source instanceof byte[]) {
-				
-				byte[] data = (byte[]) source;
-				MagicMatch match = Magic.getMagicMatch(data);
-				String mimeType = match.getMimeType();
 
-				return ImageHelper.createImage(securityContext, data, mimeType).getUuid();
-				
+				byte[] data      = (byte[]) source;
+				MagicMatch match = Magic.getMagicMatch(data);
+				String mimeType  = match.getMimeType();
+
+				img = ImageHelper.createImage(securityContext, data, mimeType, Image.class);
+
 			} else if (source instanceof String) {
 
 				if (StringUtils.isNotBlank((String) source)) {
 
-					return ImageHelper.createImageBase64(securityContext, (String) source).getUuid();
+					img = ImageHelper.createImageBase64(securityContext, (String) source, Image.class);
 				}
 
 			}
+
+			// manual indexing needed here
+			Services.command(securityContext, IndexNodeCommand.class).execute(img);
+			
+			currentObject.setProperty((PropertyKey) value.get(securityContext), img.getUuid());
+			
+			return null;
 
 		} catch (Throwable t) {
 
@@ -81,14 +96,31 @@ public class ImageConverter extends PropertyConverter {
 
 		}
 
-		return source;
-
 	}
 
 	@Override
 	public Object convertForGetter(Object source, Value value) {
 
 		return source;
+
+//              
+//              if (source == null) {
+//
+//                      return null;
+//              }
+//
+//              try {
+//
+//                      return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(source);
+//
+//              } catch (Throwable t) {
+//
+//                      logger.log(Level.WARNING, "Cannot retrieve image node from source data", t);
+//
+//                      return null;
+//
+//              }
+//
 
 	}
 

@@ -35,6 +35,8 @@ import org.structr.core.entity.File;
 import org.structr.core.entity.Image;
 import org.structr.core.node.CreateNodeCommand;
 
+import util.Base64;
+
 //~--- JDK imports ------------------------------------------------------------
 
 import java.awt.image.BufferedImage;
@@ -45,6 +47,7 @@ import java.io.InputStream;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -64,83 +67,60 @@ public abstract class ImageHelper {
 	//~--- methods --------------------------------------------------------
 
 	/**
+	 * Create a new image node from image data encoded in base64 format
+	 *
+	 * @param securityContext
+	 * @param rawData
+	 * @param imageType
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static Image createImageBase64(final SecurityContext securityContext, final String rawData, final Class<? extends Image> imageType) throws FrameworkException, IOException {
+
+		Base64URIData uriData = new Base64URIData(rawData);
+
+		return createImage(securityContext, uriData.getBinaryData(), uriData.getContentType(), imageType);
+
+	}
+
+	public static void decodeAndWriteToFile(final File fileNode, final String rawData) throws FrameworkException, IOException {
+
+		Base64URIData uriData = new Base64URIData(rawData);
+
+		FileHelper.writeToFile(fileNode, uriData.getBinaryData());
+		fileNode.setContentType(uriData.getContentType());
+
+	}
+
+	/**
 	 * Create a new image node from the given image data
-	 * 
+	 *
 	 * @param securityContext
 	 * @param imageData
 	 * @param contentType
+	 * @param imageType
 	 * @return
 	 * @throws FrameworkException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
-	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType) throws FrameworkException, IOException {
+	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType)
+		throws FrameworkException, IOException {
 
 		Command createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
 		Map<String, Object> props = new HashMap();
 
-		props.put(AbstractNode.Key.type.name(), Image.class.getSimpleName());
+		props.put(AbstractNode.Key.type.name(), imageType.getSimpleName());
 		props.put(File.Key.contentType.name(), contentType);
 
 		Image newImage = (Image) createNodeCommand.execute(props);
-		String uuid    = newImage.getStringProperty(AbstractNode.Key.uuid);
 
-		newImage.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
-
-		java.io.File fileOnDisk = new java.io.File(Services.getFilesPath() + "/" + newImage.getRelativeFilePath());
-
-		fileOnDisk.getParentFile().mkdirs();
-		FileUtils.writeByteArrayToFile(fileOnDisk, imageData);
+		FileHelper.writeToFile(newImage, imageData);
 
 		return newImage;
 
 	}
 
-	/**
-	 * Create a new image node from image data encoded in base64 format
-	 * 
-	 * @param securityContext
-	 * @param rawData
-	 * @return
-	 * @throws FrameworkException
-	 * @throws IOException 
-	 */
-	public static Image createImageBase64(final SecurityContext securityContext, final String rawData) throws FrameworkException, IOException {
-
-		Base64URIData uriData = new Base64URIData(rawData);
-		
-		return createImage(securityContext, uriData.getBinaryData(), uriData.getContentType());
-
-	}
-	
-	public static class Base64URIData {
-		
-		private String contentType;
-		private String data;
-		
-		public Base64URIData(final String rawData) {
-			
-			String[] parts = StringUtils.split(rawData, ",");
-			
-			data = parts[1];
-			
-			contentType = StringUtils.substringBetween(parts[0], "data:", ";base64");
-		}
-		
-		public String getContentType() {
-			return contentType;
-		}
-		
-		public String getData() {
-			return data;
-		}
-		
-		public byte[] getBinaryData() {
-			return Base64.decode(data);
-		}
-		
-		
-	}
-	
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
 
 		return createThumbnail(originalImage, maxWidth, maxHeight, false);
@@ -413,6 +393,45 @@ public abstract class ImageHelper {
 	}
 
 	//~--- inner classes --------------------------------------------------
+
+	public static class Base64URIData {
+
+		private String contentType;
+		private String data;
+
+		//~--- constructors -------------------------------------------
+
+		public Base64URIData(final String rawData) {
+
+			String[] parts = StringUtils.split(rawData, ",");
+
+			data        = parts[1];
+			contentType = StringUtils.substringBetween(parts[0], "data:", ";base64");
+
+		}
+
+		//~--- get methods --------------------------------------------
+
+		public String getContentType() {
+
+			return contentType;
+
+		}
+
+		public String getData() {
+
+			return data;
+
+		}
+
+		public byte[] getBinaryData() {
+
+			return Base64.decode(data);
+
+		}
+
+	}
+
 
 	public static class Thumbnail {
 

@@ -52,6 +52,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.ImageHelper;
 import org.structr.common.ImageHelper.Thumbnail;
+import org.structr.core.converter.ImageConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,8 +70,12 @@ public class Image extends File {
 	static {
 
 		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
+		
 		EntityContext.registerPropertySet(Image.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(Image.class, PropertyView.Ui, Key.values());
+		
+		// Write data to disk (and convert, if it's a base64 encoded string)
+		EntityContext.registerPropertyConverter(Image.class, HiddenKey.imageData, ImageConverter.class);
 
 	}
 
@@ -82,6 +87,8 @@ public class Image extends File {
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey{ height, width; }
+	
+	public enum HiddenKey implements PropertyKey{ imageData }
 
 	//~--- methods --------------------------------------------------------
 
