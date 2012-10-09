@@ -285,19 +285,30 @@ public abstract class Resource {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(List<? extends GraphObject> list) {
+	protected void applyDefaultSorting(List<? extends GraphObject> list, String sortKey, boolean sortDescending) {
 
 		if (!list.isEmpty()) {
 
-			// Apply default sorting, if defined
-			PropertyKey defaultSort = list.get(0).getDefaultSortKey();
+			String finalSortKey   = sortKey;
+			String finalSortOrder = sortDescending ? "desc" : "asc";
+			
+			if (finalSortKey == null) {
 
-			if (defaultSort != null) {
+				// Apply default sorting, if defined
+				GraphObject obj = list.get(0);
+				
+				PropertyKey defaultSort = obj.getDefaultSortKey();
 
-				String defaultOrder = list.get(0).getDefaultSortOrder();
+				if (defaultSort != null) {
 
-				Collections.sort(list, new GraphObjectComparator(defaultSort.name(), defaultOrder));
+					finalSortKey   = defaultSort.name();
+					finalSortOrder = obj.getDefaultSortOrder();
+				}
+			}
 
+			if (finalSortKey != null) {
+				
+				Collections.sort(list, new GraphObjectComparator(finalSortKey, finalSortOrder));
 			}
 		}
 	}

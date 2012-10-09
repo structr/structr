@@ -92,7 +92,7 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 				return -1;
 			}
 			
-			if (DESCENDING.equals(sortOrder)) {
+			if (DESCENDING.equalsIgnoreCase(sortOrder)) {
 
 				return (c2.compareTo(c1));
 

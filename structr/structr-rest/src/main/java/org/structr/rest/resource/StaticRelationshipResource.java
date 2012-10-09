@@ -119,7 +119,7 @@ public class StaticRelationshipResource extends SortableResource {
 						// Caution: intersection may not be empty
 						// if (!intersection.isEmpty()) {
 							
-						applyDefaultSorting(intersection);
+						applyDefaultSorting(intersection, sortKey, sortDescending);
 
 						return new Result(PagingHelper.subList(intersection, pageSize, page, offsetId), intersection.size(), isCollectionResource(), isPrimitiveArray());
 					}
@@ -127,7 +127,7 @@ public class StaticRelationshipResource extends SortableResource {
 					// return non-empty list
 					if (!relatedNodes.isEmpty()) {
 
-						applyDefaultSorting(relatedNodes);
+						applyDefaultSorting(relatedNodes, sortKey, sortDescending);
 
 						return new Result(PagingHelper.subList(relatedNodes, pageSize, page, offsetId), relatedNodes.size(), isCollectionResource(), isPrimitiveArray());
 					}
@@ -174,7 +174,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 							List<GraphObject> list = (List<GraphObject>) value;
 
-							applyDefaultSorting(list);
+							applyDefaultSorting(list, sortKey, sortDescending);
 
 							//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
 							return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
@@ -198,6 +198,8 @@ public class StaticRelationshipResource extends SortableResource {
 								}
 
 							}
+
+							applyDefaultSorting(propertyListResult, sortKey, sortDescending);
 
 							//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
 							return new Result(PagingHelper.subList(propertyListResult, pageSize, page, offsetId), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
