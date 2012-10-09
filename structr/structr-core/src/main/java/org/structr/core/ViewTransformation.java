@@ -19,11 +19,22 @@
 package org.structr.core;
 
 import java.util.List;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 /**
- *
+ * A transformation that can be applied to the result set of a resource.
+ * 
  * @author Christian Morgner
  */
 public interface ViewTransformation extends Transformation<List<? extends GraphObject>> {
+
+	public void apply(SecurityContext securityContext, List<? extends GraphObject> list) throws FrameworkException;
+	
+	/**
+	 * Indicates whether the underlying resource should be evaluated.
+	 * 
+	 * @return whether the underlying resource should be evaluated.
+	 */
 	public boolean evaluateWrappedResource();
 }

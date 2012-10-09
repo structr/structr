@@ -43,7 +43,6 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 
 	//~--- fields ---------------------------------------------------------
 
-	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 	private String sortKey;
 	private String sortOrder;
 

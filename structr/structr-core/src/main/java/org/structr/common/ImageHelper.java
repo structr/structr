@@ -23,7 +23,6 @@ package org.structr.common;
 
 import com.mortennobel.imagescaling.ResampleOp;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
 
@@ -35,7 +34,6 @@ import org.structr.core.entity.File;
 import org.structr.core.entity.Image;
 import org.structr.core.node.CreateNodeCommand;
 
-import util.Base64;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -47,11 +45,11 @@ import java.io.InputStream;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import org.geotools.data.Base64;
 
 //~--- classes ----------------------------------------------------------------
 

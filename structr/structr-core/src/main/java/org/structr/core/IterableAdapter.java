@@ -19,6 +19,7 @@
 
 package org.structr.core;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,11 +38,17 @@ public class IterableAdapter<S, T> implements Iterable<T>
 	private static final Logger logger = Logger.getLogger(IterableAdapter.class.getName());
 	private Iterator<S> sourceIterator = null;
 	private Adapter<S, T> adapter = null;
+	private int size = -1;
 
 	public IterableAdapter(Iterable<S> source, Adapter<S, T> adapter)
 	{
 		this.sourceIterator = source.iterator();
 		this.adapter = adapter;
+		
+		// try to obtain size in advance
+		if (source instanceof Collection) {
+			size = ((Collection)source).size();
+		}
 	}
 
 	@Override
@@ -73,5 +80,9 @@ public class IterableAdapter<S, T> implements Iterable<T>
 			}
 
 		});
+	}
+	
+	public int size() {
+		return size;
 	}
 }
