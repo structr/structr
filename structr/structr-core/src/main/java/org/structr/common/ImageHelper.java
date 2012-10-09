@@ -23,10 +23,19 @@ package org.structr.common;
 
 import com.mortennobel.imagescaling.ResampleOp;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
 
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.File;
 import org.structr.core.entity.Image;
+import org.structr.core.node.CreateNodeCommand;
+
+import util.Base64;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -36,6 +45,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,12 +66,68 @@ public abstract class ImageHelper {
 
 	//~--- methods --------------------------------------------------------
 
-	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
-		return createThumbnail(originalImage, maxWidth, maxHeight, false);
+	/**
+	 * Create a new image node from image data encoded in base64 format
+	 *
+	 * @param securityContext
+	 * @param rawData
+	 * @param imageType
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static Image createImageBase64(final SecurityContext securityContext, final String rawData, final Class<? extends Image> imageType) throws FrameworkException, IOException {
+
+		Base64URIData uriData = new Base64URIData(rawData);
+
+		return createImage(securityContext, uriData.getBinaryData(), uriData.getContentType(), imageType);
+
 	}
 
-	synchronized public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth,
-		final int maxHeight, final boolean crop) {
+	public static void decodeAndWriteToFile(final File fileNode, final String rawData) throws FrameworkException, IOException {
+
+		Base64URIData uriData = new Base64URIData(rawData);
+
+		FileHelper.writeToFile(fileNode, uriData.getBinaryData());
+		fileNode.setContentType(uriData.getContentType());
+
+	}
+
+	/**
+	 * Create a new image node from the given image data
+	 *
+	 * @param securityContext
+	 * @param imageData
+	 * @param contentType
+	 * @param imageType
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType)
+		throws FrameworkException, IOException {
+
+		Command createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		Map<String, Object> props = new HashMap();
+
+		props.put(AbstractNode.Key.type.name(), imageType.getSimpleName());
+		props.put(File.Key.contentType.name(), contentType);
+
+		Image newImage = (Image) createNodeCommand.execute(props);
+
+		FileHelper.writeToFile(newImage, imageData);
+
+		return newImage;
+
+	}
+
+	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
+
+		return createThumbnail(originalImage, maxWidth, maxHeight, false);
+
+	}
+
+	synchronized public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 
 		// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -72,18 +140,20 @@ public abstract class ImageHelper {
 			BufferedImage source = null;
 
 			try {
+
 				source = ImageIO.read(in);
+
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Could not read original image {0} ({1})",
-					   new Object[] { originalImage.getName(),
-							  originalImage.getId() });
+				logger.log(Level.WARNING, "Could not read original image {0} ({1})", new Object[] { originalImage.getName(), originalImage.getId() });
 
 			} finally {
 
 				if (in != null) {
+
 					in.close();
 				}
+
 			}
 
 			if (source != null) {
@@ -101,8 +171,10 @@ public abstract class ImageHelper {
 				float scale;
 
 				if (crop) {
+
 					scale = Math.min(scaleX, scaleY);
 				} else {
+
 					scale = Math.max(scaleX, scaleY);
 				}
 
@@ -125,18 +197,20 @@ public abstract class ImageHelper {
 						int offsetX = Math.abs(maxWidth - destWidth) / 2;
 						int offsetY = Math.abs(maxHeight - destHeight) / 2;
 
-						logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}",
-							   new Object[] { offsetX,
-									  offsetY, maxWidth, maxHeight });
+						logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
+
 						result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
+
 						tn.setWidth(maxWidth);
 						tn.setHeight(maxHeight);
 
 					} else {
 
 						result = resampled;
+
 						tn.setWidth(destWidth);
 						tn.setHeight(destHeight);
+
 					}
 
 					ImageIO.write(result, Thumbnail.FORMAT, baos);
@@ -154,6 +228,7 @@ public abstract class ImageHelper {
 				logger.log(Level.WARNING, "Thumbnail could not be created");
 
 				return null;
+
 			}
 
 			long end  = System.nanoTime();
@@ -164,16 +239,20 @@ public abstract class ImageHelper {
 
 			return tn;
 		} catch (Throwable t) {
+
 			logger.log(Level.WARNING, "Error creating thumbnail");
+
 		} finally {
 
 			try {
 
 				if (baos != null) {
+
 					baos.close();
 				}
 
 			} catch (Exception ignore) {}
+
 		}
 
 		return null;
@@ -195,6 +274,7 @@ public abstract class ImageHelper {
 	public static byte[] normalizeJpegImage(final byte[] original) {
 
 		if (original == null) {
+
 			return new byte[] {};
 		}
 
@@ -203,8 +283,8 @@ public abstract class ImageHelper {
 		// If JPEG image starts with ff d9 ffd8, strip this sequence from the beginning
 		// FF D9 = EOI (end of image)
 		// FF D8 = SOI (start of image)
-		if ((original[0] == (byte) 0xff) && (original[1] == (byte) 0xd9) && (original[2] == (byte) 0xff)
-			&& (original[3] == (byte) 0xd8)) {
+		if ((original[0] == (byte) 0xff) && (original[1] == (byte) 0xd9) && (original[2] == (byte) 0xff) && (original[3] == (byte) 0xd8)) {
+
 			in.skip(4);
 		}
 
@@ -217,6 +297,7 @@ public abstract class ImageHelper {
 
 			// If ImageIO cannot read it, return original
 			if (source == null) {
+
 				return original;
 			}
 
@@ -229,13 +310,17 @@ public abstract class ImageHelper {
 			if (in != null) {
 
 				try {
+
 					in.close();
+
 				} catch (IOException ignore) {}
+
 			}
 
 		} finally {}
 
 		return out.toByteArray();
+
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -252,22 +337,27 @@ public abstract class ImageHelper {
 	public static boolean isImageType(final String urlString) {
 
 		if ((urlString == null) || StringUtils.isBlank(urlString)) {
+
 			return false;
 		}
 
 		String extension         = urlString.toLowerCase().substring(urlString.lastIndexOf(".") + 1);
 		String[] imageExtensions = {
+
 			"png", "gif", "jpg", "jpeg", "bmp", "tif", "tiff"
 		};
 
 		for (String ext : imageExtensions) {
 
 			if (ext.equals(extension)) {
+
 				return true;
 			}
+
 		}
 
 		return false;
+
 	}
 
 	/**
@@ -282,6 +372,7 @@ public abstract class ImageHelper {
 	public static boolean isSwfType(final String urlString) {
 
 		if ((urlString == null) || StringUtils.isBlank(urlString)) {
+
 			return false;
 		}
 
@@ -291,14 +382,56 @@ public abstract class ImageHelper {
 		for (String ext : imageExtensions) {
 
 			if (ext.equals(extension)) {
+
 				return true;
 			}
+
 		}
 
 		return false;
+
 	}
 
 	//~--- inner classes --------------------------------------------------
+
+	public static class Base64URIData {
+
+		private String contentType;
+		private String data;
+
+		//~--- constructors -------------------------------------------
+
+		public Base64URIData(final String rawData) {
+
+			String[] parts = StringUtils.split(rawData, ",");
+
+			data        = parts[1];
+			contentType = StringUtils.substringBetween(parts[0], "data:", ";base64");
+
+		}
+
+		//~--- get methods --------------------------------------------
+
+		public String getContentType() {
+
+			return contentType;
+
+		}
+
+		public String getData() {
+
+			return data;
+
+		}
+
+		public byte[] getBinaryData() {
+
+			return Base64.decode(data);
+
+		}
+
+	}
+
 
 	public static class Thumbnail {
 
@@ -315,13 +448,16 @@ public abstract class ImageHelper {
 		public Thumbnail() {}
 
 		public Thumbnail(final byte[] bytes) {
+
 			this.bytes = bytes;
+
 		}
 
 		public Thumbnail(final int width, final int height) {
 
 			this.width  = width;
 			this.height = height;
+
 		}
 
 		public Thumbnail(final byte[] bytes, final int width, final int height) {
@@ -329,42 +465,49 @@ public abstract class ImageHelper {
 			this.bytes  = bytes;
 			this.width  = width;
 			this.height = height;
+
 		}
 
 		//~--- get methods --------------------------------------------
 
 		public byte[] getBytes() {
+
 			return bytes;
+
+		}
+
+		public int getWidth() {
+
+			return width;
+
+		}
+
+		public int getHeight() {
+
+			return height;
+
 		}
 
 		//~--- set methods --------------------------------------------
 
 		public void setBytes(final byte[] bytes) {
+
 			this.bytes = bytes;
+
 		}
-
-		//~--- get methods --------------------------------------------
-
-		public int getWidth() {
-			return width;
-		}
-
-		//~--- set methods --------------------------------------------
 
 		public void setWidth(final int width) {
+
 			this.width = width;
+
 		}
-
-		//~--- get methods --------------------------------------------
-
-		public int getHeight() {
-			return height;
-		}
-
-		//~--- set methods --------------------------------------------
 
 		public void setHeight(final int height) {
+
 			this.height = height;
+
 		}
+
 	}
+
 }

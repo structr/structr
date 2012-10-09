@@ -34,6 +34,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
@@ -78,6 +79,7 @@ public class Structr {
 	private String keyStorePassword             = null;
 	private String contextPath                  = System.getProperty("contextPath", "/");
 	private String basePath                     = "";
+	private String staticResourceContextPath    = "/static";
 
 	private int restPort                        = 8082;
 	private int httpsPort                       = 8083;
@@ -246,7 +248,8 @@ public class Structr {
 		return this;
 	}
 		
-	public Structr addResourceHandler(String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
+	public Structr addResourceHandler(String contextPath, String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
+		staticResourceContextPath = contextPath;
 		resourceHandler = new ResourceHandler();
 		resourceHandler.setDirectoriesListed(directoriesListed);
 		resourceHandler.setWelcomeFiles(welcomeFiles);
@@ -345,17 +348,11 @@ public class Structr {
 		checkPrerequisites(configuration);
 		
 		Server server                        = new Server(restPort);
+		ContextHandlerCollection contexts = new ContextHandlerCollection();
+		contexts.addHandler(new DefaultHandler());
+		
 		List<Connector> connectors           = new LinkedList<Connector>();
-		HandlerCollection handlerCollection  = new HandlerCollection();
 
-
-		// add possible resource handler
-		if (resourceHandler != null) {
-
-			handlerCollection.addHandler(resourceHandler);
-		
-		}
-		
 		ServletContextHandler servletContext        = new WebAppContext(server, basePath, contextPath);
 
 		// create resource collection from base path & source JAR
@@ -374,6 +371,9 @@ public class Structr {
 			FilterHolder rewriteFilter = servletContext.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 			rewriteFilter.setInitParameter("confPath", "/urlrewrite.xml");
 		}
+
+		contexts.addHandler(servletContext);
+		
 		
 		// enable request logging
 		//if ("true".equals(configuration.getProperty("log.requests", "false"))) {
@@ -428,13 +428,28 @@ public class Structr {
 			RequestLogImpl requestLog = new RequestLogImpl();
 			requestLogHandler.setRequestLog(requestLog);
 			
-			ContextHandlerCollection contexts = new ContextHandlerCollection();
-			contexts.setHandlers(new Handler[] { servletContext, requestLogHandler });
-			handlerCollection.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
+			HandlerCollection handlers = new HandlerCollection();
+			handlers.setHandlers(new Handler[]{ contexts, new DefaultHandler(), requestLogHandler });
+			server.setHandler(handlers);
 
-			//handlerCollection.addHandler(contexts);
+		} else {
+			
+			server.setHandler(contexts);
 			
 		}
+		
+		// add possible resource handler for static resources
+		if (resourceHandler != null) {
+
+			ContextHandler staticResourceHandler = new ContextHandler();
+			staticResourceHandler.setContextPath(staticResourceContextPath);
+			staticResourceHandler.setHandler(resourceHandler);
+			
+			contexts.addHandler(staticResourceHandler);
+		
+		}
+		
+		//contexts.setHandlers(new Handler[] { new DefaultHandler(), contexts });
 
 		// configure JSON REST servlet
 		JsonRestServlet structrRestServlet     = new JsonRestServlet();
@@ -469,8 +484,9 @@ public class Structr {
 		// register structr application context listener
 		servletContext.addEventListener(new ApplicationContextListener());
 
-		handlerCollection.addHandler(servletContext);
-		server.setHandler(handlerCollection);
+		contexts.addHandler(servletContext);
+		
+		//server.setHandler(contexts);
 
 		
 		// HTTPs can be disabled
