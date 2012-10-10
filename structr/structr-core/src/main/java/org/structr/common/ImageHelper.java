@@ -33,7 +33,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.Image;
 import org.structr.core.node.CreateNodeCommand;
-
 import org.structr.util.Base64;
 
 //~--- JDK imports ------------------------------------------------------------

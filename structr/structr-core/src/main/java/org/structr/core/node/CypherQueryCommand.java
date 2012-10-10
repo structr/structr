@@ -104,10 +104,10 @@ public class CypherQueryCommand extends NodeServiceCommand {
 				result = engine.execute(query);
 			}
 
-			for (String column : result.columns()) {
-
-				for (Object o : IteratorUtil.asIterable(result.columnAs(column))) {
-
+			for (Map<String, Object> row : result) {
+				
+				for (Object o : row.values()) {
+					
 					if (o instanceof Node) {
 
 						AbstractNode node = nodeFactory.createNode((Node) o, includeHiddenAndDeleted, publicOnly);
@@ -131,7 +131,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 				}
 
 			}
-
+			
 			return resultList;
 
 		} else {

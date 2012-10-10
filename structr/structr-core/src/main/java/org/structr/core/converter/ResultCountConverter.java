@@ -20,6 +20,7 @@
 package org.structr.core.converter;
 
 import java.util.Collection;
+import org.structr.core.IterableAdapter;
 import org.structr.core.Value;
 
 /**
@@ -52,6 +53,11 @@ public class ResultCountConverter extends PropertyConverter {
 
 						count = ((Collection)toCount).size();
 
+					} else if (toCount instanceof IterableAdapter && ((IterableAdapter)toCount).size() >= 0) {
+
+						return ((IterableAdapter)toCount).size();
+						
+						
 					} else if (toCount instanceof Iterable) {
 
 						for(Object o : ((Iterable)toCount)) {

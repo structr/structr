@@ -364,6 +364,23 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	protected int countIterableElements(Iterable iterable) {
 
+		// 1st try: IterableAdapter with pre-set size?
+		if (iterable instanceof IterableAdapter) {
+			
+			IterableAdapter adapter = (IterableAdapter)iterable;
+			
+			if (adapter.size() >= 0) {
+				return adapter.size();
+			}
+		}
+		
+		// 2nd try: Collection?
+		if (iterable instanceof Collection) {
+			
+			return ((Collection)iterable).size();
+		}
+		
+		// fallback: count..
 		int count = 0;
 
 		for (Object o : iterable) {
