@@ -87,9 +87,11 @@ public class EntityResourceBasicTest extends StructrRestTest {
 			.when()
 				.get("/test_objects/" + uuid)
 				.jsonPath().get("result.name");
-		    
+		
+		System.out.println("name (should be null): " + name);
+		
 		// name must be null
-		assertTrue(name instanceof JSONNull);
+		assertNull(name);
 	}
 	
 	/**
@@ -128,10 +130,10 @@ public class EntityResourceBasicTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(1))
-				.body("query_time",         lessThan("0.1"))
-				.body("serialization_time", lessThan("0.001"))
-				.body("result",             isEntity(TestObject.class))
+				.body("result_count",		equalTo(1))
+				.body("query_time",		lessThan("0.1"))
+				.body("serialization_time",	lessThan("0.001"))
+				.body("result",			isEntity(TestObject.class))
 			.when()
 				.get("/test_objects/" + uuid);
 		    

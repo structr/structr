@@ -20,6 +20,7 @@ package org.structr.rest.test;
 
 import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.internal.RestAssuredResponseImpl;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
 
@@ -73,22 +74,26 @@ public class PagingTest extends StructrRestTest {
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
 
 		
-		RestAssured
+		Object result = RestAssured
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(8))
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(8))
 
-				.body("result[0]",          isEntity(TestOne.class))
-				.body("result[0].name ",    equalTo("TestOne-0"))
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-0"))
 
-				.body("result[1]",          isEntity(TestOne.class))
-				.body("result[1].name ",    equalTo("TestOne-1"))
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-1"))
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=1");
+		
+		//System.out.println("result: " + ((RestAssuredResponseImpl) result).prettyPrint());
+		
 		    
 		RestAssured
 		    
@@ -96,13 +101,14 @@ public class PagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(8))
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(8))
 
-				.body("result[0]",          isEntity(TestOne.class))
-				.body("result[0].name ",    equalTo("TestOne-6"))
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-6"))
 
-				.body("result[1]",          isEntity(TestOne.class))
-				.body("result[1].name ",    equalTo("TestOne-7"))
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-7"))
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=-1");
@@ -113,13 +119,14 @@ public class PagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(8))
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(8))
 
-				.body("result[0]",          isEntity(TestOne.class))
-				.body("result[0].name ",    equalTo("TestOne-4"))
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-4"))
 
-				.body("result[1]",          isEntity(TestOne.class))
-				.body("result[1].name ",    equalTo("TestOne-5"))
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-5"))
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=-2");
@@ -130,13 +137,14 @@ public class PagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(8))
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(8))
 
-				.body("result[0]",          isEntity(TestOne.class))
-				.body("result[0].name ",    equalTo("TestOne-2"))
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-2"))
 
-				.body("result[1]",          isEntity(TestOne.class))
-				.body("result[1].name ",    equalTo("TestOne-3"))
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-3"))
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=-3");
@@ -147,13 +155,14 @@ public class PagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(8))
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(8))
 
-				.body("result[0]",          isEntity(TestOne.class))
-				.body("result[0].name ",    equalTo("TestOne-0"))
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-0"))
 
-				.body("result[1]",          isEntity(TestOne.class))
-				.body("result[1].name ",    equalTo("TestOne-1"))
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-1"))
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=-4");
@@ -164,13 +173,14 @@ public class PagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(8))
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(8))
 
-				.body("result[0]",          isEntity(TestOne.class))
-				.body("result[0].name ",    equalTo("TestOne-0"))
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-0"))
 
-				.body("result[1]",          isEntity(TestOne.class))
-				.body("result[1].name ",    equalTo("TestOne-1"))
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-1"))
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=-5");
@@ -181,13 +191,14 @@ public class PagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(8))
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(8))
 
-				.body("result[0]",          isEntity(TestOne.class))
-				.body("result[0].name ",    equalTo("TestOne-3"))
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-3"))
 
-				.body("result[1]",          isEntity(TestOne.class))
-				.body("result[1].name ",    equalTo("TestOne-4"))
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-4"))
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=1&pageStartId=" + offsetId);
@@ -198,18 +209,18 @@ public class PagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(8))
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(8))
 
-				.body("result[0]",          isEntity(TestOne.class))
-				.body("result[0].name ",    equalTo("TestOne-1"))
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-1"))
 
-				.body("result[1]",          isEntity(TestOne.class))
-				.body("result[1].name ",    equalTo("TestOne-2"))
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-2"))
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=-1&pageStartId=" + offsetId);
 	
 	}
-	
-	
+		
 }

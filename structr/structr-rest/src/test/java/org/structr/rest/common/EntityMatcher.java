@@ -59,12 +59,12 @@ public class EntityMatcher extends BaseMatcher {
 	@Override
 	public boolean matches(Object item) {
 
-		if (item instanceof JSONObject) {
+		if (item instanceof Map) {
 
-			JSONObject obj = (JSONObject)item;
-
+			Map map = (Map) item;
+			
 			// check if key sets match
-			if (obj.keySet().containsAll(entityValues.keySet())) {
+			if (map.keySet().containsAll(entityValues.keySet())) {
 
 				// check for values (if present)
 				for (Entry<String, Object> entry : entityValues.entrySet()) {
@@ -72,7 +72,7 @@ public class EntityMatcher extends BaseMatcher {
 					String key = entry.getKey();
 					Object value = entry.getValue();
 
-					Object entityValue = obj.get(key);
+					Object entityValue = map.get(key);
 
 					// mismatch
 					if (value != null && !value.equals(entityValue)) {

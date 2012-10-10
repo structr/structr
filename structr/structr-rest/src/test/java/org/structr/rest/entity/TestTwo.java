@@ -26,15 +26,15 @@ import org.structr.core.EntityContext;
 import org.structr.core.converter.DateConverter;
 import org.structr.core.converter.IntConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService.NodeIndex;
 
 /**
- * A simple entity for the most basic tests.
+ * Another simple entity for the most basic tests.
  * 
  * @author Axel Morgner
  */
-public class TestOne extends AbstractNode {
+public class TestTwo extends AbstractNode {
 	
 	public enum Key implements PropertyKey {
 		
@@ -44,13 +44,15 @@ public class TestOne extends AbstractNode {
 	
 	static {
 		
-		EntityContext.registerPropertySet(TestOne.class, PropertyView.Public, Key.values());
+		EntityContext.registerEntityRelation(TestTwo.class, TestOne.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
 		
-		EntityContext.registerPropertyConverter(TestOne.class, Key.anInt, IntConverter.class);
-		EntityContext.registerPropertyConverter(TestOne.class, Key.aDate, DateConverter.class);
+		EntityContext.registerPropertySet(TestTwo.class, PropertyView.Public, Key.values());
 		
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerPropertyConverter(TestTwo.class, Key.anInt, IntConverter.class);
+		EntityContext.registerPropertyConverter(TestTwo.class, Key.aDate, DateConverter.class);
+		
+		EntityContext.registerSearchablePropertySet(TestTwo.class, NodeIndex.fulltext.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(TestTwo.class, NodeIndex.keyword.name(), Key.values());
 	}
 		
 }

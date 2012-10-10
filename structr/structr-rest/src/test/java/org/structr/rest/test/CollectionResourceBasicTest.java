@@ -106,7 +106,7 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 				.jsonPath().get("result[0].name");
 		    
 		// name must be null
-		assertTrue(name instanceof JSONNull);
+		assertNull(name);
 	}
 	
 	/**
