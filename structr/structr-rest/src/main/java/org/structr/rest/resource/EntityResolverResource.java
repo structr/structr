@@ -93,4 +93,9 @@ public class EntityResolverResource extends SortableResource {
         public String getResourceSignature() {
                 return getUriPart();
         }
+	
+	@Override
+	public String getUriPart() {
+		return "resolver";
+	}
 }
