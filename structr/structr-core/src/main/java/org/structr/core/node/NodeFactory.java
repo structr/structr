@@ -160,12 +160,12 @@ public class NodeFactory<T extends AbstractNode> {
 		newNode.setType(nodeType);
 
 		// check access
-              if (factoryProfile.getSecurityContext().isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
-		return newNode;
+		if (factoryProfile.getSecurityContext().isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
 
-              }
+			return newNode;
+		}
 
-	      return null;
+		return null;
 
 	}
 
@@ -293,7 +293,6 @@ public class NodeFactory<T extends AbstractNode> {
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-
 	private List<Node> read(final Iterable<Node> it) {
 
 		List<Node> nodes = new LinkedList();
@@ -309,23 +308,14 @@ public class NodeFactory<T extends AbstractNode> {
 
 	private Result resultWithOffsetId(final IndexHits<Node> input) throws FrameworkException {
 
-		final int pageSize       = factoryProfile.getPageSize();
+		int size                 = input.size();
+		final int pageSize       = Math.min(size, factoryProfile.getPageSize());
 		final int page           = factoryProfile.getPage();
 		final String offsetId    = factoryProfile.getOffsetId();
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 		int position             = 0;
 		int count                = 0;
-		int offset;
-		int size = input.size();
-
-		if (page < 0) {
-
-			offset = size + (page * pageSize);
-		} else {
-
-			// may be overwritten later
-			offset = (page - 1) * pageSize;
-		}
+		int offset               = 0;
 
 		// We have an offsetId, so first we need to
 		// find the node with this uuid to get the offset
@@ -415,34 +405,36 @@ public class NodeFactory<T extends AbstractNode> {
 
 		final int pageSize = factoryProfile.getPageSize();
 		final int page     = factoryProfile.getPage();
-		int offset;
-
-		// FIXME: IndexHits#size() may be inaccurate!
-		int size = input.size();
+		int fromIndex;
 
 		if (page < 0) {
 
-			offset = Math.max(0, size + (page * pageSize));
+			List<Node> rawNodes = read(input);
+			int size            = rawNodes.size();
 
-			List<Node> rawNodes            = read(input);
+			fromIndex = Math.max(0, size + (page * pageSize));
+
 			final List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+			int toIndex                    = Math.min(size, fromIndex + pageSize);
 
-			for (Node n : rawNodes.subList(offset, offset + pageSize)) {
+			for (Node n : rawNodes.subList(fromIndex, toIndex)) {
 
 				nodes.add(createNode(n));
 			}
 
 			// We've run completely through the iterator,
 			// so the overall count from here is accurate.
-			return new Result(nodes, rawNodes.size(), true, false);
+			return new Result(nodes, size, true, false);
 
 		} else {
 
-			offset = (page - 1) * pageSize;
+			// FIXME: IndexHits#size() may be inaccurate!
+			int size = input.size();
+
+			fromIndex = (page - 1) * pageSize;
 
 			// The overall count may be inaccurate
-			return page(input, size, offset, pageSize);
-
+			return page(input, size, fromIndex, pageSize);
 		}
 
 	}
