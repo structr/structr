@@ -9,11 +9,11 @@
     </parent>
 
   <groupId>org.structr</groupId>
-  <artifactId>structr-archetype</artifactId>
+  <artifactId>structr-simple-example-archetype</artifactId>
   <version>0.5.4-SNAPSHOT</version>
   <packaging>maven-archetype</packaging>
   <url>http://structr.org</url>
-  <name>structr-archetype</name>
+  <name>structr-simple-example-archetype</name>
 
   <build>
     <extensions>

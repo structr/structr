@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.structr</groupId>
+        <artifactId>structr</artifactId>
+        <version>0.5.4-SNAPSHOT</version>
+    </parent>
+
+  <groupId>org.structr</groupId>
+  <artifactId>structr-base-archetype</artifactId>
+  <version>0.5.4-SNAPSHOT</version>
+  <packaging>maven-archetype</packaging>
+  <url>http://structr.org</url>
+  <name>structr-base-archetype</name>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.archetype</groupId>
+        <artifactId>archetype-packaging</artifactId>
+        <version>2.2</version>
+      </extension>
+    </extensions>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-archetype-plugin</artifactId>
+          <version>2.2</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+    <distributionManagement>
+	<repository>
+	    <id>releases.maven.structr.org</id>
+	    <name>maven.structr.org-releases</name>
+	    <url>http://maven.structr.org:8082/artifactory/release</url>
+	</repository>
+	<snapshotRepository>
+	    <id>snapshots.maven.structr.org</id>
+	    <name>maven.structr.org-snapshots</name>
+	    <url>http://maven.structr.org:8082/artifactory/snapshot</url>
+	</snapshotRepository>
+    </distributionManagement>
+
+</project>

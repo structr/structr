@@ -7,5 +7,5 @@ import org.neo4j.graphdb.RelationshipType;
 
 public enum RelType implements RelationshipType {
 
-	KNOWS, LIVES_IN
+	// add your relationship types here
 }
