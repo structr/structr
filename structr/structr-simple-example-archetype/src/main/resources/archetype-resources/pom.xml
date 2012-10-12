@@ -24,7 +24,7 @@
 						<argument>-Xms512m</argument>
 						<argument>-Xmx512m</argument>
 						<argument>-classpath</argument>
-						<argument>target/lib/*:target/${artifactId}.${version}.jar</argument>
+						<argument>target/lib/*:target/${artifactId}-${version}.jar</argument>
 						<argument>${package}.Server</argument>
 					</arguments>
 				</configuration>
