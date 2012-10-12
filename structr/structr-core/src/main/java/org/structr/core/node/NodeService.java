@@ -66,13 +66,12 @@ public class NodeService implements SingletonService {
 	private GraphDatabaseService graphDb            = null;
 	private Index<Node> keywordIndex                = null;
 	private Index<Node> layerIndex                  = null;
-	private final NodeFactory nodeFactory                 = null;
 	private Index<Relationship> relFulltextIndex    = null;
 	private Index<Relationship> relKeywordIndex     = null;
 	private Index<Relationship> relUuidIndex        = null;
 	private RelationshipFactory relationshipFactory = null;
 	private Index<Node> userIndex                   = null;
-	private Index<Node> caseInsensitiveUserIndex               = null;
+	private Index<Node> caseInsensitiveUserIndex    = null;
 	private Index<Node> uuidIndex                   = null;
 
 	/** Dependent services */
