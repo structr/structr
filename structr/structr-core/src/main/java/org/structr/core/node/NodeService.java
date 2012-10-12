@@ -21,8 +21,16 @@
 
 package org.structr.core.node;
 
-import org.apache.commons.collections.map.LRUMap;
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.apache.commons.collections.map.LRUMap;
 import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
 import org.neo4j.gis.spatial.indexprovider.SpatialIndexProvider;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -32,7 +40,6 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
-
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.RunnableService;
@@ -40,14 +47,7 @@ import org.structr.core.Services;
 import org.structr.core.SingletonService;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
-
 //~--- JDK imports ------------------------------------------------------------
-
-import java.io.File;
-
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,7 +58,7 @@ import java.util.logging.Logger;
 public class NodeService implements SingletonService {
 
 	private static final Logger logger                       = Logger.getLogger(NodeService.class.getName());
-	private static final Map<String, AbstractNode> nodeCache = (Map<String, AbstractNode>) Collections.synchronizedMap(new LRUMap(100000));
+	private static final Map<String, AbstractNode> nodeCache = Collections.synchronizedMap(new LRUMap(100000));
 
 	//~--- fields ---------------------------------------------------------
 
@@ -66,21 +66,22 @@ public class NodeService implements SingletonService {
 	private GraphDatabaseService graphDb            = null;
 	private Index<Node> keywordIndex                = null;
 	private Index<Node> layerIndex                  = null;
-	private NodeFactory nodeFactory                 = null;
+	private final NodeFactory nodeFactory                 = null;
 	private Index<Relationship> relFulltextIndex    = null;
 	private Index<Relationship> relKeywordIndex     = null;
 	private Index<Relationship> relUuidIndex        = null;
 	private RelationshipFactory relationshipFactory = null;
 	private Index<Node> userIndex                   = null;
+	private Index<Node> caseInsensitiveUserIndex               = null;
 	private Index<Node> uuidIndex                   = null;
 
 	/** Dependent services */
-	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
+	private final Set<RunnableService> registeredServices = new HashSet<RunnableService>();
 	private boolean isInitialized                   = false;
 
 	//~--- constant enums -------------------------------------------------
 
-	public static enum NodeIndex { uuid, user, keyword, fulltext, layer }
+	public static enum NodeIndex { uuid, user, caseInsensitiveUser, keyword, fulltext, layer }
 
 	public static enum RelationshipIndex { rel_uuid, rel_keyword, rel_fulltext }
 
@@ -88,7 +89,7 @@ public class NodeService implements SingletonService {
 
 	// <editor-fold defaultstate="collapsed" desc="interface SingletonService">
 	@Override
-	public void injectArguments(Command command) {
+	public void injectArguments(final Command command) {
 
 		if (command != null) {
 
@@ -96,6 +97,7 @@ public class NodeService implements SingletonService {
 			command.setArgument(NodeIndex.uuid.name(), uuidIndex);
 			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
 			command.setArgument(NodeIndex.user.name(), userIndex);
+			command.setArgument(NodeIndex.caseInsensitiveUser.name(), caseInsensitiveUserIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
 			command.setArgument(NodeIndex.layer.name(), layerIndex);
 			command.setArgument(RelationshipIndex.rel_uuid.name(), relUuidIndex);
@@ -112,10 +114,10 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(Map<String, String> context) {
+	public void initialize(final Map<String, String> context) {
 
 //              String dbPath = (String) context.get(Services.DATABASE_PATH);
-		String dbPath = Services.getDatabasePath();
+		final String dbPath = Services.getDatabasePath();
 
 		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
@@ -131,7 +133,7 @@ public class NodeService implements SingletonService {
 
 			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
 
-		} catch (Throwable t) {
+		} catch (final Throwable t) {
 
 			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
 
@@ -152,10 +154,10 @@ public class NodeService implements SingletonService {
 
 		}
 
-		String filesPath = Services.getFilesPath();
+		final String filesPath = Services.getFilesPath();
 
 		// check existence of files path
-		File files = new File(filesPath);
+		final File files = new File(filesPath);
 
 		if (!files.exists()) {
 
@@ -172,8 +174,13 @@ public class NodeService implements SingletonService {
 
 		userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
 
-		logger.log(Level.FINE, "Node UUID index ready.");
-		logger.log(Level.FINE, "Initializing fulltext index...");
+		logger.log(Level.FINE, "Node Email index ready.");
+		logger.log(Level.FINE, "Initializing exact email index...");
+
+		caseInsensitiveUserIndex = graphDb.index().forNodes("caseInsensitiveAllUsers", LuceneIndexImplementation.FULLTEXT_CONFIG);
+
+		logger.log(Level.FINE, "Node case insensitive node index ready.");
+		logger.log(Level.FINE, "Initializing case insensitive fulltext node index...");
 
 		fulltextIndex = graphDb.index().forNodes("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
 
@@ -228,7 +235,7 @@ public class NodeService implements SingletonService {
 
 		if (isRunning()) {
 
-			for (RunnableService s : registeredServices) {
+			for (final RunnableService s : registeredServices) {
 
 				s.stopService();
 			}
@@ -264,19 +271,19 @@ public class NodeService implements SingletonService {
 
 				Thread.sleep(10);
 
-			} catch (Throwable t) {}
+			} catch (final Throwable t) {}
 
 		}
 
 	}
 
-	public static void addNodeToCache(String uuid, AbstractNode node) {
+	public static void addNodeToCache(final String uuid, final AbstractNode node) {
 
 		nodeCache.put(uuid, node);
 
 	}
 
-	public static void removeNodeFromCache(String uuid) {
+	public static void removeNodeFromCache(final String uuid) {
 
 		nodeCache.remove(uuid);
 
@@ -291,22 +298,22 @@ public class NodeService implements SingletonService {
 
 	}
 
-	public static AbstractNode getNodeFromCache(String uuid) {
+	public static AbstractNode getNodeFromCache(final String uuid) {
 
 		return nodeCache.get(uuid);
 
 	}
 
 	// </editor-fold>
-	
+
 	public GraphDatabaseService getGraphDb() {
 		return graphDb;
 	}
-	
+
 	@Override
 	public boolean isRunning() {
 
-		return ((graphDb != null) && isInitialized);
+		return graphDb != null && isInitialized;
 
 	}
 
