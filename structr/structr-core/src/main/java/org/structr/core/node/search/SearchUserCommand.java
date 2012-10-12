@@ -23,9 +23,9 @@ package org.structr.core.node.search;
 
 import java.util.Map;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -48,103 +48,59 @@ public class SearchUserCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(final Object... parameters) throws FrameworkException {
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		final Command findNode             = Services.command(securityContext, FindNodeCommand.class);
 
-		if (graphDb != null) {
+		switch (parameters.length) {
 
-			switch (parameters.length) {
+			case 1 : {
+				final Index<Node> index = getIndexFromArguments(NodeIndex.user, arguments);
 
-				case 1 : {
-					final Index<Node> index = getIndexFromArguments(NodeIndex.user, arguments);
+				// we have only a simple user name
+				if (parameters[0] instanceof String) {
 
-					// we have only a simple user name
-					if (parameters[0] instanceof String) {
+					final String userName = (String) parameters[0];
 
-						final String userName = (String) parameters[0];
+					for (final Node n : index.get(AbstractNode.Key.name.name(), userName)) {
 
-						for (final Node n : index.get(AbstractNode.Key.name.name(), userName)) {
+						final AbstractNode s = (AbstractNode) findNode.execute(n);
 
-							final AbstractNode s = (AbstractNode) findNode.execute(n);
+						if (s.getType().equals(Principal.class.getSimpleName())) {
 
-							if (s.getType().equals(Principal.class.getSimpleName())) {
-
-								return s;
-
-							}
+							return s;
 
 						}
 
 					}
-				} break;
 
-				case 3 : {
+				}
+			} break;
 
-					final String userNickName = (String) parameters[0];
-					final PropertyKey key = (PropertyKey) parameters[1];
-					final NodeIndex idx = (NodeIndex) parameters[2];
-					final Index<Node> index = getIndexFromArguments(idx, arguments);
+			case 3 : {
 
-					for (final Node n : index.get(key.name(), userNickName)) {
+				final String userNickName = (String) parameters[0];
+				final PropertyKey key = (PropertyKey) parameters[1];
+				final NodeIndex idx = (NodeIndex) parameters[2];
+				final Index<Node> index = getIndexFromArguments(idx, arguments);
+
+				// see: http://docs.neo4j.org/chunked/milestone/indexing-create-advanced.html
+				final IndexHits<Node> indexHits = index.query( key.name(), "\"" + userNickName + "\"" );
+				try {
+					for (final Node n : indexHits) {
 						final Object u = findNode.execute(n);
 						if (u != null) {
 							return u;
 						}
 					}
-				}	break;
+				} finally {
+					indexHits.close();
+				}
+			}	break;
 
-//				case 2 :
-//
-//					// we have user name and domain
-//					if ((parameters[0] instanceof String) && (parameters[1] instanceof String)) {
-//
-//						String userName          = (String) parameters[0];
-//						String rootNodePath      = (String) parameters[1];
-//						List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(new XPath(rootNodePath));
-//
-//						// we take the first one
-//						if ((nodes != null) && (nodes.size() > 0)) {
-//
-//							AbstractNode r = nodes.get(0);
-//							Node startNode = null;
-//
-//							if (r != null) {
-//
-//								startNode = r.getNode();
-//
-//								if (startNode != null) {
-//
-//									startNode = graphDb.getReferenceNode();
-//
-//								}
-//
-//								for (Node n : getSubnodes(startNode)) {
-//
-//									AbstractNode s = (AbstractNode) findNode.execute(n);
-//
-//									// TODO: implement better algorithm for user retrieval
-//									if (s.getType().equals(Principal.class.getSimpleName()) && userName.equals(s.getName())) {
-//
-//										return s;
-//
-//									}
-//
-//								}
-//
-//							}
-//
-//						}
-//
-//					}
-//
-//					break;
-
-				default :
-					break;
-
-			}
+			default :
+				break;
 
 		}
+
 
 		return null;
 	}
@@ -154,12 +110,4 @@ public class SearchUserCommand extends NodeServiceCommand {
 		final Index<Node> index = (Index<Node>) args.get(idx.name());
 		return index;
 	}
-
-	//~--- get methods ----------------------------------------------------
-
-//	private Iterable<Node> getSubnodes(Node rootNode) {
-//
-//		return Traversal.description().breadthFirst().relationships(RelType.HAS_CHILD,
-//			Direction.OUTGOING).prune(Traversal.pruneAfterDepth(999)).traverse(rootNode).nodes();
-//	}
 }
