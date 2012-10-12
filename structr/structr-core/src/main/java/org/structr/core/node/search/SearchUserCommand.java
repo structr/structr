@@ -24,14 +24,14 @@ package org.structr.core.node.search;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -43,11 +43,11 @@ import org.structr.core.entity.Principal;
 public class SearchUserCommand extends NodeServiceCommand {
 
 	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public Object execute(final Object... parameters) throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Index<Node> index            = (Index<Node>) arguments.get(NodeIndex.user.name());
-		Command findNode             = Services.command(securityContext, FindNodeCommand.class);
+		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		final Index<Node> index            = (Index<Node>) arguments.get(NodeIndex.user.name());
+		final Command findNode             = Services.command(securityContext, FindNodeCommand.class);
 
 		if (graphDb != null) {
 
@@ -58,11 +58,11 @@ public class SearchUserCommand extends NodeServiceCommand {
 					// we have only a simple user name
 					if (parameters[0] instanceof String) {
 
-						String userName = (String) parameters[0];
+						final String userName = (String) parameters[0];
 
-						for (Node n : index.get(AbstractNode.Key.name.name(), userName)) {
+						for (final Node n : index.get(AbstractNode.Key.name.name(), userName)) {
 
-							AbstractNode s = (AbstractNode) findNode.execute(n);
+							final AbstractNode s = (AbstractNode) findNode.execute(n);
 
 							if (s.getType().equals(Principal.class.getSimpleName())) {
 
