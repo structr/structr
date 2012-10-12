@@ -16,6 +16,20 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<configuration>
+					<executable>java</executable>
+					<arguments>
+						<argument>-Xms512m</argument>
+						<argument>-Xmx512m</argument>
+						<argument>-classpath</argument>
+						<argument>target/lib/*:target/${artifactId}.${version}.jar</argument>
+						<argument>${package}.Server</argument>
+					</arguments>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>2.5</version>
