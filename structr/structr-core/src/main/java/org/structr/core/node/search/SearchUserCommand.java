@@ -21,9 +21,12 @@
 
 package org.structr.core.node.search;
 
+import java.util.Map;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
+import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -46,14 +49,14 @@ public class SearchUserCommand extends NodeServiceCommand {
 	public Object execute(final Object... parameters) throws FrameworkException {
 
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		final Index<Node> index            = (Index<Node>) arguments.get(NodeIndex.user.name());
 		final Command findNode             = Services.command(securityContext, FindNodeCommand.class);
 
 		if (graphDb != null) {
 
 			switch (parameters.length) {
 
-				case 1 :
+				case 1 : {
+					final Index<Node> index = getIndexFromArguments(NodeIndex.user, arguments);
 
 					// we have only a simple user name
 					if (parameters[0] instanceof String) {
@@ -73,8 +76,22 @@ public class SearchUserCommand extends NodeServiceCommand {
 						}
 
 					}
+				} break;
 
-					break;
+				case 3 : {
+
+					final String userNickName = (String) parameters[0];
+					final PropertyKey key = (PropertyKey) parameters[1];
+					final NodeIndex idx = (NodeIndex) parameters[2];
+					final Index<Node> index = getIndexFromArguments(idx, arguments);
+
+					for (final Node n : index.get(key.name(), userNickName)) {
+						final Object u = findNode.execute(n);
+						if (u != null) {
+							return u;
+						}
+					}
+				}	break;
 
 //				case 2 :
 //
@@ -130,6 +147,12 @@ public class SearchUserCommand extends NodeServiceCommand {
 		}
 
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Index<Node> getIndexFromArguments(final NodeIndex idx, final Map<String, Object> args) {
+		final Index<Node> index = (Index<Node>) args.get(idx.name());
+		return index;
 	}
 
 	//~--- get methods ----------------------------------------------------
