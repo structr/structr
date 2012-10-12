@@ -30,6 +30,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
@@ -177,7 +178,7 @@ public class NodeService implements SingletonService {
 		logger.log(Level.FINE, "Node Email index ready.");
 		logger.log(Level.FINE, "Initializing exact email index...");
 
-		caseInsensitiveUserIndex = graphDb.index().forNodes("caseInsensitiveAllUsers", LuceneIndexImplementation.FULLTEXT_CONFIG);
+		caseInsensitiveUserIndex = graphDb.index().forNodes("caseInsensitiveAllUsers", MapUtil.stringMap( "provider", "lucene", "type", "exact", "to_lower_case", "true" ));
 
 		logger.log(Level.FINE, "Node case insensitive node index ready.");
 		logger.log(Level.FINE, "Initializing case insensitive fulltext node index...");
