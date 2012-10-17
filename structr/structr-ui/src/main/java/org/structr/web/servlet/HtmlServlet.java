@@ -717,7 +717,7 @@ public class HtmlServlet extends HttpServlet {
 			group.add(Search.orExactType(Page.class.getSimpleName()));
 			group.add(Search.orExactType(Component.class.getSimpleName()));
 			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
-			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName()));
+//			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
 			searchAttrs.add(group);
 
 			// Searching for pages needs super user context anyway
