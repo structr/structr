@@ -96,7 +96,7 @@ public abstract class Search {
 
 	//~--- methods --------------------------------------------------------
 
-	private static List<SearchAttribute> andExactTypeAndSubtypesInternal(final String searchString) {
+	private static List<SearchAttribute> getExactTypeAndSubtypesInternal(final String searchString) {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
@@ -118,7 +118,7 @@ public abstract class Search {
 
 					for (Class clazz : classesForInterface) {
 
-						attrs.addAll(andExactTypeAndSubtypesInternal(clazz.getSimpleName()));
+						attrs.addAll(getExactTypeAndSubtypesInternal(clazz.getSimpleName()));
 					}
 
 				}
@@ -150,7 +150,7 @@ public abstract class Search {
 	public static SearchAttributeGroup andExactTypeAndSubtypes(final String searchString) {
 
 		SearchAttributeGroup attrs          = new SearchAttributeGroup(SearchOperator.AND);
-		List<SearchAttribute> attrsInternal = andExactTypeAndSubtypesInternal(searchString);
+		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(searchString);
 
 		for (SearchAttribute attr : attrsInternal) {
 
@@ -160,7 +160,21 @@ public abstract class Search {
 		return attrs;
 
 	}
+	
+	public static SearchAttributeGroup orExactTypeAndSubtypes(final String searchString) {
 
+		SearchAttributeGroup attrs          = new SearchAttributeGroup(SearchOperator.OR);
+		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(searchString);
+
+		for (SearchAttribute attr : attrsInternal) {
+
+			attrs.add(attr);
+		}
+
+		return attrs;
+
+	}
+	
 	public static SearchAttribute orType(final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), searchString, SearchOperator.OR);
