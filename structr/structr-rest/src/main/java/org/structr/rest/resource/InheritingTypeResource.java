@@ -1,37 +1,23 @@
 /*
  *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.structr.rest.resource;
-
-import org.structr.core.Result;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.rest.exception.IllegalPathException;
-
-//~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -40,12 +26,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.lucene.search.SortField;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyKey;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.converter.DateConverter;
 import org.structr.core.converter.IntConverter;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.rest.exception.IllegalPathException;
+//~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,19 +60,19 @@ public class InheritingTypeResource extends TypeResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) throws FrameworkException {
 
 		return super.checkAndConfigure(part, securityContext, request);
 
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		AbstractNode topNode                   = null;
-		boolean includeDeletedAndHidden        = false;
-		boolean publicOnly                     = false;
+		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		final AbstractNode topNode                   = null;
+		final boolean includeDeletedAndHidden        = false;
+		final boolean publicOnly                     = false;
 
 		if (rawType != null) {
 
@@ -82,29 +81,29 @@ public class InheritingTypeResource extends TypeResource {
 
 			// searchable attributes from EntityContext
 			hasSearchableAttributes(searchAttributes);
-			
+
 			// default sort key & order
 			if(sortKey == null) {
-				
+
 				try {
-					
-					GraphObject templateEntity  = ((GraphObject)entityClass.newInstance());
-					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
+
+					final GraphObject templateEntity  = (GraphObject)entityClass.newInstance();
+					final PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
 					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
-					
+
 					if(sortKeyProperty != null) {
 						sortKey = sortKeyProperty.name();
 					}
-					
-				} catch(Throwable t) {
-					
+
+				} catch(final Throwable t) {
+
 					// fallback to name
 					sortKey = "name";
 				}
 			}
-			
+
 			Integer sortType = null;
-			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
+			final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
 			if (converter != null) {
 				if (converter instanceof IntConverter) {
 					sortType = SortField.INT;
@@ -112,9 +111,9 @@ public class InheritingTypeResource extends TypeResource {
 					sortType = SortField.LONG;
 				}
 			}
-			
+
 			// do search
-			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
+			final Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
 				topNode,
 				includeDeletedAndHidden,
 				publicOnly,
@@ -126,24 +125,24 @@ public class InheritingTypeResource extends TypeResource {
 				offsetId,
 				sortType
 			);
-			
+
 			// TODO: SORTING: remove default sorting below
 			//applyDefaultSorting(results.getResults());
-			
+
 			return results;
-			
+
 		} else {
 
 			logger.log(Level.WARNING, "type was null");
 		}
 
-		List emptyList = Collections.emptyList();
+		final List emptyList = Collections.emptyList();
 		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
 
 	}
 
 	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
+	public Resource tryCombineWith(final Resource next) throws FrameworkException {
 
 		if (next instanceof UuidResource) {
 
