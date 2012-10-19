@@ -63,7 +63,7 @@ public abstract class MailHelper {
 
 		HtmlEmail mail = new HtmlEmail();
 
-		setup(mail, to, toName, from, fromName, bcc, bounce, subject);
+		setup(mail, to, toName, from, fromName, cc, bcc, bounce, subject);
 		mail.setHtmlMsg(htmlContent);
 		mail.setTextMsg(textContent);
 		mail.send();
@@ -76,13 +76,13 @@ public abstract class MailHelper {
 
 		SimpleEmail mail = new SimpleEmail();
 
-		setup(mail, to, toName, from, fromName, bcc, bounce, subject);
+		setup(mail, to, toName, from, fromName, cc, bcc, bounce, subject);
 		mail.setMsg(textContent);
 		mail.send();
 
 	}
 
-	private static void setup(final Email mail, final String to, final String toName, final String from, final String fromName, final String bcc, final String bounce, final String subject)
+	private static void setup(final Email mail, final String to, final String toName, final String from, final String fromName, final String cc, final String bcc, final String bounce, final String subject)
 		throws EmailException {
 
 		mail.setCharset(charset);
@@ -100,6 +100,10 @@ public abstract class MailHelper {
 		mail.addTo(to, toName);
 		mail.setFrom(from, fromName);
 		
+		if (StringUtils.isNotBlank(cc)) {
+			mail.addCc(cc);
+		}
+
 		if (StringUtils.isNotBlank(bcc)) {
 			mail.addBcc(bcc);
 		}
