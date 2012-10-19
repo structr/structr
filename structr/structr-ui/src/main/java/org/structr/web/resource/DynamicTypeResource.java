@@ -117,7 +117,7 @@ public class DynamicTypeResource extends TypeResource {
 		// check for dynamic type, use super class otherwise
 		final List<SearchAttribute> searchAttributes = getSearchAttributes(rawType);
 
-		hasSearchableAttributesForNodes(rawType, request, searchAttributes);
+		searchAttributes.addAll(extractSearchableAttributesFromRequest());
 
 		// do search
 		List<GraphObject> results = getComponents(securityContext, searchAttributes);
@@ -408,13 +408,6 @@ public class DynamicTypeResource extends TypeResource {
 
 		return pos;
 
-	}
-
-	@Override
-	public boolean hasSearchableAttributes(final List<SearchAttribute> attributes) throws FrameworkException {
-
-		// TODO: search for data-key attributes
-		return false;
 	}
 
 	@Override

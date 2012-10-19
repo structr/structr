@@ -108,9 +108,9 @@ public class StaticRelationshipResource extends SortableResource {
 					final List relatedNodes = staticRel.getRelatedNodes(securityContext, sourceNode);
 
 					// check for search keys in request first..
-					final List<SearchAttribute> dummyList = new LinkedList<SearchAttribute>();
+					final List<SearchAttribute> dummyList = typeResource.extractSearchableAttributesFromRequest();
 
-					if (typeResource.hasSearchableAttributes(dummyList)) {
+					if (!dummyList.isEmpty()) {
 
 						// use result list of doGet from typeResource and intersect with relatedNodes list.
 						final List<? extends GraphObject> typeNodes = typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
