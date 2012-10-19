@@ -293,7 +293,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 		Object value            = node.getProperty(key);    // dbNode.getProperty(key);
 		Object valueForIndexing = node.getPropertyForIndexing(key);
 		
-		if (value == null || (value != null && (value instanceof String) && StringUtils.isEmpty((String) value))) {
+		if ((value == null && EntityContext.getPropertyConverter(securityContext, node.getClass(), key) == null) || (value != null && value instanceof String && StringUtils.isEmpty((String) value))) {
 			valueForIndexing = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 			value = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 		}
@@ -330,11 +330,14 @@ public class IndexNodeCommand extends NodeServiceCommand {
 	}
 
 	private void addNodePropertyToIndex(final Node node, final String key, final Object value, final String indexName) {
+		if (value == null) {
+			return;
+		}
 		Index<Node> index = indices.get(indexName);
 		synchronized(index) {
 			
 			if (value instanceof Number) {
-				index.add(node, key, new ValueContext(value).indexNumeric());
+				index.add(node, key, ValueContext.numeric((Number) value));
 			} else {
 				index.add(node, key, value);
 			}
