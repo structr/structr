@@ -384,7 +384,7 @@ public abstract class Resource {
 	}
 
 	// ----- private methods -----
-	private int parseInteger(final Object source) {
+	private static int parseInteger(final Object source) {
 
 		try {
 			return Integer.parseInt(source.toString());
@@ -393,7 +393,7 @@ public abstract class Resource {
 		return -1;
 	}
 
-	private void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<String> searchableProperties) throws FrameworkException {
+	private static void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<String> searchableProperties) throws FrameworkException {
 
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
@@ -433,15 +433,15 @@ public abstract class Resource {
 		return findGrant();
 	}
 
-	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request) throws FrameworkException {
+	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request) {
 
 		final String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
 
 		if (request != null &&!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-			final Double dist             = Double.parseDouble(distance);
-			final StringBuilder searchKey = new StringBuilder();
-			final Enumeration names       = request.getParameterNames();
+			final Double dist				= Double.parseDouble(distance);
+			final StringBuilder searchKey	= new StringBuilder();
+			final Enumeration names			= request.getParameterNames();
 
 			while (names.hasMoreElements()) {
 
@@ -469,75 +469,133 @@ public abstract class Resource {
 		return null;
 	}
 
-	protected boolean hasSearchableAttributesForNodes(final String rawType, final HttpServletRequest request, final List<SearchAttribute> searchAttributes) throws FrameworkException {
 
-		boolean hasSearchableAttributes = false;
+	protected List<SearchAttribute> extractSearchableAttributesForNodes(final String rawType,
+	                                                                    final HttpServletRequest request) throws FrameworkException {
+
+		List<SearchAttribute> searchAttributes = Collections.emptyList();
 
 		// searchable attributes
 		if (rawType != null && request != null &&!request.getParameterMap().isEmpty()) {
 
-			final boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			Set<String> searchableProperties = null;
+			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
-			if (looseSearch) {
+			final Set<String> searchableProperties =
+							getSearchableProperties(rawType,
+							                        looseSearch,
+							                        NodeService.NodeIndex.fulltext.name(),
+							                        NodeService.NodeIndex.keyword.name());
 
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.NodeIndex.fulltext.name());
+			searchAttributes = checkAndAssembleSearchAttributes(request, looseSearch, searchableProperties);
 
-			} else {
+		}
 
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.NodeIndex.keyword.name());
+		return searchAttributes;
+	}
 
-			}
 
-			if (searchableProperties != null) {
+	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final String rawType,
+	                                                                            final HttpServletRequest request) throws FrameworkException {
+		List<SearchAttribute> searchAttributes = Collections.emptyList();
 
-				checkForIllegalSearchKeys(request, searchableProperties);
+		// searchable attributes
+		if (rawType != null && request != null &&!request.getParameterMap().isEmpty()) {
 
-				for (final String key : searchableProperties) {
+			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
-					String searchValue = request.getParameter(key);
+			final Set<String> searchableProperties =
+							getSearchableProperties(rawType,
+							                        looseSearch,
+							                        NodeService.RelationshipIndex.rel_fulltext.name(),
+							                        NodeService.RelationshipIndex.rel_fulltext.name());
 
-					if (searchValue != null) {
+			searchAttributes = checkAndAssembleSearchAttributes(request, looseSearch, searchableProperties);
 
-						if (looseSearch) {
+		}
 
-							// no quotes allowed in loose search queries!
-							if (searchValue.contains("\"")) {
+		return searchAttributes;
+	}
 
-								searchValue = searchValue.replaceAll("[\"]+", "");
 
-							}
+	private static String removeQuotes(final String searchValue) {
+		String resultStr = searchValue;
 
-							if (searchValue.contains("'")) {
+		if (resultStr.contains("\"")) {
+			resultStr = resultStr.replaceAll("[\"]+", "");
+		}
 
-								searchValue = searchValue.replaceAll("[']+", "");
+		if (resultStr.contains("'")) {
+			resultStr = resultStr.replaceAll("[']+", "");
+		}
 
-							}
+		return resultStr;
+	}
 
-							searchAttributes.add(Search.andProperty(key, searchValue));
-						} else {
 
-							if (StringUtils.startsWith(searchValue, "[") && StringUtils.endsWith(searchValue, "]")) {
+	private static SearchAttribute determineSearchType(final String key, final String searchValue) {
 
-								final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
+		if (StringUtils.startsWith(searchValue, "[") && StringUtils.endsWith(searchValue, "]")) {
 
-								searchAttributes.add(Search.andMatchExactValues(key, strippedValue, SearchOperator.OR));
+			final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
+			return Search.andMatchExactValues(key, strippedValue, SearchOperator.OR);
 
-							} else if (StringUtils.startsWith(searchValue, "(") && StringUtils.endsWith(searchValue, ")")) {
+		} else if (StringUtils.startsWith(searchValue, "(") && StringUtils.endsWith(searchValue, ")")) {
 
-								final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "("), ")");
+			final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "("), ")");
+			return Search.andMatchExactValues(key, strippedValue, SearchOperator.AND);
 
-								searchAttributes.add(Search.andMatchExactValues(key, strippedValue, SearchOperator.AND));
+		} else {
+			return Search.andExactProperty(key, searchValue);
+		}
+	}
 
-							} else {
 
-								searchAttributes.add(Search.andExactProperty(key, searchValue));
+	private static Set<String> getSearchableProperties(final String rawType, final boolean loose,
+	                                                   final String looseIndexName, final String exactIndexName) {
+		Set<String> searchableProperties;
 
-							}
+		if (loose) {
 
-						}
+			searchableProperties = EntityContext.getSearchableProperties(rawType, looseIndexName);
 
-						hasSearchableAttributes = true;
+		} else {
+
+			searchableProperties = EntityContext.getSearchableProperties(rawType, exactIndexName);
+
+		}
+		return searchableProperties;
+	}
+
+
+
+	private static List<SearchAttribute> checkAndAssembleSearchAttributes(final HttpServletRequest request,
+	                                                                      final boolean looseSearch,
+	                                                                      final Set<String> searchableProperties)
+	                                                                    				  throws FrameworkException {
+
+		List<SearchAttribute> searchAttributes = Collections.emptyList();
+
+		if (searchableProperties != null) {
+
+			checkForIllegalSearchKeys(request, searchableProperties);
+
+			searchAttributes = new LinkedList<SearchAttribute>();
+
+			for (final String key : searchableProperties) {
+
+				String searchValue = request.getParameter(key);
+
+				if (searchValue != null) {
+
+					if (looseSearch) {
+
+						// no quotes allowed in loose search queries!
+						searchValue = removeQuotes(searchValue);
+
+						searchAttributes.add(Search.andProperty(key, searchValue));
+					} else {
+
+						searchAttributes.add(determineSearchType(key, searchValue));
 
 					}
 
@@ -546,92 +604,12 @@ public abstract class Resource {
 			}
 
 		}
-
-		return hasSearchableAttributes;
+		return searchAttributes;
 	}
 
-	protected boolean hasSearchableAttributesForRelationships(final String rawType, final HttpServletRequest request, final List<SearchAttribute> searchAttributes) throws FrameworkException {
-
-		boolean hasSearchableAttributes = false;
-
-		// searchable attributes
-		if (rawType != null && request != null &&!request.getParameterMap().isEmpty()) {
-
-			final boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			Set<String> searchableProperties = null;
-
-			if (looseSearch) {
-
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.RelationshipIndex.rel_fulltext.name());
-
-			} else {
-
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.RelationshipIndex.rel_keyword.name());
-
-			}
-
-			if (searchableProperties != null) {
-
-				checkForIllegalSearchKeys(request, searchableProperties);
-
-				for (final String key : searchableProperties) {
-
-					String searchValue = request.getParameter(key);
-
-					if (searchValue != null) {
-
-						if (looseSearch) {
-
-							// no quotes allowed in loose search queries!
-							if (searchValue.contains("\"")) {
-
-								searchValue = searchValue.replaceAll("[\"]+", "");
-
-							}
-
-							if (searchValue.contains("'")) {
-
-								searchValue = searchValue.replaceAll("[']+", "");
-
-							}
-
-							searchAttributes.add(Search.andProperty(key, searchValue));
-						} else {
-
-							if (StringUtils.startsWith(searchValue, "[") && StringUtils.endsWith(searchValue, "]")) {
-
-								final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
-
-								searchAttributes.add(Search.andMatchExactValues(key, strippedValue, SearchOperator.OR));
-
-							} else if (StringUtils.startsWith(searchValue, "(") && StringUtils.endsWith(searchValue, ")")) {
-
-								final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "("), ")");
-
-								searchAttributes.add(Search.andMatchExactValues(key, strippedValue, SearchOperator.AND));
-
-							} else {
-
-								searchAttributes.add(Search.andExactProperty(key, searchValue));
-
-							}
-
-						}
-
-						hasSearchableAttributes = true;
-
-					}
-
-				}
-
-			}
-
-		}
-
-		return hasSearchableAttributes;
-	}
 
 	public abstract boolean isCollectionResource() throws FrameworkException;
+
 
 	public boolean isPrimitiveArray() {
 		return false;
