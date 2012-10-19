@@ -1,62 +1,73 @@
 /*
  *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
-import org.apache.commons.lang.StringUtils;
+//~--- JDK imports ------------------------------------------------------------
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSearchField;
-import org.structr.core.*;
+import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.node.*;
+import org.structr.core.node.DeleteNodeCommand;
+import org.structr.core.node.DeleteRelationshipCommand;
+import org.structr.core.node.NodeFactory;
+import org.structr.core.node.NodeService;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.core.node.search.*;
+import org.structr.core.node.search.DistanceSearchAttribute;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchOperator;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
-import org.structr.rest.servlet.JsonRestServlet;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.structr.common.Permission;
 import org.structr.rest.exception.NotAllowedException;
+import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -97,12 +108,12 @@ public abstract class Resource {
 	/**
 	 * Check and configure this instance with the given values. Please note that you need to
 	 * set the security context of your class in this method.
-	 * 
+	 *
 	 * @param part the uri part that matched this resource
 	 * @param securityContext the security context of the current request
 	 * @param request the current request
 	 * @return whether this resource accepts the given uri part
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 
@@ -126,7 +137,7 @@ public abstract class Resource {
 		// catch 204, DELETE must return 200 if resource is empty
 		try {
 			results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
-		} catch (NoResultsException nre) {
+		} catch (final NoResultsException nre) {
 			results = null;
 		}
 
@@ -139,8 +150,8 @@ public abstract class Resource {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					for (GraphObject obj : finalResults) {
-						
+					for (final GraphObject obj : finalResults) {
+
 						if (obj instanceof AbstractRelationship) {
 
 							deleteRel.execute(obj);
@@ -148,11 +159,11 @@ public abstract class Resource {
 						} else if (obj instanceof AbstractNode) {
 
 							if (!securityContext.isAllowed((AbstractNode) obj, Permission.delete)) {
-								
+
 								throw new NotAllowedException();
-								
+
 							}
-							
+
 //                                                      // 2: delete relationships
 //                                                      if (obj instanceof AbstractNode) {
 //
@@ -187,14 +198,14 @@ public abstract class Resource {
 
 		if (results != null) {
 
-			StructrTransaction transaction = new StructrTransaction() {
+			final StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
-					for (GraphObject obj : results) {
+					for (final GraphObject obj : results) {
 
-						for (Entry<String, Object> attr : propertySet.entrySet()) {
+						for (final Entry<String, Object> attr : propertySet.entrySet()) {
 
 							obj.setProperty(attr.getKey(), attr.getValue());
 
@@ -220,33 +231,33 @@ public abstract class Resource {
 	 *
 	 * @param propertyView
 	 */
-	public void configurePropertyView(Value<String> propertyView) {}
+	public void configurePropertyView(final Value<String> propertyView) {}
 
-	public void configureIdProperty(String idProperty) {
+	public void configureIdProperty(final String idProperty) {
 		this.idProperty = idProperty;
 	}
 
-	public void postProcessResultSet(Result result) {}
+	public void postProcessResultSet(final Result result) {}
 
 	// ----- protected methods -----
-	protected RelationClass findRelationClass(TypedIdResource typedIdResource, TypeResource typeResource) {
+	protected RelationClass findRelationClass(final TypedIdResource typedIdResource, final TypeResource typeResource) {
 		return findRelationClass(typedIdResource.getTypeResource(), typeResource);
 	}
 
-	protected RelationClass findRelationClass(TypeResource typeResource, TypedIdResource typedIdResource) {
+	protected RelationClass findRelationClass(final TypeResource typeResource, final TypedIdResource typedIdResource) {
 		return findRelationClass(typeResource, typedIdResource.getTypeResource());
 	}
 
-	protected RelationClass findRelationClass(TypedIdResource typedIdResource1, TypedIdResource typedIdResource2) {
+	protected RelationClass findRelationClass(final TypedIdResource typedIdResource1, final TypedIdResource typedIdResource2) {
 		return findRelationClass(typedIdResource1.getTypeResource(), typedIdResource2.getTypeResource());
 	}
 
-	protected RelationClass findRelationClass(TypeResource typeResource1, TypeResource typeResource2) {
+	protected RelationClass findRelationClass(final TypeResource typeResource1, final TypeResource typeResource2) {
 
-		Class type1 = typeResource1.getEntityClass();
-		Class type2 = typeResource2.getEntityClass();
+		final Class type1 = typeResource1.getEntityClass();
+		final Class type2 = typeResource2.getEntityClass();
 
-		if ((type1 != null) && (type2 != null)) {
+		if (type1 != null && type2 != null) {
 
 			return EntityContext.getRelationClass(type1, type2);
 
@@ -261,9 +272,9 @@ public abstract class Resource {
 		return null;
 	}
 
-	protected String buildLocationHeader(GraphObject newObject) {
+	protected String buildLocationHeader(final GraphObject newObject) {
 
-		StringBuilder uriBuilder = securityContext.getBaseURI();
+		final StringBuilder uriBuilder = securityContext.getBaseURI();
 
 		uriBuilder.append(getUriPart());
 		uriBuilder.append("/");
@@ -285,19 +296,19 @@ public abstract class Resource {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(List<? extends GraphObject> list, String sortKey, boolean sortDescending) {
+	protected void applyDefaultSorting(final List<? extends GraphObject> list, final String sortKey, final boolean sortDescending) {
 
 		if (!list.isEmpty()) {
 
 			String finalSortKey   = sortKey;
 			String finalSortOrder = sortDescending ? "desc" : "asc";
-			
+
 			if (finalSortKey == null) {
 
 				// Apply default sorting, if defined
-				GraphObject obj = list.get(0);
-				
-				PropertyKey defaultSort = obj.getDefaultSortKey();
+				final GraphObject obj = list.get(0);
+
+				final PropertyKey defaultSort = obj.getDefaultSortKey();
 
 				if (defaultSort != null) {
 
@@ -307,7 +318,7 @@ public abstract class Resource {
 			}
 
 			if (finalSortKey != null) {
-				
+
 				Collections.sort(list, new GraphObjectComparator(finalSortKey, finalSortOrder));
 			}
 		}
@@ -315,18 +326,18 @@ public abstract class Resource {
 
 	protected ResourceAccess findGrant() throws FrameworkException {
 
-		Command search                         = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
-		String uriPart                         = EntityContext.normalizeEntityName(this.getResourceSignature());
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		AbstractNode topNode                   = null;
-		boolean includeDeletedAndHidden        = false;
-		boolean publicOnly                     = false;
+		final Command search                         = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+		final String uriPart                         = EntityContext.normalizeEntityName(this.getResourceSignature());
+		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		final AbstractNode topNode                   = null;
+		final boolean includeDeletedAndHidden        = false;
+		final boolean publicOnly                     = false;
 		ResourceAccess grant                   = null;
 
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
 		searchAttributes.add(Search.andExactProperty(ResourceAccess.Key.signature, uriPart));
 
-		Result result = (Result) search.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+		final Result result = (Result) search.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 
 		if (result.isEmpty()) {
 
@@ -335,13 +346,13 @@ public abstract class Resource {
 //                      // create new grant
 //                      final Command create = Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class);
 //                      final Map<String, Object> newGrantAttributes = new LinkedHashMap<String, Object>();
-//                      
+//
 //                      newGrantAttributes.put(AbstractNode.Key.type.name(), ResourceAccess.class.getSimpleName());
 //                      newGrantAttributes.put(ResourceAccess.Key.signature.name(), uriPart);
 //                      newGrantAttributes.put(ResourceAccess.Key.flags.name(), SecurityContext.getResourceFlags(uriPart));
-//                      
+//
 //                      grant = (ResourceAccess)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-//                      
+//
 //                              @Override public Object execute() throws FrameworkException {
 //                                      return create.execute(newGrantAttributes);
 //                              }
@@ -349,7 +360,7 @@ public abstract class Resource {
 
 		} else {
 
-			AbstractNode node = (AbstractNode) result.get(0);
+			final AbstractNode node = (AbstractNode) result.get(0);
 
 			if (node instanceof ResourceAccess) {
 
@@ -373,23 +384,23 @@ public abstract class Resource {
 	}
 
 	// ----- private methods -----
-	private int parseInteger(Object source) {
+	private int parseInteger(final Object source) {
 
 		try {
 			return Integer.parseInt(source.toString());
-		} catch (Throwable t) {}
+		} catch (final Throwable t) {}
 
 		return -1;
 	}
 
 	private void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<String> searchableProperties) throws FrameworkException {
 
-		ErrorBuffer errorBuffer = new ErrorBuffer();
+		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
 		// try to identify invalid search properties and throw an exception
-		for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
+		for (final Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
 
-			String requestParameterName = e.nextElement();
+			final String requestParameterName = e.nextElement();
 
 			if (!searchableProperties.contains(requestParameterName) &&!NON_SEARCH_FIELDS.contains(requestParameterName)) {
 
@@ -406,7 +417,7 @@ public abstract class Resource {
 		}
 	}
 
-	public static void registerNonSearchField(String parameterName) {
+	public static void registerNonSearchField(final String parameterName) {
 		NON_SEARCH_FIELDS.add(parameterName);
 	}
 
@@ -424,17 +435,17 @@ public abstract class Resource {
 
 	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request) throws FrameworkException {
 
-		String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
+		final String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
 
-		if ((request != null) &&!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
+		if (request != null &&!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-			Double dist             = Double.parseDouble(distance);
-			StringBuilder searchKey = new StringBuilder();
-			Enumeration names       = request.getParameterNames();
+			final Double dist             = Double.parseDouble(distance);
+			final StringBuilder searchKey = new StringBuilder();
+			final Enumeration names       = request.getParameterNames();
 
 			while (names.hasMoreElements()) {
 
-				String name = (String) names.nextElement();
+				final String name = (String) names.nextElement();
 
 				if (!name.equals(Search.DISTANCE_SEARCH_KEYWORD)
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)
@@ -463,9 +474,9 @@ public abstract class Resource {
 		boolean hasSearchableAttributes = false;
 
 		// searchable attributes
-		if ((rawType != null) && (request != null) &&!request.getParameterMap().isEmpty()) {
+		if (rawType != null && request != null &&!request.getParameterMap().isEmpty()) {
 
-			boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
+			final boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 			Set<String> searchableProperties = null;
 
 			if (looseSearch) {
@@ -482,7 +493,7 @@ public abstract class Resource {
 
 				checkForIllegalSearchKeys(request, searchableProperties);
 
-				for (String key : searchableProperties) {
+				for (final String key : searchableProperties) {
 
 					String searchValue = request.getParameter(key);
 
@@ -508,13 +519,13 @@ public abstract class Resource {
 
 							if (StringUtils.startsWith(searchValue, "[") && StringUtils.endsWith(searchValue, "]")) {
 
-								String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
+								final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
 
 								searchAttributes.add(Search.andMatchExactValues(key, strippedValue, SearchOperator.OR));
 
 							} else if (StringUtils.startsWith(searchValue, "(") && StringUtils.endsWith(searchValue, ")")) {
 
-								String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "("), ")");
+								final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "("), ")");
 
 								searchAttributes.add(Search.andMatchExactValues(key, strippedValue, SearchOperator.AND));
 
@@ -544,9 +555,9 @@ public abstract class Resource {
 		boolean hasSearchableAttributes = false;
 
 		// searchable attributes
-		if ((rawType != null) && (request != null) &&!request.getParameterMap().isEmpty()) {
+		if (rawType != null && request != null &&!request.getParameterMap().isEmpty()) {
 
-			boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
+			final boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 			Set<String> searchableProperties = null;
 
 			if (looseSearch) {
@@ -563,7 +574,7 @@ public abstract class Resource {
 
 				checkForIllegalSearchKeys(request, searchableProperties);
 
-				for (String key : searchableProperties) {
+				for (final String key : searchableProperties) {
 
 					String searchValue = request.getParameter(key);
 
@@ -589,13 +600,13 @@ public abstract class Resource {
 
 							if (StringUtils.startsWith(searchValue, "[") && StringUtils.endsWith(searchValue, "]")) {
 
-								String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
+								final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
 
 								searchAttributes.add(Search.andMatchExactValues(key, strippedValue, SearchOperator.OR));
 
 							} else if (StringUtils.startsWith(searchValue, "(") && StringUtils.endsWith(searchValue, ")")) {
 
-								String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "("), ")");
+								final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "("), ")");
 
 								searchAttributes.add(Search.andMatchExactValues(key, strippedValue, SearchOperator.AND));
 
@@ -628,7 +639,7 @@ public abstract class Resource {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setSecurityContext(SecurityContext securityContext) {
+	public void setSecurityContext(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
 }
