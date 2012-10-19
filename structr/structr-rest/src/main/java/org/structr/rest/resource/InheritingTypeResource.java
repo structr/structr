@@ -80,7 +80,7 @@ public class InheritingTypeResource extends TypeResource {
 			searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 			// searchable attributes from EntityContext
-			hasSearchableAttributes(searchAttributes);
+			searchAttributes.addAll(extractSearchableAttributesFromRequest());
 
 			// default sort key & order
 			if(sortKey == null) {
