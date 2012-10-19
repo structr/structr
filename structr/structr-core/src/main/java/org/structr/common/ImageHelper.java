@@ -59,7 +59,7 @@ import javax.imageio.ImageIO;
 public abstract class ImageHelper {
 
 	private static final Logger logger = Logger.getLogger(ImageHelper.class.getName());
-	private static Thumbnail tn        = new Thumbnail();
+	//private static Thumbnail tn        = new Thumbnail();
 
 	//~--- methods --------------------------------------------------------
 
@@ -124,11 +124,13 @@ public abstract class ImageHelper {
 
 	}
 
-	synchronized public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
+	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 
 		// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
+		Thumbnail tn        = new Thumbnail();
+		
 		try {
 
 			// read image
@@ -154,7 +156,7 @@ public abstract class ImageHelper {
 			}
 
 			if (source != null) {
-
+				
 				int sourceWidth  = source.getWidth();
 				int sourceHeight = source.getHeight();
 
