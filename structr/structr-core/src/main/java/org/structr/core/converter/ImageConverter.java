@@ -83,11 +83,14 @@ public class ImageConverter extends PropertyConverter {
 
 			}
 
-			// manual indexing needed here
-			Services.command(securityContext, IndexNodeCommand.class).execute(img);
 			
-			
-			currentObject.setProperty(kc.getPropertyKey(), img.getUuid());
+			if (img != null) {
+				
+				// manual indexing needed here
+				Services.command(securityContext, IndexNodeCommand.class).execute(img);
+				
+				currentObject.setProperty(kc.getPropertyKey(), img.getUuid());
+			}
 			
 			return null;
 
