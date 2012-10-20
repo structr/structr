@@ -31,6 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,29 +41,29 @@ import java.util.Set;
  */
 public class WebSocketMessage {
 
-	private String button                  = null;
-	private String callback                = null;
-	private int chunkSize                  = 512;
-	private int code                       = 0;
-	private String command                 = null;
-	private GraphObject graphObject        = null;
-	private String id                      = null;
-	private String message                 = null;
-	private Map<String, Object> nodeData   = new LinkedHashMap<String, Object>();
-	private int page                       = 0;
-	private int pageSize                   = 0;
-	private String parent                  = null;
-	private Map<String, Object> relData    = new LinkedHashMap<String, Object>();
-	private Set<String> modifiedProperties = new LinkedHashSet<String>();
-	private Set<String> removedProperties = new LinkedHashSet<String>();
-	private List<? extends GraphObject> result       = null;
-	private TreeNode resultTree            = null;
-	private boolean sessionValid           = false;
-	private String sortKey                 = null;
-	private String sortOrder               = null;
-	private String token                   = null;
-	private String view                    = null;
-	private Set<String> nodesWithChildren  = null;
+	private String button                       = null;
+	private String callback                     = null;
+	private int chunkSize                       = 512;
+	private int code                            = 0;
+	private String command                      = null;
+	private GraphObject graphObject             = null;
+	private String id                           = null;
+	private String message                      = null;
+	private Map<String, Object> nodeData        = new LinkedHashMap<String, Object>();
+	private int page                            = 0;
+	private int pageSize                        = 0;
+	private String parent                       = null;
+	private Map<String, Object> relData         = new LinkedHashMap<String, Object>();
+	private Set<PropertyKey> modifiedProperties = new LinkedHashSet<PropertyKey>();
+	private Set<PropertyKey> removedProperties  = new LinkedHashSet<PropertyKey>();
+	private List<? extends GraphObject> result  = null;
+	private TreeNode resultTree                 = null;
+	private boolean sessionValid                = false;
+	private String sortKey                      = null;
+	private String sortOrder                    = null;
+	private String token                        = null;
+	private String view                         = null;
+	private Set<String> nodesWithChildren       = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -163,11 +164,11 @@ public class WebSocketMessage {
 		return code;
 	}
 
-	public Set<String> getModifiedProperties() {
+	public Set<PropertyKey> getModifiedProperties() {
 		return modifiedProperties;
 	}
 
-	public Set<String> getRemovedProperties() {
+	public Set<PropertyKey> getRemovedProperties() {
 		return removedProperties;
 	}
 
@@ -276,11 +277,11 @@ public class WebSocketMessage {
 		this.code = code;
 	}
 
-	public void setModifiedProperties(Set<String> modifiedProperties) {
+	public void setModifiedProperties(Set<PropertyKey> modifiedProperties) {
 		this.modifiedProperties = modifiedProperties;
 	}
 	
-	public void setRemovedProperties(Set<String> removedProperties) {
+	public void setRemovedProperties(Set<PropertyKey> removedProperties) {
 		this.removedProperties = removedProperties;
 	}
 

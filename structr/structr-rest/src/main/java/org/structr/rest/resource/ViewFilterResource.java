@@ -39,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.PropertyKey;
 import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -79,7 +80,7 @@ public class ViewFilterResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		if (wrappedResource != null) {
 

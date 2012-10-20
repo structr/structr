@@ -68,13 +68,13 @@ public class A extends HtmlElement {
 		EntityContext.registerEntityRelation(A.class, P.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(A.class, Li.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 
-//              EntityContext.registerPropertyRelation(A.class, "_html_href", Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
-		EntityContext.registerEntityRelation(A.class, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name),
+//              EntityContext.registerPropertyRelation(A.class, "_html_href", Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name), RelationClass.DELETE_NONE);
+		EntityContext.registerEntityRelation(A.class, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name),
 			RelationClass.DELETE_NONE);
-		EntityContext.registerPropertyRelation(A.class, UiKey.linkable_id, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid),
+		EntityContext.registerPropertyRelation(A.class, UiKey.linkable_id, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid),
 			RelationClass.DELETE_NONE);
 
-		//EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, A.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
+		//EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, A.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.uuid));
 
 	}
 

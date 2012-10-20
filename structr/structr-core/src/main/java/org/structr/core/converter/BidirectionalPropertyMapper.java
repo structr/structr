@@ -21,6 +21,7 @@ package org.structr.core.converter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Value;
 
@@ -38,9 +39,9 @@ public class BidirectionalPropertyMapper extends PropertyMapper {
 		if(value != null) {
 
 			Object valueObject = value.get(securityContext);
-			if(valueObject instanceof String) {
+			if(valueObject instanceof PropertyKey) {
 
-				String mappedKey = (String)valueObject;
+				PropertyKey mappedKey = (PropertyKey)valueObject;
 				
 				try {
 					currentObject.setProperty(mappedKey, source);
@@ -69,9 +70,9 @@ public class BidirectionalPropertyMapper extends PropertyMapper {
 		if(value != null) {
 
 			Object valueObject = value.get(securityContext);
-			if(valueObject instanceof String) {
+			if(valueObject instanceof PropertyKey) {
 
-				String mappedKey = (String)valueObject;
+				PropertyKey mappedKey = (PropertyKey)valueObject;
 				return currentObject.getProperty(mappedKey);
 
 			} else {

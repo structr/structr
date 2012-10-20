@@ -97,7 +97,7 @@ public class DynamicConverter extends PropertyConverter {
 
 			if (typeDefinition != null) {
 
-				String converterProp = typeDefinition.getStringProperty(TypeDefinition.Key.converter);
+				String converterProp = typeDefinition.getStringProperty(TypeDefinition.converter);
 
 				if (StringUtils.isNotBlank(converterProp)) {
 

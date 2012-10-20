@@ -22,6 +22,7 @@ package org.structr.common.error;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.structr.common.PropertyKey;
 
 /**
  *
@@ -32,7 +33,7 @@ public class UniqueToken extends SemanticErrorToken {
 	private Object value = null;
         private String uuid = null;
 
-	public UniqueToken(String uuid, String propertyKey, Object value) {
+	public UniqueToken(String uuid, PropertyKey propertyKey, Object value) {
 		
 		super(propertyKey);
                 this.uuid = uuid;

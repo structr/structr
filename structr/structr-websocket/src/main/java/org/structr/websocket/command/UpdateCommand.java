@@ -97,7 +97,7 @@ public class UpdateCommand extends AbstractCommand {
 
 		try {
 
-			obj.setProperty(key, value);
+			obj.setProperty(obj.getPropertyKeyForName(key), value);
 
 			if (rec) {
 

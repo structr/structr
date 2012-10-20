@@ -22,7 +22,6 @@
 package org.structr.core.module;
 
 import antlr.StringUtils;
-import org.structr.core.*;
 import org.structr.core.Command;
 import org.structr.core.Module;
 import org.structr.core.Service;
@@ -37,6 +36,7 @@ import org.structr.core.entity.GenericNode;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 import java.lang.reflect.Modifier;
 
@@ -51,6 +51,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import org.structr.common.Property;
+import org.structr.common.PropertyView;
+import org.structr.core.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -104,7 +107,6 @@ public class ModuleService implements SingletonService {
 
 	}
 
-	// <editor-fold defaultstate="collapsed" desc="interface SingletonService">
 	@Override
 	public void injectArguments(Command command) {
 
@@ -181,6 +183,8 @@ public class ModuleService implements SingletonService {
 						nodeEntityClassCache.put(simpleName, clazz);
 						nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
+						registerProperties(clazz);
+						
 						for (Class interfaceClass : clazz.getInterfaces()) {
 
 							String interfaceName           = interfaceClass.getSimpleName();
@@ -570,8 +574,6 @@ public class ModuleService implements SingletonService {
 		return (ModuleService.class.getSimpleName());
 
 	}
-
-	// </editor-fold>
 	
 	@Override
 	public boolean isRunning() {
@@ -580,4 +582,38 @@ public class ModuleService implements SingletonService {
 		return (true);
 	}
 
+	
+	private void registerProperties(Class<? extends GraphObject> type) {
+		
+		for(Field field : type.getFields()) {
+
+			if (Property.class.isAssignableFrom(field.getType())) {
+				
+				int modifiers = field.getModifiers();
+
+				if (Modifier.isPublic(modifiers) && Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers)) {
+
+					// we have a public static final Property field
+					try {
+						
+						Property<?> property = (Property)field.get(this);
+						
+						EntityContext.registerPropertySet(type, PropertyView.All, property);
+						
+						for (String view : property.getViews()) {
+							
+							EntityContext.registerPropertySet(type, view, property);
+							
+						}
+						
+						
+					} catch(Throwable t) {
+						
+						t.printStackTrace();
+					}
+					
+				}
+			}
+		}
+	}
 }

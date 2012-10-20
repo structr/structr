@@ -51,8 +51,8 @@ public class PropertyValueComparator implements Comparator<GraphObject> {
 	@Override
 	public int compare(GraphObject o1, GraphObject o2) {
 
-		Object value1 = o1.getProperty(propertyKey.name());
-		Object value2 = o2.getProperty(propertyKey.name());
+		Object value1 = o1.getProperty(propertyKey);
+		Object value2 = o2.getProperty(propertyKey);
 
 		if(value1 != null && value2 != null) {
 			if(value1 instanceof Comparable && value2 instanceof Comparable) {

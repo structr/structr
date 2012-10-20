@@ -76,9 +76,9 @@ public class GeoHelper {
 		String type                     = Location.class.getSimpleName();
 		final Map<String, Object> props = new HashMap<String, Object>();
 
-		props.put(AbstractNode.Key.type.name(), type);
-		props.put(Location.Key.latitude.name(), latitude);
-		props.put(Location.Key.longitude.name(), longitude);
+		props.put(AbstractNode.type.name(), type);
+		props.put(Location.latitude.name(), latitude);
+		props.put(Location.longitude.name(), longitude);
 
 		StructrTransaction transaction = new StructrTransaction() {
 

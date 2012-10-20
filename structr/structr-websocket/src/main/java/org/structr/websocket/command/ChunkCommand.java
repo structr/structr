@@ -74,7 +74,7 @@ public class ChunkCommand extends AbstractCommand {
 			File file = (File) getNode(uuid);
 			
 			// Set proper size
-			file.setProperty(File.Key.size, (sequenceNumber * chunkSize) + data.length);
+			file.setProperty(File.size, (sequenceNumber * chunkSize) + data.length);
 			
 			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
 			

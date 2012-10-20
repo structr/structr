@@ -22,6 +22,7 @@ package org.structr.common.error;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.structr.common.PropertyKey;
 
 /**
  *
@@ -31,7 +32,7 @@ public class PropertyNotFoundToken extends NotFoundToken {
 
 	private Object value = null;
 
-	public PropertyNotFoundToken(String key, Object value) {
+	public PropertyNotFoundToken(PropertyKey key, Object value) {
 		super(key);
 		this.value = value;
 	}

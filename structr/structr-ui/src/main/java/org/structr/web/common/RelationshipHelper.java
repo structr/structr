@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.Property;
 import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -92,18 +93,18 @@ public class RelationshipHelper {
 			}
 
 			Map<String, Object> props = in.getProperties();
-			props.remove(AbstractRelationship.Key.uuid.name());
-			props.remove(AbstractRelationship.HiddenKey.createdDate.name());
+			props.remove(AbstractRelationship.uuid.name());
+			props.remove(AbstractRelationship.createdDate.name());
 			
 			// Overwrite combined rel type with new dest node type
-			props.put(AbstractRelationship.HiddenKey.combinedType.name(), EntityContext.createCombinedRelationshipType(in.getStringProperty(AbstractRelationship.HiddenKey.combinedType), cloneNode.getClass()));
+			props.put(AbstractRelationship.combinedType.name(), EntityContext.createCombinedRelationshipType(in.getStringProperty(AbstractRelationship.combinedType), cloneNode.getClass()));
 			
 			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, props, false);
 
 			// only set componentId if set and avoid setting the component id of the clone node itself
-			if ((componentId != null) &&!(cloneNode.getStringProperty(AbstractNode.Key.uuid).equals(componentId))) {
+			if ((componentId != null) &&!(cloneNode.getStringProperty(AbstractNode.uuid).equals(componentId))) {
 
-				newInRel.setProperty(Component.Key.componentId, componentId);
+				newInRel.setProperty(Component.componentId, componentId);
 
 			}
 
@@ -114,7 +115,7 @@ public class RelationshipHelper {
 
 	private static void setPositions(final AbstractNode cloneNode, AbstractRelationship rel, boolean increasePosition) throws FrameworkException {
 		
-			Set<String> paths = (Set<String>) cloneNode.getProperty(Component.UiKey.paths);
+			Set<String> paths = (Set<String>) cloneNode.getProperty(Component.paths);
 			
 			for (String path : paths) {
 				
@@ -125,7 +126,7 @@ public class RelationshipHelper {
 					position++;
 				}
 				
-				rel.setProperty(pageId, position);
+				rel.setProperty(new Property(pageId), position);
 				
 			}
 		
@@ -148,13 +149,13 @@ public class RelationshipHelper {
 			}
 			
 			Map<String, Object> props = out.getProperties();
-			props.remove(AbstractRelationship.Key.uuid.name());
+			props.remove(AbstractRelationship.uuid.name());
 
 			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(cloneNode, endNode, relType, props, false);
 
 			if (componentId != null) {
 
-				newOutRel.setProperty(Component.Key.componentId, componentId);
+				newOutRel.setProperty(Component.componentId, componentId);
 
 			}
 
@@ -241,11 +242,11 @@ public class RelationshipHelper {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
-			Long position = rel.getLongProperty(originalPageId);
+			Long position = rel.getLongProperty(new Property(originalPageId));
 
 			if (position != null) {
 
-				rel.setProperty(pageId, position);
+				rel.setProperty(new Property(pageId), position);
 
 			}
 
@@ -258,11 +259,11 @@ public class RelationshipHelper {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
-			Long position = rel.getLongProperty(startPageId);
+			Long position = rel.getLongProperty(new Property(startPageId));
 
 			if (position != null) {
 
-				rel.removeProperty(pageId);
+				rel.removeProperty(new Property(pageId));
 
 			}
 
@@ -277,7 +278,7 @@ public class RelationshipHelper {
 
 			if (!(startNode.equals(node))) {
 
-				rel.setProperty("componentId", componentId);
+				rel.setProperty(new Property("componentId"), componentId);
 
 				if (node.getType().equals(Component.class.getSimpleName())) {
 
@@ -300,15 +301,16 @@ public class RelationshipHelper {
 
 		}
 
+		Property pageIdProperty = new Property(pageId);
 		long i = 0;
 
-		Collections.sort(rels, new GraphObjectComparator(pageId, GraphObjectComparator.ASCENDING));
+		Collections.sort(rels, new GraphObjectComparator(pageIdProperty, GraphObjectComparator.ASCENDING));
 
 		for (AbstractRelationship rel : rels) {
 
 			try {
 
-				rel.setProperty(pageId, i);
+				rel.setProperty(pageIdProperty, i);
 
 				i++;
 
@@ -339,16 +341,17 @@ public class RelationshipHelper {
 
 			}
 
+			Property pageIdProperty = new Property(pageId);
 			Long childPos = null;
 
-			if (childRel.getLongProperty(pageId) != null) {
+			if (childRel.getLongProperty(pageIdProperty) != null) {
 
-				childPos = childRel.getLongProperty(pageId);
+				childPos = childRel.getLongProperty(pageIdProperty);
 
 			} else {
 
 				// Try "*"
-				childPos = childRel.getLongProperty("*");
+				childPos = childRel.getLongProperty(new Property("*"));
 			}
 
 			if (childPos != null) {
@@ -365,6 +368,7 @@ public class RelationshipHelper {
 	public static boolean hasChildren(final AbstractNode node, final String pageId) {
 
 		List<AbstractRelationship> childRels = node.getOutgoingRelationships(RelType.CONTAINS);
+		Property pageIdProperty              = new Property(pageId);
 
 		if ((node instanceof Group) || (node instanceof Folder)) {
 
@@ -376,14 +380,14 @@ public class RelationshipHelper {
 
 			Long childPos = null;
 
-			if (childRel.getLongProperty(pageId) != null) {
+			if (childRel.getLongProperty(pageIdProperty) != null) {
 
-				childPos = childRel.getLongProperty(pageId);
+				childPos = childRel.getLongProperty(pageIdProperty);
 
 			} else {
 
 				// Try "*"
-				childPos = childRel.getLongProperty("*");
+				childPos = childRel.getLongProperty(new Property("*"));
 			}
 
 			if (childPos != null) {

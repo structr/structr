@@ -44,7 +44,7 @@ public class PropertySetSerializationStrategy implements SerializationStrategy {
 		if(source != null) {
 			Map<String, Object> propertySet = new LinkedHashMap<String, Object>();
 			for(PropertyKey key : propertyKeys) {
-				propertySet.put(key.name(), source.getProperty(key.name()));
+				propertySet.put(key.name(), source.getProperty(key));
 			}
 			return propertySet;
 		}

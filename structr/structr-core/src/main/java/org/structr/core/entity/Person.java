@@ -189,14 +189,14 @@ public class Person extends PrincipalImpl {
 				   ? getFirstName()
 				   : "";
 
-		setProperty(AbstractNode.Key.name.name(), lastName + ", " + firstName);
+		setProperty(AbstractNode.name.name(), lastName + ", " + firstName);
 
 	}
 
 	@Override
 	public void setName(final String name) throws FrameworkException {
 
-		setProperty(AbstractNode.Key.name.name(), name);
+		setProperty(AbstractNode.name.name(), name);
 
 	}
 

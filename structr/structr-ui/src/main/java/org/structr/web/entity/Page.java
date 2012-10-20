@@ -50,7 +50,7 @@ public class Page extends AbstractNode implements Linkable {
 	static {
 
 		EntityContext.registerPropertyRelation(AbstractNode.class, UiKey.ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, RelationClass.Cardinality.ManyToOne,
-			new PropertyNotion(AbstractNode.Key.uuid));
+			new PropertyNotion(AbstractNode.uuid));
 		EntityContext.registerPropertySet(Page.class, PropertyView.All, UiKey.values());
 		EntityContext.registerPropertySet(Page.class, PropertyView.Public, UiKey.values());
 		EntityContext.registerPropertySet(Page.class, PropertyView.Ui, UiKey.values());

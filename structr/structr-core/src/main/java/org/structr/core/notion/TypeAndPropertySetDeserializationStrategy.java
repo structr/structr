@@ -22,6 +22,8 @@
 package org.structr.core.notion;
 
 import java.util.*;
+import java.util.Map.Entry;
+import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -38,7 +40,6 @@ import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.PropertySet;
 import org.structr.core.Result;
-import org.structr.core.node.NodeAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,20 +60,27 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) throws FrameworkException {
+	public GraphObject deserialize(SecurityContext securityContext, Class<? extends GraphObject> type, Object source) throws FrameworkException {
 
 		if (source instanceof PropertySet) {
 
-			Map<String, Object> attributes       = new LinkedHashMap<String, Object>();
-			List<SearchAttribute> attrs          = new LinkedList<SearchAttribute>();
+			Map<String, Object> attributes  = new LinkedHashMap<String, Object>();
+			List<SearchAttribute> attrs     = new LinkedList<SearchAttribute>();
+			GraphObject typeInstance        = null;
+			
+			// try to determine type 
+			try { typeInstance = type.newInstance(); } catch(Throwable t) {}
+			
+			for (Entry<String, Object> entry : ((PropertySet) source).getAttributes().entrySet()) {
 
-			for (NodeAttribute attr : ((PropertySet) source).getAttributes()) {
-
-				String key = attr.getKey();
-				String value = (String) attr.getValue();
+				String value    = (String) entry.getValue();
+				PropertyKey key = typeInstance != null ?
+							typeInstance.getPropertyKeyForName(entry.getKey())
+						  :
+							new Property(entry.getKey());
 
 				attrs.add(Search.andExactProperty(key, value));
-				attributes.put(key, value);
+				attributes.put(key.name(), value);
 			}
 
 			// just check for existance
@@ -82,12 +90,12 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 				GraphObject obj = result.get(0);
 				
 				if(!type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(type.getSimpleName(), new TypeToken("base", type.getSimpleName()));
+					throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
 				}
 				return result.get(0);
 			}
 
-			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("base", attributes));
+			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
 		}
 
 		return null;

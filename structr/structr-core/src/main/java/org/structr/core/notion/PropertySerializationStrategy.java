@@ -39,7 +39,7 @@ public class PropertySerializationStrategy implements SerializationStrategy {
 	@Override
 	public Object serialize(SecurityContext securityContext, Class type, GraphObject source) throws FrameworkException {
 		if(source != null) {
-			return source.getProperty(propertyKey.name());
+			return source.getProperty(propertyKey);
 		}
 
 		return null;

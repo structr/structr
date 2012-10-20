@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -111,9 +113,11 @@ public class AddCommand extends AbstractCommand {
 
 			if ((nodeToAdd != null) && (parentNode != null)) {
 
-				String originalPageId = (String) nodeData.get("sourcePageId");
-				String newPageId      = (String) nodeData.get("targetPageId");
-				RelationClass rel     = EntityContext.getRelationClass(parentNode.getClass(), nodeToAdd.getClass());
+				String originalPageId                    = (String) nodeData.get("sourcePageId");
+				String newPageId                         = (String) nodeData.get("targetPageId");
+				RelationClass rel                        = EntityContext.getRelationClass(parentNode.getClass(), nodeToAdd.getClass());
+				PropertyKey<Long> originalPageIdProperty = new Property<Long>(originalPageId);
+				PropertyKey<Long> newPageIdProperty      = new Property<Long>(newPageId);
 
 				if (rel != null) {
 
@@ -125,7 +129,7 @@ public class AddCommand extends AbstractCommand {
 						// Search for an existing relationship between the node to add and the parent
 						for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
 
-							if (r.getEndNode().equals(nodeToAdd) && r.getLongProperty(originalPageId) != null) {
+							if (r.getEndNode().equals(nodeToAdd) && r.getLongProperty(originalPageIdProperty) != null) {
 
 								existingRel = r;
 
@@ -136,7 +140,7 @@ public class AddCommand extends AbstractCommand {
 
 							}
 
-							Long pos = r.getLongProperty(newPageId);
+							Long pos = r.getLongProperty(newPageIdProperty);
 
 							if (pos != null) {
 
@@ -147,7 +151,7 @@ public class AddCommand extends AbstractCommand {
 
 						if (existingRel != null) {
 
-							existingRel.setProperty(newPageId, Long.parseLong((String) relData.get(newPageId)));
+							existingRel.setProperty(newPageIdProperty, Long.parseLong((String) relData.get(newPageId)));
 							logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[] { newPageId, maxPos + 1 });
 
 						} else {
@@ -190,9 +194,9 @@ public class AddCommand extends AbstractCommand {
 					Content contentNode             = null;
 					final List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
-					attrs.add(new NodeAttribute(Content.UiKey.content, childContent));
-					attrs.add(new NodeAttribute(Content.UiKey.contentType, "text/plain"));
-					attrs.add(new NodeAttribute(AbstractNode.Key.type, Content.class.getSimpleName()));
+					attrs.add(new NodeAttribute(Content.content, childContent));
+					attrs.add(new NodeAttribute(Content.contentType, "text/plain"));
+					attrs.add(new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()));
 
 					StructrTransaction transaction = new StructrTransaction() {
 

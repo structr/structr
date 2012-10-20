@@ -19,9 +19,9 @@
 
 package org.structr.core;
 
-import java.util.LinkedList;
-import java.util.List;
-import org.structr.core.node.NodeAttribute;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Wrapper class for JSON input via {@see JsonRestServlet}.
@@ -30,16 +30,10 @@ import org.structr.core.node.NodeAttribute;
  */
 public class PropertySet {
 
-	public enum PropertyFormat {
-		NestedKeyValue,			// "properties" : [ { "key" : "name", "value" : "Test" }, ... ]
-		NestedKeyValueType,		// "properties" : [ { "key" : "name", "value" : "Test", "type" : "String" }, ... ]
-		FlatNameValue			// { "name" : "Test" }
-	}
-
-	private List<NodeAttribute> attributes = null;
+	private Map<String, Object> attributes = null;
 
 	public PropertySet() {
-		this.attributes = new LinkedList<NodeAttribute>();
+		this.attributes = new LinkedHashMap<String, Object>();
 	}
 
 	/**
@@ -50,7 +44,7 @@ public class PropertySet {
 	 */
 	public void add(String key, Object value) {
 
-		attributes.add(new NodeAttribute(key, value));
+		attributes.put(key, value);
 	}
 
 //	/**
@@ -70,8 +64,8 @@ public class PropertySet {
 	 *
 	 * @return the list of attributes
 	 */
-	public List<NodeAttribute> getAttributes() {
-		return new LinkedList<NodeAttribute>(attributes);
+	public Map<String, Object> getAttributes() {
+		return attributes;
 	}
 
 	@Override
@@ -79,9 +73,9 @@ public class PropertySet {
 
 		StringBuilder builder = new StringBuilder();
 
-		for(NodeAttribute attr : attributes) {
+		for(Entry<String, Object> entry : attributes.entrySet()) {
 
-			builder.append(attr.getKey()).append(" = '").append(attr.getValue()).append("', ");
+			builder.append(entry.getKey()).append(" = '").append(entry.getValue()).append("', ");
 		}
 
 		return builder.toString();

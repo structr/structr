@@ -20,6 +20,7 @@
 package org.structr.core;
 
 import java.util.Map;
+import org.structr.common.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -38,8 +39,8 @@ public interface StructrTransactionListener {
 	public void commit(SecurityContext securityContext, long transactionKey);
 	public void rollback(SecurityContext securityContext, long transactionKey);
 
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue);
-	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue);
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue);
+	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue);
 
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;

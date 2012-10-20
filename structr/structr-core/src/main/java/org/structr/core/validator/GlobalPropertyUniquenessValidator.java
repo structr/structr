@@ -38,6 +38,7 @@ import org.structr.core.node.search.TextualSearchAttribute;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -53,7 +54,7 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public boolean isValid(GraphObject object, String key, String value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey key, String value, ErrorBuffer errorBuffer) {
 
 		if ((value == null) || ((value != null) && (value.toString().length() == 0))) {
 

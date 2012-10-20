@@ -38,7 +38,7 @@ public class GenericNode extends AbstractNode {
 
 	static {
 
-		EntityContext.registerPropertySet(GenericNode.class, PropertyView.All, Key.values());
+// FIXME: what is this for?		EntityContext.registerPropertySet(GenericNode.class, PropertyView.All, Key.values());
 	}
 
 

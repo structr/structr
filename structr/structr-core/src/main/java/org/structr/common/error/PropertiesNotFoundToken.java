@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.common.PropertyKey;
 
 /**
  *
@@ -34,7 +35,7 @@ public class PropertiesNotFoundToken extends NotFoundToken {
 
 	private Map<String, Object> attributes = null;
 
-	public PropertiesNotFoundToken(String key, Map<String, Object> attributes) {
+	public PropertiesNotFoundToken(PropertyKey key, Map<String, Object> attributes) {
 		super(key);
 		this.attributes = attributes;
 	}

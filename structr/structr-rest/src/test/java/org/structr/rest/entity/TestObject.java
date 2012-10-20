@@ -18,7 +18,6 @@
  */
 package org.structr.rest.entity;
 
-import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
@@ -31,14 +30,8 @@ import org.structr.core.entity.AbstractNode;
  */
 public class TestObject extends AbstractNode {
 	
-	public enum Key implements PropertyKey {
-		
-		name
-	}
-	
 	static {
 		
-		EntityContext.registerPropertySet(TestObject.class, PropertyView.Public, Key.values());
+		EntityContext.registerPropertySet(TestObject.class, PropertyView.Public, AbstractNode.name);
 	}
-	
 }

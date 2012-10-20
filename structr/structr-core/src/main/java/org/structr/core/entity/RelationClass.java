@@ -351,7 +351,7 @@ public class RelationClass {
 			public Object execute() throws FrameworkException {
 
 				AbstractNode relatedNode = (AbstractNode) Services.command(securityContext,
-								   CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType().getSimpleName()));
+								   CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type.name(), getDestType().getSimpleName()));
 
 				Command createRel           = Services.command(securityContext, CreateRelationshipCommand.class);
                                 

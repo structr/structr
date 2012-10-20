@@ -19,13 +19,19 @@
 
 package org.structr.common.error;
 
+import org.structr.common.Property;
+import org.structr.common.PropertyKey;
+
 /**
  *
  * @author Christian Morgner
  */
 public class IdNotFoundToken extends PropertyNotFoundToken {
 
+	// FIXME: this needs to me modified when the uuid/id mess is resolved
+	private static final PropertyKey<String> id = new Property<String>("id");
+	
 	public IdNotFoundToken(Object value) {
-		super("id", value);
+		super(id, value);
 	}
 }

@@ -88,7 +88,7 @@ public class StaticRelationshipResource extends SortableResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Result doGet(final String sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		// fetch results from typedIdResource (should be a single node)
 		final List<? extends GraphObject> results = typedIdResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
@@ -143,8 +143,8 @@ public class StaticRelationshipResource extends SortableResource {
 				// we need to use the raw type of the second type constraint
 				// as the property key for getProperty
 				// look for a property converter for the given type and key
-				final Class type = sourceNode.getClass();
-				final String key = typeResource.getRawType();
+				final Class type      = sourceNode.getClass();
+				final PropertyKey key = sourceNode.getPropertyKeyForName(typeResource.getRawType());
 
 				// String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
 				final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
@@ -238,7 +238,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 				if (startNode != null) {
 
-					if (EntityContext.isReadOnlyProperty(startNode.getClass(), typeResource.getRawType())) {
+					if (EntityContext.isReadOnlyProperty(startNode.getClass(), startNode.getPropertyKeyForName(typeResource.getRawType()))) {
 
 						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
 
@@ -257,7 +257,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 								final AbstractNode otherNode = rel.getOtherNode(startNode);
 								final Class otherNodeType    = otherNode.getClass();
-								final String id              = otherNode.getStringProperty(AbstractNode.Key.uuid.name());
+								final String id              = otherNode.getStringProperty(AbstractNode.uuid);
 
 								// Delete relationship only if not contained in property set
 								// check type of other node as well, there can be relationships
@@ -303,7 +303,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 								if (!type.equals(targetNode.getClass())) {
 
-									throw new FrameworkException(startNode.getClass().getSimpleName(), new TypeToken(uuid, type.getSimpleName()));
+									throw new FrameworkException(startNode.getClass().getSimpleName(), new TypeToken(AbstractNode.uuid, type.getSimpleName()));
 
 								}
 
@@ -340,7 +340,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 				if (sourceNode != null && rel != null) {
 
-					if (EntityContext.isReadOnlyProperty(sourceNode.getClass(), typeResource.getRawType())) {
+					if (EntityContext.isReadOnlyProperty(sourceNode.getClass(), sourceNode.getPropertyKeyForName(typeResource.getRawType()))) {
 
 						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNode.getClass(), typeResource.getRawType() });
 

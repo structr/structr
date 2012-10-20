@@ -23,6 +23,7 @@ package org.structr;
 import java.util.HashMap;
 import java.util.Map;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.structr.core.entity.AbstractNode;
 import org.structr.server.Structr;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.UiResourceProvider;
@@ -45,11 +46,10 @@ public class Ui implements org.structr.server.StructrServer {
 			Map<String, String> htmlInitParams = new HashMap<String, String>();
 
 			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
-			htmlInitParams.put("IdProperty", "uuid");
 			htmlServletHolder.setInitParameters(htmlInitParams);
 
 			// WebSocket Servlet
-			WebSocketServlet wsServlet = new WebSocketServlet();
+			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
 			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
 			Map<String, String> wsInitParams = new HashMap<String, String>();
 

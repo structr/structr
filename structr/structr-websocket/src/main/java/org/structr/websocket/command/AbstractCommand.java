@@ -43,6 +43,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -61,7 +62,7 @@ public abstract class AbstractCommand {
 	//~--- fields ---------------------------------------------------------
 
 	private Connection connection      = null;
-	private String idProperty          = null;
+	private PropertyKey idProperty     = null;
 	private StructrWebSocket webSocket = null;
 
 	//~--- methods --------------------------------------------------------
@@ -76,7 +77,7 @@ public abstract class AbstractCommand {
 		return connection;
 	}
 
-	public String getIdProperty() {
+	public PropertyKey getIdProperty() {
 		return idProperty;
 	}
 
@@ -197,7 +198,7 @@ public abstract class AbstractCommand {
 		this.connection = connection;
 	}
 
-	public void setIdProperty(final String idProperty) {
+	public void setIdProperty(final PropertyKey idProperty) {
 		this.idProperty = idProperty;
 	}
 

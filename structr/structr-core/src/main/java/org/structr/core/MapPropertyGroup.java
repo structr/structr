@@ -22,7 +22,6 @@
 package org.structr.core;
 
 import org.structr.common.PropertyKey;
-import org.structr.core.node.NodeAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -57,7 +56,7 @@ public class MapPropertyGroup implements PropertyGroup {
 
 		for (PropertyKey key : propertyKeys) {
 
-			groupedProperties.put(key.name(), source.getProperty(key.name()));
+			groupedProperties.put(key.name(), source.getProperty(key));
 
 		}
 
@@ -73,7 +72,7 @@ public class MapPropertyGroup implements PropertyGroup {
 
 			for (PropertyKey key : propertyKeys) {
 
-				destination.setProperty(key.name(), null);
+				destination.setProperty(key, null);
 
 			}
 
@@ -89,8 +88,9 @@ public class MapPropertyGroup implements PropertyGroup {
 					setGroupedProperties(value, destination);
 
 				} else {
-
-					destination.setProperty(key, value);
+					
+					PropertyKey propertyKey = destination.getPropertyKeyForName(key);
+					destination.setProperty(propertyKey, value);
 
 				}
 
@@ -98,18 +98,20 @@ public class MapPropertyGroup implements PropertyGroup {
 
 		} else if (source instanceof PropertySet) {
 
-			for (NodeAttribute attr : ((PropertySet) source).getAttributes()) {
+			for (Entry<String, Object> entry : ((PropertySet)source).getAttributes().entrySet()) {
 
-				String key   = attr.getKey();
-				Object value = attr.getValue();
+				String key   = entry.getKey();
+				Object value = entry.getValue();
 
 				if (value instanceof PropertySet) {
 
 					// recursive put/post
 					setGroupedProperties(value, destination);
+					
 				} else {
 
-					destination.setProperty(key, value);
+					PropertyKey propertyKey = destination.getPropertyKeyForName(key);
+					destination.setProperty(propertyKey, value);
 
 				}
 

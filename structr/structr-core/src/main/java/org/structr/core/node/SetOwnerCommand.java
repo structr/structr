@@ -135,7 +135,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		createRel.execute(user, node, RelType.OWNS);
-		logger.log(Level.FINEST, "Relationship to owner {0} added", user.getStringProperty(AbstractNode.Key.name));
+		logger.log(Level.FINEST, "Relationship to owner {0} added", user.getStringProperty(AbstractNode.name));
 	}
 
 	private void setOwner(final List<AbstractNode> nodeList, final Principal user) throws FrameworkException {

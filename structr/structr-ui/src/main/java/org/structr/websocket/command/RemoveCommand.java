@@ -48,6 +48,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.Property;
+import org.structr.common.PropertyKey;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -99,10 +101,11 @@ public class RemoveCommand extends AbstractCommand {
 						Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 						boolean hasPageId;
 						List<AbstractRelationship> relsToReorder = new ArrayList<AbstractRelationship>();
+						PropertyKey<Long> pageIdProperty = new Property<Long>(pageId);
 
 						for (AbstractRelationship rel : rels) {
 
-							if (pageId == null || rel.getProperty(pageId) != null) {
+							if (pageId == null || rel.getProperty(pageIdProperty) != null) {
 
 //                                                              if (rel.getEndNode().equals(nodeToRemove) && ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))) {
 								if (rel.getEndNode().equals(nodeToRemove)) {
@@ -114,9 +117,9 @@ public class RemoveCommand extends AbstractCommand {
 										deleteRel.execute(rel);
 									} else {
 
-										if (pos.equals(rel.getLongProperty(pageId))) {
+										if (pos.equals(rel.getLongProperty(pageIdProperty))) {
 
-											rel.removeProperty(pageId);
+											rel.removeProperty(pageIdProperty);
 											//RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
 
 											hasPageId = hasPageIds(securityContext, rel);
@@ -206,10 +209,11 @@ public class RemoveCommand extends AbstractCommand {
 				if (results != null && !results.isEmpty()) {
 
 					count++;
+					
 				} else {
 
 					// UUID, but not page found: Remove this property
-					rel.removeProperty(key);
+					rel.removeProperty(rel.getPropertyKeyForName(key));
 				}
 
 			}

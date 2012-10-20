@@ -40,8 +40,11 @@ import org.structr.core.node.search.*;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -72,7 +75,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public GraphObject deserialize(final SecurityContext securityContext, final Class type, Object source) throws FrameworkException {
+	public GraphObject deserialize(final SecurityContext securityContext, final Class<? extends GraphObject> type, Object source) throws FrameworkException {
 
 		if (source != null) {
 
@@ -81,11 +84,21 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 			// FIXME: use uuid only here?
 			if (source instanceof PropertySet) {
 
-				PropertySet properties = (PropertySet) source;
+				PropertySet properties   = (PropertySet) source;
+				Map<String, Object> map  = properties.getAttributes();
+				GraphObject typeInstance = null;
+				
+				// obtain type instance
+				try { typeInstance = type.newInstance(); } catch(Throwable t) {}
+				
+				for (Entry<String, Object> entry : map.entrySet()) {
 
-				for (NodeAttribute attr : properties.getAttributes()) {
-
-					attrs.add(Search.andExactProperty(attr.getKey(), attr.getValue().toString()));
+					PropertyKey key = typeInstance != null ?
+								typeInstance.getPropertyKeyForName(entry.getKey())
+							  :
+								new Property(entry.getKey());
+					
+					attrs.add(Search.andExactProperty(key, entry.getValue().toString()));
 
 				}
 
@@ -131,7 +144,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 					// create node and return it
 					AbstractNode newNode = (AbstractNode) Services.command(securityContext,
-								       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), type.getSimpleName()));
+								       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
 
 					if (newNode == null) {
 

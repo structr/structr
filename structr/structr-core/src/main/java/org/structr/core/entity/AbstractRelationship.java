@@ -71,20 +71,27 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
+	public static final PropertyKey<String>   uuid          = new Property<String>("uuid");
+	public static final PropertyKey<String>   combinedType  = new Property<String>("combinedType");
+	public static final PropertyKey<Integer>  cascadeDelete = new Property<Integer>("cascadeDelete");
+	public static final PropertyKey<Date>     createdDate   = new Property<Date>("createdDate");
+	public static final PropertyKey<String[]> allowed       = new Property<String[]>("allowed");
+	
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(AbstractRelationship.class, PropertyView.All, Key.values());
-		EntityContext.registerSearchableProperty(AbstractRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
+		EntityContext.registerPropertySet(AbstractRelationship.class, PropertyView.All, uuid);
+		EntityContext.registerSearchableProperty(AbstractRelationship.class, RelationshipIndex.rel_uuid.name(), uuid);
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
 
 		// register uuid validator
-		EntityContext.registerPropertyValidator(AbstractRelationship.class, Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
+		EntityContext.registerPropertyValidator(AbstractRelationship.class, uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
 
-		EntityContext.registerPropertyConverter(AbstractRelationship.class, HiddenKey.createdDate, DateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractRelationship.class, createdDate, DateConverter.class);
 		
 	}
 
@@ -93,11 +100,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	private String cachedEndNodeId = null;
 
 	// test
-	protected Map<String, Object> cachedConvertedProperties = new LinkedHashMap<String, Object>();
-	protected Map<String, Object> cachedRawProperties       = new LinkedHashMap<String, Object>();
-	private String cachedStartNodeId                        = null;
-	protected SecurityContext securityContext               = null;
-	private boolean readOnlyPropertiesUnlocked              = false;
+	protected Map<PropertyKey, Object> cachedConvertedProperties = new LinkedHashMap<PropertyKey, Object>();
+	protected Map<PropertyKey, Object> cachedRawProperties       = new LinkedHashMap<PropertyKey, Object>();
+	private String cachedStartNodeId                             = null;
+	protected SecurityContext securityContext                    = null;
+	private boolean readOnlyPropertiesUnlocked                   = false;
 
 	// reference to database relationship
 	protected Relationship dbRelationship;
@@ -106,11 +113,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	protected boolean isDirty;
 
 	//~--- constant enums -------------------------------------------------
-
-	public enum HiddenKey implements PropertyKey{ combinedType,    // internal combinedType, see IndexRelationshipCommand#indexRelationship method
-					 cascadeDelete, createdDate, allowed }
-
-	public enum Key implements PropertyKey{ uuid }
 
 	//~--- constructors ---------------------------------------------------
 
@@ -165,10 +167,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				Node startNode = dbRelationship.getStartNode();
 				Node endNode   = dbRelationship.getEndNode();
 
-				if ((startNode != null) && (endNode != null) && startNode.hasProperty(AbstractNode.Key.uuid.name()) && endNode.hasProperty(AbstractNode.Key.uuid.name())) {
+				if ((startNode != null) && (endNode != null) && startNode.hasProperty(AbstractNode.uuid.name()) && endNode.hasProperty(AbstractNode.uuid.name())) {
 
-					cachedStartNodeId = (String) startNode.getProperty(AbstractNode.Key.uuid.name());
-					cachedEndNodeId   = (String) endNode.getProperty(AbstractNode.Key.uuid.name());
+					cachedStartNodeId = (String) startNode.getProperty(AbstractNode.uuid.name());
+					cachedEndNodeId   = (String) endNode.getProperty(AbstractNode.uuid.name());
 
 				}
 
@@ -222,48 +224,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	/**
-	 * Commit unsaved property values to the relationship node.
-	 */
-	public void commit() throws FrameworkException {
-
-		isDirty = false;
-
-		// Create an outer transaction to combine any inner neo4j transactions
-		// to one single transaction
-		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-
-		transactionCommand.execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				Command createRel        = Services.command(securityContext, CreateRelationshipCommand.class);
-				AbstractRelationship rel = (AbstractRelationship) createRel.execute();
-
-				init(securityContext, rel.getRelationship());
-
-				Set<String> keys = properties.keySet();
-
-				for (String key : keys) {
-
-					Object value = properties.get(key);
-
-					if ((key != null) && (value != null)) {
-
-						setProperty(key, value);
-					}
-
-				}
-
-				return null;
-
-			}
-
-		});
-
-	}
-
 	public void init(final SecurityContext securityContext, final Relationship dbRel) {
 
 		this.dbRelationship  = dbRel;
@@ -293,7 +253,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public void removeProperty(final String key) throws FrameworkException {
+	public void removeProperty(final PropertyKey key) throws FrameworkException {
 
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -302,7 +262,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 				try {
 					
-					dbRelationship.removeProperty(key);
+					dbRelationship.removeProperty(key.name());
 
 				} finally {}
 
@@ -346,7 +306,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public int cascadeDelete() {
 
-		Integer cd = getIntProperty(AbstractRelationship.HiddenKey.cascadeDelete);
+		Integer cd = getIntProperty(AbstractRelationship.cascadeDelete);
 
 		return (cd != null)
 		       ? cd
@@ -435,7 +395,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	@Override
 	public String getUuid() {
 
-		return getStringProperty(Key.uuid);
+		return getStringProperty(AbstractRelationship.uuid);
 
 	}
 	
@@ -465,18 +425,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public Object getProperty(final PropertyKey propertyKey) {
-
-		return getProperty(propertyKey.name());
-
-	}
-
-	@Override
-	public Object getProperty(final String key) {
+	public Object getProperty(final PropertyKey key) {
 		return getProperty(key, true);
 	}
 
-	private Object getProperty(final String key, boolean applyConverter) {
+	private Object getProperty(final PropertyKey key, boolean applyConverter) {
 
 		Object value      = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
 		boolean dontCache = false;
@@ -487,7 +440,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			PropertyKey startNodeIdKey = getStartNodeIdKey();
 			PropertyKey endNodeIdKey   = getEndNodeIdKey();
 
-			if (startNodeIdKey != null && key.equals(startNodeIdKey.name())) {
+			if (startNodeIdKey != null && key.equals(startNodeIdKey)) {
 
 				value = getStartNodeId();
 				
@@ -504,7 +457,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 			}
 			
-			if (endNodeIdKey != null && key.equals(endNodeIdKey.name())) {
+			if (endNodeIdKey != null && key.equals(endNodeIdKey)) {
 
 				value = getEndNodeId();
 				
@@ -529,15 +482,15 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				return propertyGroup.getGroupedProperties(this);
 			}
 
-			if (dbRelationship.hasProperty(key)) {
+			if (dbRelationship.hasProperty(key.name())) {
 
-				value = dbRelationship.getProperty(key);
+				value = dbRelationship.getProperty(key.name());
 			}
 
 			// no value found, use schema default
 			if (value == null) {
 
-				value = EntityContext.getDefaultValue(type, key);
+				value = key.defaultValue();
 				dontCache = true;
 			}
 
@@ -578,14 +531,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public String getStringProperty(final PropertyKey key) {
-
-		return getStringProperty(key.name());
-
-	}
-
-	@Override
-	public String getStringProperty(final String key) {
+	public String getStringProperty(final PropertyKey<String> key) {
 
 		Object propertyValue = getProperty(key);
 		String result        = null;
@@ -605,14 +551,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public Integer getIntProperty(final PropertyKey propertyKey) {
-
-		return (getIntProperty(propertyKey.name()));
-
-	}
-
-	@Override
-	public Integer getIntProperty(final String key) {
+	public Integer getIntProperty(final PropertyKey<Integer> key) {
 
 		Object propertyValue = getProperty(key);
 		Integer result       = null;
@@ -640,13 +579,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	public Long getLongProperty(final PropertyKey propertyKey) {
-
-		return (getLongProperty(propertyKey.name()));
-
-	}
-
-	public Long getLongProperty(final String key) {
+	@Override
+	public Long getLongProperty(final PropertyKey<Long> key) {
 
 		Object propertyValue = getProperty(key);
 		Long result          = null;
@@ -678,14 +612,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public Date getDateProperty(final PropertyKey key) {
-
-		return getDateProperty(key.name());
-
-	}
-
-	@Override
-	public Date getDateProperty(final String key) {
+	public Date getDateProperty(final PropertyKey<Date> key) {
 
 		Object propertyValue = getProperty(key);
 
@@ -739,14 +666,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public boolean getBooleanProperty(final PropertyKey propertyKey) {
-
-		return (getBooleanProperty(propertyKey.name()));
-
-	}
-
-	@Override
-	public boolean getBooleanProperty(final String key) {
+	public boolean getBooleanProperty(final PropertyKey<Boolean> key) {
 
 		Object propertyValue = getProperty(key);
 		Boolean result       = false;
@@ -769,14 +689,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public Double getDoubleProperty(final PropertyKey propertyKey) throws FrameworkException {
-
-		return (getDoubleProperty(propertyKey.name()));
-
-	}
-
-	@Override
-	public Double getDoubleProperty(final String key) throws FrameworkException {
+	public Double getDoubleProperty(final PropertyKey<Double> key) throws FrameworkException {
 
 		Object propertyValue = getProperty(key);
 		Double result        = null;
@@ -816,12 +729,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public Comparable getComparableProperty(final PropertyKey propertyKey) {
-		return getComparableProperty(propertyKey.name());
-	}
-
-	@Override
-	public Comparable getComparableProperty(final String key) {
+	public Comparable getComparableProperty(final PropertyKey<? extends Comparable> key) {
 
 		Object propertyValue = getProperty(key, false);	// get "raw" property without converter
 		Class type = getClass();
@@ -922,10 +830,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public String[] getPermissions() {
 
-		if (dbRelationship.hasProperty(HiddenKey.allowed.name())) {
+		if (dbRelationship.hasProperty(AbstractRelationship.allowed.name())) {
 
 			// StringBuilder result             = new StringBuilder();
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(HiddenKey.allowed.name());
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.allowed.name());
 
 			return allowedProperties;
 
@@ -952,7 +860,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 *
 	 * @return
 	 */
-	public Iterable<String> getPropertyKeys() {
+	public Iterable<PropertyKey> getPropertyKeys() {
 
 		return getPropertyKeys(PropertyView.All);
 
@@ -966,7 +874,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 * @param key
 	 * @return
 	 */
-	public Object getPropertyForIndexing(final String key) {
+	public Object getPropertyForIndexing(final PropertyKey key) {
 
 		return getProperty(key);
 
@@ -974,7 +882,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	// ----- interface GraphObject -----
 	@Override
-	public Iterable<String> getPropertyKeys(final String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 
 		return EntityContext.getPropertySet(this.getClass(), propertyView);
 
@@ -1013,7 +921,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public String getOtherNodeId(final AbstractNode node) {
 
-		return getOtherNode(node).getStringProperty(AbstractRelationship.Key.uuid);
+		return getOtherNode(node).getStringProperty(AbstractRelationship.uuid);
 
 	}
 
@@ -1048,7 +956,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	@Override
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
 		
-		cachedUuid = (String)properties.get(AbstractRelationship.Key.uuid.name());
+		cachedUuid = (String)properties.get(AbstractRelationship.uuid.name());
 		
 		return true;
 	}
@@ -1085,7 +993,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		boolean error = false;
 
-		error |= ValidationHelper.checkStringNotBlank(this, AbstractRelationship.Key.uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, AbstractRelationship.uuid, errorBuffer);
 
 		return !error;
 
@@ -1099,9 +1007,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public boolean isAllowed(final Permission permission) {
 
-		if (dbRelationship.hasProperty(HiddenKey.allowed.name())) {
+		if (dbRelationship.hasProperty(allowed.name())) {
 
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(HiddenKey.allowed.name());
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(allowed.name());
 
 			if (allowedProperties != null) {
 
@@ -1124,24 +1032,17 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setProperties(final Map<String, Object> properties) throws FrameworkException {
+	public void setProperties(final Map<PropertyKey, Object> properties) throws FrameworkException {
 
-		for (Entry prop : properties.entrySet()) {
+		for (Entry<PropertyKey, Object> prop : properties.entrySet()) {
 
-			setProperty((String) prop.getKey(), prop.getValue());
+			setProperty(prop.getKey(), prop.getValue());
 		}
 
 	}
 
 	@Override
-	public void setProperty(final PropertyKey propertyKey, final Object value) throws FrameworkException {
-
-		setProperty(propertyKey.name(), value);
-
-	}
-
-	@Override
-	public void setProperty(final String key, final Object value) throws FrameworkException {
+	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
 
 		PropertyKey startNodeIdKey = getStartNodeIdKey();
 		PropertyKey endNodeIdKey   = getEndNodeIdKey();
@@ -1169,7 +1070,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		Class type = this.getClass();
 
 		// check for read-only properties
-		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key))) {
+		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
@@ -1231,15 +1132,15 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 					// save space
 					if (convertedValue == null) {
 
-						dbRelationship.removeProperty(key);
+						dbRelationship.removeProperty(key.name());
 					} else {
 
 						if (convertedValue instanceof Date) {
 
-							dbRelationship.setProperty(key, ((Date) convertedValue).getTime());
+							dbRelationship.setProperty(key.name(), ((Date) convertedValue).getTime());
 						} else {
 
-							dbRelationship.setProperty(key, convertedValue);
+							dbRelationship.setProperty(key.name(), convertedValue);
 						}
 
 					}
@@ -1269,8 +1170,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 */
 	public void setStartNodeId(final String startNodeId) throws FrameworkException {
 
-		final String type = this.getClass().getSimpleName();
-		final String key  = getStartNodeIdKey().name();
+		final String type     = this.getClass().getSimpleName();
+		final PropertyKey key = getStartNodeIdKey();
 
 		// May never be null!!
 		if (startNodeId == null) {
@@ -1329,8 +1230,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 */
 	public void setEndNodeId(final String endNodeId) throws FrameworkException {
 
-		final String type = this.getClass().getSimpleName();
-		final String key  = getStartNodeIdKey().name();
+		final String type     = this.getClass().getSimpleName();
+		final PropertyKey key = getStartNodeIdKey();
 
 		// May never be null!!
 		if (endNodeId == null) {
@@ -1449,8 +1350,15 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public void setAllowed(final String[] allowed) {
 
-		dbRelationship.setProperty(AbstractRelationship.HiddenKey.allowed.name(), allowed);
+		dbRelationship.setProperty(AbstractRelationship.allowed.name(), allowed);
 
 	}
 
+	@Override
+	public PropertyKey getPropertyKeyForName(String name) {
+		
+		//TODO: implement this
+		
+		return new Property(name);
+	}
 }

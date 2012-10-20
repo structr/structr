@@ -111,7 +111,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 	public AbstractNode createNode(final Node node) throws FrameworkException {
 
-		String type     = AbstractNode.Key.type.name();
+		String type     = AbstractNode.type.name();
 		String nodeType = node.hasProperty(type)
 				  ? (String) node.getProperty(type)
 				  : "GenericNode";

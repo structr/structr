@@ -19,12 +19,10 @@
 
 package org.structr.rest.resource;
 
-import com.tinkerpop.gremlin.Tokens.T;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateNodeCommand;
@@ -49,6 +47,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.lucene.search.SortField;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.DateConverter;
@@ -92,9 +91,9 @@ public class TypeResource extends SortableResource {
 			entityClass = EntityContext.getEntityClassForRawType(rawType);
 
 			if (entityClass == null) {
-
+				
 				// test if key is a known property
-				if (!EntityContext.isKnownProperty(part)) {
+				if (!EntityContext.isKnownProperty(new Property(part))) {
 
 					return false;
 				}
@@ -106,7 +105,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode                   = null;
@@ -140,7 +139,7 @@ public class TypeResource extends SortableResource {
 			if (distanceSearch != null) {
 
 				searchAttributes.add(distanceSearch);
-				searchAttributes.add(new FilterSearchAttribute(AbstractNode.Key.type.name(), EntityContext.normalizeEntityName(rawType), SearchOperator.AND));
+				searchAttributes.add(new FilterSearchAttribute(AbstractNode.type, EntityContext.normalizeEntityName(rawType), SearchOperator.AND));
 
 			} else {
 
@@ -161,13 +160,13 @@ public class TypeResource extends SortableResource {
 					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
 					
 					if (sortKeyProperty != null) {
-						sortKey = sortKeyProperty.name();
+						sortKey = sortKeyProperty;
 					}
 					
 				} catch(Throwable t) {
 					
 					// fallback to name
-					sortKey = "name";
+					sortKey = AbstractNode.name;
 				}
 			}
 			
@@ -266,8 +265,8 @@ public class TypeResource extends SortableResource {
 
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
-		// propertySet.put(AbstractNode.Key.type.name(), StringUtils.toCamelCase(type));
-		propertySet.put(AbstractNode.Key.type.name(), EntityContext.normalizeEntityName(rawType));
+		// propertySet.put(AbstractNode.type.name(), StringUtils.toCamelCase(type));
+		propertySet.put(AbstractNode.type.name(), EntityContext.normalizeEntityName(rawType));
 
 		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(propertySet);
 	}

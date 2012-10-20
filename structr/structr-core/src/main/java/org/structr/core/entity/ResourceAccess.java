@@ -65,7 +65,7 @@ public class ResourceAccess extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  Key.values());
 		
 		// signature and type must be read-only
-		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.Key.type.name());
+		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.type.name());
 		EntityContext.registerWriteOnceProperty(ResourceAccess.class, Key.signature.name());
 		
 		EntityContext.registerPropertyConverter(ResourceAccess.class, Key.flags, IntConverter.class);

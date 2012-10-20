@@ -273,6 +273,7 @@ public class Image extends File {
 				public Object execute() throws FrameworkException {
 
 					Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
+
 					Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 
 					if (thumbnailData != null) {
@@ -379,7 +380,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.visibleToPublicUsers.name(), publicFlag);
+			thumbnail.setProperty(AbstractNode.visibleToPublicUsers.name(), publicFlag);
 		}
 
 	}
@@ -392,7 +393,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.visibleToAuthenticatedUsers.name(), flag);
+			thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers.name(), flag);
 		}
 
 	}
@@ -405,7 +406,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.hidden.name(), hidden);
+			thumbnail.setProperty(AbstractNode.hidden.name(), hidden);
 		}
 
 	}
@@ -418,7 +419,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.deleted.name(), deleted);
+			thumbnail.setProperty(AbstractNode.deleted.name(), deleted);
 		}
 
 	}
@@ -431,7 +432,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.visibilityStartDate.name(), date);
+			thumbnail.setProperty(AbstractNode.visibilityStartDate.name(), date);
 		}
 
 	}
@@ -444,7 +445,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.visibilityEndDate.name(), date);
+			thumbnail.setProperty(AbstractNode.visibilityEndDate.name(), date);
 		}
 
 	}

@@ -20,6 +20,9 @@
 package org.structr.core.converter;
 
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Value;
 
@@ -30,6 +33,8 @@ import org.structr.core.Value;
 
 public class ResultCountConverter extends PropertyConverter {
 
+	private static final Logger logger = Logger.getLogger(ResultCountConverter.class.getName());
+	
 	@Override
 	public Object convertForSetter(Object source, Value value) {
 		return source;
@@ -44,9 +49,9 @@ public class ResultCountConverter extends PropertyConverter {
 			
 			Object val = value.get(securityContext);
 			
-			if(val != null) {
+			if(val != null && val instanceof PropertyKey) {
 				
-				Object toCount = currentObject.getProperty(val.toString());
+				Object toCount = currentObject.getProperty((PropertyKey)val);
 				if(toCount != null) {
 
 					if (toCount instanceof Collection) {
@@ -70,6 +75,10 @@ public class ResultCountConverter extends PropertyConverter {
 						count = 1;
 					}
 				}
+				
+			} else {
+				
+				logger.log(Level.WARNING, "PasswordConverter for type {0} called with invalid parameter {1}", new Object[] { currentObject.getType(), val != null ? val : "null" } );
 			}
 		}
 		

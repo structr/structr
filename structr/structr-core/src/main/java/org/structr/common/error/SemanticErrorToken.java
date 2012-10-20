@@ -19,13 +19,15 @@
 
 package org.structr.common.error;
 
+import org.structr.common.PropertyKey;
+
 /**
  *
  * @author Christian Morgner
  */
 public abstract class SemanticErrorToken extends ErrorToken {
 
-	public SemanticErrorToken(String propertyKey) {
+	public SemanticErrorToken(PropertyKey propertyKey) {
 		super(422, propertyKey);
 	}
 }

@@ -26,12 +26,16 @@ package org.structr.common;
  * {@see org.structr.core.entity.AbstractNode} and subclasses.
  *
  * <pre>
- * public enum Key { property1, property2, property3 }
+ * public enum Key implements PropertyKey { property1, property2, property3 }
  * </pre>
  *
  * @author Christian Morgner
  */
-public interface PropertyKey
-{
+public interface PropertyKey<T> {
+	
 	public String name();
+	
+	public String jsonName();
+	
+	public Object defaultValue();
 }

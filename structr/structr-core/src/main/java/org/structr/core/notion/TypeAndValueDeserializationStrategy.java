@@ -94,9 +94,9 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 					AbstractNode newNode = (AbstractNode) Services.command(
 								   securityContext, CreateNodeCommand.class).execute(
 								   new NodeAttribute(
-								       AbstractNode.Key.type.name(),
+								       AbstractNode.type,
 								       type.getSimpleName()), new NodeAttribute(
-									   propertyKey.name(), source.toString()));
+									   propertyKey, source.toString()));
 
 					if (newNode != null) {
 						return newNode;
@@ -115,7 +115,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				GraphObject obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException("base", new TypeToken(propertyKey.name(), type.getSimpleName()));
+					throw new FrameworkException("base", new TypeToken(propertyKey, type.getSimpleName()));
 				}
 				return obj;
 		}
@@ -128,7 +128,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 			attributes.put("type", type.getSimpleName());
 
 			throw new FrameworkException(type.getSimpleName(),
-						     new PropertiesNotFoundToken("base", attributes));
+						     new PropertiesNotFoundToken(AbstractNode.base, attributes));
 		}
 		
 		return null;

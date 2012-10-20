@@ -36,6 +36,8 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.structr.common.Property;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,12 +59,13 @@ public class ChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		String pageId                   = (String) webSocketData.getNodeData().get("pageId");
-		String componentId              = (String) webSocketData.getNodeData().get("componentId");
-		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
-		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
-		Set<String> nodesWithChildren   = new HashSet<String>();
-		List<GraphObject> result        = new LinkedList<GraphObject>();
+		String pageId                    = (String) webSocketData.getNodeData().get("pageId");
+		String componentId               = (String) webSocketData.getNodeData().get("componentId");
+		List<AbstractRelationship> rels  = node.getOutgoingRelationships(RelType.CONTAINS);
+		Map<Long, GraphObject> sortMap   = new TreeMap<Long, GraphObject>();
+		Set<String> nodesWithChildren    = new HashSet<String>();
+		List<GraphObject> result         = new LinkedList<GraphObject>();
+		PropertyKey<Long> pageIdProperty = new Property<Long>(pageId);
 
 		for (AbstractRelationship rel : rels) {
 
@@ -89,16 +92,17 @@ public class ChildrenCommand extends AbstractCommand {
 
 			Long pos = null;
 
-			if (rel.getLongProperty(pageId) != null) {
+			if (rel.getLongProperty(pageIdProperty) != null) {
 
-				pos = rel.getLongProperty(pageId);
+				pos = rel.getLongProperty(pageIdProperty);
+				
 			} else {
 
 				// Try "*"
-				pos = rel.getLongProperty("*");
+				pos = rel.getLongProperty(new Property("*"));
 			}
 
-			String relCompId             = rel.getStringProperty("componentId");
+			String relCompId             = rel.getStringProperty(Component.componentId);
 			boolean isComponentOrContent = ((endNode instanceof Component) || (endNode instanceof Content));
 
 			if (pos == null || (isComponentOrContent && relCompId != null && !relCompId.equals(componentId))) {

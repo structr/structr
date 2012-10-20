@@ -36,6 +36,6 @@ public class Category extends AbstractNode {
 
 	static {
 
-		EntityContext.registerPropertySet(Category.class, PropertyView.All, Key.values());
+// FIXME what is this for?		EntityContext.registerPropertySet(Category.class, PropertyView.All, Key.values());
 	}
 }

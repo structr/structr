@@ -87,7 +87,7 @@ public class Component extends AbstractNode implements Element {
 
 	@Override
 	public void onNodeInstantiation() {
-		collectProperties(this, getStringProperty(AbstractNode.Key.uuid), 0, null);
+		collectProperties(this, getStringProperty(AbstractNode.uuid), 0, null);
 	}
 
 	@Override
@@ -247,7 +247,7 @@ public class Component extends AbstractNode implements Element {
 
 		} else if (subTypes.contains(EntityContext.normalizeEntityName(key))) {
 
-			String componentId      = getStringProperty(AbstractNode.Key.uuid);
+			String componentId      = getStringProperty(AbstractNode.uuid);
 			List<Component> results = new LinkedList<Component>();
 
 			collectChildren(results, this, componentId, 0, null);
@@ -472,7 +472,7 @@ public class Component extends AbstractNode implements Element {
 
 			}
 
-			String componentId = node.getStringProperty(AbstractNode.Key.uuid);
+			String componentId = node.getStringProperty(AbstractNode.uuid);
 
 			// new default behaviour: make all components visible
 			// only filter if uuids are present in the request URI

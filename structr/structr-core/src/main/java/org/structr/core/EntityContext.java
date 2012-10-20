@@ -71,21 +71,21 @@ import org.structr.core.node.NodeService.RelationshipIndex;
  */
 public class EntityContext {
 
-	private static final String COMBINED_RELATIONSHIP_KEY_SEP                               = " ";
-	private static final Logger logger                                                      = Logger.getLogger(EntityContext.class.getName());
-	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                 = new LinkedHashMap<Class, Set<String>>();
-	private static final Map<Class, Map<String, Set<PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Set<PropertyValidator>>>();
-	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap  = new LinkedHashMap<String, Map<String, Set<String>>>();
+	private static final String COMBINED_RELATIONSHIP_KEY_SEP                                     = " ";
+	private static final Logger logger                                                            = Logger.getLogger(EntityContext.class.getName());
+	private static final Map<Class, Set<PropertyKey>> globalWriteOncePropertyMap                  = new LinkedHashMap<Class, Set<PropertyKey>>();
+	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<Class, Map<PropertyKey, Set<PropertyValidator>>>();
+	private static final Map<String, Map<String, Set<PropertyKey>>> globalSearchablePropertyMap   = new LinkedHashMap<String, Map<String, Set<PropertyKey>>>();
 
 	// This map contains a mapping from (sourceType, destType) -> RelationClass
-	private static final Map<Class, Map<Class, RelationClass>> globalRelationClassMap = new LinkedHashMap<Class, Map<Class, RelationClass>>();
-	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap            = new LinkedHashMap<Class, Set<String>>();
-	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap   = new LinkedHashMap<Class, Map<String, Set<String>>>();
+	private static final Map<Class, Map<Class, RelationClass>> globalRelationClassMap    = new LinkedHashMap<Class, Map<Class, RelationClass>>();
+	private static final Map<Class, Set<PropertyKey>> globalReadOnlyPropertyMap          = new LinkedHashMap<Class, Set<PropertyKey>>();
+	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
 
 	// This map contains a mapping from (sourceType, propertyKey) -> RelationClass
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalAggregatedPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap           = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Map<String, RelationClass>> globalPropertyRelationClassMap                            = new LinkedHashMap<Class, Map<String, RelationClass>>();
+	private static final Map<Class, Map<PropertyKey, Class<? extends PropertyConverter>>> globalAggregatedPropertyConverterMap = new LinkedHashMap<Class, Map<PropertyKey, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Map<PropertyKey, Class<? extends PropertyConverter>>> globalPropertyConverterMap           = new LinkedHashMap<Class, Map<PropertyKey, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Map<PropertyKey, RelationClass>> globalPropertyRelationClassMap                            = new LinkedHashMap<Class, Map<PropertyKey, RelationClass>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                    = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 
@@ -93,10 +93,9 @@ public class EntityContext {
 	private static final Map<Class, Map<String, ViewTransformation>> viewTransformations = new LinkedHashMap<Class, Map<String, ViewTransformation>>();
 	
 	// This set contains all known properties
-	private static final Set<String> globalKnownPropertyKeys                                                = new LinkedHashSet<String>();
+	private static final Set<PropertyKey> globalKnownPropertyKeys                                           = new LinkedHashSet<PropertyKey>();
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
-	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                              = new LinkedHashMap<Class, Map<String, Object>>();
-	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                        = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Map<PropertyKey, Value>> globalConversionParameterMap                   = new LinkedHashMap<Class, Map<PropertyKey, Value>>();
 	private static final Map<String, String> normalizedEntityNameCache                                      = new LinkedHashMap<String, String>();
 	private static final Set<StructrTransactionListener> transactionListeners                               = new LinkedHashSet<StructrTransactionListener>();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap                         = new LinkedHashMap<String, RelationshipMapping>();
@@ -124,13 +123,13 @@ public class EntityContext {
 		// 1. Register searchable keys of superclasses
 		for (Enum index : NodeService.NodeIndex.values()) {
 
-			String indexName                                      = index.name();
-			Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
-			Set<String> searchablePropertySet                     = searchablePropertyMapForType.get(indexName);
+			String indexName                                           = index.name();
+			Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
+			Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(indexName);
 
 			if (searchablePropertySet == null) {
 
-				searchablePropertySet = new LinkedHashSet<String>();
+				searchablePropertySet = new LinkedHashSet<PropertyKey>();
 
 				searchablePropertyMapForType.put(indexName, searchablePropertySet);
 
@@ -140,7 +139,7 @@ public class EntityContext {
 
 			while ((localType != null) &&!localType.equals(Object.class)) {
 
-				Set<String> superProperties = getSearchableProperties(localType, indexName);
+				Set<PropertyKey> superProperties = getSearchableProperties(localType, indexName);
 				searchablePropertySet.addAll(superProperties);
 
 				// include property sets from interfaces
@@ -207,19 +206,6 @@ public class EntityContext {
 		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
 	}
 
-	// ----- default values -----
-	/**
-	 * Registers a default value for a given key of a given entity type. The default value will be returned
-	 * instead of null in case the database node does not contain a property with the given key.
-	 * 
-	 * @param type the type of the entities for which the default value should be registered
-	 * @param propertyKey the property key for which the default value should be registered
-	 * @param defaultValue the default value
-	 */
-	public static void registerDefaultValue(Class type, PropertyKey propertyKey, Object defaultValue) {
-		getGlobalDefaultValueMapForType(type).put(propertyKey.name(), defaultValue);
-	}
-
 	// ----- named relations -----
 	/**
 	 * Registers a relationship entity with the given name and type to be instantiated for relationships
@@ -268,25 +254,7 @@ public class EntityContext {
 	 * @param cardinality the cardinality of the relationship
 	 * @param cascadeDelete the cascading delete behaviour
 	 */
-	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
-		int cascadeDelete) {
-		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, cascadeDelete);
-	}
-
-	/**
-	 * Defines a property relationship with the given property key, relationship type, direction,
-	 * cardinality and cascading delete behaviour to exist between the source type and the destination
-	 * type.
-	 * 
-	 * @param sourceType the source type
-	 * @param propertyKey the property key
-	 * @param destType the destination type
-	 * @param relType the relationship type
-	 * @param direction the direction of the relationship
-	 * @param cardinality the cardinality of the relationship
-	 * @param cascadeDelete the cascading delete behaviour
-	 */
-	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, int cascadeDelete) {
+	public static void registerPropertyRelation(Class sourceType, PropertyKey property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, int cascadeDelete) {
 
 		// need to set type here
 		Notion objectNotion = new ObjectNotion();
@@ -317,24 +285,6 @@ public class EntityContext {
 	 * cardinality and cascading delete behaviour to exist between the source type
 	 * and the destination type, using the given notion.
 	 * 
-	 * @param sourceType the source type
-	 * @param propertyKey the property key
-	 * @param destType the destination type
-	 * @param relType the relationship type
-	 * @param direction the direction of the relationship
-	 * @param cardinality the cardinality of the relationship
-	 * @param notion the notion 
-	 */
-	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
-		int cascadeDelete) {
-		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, notion, cascadeDelete);
-	}
-
-	/**
-	 * Defines a relationship with the given property key, relationship type, direction,
-	 * cardinality and cascading delete behaviour to exist between the source type
-	 * and the destination type, using the given notion.
-	 * 
 	 * @param sourceType
 	 * @param property
 	 * @param destType
@@ -344,7 +294,7 @@ public class EntityContext {
 	 * @param notion
 	 * @param cascadeDelete 
 	 */
-	private static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
+	public static void registerPropertyRelation(Class sourceType, PropertyKey property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
 		int cascadeDelete) {
 
 		notion.setType(destType);
@@ -425,30 +375,6 @@ public class EntityContext {
 	// ----- property set methods -----
 	/**
 	 * Registers the given set of property keys for the view with name <code>propertyView</code>
-	 * of entities with the given type.
-	 * 
-	 * @param type the type of the entities for which the view will be registered
-	 * @param propertyView the name of the property view for which the property set will be registered
-	 * @param propertySet the set of property keys to register for the given view
-	 */
-	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
-		registerPropertySet(type, propertyView, null, propertySet);
-	}
-
-	/**
-	 * Registers the given set of property keys for the view with name <code>propertyView</code>
-	 * of entities with the given type.
-	 * 
-	 * @param type the type of the entities for which the view will be registered
-	 * @param propertyView the name of the property view for which the property set will be registered
-	 * @param propertySet the set of property keys to register for the given view
-	 */
-	public static void registerPropertySet(Class type, String propertyView, String[] propertySet) {
-		registerPropertySet(type, propertyView, null, propertySet);
-	}
-
-	/**
-	 * Registers the given set of property keys for the view with name <code>propertyView</code>
 	 * and the given prefix of entities with the given type.
 	 * 
 	 * @param type the type of the entities for which the view will be registered
@@ -456,24 +382,19 @@ public class EntityContext {
 	 * @param viewPrefix a string that will be prepended to all property keys in this view
 	 * @param propertySet the set of property keys to register for the given view
 	 */
-	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, PropertyKey... propertySet) {
+	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
 
-		Set<String> properties = getPropertySet(type, propertyView);
+		Set<PropertyKey> properties = getPropertySet(type, propertyView);
 
-		for (PropertyKey property : propertySet) {
-
-			properties.add(((viewPrefix != null)
-					? viewPrefix
-					: "").concat(property.name()));
-
-		}
+		// add all properties from set
+		properties.addAll(Arrays.asList(propertySet));
 
 		// include property sets from superclass
 		Class superClass = type.getSuperclass();
 
 		while ((superClass != null) &&!superClass.equals(Object.class)) {
 
-			Set<String> superProperties = getPropertySet(superClass, propertyView);
+			Set<PropertyKey> superProperties = getPropertySet(superClass, propertyView);
 
 			properties.addAll(superProperties);
 
@@ -488,46 +409,6 @@ public class EntityContext {
 		}
 	}
 
-	/**
-	 * Registers the given set of property keys for the view with name <code>propertyView</code>
-	 * and the given prefix of entities with the given type.
-	 * 
-	 * @param type the type of the entities for which the view will be registered
-	 * @param propertyView the name of the property view for which the property set will be registered
-	 * @param viewPrefix a string that will be prepended to all property keys in this view
-	 * @param propertySet the set of property keys to register for the given view
-	 */
-	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, String[] propertySet) {
-
-		Set<String> properties = getPropertySet(type, propertyView);
-
-		for (String property : propertySet) {
-
-			properties.add(((viewPrefix != null)
-					? viewPrefix
-					: "").concat(property));
-
-		}
-
-		// include property sets from superclass
-		Class localType = type.getSuperclass();
-
-		while ((localType != null) &&!localType.equals(Object.class)) {
-
-			Set<String> superProperties = getPropertySet(localType, propertyView);
-
-			properties.addAll(superProperties);
-
-			// include property sets from interfaces
-			for(Class interfaceClass : getInterfacesForType(localType)) {
-				properties.addAll(getPropertySet(interfaceClass, propertyView));
-			}
-
-			// one level up :)
-			localType = localType.getSuperclass();
-		}
-	}
-
 	// ----- validator methods -----
 	/**
 	 * Registers a validator for the given property key of all entities of the given type.
@@ -536,20 +417,9 @@ public class EntityContext {
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param validatorClass the type of the validator to register
 	 */
-	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, PropertyValidator validatorClass) {
-		registerPropertyValidator(type, propertyKey.name(), validatorClass);
-	}
+	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, PropertyValidator validator) {
 
-	/**
-	 * Registers a validator for the given property key of all entities of the given type.
-	 * 
-	 * @param type the type of the entities for which the validator should be registered
-	 * @param propertyKey the property key under which the validator should be registered
-	 * @param validatorClass the type of the validator to register
-	 */
-	public static void registerPropertyValidator(Class type, String propertyKey, PropertyValidator validator) {
-
-		Map<String, Set<PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
+		Map<PropertyKey, Set<PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
 
 		// fetch or create validator set
 		Set<PropertyValidator> validators = validatorMap.get(propertyKey);
@@ -586,30 +456,6 @@ public class EntityContext {
 	 * @param propertyConverterClass the type of the converter to register
 	 */
 	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
-		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass);
-	}
-
-	/**
-	 * Registers a property converter for the given property key of all entities with
-	 * the given type, using the given value.
-	 * 
-	 * @param type the type of the entities for which the converter should be registered
-	 * @param propertyKey the property key under which the validator should be registered
-	 * @param propertyConverterClass the type of the converter to register
-	 */
-	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
-		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass, value);
-	}
-
-	/**
-	 * Registers a property converter for the given property key of all entities with
-	 * the given type.
-	 * 
-	 * @param type the type of the entities for which the converter should be registered
-	 * @param propertyKey the property key under which the validator should be registered
-	 * @param propertyConverterClass the type of the converter to register
-	 */
-	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
 		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
 	}
 
@@ -621,7 +467,7 @@ public class EntityContext {
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param propertyConverterClass the type of the converter to register
 	 */
-	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
+	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
 
 		getPropertyConverterMapForType(type).put(propertyKey, propertyConverterClass);
 
@@ -640,18 +486,8 @@ public class EntityContext {
 	 * @param type the type of the entities
 	 * @param key the key that should be set read-only
 	 */
-	public static void registerReadOnlyProperty(Class type, String key) {
-		getReadOnlyPropertySetForType(type).add(key);
-	}
-	
-	/**
-	 * Defines the given property of the given entity to be read-only.
-	 * 
-	 * @param type the entity type
-	 * @param key the key that should be set read-only
-	 */
 	public static void registerReadOnlyProperty(Class type, PropertyKey key) {
-		getReadOnlyPropertySetForType(type).add(key.name());
+		getReadOnlyPropertySetForType(type).add(key);
 	}
 
 	// ----- searchable property map -----
@@ -673,23 +509,6 @@ public class EntityContext {
 	}
 
 	/**
-	 * Registers the given set of properties of the given entity type to be stored
-	 * in the given index.
-	 * 
-	 * @param type the entitiy type
-	 * @param index the index
-	 * @param keys the keys to be indexed
-	 */
-	public static void registerSearchablePropertySet(Class type, String index, String... keys) {
-
-		for (String key : keys) {
-
-			registerSearchableProperty(type, index, key);
-
-		}
-	}
-
-	/**
 	 * Registers the given property of the given entity type to be stored
 	 * in the given index.
 	 * 
@@ -698,25 +517,13 @@ public class EntityContext {
 	 * @param key the key to be indexed
 	 */
 	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
-		registerSearchableProperty(type, index, key.name());
-	}
 
-	/**
-	 * Registers the given property of the given entity type to be stored
-	 * in the given index.
-	 * 
-	 * @param type the entitiy type
-	 * @param index the index
-	 * @param key the key to be indexed
-	 */
-	public static void registerSearchableProperty(Class type, String index, String key) {
-
-		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
-		Set<String> searchablePropertySet                     = searchablePropertyMapForType.get(index);
+		Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
+		Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(index);
 
 		if (searchablePropertySet == null) {
 
-			searchablePropertySet = new LinkedHashSet<String>();
+			searchablePropertySet = new LinkedHashSet<PropertyKey>();
 
 			searchablePropertyMapForType.put(index, searchablePropertySet);
 
@@ -733,7 +540,7 @@ public class EntityContext {
 	 * @param type the entity type
 	 * @param key the key to be set to write-once
 	 */
-	public static void registerWriteOnceProperty(Class type, String key) {
+	public static void registerWriteOnceProperty(Class type, PropertyKey key) {
 		getWriteOncePropertySetForType(type).add(key);
 	}
 
@@ -853,10 +660,10 @@ public class EntityContext {
 		return buf.toString();
 	}
 
-	private static void registerPropertyRelationInternal(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
+	private static void registerPropertyRelationInternal(Class sourceType, PropertyKey property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
 		int cascadeDelete) {
 
-		Map<String, RelationClass> typeMap = getPropertyRelationshipMapForType(sourceType);
+		Map<PropertyKey, RelationClass> typeMap = getPropertyRelationshipMapForType(sourceType);
 
 		typeMap.put(property, new RelationClass(destType, relType, direction, cardinality, notion, cascadeDelete));
 		globalKnownPropertyKeys.add(property);
@@ -913,10 +720,6 @@ public class EntityContext {
 		}
 
 		return null;
-	}
-
-	public static Object getDefaultValue(Class type, String propertyKey) {
-		return getGlobalDefaultValueMapForType(type).get(propertyKey);
 	}
 
 	public static RelationshipMapping getNamedRelation(String relationName) {
@@ -1132,9 +935,9 @@ public class EntityContext {
 		return relation;
 	}
 
-	public static RelationClass getRelationClass(Class sourceType, String key) {
+	public static RelationClass getRelationClass(Class sourceType, PropertyKey key) {
 
-		Class destType = getEntityClassForRawType(key);
+		Class destType = getEntityClassForRawType(key.name());
 
 		if (destType != null) {
 
@@ -1145,7 +948,7 @@ public class EntityContext {
 		return getRelationClassForProperty(sourceType, key);
 	}
 
-	public static RelationClass getRelationClassForProperty(Class sourceType, String propertyKey) {
+	public static RelationClass getRelationClassForProperty(Class sourceType, PropertyKey propertyKey) {
 
 		RelationClass relation = null;
 		Class localType        = sourceType;
@@ -1201,21 +1004,21 @@ public class EntityContext {
 		Set<String> views = new LinkedHashSet<String>();
 		
 		// add all existing views
-		for (Map<String, Set<String>> view : globalPropertyViewMap.values()) {
+		for (Map<String, Set<PropertyKey>> view : globalPropertyViewMap.values()) {
 			views.addAll(view.keySet());
 		}
 		
 		return views;
 	}
 	
-	public static Set<String> getPropertySet(Class type, String propertyView) {
+	public static Set<PropertyKey> getPropertySet(Class type, String propertyView) {
 
-		Map<String, Set<String>> propertyViewMap = getPropertyViewMapForType(type);
-		Set<String> propertySet                  = propertyViewMap.get(propertyView);
+		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
+		Set<PropertyKey> propertySet                  = propertyViewMap.get(propertyView);
 
 		if (propertySet == null) {
 
-			propertySet = new LinkedHashSet<String>();
+			propertySet = new LinkedHashSet<PropertyKey>();
 
 			propertyViewMap.put(propertyView, propertySet);
 		}
@@ -1230,7 +1033,7 @@ public class EntityContext {
 
 		while ((superClass != null) &&!superClass.equals(Object.class)) {
 
-			Set<String> superProperties = getPropertySet(superClass, propertyView);
+			Set<PropertyKey> superProperties = getPropertySet(superClass, propertyView);
 
 			propertySet.addAll(superProperties);
 
@@ -1242,11 +1045,11 @@ public class EntityContext {
 		return propertySet;
 	}
 
-	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, String propertyKey) {
+	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
 
-		Set<PropertyValidator> validators                = new LinkedHashSet<PropertyValidator>();
-		Map<String, Set<PropertyValidator>> validatorMap = null;
-		Class localType                                  = type;
+		Set<PropertyValidator> validators                     = new LinkedHashSet<PropertyValidator>();
+		Map<PropertyKey, Set<PropertyValidator>> validatorMap = null;
+		Class localType                                       = type;
 
 		// try all superclasses
 		while (!localType.equals(Object.class)) {
@@ -1275,13 +1078,13 @@ public class EntityContext {
 		return validators;
 	}
 
-	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, String propertyKey) {
+	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
 
 		Class clazz = getAggregatedPropertyConverterMapForType(type).get(propertyKey);
 		if(clazz == null) {
 			
-			Map<String, Class<? extends PropertyConverter>> converterMap = null;
-			Class localType                                              = type;
+			Map<PropertyKey, Class<? extends PropertyConverter>> converterMap = null;
+			Class localType                                                   = type;
 
 			while ((clazz == null) &&!localType.equals(Object.class)) {
 
@@ -1323,11 +1126,11 @@ public class EntityContext {
 		return propertyConverter;
 	}
 
-	public static Value getPropertyConversionParameter(Class type, String propertyKey) {
+	public static Value getPropertyConversionParameter(Class type, PropertyKey propertyKey) {
 
-		Map<String, Value> conversionParameterMap = null;
-		Class localType                           = type;
-		Value value                               = null;
+		Map<PropertyKey, Value> conversionParameterMap = null;
+		Class localType                                = type;
+		Value value                                    = null;
 
 		while ((value == null) &&!localType.equals(Object.class)) {
 
@@ -1353,30 +1156,30 @@ public class EntityContext {
 		return value;
 	}
 
-	public static Set<String> getSearchableProperties(Class type, String index) {
+	public static Set<PropertyKey> getSearchableProperties(Class type, String index) {
 		return getSearchableProperties(type.getSimpleName(), index);
 	}
 
-	public static Set<String> getSearchableProperties(String type, String index) {
+	public static Set<PropertyKey> getSearchableProperties(String type, String index) {
 
-		Set<String> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
+		Set<PropertyKey> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
 
 		if (searchablePropertyMap == null) {
 
-			searchablePropertyMap = new HashSet<String>();
+			searchablePropertyMap = new HashSet<PropertyKey>();
 
 		}
 
 		return searchablePropertyMap;
 	}
 
-	private static Map<String, RelationClass> getPropertyRelationshipMapForType(Class sourceType) {
+	private static Map<PropertyKey, RelationClass> getPropertyRelationshipMapForType(Class sourceType) {
 
-		Map<String, RelationClass> typeMap = globalPropertyRelationClassMap.get(sourceType);
+		Map<PropertyKey, RelationClass> typeMap = globalPropertyRelationClassMap.get(sourceType);
 
 		if (typeMap == null) {
 
-			typeMap = new LinkedHashMap<String, RelationClass>();
+			typeMap = new LinkedHashMap<PropertyKey, RelationClass>();
 
 			globalPropertyRelationClassMap.put(sourceType, typeMap);
 
@@ -1400,13 +1203,13 @@ public class EntityContext {
 		return (typeMap);
 	}
 
-	private static Map<String, Set<String>> getPropertyViewMapForType(Class type) {
+	private static Map<String, Set<PropertyKey>> getPropertyViewMapForType(Class type) {
 
-		Map<String, Set<String>> propertyViewMap = globalPropertyViewMap.get(type);
+		Map<String, Set<PropertyKey>> propertyViewMap = globalPropertyViewMap.get(type);
 
 		if (propertyViewMap == null) {
 
-			propertyViewMap = new LinkedHashMap<String, Set<String>>();
+			propertyViewMap = new LinkedHashMap<String, Set<PropertyKey>>();
 
 			globalPropertyViewMap.put(type, propertyViewMap);
 
@@ -1415,13 +1218,13 @@ public class EntityContext {
 		return propertyViewMap;
 	}
 
-	private static Map<String, Set<PropertyValidator>> getPropertyValidatorMapForType(Class type) {
+	private static Map<PropertyKey, Set<PropertyValidator>> getPropertyValidatorMapForType(Class type) {
 
-		Map<String, Set<PropertyValidator>> validatorMap = globalValidatorMap.get(type);
+		Map<PropertyKey, Set<PropertyValidator>> validatorMap = globalValidatorMap.get(type);
 
 		if (validatorMap == null) {
 
-			validatorMap = new LinkedHashMap<String, Set<PropertyValidator>>();
+			validatorMap = new LinkedHashMap<PropertyKey, Set<PropertyValidator>>();
 
 			globalValidatorMap.put(type, validatorMap);
 
@@ -1430,13 +1233,13 @@ public class EntityContext {
 		return validatorMap;
 	}
 
-	private static Map<String, Class<? extends PropertyConverter>> getAggregatedPropertyConverterMapForType(Class type) {
+	private static Map<PropertyKey, Class<? extends PropertyConverter>> getAggregatedPropertyConverterMapForType(Class type) {
 
-		Map<String, Class<? extends PropertyConverter>> PropertyConverterMap = globalAggregatedPropertyConverterMap.get(type);
+		Map<PropertyKey, Class<? extends PropertyConverter>> PropertyConverterMap = globalAggregatedPropertyConverterMap.get(type);
 
 		if (PropertyConverterMap == null) {
 
-			PropertyConverterMap = new LinkedHashMap<String, Class<? extends PropertyConverter>>();
+			PropertyConverterMap = new LinkedHashMap<PropertyKey, Class<? extends PropertyConverter>>();
 
 			globalAggregatedPropertyConverterMap.put(type, PropertyConverterMap);
 
@@ -1445,13 +1248,13 @@ public class EntityContext {
 		return PropertyConverterMap;
 	}
 
-	private static Map<String, Class<? extends PropertyConverter>> getPropertyConverterMapForType(Class type) {
+	private static Map<PropertyKey, Class<? extends PropertyConverter>> getPropertyConverterMapForType(Class type) {
 
-		Map<String, Class<? extends PropertyConverter>> PropertyConverterMap = globalPropertyConverterMap.get(type);
+		Map<PropertyKey, Class<? extends PropertyConverter>> PropertyConverterMap = globalPropertyConverterMap.get(type);
 
 		if (PropertyConverterMap == null) {
 
-			PropertyConverterMap = new LinkedHashMap<String, Class<? extends PropertyConverter>>();
+			PropertyConverterMap = new LinkedHashMap<PropertyKey, Class<? extends PropertyConverter>>();
 
 			globalPropertyConverterMap.put(type, PropertyConverterMap);
 
@@ -1460,28 +1263,13 @@ public class EntityContext {
 		return PropertyConverterMap;
 	}
 
-	private static Map<String, Object> getGlobalDefaultValueMapForType(Class type) {
+	private static Map<PropertyKey, Value> getPropertyConversionParameterMapForType(Class type) {
 
-		Map<String, Object> defaultValueMap = globalDefaultValueMap.get(type);
-
-		if (defaultValueMap == null) {
-
-			defaultValueMap = new LinkedHashMap<String, Object>();
-
-			globalDefaultValueMap.put(type, defaultValueMap);
-
-		}
-
-		return defaultValueMap;
-	}
-
-	private static Map<String, Value> getPropertyConversionParameterMapForType(Class type) {
-
-		Map<String, Value> conversionParameterMap = globalConversionParameterMap.get(type);
+		Map<PropertyKey, Value> conversionParameterMap = globalConversionParameterMap.get(type);
 
 		if (conversionParameterMap == null) {
 
-			conversionParameterMap = new LinkedHashMap<String, Value>();
+			conversionParameterMap = new LinkedHashMap<PropertyKey, Value>();
 
 			globalConversionParameterMap.put(type, conversionParameterMap);
 
@@ -1490,13 +1278,13 @@ public class EntityContext {
 		return conversionParameterMap;
 	}
 
-	private static Set<String> getReadOnlyPropertySetForType(Class type) {
+	private static Set<PropertyKey> getReadOnlyPropertySetForType(Class type) {
 
-		Set<String> readOnlyPropertySet = globalReadOnlyPropertyMap.get(type);
+		Set<PropertyKey> readOnlyPropertySet = globalReadOnlyPropertyMap.get(type);
 
 		if (readOnlyPropertySet == null) {
 
-			readOnlyPropertySet = new LinkedHashSet<String>();
+			readOnlyPropertySet = new LinkedHashSet<PropertyKey>();
 
 			globalReadOnlyPropertyMap.put(type, readOnlyPropertySet);
 
@@ -1505,13 +1293,13 @@ public class EntityContext {
 		return readOnlyPropertySet;
 	}
 
-	private static Set<String> getWriteOncePropertySetForType(Class type) {
+	private static Set<PropertyKey> getWriteOncePropertySetForType(Class type) {
 
-		Set<String> writeOncePropertySet = globalWriteOncePropertyMap.get(type);
+		Set<PropertyKey> writeOncePropertySet = globalWriteOncePropertyMap.get(type);
 
 		if (writeOncePropertySet == null) {
 
-			writeOncePropertySet = new LinkedHashSet<String>();
+			writeOncePropertySet = new LinkedHashSet<PropertyKey>();
 
 			globalWriteOncePropertyMap.put(type, writeOncePropertySet);
 
@@ -1520,13 +1308,13 @@ public class EntityContext {
 		return writeOncePropertySet;
 	}
 
-	private static Map<String, Set<String>> getSearchablePropertyMapForType(String sourceType) {
+	private static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(String sourceType) {
 
-		Map<String, Set<String>> searchablePropertyMap = globalSearchablePropertyMap.get(normalizeEntityName(sourceType));
+		Map<String, Set<PropertyKey>> searchablePropertyMap = globalSearchablePropertyMap.get(normalizeEntityName(sourceType));
 
 		if (searchablePropertyMap == null) {
 
-			searchablePropertyMap = new LinkedHashMap<String, Set<String>>();
+			searchablePropertyMap = new LinkedHashMap<String, Set<PropertyKey>>();
 
 			globalSearchablePropertyMap.put(normalizeEntityName(sourceType), searchablePropertyMap);
 
@@ -1606,11 +1394,11 @@ public class EntityContext {
 		return exceptionMap.get(transactionKey);
 	}
 
-	public static boolean isKnownProperty(final String key) {
+	public static boolean isKnownProperty(final PropertyKey key) {
 		return globalKnownPropertyKeys.contains(key);
 	}
 
-	public static boolean isReadOnlyProperty(Class type, String key) {
+	public static boolean isReadOnlyProperty(Class type, PropertyKey key) {
 
 		boolean isReadOnly = getReadOnlyPropertySetForType(type).contains(key);
 		Class localType    = type;
@@ -1652,7 +1440,7 @@ public class EntityContext {
 		return getSearchablePropertyMapForType(normalizeEntityName(type)).containsKey(key);
 	}
 
-	public static boolean isWriteOnceProperty(Class type, String key) {
+	public static boolean isWriteOnceProperty(Class type, PropertyKey key) {
 
 		boolean isWriteOnce = getWriteOncePropertySetForType(type).contains(key);
 		Class localType     = type;
@@ -1772,11 +1560,13 @@ public class EntityContext {
 						AbstractNode modifiedNode = nodeFactory.createNode(node, true, false);
 						if (modifiedNode != null) {
 
+							PropertyKey key = modifiedNode.getPropertyKeyForName(entry.key());
+							
 							changeSet.modify(modifiedNode);
 
 							// notify registered listeners
 							for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedNode, entry.key(), entry.previouslyCommitedValue());
+								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedNode, key, entry.previouslyCommitedValue());
 							}
 						}
 
@@ -1804,11 +1594,13 @@ public class EntityContext {
 						AbstractRelationship modifiedRel = relFactory.createRelationship(securityContext, rel);
 						if (modifiedRel != null) {
 							
+							PropertyKey key = modifiedRel.getPropertyKeyForName(entry.key());
+							
 							changeSet.modify(modifiedRel);
 
 							// notify registered listeners
 							for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedRel, entry.key(), entry.previouslyCommitedValue());
+								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedRel, key, entry.previouslyCommitedValue());
 							}
 						}
 					}
@@ -1911,7 +1703,7 @@ public class EntityContext {
 					
 					logger.log(Level.FINEST, "Node deleted: {0}", node.getId());
 
-					String type = (String)removedNodeProperties.get(node).get(AbstractNode.Key.type.name());
+					String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.name());
 					AbstractNode entity = nodeFactory.createDummyNode(type);
 					
 					if (entity != null) {
@@ -1945,10 +1737,11 @@ public class EntityContext {
 					
 					if (nodeEntity != null) {
 						
-						String key          = entry.key();
-						Object value        = entry.value();
+						PropertyKey key  = nodeEntity.getPropertyKeyForName(entry.key());
+						Object value     = entry.value();
 
 						// iterate over validators
+						// FIXME: synthetic property key
 						Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, nodeEntity.getClass(), key);
 
 						if (validators != null) {
@@ -1992,10 +1785,11 @@ public class EntityContext {
 					
 					if (relEntity != null) {
 						
-						String key                  = entry.key();
+						PropertyKey key             = relEntity.getPropertyKeyForName(entry.key());
 						Object value                = entry.value();
 
 						// iterate over validators
+						// FIXME: synthetic property key
 						Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, relEntity.getClass(), key);
 
 						if (validators != null) {

@@ -31,7 +31,7 @@ public class AbstractNodePropertyComparator implements Comparator<AbstractNode> 
 
 	private GraphObjectComparator comparator = null;
 	
-	public AbstractNodePropertyComparator(String sortKey, String sortOrder) {
+	public AbstractNodePropertyComparator(PropertyKey sortKey, String sortOrder) {
 		comparator = new GraphObjectComparator(sortKey, sortOrder);
 	}
 	

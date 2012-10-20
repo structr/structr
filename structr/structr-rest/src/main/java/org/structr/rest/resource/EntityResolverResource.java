@@ -21,6 +21,7 @@ package org.structr.rest.resource;
 import org.structr.core.Result;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -43,7 +44,7 @@ public class EntityResolverResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		throw new IllegalMethodException();
 	}
 	

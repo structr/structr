@@ -20,13 +20,14 @@
 package org.structr.common.error;
 
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.PropertyKey;
 
 /**
  *
  * @author Christian Morgner
  */
 public abstract class NotFoundToken extends ErrorToken {
-	public NotFoundToken(String key) {
+	public NotFoundToken(PropertyKey key) {
 		super(HttpServletResponse.SC_NOT_FOUND, key);
 	}
 }

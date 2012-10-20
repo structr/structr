@@ -84,10 +84,10 @@ public class UnwrapCommand extends AbstractCommand {
 				public Object execute() throws FrameworkException {
 
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
-					String componentId     = newComponent.getStringProperty(AbstractNode.Key.uuid);
+					String componentId     = newComponent.getStringProperty(AbstractNode.uuid);
 
 					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, pageId,
-						newComponent.getStringProperty(AbstractNode.Key.uuid), false);
+						newComponent.getStringProperty(AbstractNode.uuid), false);
 
 					if ((parentNode != null) && (newComponent != null)) {
 
@@ -152,7 +152,7 @@ public class UnwrapCommand extends AbstractCommand {
 
 			if (!(startNode.equals(node))) {
 
-				rel.setProperty("componentId", componentId);
+				rel.setProperty(Component.componentId, componentId);
 
 				if (node.getType().equals(Component.class.getSimpleName())) {
 

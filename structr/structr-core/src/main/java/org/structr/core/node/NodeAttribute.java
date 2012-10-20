@@ -28,42 +28,31 @@ import org.structr.common.PropertyKey;
  */
 public class NodeAttribute {
 
-	private String key = null;
+	private PropertyKey key = null;
 	private Object value = null;
 
 	public NodeAttribute() {
 	}
 
-	public NodeAttribute(final String key, final Object value) {
-		this.key = key;
-		this.value = value;
-	}
-        
 	public NodeAttribute(final PropertyKey key, final Object value) {
-		this.key = key.name();
+		this.key = key;
 		this.value = value;
 	}
 
 	/**
 	 * @return the key
 	 */
-	public String getKey() {
+	public PropertyKey getKey() {
 		return key;
 	}
 
 	/**
 	 * @param key the key to set
 	 */
-	public void setKey(final String key) {
+	public void setKey(final PropertyKey key) {
 		this.key = key;
 	}
         
-        /**
-	 * @param key the key to set
-	 */
-	public void setKey(final PropertyKey key) {
-		this.key = key.name();
-	}
 	/**
 	 * @return the value
 	 */
@@ -84,7 +73,7 @@ public class NodeAttribute {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append("NodeAttribute('");
-		buf.append(key);
+		buf.append(key.name());
 		buf.append("', '");
 		buf.append(value);
 		buf.append("')");

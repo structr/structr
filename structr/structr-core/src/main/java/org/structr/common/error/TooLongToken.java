@@ -22,6 +22,7 @@ package org.structr.common.error;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.structr.common.PropertyKey;
 
 /**
  *
@@ -31,7 +32,7 @@ public class TooLongToken extends SemanticErrorToken {
 
 	private int maxLength = -1;
 
-	public TooLongToken(String propertyKey, int maxLength) {
+	public TooLongToken(PropertyKey propertyKey, int maxLength) {
 
 		super(propertyKey);
 		this.maxLength = maxLength;

@@ -54,12 +54,12 @@ public class Link extends HtmlElement {
 		EntityContext.registerPropertySet(Link.class, PropertyView.Public, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Link.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 		EntityContext.registerEntityRelation(Link.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Link.class, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name),
+		EntityContext.registerEntityRelation(Link.class, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name),
 			RelationClass.DELETE_NONE);
 		EntityContext.registerPropertyRelation(Link.class, Link.UiKey.linkable_id, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne,
-			new PropertyNotion(AbstractNode.Key.uuid), RelationClass.DELETE_NONE);
+			new PropertyNotion(AbstractNode.uuid), RelationClass.DELETE_NONE);
 
-		//EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, Link.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
+		//EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, Link.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.uuid));
 
 	}
 

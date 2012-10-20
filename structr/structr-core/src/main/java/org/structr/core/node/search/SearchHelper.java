@@ -57,7 +57,7 @@ public class SearchHelper {
 	}
 
 	public static Query type(String type) {
-		return new TermQuery(new Term(AbstractNode.Key.type.name(), StringUtils.capitalize(type)));
+		return new TermQuery(new Term(AbstractNode.type.name(), StringUtils.capitalize(type)));
 	}
 
 	public static Query typeAndSubtypes(String type) {

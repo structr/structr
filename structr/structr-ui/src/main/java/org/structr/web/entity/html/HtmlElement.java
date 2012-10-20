@@ -331,7 +331,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 		if (functionMatcher.matches()) {
 
 			String viewComponentId            = viewComponent != null
-				? viewComponent.getStringProperty(AbstractNode.Key.uuid)
+				? viewComponent.getStringProperty(AbstractNode.uuid)
 				: null;
 			String functionGroup              = functionMatcher.group(1);
 			String parameter                  = functionMatcher.group(2);

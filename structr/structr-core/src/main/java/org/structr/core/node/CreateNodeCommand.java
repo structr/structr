@@ -45,6 +45,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
+import org.structr.common.Property;
 import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -87,7 +88,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 					for (NodeAttribute attr : c) {
 
-						attrs.put(attr.getKey(), attr.getValue());
+						attrs.put(attr.getKey().name(), attr.getValue());
 
 					}
 
@@ -95,14 +96,14 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 					NodeAttribute attr = (NodeAttribute) o;
 
-					attrs.put(attr.getKey(), attr.getValue());
+					attrs.put(attr.getKey().name(), attr.getValue());
 
 				}
 
 			}
 
 			// Determine node type
-			Object typeObject = attrs.get(AbstractNode.Key.type.name());
+			Object typeObject = attrs.get(AbstractNode.type.name());
 			String nodeType   = (typeObject != null)
 					    ? typeObject.toString()
 					    : "GenericNode";
@@ -120,25 +121,27 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, null, true);    // avoid duplicates
 
 					securityRel.setAllowed(Permission.values());
-					logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));
+					logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.name));
 					node.unlockReadOnlyPropertiesOnce();
-					node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
+					node.setProperty(AbstractNode.createdBy, user.getProperty(AbstractNode.uuid), false);
 
 				}
 
 				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
-				node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
+				node.setProperty(AbstractNode.createdDate, now, false);
+				node.setProperty(AbstractNode.lastModifiedDate, now, false);
 				logger.log(Level.FINE, "Node {0} created", node.getId());
 
 				// set type first!!
-				node.setProperty(AbstractNode.Key.type.name(), nodeType);
-				attrs.remove(AbstractNode.Key.type.name());
+				node.setProperty(AbstractNode.type, nodeType);
+				attrs.remove(AbstractNode.type.name());
 
 				for (Entry<String, Object> attr : attrs.entrySet()) {
 
 					Object value = attr.getValue();
-					node.setProperty(attr.getKey(), value);
+					
+					// FIXME: synthetic Property generation
+					node.setProperty(new Property(attr.getKey()), value);
 
 				}
 

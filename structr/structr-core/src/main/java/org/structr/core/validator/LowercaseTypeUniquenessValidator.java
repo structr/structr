@@ -32,8 +32,7 @@ public class LowercaseTypeUniquenessValidator extends PropertyValidator<String> 
 
 
 	@Override
-	public boolean isValid(final GraphObject object, final String key,
-	                       final String value, final ErrorBuffer errorBuffer) {
+	public boolean isValid(final GraphObject object, final PropertyKey<String> key, final String value, final ErrorBuffer errorBuffer) {
 
 		final AbstractNode result = lookup(nodeIndex, propertyKey, value);
 		if (result == null) {

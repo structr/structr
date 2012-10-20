@@ -69,10 +69,10 @@ public class SearchResultsTest extends StructrTest {
 		try {
 
 			Map<String, Object> props = new HashMap<String, Object>();
-			String key                = "name";
+			PropertyKey key           = AbstractNode.name;
 			String name               = "89w3hklsdfghsdkljth";
 
-			props.put(key, name);
+			props.put(key.name(), name);
 
 			AbstractNode node                      = createTestNode("Something", props);
 			boolean includeDeletedAndHidden        = true;
@@ -112,18 +112,18 @@ public class SearchResultsTest extends StructrTest {
 		try {
 
 			Map<String, Object> props = new HashMap<String, Object>();
-			String key                = "someDate";
+			PropertyKey key           = new Property("someDate");
 			Date date                 = new Date();
 			String type               = "Something";
 
-			props.put(key, date);
+			props.put(key.name(), date);
 
 			AbstractNode node                      = createTestNode(type, props);
 			boolean includeDeletedAndHidden        = true;
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), type, SearchOperator.AND));
+			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
 			searchAttributes.add(new FilterSearchAttribute(key, date.getTime(), SearchOperator.AND));
 
 			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
@@ -145,7 +145,7 @@ public class SearchResultsTest extends StructrTest {
 		try {
 
 			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.UNDEFINED, 1)).get(0);
-			String key1              = "jghsdkhgshdhgsdjkfgh";
+			PropertyKey key1         = new Property("jghsdkhgshdhgsdjkfgh");
 			String val1              = "54354354546806849870";
 
 			rel.setProperty(key1, val1);

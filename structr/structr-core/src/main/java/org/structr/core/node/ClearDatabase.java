@@ -78,7 +78,7 @@ public class ClearDatabase extends NodeServiceCommand {
 						AbstractNode node = (AbstractNode) obj;
 
 						// Delete only "our" nodes
-						if (node.getStringProperty(AbstractNode.Key.uuid) != null) {
+						if (node.getStringProperty(AbstractNode.uuid) != null) {
 
 							delNode.execute(node);
 

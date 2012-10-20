@@ -18,7 +18,9 @@
  */
 package org.structr.core.entity;
 
+import java.util.Date;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
@@ -35,25 +37,23 @@ import org.structr.core.node.NodeService.NodeIndex;
  */
 public class TestOne extends AbstractNode {
 	
-	public enum Key implements PropertyKey {
-		
-		anInt, aLong, aDate
-		
-	}
+	public static final PropertyKey<Integer> anInt = new Property<Integer>("anInt");
+	public static final PropertyKey<Long> aLong    = new Property<Long>("aLong");
+	public static final PropertyKey<Date> aDate    = new Property<Date>("aDate");
 	
 	static {
 		
-		EntityContext.registerPropertySet(TestOne.class, PropertyView.Public, Key.values());
+		EntityContext.registerPropertySet(TestOne.class, PropertyView.Public, anInt, aLong, aDate);
 		EntityContext.registerEntityRelation(TestOne.class, TestTwo.class, RelType.UNDEFINED, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 		EntityContext.registerEntityRelation(TestOne.class, TestThree.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 		EntityContext.registerEntityRelation(TestOne.class, TestFour.class, RelType.DATA, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 		
-		EntityContext.registerPropertyConverter(TestOne.class, Key.anInt, IntConverter.class);
-		EntityContext.registerPropertyConverter(TestOne.class, Key.aDate, DateConverter.class);
+		EntityContext.registerPropertyConverter(TestOne.class, anInt, IntConverter.class);
+		EntityContext.registerPropertyConverter(TestOne.class, aDate, DateConverter.class);
 		
 //		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.numeric.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), anInt, aLong, aDate);
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), anInt, aLong, aDate);
 	}
 	
 //	@Override

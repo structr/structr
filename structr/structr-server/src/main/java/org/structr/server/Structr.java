@@ -51,11 +51,13 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.structr.common.PropertyView;
 import org.structr.context.ApplicationContextListener;
 import org.structr.core.Service;
 import org.structr.core.agent.AgentService;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.cron.CronService;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.log.LogService;
 import org.structr.core.module.ModuleService;
 import org.structr.core.node.NodeService;
@@ -69,49 +71,49 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
  */
 public class Structr {
 	
-	private static final Logger logger          = Logger.getLogger(Structr.class.getName());
+	private static final Logger logger                         = Logger.getLogger(Structr.class.getName());
 	
-	private String applicationName              = "structr server";
-	private String restUrl                      = "/structr/rest";
+	private String applicationName                             = "structr server";
+	private String restUrl                                     = "/structr/rest";
 	
-	private String host                         = "0.0.0.0";
-	private String keyStorePath                 = null;
-	private String keyStorePassword             = null;
-	private String contextPath                  = System.getProperty("contextPath", "/");
-	private String basePath                     = "";
-	private String staticResourceContextPath    = "/static";
+	private String host                                        = "0.0.0.0";
+	private String keyStorePath                                = null;
+	private String keyStorePassword                            = null;
+	private String contextPath                                 = System.getProperty("contextPath", "/");
+	private String basePath                                    = "";
+	private String staticResourceContextPath                   = "/static";
 
-	private int restPort                        = 8082;
-	private int httpsPort                       = 8083;
+	private int restPort                                       = 8082;
+	private int httpsPort                                      = 8083;
 	
-	private int jsonDepth                       = 1;
-	private boolean logRequests                 = false;
-	private String logPrefix                    = "structr";
+	private int jsonDepth                                      = 1;
+	private boolean logRequests                                = false;
+	private String logPrefix                                   = "structr";
 	
-	private String smtpHost                     = "localhost";
-	private int smtpPort                        = 25;
+	private String smtpHost                                    = "localhost";
+	private int smtpPort                                       = 25;
 	
-	private String logDbName		    = "logDb.dat";
+	private String logDbName		                   = "logDb.dat";
 	
-	private int maxIdleTime                     = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
-	private int requestHeaderSize               = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
+	private int maxIdleTime                                    = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
+	private int requestHeaderSize                              = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
 
-	private Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
-	private Map<String, String> servletParams   = new HashMap<String, String>();
-	private ResourceHandler resourceHandler     = null;
+	private Map<String, ServletHolder> servlets                = new LinkedHashMap<String, ServletHolder>();
+	private Map<String, String> servletParams                  = new HashMap<String, String>();
+	private ResourceHandler resourceHandler                    = null;
 
-	private boolean enableRewriteFilter         = false;
-	private boolean quiet                       = false;
-	private boolean enableHttps                 = false;
-	private boolean enableGzipCompression       = true;
+	private boolean enableRewriteFilter                        = false;
+	private boolean quiet                                      = false;
+	private boolean enableHttps                                = false;
+	private boolean enableGzipCompression                      = true;
 	
-	private Class<? extends StructrServer> app  = null;
-	private Class resourceProvider              = null;
-	private Class authenticator                 = null;
-	private String defaultPropertyView          = null;
+	private Class<? extends StructrServer> app                 = null;
+	private Class<? extends ResourceProvider> resourceProvider = null;
+	private Class<? extends Authenticator> authenticator       = null;
+	private String defaultPropertyView                         = PropertyView.Public;
 	
-	private Set<Class<? extends Service>> configuredServices	= new HashSet<Class<? extends Service>>();
-	private Map<String, String> cronServiceTasks			= new LinkedHashMap<String, String>();
+	private Set<Class<? extends Service>> configuredServices   = new HashSet<Class<? extends Service>>();
+	private Map<String, String> cronServiceTasks               = new LinkedHashMap<String, String>();
 	
 	private List<String> customConfigLines      = new LinkedList<String>();
 	
@@ -451,15 +453,15 @@ public class Structr {
 		
 		//contexts.setHandlers(new Handler[] { new DefaultHandler(), contexts });
 
+		ResourceProvider resourceProviderInstance = resourceProvider.newInstance();
+		
+		
 		// configure JSON REST servlet
-		JsonRestServlet structrRestServlet     = new JsonRestServlet();
+		JsonRestServlet structrRestServlet     = new JsonRestServlet(resourceProviderInstance, defaultPropertyView, AbstractNode.uuid);
 		ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
 
 		servletParams.put("PropertyFormat", "FlatNameValue");
-		servletParams.put("ResourceProvider", resourceProvider.getName());
 		servletParams.put("Authenticator", authenticator.getName());
-		servletParams.put("DefaultPropertyView", defaultPropertyView);
-		servletParams.put("IdProperty", "uuid");
 
 		structrRestServletHolder.setInitParameters(servletParams);
 		structrRestServletHolder.setInitOrder(0);

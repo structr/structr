@@ -37,7 +37,7 @@ public class TestThree extends AbstractNode {
 	
 	static {
 		
-		EntityContext.registerPropertySet(TestThree.class, PropertyView.Public, Key.values());
+//		EntityContext.registerPropertySet(TestThree.class, PropertyView.Public, Key.values());
 		EntityContext.registerEntityRelation(TestThree.class, TestOne.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	}
 	

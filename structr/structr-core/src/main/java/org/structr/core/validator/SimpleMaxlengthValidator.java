@@ -19,6 +19,7 @@
 
 package org.structr.core.validator;
 
+import org.structr.common.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.TooLongToken;
 import org.structr.core.GraphObject;
@@ -38,7 +39,7 @@ public class SimpleMaxlengthValidator extends PropertyValidator<String> {
 	}
 
 	@Override
-	public boolean isValid(GraphObject object, String key, String value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey<String> key, String value, ErrorBuffer errorBuffer) {
 		
 		if(value.length() <= maxLength) {
 			return true;

@@ -67,7 +67,6 @@ public class NodeService implements SingletonService {
 	private GraphDatabaseService graphDb            = null;
 	private Index<Node> keywordIndex                = null;
 	private Index<Node> layerIndex                  = null;
-	private NodeFactory nodeFactory                 = null;
 	private Index<Relationship> relFulltextIndex    = null;
 	private Index<Relationship> relKeywordIndex     = null;
 	private Index<Relationship> relUuidIndex        = null;
@@ -195,8 +194,8 @@ public class NodeService implements SingletonService {
 
 		final Map<String, String> config = new HashMap<String, String>();
 
-		config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
-		config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
+		config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.name());
+		config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.name());
 		config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
 
 		layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);

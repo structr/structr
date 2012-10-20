@@ -29,7 +29,6 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -38,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.search.Search;
@@ -87,13 +87,13 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 					long n                  = 0L;
                                         List<AbstractRelationship> rels = null;
                                         
-                                        if (properties.containsKey(AbstractRelationship.HiddenKey.combinedType.name())) {
+                                        if (properties.containsKey(AbstractRelationship.combinedType.name())) {
                                                 
                                                 List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.HiddenKey.combinedType.name())));
+                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.combinedType.name())));
                                                 
                                                 rels = (List<AbstractRelationship>) searchRel.execute(attrs);
-                                                properties.remove(AbstractRelationship.HiddenKey.combinedType.name());
+                                                properties.remove(AbstractRelationship.combinedType.name());
                                                 
                                         } else {
                                         
@@ -103,14 +103,15 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 					for (AbstractRelationship rel : rels) {
 
 						// Treat only "our" nodes
-						if (rel.getStringProperty(AbstractRelationship.Key.uuid) != null) {
+						if (rel.getStringProperty(AbstractRelationship.uuid) != null) {
 
 							for (Entry entry : properties.entrySet()) {
                                                                 
                                                                 String key = (String) entry.getKey();
                                                                 Object val = entry.getValue();
                                                                 
-                                                                rel.setProperty(key, val);
+								// FIXME: synthetic Property generation
+                                                                rel.setProperty(new Property(key), val);
                                                                 
                                                         }
 

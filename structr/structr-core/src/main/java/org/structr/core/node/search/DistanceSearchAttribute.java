@@ -18,6 +18,8 @@
  */
 package org.structr.core.node.search;
 
+import org.structr.common.Property;
+import org.structr.common.PropertyKey;
 import org.structr.core.node.NodeAttribute;
 
 /**
@@ -36,7 +38,7 @@ public class DistanceSearchAttribute extends SearchAttribute {
     private NodeAttribute nodeAttribute;
 
     public DistanceSearchAttribute(final String searchString, final Double distance, final SearchOperator searchOp) {
-        nodeAttribute = new NodeAttribute(searchString, distance);
+        nodeAttribute = new NodeAttribute(new Property(searchString), distance);
         setSearchOperator(searchOp);
     }
 
@@ -50,7 +52,7 @@ public class DistanceSearchAttribute extends SearchAttribute {
         this.nodeAttribute = (NodeAttribute) attribute;
     }
 
-    public String getKey() {
+    public PropertyKey getKey() {
         return nodeAttribute.getKey();
     }
 

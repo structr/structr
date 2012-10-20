@@ -34,7 +34,7 @@ import org.structr.core.entity.AbstractNode;
 public class QueryHelper {
 
 	public static Query exactType(Class type) {
-		return new TermQuery(new Term(AbstractNode.Key.type.name(), Search.exactMatch(type.getSimpleName())));
+		return new TermQuery(new Term(AbstractNode.type.name(), Search.exactMatch(type.getSimpleName())));
 	}
 
 	public static Query exactPropertyValue(PropertyKey propertyKey, String value) {

@@ -41,6 +41,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.PropertyKey;
 import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -70,7 +71,7 @@ public class MaintenanceResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
@@ -123,7 +124,7 @@ public class MaintenanceResource extends Resource {
 				? "non-null"
 				: "null", ((securityContext != null)
 												     && (securityContext.getUser() != null))
-					  ? securityContext.getUser().getStringProperty(AbstractNode.Key.name)
+					  ? securityContext.getUser().getStringProperty(AbstractNode.name)
 					  : "null" });
 
 			throw new NotAllowedException();

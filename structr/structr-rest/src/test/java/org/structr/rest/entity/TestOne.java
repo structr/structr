@@ -18,15 +18,14 @@
  */
 package org.structr.rest.entity;
 
-import org.neo4j.graphdb.Direction;
+import java.util.Date;
+import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.DateConverter;
 import org.structr.core.converter.IntConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.node.NodeService.NodeIndex;
 
 /**
@@ -36,21 +35,19 @@ import org.structr.core.node.NodeService.NodeIndex;
  */
 public class TestOne extends AbstractNode {
 	
-	public enum Key implements PropertyKey {
-		
-		name, anInt, aLong, aDate
-		
-	}
+	public static final PropertyKey<Integer> anInt = new Property<Integer>("anInt");
+	public static final PropertyKey<Long> aLong    = new Property<Long>("aLong");
+	public static final PropertyKey<Date> aDate    = new Property<Date>("aDate");
 	
 	static {
 		
-		EntityContext.registerPropertySet(TestOne.class, PropertyView.Public, Key.values());
+		EntityContext.registerPropertySet(TestOne.class, PropertyView.Public, AbstractNode.name, anInt, aLong, aDate);
 		
-		EntityContext.registerPropertyConverter(TestOne.class, Key.anInt, IntConverter.class);
-		EntityContext.registerPropertyConverter(TestOne.class, Key.aDate, DateConverter.class);
+		EntityContext.registerPropertyConverter(TestOne.class, anInt, IntConverter.class);
+		EntityContext.registerPropertyConverter(TestOne.class, aDate, DateConverter.class);
 		
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), AbstractNode.name, anInt, aLong, aDate);
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), AbstractNode.name, anInt, aLong, aDate);
 	}
 		
 }

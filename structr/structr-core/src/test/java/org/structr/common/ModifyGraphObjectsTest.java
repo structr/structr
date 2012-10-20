@@ -68,8 +68,8 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			String type                     = "UnknownTestType";
 			String name                     = "GenericNode-name";
 
-			props.put(AbstractNode.Key.type.name(), type);
-			props.put(AbstractNode.Key.name.name(), name);
+			props.put(AbstractNode.type.name(), type);
+			props.put(AbstractNode.name.name(), name);
 
 			node = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 
@@ -83,26 +83,26 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			});
 
 			// Check defaults
-			assertTrue(node.getStringProperty(AbstractNode.Key.type).equals(type));
-			assertTrue(node.getStringProperty(AbstractNode.Key.name).equals(name));
-			assertTrue(!node.getBooleanProperty(AbstractNode.Key.hidden));
-			assertTrue(!node.getBooleanProperty(AbstractNode.Key.deleted));
-			assertTrue(!node.getBooleanProperty(AbstractNode.Key.visibleToAuthenticatedUsers));
-			assertTrue(!node.getBooleanProperty(AbstractNode.Key.visibleToPublicUsers));
+			assertTrue(node.getStringProperty(AbstractNode.type).equals(type));
+			assertTrue(node.getStringProperty(AbstractNode.name).equals(name));
+			assertTrue(!node.getBooleanProperty(AbstractNode.hidden));
+			assertTrue(!node.getBooleanProperty(AbstractNode.deleted));
+			assertTrue(!node.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
+			assertTrue(!node.getBooleanProperty(AbstractNode.visibleToPublicUsers));
 
 			name = "GenericNode-name-äöüß";
 
 			// Modify values
-			node.setProperty(AbstractNode.Key.name, name);
-			assertTrue(node.getStringProperty(AbstractNode.Key.name).equals(name));
-			node.setProperty(AbstractNode.Key.hidden, true);
-			assertTrue(node.getBooleanProperty(AbstractNode.Key.hidden));
-			node.setProperty(AbstractNode.Key.deleted, true);
-			assertTrue(node.getBooleanProperty(AbstractNode.Key.deleted));
-			node.setProperty(AbstractNode.Key.visibleToAuthenticatedUsers, true);
-			assertTrue(node.getBooleanProperty(AbstractNode.Key.visibleToAuthenticatedUsers));
-			node.setProperty(AbstractNode.Key.visibleToPublicUsers, true);
-			assertTrue(node.getBooleanProperty(AbstractNode.Key.visibleToPublicUsers));
+			node.setProperty(AbstractNode.name, name);
+			assertTrue(node.getStringProperty(AbstractNode.name).equals(name));
+			node.setProperty(AbstractNode.hidden, true);
+			assertTrue(node.getBooleanProperty(AbstractNode.hidden));
+			node.setProperty(AbstractNode.deleted, true);
+			assertTrue(node.getBooleanProperty(AbstractNode.deleted));
+			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			assertTrue(node.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
+			node.setProperty(AbstractNode.visibleToPublicUsers, true);
+			assertTrue(node.getBooleanProperty(AbstractNode.visibleToPublicUsers));
 
 		} catch (FrameworkException ex) {
 
@@ -122,8 +122,8 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.UNDEFINED, 1)).get(0);
 
-			String key1 = "jghsdkhgshdhgsdjkfgh";
-			String val1 = "54354354546806849870";
+			PropertyKey key1 = new Property("jghsdkhgshdhgsdjkfgh");
+			String val1      = "54354354546806849870";
 
 			// Modify values
 			rel.setProperty(key1, val1);

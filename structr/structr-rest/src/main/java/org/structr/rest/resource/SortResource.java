@@ -21,14 +21,13 @@ package org.structr.rest.resource;
 
 import org.structr.core.Result;
 import java.util.Collections;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSortKey;
-import org.structr.core.GraphObject;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.servlet.JsonRestServlet;
 
@@ -59,7 +58,7 @@ public class SortResource extends WrappingResource {
 	}
 	
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		if(wrappedResource != null) {
 			

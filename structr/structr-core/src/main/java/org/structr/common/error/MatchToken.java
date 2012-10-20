@@ -22,6 +22,7 @@ package org.structr.common.error;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.structr.common.PropertyKey;
 
 /**
  *
@@ -31,7 +32,7 @@ public class MatchToken extends SemanticErrorToken {
 
 	private String expression = null;
 
-	public MatchToken(String propertyKey, String expression) {
+	public MatchToken(PropertyKey propertyKey, String expression) {
 
 		super(propertyKey);
 		this.expression = expression;

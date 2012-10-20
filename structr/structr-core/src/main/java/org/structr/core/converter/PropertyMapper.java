@@ -21,6 +21,7 @@ package org.structr.core.converter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.core.Value;
 
 /**
@@ -42,9 +43,9 @@ public class PropertyMapper extends PropertyConverter {
 		if(value != null) {
 
 			Object valueObject = value.get(securityContext);
-			if(valueObject instanceof String) {
+			if(valueObject instanceof PropertyKey) {
 
-				String mappedKey = (String)valueObject;
+				PropertyKey mappedKey = (PropertyKey)valueObject;
 				return currentObject.getProperty(mappedKey);
 
 			} else {

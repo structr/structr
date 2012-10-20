@@ -57,7 +57,7 @@ public class FileUploadHandler {
 
 	public FileUploadHandler(File file) {
 
-		this.size = file.getLongProperty(File.Key.size);
+		this.size = file.getLongProperty(File.size);
 		this.file = file;
 
 		if (this.size == null) {

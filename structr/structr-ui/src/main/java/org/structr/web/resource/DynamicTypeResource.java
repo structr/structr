@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -101,7 +102,7 @@ public class DynamicTypeResource extends TypeResource {
 	}
 
 	@Override
-	public Result doGet(final String sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		List<GraphObject> uuidResults = null;
 
@@ -248,12 +249,13 @@ public class DynamicTypeResource extends TypeResource {
 		final Component template			= (Component) templates.get(templates.size()-1);
 
 		// copy properties to map
-		templateProperties.put(AbstractNode.Key.type.name(), Component.class.getSimpleName());
-		templateProperties.put(Component.UiKey.kind.name(), template.getStringProperty(Component.UiKey.kind.name()));
-		templateProperties.put(AbstractNode.Key.uuid.name(), componentId);
+		templateProperties.put(AbstractNode.type.name(), Component.class.getSimpleName());
+		templateProperties.put(Component.kind.name(), template.getStringProperty(Component.kind));
 
-		templateProperties.put(AbstractNode.Key.visibleToPublicUsers.name(), template.getBooleanProperty(AbstractNode.Key.visibleToPublicUsers));
-		templateProperties.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(), template.getBooleanProperty(AbstractNode.Key.visibleToAuthenticatedUsers));
+		templateProperties.put(AbstractNode.uuid.name(), componentId);
+		
+		templateProperties.put(AbstractNode.visibleToPublicUsers.name(), template.getBooleanProperty(AbstractNode.visibleToPublicUsers));
+		templateProperties.put(AbstractNode.visibleToAuthenticatedUsers.name(), template.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
 
 		// use parentId from template
 		String parentComponentId = template.getComponentId();
@@ -284,25 +286,24 @@ public class DynamicTypeResource extends TypeResource {
 					if (node instanceof Content) {
 
 						final Content contentTemplate = (Content) node;
-						final String dataKey          = contentTemplate.getStringProperty("data-key");
+						final String dataKey          = contentTemplate.getStringProperty(Content.dataKey);
 
 						// create new content node with content from property set
 						contentTemplateProperties.clear();
-
-						contentTemplateProperties.put(AbstractNode.Key.type.name(), Content.class.getSimpleName());
-						contentTemplateProperties.put(Content.UiKey.typeDefinitionId.name(),			contentTemplate.getStringProperty(Content.UiKey.typeDefinitionId));
+						
+						contentTemplateProperties.put(AbstractNode.type.name(), Content.class.getSimpleName());
+						contentTemplateProperties.put(Content.typeDefinitionId.name(),			contentTemplate.getStringProperty(Content.typeDefinitionId));
 						contentTemplateProperties.put("data-key", dataKey);
-
-						contentTemplateProperties.put(AbstractNode.Key.visibleToPublicUsers.name(),		contentTemplate.getStringProperty(AbstractNode.Key.visibleToPublicUsers.name()));
-						contentTemplateProperties.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(),	contentTemplate.getStringProperty(AbstractNode.Key.visibleToAuthenticatedUsers.name()));
-
-
+						
+						contentTemplateProperties.put(AbstractNode.visibleToPublicUsers.name(),		contentTemplate.getBooleanProperty(AbstractNode.visibleToPublicUsers));
+						contentTemplateProperties.put(AbstractNode.visibleToAuthenticatedUsers.name(),	contentTemplate.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
+						
 //						contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			contentTemplate.getStringProperty(Content.UiKey.validationExpression.name()));
 //						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		contentTemplate.getStringProperty(Content.UiKey.validationErrorMessage.name()));
 
 						final Content newContent = (Content) createNodeCommand.execute(contentTemplateProperties);
 
-						newContent.setProperty(Content.UiKey.content.name(), propertySet.get(dataKey));
+						newContent.setProperty(Content.content, propertySet.get(dataKey));
 
 
 						// remove non-local data key from set
@@ -319,13 +320,14 @@ public class DynamicTypeResource extends TypeResource {
 		});
 
 		if (newComponent != null) {
+			
+			propertySet.remove(AbstractNode.createdDate.name());
+			propertySet.remove(AbstractNode.lastModifiedDate.name());
 
-			propertySet.remove(AbstractNode.Key.createdDate.name());
-			propertySet.remove(AbstractNode.Key.lastModifiedDate.name());
+			for (final String keyName : propertySet.keySet()) {
 
-			for (final String key : propertySet.keySet()) {
-
-				newComponent.setProperty(key, propertySet.get(key));
+				PropertyKey key = newComponent.getPropertyKeyForName(keyName);
+				newComponent.setProperty(key, propertySet.get(keyName));
 			}
 
 		}
@@ -344,7 +346,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (rawType != null) {
 
-			searchAttributes.add(Search.andExactProperty(Component.UiKey.kind.name(), EntityContext.normalizeEntityName(rawType)));
+			searchAttributes.add(Search.andExactProperty(Component.kind, EntityContext.normalizeEntityName(rawType)));
 			searchAttributes.add(Search.andExactType(Component.class.getSimpleName()));
 
 		}
@@ -394,7 +396,7 @@ public class DynamicTypeResource extends TypeResource {
 
 			if (template instanceof Component) {
 
-				final Set<String> paths = (Set<String>) template.getProperty(Component.UiKey.paths);
+				final Set<String> paths = (Set<String>) template.getProperty(Component.paths);
 
 				for (final String path : paths) {
 

@@ -54,7 +54,7 @@ public abstract class Notion {
 	protected String idProperty                               = null;
 	protected SecurityContext securityContext                 = null;
 	protected SerializationStrategy serializationStrategy     = null;
-	protected Class type                                      = null;
+	protected Class<? extends GraphObject> type               = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -147,7 +147,7 @@ public abstract class Notion {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setType(Class type) {
+	public void setType(Class<? extends GraphObject> type) {
 		this.type = type;
 	}
 

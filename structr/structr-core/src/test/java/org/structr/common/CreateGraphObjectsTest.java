@@ -87,7 +87,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			final Map<String, Object> props = new HashMap<String, Object>();
 
-			props.put(AbstractNode.Key.type.name(), "UnknownTestTypeÄÖLß");
+			props.put(AbstractNode.type.name(), "UnknownTestTypeÄÖLß");
 
 			try {
 
@@ -213,31 +213,31 @@ public class CreateGraphObjectsTest extends StructrTest {
 							// For ResourceAccess, fill mandatory fields
 							if (type.equals(ResourceAccess.class.getSimpleName())) {
 
-								props.put(ResourceAccess.Key.signature.name(), "/");
-								props.put(ResourceAccess.Key.flags.name(), 6);
+								props.put(ResourceAccess.signature.name(), "/");
+								props.put(ResourceAccess.flags.name(), 6);
 
 							}
 
 							// For Location, set coordinates
 							if (type.equals(Location.class.getSimpleName())) {
 
-								props.put(Location.Key.latitude.name(), 12.34);
-								props.put(Location.Key.longitude.name(), 56.78);
+								props.put(Location.latitude.name(), 12.34);
+								props.put(Location.longitude.name(), 56.78);
 
 							}
 							
 							logger.log(Level.INFO, "Creating node of type {0}", type);
-							props.put(AbstractNode.Key.type.name(), type);
+							props.put(AbstractNode.type.name(), type);
 
 							AbstractNode node = (AbstractNode) createNodeCommand.execute(props);
 
-							assertTrue(type.equals(node.getStringProperty(AbstractNode.Key.type)));
+							assertTrue(type.equals(node.getStringProperty(AbstractNode.type)));
 
 							// Remove mandatory fields for ResourceAccess from props map
 							if (type.equals(ResourceAccess.class.getSimpleName())) {
 
-								props.remove(ResourceAccess.Key.signature.name());
-								props.remove(ResourceAccess.Key.flags.name());
+								props.remove(ResourceAccess.signature.name());
+								props.remove(ResourceAccess.flags.name());
 
 							}
 

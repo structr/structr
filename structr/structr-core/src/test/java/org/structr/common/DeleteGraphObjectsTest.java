@@ -76,8 +76,8 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			String type                     = "UnknownTestType";
 			String name                     = "GenericNode-name";
 
-			props.put(AbstractNode.Key.type.name(), type);
-			props.put(AbstractNode.Key.name.name(), name);
+			props.put(AbstractNode.type.name(), type);
+			props.put(AbstractNode.name.name(), name);
 
 			node = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 
@@ -353,7 +353,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 				AbstractNode end         = createTestNode(type2.getSimpleName());
 				AbstractRelationship rel = createTestRelationship(start, end, RelType.UNDEFINED);
 
-				rel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDeleteFlag);
+				rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
 
 				return rel;
 

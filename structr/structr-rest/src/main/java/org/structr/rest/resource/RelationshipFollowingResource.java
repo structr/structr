@@ -32,7 +32,6 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeFactory;
 import org.structr.rest.RestMethodResult;
@@ -53,6 +52,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.RelationClass;
 
@@ -180,7 +180,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		Path path = getValidatedPath();
 
@@ -380,7 +380,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		try {
 
 			// only continue if we are on the right track :)
-			if (idSet.contains(endNode.getProperty(AbstractNode.Key.uuid.name()))) {
+			if (idSet.contains(endNode.getProperty(AbstractNode.uuid.name()))) {
 
 				if (path.length() == pathLength) {
 

@@ -45,7 +45,7 @@ public class CombinedPropertyGroup implements PropertyGroup {
 		int len = propertyKeys.length;
 
 		for(int i=0; i<len; i++) {
-			combinedPropertyValue.append(source.getProperty(propertyKeys[i].name()));
+			combinedPropertyValue.append(source.getProperty(propertyKeys[i]));
 			if(i < len-1) {
 				combinedPropertyValue.append(separator);
 			}

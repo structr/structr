@@ -22,6 +22,7 @@ package org.structr.common.error;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.structr.common.PropertyKey;
 
 /**
  *
@@ -29,7 +30,7 @@ import com.google.gson.JsonPrimitive;
  */
 public class InvalidSearchField extends SemanticErrorToken {
 
-	public InvalidSearchField(String propertyKey) {
+	public InvalidSearchField(PropertyKey propertyKey) {
 		super(propertyKey);
 	}
 

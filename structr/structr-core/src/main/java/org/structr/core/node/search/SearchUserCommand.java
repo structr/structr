@@ -61,7 +61,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 					final String userName = (String) parameters[0];
 
-					for (final Node n : index.get(AbstractNode.Key.name.name(), userName)) {
+					for (final Node n : index.get(AbstractNode.name.name(), userName)) {
 
 						final AbstractNode s = (AbstractNode) findNode.execute(n);
 

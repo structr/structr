@@ -80,7 +80,7 @@ public class CreateSimplePage extends AbstractCommand {
 
 				Page page = (Page) createElement(null, Page.class.getSimpleName(), 0, null);
 
-				page.setProperty(Page.UiKey.contentType, "text/html");
+				page.setProperty(Page.contentType, "text/html");
 
 				Html html   = (Html) createElement(page, Html.class.getSimpleName(), 0, page);
 				Head head   = (Head) createElement(page, Head.class.getSimpleName(), 0, html);
@@ -91,7 +91,7 @@ public class CreateSimplePage extends AbstractCommand {
 				Content content = (Content) createElement(page, Content.class.getSimpleName(), 0, title);
 
 				// nodeData.remove(Content.UiKey.content.name());
-				content.setProperty(Content.UiKey.content, "Page Title");
+				content.setProperty(Content.content, "Page Title");
 
 				H1 h1 = (H1) createElement(page, H1.class.getSimpleName(), 0, body);
 
@@ -99,14 +99,14 @@ public class CreateSimplePage extends AbstractCommand {
 				Content h1Content = (Content) createElement(page, Content.class.getSimpleName(), 0, h1);
 
 				// nodeData.remove(Content.UiKey.content.name());
-				h1Content.setProperty(Content.UiKey.content, "Page Title");
+				h1Content.setProperty(Content.content, "Page Title");
 
 				Div div = (Div) createElement(page, Div.class.getSimpleName(), 1, body);
 
 				// nodeData.put(Content.UiKey.content.name(), "Body Text");
 				Content divContent = (Content) createElement(page, Content.class.getSimpleName(), 0, div);
 
-				divContent.setProperty(Content.UiKey.content, "Body Text");
+				divContent.setProperty(Content.content, "Body Text");
 
 //                              
 //
@@ -115,21 +115,21 @@ public class CreateSimplePage extends AbstractCommand {
 //                              relData.put(pageId, 0);
 //                              
 //                              // Html
-//                              nodeData.put(AbstractNode.Key.type.name(), Html.class.getSimpleName());
+//                              nodeData.put(AbstractNode.type.name(), Html.class.getSimpleName());
 //                              nodeData.put(HtmlElement.UiKey.name.name(), "html");
 //                              nodeData.put(HtmlElement.UiKey.tag.name(), "html");
 //                              AbstractNode html = (AbstractNode) createNode.execute(nodeData);
 //                              createRel.execute(page, html, RelType.CONTAINS, relData, false);
 //                              
 //                              // Html -> Head
-//                              nodeData.put(AbstractNode.Key.type.name(), Head.class.getSimpleName());
+//                              nodeData.put(AbstractNode.type.name(), Head.class.getSimpleName());
 //                              nodeData.put(HtmlElement.UiKey.name.name(), "head");
 //                              nodeData.put(HtmlElement.UiKey.tag.name(), "head");
 //                              AbstractNode head = (AbstractNode) createNode.execute(nodeData);
 //                              createRel.execute(html, head, RelType.CONTAINS, relData, false);
 //                              
 //                              // Html -> Body
-//                              nodeData.put(AbstractNode.Key.type.name(), Body.class.getSimpleName());
+//                              nodeData.put(AbstractNode.type.name(), Body.class.getSimpleName());
 //                              nodeData.put(HtmlElement.UiKey.name.name(), "body");
 //                              nodeData.put(HtmlElement.UiKey.tag.name(), "body");
 //                              AbstractNode body = (AbstractNode) createNode.execute(nodeData);
@@ -138,14 +138,14 @@ public class CreateSimplePage extends AbstractCommand {
 //                              
 //                              // Html -> Head -> Title
 //                              relData.put(pageId, 0);
-//                              nodeData.put(AbstractNode.Key.type.name(), Title.class.getSimpleName());
+//                              nodeData.put(AbstractNode.type.name(), Title.class.getSimpleName());
 //                              nodeData.put(HtmlElement.UiKey.name.name(), "title");
 //                              nodeData.put(HtmlElement.UiKey.tag.name(), "title");
 //                              AbstractNode title = (AbstractNode) createNode.execute(nodeData);
 //                              createRel.execute(head, title, RelType.CONTAINS, relData, false);
 //
 //                              // Html -> Head -> Title -> Content
-//                              nodeData.put(AbstractNode.Key.type.name(), Content.class.getSimpleName());
+//                              nodeData.put(AbstractNode.type.name(), Content.class.getSimpleName());
 //                              nodeData.remove(HtmlElement.UiKey.tag.name());
 //                              nodeData.put(Content.UiKey.content.name(), "New Page");
 //                              //nodeData.put(HtmlElement.UiKey.tag.name(), "body");
@@ -155,7 +155,7 @@ public class CreateSimplePage extends AbstractCommand {
 //                              
 //                              // Html -> Body -> H1
 //                              relData.put(pageId, 0);
-//                              nodeData.put(AbstractNode.Key.type.name(), H1.class.getSimpleName());
+//                              nodeData.put(AbstractNode.type.name(), H1.class.getSimpleName());
 //                              nodeData.put(HtmlElement.UiKey.name.name(), "h1");
 //                              nodeData.put(HtmlElement.UiKey.tag.name(), "h1");
 //                              AbstractNode h1 = (AbstractNode) createNode.execute(nodeData);
@@ -184,8 +184,8 @@ public class CreateSimplePage extends AbstractCommand {
 
 		Map<String, Object> nodeData = new HashMap<String, Object>();
 
-		nodeData.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true);
-		nodeData.put(AbstractNode.Key.type.name(), Page.class.getSimpleName());
+		nodeData.put(AbstractNode.visibleToAuthenticatedUsers.name(), true);
+		nodeData.put(AbstractNode.type.name(), Page.class.getSimpleName());
 
 		Map<String, Object> relData = new HashMap<String, Object>();
 
@@ -197,12 +197,12 @@ public class CreateSimplePage extends AbstractCommand {
 
 		}
 
-		nodeData.put(AbstractNode.Key.type.name(), type);
-		nodeData.put(HtmlElement.UiKey.name.name(), type.toLowerCase());
+		nodeData.put(AbstractNode.type.name(), type);
+		nodeData.put(HtmlElement.name.name(), type.toLowerCase());
 
 		if (!Content.class.getSimpleName().equals(type)) {
 
-			nodeData.put(HtmlElement.UiKey.tag.name(), type.toLowerCase());
+			nodeData.put(HtmlElement.tag.name(), type.toLowerCase());
 		}
 
 		AbstractNode element = (AbstractNode) createNode.execute(nodeData);

@@ -67,7 +67,7 @@ public class InheritingTypeResource extends TypeResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		final AbstractNode topNode                   = null;
@@ -89,16 +89,16 @@ public class InheritingTypeResource extends TypeResource {
 
 					final GraphObject templateEntity  = (GraphObject)entityClass.newInstance();
 					final PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
-					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
+					sortDescending                    = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
 
 					if(sortKeyProperty != null) {
-						sortKey = sortKeyProperty.name();
+						sortKey = sortKeyProperty;
 					}
 
 				} catch(final Throwable t) {
 
 					// fallback to name
-					sortKey = "name";
+					sortKey = AbstractNode.name;
 				}
 			}
 

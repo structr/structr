@@ -192,7 +192,7 @@ public class StructrTest extends TestCase {
 
 		final Map<String, Object> props = new HashMap<String, Object>();
 
-		props.put(AbstractNode.Key.type.name(), type);
+		props.put(AbstractNode.type.name(), type);
 
 		return (List<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
 
@@ -222,7 +222,7 @@ public class StructrTest extends TestCase {
 
 	protected AbstractNode createTestNode(final String type, final Map<String, Object> props) throws FrameworkException {
 
-		props.put(AbstractNode.Key.type.name(), type);
+		props.put(AbstractNode.type.name(), type);
 
 		return (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 

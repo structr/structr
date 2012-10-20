@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -225,13 +226,16 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				Relationship rel            = startNode.createRelationshipTo(endNode, relType);
 				AbstractRelationship newRel = relationshipFactory.createRelationship(securityContext, rel);
 
-				newRel.setProperty(AbstractRelationship.HiddenKey.createdDate.name(), new Date());
+				newRel.setProperty(AbstractRelationship.createdDate, new Date());
 
 				if (newRel != null) {
 
 					if ((properties != null) &&!properties.isEmpty()) {
 
-						newRel.setProperties(properties);
+						// FIXME: synthetic Property generation
+						for (Entry<String, Object> entry : properties.entrySet()) {
+							newRel.setProperty(new Property(entry.getKey()), entry.getValue());
+						}
 
 					}
 

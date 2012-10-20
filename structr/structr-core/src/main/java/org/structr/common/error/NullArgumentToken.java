@@ -22,6 +22,7 @@ package org.structr.common.error;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.PropertyKey;
 
 /**
  *
@@ -29,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class NullArgumentToken extends ErrorToken {
 
-	public NullArgumentToken(String key) {
+	public NullArgumentToken(PropertyKey key) {
 		super(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, key);
 	}
 

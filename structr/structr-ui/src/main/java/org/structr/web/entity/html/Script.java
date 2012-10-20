@@ -54,10 +54,10 @@ public class Script extends HtmlElement {
 		EntityContext.registerEntityRelation(Script.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Script.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Script.class, Div.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Script.class, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name),
+		EntityContext.registerEntityRelation(Script.class, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name),
 			RelationClass.DELETE_NONE);
 		EntityContext.registerPropertyRelation(Script.class, Script.UiKey.linkable_id, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne,
-			new PropertyNotion(AbstractNode.Key.uuid), RelationClass.DELETE_NONE);
+			new PropertyNotion(AbstractNode.uuid), RelationClass.DELETE_NONE);
 
 	}
 

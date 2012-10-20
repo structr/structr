@@ -38,6 +38,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -65,7 +66,7 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public boolean isValid(GraphObject object, String key, String value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey<String> key, String value, ErrorBuffer errorBuffer) {
 
 		if ((value == null) || ((value != null) && (value.length() == 0))) {
 

@@ -91,7 +91,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 	public AbstractRelationship createRelationship(final SecurityContext securityContext, final Map properties) throws FrameworkException {
 
-		String combinedRelType      = (String) properties.get(AbstractRelationship.HiddenKey.combinedType.name());
+		String combinedRelType      = (String) properties.get(AbstractRelationship.combinedType.name());
 		AbstractRelationship newRel = createRelationship(securityContext, combinedRelType);
 
 		newRel.setProperties(properties);
@@ -117,9 +117,9 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			} else {
 
-				if (relationship.hasProperty(AbstractRelationship.HiddenKey.combinedType.name())) {
+				if (relationship.hasProperty(AbstractRelationship.combinedType.name())) {
 
-					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.HiddenKey.combinedType.name());
+					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.name());
 
 					relClass = EntityContext.getNamedRelationClass(combinedRelType);
 
@@ -230,8 +230,8 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 	
 	private Class findNamedRelation(Relationship relationship) {
 		
-		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
-		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.Key.type.name());
+		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.type.name());
+		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.type.name());
 
 		
 		Class sourceType = EntityContext.getEntityClassForRawType(sourceNodeType);

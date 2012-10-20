@@ -39,6 +39,8 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -191,7 +193,7 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	@Override
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -199,7 +201,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		message.setCommand("UPDATE");
 
-		String uuid = graphObject.getStringProperty(AbstractNode.Key.uuid.name());
+		String uuid = graphObject.getStringProperty(AbstractNode.uuid);
 		
 		if (graphObject instanceof AbstractRelationship) {
 
@@ -224,7 +226,7 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	@Override
-	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue) {
+	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -232,7 +234,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		message.setCommand("UPDATE");
 
-		String uuid = graphObject.getStringProperty(AbstractNode.Key.uuid.name());
+		String uuid = graphObject.getStringProperty(AbstractNode.uuid);
 
 		if (graphObject instanceof AbstractRelationship) {
 
@@ -275,10 +277,10 @@ public class SynchronizationController implements StructrTransactionListener {
 
 				message.setCommand("ADD");
 				message.setGraphObject(relationship);
-				message.setId(startNode.getStringProperty("uuid"));
+				message.setId(startNode.getStringProperty(AbstractNode.uuid));
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
 
-				String pageId = relationship.getStringProperty("pageId");
+				String pageId = relationship.getStringProperty(new Property<String>("pageId"));
 
 				if (pageId != null) {
 
@@ -290,8 +292,8 @@ public class SynchronizationController implements StructrTransactionListener {
 				}
 
 				messageStack.add(message);
-				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
-					endNode.getStringProperty(AbstractNode.Key.uuid) });
+				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.uuid),
+					endNode.getStringProperty(AbstractNode.uuid) });
 
 			}
 
@@ -307,7 +309,7 @@ public class SynchronizationController implements StructrTransactionListener {
 			list.add(graphObject);
 			message.setResult(list);
 			messageStack.add(message);
-			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getStringProperty(AbstractNode.Key.uuid));
+			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getStringProperty(AbstractNode.uuid));
 
 		}
 

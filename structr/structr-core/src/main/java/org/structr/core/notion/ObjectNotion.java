@@ -52,6 +52,6 @@ public class ObjectNotion extends Notion {
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return AbstractNode.Key.uuid;
+		return AbstractNode.uuid;
 	}
 }

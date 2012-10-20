@@ -67,6 +67,7 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.hamcrest.Matcher;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.context.ApplicationContextListener;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -165,14 +166,11 @@ public class StructrRestTest extends TestCase {
 			servletContext.setInitParameter("configfile.path", basePath + "/structr.conf");
 
 			// configure JSON REST servlet
-			JsonRestServlet structrRestServlet     = new JsonRestServlet();
+			JsonRestServlet structrRestServlet     = new JsonRestServlet(new DefaultResourceProvider(), PropertyView.Public, AbstractNode.uuid);
 			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
 
 			Map<String, String> servletParams = new LinkedHashMap<String, String>();
-			servletParams.put("PropertyFormat", "FlatNameValue");
-			servletParams.put("ResourceProvider", DefaultResourceProvider.class.getName());
 			servletParams.put("Authenticator", DefaultAuthenticator.class.getName());
-			servletParams.put("IdProperty", "uuid");
 
 			structrRestServletHolder.setInitParameters(servletParams);
 			structrRestServletHolder.setInitOrder(0);
@@ -327,7 +325,7 @@ public class StructrRestTest extends TestCase {
 
 		final Map<String, Object> props = new HashMap<String, Object>();
 
-		props.put(AbstractNode.Key.type.name(), type);
+		props.put(AbstractNode.type.name(), type);
 
 		return (List<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
 

@@ -28,5 +28,5 @@ import org.structr.core.GraphObject;
  * @author Christian Morgner
  */
 public interface DeserializationStrategy {
-	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) throws FrameworkException;
+	public GraphObject deserialize(SecurityContext securityContext, Class<? extends GraphObject> type, Object source) throws FrameworkException;
 }

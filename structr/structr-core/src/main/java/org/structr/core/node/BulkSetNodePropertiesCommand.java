@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,15 +89,15 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 					long n        = 0L;
 					Result result = null;
 
-					if (properties.containsKey(AbstractNode.Key.type.name())) {
+					if (properties.containsKey(AbstractNode.type.name())) {
 
 						List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-						attrs.add(Search.andExactType((String) properties.get(AbstractNode.Key.type.name())));
+						attrs.add(Search.andExactType((String) properties.get(AbstractNode.type.name())));
 
 						result = (Result) searchNode.execute(null, false, false, attrs);
 
-						properties.remove(AbstractNode.Key.type.name());
+						properties.remove(AbstractNode.type.name());
 
 					} else {
 
@@ -108,7 +109,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 						AbstractNode node = (AbstractNode) obj;
 
 						// Treat only "our" nodes
-						if (node.getStringProperty(AbstractNode.Key.uuid) != null) {
+						if (node.getStringProperty(AbstractNode.uuid) != null) {
 
 							for (Entry entry : properties.entrySet()) {
 
@@ -116,7 +117,9 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 								Object val = entry.getValue();
 
 								node.unlockReadOnlyPropertiesOnce();
-								node.setProperty(key, val);
+								
+								// FIXME: synthetic Property generation
+								node.setProperty(new Property(key), val);
 
 							}
 

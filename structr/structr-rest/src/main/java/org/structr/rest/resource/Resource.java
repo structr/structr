@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
+import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -100,7 +101,7 @@ public abstract class Resource {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected String idProperty               = null;
+	protected PropertyKey idProperty          = null;
 	protected SecurityContext securityContext = null;
 
 	//~--- methods --------------------------------------------------------
@@ -117,7 +118,7 @@ public abstract class Resource {
 	 */
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 
-	public abstract Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException;
+	public abstract Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException;
 
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
@@ -207,7 +208,8 @@ public abstract class Resource {
 
 						for (final Entry<String, Object> attr : propertySet.entrySet()) {
 
-							obj.setProperty(attr.getKey(), attr.getValue());
+							PropertyKey key = obj.getPropertyKeyForName(attr.getKey());
+							obj.setProperty(key, attr.getValue());
 
 						}
 
@@ -233,7 +235,7 @@ public abstract class Resource {
 	 */
 	public void configurePropertyView(final Value<String> propertyView) {}
 
-	public void configureIdProperty(final String idProperty) {
+	public void configureIdProperty(PropertyKey idProperty) {
 		this.idProperty = idProperty;
 	}
 
@@ -254,8 +256,8 @@ public abstract class Resource {
 
 	protected RelationClass findRelationClass(final TypeResource typeResource1, final TypeResource typeResource2) {
 
-		final Class type1 = typeResource1.getEntityClass();
-		final Class type2 = typeResource2.getEntityClass();
+		final Class<? extends GraphObject> type1 = typeResource1.getEntityClass();
+		final Class<? extends GraphObject> type2 = typeResource2.getEntityClass();
 
 		if (type1 != null && type2 != null) {
 
@@ -265,7 +267,17 @@ public abstract class Resource {
 
 		if (type1 != null) {
 
-			return EntityContext.getRelationClassForProperty(type1, typeResource2.getRawType());
+			GraphObject typeInstance = null;
+			
+			try { typeInstance = type1.newInstance(); } catch(Throwable t) {}
+			
+			PropertyKey key = typeInstance != null ?
+			    
+						typeInstance.getPropertyKeyForName(typeResource2.getRawType())
+						:
+						new Property(typeResource2.getRawType());
+			
+			return EntityContext.getRelationClassForProperty(type1, key);
 
 		}
 
@@ -296,13 +308,13 @@ public abstract class Resource {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(final List<? extends GraphObject> list, final String sortKey, final boolean sortDescending) {
+	protected void applyDefaultSorting(List<? extends GraphObject> list, PropertyKey sortKey, boolean sortDescending) {
 
 		if (!list.isEmpty()) {
 
-			String finalSortKey   = sortKey;
-			String finalSortOrder = sortDescending ? "desc" : "asc";
-
+			PropertyKey finalSortKey = sortKey;
+			String finalSortOrder    = sortDescending ? "desc" : "asc";
+			
 			if (finalSortKey == null) {
 
 				// Apply default sorting, if defined
@@ -312,7 +324,7 @@ public abstract class Resource {
 
 				if (defaultSort != null) {
 
-					finalSortKey   = defaultSort.name();
+					finalSortKey   = defaultSort;
 					finalSortOrder = obj.getDefaultSortOrder();
 				}
 			}
@@ -335,28 +347,13 @@ public abstract class Resource {
 		ResourceAccess grant                   = null;
 
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
-		searchAttributes.add(Search.andExactProperty(ResourceAccess.Key.signature, uriPart));
+		searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, uriPart));
 
 		final Result result = (Result) search.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
 
 		if (result.isEmpty()) {
 
 			logger.log(Level.FINE, "No resource access object found for {0}", uriPart);
-
-//                      // create new grant
-//                      final Command create = Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class);
-//                      final Map<String, Object> newGrantAttributes = new LinkedHashMap<String, Object>();
-//
-//                      newGrantAttributes.put(AbstractNode.Key.type.name(), ResourceAccess.class.getSimpleName());
-//                      newGrantAttributes.put(ResourceAccess.Key.signature.name(), uriPart);
-//                      newGrantAttributes.put(ResourceAccess.Key.flags.name(), SecurityContext.getResourceFlags(uriPart));
-//
-//                      grant = (ResourceAccess)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-//
-//                              @Override public Object execute() throws FrameworkException {
-//                                      return create.execute(newGrantAttributes);
-//                              }
-//                      });
 
 		} else {
 
@@ -393,18 +390,19 @@ public abstract class Resource {
 		return -1;
 	}
 
-	private static void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<String> searchableProperties) throws FrameworkException {
+	private static void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<PropertyKey> searchableProperties) throws FrameworkException {
 
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
 		// try to identify invalid search properties and throw an exception
 		for (final Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
 
-			final String requestParameterName = e.nextElement();
+			final String requestParameterName  = e.nextElement();
+			final PropertyKey requestParameter = new Property(requestParameterName);
 
-			if (!searchableProperties.contains(requestParameterName) &&!NON_SEARCH_FIELDS.contains(requestParameterName)) {
+			if (!searchableProperties.contains(requestParameter) && !NON_SEARCH_FIELDS.contains(requestParameterName)) {
 
-				errorBuffer.add("base", new InvalidSearchField(requestParameterName));
+				errorBuffer.add("base", new InvalidSearchField(requestParameter));
 
 			}
 
@@ -425,7 +423,7 @@ public abstract class Resource {
 
 	public abstract String getUriPart();
 
-	public abstract Class getEntityClass();
+	public abstract Class<? extends GraphObject> getEntityClass();
 
 	public abstract String getResourceSignature();
 
@@ -478,7 +476,6 @@ public abstract class Resource {
 		                                   NodeService.NodeIndex.keyword.name());
 	}
 
-
 	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final String rawType,
 	                                                                            final HttpServletRequest request)
 	                                                                            				throws FrameworkException {
@@ -528,7 +525,7 @@ public abstract class Resource {
 	}
 
 
-	private static SearchAttribute determineSearchType(final String key, final String searchValue) {
+	private static SearchAttribute determineSearchType(final PropertyKey key, final String searchValue) {
 
 		if (StringUtils.startsWith(searchValue, "[") && StringUtils.endsWith(searchValue, "]")) {
 
@@ -545,10 +542,9 @@ public abstract class Resource {
 		}
 	}
 
-
-	private static Set<String> getSearchableProperties(final String rawType, final boolean loose,
-	                                                   final String looseIndexName, final String exactIndexName) {
-		Set<String> searchableProperties;
+	private static Set<PropertyKey> getSearchableProperties(final String rawType, final boolean loose,
+	                                                        final String looseIndexName, final String exactIndexName) {
+		Set<PropertyKey> searchableProperties;
 
 		if (loose) {
 
@@ -566,7 +562,7 @@ public abstract class Resource {
 
 	private static List<SearchAttribute> checkAndAssembleSearchAttributes(final HttpServletRequest request,
 	                                                                      final boolean looseSearch,
-	                                                                      final Set<String> searchableProperties)
+	                                                                      final Set<PropertyKey> searchableProperties)
 	                                                                    				  throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = Collections.emptyList();
@@ -577,9 +573,9 @@ public abstract class Resource {
 
 			searchAttributes = new LinkedList<SearchAttribute>();
 
-			for (final String key : searchableProperties) {
+			for (final PropertyKey key : searchableProperties) {
 
-				String searchValue = request.getParameter(key);
+				String searchValue = request.getParameter(key.name());
 
 				if (searchValue != null) {
 

@@ -71,9 +71,9 @@ public class ClonePageCommand extends AbstractCommand {
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String newName;
 
-		if (nodeData.containsKey(AbstractNode.Key.name.name())) {
+		if (nodeData.containsKey(AbstractNode.name.name())) {
 
-			newName = (String) nodeData.get(AbstractNode.Key.name.name());
+			newName = (String) nodeData.get(AbstractNode.name.name());
 		} else {
 
 			newName = "unknown";
@@ -87,15 +87,15 @@ public class ClonePageCommand extends AbstractCommand {
 				public Object execute() throws FrameworkException {
 
 					Page newPage = (Page) Services.command(securityContext,
-							       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), Page.class.getSimpleName()),
-								       new NodeAttribute(AbstractNode.Key.name.name(), newName),
-								       new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true));
+							       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, Page.class.getSimpleName()),
+								       new NodeAttribute(AbstractNode.name, newName),
+								       new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
 
 					if (newPage != null) {
 
-						String pageId                      = newPage.getStringProperty(AbstractNode.Key.uuid);
+						String pageId                      = newPage.getStringProperty(AbstractNode.uuid);
 						List<AbstractRelationship> relsOut = nodeToClone.getOutgoingRelationships(RelType.CONTAINS);
-						String originalPageId              = nodeToClone.getStringProperty(AbstractNode.Key.uuid);
+						String originalPageId              = nodeToClone.getStringProperty(AbstractNode.uuid);
 						Html htmlNode                      = null;
 
 						for (AbstractRelationship out : relsOut) {

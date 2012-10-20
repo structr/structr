@@ -61,7 +61,7 @@ public class CreateCommand extends AbstractCommand {
 
 				Map<String, Object> nodeData = webSocketData.getNodeData();
 
-				nodeData.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true);
+				nodeData.put(AbstractNode.visibleToAuthenticatedUsers.name(), true);
 
 				return Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
 			}
@@ -76,7 +76,7 @@ public class CreateCommand extends AbstractCommand {
 			if (newNode instanceof File) {
 
 				File fileNode = (File) newNode;
-				String uuid   = newNode.getStringProperty(AbstractNode.Key.uuid);
+				String uuid   = newNode.getStringProperty(AbstractNode.uuid);
 
 				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
 				getWebSocket().createFileUploadHandler((File) newNode);

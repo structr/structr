@@ -63,7 +63,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final org.structr.core.entity.File fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		String uuid = fileNode.getStringProperty(AbstractNode.Key.uuid);
+		String uuid = fileNode.getStringProperty(AbstractNode.uuid);
 
 		if (uuid == null) {
 
@@ -71,7 +71,7 @@ public class FileHelper {
 
 				uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 				
-				fileNode.setProperty(AbstractNode.Key.uuid.name(), uuid);
+				fileNode.setProperty(AbstractNode.uuid, uuid);
 			}
 
 		}

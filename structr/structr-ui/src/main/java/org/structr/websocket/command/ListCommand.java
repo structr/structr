@@ -85,8 +85,8 @@ public class ListCommand extends AbstractCommand {
 							@Override
 							public int compare(GraphObject n1, GraphObject n2) {
 
-								Comparable c1 = (Comparable) n1.getProperty(sortKey);
-								Comparable c2 = (Comparable) n2.getProperty(sortKey);
+								Comparable c1 = (Comparable) n1.getProperty(n1.getPropertyKeyForName(sortKey));
+								Comparable c2 = (Comparable) n2.getProperty(n2.getPropertyKeyForName(sortKey));
 
 								return (c2.compareTo(c1));
 
@@ -101,8 +101,8 @@ public class ListCommand extends AbstractCommand {
 							@Override
 							public int compare(GraphObject n1, GraphObject n2) {
 
-								Comparable c1 = (Comparable) n1.getProperty(sortKey);
-								Comparable c2 = (Comparable) n2.getProperty(sortKey);
+								Comparable c1 = (Comparable) n1.getProperty(n1.getPropertyKeyForName(sortKey));
+								Comparable c2 = (Comparable) n2.getProperty(n2.getPropertyKeyForName(sortKey));
 
 								return (c1.compareTo(c2));
 

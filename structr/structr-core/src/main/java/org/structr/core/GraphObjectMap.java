@@ -19,6 +19,7 @@
 package org.structr.core;
 
 import java.util.*;
+import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -30,9 +31,9 @@ import org.structr.core.entity.AbstractNode;
  * @author Christian Morgner
  */
 
-public class GraphObjectMap implements GraphObject, Map<String, Object> {
+public class GraphObjectMap implements GraphObject, Map<PropertyKey, Object> {
 
-	private Map<String, Object> values = new LinkedHashMap<String, Object>();
+	private Map<PropertyKey, Object> values = new LinkedHashMap<PropertyKey, Object>();
 
 	@Override
 	public long getId() {
@@ -41,42 +42,27 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 
 	@Override
 	public String getUuid() {
-		return getStringProperty(AbstractNode.Key.uuid);
+		return getStringProperty(AbstractNode.uuid);
 	}
 
 	@Override
 	public String getType() {
-		return getStringProperty(AbstractNode.Key.uuid);
+		return getStringProperty(AbstractNode.uuid);
 	}
 
 	@Override
-	public Iterable<String> getPropertyKeys(String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 		return values.keySet();
 	}
 
 	@Override
-	public void setProperty(String key, Object value) throws FrameworkException {
+	public void setProperty(PropertyKey key, Object value) throws FrameworkException {
 		values.put(key, value);
 	}
 
 	@Override
-	public void setProperty(PropertyKey key, Object value) throws FrameworkException {
-		setProperty(key.name(), value);
-	}
-
-	@Override
-	public Object getProperty(String key) {
-		return values.get(key);
-	}
-
-	@Override
 	public Object getProperty(PropertyKey propertyKey) {
-		return getProperty(propertyKey.name());
-	}
-
-	@Override
-	public String getStringProperty(String key) {
-		return (String)getProperty(key);
+		return getProperty(propertyKey);
 	}
 
 	@Override
@@ -85,18 +71,8 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	}
 
 	@Override
-	public Integer getIntProperty(String key) {
-		return (Integer)getProperty(key);
-	}
-
-	@Override
 	public Integer getIntProperty(PropertyKey propertyKey) {
 		return (Integer)getProperty(propertyKey);
-	}
-
-	@Override
-	public Long getLongProperty(String key) {
-		return (Long)getProperty(key);
 	}
 
 	@Override
@@ -105,28 +81,13 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	}
 
 	@Override
-	public Date getDateProperty(String key) {
-		return (Date)getProperty(key);
-	}
-
-	@Override
 	public Date getDateProperty(PropertyKey key) {
 		return (Date)getProperty(key);
 	}
 
 	@Override
-	public boolean getBooleanProperty(String key) throws FrameworkException {
-		return (Boolean)getProperty(key);
-	}
-
-	@Override
 	public boolean getBooleanProperty(PropertyKey key) throws FrameworkException {
 		return (Boolean)getProperty(key);
-	}
-
-	@Override
-	public Double getDoubleProperty(String key) throws FrameworkException {
-		return (Double)getProperty(key);
 	}
 
 	@Override
@@ -140,12 +101,7 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	}
 
 	@Override
-	public Comparable getComparableProperty(String key) throws FrameworkException {
-		return (Comparable)getProperty(key);
-	}
-
-	@Override
-	public void removeProperty(String key) throws FrameworkException {
+	public void removeProperty(PropertyKey key) throws FrameworkException {
 		values.remove(key);
 	}
 
@@ -233,7 +189,7 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	}
 
 	@Override
-	public Object put(String key, Object value) {
+	public Object put(PropertyKey key, Object value) {
 		return values.put(key, value);
 	}
 
@@ -268,7 +224,12 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	}
 
 	@Override
-	public Object getPropertyForIndexing(String key) {
-		return getProperty(key);
+	public PropertyKey getPropertyKeyForName(String name) {
+		return new Property(name);
+	}
+
+	@Override
+	public Object getPropertyForIndexing(PropertyKey key) {
+		return null;
 	}
 }

@@ -132,6 +132,6 @@ public abstract class CustomCollector implements TraverserInterface, Value<Trave
 	}
 	
 	protected boolean hasType(Node node, Class type) {
-		return hasPropertyValue(node, AbstractNode.Key.type, type.getSimpleName());
+		return hasPropertyValue(node, AbstractNode.type, type.getSimpleName());
 	}
 }

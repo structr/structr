@@ -47,7 +47,7 @@ public interface Linkable extends GraphObject {
 		static {
 
 			EntityContext.registerPropertySet(Linkable.class, PropertyView.Ui, Key.linkingElements);
-			EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, AbstractNode.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
+			EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, AbstractNode.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.uuid));
 
 		}
 

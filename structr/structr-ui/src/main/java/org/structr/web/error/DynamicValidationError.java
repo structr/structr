@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.common.PropertyKey;
 import org.structr.common.error.SemanticErrorToken;
 
 /**
@@ -35,7 +36,7 @@ public class DynamicValidationError extends SemanticErrorToken {
 
 	private Map<String, Object> attributes = null;
 
-	public DynamicValidationError(String key, Map<String, Object> attributes) {
+	public DynamicValidationError(PropertyKey key, Map<String, Object> attributes) {
 		super(key);
 		this.attributes = attributes;
 	}

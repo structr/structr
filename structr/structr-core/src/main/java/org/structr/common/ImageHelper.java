@@ -107,8 +107,8 @@ public abstract class ImageHelper {
 		Command createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
 		Map<String, Object> props = new HashMap();
 
-		props.put(AbstractNode.Key.type.name(), imageType.getSimpleName());
-		props.put(File.Key.contentType.name(), contentType);
+		props.put(AbstractNode.type.name(), imageType.getSimpleName());
+		props.put(File.contentType.name(), contentType);
 
 		Image newImage = (Image) createNodeCommand.execute(props);
 

@@ -19,6 +19,7 @@
 
 package org.structr.core.validator;
 
+import org.structr.common.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
@@ -31,7 +32,7 @@ import org.structr.core.PropertyValidator;
 public class BooleanValidator extends PropertyValidator {
 
 	@Override
-	public boolean isValid(GraphObject object, String key, Object value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey key, Object value, ErrorBuffer errorBuffer) {
 
 		String stringValue = value != null ? value.toString() : "";
 		

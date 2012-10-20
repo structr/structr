@@ -322,7 +322,7 @@ public class SecurityContext {
 		}
 
 		logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, (user != null)
-			? user.getStringProperty(AbstractNode.Key.name)
+			? user.getStringProperty(AbstractNode.name)
 			: "null", accessMode, node, permission });
 
 		return isAllowed;

@@ -23,6 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.structr.common.PropertyKey;
 
 /**
  *
@@ -32,7 +33,7 @@ public class ValueToken extends SemanticErrorToken {
 
 	private Object[] values = null;
 
-	public ValueToken(String propertyKey, Object[] values) {
+	public ValueToken(PropertyKey propertyKey, Object[] values) {
 		super(propertyKey);
 		this.values = values;
 	}

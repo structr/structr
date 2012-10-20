@@ -223,7 +223,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				if (attr instanceof DistanceSearchAttribute) {
 
 					distanceSearch = (DistanceSearchAttribute) attr;
-					coords         = GeoHelper.geocode(distanceSearch.getKey());
+					coords         = GeoHelper.geocode(distanceSearch.getKey().name());
 					dist           = distanceSearch.getValue();
 
 				} else if (attr instanceof SearchAttributeGroup) {
@@ -305,14 +305,14 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 					}
 
-				} else if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.Key.uuid.name())) {
+				} else if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.uuid.name())) {
 
 					// Search for uuid only: Use UUID index
 					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
 
 					synchronized (index) {
 
-						hits = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+						hits = index.get(AbstractNode.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
 					}
 				} else if ( /* (textualAttributes.size() > 1) && */allExactMatch) {
 
@@ -364,7 +364,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 					for (FilterSearchAttribute attr : filters) {
 
-						String key         = attr.getKey();
+						PropertyKey key    = attr.getKey();
 						Object searchValue = attr.getValue();
 						SearchOperator op  = attr.getSearchOperator();
 						Object nodeValue   = node.getProperty(key);
@@ -441,7 +441,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	private String toQueryString(final TextualSearchAttribute singleAttribute, final boolean isFirst) {
 
 		String queryString = "";
-		String key         = singleAttribute.getKey();
+		PropertyKey key    = singleAttribute.getKey();
 		String value       = singleAttribute.getValue();
 		SearchOperator op  = singleAttribute.getSearchOperator();
 
@@ -456,48 +456,10 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			// NOT operator should always be applied
 			queryString = ((isFirst && !(op.equals(SearchOperator.NOT)))
 				       ? ""
-				       : " " + op + " ") + expand(key, value);
+				       : " " + op + " ") + expand(key.name(), value);
 		}
 
 		return queryString;
-
-	}
-
-	private Query toQuery(final TextualSearchAttribute singleAttribute) {
-
-		String key   = singleAttribute.getKey();
-		String value = singleAttribute.getValue();
-
-//              SearchOperator op = singleAttribute.getSearchOperator();
-		if ((key == null) || (value == null)) {
-
-			return null;
-		}
-
-		if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
-
-			return new TermQuery(new Term(key, value));
-		}
-
-		return null;
-
-	}
-
-	private BooleanClause.Occur translateToBooleanClauseOccur(final SearchOperator searchOp) {
-
-		if (searchOp.equals(SearchOperator.AND)) {
-
-			return BooleanClause.Occur.MUST;
-		} else if (searchOp.equals(SearchOperator.OR)) {
-
-			return BooleanClause.Occur.SHOULD;
-		} else if (searchOp.equals(SearchOperator.NOT)) {
-
-			return BooleanClause.Occur.MUST_NOT;
-		}
-
-		// Default
-		return BooleanClause.Occur.MUST;
 
 	}
 
@@ -561,34 +523,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 
 		return result.toString();
-
-	}
-
-	private List<AbstractNode> filterNotExactMatches(final List<AbstractNode> result, TextualSearchAttribute attr) {
-
-		List<AbstractNode> notMatchingNodes = new ArrayList<AbstractNode>();
-
-		// Filter not exact matches
-		for (AbstractNode node : result) {
-
-			String value = attr.getValue();
-
-			if ((value != null) && isExactMatch(value)) {
-
-				String key          = attr.getKey();
-				String nodeValue    = node.getStringProperty(key);
-				String decodedValue = decodeExactMatch(value);
-
-				if (!nodeValue.equals(decodedValue)) {
-
-					notMatchingNodes.add(node);
-				}
-
-			}
-
-		}
-
-		return ListUtils.subtract(result, notMatchingNodes);
 
 	}
 
