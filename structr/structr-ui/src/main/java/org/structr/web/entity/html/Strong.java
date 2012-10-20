@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Strong extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Strong.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Strong.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Strong.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Strong.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Strong.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Strong.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

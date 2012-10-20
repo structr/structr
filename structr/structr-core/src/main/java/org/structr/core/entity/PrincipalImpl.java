@@ -21,10 +21,8 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.*;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
-import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -36,14 +34,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
 public abstract class PrincipalImpl extends AbstractNode implements Principal {
 
-	public enum Key implements PropertyKey{ groups, blocked, realName, password }
-
-	public enum UserIndexKey implements PropertyKey{ name, email; }
+	public static final Property<String> realName = new Property<String>("realName");
+	public static final Property<String> password = new Property<String>("password");
 
 	//~--- methods --------------------------------------------------------
 
@@ -111,11 +110,11 @@ public abstract class PrincipalImpl extends AbstractNode implements Principal {
 	@Override
 	public String getEncryptedPassword() {
 
-		boolean dbNodeHasProperty = dbNode.hasProperty(Key.password.name());
+		boolean dbNodeHasProperty = dbNode.hasProperty(password.name());
 
 		if (dbNodeHasProperty) {
 
-			Object dbValue = dbNode.getProperty(Key.password.name());
+			Object dbValue = dbNode.getProperty(password.name());
 
 			return (String) dbValue;
 
@@ -129,7 +128,7 @@ public abstract class PrincipalImpl extends AbstractNode implements Principal {
 	@Override
 	public Boolean getBlocked() {
 
-		return (Boolean) getProperty(Key.blocked);
+		return (Boolean) getProperty(blocked);
 
 	}
 

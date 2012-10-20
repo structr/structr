@@ -39,8 +39,8 @@ import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.Property;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,33 +51,37 @@ import java.util.List;
  */
 public class User extends Person implements Principal {
 
-	// private static final Logger logger = Logger.getLogger(User.class.getName());
+	public static final Property<String>  confirmationKey = new Property<String>("confirmationKey");
+	public static final Property<Boolean> backendUser     = new Property<Boolean>("backendUser");
+	public static final Property<Boolean> frontendUser    = new Property<Boolean>("frontendUser");
+	public static final Property<String>  group           = new Property<String>("group");
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, group
+	);
+	
+	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+		realName
+	);
+	
 	static {
 
-		EntityContext.registerPropertyConverter(User.class, Key.password.name(), PasswordConverter.class);
-		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
-		EntityContext.registerPropertySet(User.class, PropertyView.Ui, Key.values());
-		EntityContext.registerPropertySet(User.class, PropertyView.Public, Key.realName);
+		EntityContext.registerPropertyConverter(User.class, password, PasswordConverter.class);
+		
+//		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(User.class, PropertyView.Ui, Key.values());
+//		EntityContext.registerPropertySet(User.class, PropertyView.Public, realName);
+		
 		EntityContext.registerEntityRelation(User.class, Group.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 
-		// EntityContext.registerEntityRelation(User.class, LogNodeList.class, RelType.OWNS, Direction.OUTGOING, Cardinality.OneToOne);
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(), UserIndexKey.values());
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(), Key.values());
-		EntityContext.registerPropertyConverter(User.class, User.Key.backendUser, BooleanConverter.class);
-		EntityContext.registerPropertyConverter(User.class, User.Key.frontendUser, BooleanConverter.class);
+		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(),     name, email);
+		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(),  uiView.properties());
+		
+		EntityContext.registerPropertyConverter(User.class, backendUser, BooleanConverter.class);
+		EntityContext.registerPropertyConverter(User.class, frontendUser, BooleanConverter.class);
 
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey {
-
-		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, group
-
-	}
-
-	public enum UserIndexKey implements PropertyKey{ name, email; }
 
 	//~--- get methods ----------------------------------------------------
 
@@ -104,11 +108,12 @@ public class User extends Person implements Principal {
 	}
 
 	@Override
-	public Object getPropertyForIndexing(final String key) {
+	public Object getPropertyForIndexing(final PropertyKey key) {
 
-		if (Key.password.name().equals(key)) {
+		if (User.password.equals(key)) {
 
 			return "";
+			
 		} else {
 
 			return super.getPropertyForIndexing(key);
@@ -128,31 +133,31 @@ public class User extends Person implements Principal {
 
 	public String getRealName() {
 
-		return getStringProperty(Key.realName);
+		return getStringProperty(Person.realName);
 
 	}
 
 	public String getConfirmationKey() {
 
-		return getStringProperty(Key.confirmationKey);
+		return getStringProperty(User.confirmationKey);
 
 	}
 
 	public String getSessionId() {
 
-		return getStringProperty(Key.sessionId);
+		return getStringProperty(Principal.sessionId);
 
 	}
 
 	public boolean isBackendUser() {
 
-		return getBooleanProperty(Key.backendUser);
+		return getBooleanProperty(User.backendUser);
 
 	}
 
 	public boolean isFrontendUser() {
 
-		return getBooleanProperty(Key.frontendUser);
+		return getBooleanProperty(User.frontendUser);
 
 	}
 
@@ -160,31 +165,31 @@ public class User extends Person implements Principal {
 
 	public void setPassword(final String passwordValue) throws FrameworkException {
 
-		setProperty(Key.password, passwordValue);
+		setProperty(Person.password, passwordValue);
 
 	}
 
 	public void setRealName(final String realName) throws FrameworkException {
 
-		setProperty(Key.realName, realName);
+		setProperty(Person.realName, realName);
 
 	}
 
 	public void setConfirmationKey(final String value) throws FrameworkException {
 
-		setProperty(Key.confirmationKey, value);
+		setProperty(User.confirmationKey, value);
 
 	}
 
 	public void setFrontendUser(final boolean isFrontendUser) throws FrameworkException {
 
-		setProperty(Key.frontendUser, isFrontendUser);
+		setProperty(User.frontendUser, isFrontendUser);
 
 	}
 
 	public void setBackendUser(final boolean isBackendUser) throws FrameworkException {
 
-		setProperty(Key.backendUser, isBackendUser);
+		setProperty(User.backendUser, isBackendUser);
 
 	}
 }

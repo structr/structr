@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Figcaption extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Figcaption.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Figcaption.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Figcaption.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Figcaption.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Figcaption.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Figcaption.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

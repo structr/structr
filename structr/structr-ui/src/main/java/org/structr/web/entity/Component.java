@@ -44,6 +44,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.Property;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,17 +59,32 @@ public class Component extends AbstractNode implements Element {
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	private static final Logger logger                          = Logger.getLogger(Component.class.getName());
 
+	public static final Property<String> componentId = new Property<String>("componentId");
+	public static final Property<String> pageId      = new Property<String>("pageId");
+	public static final Property<String> kind        = new Property<String>("kind");
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+		type, name, kind, paths
+	);
+	
+	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+		type, name, kind, paths
+	);
+	
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(Component.class, PropertyView.All, UiKey.values());
-		EntityContext.registerPropertySet(Component.class, PropertyView.Public, UiKey.values());
-		EntityContext.registerPropertySet(Component.class, PropertyView.Ui, UiKey.values());
+//		EntityContext.registerPropertySet(Component.class, PropertyView.All, UiKey.values());
+//		EntityContext.registerPropertySet(Component.class, PropertyView.Public, UiKey.values());
+//		EntityContext.registerPropertySet(Component.class, PropertyView.Ui, UiKey.values());
+		
 		EntityContext.registerEntityRelation(Component.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Component.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.keyword.name(), UiKey.values());
+		
+		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
 
 	}
 
@@ -76,12 +92,6 @@ public class Component extends AbstractNode implements Element {
 
 	private Map<String, AbstractNode> contentNodes = new WeakHashMap<String, AbstractNode>();
 	private Set<String> subTypes                   = new LinkedHashSet<String>();
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey{ componentId, pageId }
-
-	public enum UiKey implements PropertyKey{ type, name, kind, paths }
 
 	//~--- methods --------------------------------------------------------
 
@@ -125,9 +135,9 @@ public class Component extends AbstractNode implements Element {
 
 		if (ref != null) {
 
-			if (componentId.equals(ref.getStringProperty(Key.componentId.name()))) {
+			if (componentId.equals(ref.getStringProperty(Component.componentId))) {
 
-				String dataKey = startNode.getStringProperty("data-key");
+				String dataKey = startNode.getStringProperty(Content.dataKey);
 
 				if (dataKey != null) {
 
@@ -154,7 +164,7 @@ public class Component extends AbstractNode implements Element {
 
 			if (endNode instanceof Component) {
 
-				String subType = endNode.getStringProperty(Component.UiKey.kind);
+				String subType = endNode.getStringProperty(Component.kind);
 
 				if (subType != null) {
 
@@ -210,21 +220,24 @@ public class Component extends AbstractNode implements Element {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Iterable<String> getPropertyKeys(final String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 
-		Set<String> augmentedPropertyKeys = new LinkedHashSet<String>();
+		Set<PropertyKey> augmentedPropertyKeys = new LinkedHashSet<PropertyKey>();
 
-		for (String key : super.getPropertyKeys(propertyView)) {
+		for (PropertyKey key : super.getPropertyKeys(propertyView)) {
 
 			augmentedPropertyKeys.add(key);
 
 		}
 
-		augmentedPropertyKeys.addAll(contentNodes.keySet());
+		// FIXME: use getPropertyKeyForName() of specific node type
+		for (String key : contentNodes.keySet()) {
+			augmentedPropertyKeys.add(new Property(key));
+		}
 
 		for (String subType : subTypes) {
 
-			augmentedPropertyKeys.add(subType.toLowerCase().concat("s"));
+			augmentedPropertyKeys.add(new Property(subType.toLowerCase().concat("s")));
 
 		}
 
@@ -232,20 +245,20 @@ public class Component extends AbstractNode implements Element {
 	}
 
 	@Override
-	public Object getProperty(String key) {
+	public Object getProperty(PropertyKey key) {
 
 		// try local properties first
-		if (contentNodes.containsKey(key)) {
+		if (contentNodes.containsKey(key.name())) {
 
-			AbstractNode node = contentNodes.get(key);
+			AbstractNode node = contentNodes.get(key.name());
 
 			if ((node != null) && (node != this)) {
 
-				return node.getStringProperty("content");
+				return node.getStringProperty(Content.content);
 
 			}
 
-		} else if (subTypes.contains(EntityContext.normalizeEntityName(key))) {
+		} else if (subTypes.contains(EntityContext.normalizeEntityName(key.name()))) {
 
 			String componentId      = getStringProperty(AbstractNode.uuid);
 			List<Component> results = new LinkedList<Component>();
@@ -267,7 +280,7 @@ public class Component extends AbstractNode implements Element {
 
 		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
 
-			String componentId = in.getStringProperty(Key.componentId.name());
+			String componentId = in.getStringProperty(Component.componentId);
 
 			if (componentId != null) {
 
@@ -317,12 +330,12 @@ public class Component extends AbstractNode implements Element {
 				if ((componentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
 					
 					// Add content nodes if they don't have the data-key property set
-					if (endNode instanceof Content && endNode.getStringProperty("data-key") == null) {
+					if (endNode instanceof Content && endNode.getStringProperty(Content.dataKey) == null) {
 						
 						rels.add(abstractRelationship);
 						
 					// Add content or component nodes if rel's componentId attribute matches
-					} else if (componentId.equals(abstractRelationship.getStringProperty(Key.componentId.name()))) {
+					} else if (componentId.equals(abstractRelationship.getStringProperty(Component.componentId))) {
 
 						rels.add(abstractRelationship);
 
@@ -366,19 +379,21 @@ public class Component extends AbstractNode implements Element {
 		try {
 
 //                      Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
+			PropertyKey<Long> pageIdProperty = new Property<Long>(pageId);
+			PropertyKey wildcardProperty     = new Property("*");
 			Object prop = null;
 			final String key;
 
 			// "*" is a wildcard for "matches any page id"
 			// TOOD: use pattern matching here?
-			if (relationship.getProperty("*") != null) {
+			if (relationship.getProperty(wildcardProperty) != null) {
 
-				prop = relationship.getProperty("*");
+				prop = relationship.getProperty(wildcardProperty);
 				key  = "*";
 
-			} else if (relationship.getProperty(pageId) != null) {
+			} else if (relationship.getProperty(pageIdProperty) != null) {
 
-				prop = relationship.getLongProperty(pageId);
+				prop = relationship.getLongProperty(pageIdProperty);
 				key  = pageId;
 
 			} else {
@@ -503,15 +518,15 @@ public class Component extends AbstractNode implements Element {
 	//~--- set methods ----------------------------------------------------
 
 	@Override
-	public void setProperty(String key, Object value) throws FrameworkException {
+	public void setProperty(PropertyKey key, Object value) throws FrameworkException {
 
-		if (contentNodes.containsKey(key)) {
+		if (contentNodes.containsKey(key.name())) {
 
-			AbstractNode node = contentNodes.get(key);
+			AbstractNode node = contentNodes.get(key.name());
 
 			if (node != null) {
 
-				node.setProperty("content", value);
+				node.setProperty(Content.content, value);
 
 			}
 

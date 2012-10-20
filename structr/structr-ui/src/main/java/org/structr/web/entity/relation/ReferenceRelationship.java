@@ -30,7 +30,9 @@ import org.structr.web.entity.Component;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import org.structr.common.Property;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,31 +42,31 @@ import java.util.Set;
  */
 public class ReferenceRelationship extends AbstractRelationship {
 
+	public static final Property<String>       sourceId = new Property<String>("sourceId");
+	public static final Property<String>       targetId = new Property<String>("targetId");
+	public static final Property<List<String>> names    = new Property<List<String>>("names");
+	
 	static {
 
 		EntityContext.registerNamedRelation("data", ReferenceRelationship.class, Component.class, Component.class, RelType.DATA);
 	}
 
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey{ sourceId, targetId, names }
-
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Iterable<String> getPropertyKeys(String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 
-		Set<String> keys = new LinkedHashSet<String>();
+		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
 
-		keys.add(Key.sourceId.name());
-		keys.add(Key.targetId.name());
-		keys.add(Key.names.name());
+		keys.add(sourceId);
+		keys.add(targetId);
+		keys.add(names);
 
 		if (dbRelationship != null) {
 
 			for (String key : dbRelationship.getPropertyKeys()) {
 
-				keys.add(key);
+				keys.add(getPropertyKeyForName(key));
 			}
 
 		}
@@ -76,14 +78,14 @@ public class ReferenceRelationship extends AbstractRelationship {
 	@Override
 	public PropertyKey getStartNodeIdKey() {
 
-		return LinkRelationship.Key.sourceId;
+		return LinkRelationship.sourceId;
 
 	}
 
 	@Override
 	public PropertyKey getEndNodeIdKey() {
 
-		return LinkRelationship.Key.targetId;
+		return LinkRelationship.targetId;
 
 	}
 

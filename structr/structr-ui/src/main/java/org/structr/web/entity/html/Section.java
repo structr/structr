@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Section extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Section.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Section.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Section.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Section.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Section.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Section.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

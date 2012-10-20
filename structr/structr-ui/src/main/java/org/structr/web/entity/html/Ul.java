@@ -37,10 +37,10 @@ public class Ul extends HtmlElement {
 
 	static {
 
-		EntityContext.registerPropertySet(Ul.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Ul.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Ul.class, PropertyView.Html, PropertyView.Html, HtmlElement.htmlAttributes);
-		//EntityContext.registerEntityRelation(Ul.class, Div.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+//		EntityContext.registerPropertySet(Ul.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Ul.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Ul.class, PropertyView.Html, PropertyView.Html, HtmlElement.htmlAttributes);
+
 		EntityContext.registerEntityRelation(Ul.class, Li.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 
 	}

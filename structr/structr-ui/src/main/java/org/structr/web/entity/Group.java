@@ -47,17 +47,13 @@ public class Group extends AbstractNode implements Principal {
 
 	static {
 
-		EntityContext.registerPropertySet(Group.class, PropertyView.All, Key.values());
-		EntityContext.registerPropertySet(Group.class, PropertyView.Ui, Key.values());
+//		EntityContext.registerPropertySet(Group.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(Group.class, PropertyView.Ui, Key.values());
 
 		// EntityContext.registerPropertyRelation(Group.class, Key.users,        Principal.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Group.class, User.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey {}
 
 	//~--- methods --------------------------------------------------------
 
@@ -115,7 +111,7 @@ public class Group extends AbstractNode implements Principal {
 	@Override
 	public Boolean getBlocked() {
 
-		return (Boolean) getProperty(Principal.Key.blocked);
+		return (Boolean) getProperty(Principal.blocked);
 
 	}
 

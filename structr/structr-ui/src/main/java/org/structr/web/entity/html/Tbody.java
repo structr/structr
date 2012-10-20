@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Tbody extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Tbody.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Tbody.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Tbody.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Tbody.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Tbody.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Tbody.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

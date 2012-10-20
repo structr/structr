@@ -135,7 +135,7 @@ public class RelationClass {
 					// set cascade delete value
 					if (cascadeDelete > 0) {
 
-						props.put(AbstractRelationship.HiddenKey.cascadeDelete.name(), new Integer(cascadeDelete));
+						props.put(AbstractRelationship.cascadeDelete.name(), new Integer(cascadeDelete));
 
 					}
 
@@ -351,7 +351,7 @@ public class RelationClass {
 			public Object execute() throws FrameworkException {
 
 				AbstractNode relatedNode = (AbstractNode) Services.command(securityContext,
-								   CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type.name(), getDestType().getSimpleName()));
+								   CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, getDestType().getSimpleName()));
 
 				Command createRel           = Services.command(securityContext, CreateRelationshipCommand.class);
                                 
@@ -359,7 +359,7 @@ public class RelationClass {
 
                                 if (cascadeDelete > 0) {
 
-					props.put(AbstractRelationship.HiddenKey.cascadeDelete.name(), new Integer(cascadeDelete));
+					props.put(AbstractRelationship.cascadeDelete.name(), new Integer(cascadeDelete));
 
 				}
                                 

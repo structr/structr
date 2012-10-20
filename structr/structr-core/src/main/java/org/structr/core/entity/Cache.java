@@ -20,7 +20,7 @@ package org.structr.core.entity;
 
 import java.util.Collections;
 import java.util.List;
-import org.structr.common.PropertyKey;
+import org.structr.common.Property;
 import org.structr.common.SecurityContext;
 
 /**
@@ -29,16 +29,10 @@ import org.structr.common.SecurityContext;
  */
 public class Cache extends AbstractNode {
 
-	public enum Key implements PropertyKey {
-		sortKey, size
-	}
+	public static final Property<String>  sortKey = new Property<String>("sortKey");
+	public static final Property<Integer> size    = new Property<Integer>("size");
 	
-	static {
-		
-	}
-
-	
-	private int size = 0;
+	private int internalSize = 0;
 	
 	public List<AbstractNode> getCachedList(SecurityContext securityContext, int numResults) {
 		
@@ -54,13 +48,13 @@ public class Cache extends AbstractNode {
 	}
 	
 	public int size() {
-		return size;
+		return internalSize;
 	}
 	
 	@Override
 	public void onNodeInstantiation() {
-		Integer size = getIntProperty(Key.size);
-		this.size = size != null ? size : 0;
+		Integer _size = getIntProperty(Cache.size);
+		this.internalSize = _size != null ? _size : 0;
 	}
 	
 }

@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.structr.common.Property;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,7 +52,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public void removeProperty(String key) throws FrameworkException {}
+	public void removeProperty(PropertyKey key) throws FrameworkException {}
 
 	@Override
 	public void grant(Permission permission, AccessControllable obj) {}
@@ -170,105 +171,56 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Iterable<String> getPropertyKeys(String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 
 		return null;
 
 	}
 
 	@Override
-	public Object getProperty(String key) {
+	public Object getProperty(PropertyKey key) {
 
 		return null;
 
 	}
 
 	@Override
-	public Object getProperty(PropertyKey propertyKey) {
+	public String getStringProperty(PropertyKey<String> propertyKey) {
 
 		return null;
 
 	}
 
 	@Override
-	public String getStringProperty(String key) {
+	public Integer getIntProperty(PropertyKey<Integer> propertyKey) {
 
 		return null;
 
 	}
 
 	@Override
-	public String getStringProperty(PropertyKey propertyKey) {
+	public Date getDateProperty(PropertyKey<Date> key) {
 
 		return null;
 
 	}
 
 	@Override
-	public Integer getIntProperty(String key) {
-
-		return null;
-
-	}
-
-	@Override
-	public Integer getIntProperty(PropertyKey propertyKey) {
-
-		return null;
-
-	}
-
-	@Override
-	public Date getDateProperty(String key) {
-
-		return null;
-
-	}
-
-	@Override
-	public Date getDateProperty(PropertyKey key) {
-
-		return null;
-
-	}
-
-	@Override
-	public boolean getBooleanProperty(String key) throws FrameworkException {
+	public boolean getBooleanProperty(PropertyKey<Boolean> key) throws FrameworkException {
 
 		return false;
 
 	}
 
 	@Override
-	public boolean getBooleanProperty(PropertyKey key) throws FrameworkException {
-
-		return false;
-
-	}
-
-	@Override
-	public Double getDoubleProperty(String key) throws FrameworkException {
+	public Double getDoubleProperty(PropertyKey<Double> key) throws FrameworkException {
 
 		return null;
 
 	}
 
 	@Override
-	public Double getDoubleProperty(PropertyKey key) throws FrameworkException {
-
-		return null;
-
-	}
-
-	@Override
-	public Comparable getComparableProperty(PropertyKey key) throws FrameworkException {
-
-		return null;
-
-	}
-
-	@Override
-	public Comparable getComparableProperty(String key) throws FrameworkException {
+	public Comparable getComparableProperty(PropertyKey<? extends Comparable> key) throws FrameworkException {
 
 		return null;
 
@@ -303,14 +255,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Long getLongProperty(String key) {
-
-		return null;
-
-	}
-
-	@Override
-	public Long getLongProperty(PropertyKey propertyKey) {
+	public Long getLongProperty(PropertyKey<Long> propertyKey) {
 
 		return null;
 
@@ -357,18 +302,22 @@ public class SuperUser implements Principal {
 		// not supported
 	}
 
-//      @Override
 	public void setConfirmationKey(String value) throws FrameworkException {}
 
-//      @Override
 	public void setFrontendUser(boolean isFrontendUser) throws FrameworkException {}
 
-//      @Override
 	public void setBackendUser(boolean isBackendUser) throws FrameworkException {}
 
 	@Override
-	public void setProperty(String key, Object value) throws FrameworkException {}
+	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
 
 	@Override
-	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}
+	public Object getPropertyForIndexing(PropertyKey key) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public PropertyKey getPropertyKeyForName(String name) {
+		return new Property(name);
+	}
 }

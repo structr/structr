@@ -21,13 +21,11 @@
 
 package org.structr.core.entity;
 
-import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.ImageHelper;
 import org.structr.common.ImageHelper.Thumbnail;
-import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
@@ -36,12 +34,10 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.converter.ImageConverter;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.IndexNodeCommand;
-import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -49,12 +45,13 @@ import org.structr.core.node.TransactionCommand;
 
 import java.io.IOException;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
+import org.structr.common.View;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,16 +64,25 @@ public class Image extends File {
 
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
+	public static final Property<String> imageData = new Property<String>("imageData");
+	public static final Property<Integer> height   = new Property<Integer>("height");
+	public static final Property<Integer> width    = new Property<Integer>("width");
+
+	public static final View uiView = new View(PropertyView.Ui,
+		width, height
+	);
+	
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
 		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
-		EntityContext.registerPropertySet(Image.class, PropertyView.All, Key.values());
-		EntityContext.registerPropertySet(Image.class, PropertyView.Ui, Key.values());
+//		EntityContext.registerPropertySet(Image.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(Image.class, PropertyView.Ui, Key.values());
 
 		// Write data to disk (and convert, if it's a base64 encoded string)
-		EntityContext.registerPropertyConverter(Image.class, HiddenKey.imageData, ImageConverter.class);
+		EntityContext.registerPropertyConverter(Image.class, Image.imageData, ImageConverter.class);
 
 	}
 
@@ -87,10 +93,7 @@ public class Image extends File {
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum HiddenKey implements PropertyKey{ imageData }
-
-	public enum Key implements PropertyKey{ height, width; }
-
+	
 	//~--- methods --------------------------------------------------------
 
 	public void removeThumbnails() {
@@ -132,13 +135,13 @@ public class Image extends File {
 
 	public Integer getWidth() {
 
-		return getIntProperty(Key.width.name());
+		return getIntProperty(Image.width);
 
 	}
 
 	public Integer getHeight() {
 
-		return getIntProperty(Key.height.name());
+		return getIntProperty(Image.height);
 
 	}
 
@@ -227,8 +230,8 @@ public class Image extends File {
 
 				for (AbstractRelationship r : thumbnailRelationships) {
 
-					Integer w = (Integer) r.getProperty(Key.width.name());
-					Integer h = (Integer) r.getProperty(Key.height.name());
+					Integer w = (Integer) r.getProperty(Image.width);
+					Integer h = (Integer) r.getProperty(Image.height);
 
 					if ((w != null) && (h != null)) {
 
@@ -309,8 +312,8 @@ public class Image extends File {
 
 							// Add to cache list
 							thumbnailRelationships.add(thumbnailRelationship);
-							thumbnailRelationship.setProperty(Key.width.name(), tnWidth);
-							thumbnailRelationship.setProperty(Key.height.name(), tnHeight);
+							thumbnailRelationship.setProperty(Image.width, tnWidth);
+							thumbnailRelationship.setProperty(Image.height, tnHeight);
 						}
 
 						return thumbnail;
@@ -362,13 +365,13 @@ public class Image extends File {
 
 	public void setWidth(Integer width) throws FrameworkException {
 
-		setProperty(Key.width.name(), width);
+		setProperty(Image.width, width);
 
 	}
 
 	public void setHeight(Integer height) throws FrameworkException {
 
-		setProperty(Key.height.name(), height);
+		setProperty(Image.height, height);
 
 	}
 
@@ -380,7 +383,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.visibleToPublicUsers.name(), publicFlag);
+			thumbnail.setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
 		}
 
 	}
@@ -393,7 +396,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers.name(), flag);
+			thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
 		}
 
 	}
@@ -406,7 +409,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.hidden.name(), hidden);
+			thumbnail.setProperty(AbstractNode.hidden, hidden);
 		}
 
 	}
@@ -419,7 +422,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.deleted.name(), deleted);
+			thumbnail.setProperty(AbstractNode.deleted, deleted);
 		}
 
 	}
@@ -432,7 +435,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.visibilityStartDate.name(), date);
+			thumbnail.setProperty(AbstractNode.visibilityStartDate, date);
 		}
 
 	}
@@ -445,7 +448,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.visibilityEndDate.name(), date);
+			thumbnail.setProperty(AbstractNode.visibilityEndDate, date);
 		}
 
 	}

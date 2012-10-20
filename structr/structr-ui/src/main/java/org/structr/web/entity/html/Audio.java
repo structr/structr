@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Audio extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Audio.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Audio.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Audio.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Audio.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Audio.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Audio.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

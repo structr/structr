@@ -21,24 +21,19 @@
 
 package org.structr.web.entity.html;
 
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
-
-//~--- classes ----------------------------------------------------------------
-
 /**
  * @author Axel Morgner
  */
 public class Area extends HtmlElement {
 
-	static {
-
-		EntityContext.registerPropertySet(Area.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Area.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Area.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//	static {
+//
+//		EntityContext.registerPropertySet(Area.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Area.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Area.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 	//~--- get methods ----------------------------------------------------
 
 	@Override

@@ -97,7 +97,7 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 				// static mapping of IdProperty if present
 				if ((idProperty != null) && "id".equals(key)) {
 
-					key = idProperty.jsonName();
+					key = idProperty.name();
 
 				}
 

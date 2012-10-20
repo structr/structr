@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Address extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Address.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Address.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Address.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Address.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Address.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Address.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

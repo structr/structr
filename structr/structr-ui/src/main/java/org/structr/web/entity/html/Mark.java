@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Mark extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Mark.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Mark.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Mark.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Mark.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Mark.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Mark.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 
@@ -47,7 +47,4 @@ public class Mark extends HtmlElement {
 		return true;
 
 	}
-
-	;
-
 }

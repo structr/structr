@@ -23,13 +23,13 @@ package org.structr.core.entity;
 
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
-import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.common.Property;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -40,10 +40,10 @@ import java.util.List;
  */
 public interface Principal extends GraphObject {
 
-	public enum Key implements PropertyKey{ sessionId, groups, blocked }
-
-	//public enum UserIndexKey implements PropertyKey{ name, email; }
-
+	public static final Property<String>  sessionId = new Property<String>("sessionId");
+	public static final Property<String>  groups    = new Property<String>("groups");
+	public static final Property<Boolean> blocked   = new Property<Boolean>("blocked");
+	
 	//~--- methods --------------------------------------------------------
 
 	public void block() throws FrameworkException;

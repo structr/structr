@@ -21,13 +21,16 @@
 
 package org.structr.web.entity;
 
+import java.util.Set;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.Property;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.converter.PathsConverter;
@@ -41,33 +44,35 @@ import org.structr.web.converter.PathsConverter;
  */
 public interface Element extends GraphObject {
 
-	public enum UiKey implements PropertyKey {
-
-		name, tag, paths
-
-	}
+	public static final Property<String>      tag   = new Property<String>("tag");
+	public static final Property<Set<String>> paths = new Property<Set<String>>("paths");
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+		AbstractNode.name, tag
+	);
 
 	//~--- inner classes --------------------------------------------------
 
 	static class Impl {
 
-		protected static final String[] uiAttributes = { UiKey.name.name(), UiKey.tag.name() };
+//		protected static final String[] uiAttributes = { UiKey.name.name(), UiKey.tag.name() };
 
 		//~--- static initializers ------------------------------------
 
 		static {
 
-			EntityContext.registerPropertySet(Element.class, PropertyView.All, uiAttributes);
-			EntityContext.registerPropertySet(Element.class, PropertyView.Public, uiAttributes);
-			EntityContext.registerPropertySet(Element.class, PropertyView.Ui, uiAttributes);
+//			EntityContext.registerPropertySet(Element.class, PropertyView.All, uiAttributes);
+//			EntityContext.registerPropertySet(Element.class, PropertyView.Public, uiAttributes);
+//			EntityContext.registerPropertySet(Element.class, PropertyView.Ui, uiAttributes);
+
 			EntityContext.registerEntityRelation(Element.class, Component.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 			EntityContext.registerEntityRelation(Element.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 			EntityContext.registerEntityRelation(Element.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 
-			// EntityContext.registerEntityRelation(Element.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), uiAttributes);
-			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(), uiAttributes);
-			EntityContext.registerPropertyConverter(Element.class, UiKey.paths, PathsConverter.class);
+			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), uiView.properties());
+			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(),  uiView.properties());
+			
+			EntityContext.registerPropertyConverter(Element.class, Element.paths, PathsConverter.class);
 
 //                      EntityContext.registerEntityRelation(Element.class,     Page.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
 

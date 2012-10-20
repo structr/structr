@@ -21,9 +21,11 @@
 
 package org.structr.web.entity.relation;
 
+import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.Element;
@@ -36,31 +38,30 @@ import org.structr.web.entity.Element;
  */
 public class ChildrenRelationship extends AbstractRelationship {
 
+	public static final Property<String> parentId = new Property<String>("parentId");
+	public static final Property<String> childId  = new Property<String>("childId");
+
+	public static final View uiView = new View(PropertyView.Ui,
+		parentId, childId
+	);
+	
 	static {
 
 		EntityContext.registerNamedRelation("children", ChildrenRelationship.class, Element.class, Element.class, RelType.CONTAINS);
-		EntityContext.registerPropertySet(ChildrenRelationship.class, PropertyView.Ui, Key.values());
+		
+//		EntityContext.registerPropertySet(ChildrenRelationship.class, PropertyView.Ui, Key.values());
 
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey{ parentId, childId }
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public PropertyKey getStartNodeIdKey() {
-
-		return Key.parentId;
-
+		return parentId;
 	}
 
 	@Override
 	public PropertyKey getEndNodeIdKey() {
-
-		return Key.childId;
-
+		return childId;
 	}
-
 }

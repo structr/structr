@@ -33,10 +33,10 @@ import org.structr.core.entity.File;
  *
  */
 public class CsvFile extends File {
-
-	static {
-
-		EntityContext.registerPropertySet(CsvFile.class, PropertyView.All, Key.values());
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(CsvFile.class, PropertyView.All, Key.values());
+//	}
+//
 }

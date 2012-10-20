@@ -21,12 +21,16 @@
 
 package org.structr.web.entity.html;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
+import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -35,18 +39,26 @@ import org.structr.core.entity.RelationClass;
  */
 public class Img extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] {
-
-		"alt", "src", "crossorigin", "usemap", "ismap", "width", "height"
-	};
-
+	public static final Property<String> _alt         = new HtmlProperty("alt");
+	public static final Property<String> _src         = new HtmlProperty("src");
+	public static final Property<String> _crossorigin = new HtmlProperty("crossorigin");
+	public static final Property<String> _usemap      = new HtmlProperty("usemap");
+	public static final Property<String> _ismap       = new HtmlProperty("ismap");
+	public static final Property<String> _width       = new HtmlProperty("width");
+	public static final Property<String> _height      = new HtmlProperty("height");
+	
+	public static final View htmlView = new View(PropertyView.Html,
+	    _alt, _src, _crossorigin, _usemap, _ismap, _width, _height
+	);
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(Img.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Img.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Img.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Img.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Img.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Img.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Img.class, Div.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Img.class, P.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Img.class, A.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
@@ -71,6 +83,11 @@ public class Img extends HtmlElement {
 
 	}
 
-	;
+	@Override
+	public Property[] getHtmlAttributes() {
+
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+
+	}
 
 }

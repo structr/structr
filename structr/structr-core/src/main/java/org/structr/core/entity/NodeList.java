@@ -51,6 +51,7 @@ import org.structr.core.node.TransactionCommand;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -77,11 +78,13 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 	private static final Logger logger = Logger.getLogger(NodeList.class.getName());
 
+	public static final Property<AbstractNode> parent = new Property<AbstractNode>("parent");
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(NodeList.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(NodeList.class, PropertyView.All, Key.values());
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -91,11 +94,6 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 	private int maxLength                           = -1;
 	private Command transaction                     = null;
 	private Set<Evaluator> evaluators               = new LinkedHashSet<Evaluator>();
-
-	//~--- constant enums -------------------------------------------------
-
-//      public class NodeList<T extends AbstractNode> extends AbstractNode implements List<AbstractNode>, Decorable<AbstractNode>, Evaluable {
-	public enum Key implements PropertyKey{ parent; }
 
 	//~--- constructors ---------------------------------------------------
 
@@ -832,9 +830,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		for (Relationship rel : rels) {
 
-			if (rel.hasProperty(Key.parent.name())) {
+			if (rel.hasProperty(NodeList.parent.name())) {
 
-				Object parent = rel.getProperty(Key.parent.name());
+				Object parent = rel.getProperty(NodeList.parent.name());
 
 				if ((parent instanceof Long) && ((Long) parent).equals(getNodeId())) {
 
@@ -858,7 +856,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 			Relationship rel = startNode.createRelationshipTo(endNode, relationshipType);
 
-			rel.setProperty(Key.parent.name(), Long.valueOf(getNodeId()));
+			rel.setProperty(NodeList.parent.name(), Long.valueOf(getNodeId()));
 
 			return (true);
 
@@ -1010,9 +1008,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 			for (Relationship rel : rels) {
 
-				if (rel.hasProperty(Key.parent.name())) {
+				if (rel.hasProperty(NodeList.parent.name())) {
 
-					Object parent = rel.getProperty(Key.parent.name());
+					Object parent = rel.getProperty(NodeList.parent.name());
 
 					if ((parent instanceof Long) && ((Long) parent).equals(getNodeId())) {
 
@@ -1148,9 +1146,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 				for (Relationship rel : rels) {
 
-					if ((rel != null) && rel.hasProperty(Key.parent.name())) {
+					if ((rel != null) && rel.hasProperty(NodeList.parent.name())) {
 
-						Object parent = rel.getProperty(Key.parent.name());
+						Object parent = rel.getProperty(NodeList.parent.name());
 
 						if ((parent instanceof Long) && ((Long) parent).equals(getNodeId())) {
 

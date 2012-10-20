@@ -15,6 +15,12 @@ if [ -e $PID_FILE ]; then
 	exit 0
 	
 fi
+
+if [ ! -e "logs" ]; then
+
+	mkdir logs
+
+fi
 	
 echo 
 echo -n "        Starting structr server $DISPLAY_NAME: "

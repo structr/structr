@@ -38,9 +38,10 @@ public class H4 extends HtmlElement {
 
 	static {
 
-		EntityContext.registerPropertySet(H4.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(H4.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(H4.class, PropertyView.Html, PropertyView.Html, HtmlElement.htmlAttributes);
+//		EntityContext.registerPropertySet(H4.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(H4.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(H4.class, PropertyView.Html, PropertyView.Html, HtmlElement.htmlAttributes);
+
 		EntityContext.registerEntityRelation(H4.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(H4.class, B.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(H4.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);

@@ -37,9 +37,10 @@ public class Header extends HtmlElement {
 
 	static {
 
-		EntityContext.registerPropertySet(Header.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Header.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Header.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Header.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Header.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Header.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Header.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Header.class, Div.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Header.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);

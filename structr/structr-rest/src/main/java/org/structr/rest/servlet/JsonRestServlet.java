@@ -25,6 +25,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -68,6 +69,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.core.*;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.node.NodeFactory;
 import org.structr.rest.exception.NotFoundException;
@@ -97,7 +99,7 @@ public class JsonRestServlet extends HttpServlet {
 	//~--- fields ---------------------------------------------------------
 
 	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
-	private PropertyKey defaultIdProperty                       = null;
+	private PropertyKey defaultIdProperty                       = AbstractNode.uuid;
 	private String defaultPropertyView                          = PropertyView.Public;
 	private Gson gson                                           = null;
 	private Writer logWriter                                    = null;
@@ -585,9 +587,9 @@ public class JsonRestServlet extends HttpServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<Resource> chain        = parsePath(securityContext, request);
-				Resource resourceConstraint = optimizeConstraintChain(chain);
-				Map<String, Object> properties        = convertPropertySetToMap(propertySet);
+				List<Resource> chain           = parsePath(securityContext, request);
+				Resource resourceConstraint    = optimizeConstraintChain(chain);
+				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// do action
 				RestMethodResult result = resourceConstraint.doPut(properties);
@@ -969,9 +971,6 @@ public class JsonRestServlet extends HttpServlet {
 		
 		return new LinkedHashMap<String, Object>();
 	}
-	// </editor-fold>
-
-	//~--- get methods ----------------------------------------------------
 
 	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
@@ -982,8 +981,7 @@ public class JsonRestServlet extends HttpServlet {
 		
 		return securityContext;
 	}
-
-	//~--- inner classes --------------------------------------------------
+	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="nested classes">
 	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {

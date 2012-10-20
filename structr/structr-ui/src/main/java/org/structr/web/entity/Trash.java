@@ -34,10 +34,10 @@ import org.structr.core.entity.Folder;
  *
  */
 public class Trash extends Folder {
-
-	static {
-
-		EntityContext.registerPropertySet(Trash.class, PropertyView.All, Key.values());
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Trash.class, PropertyView.All, Key.values());
+//	}
+//
 }

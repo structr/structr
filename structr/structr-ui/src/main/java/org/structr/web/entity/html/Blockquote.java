@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Blockquote extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Blockquote.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Blockquote.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Blockquote.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Blockquote.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Blockquote.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Blockquote.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

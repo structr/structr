@@ -21,9 +21,10 @@
 
 package org.structr.web.entity;
 
+import java.util.List;
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
@@ -47,44 +48,58 @@ import org.structr.web.entity.html.Html;
  */
 public class Page extends AbstractNode implements Linkable {
 
+//	
+
+	public static final Property<List<Component>> components      = new Property<List<Component>>("components");
+	public static final Property<List<Element>>   elements        = new Property<List<Element>>("elements");
+	public static final Property<String>          tag             = new Property<String>("tag");
+	public static final Property<String>          contentType     = new Property<String>("contentType");
+	public static final Property<Integer>         position        = new Property<Integer>("position");
+	public static final Property<Integer>         cacheForSeconds = new Property<Integer>("cacheForSeconds");
+	public static final Property<Integer>         version         = new Property<Integer>("version");
+
+	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
+	);
+	
+	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
+	);
+	
+	
 	static {
 
-		EntityContext.registerPropertyRelation(AbstractNode.class, UiKey.ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, RelationClass.Cardinality.ManyToOne,
-			new PropertyNotion(AbstractNode.uuid));
-		EntityContext.registerPropertySet(Page.class, PropertyView.All, UiKey.values());
-		EntityContext.registerPropertySet(Page.class, PropertyView.Public, UiKey.values());
-		EntityContext.registerPropertySet(Page.class, PropertyView.Ui, UiKey.values());
+//		EntityContext.registerPropertySet(Page.class, PropertyView.All, UiKey.values());
+//		EntityContext.registerPropertySet(Page.class, PropertyView.Public, UiKey.values());
+//		EntityContext.registerPropertySet(Page.class, PropertyView.Ui, UiKey.values());
+
+		EntityContext.registerPropertyRelation(AbstractNode.class, ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid));
+
 		EntityContext.registerEntityRelation(Page.class, Component.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Page.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Page.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-
-//              EntityContext.registerEntityRelation(Page.class,        Element.class,          RelType.LINK,           Direction.INCOMING, Cardinality.OneToMany);
 		EntityContext.registerEntityRelation(Page.class, Html.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne);
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), Element.UiKey.values());
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
-		EntityContext.registerPropertyConverter(Page.class, UiKey.position, IntConverter.class);
-		EntityContext.registerPropertyConverter(Page.class, UiKey.cacheForSeconds, IntConverter.class);
 		
-		EntityContext.registerReadOnlyProperty(Page.class, UiKey.version);
+		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
+		
+		EntityContext.registerPropertyConverter(Page.class, position, IntConverter.class);
+		EntityContext.registerPropertyConverter(Page.class, cacheForSeconds, IntConverter.class);
+		
+		EntityContext.registerReadOnlyProperty(Page.class, version);
 
 	}
 
 	//~--- constant enums -------------------------------------------------
-
-	public enum UiKey implements PropertyKey {
-
-		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
-
-	}
 	
 	public void increaseVersion() throws FrameworkException {
 		
-		Integer version = getIntProperty(UiKey.version);
+		Integer version = getIntProperty(Page.version);
 		
 		if (version == null) {
-			setProperty(UiKey.version, 1);
+			setProperty(Page.version, 1);
 		} else {
-			setProperty(UiKey.version, version+1);
+			setProperty(Page.version, version+1);
 		}
 		
 	}

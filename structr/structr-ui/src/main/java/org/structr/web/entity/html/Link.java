@@ -21,18 +21,18 @@
 
 package org.structr.web.entity.html;
 
+import java.util.List;
 import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.common.*;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,38 +41,44 @@ import org.structr.core.notion.PropertyNotion;
  */
 public class Link extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] {
+	public static final Property<String> _href     = new HtmlProperty("href");
+	public static final Property<String> _rel      = new HtmlProperty("rel");
+	public static final Property<String> _media    = new HtmlProperty("media");
+	public static final Property<String> _hreflang = new HtmlProperty("hreflang");
+	public static final Property<String> _type     = new HtmlProperty("type");
+	public static final Property<String> _sizes    = new HtmlProperty("sizes");
 
-		"href", "rel", "media", "hreflang", "type", "sizes"
-	};
+	public static final Property<String>         linkableId = new Property<String>("linkable_id");
+	public static final Property<List<Linkable>> linkable   = new Property<List<Linkable>>("linkable");
+
+	public static final View uiView = new View(PropertyView.Ui,
+		linkableId, linkable
+	);
+	
+	public static final View htmlView = new View(PropertyView.Html,
+		_href, _rel, _media, _hreflang, _type, _sizes
+	);
 
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(Link.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Link.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Link.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Link.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Link.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Link.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Link.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Link.class, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name),
-			RelationClass.DELETE_NONE);
-		EntityContext.registerPropertyRelation(Link.class, Link.UiKey.linkable_id, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne,
-			new PropertyNotion(AbstractNode.uuid), RelationClass.DELETE_NONE);
-
-		//EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, Link.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.uuid));
+		EntityContext.registerEntityRelation(Link.class, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name), RelationClass.DELETE_NONE);
+		EntityContext.registerPropertyRelation(Link.class, linkableId, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid), RelationClass.DELETE_NONE);
 
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum UiKey implements PropertyKey{ linkable, linkable_id }
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public String[] getHtmlAttributes() {
+	public Property[] getHtmlAttributes() {
 
-		return (String[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlAttributes);
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
 

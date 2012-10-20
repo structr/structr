@@ -389,6 +389,7 @@ public class EntityContext {
 		// add all properties from set
 		properties.addAll(Arrays.asList(propertySet));
 
+		/*
 		// include property sets from superclass
 		Class superClass = type.getSuperclass();
 
@@ -407,6 +408,8 @@ public class EntityContext {
 		for(Class interfaceClass : getInterfacesForType(type)) {
 			properties.addAll(getPropertySet(interfaceClass, propertyView));
 		}
+		*/
+
 	}
 
 	// ----- validator methods -----

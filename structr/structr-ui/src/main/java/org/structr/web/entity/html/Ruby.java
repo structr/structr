@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Ruby extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Ruby.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Ruby.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Ruby.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Ruby.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Ruby.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Ruby.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Caption extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Caption.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Caption.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Caption.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Caption.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Caption.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Caption.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

@@ -21,23 +21,18 @@
 
 package org.structr.web.entity.html;
 
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
-
-//~--- classes ----------------------------------------------------------------
-
 /**
  * @author Axel Morgner
  */
 public class Abbr extends HtmlElement {
 
-	static {
-
-		EntityContext.registerPropertySet(Abbr.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Abbr.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Abbr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//	static {
+//
+//		EntityContext.registerPropertySet(Abbr.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Abbr.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Abbr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

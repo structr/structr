@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Del extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Del.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Del.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Del.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Del.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Del.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Del.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

@@ -38,9 +38,10 @@ public class Td extends HtmlElement {
 
 	static {
 
-		EntityContext.registerPropertySet(Td.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Td.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Td.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Td.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Td.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Td.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+
 		EntityContext.registerEntityRelation(Td.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Td.class, Div.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Td.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);

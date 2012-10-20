@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Bdi extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Bdi.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Bdi.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Bdi.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Bdi.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Bdi.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Bdi.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

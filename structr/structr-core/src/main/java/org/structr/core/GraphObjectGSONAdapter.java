@@ -127,26 +127,26 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 					if (value instanceof Iterable) {
 
-						jsonObject.add(key.jsonName(), serializeIterable((Iterable)value, typeOfSrc, context, localPropertyView, depth));
+						jsonObject.add(key.name(), serializeIterable((Iterable)value, typeOfSrc, context, localPropertyView, depth));
 
 					} else if (value instanceof GraphObject) {
 
 						GraphObject graphObject = (GraphObject) value;
 
-						jsonObject.add(key.jsonName(), this.serializeFlatNameValue(graphObject, typeOfSrc, context, localPropertyView, depth + 1));
+						jsonObject.add(key.name(), this.serializeFlatNameValue(graphObject, typeOfSrc, context, localPropertyView, depth + 1));
 
 					} else if (value instanceof Map) {
 
-						jsonObject.add(key.jsonName(), serializeMap((Map) value, typeOfSrc, context, localPropertyView, false, depth));
+						jsonObject.add(key.name(), serializeMap((Map) value, typeOfSrc, context, localPropertyView, false, depth));
 
 					} else {
 
 	//                                      jsonObject.add(key, new JsonPrimitive(value.toString()));
-						jsonObject.add(key.jsonName(), primitive(value));
+						jsonObject.add(key.name(), primitive(value));
 					}
 				} else {
 
-					jsonObject.add(key.jsonName(), new JsonNull());
+					jsonObject.add(key.name(), new JsonNull());
 
 				}
 
@@ -214,7 +214,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 		}
 
-		property.add("key", new JsonPrimitive(key.jsonName()));
+		property.add("key", new JsonPrimitive(key.name()));
 
 		if (value != null) {
 

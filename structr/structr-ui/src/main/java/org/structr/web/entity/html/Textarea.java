@@ -21,8 +21,11 @@
 
 package org.structr.web.entity.html;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.structr.common.Property;
 import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
+import org.structr.common.View;
+import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -31,20 +34,33 @@ import org.structr.core.EntityContext;
  */
 public class Textarea extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] {
-
-		"name", "disabled", "form", "readonly", "maxlenght", "autofocus", "required", "placeholder", "dirname", "rows", "wrap", "cols"
-	};
+	public static final Property<String> _name        = new HtmlProperty("name");
+	public static final Property<String> _disabled    = new HtmlProperty("disabled");
+	public static final Property<String> _form        = new HtmlProperty("form");
+	public static final Property<String> _readonly    = new HtmlProperty("readonly");
+	public static final Property<String> _maxlenght   = new HtmlProperty("maxlenght");
+	public static final Property<String> _autofocus   = new HtmlProperty("autofocus");
+	public static final Property<String> _required    = new HtmlProperty("required");
+	public static final Property<String> _placeholder = new HtmlProperty("placeholder");
+	public static final Property<String> _dirname     = new HtmlProperty("dirname");
+	public static final Property<String> _rows        = new HtmlProperty("rows");
+	public static final Property<String> _wrap        = new HtmlProperty("wrap");
+	public static final Property<String> _cols        = new HtmlProperty("cols");
+	
+	public static final View htmlView = new View(PropertyView.Html,
+	    _name, _disabled, _form, _readonly, _maxlenght, _autofocus, _required, _placeholder, _dirname, _rows, _wrap, _cols
+	);
+	
 
 	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerPropertySet(Textarea.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Textarea.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Textarea.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Textarea.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Textarea.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Textarea.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 
@@ -55,6 +71,10 @@ public class Textarea extends HtmlElement {
 
 	}
 
-	;
+	@Override
+	public Property[] getHtmlAttributes() {
 
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+
+	}
 }
