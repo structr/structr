@@ -21,31 +21,32 @@
 
 package org.structr.core.node;
 
+import java.lang.Object;
+import java.lang.String;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.common.Property;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertySet;
 import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -54,71 +55,62 @@ import org.structr.common.SecurityContext;
  *
  * @author cmorgner
  */
-public class CreateNodeCommand extends NodeServiceCommand {
+public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateNodeCommand.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public T execute(Collection<NodeAttribute> attributes) throws FrameworkException {
+		
+		PropertySet properties = new PropertySet();
+		for (NodeAttribute attribute : attributes) {
+			
+			properties.put(attribute.getKey(), attribute.getValue());
+		}
+		
+		return execute(properties);
+		
+	}
+	
+	public T execute(NodeAttribute... attributes) throws FrameworkException {
+		
+		PropertySet properties = new PropertySet();
+		for (NodeAttribute attribute : attributes) {
+			
+			properties.put(attribute.getKey(), attribute.getValue());
+		}
+		
+		return execute(properties);
+	}
+	
+	public T execute(PropertySet attributes) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Principal user               = securityContext.getUser();
-		AbstractNode node            = null;
+		T node	                     = null;
 
 		if (graphDb != null) {
 
-			Date now                  = new Date();
-			Command createRel         = Services.command(securityContext, CreateRelationshipCommand.class);
-			Map<String, Object> attrs = new HashMap<String, Object>();
-
-			// initialize node from parameters...
-			for (Object o : parameters) {
-
-				if (o instanceof Map) {
-
-					Map<String, Object> map = (Map<String, Object>) o;
-
-					attrs.putAll(map);
-
-				} else if (o instanceof Collection) {
-
-					Collection<NodeAttribute> c = (Collection) o;
-
-					for (NodeAttribute attr : c) {
-
-						attrs.put(attr.getKey().name(), attr.getValue());
-
-					}
-
-				} else if (o instanceof NodeAttribute) {
-
-					NodeAttribute attr = (NodeAttribute) o;
-
-					attrs.put(attr.getKey().name(), attr.getValue());
-
-				}
-
-			}
+			CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+			Date now                            = new Date();
 
 			// Determine node type
-			Object typeObject = attrs.get(AbstractNode.type.name());
-			String nodeType   = (typeObject != null)
-					    ? typeObject.toString()
-					    : "GenericNode";
+			PropertySet properties = new PropertySet(attributes);
+			Object typeObject      = properties.get(AbstractNode.type);
+			String nodeType        = (typeObject != null) ? typeObject.toString() : "GenericNode";
 
-			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			NodeFactory<T> nodeFactory = new NodeFactory<T>(SecurityContext.getSuperUserInstance());
 
 			
 			// Create node with type
 			node = nodeFactory.createNodeWithType(graphDb.createNode(), nodeType);
 			if(node != null) {
-				if ((user != null) && !(user instanceof SuperUser)) {
+				
+				if ((user != null) && user instanceof AbstractNode) {
 
-					node.setOwner(user);
+					AbstractNode owner = (AbstractNode)user;
+					node.setOwner(owner);
 	//
-					AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(user, node, RelType.SECURITY, null, true);    // avoid duplicates
+					AbstractRelationship securityRel = createRel.execute(owner, node, RelType.SECURITY, true);    // avoid duplicates
 
 					securityRel.setAllowed(Permission.values());
 					logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.name));
@@ -134,18 +126,18 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 				// set type first!!
 				node.setProperty(AbstractNode.type, nodeType);
-				attrs.remove(AbstractNode.type.name());
+				properties.remove(AbstractNode.type);
 
-				for (Entry<String, Object> attr : attrs.entrySet()) {
+				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
 					Object value = attr.getValue();
 					
 					// FIXME: synthetic Property generation
-					node.setProperty(new Property(attr.getKey()), value);
+					node.setProperty(attr.getKey(), value);
 
 				}
 
-				attrs.clear();
+				properties.clear();
 			}
 
 		}

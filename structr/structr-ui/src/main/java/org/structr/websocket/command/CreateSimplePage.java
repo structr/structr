@@ -24,7 +24,6 @@ package org.structr.websocket.command;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.*;
@@ -45,10 +44,10 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
+import org.structr.common.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,8 +59,8 @@ import java.util.logging.Logger;
 public class CreateSimplePage extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
-	private static Command createNode;
-	private static Command createRel;
+	private static CreateNodeCommand createNode;
+	private static CreateRelationshipCommand createRel;
 
 	//~--- methods --------------------------------------------------------
 
@@ -108,59 +107,6 @@ public class CreateSimplePage extends AbstractCommand {
 
 				divContent.setProperty(Content.content, "Body Text");
 
-//                              
-//
-//                              Map<String, Object> relData = new HashMap<String, Object>();
-//                              String pageId               = page.getUuid();
-//                              relData.put(pageId, 0);
-//                              
-//                              // Html
-//                              nodeData.put(AbstractNode.type.name(), Html.class.getSimpleName());
-//                              nodeData.put(HtmlElement.UiKey.name.name(), "html");
-//                              nodeData.put(HtmlElement.UiKey.tag.name(), "html");
-//                              AbstractNode html = (AbstractNode) createNode.execute(nodeData);
-//                              createRel.execute(page, html, RelType.CONTAINS, relData, false);
-//                              
-//                              // Html -> Head
-//                              nodeData.put(AbstractNode.type.name(), Head.class.getSimpleName());
-//                              nodeData.put(HtmlElement.UiKey.name.name(), "head");
-//                              nodeData.put(HtmlElement.UiKey.tag.name(), "head");
-//                              AbstractNode head = (AbstractNode) createNode.execute(nodeData);
-//                              createRel.execute(html, head, RelType.CONTAINS, relData, false);
-//                              
-//                              // Html -> Body
-//                              nodeData.put(AbstractNode.type.name(), Body.class.getSimpleName());
-//                              nodeData.put(HtmlElement.UiKey.name.name(), "body");
-//                              nodeData.put(HtmlElement.UiKey.tag.name(), "body");
-//                              AbstractNode body = (AbstractNode) createNode.execute(nodeData);
-//                              relData.put(pageId, 1);
-//                              createRel.execute(html, body, RelType.CONTAINS, relData, false);
-//                              
-//                              // Html -> Head -> Title
-//                              relData.put(pageId, 0);
-//                              nodeData.put(AbstractNode.type.name(), Title.class.getSimpleName());
-//                              nodeData.put(HtmlElement.UiKey.name.name(), "title");
-//                              nodeData.put(HtmlElement.UiKey.tag.name(), "title");
-//                              AbstractNode title = (AbstractNode) createNode.execute(nodeData);
-//                              createRel.execute(head, title, RelType.CONTAINS, relData, false);
-//
-//                              // Html -> Head -> Title -> Content
-//                              nodeData.put(AbstractNode.type.name(), Content.class.getSimpleName());
-//                              nodeData.remove(HtmlElement.UiKey.tag.name());
-//                              nodeData.put(Content.UiKey.content.name(), "New Page");
-//                              //nodeData.put(HtmlElement.UiKey.tag.name(), "body");
-//                              AbstractNode content = (AbstractNode) createNode.execute(nodeData);
-//                              relData.put(pageId, 0);
-//                              createRel.execute(title, content, RelType.CONTAINS, relData, false);
-//                              
-//                              // Html -> Body -> H1
-//                              relData.put(pageId, 0);
-//                              nodeData.put(AbstractNode.type.name(), H1.class.getSimpleName());
-//                              nodeData.put(HtmlElement.UiKey.name.name(), "h1");
-//                              nodeData.put(HtmlElement.UiKey.tag.name(), "h1");
-//                              AbstractNode h1 = (AbstractNode) createNode.execute(nodeData);
-//                              createRel.execute(body, h1, RelType.CONTAINS, relData, false);
-//                              
 				return page;
 
 			}
@@ -182,30 +128,30 @@ public class CreateSimplePage extends AbstractCommand {
 
 	private AbstractNode createElement(final AbstractNode page, final String type, final int position, final AbstractNode parentElement) throws FrameworkException {
 
-		Map<String, Object> nodeData = new HashMap<String, Object>();
+		PropertySet nodeData = new PropertySet();
 
-		nodeData.put(AbstractNode.visibleToAuthenticatedUsers.name(), true);
-		nodeData.put(AbstractNode.type.name(), Page.class.getSimpleName());
+		nodeData.put(AbstractNode.visibleToAuthenticatedUsers, true);
+		nodeData.put(AbstractNode.type,                        Page.class.getSimpleName());
 
-		Map<String, Object> relData = new HashMap<String, Object>();
+		PropertySet relData = new PropertySet();
 
 		if (page != null) {
 
 			String pageId = page.getUuid();
 
-			relData.put(pageId, position);
+			relData.put(new Property(pageId), position);
 
 		}
 
-		nodeData.put(AbstractNode.type.name(), type);
-		nodeData.put(HtmlElement.name.name(), type.toLowerCase());
+		nodeData.put(AbstractNode.type, type);
+		nodeData.put(HtmlElement.name,  type.toLowerCase());
 
 		if (!Content.class.getSimpleName().equals(type)) {
 
-			nodeData.put(HtmlElement.tag.name(), type.toLowerCase());
+			nodeData.put(HtmlElement.tag, type.toLowerCase());
 		}
 
-		AbstractNode element = (AbstractNode) createNode.execute(nodeData);
+		AbstractNode element = createNode.execute(nodeData);
 
 		if (parentElement != null) {
 

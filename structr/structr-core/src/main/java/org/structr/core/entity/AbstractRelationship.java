@@ -71,11 +71,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
-	public static final PropertyKey<String>   uuid          = new Property<String>("uuid");
-	public static final PropertyKey<String>   combinedType  = new Property<String>("combinedType");
-	public static final PropertyKey<Integer>  cascadeDelete = new Property<Integer>("cascadeDelete");
-	public static final PropertyKey<Date>     createdDate   = new Property<Date>("createdDate");
-	public static final PropertyKey<String[]> allowed       = new Property<String[]>("allowed");
+	public static final Property<String>   uuid          = new Property<String>("uuid");
+	public static final Property<String>   combinedType  = new Property<String>("combinedType");
+	public static final Property<Integer>  cascadeDelete = new Property<Integer>("cascadeDelete");
+	public static final Property<Date>     createdDate   = new Property<Date>("createdDate");
+	public static final Property<String[]> allowed       = new Property<String[]>("allowed");
 	
 	
 	//~--- static initializers --------------------------------------------
@@ -100,15 +100,15 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	private String cachedEndNodeId = null;
 
 	// test
-	protected Map<PropertyKey, Object> cachedConvertedProperties = new LinkedHashMap<PropertyKey, Object>();
-	protected Map<PropertyKey, Object> cachedRawProperties       = new LinkedHashMap<PropertyKey, Object>();
-	private String cachedStartNodeId                             = null;
-	protected SecurityContext securityContext                    = null;
-	private boolean readOnlyPropertiesUnlocked                   = false;
+	protected PropertySet cachedConvertedProperties = new PropertySet();
+	protected PropertySet cachedRawProperties       = new PropertySet();
+	private String cachedStartNodeId                = null;
+	protected SecurityContext securityContext       = null;
+	private boolean readOnlyPropertiesUnlocked      = false;
 
 	// reference to database relationship
 	protected Relationship dbRelationship;
-	protected Map<String, Object> properties;
+	protected PropertySet properties;
 	protected String cachedUuid = null;
 	protected boolean isDirty;
 
@@ -121,19 +121,19 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 //      }
 	public AbstractRelationship() {
 
-		this.properties = new HashMap<String, Object>();
+		this.properties = new PropertySet();
 		isDirty         = true;
 
 	}
 
-	public AbstractRelationship(final Map<String, Object> properties) {
+	public AbstractRelationship(final PropertySet properties) {
 
 		this.properties = properties;
 		isDirty         = true;
 
 	}
 
-	public AbstractRelationship(final SecurityContext securityContext, final Map<String, Object> data) {
+	public AbstractRelationship(final SecurityContext securityContext, final PropertySet data) {
 
 		if (data != null) {
 
@@ -411,13 +411,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	public Map<String, Object> getProperties() {
+	public PropertySet getProperties() {
 
-		Map<String, Object> properties = new HashMap<String, Object>();
+		PropertySet properties = new PropertySet();
 
 		for (String key : dbRelationship.getPropertyKeys()) {
 
-			properties.put(key, dbRelationship.getProperty(key));
+			properties.put(getPropertyKeyForName(key), dbRelationship.getProperty(key));
 		}
 
 		return properties;
@@ -431,6 +431,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	private Object getProperty(final PropertyKey key, boolean applyConverter) {
 
+		// early null check, this should not happen...
+		if (key == null || key.name() == null) {
+			return null;
+		}
+		
 		Object value      = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
 		boolean dontCache = false;
 		Class type         = this.getClass();
@@ -772,9 +777,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 
-			Command nodeFactory = Services.command(SecurityContext.getSuperUserInstance(), NodeFactoryCommand.class);
-
-			return (AbstractNode) nodeFactory.execute(dbRelationship.getEndNode());
+			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			return (AbstractNode) nodeFactory.createNode(dbRelationship.getEndNode());
 
 		} catch (FrameworkException fex) {
 
@@ -790,9 +794,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 
-			Command nodeFactory = Services.command(SecurityContext.getSuperUserInstance(), NodeFactoryCommand.class);
-
-			return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
+			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			return (AbstractNode) nodeFactory.createNode(dbRelationship.getStartNode());
 
 		} catch (FrameworkException fex) {
 
@@ -808,9 +811,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 
-			Command nodeFactory = Services.command(SecurityContext.getSuperUserInstance(), NodeFactoryCommand.class);
-
-			return (AbstractNode) nodeFactory.execute(dbRelationship.getOtherNode(node.getNode()));
+			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			return (AbstractNode) nodeFactory.createNode(dbRelationship.getOtherNode(node.getNode()));
 
 		} catch (FrameworkException fex) {
 
@@ -954,9 +956,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
 		
-		cachedUuid = (String)properties.get(AbstractRelationship.uuid.name());
+		cachedUuid = (String)properties.get(AbstractRelationship.uuid);
 		
 		return true;
 	}
@@ -1032,7 +1034,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setProperties(final Map<PropertyKey, Object> properties) throws FrameworkException {
+	public void setProperties(final PropertySet properties) throws FrameworkException {
 
 		for (Entry<PropertyKey, Object> prop : properties.entrySet()) {
 
@@ -1184,18 +1186,15 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			return;
 		}
 
-		Command transaction = Services.command(securityContext, TransactionCommand.class);
-
-		transaction.execute(new StructrTransaction() {
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Command deleteRel         = Services.command(securityContext, DeleteRelationshipCommand.class);
-				Command createRel         = Services.command(securityContext, CreateRelationshipCommand.class);
-				Command nodeFactory       = Services.command(securityContext, NodeFactoryCommand.class);
-				AbstractNode newStartNode = getNodeByUuid(startNodeId);
-				AbstractNode endNode      = (AbstractNode) nodeFactory.execute(getEndNode());
+				DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+				CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+				AbstractNode newStartNode           = getNodeByUuid(startNodeId);
+				AbstractNode endNode                = getEndNode();
 
 				if (newStartNode == null) {
 
@@ -1244,18 +1243,15 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			return;
 		}
 
-		Command transaction = Services.command(securityContext, TransactionCommand.class);
-
-		transaction.execute(new StructrTransaction() {
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Command deleteRel       = Services.command(securityContext, DeleteRelationshipCommand.class);
-				Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
-				Command nodeFactory     = Services.command(securityContext, NodeFactoryCommand.class);
-				AbstractNode startNode  = (AbstractNode) nodeFactory.execute(getStartNode());
-				AbstractNode newEndNode = getNodeByUuid(endNodeId);
+				DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+				CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+				AbstractNode startNode              = getStartNode();
+				AbstractNode newEndNode             = getNodeByUuid(endNodeId);
 
 				if (newEndNode == null) {
 
@@ -1294,22 +1290,19 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 			try {
 
-				Command transacted = Services.command(securityContext, TransactionCommand.class);
-
-				transacted.execute(new StructrTransaction() {
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 					@Override
 					public Object execute() throws FrameworkException {
 
-						Command deleteRel      = Services.command(securityContext, DeleteRelationshipCommand.class);
-						Command createRel      = Services.command(securityContext, CreateRelationshipCommand.class);
-						Command nodeFactory    = Services.command(securityContext, NodeFactoryCommand.class);
-						AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
-						AbstractNode endNode   = (AbstractNode) nodeFactory.execute(getEndNode());
+						DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+						CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+						AbstractNode startNode = getStartNode();
+						AbstractNode endNode   = getEndNode();
 
 						deleteRel.execute(dbRelationship);
 
-						dbRelationship = ((AbstractRelationship) createRel.execute(startNode, endNode, type)).getRelationship();
+						dbRelationship = createRel.execute(startNode, endNode, type).getRelationship();
 
 						return (null);
 

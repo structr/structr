@@ -67,9 +67,6 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 		if ((key != null) && (value != null)) {
 
 			// String type = EntityContext.GLOBAL_UNIQUENESS;
-			AbstractNode topNode             = null;
-			Boolean includeDeletedAndHidden  = false;
-			Boolean publicOnly               = false;
 			boolean nodeExists               = false;
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
 			String id                        = null;
@@ -80,8 +77,7 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 
 			try {
 
-				resultList = (Result) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden,
-					publicOnly, attributes);
+				resultList = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attributes);
 				nodeExists = !resultList.isEmpty();
 
 			} catch (FrameworkException fex) {

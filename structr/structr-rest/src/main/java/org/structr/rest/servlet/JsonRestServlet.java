@@ -33,7 +33,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.PropertySet;
+import org.structr.core.JsonInput;
 import org.structr.core.PropertySetGSONAdapter;
 import org.structr.core.Value;
 import org.structr.rest.ResourceProvider;
@@ -132,7 +132,7 @@ public class JsonRestServlet extends HttpServlet {
                         .setPrettyPrinting()
                         .serializeNulls()
                         .registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
-                        .registerTypeAdapter(PropertySet.class, propertySetAdapter)
+                        .registerTypeAdapter(JsonInput.class, propertySetAdapter)
                         .registerTypeAdapter(Result.class, resultGsonAdapter)
                         .create();
 	}
@@ -493,7 +493,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
+			final JsonInput propertySet   = gson.fromJson(request.getReader(), JsonInput.class);
 			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
@@ -581,7 +581,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
+			final JsonInput propertySet   = gson.fromJson(request.getReader(), JsonInput.class);
 			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
@@ -963,7 +963,7 @@ public class JsonRestServlet extends HttpServlet {
 		return buf.toString();
 	}
 
-	private Map<String, Object> convertPropertySetToMap(PropertySet propertySet) {
+	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 		
 		if (propertySet != null) {
 			return propertySet.getAttributes();

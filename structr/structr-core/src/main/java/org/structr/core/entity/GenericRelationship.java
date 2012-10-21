@@ -24,13 +24,12 @@ package org.structr.core.entity;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import com.vividsolutions.jts.index.bintree.Key;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.Property;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertySet;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -113,7 +112,7 @@ public class GenericRelationship extends AbstractRelationship {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
 		return true;
 	}
 }

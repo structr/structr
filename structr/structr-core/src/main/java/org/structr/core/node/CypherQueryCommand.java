@@ -55,90 +55,65 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public List<GraphObject> execute(String query) throws FrameworkException {
+		return execute(query, null);
+	}
+
+	public List<GraphObject> execute(String query, Map<String, Object> parameters) throws FrameworkException {
+		return execute(query, parameters, false);
+	}
+
+	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted) throws FrameworkException {
+		return execute(query, parameters, includeHiddenAndDeleted, false);
+	}
+	
+	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
 		RelationshipFactory relFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
 		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 		ExecutionEngine engine          = new ExecutionEngine(graphDb);
-		String query                    = null;
-		Map<String, Object> params      = null;
-		boolean includeHiddenAndDeleted = true;    // makes more sense as default here
-		boolean publicOnly              = false;
 
-		switch (parameters.length) {
+		List<GraphObject> resultList = new LinkedList<GraphObject>();
+		ExecutionResult result       = null;
 
-			case 0 :
-				throw new UnsupportedArgumentError("No parameters given. Required parameters: String query");
+		if (parameters != null) {
 
-			case 4 :
-				publicOnly = (Boolean) parameters[2];
-			case 3 :
-				includeHiddenAndDeleted = (Boolean) parameters[2];
-			case 2 :
-				params = (Map<String, Object>) parameters[1];
-			case 1 :
-				query = (String) parameters[0];
+			result = engine.execute(query, parameters);
+			
+		} else {
 
-				if (query == null) {
-
-					logger.log(Level.WARNING, "Query parameter is null");
-
-					return Collections.EMPTY_LIST;
-
-				}
-
+			result = engine.execute(query);
 		}
 
-		if (parameters[0] instanceof String) {
+		for (Map<String, Object> row : result) {
 
-			List<GraphObject> resultList = new LinkedList<GraphObject>();
-			ExecutionResult result       = null;
+			for (Object o : row.values()) {
 
-			if (params != null) {
+				if (o instanceof Node) {
 
-				result = engine.execute(query, params);
-			} else {
+					AbstractNode node = nodeFactory.createNode((Node) o, includeHiddenAndDeleted, publicOnly);
 
-				result = engine.execute(query);
-			}
+					if (node != null) {
 
-			for (Map<String, Object> row : result) {
-				
-				for (Object o : row.values()) {
-					
-					if (o instanceof Node) {
+						resultList.add(node);
+					}
 
-						AbstractNode node = nodeFactory.createNode((Node) o, includeHiddenAndDeleted, publicOnly);
+				} else if (o instanceof Relationship) {
 
-						if (node != null) {
+					AbstractRelationship rel = relFactory.createRelationship(securityContext, (Relationship) o);
 
-							resultList.add(node);
-						}
+					if (rel != null) {
 
-					} else if (o instanceof Relationship) {
-
-						AbstractRelationship rel = relFactory.createRelationship(securityContext, (Relationship) o);
-
-						if (rel != null) {
-
-							resultList.add(rel);
-						}
-
+						resultList.add(rel);
 					}
 
 				}
 
 			}
-			
-			return resultList;
 
-		} else {
-
-			throw new UnsupportedArgumentError("First argument must be of type String!");
 		}
 
+		return resultList;
 	}
-
 }

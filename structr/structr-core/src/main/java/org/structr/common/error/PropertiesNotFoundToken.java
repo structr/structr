@@ -33,9 +33,9 @@ import org.structr.common.PropertyKey;
  */
 public class PropertiesNotFoundToken extends NotFoundToken {
 
-	private Map<String, Object> attributes = null;
+	private Map<PropertyKey, Object> attributes = null;
 
-	public PropertiesNotFoundToken(PropertyKey key, Map<String, Object> attributes) {
+	public PropertiesNotFoundToken(PropertyKey key, Map<PropertyKey, Object> attributes) {
 		super(key);
 		this.attributes = attributes;
 	}
@@ -46,15 +46,15 @@ public class PropertiesNotFoundToken extends NotFoundToken {
 		JsonObject obj = new JsonObject();
 		JsonObject vals = new JsonObject();
 
-		for(Entry<String, Object> entry : attributes.entrySet()) {
+		for(Entry<PropertyKey, Object> entry : attributes.entrySet()) {
 
-			String key = entry.getKey();
-			Object value = entry.getValue();
+			PropertyKey key = entry.getKey();
+			Object value    = entry.getValue();
 			
 			if (value == null) {
-				vals.add(key, new JsonNull());
+				vals.add(key.name(), new JsonNull());
 			} else {
-				vals.add(key, new JsonPrimitive(value.toString()));
+				vals.add(key.name(), new JsonPrimitive(value.toString()));
 			}
 		}
 

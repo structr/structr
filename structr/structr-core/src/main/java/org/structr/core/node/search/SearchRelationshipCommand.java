@@ -67,25 +67,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
-
-		if ((parameters == null) || (parameters.length < 1) || (parameters.length > 1)) {
-
-			logger.log(Level.WARNING, "Exactly one parameter of type 'List<SearchAttribute>' is required for relationship search.");
-
-			return Collections.emptyList();
-
-		}
-
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-		if (parameters[0] instanceof List) {
-
-			searchAttrs = (List<SearchAttribute>) parameters[0];
-
-		}
-
+	public List<AbstractRelationship> execute(List<SearchAttribute> searchAttrs) throws FrameworkException {
 		return search(securityContext, searchAttrs);
 	}
 

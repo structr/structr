@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
@@ -54,7 +53,7 @@ public abstract class PrincipalImpl extends AbstractNode implements Principal {
 	}
 
 	@Override
-	public void grant(Permission permission, AccessControllable obj) {
+	public void grant(Permission permission, AbstractNode obj) {
 
 		AbstractRelationship secRel = obj.getSecurityRelationship(this);
 
@@ -77,7 +76,7 @@ public abstract class PrincipalImpl extends AbstractNode implements Principal {
 	}
 
 	@Override
-	public void revoke(Permission permission, AccessControllable obj) {
+	public void revoke(Permission permission, AbstractNode obj) {
 
 		AbstractRelationship secRel = obj.getSecurityRelationship(this);
 
@@ -99,9 +98,9 @@ public abstract class PrincipalImpl extends AbstractNode implements Principal {
 
 	}
 
-	private AbstractRelationship createSecurityRelationshipTo(final AccessControllable obj) throws FrameworkException {
+	private AbstractRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
 
-		return (AbstractRelationship) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
+		return Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
 
 	}
 

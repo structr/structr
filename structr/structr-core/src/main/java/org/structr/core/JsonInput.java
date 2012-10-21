@@ -28,11 +28,11 @@ import java.util.Map.Entry;
  *
  * @author Christian Morgner
  */
-public class PropertySet {
+public class JsonInput {
 
 	private Map<String, Object> attributes = null;
 
-	public PropertySet() {
+	public JsonInput() {
 		this.attributes = new LinkedHashMap<String, Object>();
 	}
 

@@ -36,10 +36,10 @@ import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertySet;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -121,7 +121,7 @@ public class DynamicTypeResource extends TypeResource {
 		searchAttributes.addAll(extractSearchableAttributesFromRequest());
 
 		// do search
-		List<GraphObject> results = getComponents(securityContext, searchAttributes);
+		List<Component> results = getComponents(securityContext, searchAttributes);
 
 		if (!results.isEmpty()) {
 
@@ -242,20 +242,18 @@ public class DynamicTypeResource extends TypeResource {
 	public static Component duplicateComponent(final SecurityContext securityContext, final Map<String, Object> propertySet, final String rawType, final String surroundingComponentId)
 		throws FrameworkException {
 
-		final List<GraphObject> templates		= getComponents(SecurityContext.getSuperUserInstance(), getSearchAttributes(rawType));
-		final Command createNodeCommand			= Services.command(securityContext, CreateNodeCommand.class);
-		final Map<String, Object> templateProperties	= new LinkedHashMap<String, Object>();
-		final String componentId			= UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-		final Component template			= (Component) templates.get(templates.size()-1);
+		final List<Component> templates            = getComponents(SecurityContext.getSuperUserInstance(), getSearchAttributes(rawType));
+		final CreateNodeCommand createNodeCommand  = Services.command(securityContext, CreateNodeCommand.class);
+		final String componentId		   = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+		final Component template		   = templates.get(templates.size()-1);
+		final PropertySet templateProperties	   = new PropertySet();
 
 		// copy properties to map
-		templateProperties.put(AbstractNode.type.name(), Component.class.getSimpleName());
-		templateProperties.put(Component.kind.name(), template.getStringProperty(Component.kind));
-
-		templateProperties.put(AbstractNode.uuid.name(), componentId);
-		
-		templateProperties.put(AbstractNode.visibleToPublicUsers.name(), template.getBooleanProperty(AbstractNode.visibleToPublicUsers));
-		templateProperties.put(AbstractNode.visibleToAuthenticatedUsers.name(), template.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
+		templateProperties.put(AbstractNode.type,                        Component.class.getSimpleName());
+		templateProperties.put(Component.kind,                           template.getStringProperty(Component.kind));
+		templateProperties.put(AbstractNode.uuid,                        componentId);
+		templateProperties.put(AbstractNode.visibleToPublicUsers,        template.getBooleanProperty(AbstractNode.visibleToPublicUsers));
+		templateProperties.put(AbstractNode.visibleToAuthenticatedUsers, template.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
 
 		// use parentId from template
 		String parentComponentId = template.getComponentId();
@@ -273,12 +271,12 @@ public class DynamicTypeResource extends TypeResource {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				final Component comp = (Component) createNodeCommand.execute(templateProperties);
+				final Component comp = (Component)createNodeCommand.execute(templateProperties);
 
 				RelationshipHelper.copyRelationships(SecurityContext.getSuperUserInstance(), template, comp, RelType.CONTAINS, finalParentComponentId, true);
 
 				// RelationshipHelper.tagOutgoingRelsWithComponentId(comp, comp, comp.getUuid());
-				final Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
+				final PropertySet contentTemplateProperties = new PropertySet();
 
 				for (final AbstractNode node : template.getContentNodes().values()) {
 
@@ -291,12 +289,12 @@ public class DynamicTypeResource extends TypeResource {
 						// create new content node with content from property set
 						contentTemplateProperties.clear();
 						
-						contentTemplateProperties.put(AbstractNode.type.name(), Content.class.getSimpleName());
-						contentTemplateProperties.put(Content.typeDefinitionId.name(),			contentTemplate.getStringProperty(Content.typeDefinitionId));
-						contentTemplateProperties.put("data-key", dataKey);
+						contentTemplateProperties.put(AbstractNode.type,        Content.class.getSimpleName());
+						contentTemplateProperties.put(Content.typeDefinitionId,	contentTemplate.getStringProperty(Content.typeDefinitionId));
+						contentTemplateProperties.put(Content.dataKey,          dataKey);
 						
-						contentTemplateProperties.put(AbstractNode.visibleToPublicUsers.name(),		contentTemplate.getBooleanProperty(AbstractNode.visibleToPublicUsers));
-						contentTemplateProperties.put(AbstractNode.visibleToAuthenticatedUsers.name(),	contentTemplate.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
+						contentTemplateProperties.put(AbstractNode.visibleToPublicUsers,	contentTemplate.getBooleanProperty(AbstractNode.visibleToPublicUsers));
+						contentTemplateProperties.put(AbstractNode.visibleToAuthenticatedUsers,	contentTemplate.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
 						
 //						contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			contentTemplate.getStringProperty(Content.UiKey.validationExpression.name()));
 //						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		contentTemplate.getStringProperty(Content.UiKey.validationErrorMessage.name()));
@@ -364,26 +362,20 @@ public class DynamicTypeResource extends TypeResource {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	public static List<GraphObject> getComponents(final SecurityContext securityContext, final List<SearchAttribute> searchAttributes) throws FrameworkException {
+	public static List<Component> getComponents(final SecurityContext securityContext, final List<SearchAttribute> searchAttributes) throws FrameworkException {
 
 		// check for dynamic type, use super class otherwise
-		final AbstractNode topNode            = null;
-		final boolean includeDeletedAndHidden = false;
-		final boolean publicOnly              = false;
 
 		// do search
-		final Result searchResults = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+		final Result<Component> searchResults = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(searchAttributes);
+		final List<Component> filteredResults = new LinkedList<Component>();
 
-		final List<GraphObject> filteredResults = new LinkedList<GraphObject>();
+		for (final Component res : searchResults.getResults()) {
 
-		for (final GraphObject res : searchResults.getResults()) {
-
-			if (((Component) res).hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+			if (res.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
 				filteredResults.add(res);
 			}
-
 		}
-
 
 		return filteredResults;
 	}

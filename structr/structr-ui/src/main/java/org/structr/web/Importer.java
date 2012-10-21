@@ -89,10 +89,10 @@ public class Importer {
 	};
 	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
-	private static Command createNode;
-	private static Command createRel;
-	private static Command indexNode;
-	private static Command searchNode;
+	private static CreateNodeCommand createNode;
+	private static CreateRelationshipCommand createRel;
+	private static IndexNodeCommand indexNode;
+	private static SearchNodeCommand searchNode;
 
 	//~--- static initializers --------------------------------------------
 
@@ -397,7 +397,7 @@ public class Importer {
 
 		}
 
-		Result result = (Result) searchNode.execute(null, false, false, searchAttrs);
+		Result result = (Result) searchNode.execute(searchAttrs);
 
 		if (result.size() > 1) {
 
@@ -481,7 +481,7 @@ public class Importer {
 		searchAttrs.add(Search.andExactProperty(File.checksum, String.valueOf(checksum)));
 		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
 
-		Result files = (Result) searchNode.execute(null, false, false, searchAttrs);
+		Result files = searchNode.execute(searchAttrs);
 
 		return !files.isEmpty();
 
@@ -498,7 +498,7 @@ public class Importer {
 		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
 		searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
 
-		Result folders = (Result) searchNode.execute(null, false, false, searchAttrs);
+		Result folders = searchNode.execute(searchAttrs);
 
 		if (!folders.isEmpty()) {
 

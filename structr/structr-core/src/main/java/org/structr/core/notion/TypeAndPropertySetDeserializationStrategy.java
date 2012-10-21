@@ -23,8 +23,8 @@ package org.structr.core.notion;
 
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.common.Property;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertySet;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -38,7 +38,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
-import org.structr.core.PropertySet;
+import org.structr.core.JsonInput;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -62,29 +62,17 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 	@Override
 	public GraphObject deserialize(SecurityContext securityContext, Class<? extends GraphObject> type, Object source) throws FrameworkException {
 
-		if (source instanceof PropertySet) {
+		if (source instanceof JsonInput) {
 
-			Map<String, Object> attributes  = new LinkedHashMap<String, Object>();
-			List<SearchAttribute> attrs     = new LinkedList<SearchAttribute>();
-			GraphObject typeInstance        = null;
+			PropertySet attributes      = PropertySet.convert(type, ((JsonInput)source).getAttributes());
+			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 			
-			// try to determine type 
-			try { typeInstance = type.newInstance(); } catch(Throwable t) {}
-			
-			for (Entry<String, Object> entry : ((PropertySet) source).getAttributes().entrySet()) {
-
-				String value    = (String) entry.getValue();
-				PropertyKey key = typeInstance != null ?
-							typeInstance.getPropertyKeyForName(entry.getKey())
-						  :
-							new Property(entry.getKey());
-
-				attrs.add(Search.andExactProperty(key, value));
-				attributes.put(key.name(), value);
+			for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+				attrs.add(Search.andExactProperty(entry.getKey(), entry.getValue().toString()));
 			}
 
 			// just check for existance
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+			Result result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 			if (result.size() == 1) {
 				
 				GraphObject obj = result.get(0);

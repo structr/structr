@@ -36,75 +36,69 @@ import org.structr.core.node.GraphDatabaseCommand;
  */
 public class CleanUpFilesAgent extends Agent {
 
-    private static final Logger logger = Logger.getLogger(CleanUpFilesAgent.class.getName());
+	private static final Logger logger = Logger.getLogger(CleanUpFilesAgent.class.getName());
 
-    public CleanUpFilesAgent() {
-        setName("CleanUpFilesAgent");
-    }
+	public CleanUpFilesAgent() {
+		setName("CleanUpFilesAgent");
+	}
 
-    @Override
-    public Class getSupportedTaskType() {
-        return (CleanUpFilesTask.class);
-    }
+	@Override
+	public Class getSupportedTaskType() {
+		return (CleanUpFilesTask.class);
+	}
 
-    @Override
-    public ReturnValue processTask(Task task) {
+	@Override
+	public ReturnValue processTask(Task task) {
 
-        if (task instanceof CleanUpFilesTask) {
+		if(task instanceof CleanUpFilesTask) {
 
-            long t0 = System.currentTimeMillis();
-            logger.log(Level.INFO, "Starting cleaning up files ...");
+			long t0 = System.currentTimeMillis();
+			logger.log(Level.INFO, "Starting cleaning up files ...");
 
-            long nodes = cleanUpFiles();
+			long nodes = cleanUpFiles();
 
-            long t1 = System.currentTimeMillis();
-            logger.log(Level.INFO, "Cleaning up files finished, {0} nodes processed in {1} s", new Object[]{nodes, (t1 - t0) / 1000});
-
-        }
-
-        return (ReturnValue.Success);
-    }
-
-    private long cleanUpFiles() {
-
-        File filesFolder = new File(Services.getFilesPath());
-        File[] files = filesFolder.listFiles();
-	long count = 0;
-
-
-	// FIXME: superuser security context
-	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
-	try {
-		Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
-		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
-
-		for (File file : files) {
-
-		    String fileName = file.getName();
-		    String[] parts = StringUtils.split(fileName, "_");
-
-		    String nodeId = parts[0];
-		    long id = Long.parseLong(nodeId);
-
-		    try {
-
-			graphDb.getNodeById(id);
-
-		    } catch (NotFoundException nfe) {
-
-			logger.log(Level.INFO, "Removing unreferenced file {0})", fileName);
-			file.delete();
-			count++;
-		    }
+			long t1 = System.currentTimeMillis();
+			logger.log(Level.INFO, "Cleaning up files finished, {0} nodes processed in {1} s", new Object[]{nodes, (t1 - t0) / 1000});
 
 		}
 
-	} catch(FrameworkException fex) {
-		fex.printStackTrace();
+		return (ReturnValue.Success);
 	}
 
-	return count;
+	private long cleanUpFiles() {
 
-    }
+		// FIXME: superuser security context
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final File filesFolder = new File(Services.getFilesPath());
+		final File[] files = filesFolder.listFiles();
+		long count = 0;
+
+
+
+		GraphDatabaseService graphDb = Services.command(securityContext, GraphDatabaseCommand.class).execute();
+
+		for(File file : files) {
+
+			String fileName = file.getName();
+			String[] parts = StringUtils.split(fileName, "_");
+
+			String nodeId = parts[0];
+			long id = Long.parseLong(nodeId);
+
+			try {
+
+				graphDb.getNodeById(id);
+
+			} catch(NotFoundException nfe) {
+
+				logger.log(Level.INFO, "Removing unreferenced file {0})", fileName);
+				file.delete();
+				count++;
+			}
+
+		}
+
+		return count;
+
+	}
 }

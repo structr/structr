@@ -225,7 +225,7 @@ public class StaticRelationshipResource extends SortableResource {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final List<? extends GraphObject> results = typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
-		final Command searchNode  = Services.command(securityContext, SearchNodeCommand.class);
+		final SearchNodeCommand searchNode        = Services.command(securityContext, SearchNodeCommand.class);
 
 		if (results != null) {
 
@@ -246,9 +246,9 @@ public class StaticRelationshipResource extends SortableResource {
 
 					}
 
-					final Command deleteRel               = Services.command(securityContext, DeleteRelationshipCommand.class);
-					final List<AbstractRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
-					final StructrTransaction transaction        = new StructrTransaction() {
+					final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+					final List<AbstractRelationship> rels     = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
+					final StructrTransaction transaction      = new StructrTransaction() {
 
 						@Override
 						public Object execute() throws FrameworkException {
@@ -282,7 +282,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 								attrs.add(Search.andExactUuid(uuid));
 
-								final Result results = (Result) searchNode.execute(null, false, false, attrs);
+								final Result results = searchNode.execute(attrs);
 
 								if (results.isEmpty()) {
 
@@ -374,10 +374,13 @@ public class StaticRelationshipResource extends SortableResource {
 
 									otherNode = deserializationStrategy.adapt(key);
 
-									if (otherNode != null) {
+									if (otherNode != null && otherNode instanceof AbstractNode) {
 
-										rel.createRelationship(securityContext, sourceNode, otherNode);
+										rel.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
 
+									} else {
+										
+										logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
 									}
 
 								}
@@ -387,9 +390,13 @@ public class StaticRelationshipResource extends SortableResource {
 								// create a single relationship
 								otherNode = deserializationStrategy.adapt(keySource);
 
-								if (otherNode != null) {
+								if (otherNode != null && otherNode instanceof AbstractNode) {
 
-									rel.createRelationship(securityContext, sourceNode, otherNode);
+									rel.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
+
+								} else {
+
+									logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
 
 								}
 							}

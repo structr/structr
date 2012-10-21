@@ -34,7 +34,6 @@ import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Command;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.*;
@@ -69,8 +68,8 @@ public class NodeFactory<T extends AbstractNode> {
 
 	//~--- fields ---------------------------------------------------------
 
-	private ThreadLocalCommand getEntityClassCommand = new ThreadLocalCommand(GetEntityClassCommand.class);
-	private Map<Class, Constructor> constructors     = new LinkedHashMap<Class, Constructor>();
+	private ThreadLocalCommand<GetEntityClassCommand> getEntityClassCommand = new ThreadLocalCommand(GetEntityClassCommand.class);
+	private Map<Class, Constructor<T>> constructors                         = new LinkedHashMap<Class, Constructor<T>>();
 
 	// encapsulates all criteria for node creation
 	private FactoryProfile factoryProfile;
@@ -109,7 +108,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 	//~--- methods --------------------------------------------------------
 
-	public AbstractNode createNode(final Node node) throws FrameworkException {
+	public T createNode(final Node node) throws FrameworkException {
 
 		String type     = AbstractNode.type.name();
 		String nodeType = node.hasProperty(type)
@@ -120,17 +119,16 @@ public class NodeFactory<T extends AbstractNode> {
 
 	}
 
-	public AbstractNode createNodeWithType(final Node node, final String nodeType) throws FrameworkException {
+	public T createNodeWithType(final Node node, final String nodeType) throws FrameworkException {
 
-		Class nodeClass      = (Class) getEntityClassCommand.get().execute(nodeType);
-		AbstractNode newNode = null;
+		Class<T> nodeClass = (Class) getEntityClassCommand.get().execute(nodeType);
+		T newNode          = null;
 
 		if (nodeClass != null) {
 
 			try {
 
-				Constructor constructor = constructors.get(nodeClass);
-
+				Constructor<T> constructor = constructors.get(nodeClass);
 				if (constructor == null) {
 
 					constructor = nodeClass.getConstructor();
@@ -140,7 +138,7 @@ public class NodeFactory<T extends AbstractNode> {
 				}
 
 				// newNode = (AbstractNode) nodeClass.newInstance();
-				newNode = (AbstractNode) constructor.newInstance();
+				newNode = constructor.newInstance();
 
 			} catch (Throwable t) {
 
@@ -151,9 +149,10 @@ public class NodeFactory<T extends AbstractNode> {
 		}
 
 		if (newNode == null) {
-
-			newNode = new GenericNode();
+			// FIXME
+			newNode = (T)new GenericNode();
 		}
+		
 
 		newNode.init(factoryProfile.getSecurityContext(), node);
 		newNode.onNodeInstantiation();
@@ -166,10 +165,9 @@ public class NodeFactory<T extends AbstractNode> {
 		}
 
 		return null;
-
 	}
 
-	public AbstractNode createNode(final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
+	public T createNode(final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
 
 		factoryProfile.setIncludeDeletedAndHidden(includeDeletedAndHidden);
 		factoryProfile.setPublicOnly(publicOnly);
@@ -243,6 +241,36 @@ public class NodeFactory<T extends AbstractNode> {
 		return new Result(nodes, nodes.size(), true, false);
 
 	}
+	/**
+	 * Create structr nodes from all given underlying database nodes
+	 * No paging, but security check
+	 *
+	 * @param securityContext
+	 * @param input
+	 * @return
+	 */
+	public List<AbstractNode> bulkCreateNodes(final Iterable<Node> input) throws FrameworkException {
+
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+
+		if ((input != null) && input.iterator().hasNext()) {
+
+			for (Node node : input) {
+
+				AbstractNode n = createNode(node);
+
+				if (n != null) {
+
+					nodes.add(n);
+				}
+
+			}
+
+		}
+
+		return nodes;
+
+	}
 
 	/**
 	 * Create a dummy node (useful when you need an instance
@@ -253,16 +281,16 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	public AbstractNode createDummyNode(final String nodeType) throws FrameworkException {
+	public T createDummyNode(final String nodeType) throws FrameworkException {
 
-		Class nodeClass      = (Class) getEntityClassCommand.get().execute(nodeType);
-		AbstractNode newNode = null;
+		Class<T> nodeClass = (Class) getEntityClassCommand.get().execute(nodeType);
+		T newNode          = null;
 
 		if (nodeClass != null) {
 
 			try {
 
-				Constructor constructor = constructors.get(nodeClass);
+				Constructor<T> constructor = constructors.get(nodeClass);
 
 				if (constructor == null) {
 
@@ -273,7 +301,7 @@ public class NodeFactory<T extends AbstractNode> {
 				}
 
 				// newNode = (AbstractNode) nodeClass.newInstance();
-				newNode = (AbstractNode) constructor.newInstance();
+				newNode = constructor.newInstance();
 
 			} catch (Throwable t) {
 
@@ -281,11 +309,6 @@ public class NodeFactory<T extends AbstractNode> {
 
 			}
 
-		}
-
-		if (newNode == null) {
-
-			newNode = new GenericNode();
 		}
 
 		return newNode;
@@ -480,7 +503,6 @@ public class NodeFactory<T extends AbstractNode> {
 
 		final int pageSize                    = factoryProfile.getPageSize();
 		final int page                        = factoryProfile.getPage();
-		final String offsetId                 = factoryProfile.getOffsetId();
 		final SecurityContext securityContext = factoryProfile.getSecurityContext();
 		final boolean includeDeletedAndHidden = factoryProfile.includeDeletedAndHidden();
 		final boolean publicOnly              = factoryProfile.publicOnly();
@@ -489,8 +511,8 @@ public class NodeFactory<T extends AbstractNode> {
 		int count                             = 0;
 		int offset                            = 0;
 		int size                              = spatialRecordHits.size();
-		Command graphDbCommand                = Services.command(securityContext, GraphDatabaseCommand.class);
-		GraphDatabaseService graphDb          = (GraphDatabaseService) graphDbCommand.execute();
+		GraphDatabaseCommand graphDbCommand   = Services.command(securityContext, GraphDatabaseCommand.class);
+		GraphDatabaseService graphDb          = graphDbCommand.execute();
 
 		for (Node node : spatialRecordHits) {
 

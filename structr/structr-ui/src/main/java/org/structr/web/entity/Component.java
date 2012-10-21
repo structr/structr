@@ -105,8 +105,8 @@ public class Component extends AbstractNode implements Element {
 
 		try {
 
-			Command deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
-			boolean cascade       = true;
+			DeleteNodeCommand deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
+			boolean cascade                 = true;
 
 			for (AbstractNode contentNode : contentNodes.values()) {
 

@@ -85,16 +85,16 @@ public class UpdateImageMetadataAgent extends Agent {
 	private long updateImageMetadata() throws FrameworkException {
 
 		// FIXME: superuser security context
-		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		final Command extract                 = Services.command(securityContext, ExtractAndSetImageDimensionsAndFormat.class);
-		Command transactionCommand            = Services.command(securityContext, TransactionCommand.class);
-		Long numberOfImages                   = (Long) transactionCommand.execute(new StructrTransaction() {
+		final SecurityContext securityContext               = SecurityContext.getSuperUserInstance();
+		final ExtractAndSetImageDimensionsAndFormat extract = Services.command(securityContext, ExtractAndSetImageDimensionsAndFormat.class);
+		
+		Integer numberOfImages                              = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
 
 			@Override
-			public Object execute() throws FrameworkException {
+			public Integer execute() throws FrameworkException {
 
 				List<Image> images          = new LinkedList<Image>();
-				List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(securityContext, GetAllNodes.class).execute();
+				List<AbstractNode> allNodes = Services.command(securityContext, GetAllNodes.class).execute();
 
 				for (AbstractNode s : allNodes) {
 
@@ -108,7 +108,6 @@ public class UpdateImageMetadataAgent extends Agent {
 				extract.execute(images);
 
 				return images.size();
-
 			}
 
 		});

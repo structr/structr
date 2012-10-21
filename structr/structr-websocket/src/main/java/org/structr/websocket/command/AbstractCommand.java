@@ -103,8 +103,7 @@ public abstract class AbstractCommand {
 
 				attrs.add(Search.andExactProperty(idProperty, id));
 
-				Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null,
-								     true, false, attrs);
+				Result results = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, attrs);
 
 				if (!results.isEmpty()) {
 

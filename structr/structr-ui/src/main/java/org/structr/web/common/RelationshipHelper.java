@@ -28,7 +28,6 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -45,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.Property;
+import org.structr.common.*;
 import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -72,7 +71,7 @@ public class RelationshipHelper {
 
 		}
 
-		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+		CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		for (AbstractRelationship in : origNode.getIncomingRelationships()) {
 
@@ -92,14 +91,14 @@ public class RelationshipHelper {
 
 			}
 
-			Map<String, Object> props = in.getProperties();
-			props.remove(AbstractRelationship.uuid.name());
-			props.remove(AbstractRelationship.createdDate.name());
+			PropertySet props = in.getProperties();
+			props.remove(AbstractRelationship.uuid);
+			props.remove(AbstractRelationship.createdDate);
 			
 			// Overwrite combined rel type with new dest node type
-			props.put(AbstractRelationship.combinedType.name(), EntityContext.createCombinedRelationshipType(in.getStringProperty(AbstractRelationship.combinedType), cloneNode.getClass()));
+			props.put(AbstractRelationship.combinedType, EntityContext.createCombinedRelationshipType(in.getStringProperty(AbstractRelationship.combinedType), cloneNode.getClass()));
 			
-			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType, props, false);
+			AbstractRelationship newInRel = createRel.execute(startNode, cloneNode, relType, props, false);
 
 			// only set componentId if set and avoid setting the component id of the clone node itself
 			if ((componentId != null) &&!(cloneNode.getStringProperty(AbstractNode.uuid).equals(componentId))) {
@@ -135,7 +134,7 @@ public class RelationshipHelper {
 	public static void copyOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode cloneNode, RelType relType, String componentId)
 		throws FrameworkException {
 
-		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+		CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		for (AbstractRelationship out : sourceNode.getOutgoingRelationships()) {
 
@@ -148,10 +147,10 @@ public class RelationshipHelper {
 
 			}
 			
-			Map<String, Object> props = out.getProperties();
-			props.remove(AbstractRelationship.uuid.name());
+			PropertySet props = out.getProperties();
+			props.remove(AbstractRelationship.uuid);
 
-			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(cloneNode, endNode, relType, props, false);
+			AbstractRelationship newOutRel = createRel.execute(cloneNode, endNode, relType, props, false);
 
 			if (componentId != null) {
 
@@ -166,8 +165,8 @@ public class RelationshipHelper {
 
 	public static void removeOutgoingRelationships(SecurityContext securityContext, final AbstractNode node, final RelType relType) throws FrameworkException {
 
-		final Command delRel           = Services.command(securityContext, DeleteRelationshipCommand.class);
-		StructrTransaction transaction = new StructrTransaction() {
+		final DeleteRelationshipCommand delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+		StructrTransaction transaction         = new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
@@ -195,8 +194,8 @@ public class RelationshipHelper {
 
 	public static void removeIncomingRelationships(SecurityContext securityContext, final AbstractNode node, final RelType relType) throws FrameworkException {
 
-		final Command delRel           = Services.command(securityContext, DeleteRelationshipCommand.class);
-		StructrTransaction transaction = new StructrTransaction() {
+		final DeleteRelationshipCommand delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+		StructrTransaction transaction         = new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {

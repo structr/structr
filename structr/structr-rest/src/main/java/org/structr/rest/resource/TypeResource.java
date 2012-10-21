@@ -49,6 +49,7 @@ import org.apache.lucene.search.SortField;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Property;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertySet;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.DateConverter;
 import org.structr.core.converter.IntConverter;
@@ -108,7 +109,6 @@ public class TypeResource extends SortableResource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		AbstractNode topNode                   = null;
 		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
 
@@ -183,8 +183,7 @@ public class TypeResource extends SortableResource {
 				}
 			}
 			// do search
-			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
-				topNode,
+			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
 				includeDeletedAndHidden,
 				publicOnly,
 				searchAttributes,
@@ -265,10 +264,10 @@ public class TypeResource extends SortableResource {
 
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
-		// propertySet.put(AbstractNode.type.name(), StringUtils.toCamelCase(type));
-		propertySet.put(AbstractNode.type.name(), EntityContext.normalizeEntityName(rawType));
-
-		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(propertySet);
+		PropertySet properties = PropertySet.convert(entityClass, propertySet);
+		properties.put(AbstractNode.type, entityClass.getSimpleName());
+		
+		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
 	}
 
 	@Override

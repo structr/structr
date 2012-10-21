@@ -61,7 +61,6 @@ public class LinkCommand extends AbstractCommand {
 
 			try {
 
-				Command transactionCommand     = Services.command(securityContext, TransactionCommand.class);
 				StructrTransaction transaction = new StructrTransaction() {
 
 					@Override
@@ -78,7 +77,7 @@ public class LinkCommand extends AbstractCommand {
 
 				};
 
-				transactionCommand.execute(transaction);
+				Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
 			} catch (Throwable t) {
 

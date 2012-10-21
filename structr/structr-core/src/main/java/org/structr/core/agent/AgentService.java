@@ -262,31 +262,25 @@ public class AgentService extends Thread implements RunnableService {
 		// cache miss
 		if (agentClass == null) {
 
-//                      Set<Class> agentClasses = ClasspathEntityLocator.locateEntitiesByType(Agent.class);
-			try {
-				Map<String, Class> agentClassesMap = (Map<String, Class>) Services.command(securityContext, GetAgentsCommand.class).execute();
+			Map<String, Class<? extends Agent>> agentClassesMap = Services.command(securityContext, GetAgentsCommand.class).execute();
 
-				for (Entry classEntry : agentClassesMap.entrySet()) {
+			for (Entry<String, Class<? extends Agent>> classEntry : agentClassesMap.entrySet()) {
 
-					Class supportedAgentClass = agentClassesMap.get((String) classEntry.getKey());
+				Class<? extends Agent> supportedAgentClass = agentClassesMap.get(classEntry.getKey());
 
-					try {
+				try {
 
-						Agent supportedAgent     = (Agent) supportedAgentClass.newInstance();
-						Class supportedTaskClass = supportedAgent.getSupportedTaskType();
+					Agent supportedAgent     = supportedAgentClass.newInstance();
+					Class supportedTaskClass = supportedAgent.getSupportedTaskType();
 
-						if (supportedTaskClass.equals(taskClass)) {
-							agentClass = supportedAgentClass;
-						}
+					if (supportedTaskClass.equals(taskClass)) {
+						agentClass = supportedAgentClass;
+					}
 
-						agentClassCache.put(supportedTaskClass, supportedAgentClass);
+					agentClassCache.put(supportedTaskClass, supportedAgentClass);
 
-					} catch (IllegalAccessException iaex) {}
-					catch (InstantiationException itex) {}
-				}
-
-			} catch(FrameworkException fex) {
-				fex.printStackTrace();
+				} catch (IllegalAccessException iaex) {}
+				catch (InstantiationException itex) {}
 			}
 		}
 

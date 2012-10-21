@@ -67,14 +67,14 @@ import org.structr.core.*;
  */
 public class ModuleService implements SingletonService {
 
-	private static final Logger logger                             = Logger.getLogger(ModuleService.class.getName());
-	private static final Set<String> nodeEntityPackages            = new LinkedHashSet<String>();
-	private static final Set<String> relationshipPackages          = new LinkedHashSet<String>();
-	private static final Map<String, Class> relationshipClassCache = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Map<String, Class> nodeEntityClassCache   = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
-	private static final Map<String, Set<Class>> interfaceCache    = new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
-	private static final Set<String> agentPackages                 = new LinkedHashSet<String>();
-	private static final Map<String, Class> agentClassCache        = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
+	private static final Logger logger                                       = Logger.getLogger(ModuleService.class.getName());
+	private static final Map<String, Class<? extends Agent>> agentClassCache = new ConcurrentHashMap<String, Class<? extends Agent>>(10, 0.9f, 8);
+	private static final Set<String> nodeEntityPackages                      = new LinkedHashSet<String>();
+	private static final Set<String> relationshipPackages                    = new LinkedHashSet<String>();
+	private static final Map<String, Class> relationshipClassCache           = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
+	private static final Map<String, Class> nodeEntityClassCache             = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
+	private static final Map<String, Set<Class>> interfaceCache              = new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
+	private static final Set<String> agentPackages                           = new LinkedHashSet<String>();
 
 	//~--- methods --------------------------------------------------------
 
@@ -360,7 +360,7 @@ public class ModuleService implements SingletonService {
 
 	}
 
-	public Map<String, Class> getCachedAgents() {
+	public Map<String, Class<? extends Agent>> getCachedAgents() {
 
 		return agentClassCache;
 
@@ -472,7 +472,7 @@ public class ModuleService implements SingletonService {
 
 	}
 
-	public Class getAgentClass(final String name) {
+	public Class<? extends Agent> getAgentClass(final String name) {
 
 		Class ret = null;
 

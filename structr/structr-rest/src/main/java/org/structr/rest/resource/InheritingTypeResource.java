@@ -113,8 +113,7 @@ public class InheritingTypeResource extends TypeResource {
 			}
 
 			// do search
-			final Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
-				topNode,
+			final Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
 				includeDeletedAndHidden,
 				publicOnly,
 				searchAttributes,

@@ -70,7 +70,6 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		if (parameters == null || parameters.length < 2) {
@@ -166,18 +165,19 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 			}
 
 //                      List<String[]> lines = reader.readAll();
-			final Principal userCopy                  = user;
-			final AbstractNode sourceNodeCopy         = csvFileNode;
-			final Command transactionCommand          = Services.command(securityContext, TransactionCommand.class);
-			final Command createNode                  = Services.command(securityContext, CreateNodeCommand.class);
-			final Command createRel                   = Services.command(securityContext, CreateRelationshipCommand.class);
-			final NodeList<AbstractNode> nodeListNode = (NodeList<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
+			final Principal userCopy                    = user;
+			final AbstractNode sourceNodeCopy           = csvFileNode;
+			final TransactionCommand transactionCommand = Services.command(securityContext, TransactionCommand.class);
+			final CreateNodeCommand createNode          = Services.command(securityContext, CreateNodeCommand.class);
+			final CreateRelationshipCommand createRel   = Services.command(securityContext, CreateRelationshipCommand.class);
+			final NodeList<AbstractNode> nodeListNode   = transactionCommand.execute(new StructrTransaction<NodeList<AbstractNode>>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public NodeList<AbstractNode> execute() throws FrameworkException {
 
 					// If the node list node doesn't exist, create one
-					NodeList<AbstractNode> result = (NodeList) createNode.execute(userCopy, new NodeAttribute(AbstractNode.type, NodeList.class.getSimpleName()),
+					NodeList<AbstractNode> result = (NodeList) createNode.execute(
+										new NodeAttribute(AbstractNode.type, NodeList.class.getSimpleName()),
 										new NodeAttribute(AbstractNode.name, sourceNodeCopy.getName() + " List"));
 
 					createRel.execute(sourceNodeCopy, result, RelType.CONTAINS);
@@ -234,7 +234,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
 					for (List<NodeAttribute> attrList : creationList) {
 
-						nodesToAdd.add((AbstractNode) createNode.execute(attrList, false));    // don't index
+						nodesToAdd.add(createNode.execute(attrList));    // don't index
 					}
 
 					// use bulk add

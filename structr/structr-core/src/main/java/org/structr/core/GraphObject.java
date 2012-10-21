@@ -20,8 +20,8 @@
 package org.structr.core;
 
 import java.util.Date;
-import java.util.Map;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertySet;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -181,7 +181,7 @@ public interface GraphObject {
 	 * for this entity.
 	 * 
 	 * @param name
-	 * @return 
+	 * @return the property key
 	 */
 	public PropertyKey getPropertyKeyForName(String name);
 	
@@ -220,7 +220,7 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException 
 	 */
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException;
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException;
 
 	/**
 	 * Called when an entity was successfully created. Please note that this method

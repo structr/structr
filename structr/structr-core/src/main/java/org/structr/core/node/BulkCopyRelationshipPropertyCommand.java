@@ -23,7 +23,6 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 
@@ -44,25 +43,16 @@ import org.structr.core.entity.AbstractRelationship;
  *
  * @author Axel Morgner
  */
-public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand {
+public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = Logger.getLogger(BulkCopyRelationshipPropertyCommand.class.getName());
 
-	//~--- methods --------------------------------------------------------
 	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public void execute(final Map<String, Object> map) throws FrameworkException {
 
 		final GraphDatabaseService graphDb   = (GraphDatabaseService)arguments.get("graphDb");
 		final RelationshipFactory relFactory = (RelationshipFactory)arguments.get("relationshipFactory");
 
-		if(!((parameters != null) && (parameters.length == 1) && (parameters[0] instanceof Map) && !((Map)parameters[0]).isEmpty())) {
-
-			throw new IllegalArgumentException("This command requires one argument of type Map. Map must not be empty.");
-
-		}
-		
-		Map map = (Map)parameters[0];
-		
 		final String sourceKey = (String)map.get("sourceKey");
 		final String destKey   = (String)map.get("destKey");
 
@@ -74,14 +64,12 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand {
 		
 		if(graphDb != null) {
 
-			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-
-			transactionCommand.execute(new BatchTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction() {
 
 				@Override
 				public Object execute(Transaction tx) throws FrameworkException {
 
-					List<AbstractRelationship> rels = (List<AbstractRelationship>)relFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+					List<AbstractRelationship> rels = relFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
 					long n = 0;
 					
 					for(AbstractRelationship rel : rels) {
@@ -117,7 +105,5 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand {
 			});
 
 		}
-
-		return null;
 	}
 }

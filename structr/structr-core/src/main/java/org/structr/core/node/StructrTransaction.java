@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
  *
  * @author cmorgner
  */
-public abstract class StructrTransaction
+public abstract class StructrTransaction<T>
 {
-	public abstract Object execute() throws FrameworkException;
+	public abstract T execute() throws FrameworkException;
 }

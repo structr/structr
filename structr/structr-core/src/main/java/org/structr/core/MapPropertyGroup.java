@@ -28,6 +28,8 @@ import org.structr.common.PropertyKey;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
@@ -39,6 +41,7 @@ import org.structr.common.error.FrameworkException;
  */
 public class MapPropertyGroup implements PropertyGroup {
 
+	private static final Logger logger = Logger.getLogger(MapPropertyGroup.class.getName());
 	private PropertyKey[] propertyKeys = null;
 
 	//~--- constructors ---------------------------------------------------
@@ -78,12 +81,14 @@ public class MapPropertyGroup implements PropertyGroup {
 
 		} else if (source instanceof Map) {
 
+			logger.log(Level.INFO, "Parameter is a Map");
+			
 			for (Entry<String, Object> attr : ((Map<String, Object>) source).entrySet()) {
 
 				String key   = attr.getKey();
 				Object value = attr.getValue();
 
-				if (value instanceof PropertySet) {
+				if (value instanceof JsonInput) {
 
 					setGroupedProperties(value, destination);
 
@@ -96,14 +101,16 @@ public class MapPropertyGroup implements PropertyGroup {
 
 			}
 
-		} else if (source instanceof PropertySet) {
+		} else if (source instanceof JsonInput) {
 
-			for (Entry<String, Object> entry : ((PropertySet)source).getAttributes().entrySet()) {
+			logger.log(Level.INFO, "Parameter is a PropertySet");
+			
+			for (Entry<String, Object> entry : ((JsonInput)source).getAttributes().entrySet()) {
 
 				String key   = entry.getKey();
 				Object value = entry.getValue();
 
-				if (value instanceof PropertySet) {
+				if (value instanceof JsonInput) {
 
 					// recursive put/post
 					setGroupedProperties(value, destination);

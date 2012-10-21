@@ -27,7 +27,6 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
@@ -104,13 +103,13 @@ public abstract class ImageHelper {
 	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType)
 		throws FrameworkException, IOException {
 
-		Command createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
-		Map<String, Object> props = new HashMap();
+		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		PropertySet props                          = new PropertySet();
 
-		props.put(AbstractNode.type.name(), imageType.getSimpleName());
-		props.put(File.contentType.name(), contentType);
+		props.put(AbstractNode.type, imageType.getSimpleName());
+		props.put(File.contentType, contentType);
 
-		Image newImage = (Image) createNodeCommand.execute(props);
+		Image newImage = createNodeCommand.execute(props);
 
 		FileHelper.writeToFile(newImage, imageData);
 

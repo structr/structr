@@ -52,26 +52,22 @@ public class ClearDatabase extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public void execute() throws FrameworkException {
 
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		final NodeFactory nodeFactory      = new NodeFactory(securityContext);
 
 		if (graphDb != null) {
 
-			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+			final DeleteNodeCommand delNode = Services.command(securityContext, DeleteNodeCommand.class);
 
-			// final Command delRel             = Services.command(securityContext, DeleteRelationshipCommand.class);
-			final Command delNode = Services.command(securityContext, DeleteNodeCommand.class);
-
-			transactionCommand.execute(new BatchTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction() {
 
 				@Override
 				public Object execute(Transaction tx) throws FrameworkException {
 
-					long nodes                  = 0L;
-					Result result = (Result) nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+					Result result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+					long nodes    = 0L;
 
 					for (GraphObject obj : result.getResults()) {
 						
@@ -107,7 +103,5 @@ public class ClearDatabase extends NodeServiceCommand {
 			});
 
 		}
-
-		return null;
 	}
 }

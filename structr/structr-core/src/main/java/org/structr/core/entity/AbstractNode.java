@@ -41,7 +41,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
@@ -133,9 +132,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<PropertyKey, Object> cachedConvertedProperties  = new LinkedHashMap<PropertyKey, Object>();
-	protected Map<PropertyKey, Object> cachedRawProperties        = new LinkedHashMap<PropertyKey, Object>();
-	protected Principal cachedOwnerNode                           = null;
+	protected PropertySet cachedConvertedProperties  = new PropertySet();
+	protected PropertySet cachedRawProperties        = new PropertySet();
+	protected Principal cachedOwnerNode              = null;
 
 	// request parameters
 	protected SecurityContext securityContext                     = null;
@@ -146,7 +145,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected Node dbNode;
 
 	// dirty flag, true means that some changes are not yet written to the database
-	protected Map<String, Object> properties;
+	protected PropertySet properties;
 	protected String cachedUuid = null;
 	protected boolean isDirty;
 
@@ -156,12 +155,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	public AbstractNode() {
 
-		this.properties = new HashMap<String, Object>();
+		this.properties = new PropertySet();
 		isDirty         = true;
 
 	}
 
-	public AbstractNode(final Map<String, Object> properties) {
+	public AbstractNode(final PropertySet properties) {
 
 		this.properties = properties;
 		isDirty         = true;
@@ -666,12 +665,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	
 	private Object getProperty(final PropertyKey key, boolean applyConverter) {
 
-		if (key == null) {
-
-			logger.log(Level.SEVERE, "Invalid property key: null");
-
+		// early null check, this should not happen...
+		if (key == null || key.name() == null) {
 			return null;
-
 		}
 		
 		Object value;
@@ -1146,13 +1142,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param type the type of the related node to fetch
 	 * @return a single related node of the given type
 	 */
-	public List<AbstractNode> getRelatedNodes(Class type) {
+	public <T extends AbstractNode> List<T> getRelatedNodes(Class<T> type) {
 
-		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
+		RelationClass<T> rc = EntityContext.getRelationClass(this.getClass(), type);
 
 		if (rc != null) {
 
-			return rc.getRelatedNodes(securityContext, this);
+			return rc.getRelatedNodes(securityContext, (T)this);
 		}
 
 		return Collections.emptyList();
@@ -1167,13 +1163,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param type the type of the related node to fetch
 	 * @return a single related node of the given type
 	 */
-	public List<AbstractNode> getRelatedNodes(PropertyKey<List<? extends AbstractNode>> propertyKey) {
+	public <T extends AbstractNode> List<T> getRelatedNodes(PropertyKey<List<T>> propertyKey) {
 
-		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey);
+		RelationClass<T> rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey);
 
 		if (rc != null) {
 
-			return rc.getRelatedNodes(securityContext, this);
+			return rc.getRelatedNodes(securityContext, (T)this);
 		}
 
 		return Collections.emptyList();
@@ -1506,9 +1502,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
 		
-		cachedUuid = (String)properties.get(uuid.name());
+		cachedUuid = (String)properties.get(uuid);
 		
 		return true;
 	}
@@ -1834,17 +1830,21 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				if (value instanceof Iterable) {
 
 					Collection<GraphObject> collection = rel.getNotion().getCollectionAdapterForSetter(securityContext).adapt(value);
-
 					for (GraphObject graphObject : collection) {
 
-						rel.createRelationship(securityContext, this, graphObject);
+						if (graphObject instanceof AbstractNode) {
+							
+							rel.createRelationship(securityContext, this, (AbstractNode)graphObject);
+						}
 					}
 
 				} else {
 
 					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+					if (graphObject instanceof AbstractNode) {
 
-					rel.createRelationship(securityContext, this, graphObject);
+						rel.createRelationship(securityContext, this, (AbstractNode)graphObject);
+					}
 
 				}
 			} else {
@@ -1864,16 +1864,20 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					for (Object val : ((IterableAdapter) existingValue)) {
 
 						GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(val);
-
-						rel.removeRelationship(securityContext, this, graphObject);
+						if (graphObject instanceof AbstractNode) {
+							
+							rel.removeRelationship(securityContext, this, (AbstractNode)graphObject);
+						}
 
 					}
 
 				} else {
 
 					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(existingValue);
+					if (graphObject instanceof AbstractNode) {
 
-					rel.removeRelationship(securityContext, this, graphObject);
+						rel.removeRelationship(securityContext, this, (AbstractNode)graphObject);
+					}
 
 				}
 			}
@@ -1910,7 +1914,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 				// Don't write directly to database, but store property values
 				// in a map for later use
-				properties.put(key.name(), convertedValue);
+				properties.put(key, convertedValue);
 				
 			} else {
 
@@ -1970,13 +1974,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		cachedRawProperties.remove(key);
 	}
 
-	public void setOwner(final Principal owner) {
+	public void setOwner(final AbstractNode owner) {
 
 		try {
 
-			Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
-
-			setOwner.execute(this, owner);
+			Services.command(securityContext, SetOwnerCommand.class).execute(this, owner);
 
 		} catch (FrameworkException fex) {
 
@@ -1989,7 +1991,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public PropertyKey getPropertyKeyForName(String name) {
 		
-		//TODO: implement this
+		//TODO: implement this correctly!
 		
 		return new Property(name);
 	}

@@ -26,7 +26,6 @@ import org.neo4j.graphdb.Transaction;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.*;
@@ -36,8 +35,7 @@ import org.structr.core.node.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.GraphObject;
-import org.structr.core.Result;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -85,31 +83,25 @@ public class RebuildIndexAgent extends Agent {
 
 		// FIXME: superuser security context
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		Command transactionCommand            = Services.command(securityContext, TransactionCommand.class);
-		Command graphDbCommand                = Services.command(securityContext, GraphDatabaseCommand.class);
-		final GraphDatabaseService graphDb    = (GraphDatabaseService) graphDbCommand.execute();
-		Long noOfNodes                        = (Long) transactionCommand.execute(new BatchTransaction() {
+		final GraphDatabaseService graphDb    = Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		Long noOfNodes                        = Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction<Long>() {
 
 			@Override
-			public Object execute(Transaction tx) throws FrameworkException {
+			public Long execute(Transaction tx) throws FrameworkException {
 
-				long nodes      = 0;
-				Command indexer = Services.command(securityContext, IndexNodeCommand.class);
+				IndexNodeCommand indexer = Services.command(securityContext, IndexNodeCommand.class);
+				long nodes               = 0;
 
 				logger.log(Level.INFO, "Get all nodes ...");
 
-				Result allNodes = (Result) Services.command(securityContext, GetAllNodes.class).execute();
+				List<AbstractNode> allNodes = Services.command(securityContext, GetAllNodes.class).execute();
 
 				logger.log(Level.INFO, "... done. Start indexing {0} nodes ...", allNodes.size());
 				
-				List<? extends GraphObject> list = allNodes.getResults();
+				for (AbstractNode node : allNodes) {
 
-				for (GraphObject obj : list) {
-
-					indexer.execute(obj);
+					indexer.execute(node);
 					
-					obj = null; // help GC
-
 					nodes++;
 
 					if (nodes % 1000 == 0) {
@@ -119,8 +111,6 @@ public class RebuildIndexAgent extends Agent {
 						tx.finish();
 
 						tx = graphDb.beginTx();
-						indexer = null; // help GC
-						indexer = Services.command(securityContext, IndexNodeCommand.class);
 
 						logger.log(Level.FINE, "######## committed ########", nodes);
 
@@ -141,28 +131,24 @@ public class RebuildIndexAgent extends Agent {
 
 		// FIXME: superuser security context
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		Command transactionCommand            = Services.command(securityContext, TransactionCommand.class);
-		Command graphDbCommand                = Services.command(securityContext, GraphDatabaseCommand.class);
-		final GraphDatabaseService graphDb    = (GraphDatabaseService) graphDbCommand.execute();
-		Long noOfRels                         = (Long) transactionCommand.execute(new BatchTransaction() {
+		final GraphDatabaseService graphDb    = Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		Long noOfRels                         = Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction<Long>() {
 
 			@Override
-			public Object execute(Transaction tx) throws FrameworkException {
+			public Long execute(Transaction tx) throws FrameworkException {
 
-				long rels       = 0;
-				Command indexer = Services.command(securityContext, IndexRelationshipCommand.class);
+				IndexRelationshipCommand indexer = Services.command(securityContext, IndexRelationshipCommand.class);
+				long rels                        = 0;
 
 				logger.log(Level.INFO, "Get all relationships ...");
 
-				List<AbstractRelationship> allRelationships = (List<AbstractRelationship>) Services.command(securityContext, GetAllRelationships.class).execute();
+				List<AbstractRelationship> allRelationships = Services.command(securityContext, GetAllRelationships.class).execute();
 
 				logger.log(Level.INFO, "... done. Got {0} relationships.", allRelationships.size());
 
 				for (AbstractRelationship s : allRelationships) {
 
 					indexer.execute(s);
-					
-					s = null; // help GC
 
 					rels++;
 

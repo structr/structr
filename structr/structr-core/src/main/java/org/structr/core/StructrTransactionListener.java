@@ -19,8 +19,8 @@
 
 package org.structr.core;
 
-import java.util.Map;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertySet;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -44,5 +44,5 @@ public interface StructrTransactionListener {
 
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, Map<String, Object> properties) throws FrameworkException;
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertySet properties) throws FrameworkException;
 }

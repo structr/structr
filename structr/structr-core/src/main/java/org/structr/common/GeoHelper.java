@@ -71,19 +71,19 @@ public class GeoHelper {
 
 	public static Location createLocation(final GeoCodingResult coords) throws FrameworkException {
 
-		double latitude                 = coords.getLatitude();
-		double longitude                = coords.getLongitude();
-		String type                     = Location.class.getSimpleName();
-		final Map<String, Object> props = new HashMap<String, Object>();
+		final PropertySet props = new PropertySet();
+		double latitude         = coords.getLatitude();
+		double longitude        = coords.getLongitude();
+		String type             = Location.class.getSimpleName();
 
-		props.put(AbstractNode.type.name(), type);
-		props.put(Location.latitude.name(), latitude);
-		props.put(Location.longitude.name(), longitude);
+		props.put(AbstractNode.type,  type);
+		props.put(Location.latitude,  latitude);
+		props.put(Location.longitude, longitude);
 
-		StructrTransaction transaction = new StructrTransaction() {
+		StructrTransaction transaction = new StructrTransaction<AbstractNode>() {
 
 			@Override
-			public Object execute() throws FrameworkException {
+			public AbstractNode execute() throws FrameworkException {
 				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
 			}
 		};

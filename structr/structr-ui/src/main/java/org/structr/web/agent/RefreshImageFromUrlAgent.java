@@ -88,9 +88,8 @@ public class RefreshImageFromUrlAgent extends Agent {
 
 		// FIXME: superuser security context
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		Command transactionCommand            = Services.command(securityContext, TransactionCommand.class);
 
-		transactionCommand.execute(new StructrTransaction() {
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {

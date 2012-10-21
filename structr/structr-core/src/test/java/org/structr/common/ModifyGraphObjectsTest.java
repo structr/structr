@@ -64,12 +64,12 @@ public class ModifyGraphObjectsTest extends StructrTest {
 		try {
 
 			AbstractNode node;
-			final Map<String, Object> props = new HashMap<String, Object>();
-			String type                     = "UnknownTestType";
-			String name                     = "GenericNode-name";
+			final PropertySet props = new PropertySet();
+			String type             = "UnknownTestType";
+			String name             = "GenericNode-name";
 
-			props.put(AbstractNode.type.name(), type);
-			props.put(AbstractNode.name.name(), name);
+			props.put(AbstractNode.type, type);
+			props.put(AbstractNode.name, name);
 
 			node = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 

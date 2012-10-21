@@ -93,7 +93,6 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 	 * @param parameters
 	 * @return
 	 */
-	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		Principal user          = null;
@@ -259,12 +258,12 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 							String name = flashObjectName + "_" + id + "_" + width + "x" + height + fileExtension;
 
 							// Create new image node
-							Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(user,
+							Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(
 										     new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
 										     new NodeAttribute(AbstractNode.name, name), new NodeAttribute(Image.width, width),
 										     new NodeAttribute(Image.height, height),
 										     new NodeAttribute(org.structr.core.entity.File.contentType, contentType),
-										     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true), true);    // Update index
+										     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
 
 							// Establish HAS_CHILD relationship from parent node
 							Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);

@@ -132,16 +132,16 @@ public class Services {
 	 * @return the command
 	 * @throws NoSuchCommandException
 	 */
-	public static Command command(SecurityContext securityContext, Class commandType) {
+	public static <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
 
 		logger.log(Level.FINER, "Creating command ", commandType.getName());
 
 		Class serviceClass = null;
-		Command command    = null;
+		T command          = null;
 
 		try {
 
-			command      = (Command) commandType.newInstance();
+			command = commandType.newInstance();
 			command.setSecurityContext(securityContext);
 
 			serviceClass = command.getServiceClass();

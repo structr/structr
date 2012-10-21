@@ -38,6 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,7 +72,8 @@ public class InsertCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+					PropertySet nodeProperties = PropertySet.convert(properties);
+					return Services.command(securityContext, CreateNodeCommand.class).execute(nodeProperties);
 
 				}
 
@@ -81,6 +83,7 @@ public class InsertCommand extends AbstractCommand {
 
 				// create node in transaction
 				nodeToInsert = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+				
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
@@ -96,7 +99,8 @@ public class InsertCommand extends AbstractCommand {
 
 					try {
 
-						rel.createRelationship(securityContext, parentNode, nodeToInsert, relData);
+						PropertySet relProperties = PropertySet.convert(relData);
+						rel.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
 
 					} catch (Throwable t) {
 

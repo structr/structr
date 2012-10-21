@@ -74,7 +74,7 @@ public class PagingTest extends StructrTest {
 //
 //                      searchAttributes.add(Search.andType(type));
 //
-//                      Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+//                      Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 //
 //                      assertTrue(result.size() == number);
 //
@@ -131,12 +131,12 @@ public class PagingTest extends StructrTest {
 
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = AbstractNode.name.name();
-			boolean sortDesc = false;
+			PropertyKey sortKey = AbstractNode.name;
+			boolean sortDesc    = false;
 			
 			
 			// test pages sizes from 0 to 10
@@ -160,10 +160,10 @@ public class PagingTest extends StructrTest {
 	}
 
 	protected void testPaging(final int pageSize, final int page, final int number, final int offset, final boolean includeDeletedAndHidden, final boolean publicOnly,
-				final List<SearchAttribute> searchAttributes, final String sortKey, final boolean sortDesc)
+				final List<SearchAttribute> searchAttributes, final PropertyKey sortKey, final boolean sortDesc)
 		throws FrameworkException {
 
-		Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+		Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 //              for (GraphObject obj : result.getResults()) {
 //                      

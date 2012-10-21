@@ -57,6 +57,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.structr.common.PropertySet;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeService.RelationshipIndex;
 
@@ -159,11 +160,7 @@ public class EntityContext {
 	 */
 	public static void init() {
 
-		try {
-			cachedEntities   = (Map<String, Class>) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
-		} catch (FrameworkException ex) {
-			Logger.getLogger(EntityContext.class.getName()).log(Level.SEVERE, null, ex);
-		}
+		cachedEntities = Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
 	}
 
 	/**
@@ -458,6 +455,7 @@ public class EntityContext {
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param propertyConverterClass the type of the converter to register
 	 */
+//	public static <S, T> void registerPropertyConverter(Class type, PropertyKey<T> propertyKey, Class<? extends PropertyConverter<S, T>> propertyConverterClass) {
 	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
 		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
 	}
@@ -470,6 +468,7 @@ public class EntityContext {
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param propertyConverterClass the type of the converter to register
 	 */
+//	public static <S, T> void registerPropertyConverter(Class type, PropertyKey<T> propertyKey, Class<? extends PropertyConverter<S, T>> propertyConverterClass, Value value) {
 	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
 
 		getPropertyConverterMapForType(type).put(propertyKey, propertyConverterClass);
@@ -883,7 +882,7 @@ public class EntityContext {
 	}
 
 	// ----- static relationship methods -----
-	public static RelationClass getRelationClass(Class sourceType, Class destType) {
+	public static <T extends AbstractNode> RelationClass<T> getRelationClass(Class sourceType, Class destType) {
 
 		RelationClass relation = null;
 		Class localType        = sourceType;
@@ -1522,10 +1521,10 @@ public class EntityContext {
 
 			}
 
-			SecurityContext securityContext  = securityContextMap.get(currentThread);
-			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-			Command indexNodeCommand         = Services.command(superUserContext, IndexNodeCommand.class);
-			Command indexRelationshipCommand = Services.command(superUserContext, IndexRelationshipCommand.class);
+			SecurityContext securityContext                   = securityContextMap.get(currentThread);
+			SecurityContext superUserContext                  = SecurityContext.getSuperUserInstance();
+			IndexNodeCommand indexNodeCommand                 = Services.command(superUserContext, IndexNodeCommand.class);
+			IndexRelationshipCommand indexRelationshipCommand = Services.command(superUserContext, IndexRelationshipCommand.class);
 
 			try {
 
@@ -1671,11 +1670,14 @@ public class EntityContext {
 					AbstractRelationship entity = relFactory.createRelationship(securityContext, rel);
 					if (entity != null) {
 						
-						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, removedRelProperties.get(rel));
+						// convert properties
+						PropertySet properties = PropertySet.convert(entity, removedRelProperties.get(rel));
+						
+						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
 						
 						// notify registered listeners
 						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, removedRelProperties.get(rel));
+							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
 						}
 
 						changeSet.delete(entity);
@@ -1711,11 +1713,13 @@ public class EntityContext {
 					
 					if (entity != null) {
 						
-						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, removedNodeProperties.get(node));
+						PropertySet properties = PropertySet.convert(entity, removedNodeProperties.get(node));
+						
+						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
 						
 						// notify registered listeners
 						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, removedNodeProperties.get(node));
+							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
 						}
 
 						changeSet.delete(entity);

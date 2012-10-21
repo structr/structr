@@ -16,19 +16,16 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.module;
 
 /**
  *
  * @author Christian Morgner
  */
-public class GetModuleServiceCommand extends ModuleServiceCommand
-{
-	@Override
-	public Object execute(Object... parameters)
-	{
+public class GetModuleServiceCommand extends ModuleServiceCommand {
+
+	public ModuleService execute() {
+		
 		return (ModuleService)getArgument("moduleService");
 	}
-
 }

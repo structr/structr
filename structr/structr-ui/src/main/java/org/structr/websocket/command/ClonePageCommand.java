@@ -41,11 +41,12 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
+import org.structr.common.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -118,11 +119,9 @@ public class ClonePageCommand extends AbstractCommand {
 
 							if (rel != null) {
 
-								Map<String, Object> relProps = new LinkedHashMap<String, Object>();
+								PropertySet relProps = new PropertySet();
+								relProps.put(new Property(pageId), 0);
 
-								relProps.put(pageId, 0);
-
-								// relProps.put("pageId", pageId);
 								try {
 
 									rel.createRelationship(securityContext, newPage, htmlNode, relProps);

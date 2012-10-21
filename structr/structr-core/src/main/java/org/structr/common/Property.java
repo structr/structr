@@ -28,10 +28,16 @@ import java.util.Set;
 public class Property<T> implements PropertyKey<T> {
 
 	private Set<String> views = new LinkedHashSet<String>();
+	private T defaultValue    = null;
 	private String name       = null;
 	
 	public Property(String name) {
 		this.name = name;
+	}
+	
+	public Property(String name, T defaultValue) {
+		this.name = name;
+		this.defaultValue = defaultValue;
 	}
 	
 	@Override
@@ -40,13 +46,19 @@ public class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public Object defaultValue() {
-		return null;
+	public T defaultValue() {
+		return defaultValue;
 	}
 	
 	@Override
 	public int hashCode() {
-		return name.hashCode();
+		
+		if (name != null) {
+			return name.hashCode();
+		}
+		
+		// TODO: null key is not unique, is that ok?
+		return super.hashCode();
 	}
 	
 	@Override

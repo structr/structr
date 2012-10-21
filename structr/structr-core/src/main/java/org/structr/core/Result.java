@@ -29,9 +29,9 @@ import org.structr.core.GraphObject;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class Result {
+public class Result<T extends GraphObject> {
 
-	private List<? extends GraphObject> results = null;
+	private List<T> results = null;
 	private boolean isCollection = false;
 	private boolean isPrimitiveArray = false;
 	private String propertyView = null;
@@ -48,7 +48,7 @@ public class Result {
 	
 	public static Result EMPTY_RESULT = new Result(Collections.EMPTY_LIST, 0, false, false);
 	
-	public Result(List<? extends GraphObject> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray) {
+	public Result(List<T> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray) {
 		this.isCollection = isCollection;
 		this.isPrimitiveArray = isPrimitiveArray;
 		this.results = listResult;
@@ -56,7 +56,7 @@ public class Result {
 	}
 	
 
-	public GraphObject get(final int i) {
+	public T get(final int i) {
 		return results.get(i);
 	}
 	
@@ -64,7 +64,7 @@ public class Result {
 		return results == null || results.isEmpty();
 	}
 	
-	public List<? extends GraphObject> getResults() {
+	public List<T> getResults() {
 		return results;
 	}
 

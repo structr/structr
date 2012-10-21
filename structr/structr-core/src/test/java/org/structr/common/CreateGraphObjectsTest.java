@@ -85,9 +85,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
 
-			final Map<String, Object> props = new HashMap<String, Object>();
+			final PropertySet props = new PropertySet();
 
-			props.put(AbstractNode.type.name(), "UnknownTestTypeÄÖLß");
+			props.put(AbstractNode.type, "UnknownTestTypeÄÖLß");
 
 			try {
 
@@ -96,10 +96,10 @@ public class CreateGraphObjectsTest extends StructrTest {
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
 
-			node = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
+			node = transactionCommand.execute(new StructrTransaction<AbstractNode>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public AbstractNode execute() throws FrameworkException {
 
 					// Create node with a type which has no entity class => should result in a node of type 'GenericNode'
 					return (AbstractNode) createNodeCommand.execute(props);
@@ -160,7 +160,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 	 */
 	public void test03CheckNodeEntities() {
 
-		final Map<String, Object> props = new HashMap<String, Object>();
+		final PropertySet props = new PropertySet();
 
 		try {
 
@@ -213,21 +213,21 @@ public class CreateGraphObjectsTest extends StructrTest {
 							// For ResourceAccess, fill mandatory fields
 							if (type.equals(ResourceAccess.class.getSimpleName())) {
 
-								props.put(ResourceAccess.signature.name(), "/");
-								props.put(ResourceAccess.flags.name(), 6);
+								props.put(ResourceAccess.signature, "/");
+								props.put(ResourceAccess.flags, 6);
 
 							}
 
 							// For Location, set coordinates
 							if (type.equals(Location.class.getSimpleName())) {
 
-								props.put(Location.latitude.name(), 12.34);
-								props.put(Location.longitude.name(), 56.78);
+								props.put(Location.latitude, 12.34);
+								props.put(Location.longitude, 56.78);
 
 							}
 							
 							logger.log(Level.INFO, "Creating node of type {0}", type);
-							props.put(AbstractNode.type.name(), type);
+							props.put(AbstractNode.type, type);
 
 							AbstractNode node = (AbstractNode) createNodeCommand.execute(props);
 
@@ -236,8 +236,8 @@ public class CreateGraphObjectsTest extends StructrTest {
 							// Remove mandatory fields for ResourceAccess from props map
 							if (type.equals(ResourceAccess.class.getSimpleName())) {
 
-								props.remove(ResourceAccess.signature.name());
-								props.remove(ResourceAccess.flags.name());
+								props.remove(ResourceAccess.signature);
+								props.remove(ResourceAccess.flags);
 
 							}
 
@@ -342,24 +342,24 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> nodes        = createTestNodes("UnknownTestType", 2);
-			final AbstractNode startNode    = nodes.get(0);
-			final AbstractNode endNode      = nodes.get(1);
-			final RelationshipType relType  = RelType.UNDEFINED;
-			final Map<String, Object> props = new HashMap<String, Object>();
+			List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
+			final AbstractNode startNode   = nodes.get(0);
+			final AbstractNode endNode     = nodes.get(1);
+			final RelationshipType relType = RelType.UNDEFINED;
+			final PropertySet props        = new PropertySet();
 
-			props.put("foo", "bar");
-			props.put("bar", 123);
+			props.put(new Property("foo"), "bar");
+			props.put(new Property("bar"), 123);
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
-					AbstractRelationship rel1 = (AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType, props, true);
+					AbstractRelationship rel1 = createRelationshipCommand.execute(startNode, endNode, relType, props, true);
 
 					assertTrue(rel1 != null);
 
-					AbstractRelationship rel2 = (AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType, props, true);
+					AbstractRelationship rel2 = createRelationshipCommand.execute(startNode, endNode, relType, props, true);
 
 					assertTrue(rel2 == null);
 

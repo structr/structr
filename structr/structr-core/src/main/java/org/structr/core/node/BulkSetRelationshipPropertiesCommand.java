@@ -27,7 +27,6 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -54,32 +53,22 @@ import org.structr.core.node.search.SearchRelationshipCommand;
  *
  * @author Axel Morgner
  */
-public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
+public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = Logger.getLogger(BulkSetRelationshipPropertiesCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		final RelationshipFactory relationshipFactory      = (RelationshipFactory) arguments.get("relationshipFactory");
-                final Command searchRel = Services.command(SecurityContext.getSuperUserInstance(), SearchRelationshipCommand.class);
+		final GraphDatabaseService graphDb            = (GraphDatabaseService) arguments.get("graphDb");
+		final RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
+                final SearchRelationshipCommand searchRel     = Services.command(SecurityContext.getSuperUserInstance(), SearchRelationshipCommand.class);
                 
-                if (!((parameters != null) && (parameters.length == 1) && (parameters[0] instanceof Map) && !((Map) parameters[0]).isEmpty())) {
-                        
-                        throw new IllegalArgumentException("This command requires one argument of type Map. Map must not be empty.");
-                        
-                }
-                
-                final Map<String, Object> properties = (Map<String, Object>) parameters[0];
-
 		if (graphDb != null) {
 
-			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-
-			transactionCommand.execute(new BatchTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction() {
 
 				@Override
 				public Object execute(Transaction tx) throws FrameworkException {
@@ -140,7 +129,5 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 			});
 
 		}
-
-		return null;
 	}
 }

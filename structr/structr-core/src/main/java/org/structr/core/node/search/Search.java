@@ -101,45 +101,37 @@ public abstract class Search {
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 		// attrs.add(Search.orExactType(searchString));
-		try {
+		SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		Map<String, Class> entities      = Services.command(superUserContext, GetEntitiesCommand.class).execute();
+		Class parentClass                = entities.get(searchString);
 
-			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-			Map<String, Class> entities      = (Map) Services.command(superUserContext, GetEntitiesCommand.class).execute();
-			Class parentClass                = entities.get(searchString);
+		if (parentClass == null) {
 
-			if (parentClass == null) {
+			// no entity class for the given type found,
+			// examine interface types and subclasses
+			ModuleService moduleService    = (ModuleService) Services.command(superUserContext, GetModuleServiceCommand.class).execute();
+			Set<Class> classesForInterface = moduleService.getClassesForInterface(EntityContext.normalizeEntityName(searchString));
 
-				// no entity class for the given type found,
-				// examine interface types and subclasses
-				ModuleService moduleService    = (ModuleService) Services.command(superUserContext, GetModuleServiceCommand.class).execute();
-				Set<Class> classesForInterface = moduleService.getClassesForInterface(EntityContext.normalizeEntityName(searchString));
+			if (classesForInterface != null) {
 
-				if (classesForInterface != null) {
+				for (Class clazz : classesForInterface) {
 
-					for (Class clazz : classesForInterface) {
-
-						attrs.addAll(getExactTypeAndSubtypesInternal(clazz.getSimpleName()));
-					}
-
-				}
-
-				return attrs;
-			}
-
-			for (Map.Entry<String, Class> entity : entities.entrySet()) {
-
-				Class entityClass = entity.getValue();
-
-				if (parentClass.isAssignableFrom(entityClass)) {
-
-					attrs.add(Search.orExactType(entity.getKey()));
+					attrs.addAll(getExactTypeAndSubtypesInternal(clazz.getSimpleName()));
 				}
 
 			}
 
-		} catch (FrameworkException fex) {
+			return attrs;
+		}
 
-			logger.log(Level.WARNING, "Unable to add subtypes to search attributes", fex);
+		for (Map.Entry<String, Class> entity : entities.entrySet()) {
+
+			Class entityClass = entity.getValue();
+
+			if (parentClass.isAssignableFrom(entityClass)) {
+
+				attrs.add(Search.orExactType(entity.getKey()));
+			}
 
 		}
 
@@ -564,13 +556,13 @@ public abstract class Search {
 
 		try {
 
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+			Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(searchAttrs);
 
 			if (result != null) {
 
-				for (GraphObject obj : result.getResults()) {
+				for (AbstractNode node : result.getResults()) {
 
-					names.add(((AbstractNode) obj).getName());
+					names.add(node.getName());
 				}
 
 			}

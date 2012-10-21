@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -48,9 +47,9 @@ public interface Principal extends GraphObject {
 
 	public void block() throws FrameworkException;
 
-	public void grant(final Permission permission, final AccessControllable obj);
+	public void grant(final Permission permission, final AbstractNode obj);
 
-	public void revoke(final Permission permission, final AccessControllable obj);
+	public void revoke(final Permission permission, final AbstractNode obj);
 
 	//~--- get methods ----------------------------------------------------
 

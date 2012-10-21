@@ -28,7 +28,6 @@ import org.neo4j.graphdb.NotFoundException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Services;
-import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -55,38 +54,14 @@ public class FindNodeCommand extends NodeServiceCommand {
 	private NodeFactory nodeFactory;
 
 	//~--- methods --------------------------------------------------------
-
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
-
-		graphDb     = (GraphDatabaseService) arguments.get("graphDb");
-		nodeFactory = new NodeFactory(securityContext);
-
-		if (graphDb != null) {
-
-			switch (parameters.length) {
-
-				case 0 :
-					throw new UnsupportedArgumentError("No arguments supplied");
-
-				case 1 :
-					return (handleSingleArgument(nodeFactory, parameters[0]));
-
-				default :
-					throw new UnsupportedArgumentError("Too many arguments supplied");
-
-			}
-
-		}
-
-		return null;
-
+	public AbstractNode execute(final Object argument) throws FrameworkException {
+		return handleSingleArgument(nodeFactory, argument);
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private Object handleSingleArgument(final NodeFactory nodeFactory, final Object argument) throws FrameworkException {
+	private AbstractNode handleSingleArgument(final NodeFactory nodeFactory, final Object argument) throws FrameworkException {
 
-		Object result;
+		AbstractNode result;
 
 		if (argument instanceof Node) {
 

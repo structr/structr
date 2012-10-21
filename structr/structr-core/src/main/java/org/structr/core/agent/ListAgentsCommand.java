@@ -19,28 +19,22 @@
 
 package org.structr.core.agent;
 
-import java.util.Collection;
-
 /**
  * Returns a collection of the currently running agents.
  *
- * @author chrisi
+ * @author Christian Morgner
  */
-public class ListAgentsCommand extends AgentServiceCommand
-{
+public class ListAgentsCommand extends AgentServiceCommand {
 
-	@Override
-	public Object execute(Object... parameters)
-	{
+	public Object execute(Object... parameters) {
+		
 		AgentService agentService = (AgentService)arguments.get("agentService");
-		Collection<Agent> ret = null;
-
-		if(agentService != null)
-		{
-			agentService.getRunningAgents();
+		if(agentService != null) {
+			
+			return agentService.getRunningAgents();
 		}
 
-		return(ret);
+		return null;
 	}
 
 }

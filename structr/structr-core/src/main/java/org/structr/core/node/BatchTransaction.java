@@ -41,7 +41,7 @@ import org.structr.common.error.FrameworkException;
  *
  * @author amorgner
  */
-public abstract class BatchTransaction
+public abstract class BatchTransaction<T>
 {
-	public abstract Object execute(Transaction tx) throws FrameworkException;
+	public abstract T execute(Transaction tx) throws FrameworkException;
 }

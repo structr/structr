@@ -98,8 +98,8 @@ public class Image extends File {
 
 	public void removeThumbnails() {
 
-		Command deleteRelationship = Services.command(securityContext, DeleteRelationshipCommand.class);
-		Command deleteNode         = Services.command(securityContext, DeleteNodeCommand.class);
+		DeleteRelationshipCommand deleteRelationship = Services.command(securityContext, DeleteRelationshipCommand.class);
+		DeleteNodeCommand deleteNode                 = Services.command(securityContext, DeleteNodeCommand.class);
 
 		for (AbstractRelationship s : getThumbnailRelationships()) {
 
@@ -268,14 +268,12 @@ public class Image extends File {
 
 		try {
 
-			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-
-			thumbnail = (Image) transactionCommand.execute(new StructrTransaction() {
+			thumbnail = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Image>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public Image execute() throws FrameworkException {
 
-					Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
+					CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 					Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 
@@ -308,7 +306,7 @@ public class Image extends File {
 						if (thumbnail != null) {
 
 							// Create a thumbnail relationship
-							AbstractRelationship thumbnailRelationship = (AbstractRelationship) createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL);
+							AbstractRelationship thumbnailRelationship = createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL);
 
 							// Add to cache list
 							thumbnailRelationships.add(thumbnailRelationship);

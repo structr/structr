@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.GenericRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,86 +55,59 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	/**
-	 * First argument is the AbstractNode to get relationships for.
-	 * Second argument is relationship type {@see RelationshipType} (can be null)
-	 * Third argument is direction {@see Direction}
-	 *
-	 * @param parameters
-	 * @return list with relationships that match relationship type and direction
+	 * Fetch relationships for the given source node.
+	 * 
+	 * @param sourceNode
+	 * @param relType can be null
+	 * @param dir
+	 * 
+	 * @return a list of relationships
+	 * @throws FrameworkException 
 	 */
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public List<AbstractRelationship> execute(AbstractNode sourceNode, RelationshipType relType, Direction dir) throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		RelationshipFactory factory  = new RelationshipFactory(securityContext);
-
-		// Avoid to return null
+		RelationshipFactory factory       = new RelationshipFactory(securityContext);
 		List<AbstractRelationship> result = new LinkedList<AbstractRelationship>();
+		Node node                         = sourceNode.getNode();
+		Iterable<Relationship> rels       = null;
 
-		if (parameters.length == 3) {
-
-			Object arg0              = parameters[0];
-			Object arg1              = parameters[1];
-			Object arg2              = parameters[2];
-			AbstractNode sNode       = (AbstractNode) arg0;
-			RelationshipType relType = (RelationshipType) arg1;
-			Direction dir            = (Direction) arg2;
-			Node node                = null;
-			long id                  = -1;
-
-			try {
-
-				id = sNode.getId();
-
-				if (id > -1) {
-					node = graphDb.getNodeById(sNode.getId());
-				} else {
-					return result;
-				}
-
-			} catch (Exception e) {
-
-				logger.log(Level.WARNING, "Not found: " + id, e.getMessage());
-
-				return result;
-			}
-
-			Iterable<Relationship> rels;
-
-			if (arg1 != null) {
-				rels = node.getRelationships(relType, dir);
-			} else {
-				rels = node.getRelationships(dir);
-			}
-
-			try {
-
-				for (Relationship r : rels) {
-					result.add(factory.createRelationship(securityContext, r));
-				}
-
-			} catch (RuntimeException e) {
-
-				logger.log(Level.WARNING, "Exception occured: ", e.getMessage());
-
-				/**
-				 * ********* FIXME 
-				 *
-				 * Here an exception occurs:
-				 *
-				 * org.neo4j.kernel.impl.nioneo.store.InvalidRecordException: Node[5] is neither firstNode[37781] nor secondNode[37782] for Relationship[188125]
-				 * at org.neo4j.kernel.impl.nioneo.xa.ReadTransaction.getMoreRelationships(ReadTransaction.java:131)
-				 * at org.neo4j.kernel.impl.nioneo.xa.NioNeoDbPersistenceSource$ReadOnlyResourceConnection.getMoreRelationships(NioNeoDbPersistenceSource.java:280)
-				 * at org.neo4j.kernel.impl.persistence.PersistenceManager.getMoreRelationships(PersistenceManager.java:100)
-				 * at org.neo4j.kernel.impl.core.NodeManager.getMoreRelationships(NodeManager.java:585)
-				 * at org.neo4j.kernel.impl.core.NodeImpl.getMoreRelationships(NodeImpl.java:358)
-				 * at org.neo4j.kernel.impl.core.IntArrayIterator.hasNext(IntArrayIterator.java:115)
-				 *
-				 *
-				 */
-			}
+		if (relType != null) {
+			
+			rels = node.getRelationships(relType, dir);
+			
+		} else {
+			
+			rels = node.getRelationships(dir);
 		}
 
+		try {
+
+			for (Relationship r : rels) {
+				
+				result.add(factory.createRelationship(securityContext, r));
+			}
+
+		} catch (RuntimeException e) {
+
+			logger.log(Level.WARNING, "Exception occured: ", e.getMessage());
+
+			/**
+				* ********* FIXME 
+				*
+				* Here an exception occurs:
+				*
+				* org.neo4j.kernel.impl.nioneo.store.InvalidRecordException: Node[5] is neither firstNode[37781] nor secondNode[37782] for Relationship[188125]
+				* at org.neo4j.kernel.impl.nioneo.xa.ReadTransaction.getMoreRelationships(ReadTransaction.java:131)
+				* at org.neo4j.kernel.impl.nioneo.xa.NioNeoDbPersistenceSource$ReadOnlyResourceConnection.getMoreRelationships(NioNeoDbPersistenceSource.java:280)
+				* at org.neo4j.kernel.impl.persistence.PersistenceManager.getMoreRelationships(PersistenceManager.java:100)
+				* at org.neo4j.kernel.impl.core.NodeManager.getMoreRelationships(NodeManager.java:585)
+				* at org.neo4j.kernel.impl.core.NodeImpl.getMoreRelationships(NodeImpl.java:358)
+				* at org.neo4j.kernel.impl.core.IntArrayIterator.hasNext(IntArrayIterator.java:115)
+				*
+				*
+				*/
+		}
+		
 		return result;
 	}
 }

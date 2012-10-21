@@ -115,7 +115,7 @@ public class UuidResource extends FilterableResource {
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		Result results = (Result) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, true, false, attrs);
+		Result results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
 		int size       = results.size();
 
 		switch (size) {
@@ -148,7 +148,7 @@ public class UuidResource extends FilterableResource {
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		List<AbstractRelationship> results = (List<AbstractRelationship>) Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs);
+		List<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs);
 		int size                           = results.size();
 
 		switch (size) {

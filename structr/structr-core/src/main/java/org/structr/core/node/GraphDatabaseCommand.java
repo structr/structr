@@ -19,15 +19,15 @@
 
 package org.structr.core.node;
 
+import org.neo4j.graphdb.GraphDatabaseService;
+
 /**
  *
  * @author cmorgner
  */
-public class GraphDatabaseCommand extends NodeServiceCommand
-{
-	@Override
-	public Object execute(Object... parameters)
-	{
-		return(arguments.get("graphDb"));
+public class GraphDatabaseCommand extends NodeServiceCommand {
+	
+	public GraphDatabaseService execute() {
+		return (GraphDatabaseService)arguments.get("graphDb");
 	}
 }

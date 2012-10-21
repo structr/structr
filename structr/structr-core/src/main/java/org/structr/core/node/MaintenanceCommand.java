@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,27 +16,15 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.structr.core.node;
 
-package org.structr.core.module;
+import java.util.Map;
+import org.structr.common.error.FrameworkException;
 
 /**
- * steps:
- *  - open module JAR
- *  - create index from contents, store in $BASEDIR/modules/index/$NAME.index
- *  - add module to ModuleService
- *  - add entities to Services.entityClassCache
- *  - service commands need to be accessible by class loader etc..
- *  - on success: add to global module index ($BASEDIR/modules/modules.conf) => module is active
  *
  * @author Christian Morgner
  */
-public class InstallModuleCommand extends ModuleServiceCommand
-{
-
-	@Override
-	public Object execute(Object... parameters)
-	{
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
+public interface MaintenanceCommand {
+	public void execute(Map<String, Object> attributes) throws FrameworkException;
 }

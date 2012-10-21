@@ -52,8 +52,8 @@ public class PathHelper {
 
 	public AbstractNode find(String path) {
 
-		AbstractNode node       = null;
-		Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
+		FindNodeCommand findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
+		AbstractNode node               = null;
 
 		try {
 

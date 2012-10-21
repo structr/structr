@@ -36,6 +36,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertySet;
 import org.structr.core.entity.File;
 
 //~--- classes ----------------------------------------------------------------
@@ -63,7 +64,10 @@ public class CreateCommand extends AbstractCommand {
 
 				nodeData.put(AbstractNode.visibleToAuthenticatedUsers.name(), true);
 
-				return Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
+				// convert
+				PropertySet properties = PropertySet.convert(nodeData);
+				
+				return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
 			}
 		};
 

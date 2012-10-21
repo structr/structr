@@ -35,9 +35,9 @@ import org.structr.core.entity.GenericRelationship;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,16 +67,17 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 	//~--- methods --------------------------------------------------------
 
-	public AbstractRelationship createRelationship(final SecurityContext securityContext, final String combinedRelType) throws FrameworkException {
+	public T createRelationship(final SecurityContext securityContext, final String combinedRelType) throws FrameworkException {
 
-		AbstractRelationship newRel = null;
-		Class relClass              = EntityContext.getNamedRelationClass(combinedRelType);
+		Class<T> relClass = EntityContext.getNamedRelationClass(combinedRelType);
+		T newRel          = null;
 
 		if (relClass != null) {
 
 			try {
-				newRel = (AbstractRelationship) relClass.newInstance();				
+				newRel = relClass.newInstance();				
 				newRel.onRelationshipInstantiation();
+				
 			} catch (InstantiationException ex) {
 				logger.log(Level.FINE, "Could not instantiate relationship", ex);
 			} catch (IllegalAccessException ex) {
@@ -89,20 +90,20 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		return newRel;
 	}
 
-	public AbstractRelationship createRelationship(final SecurityContext securityContext, final Map properties) throws FrameworkException {
+	public T createRelationship(final SecurityContext securityContext, final PropertySet properties) throws FrameworkException {
 
-		String combinedRelType      = (String) properties.get(AbstractRelationship.combinedType.name());
-		AbstractRelationship newRel = createRelationship(securityContext, combinedRelType);
+		String combinedRelType = (String) properties.get(AbstractRelationship.combinedType);
+		T newRel               = createRelationship(securityContext, combinedRelType);
 
 		newRel.setProperties(properties);
 
 		return newRel;
 	}
 
-	public AbstractRelationship createRelationship(final SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
+	public T createRelationship(final SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
 
-		AbstractRelationship newRel = null;
-		Class relClass;
+		Class<T> relClass = null;
+		T newRel          = null;
 
 		try {
 
@@ -110,7 +111,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 			if (relClass != null) {
 
 				try {
-					newRel = (AbstractRelationship) relClass.newInstance();
+					newRel = relClass.newInstance();
 				} catch (Throwable t2) {
 					newRel = null;
 				}
@@ -136,27 +137,23 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		} catch (Throwable t) {}
 
 		if (newRel == null) {
-
-			newRel = new GenericRelationship();
-
+			newRel = (T)new GenericRelationship();
 		}
 
 		newRel.init(securityContext, relationship);
 		newRel.onRelationshipInstantiation();
-
+			
 		return newRel;
 	}
 
-//      @Override
-//      protected void finalize() throws Throwable {
-//          nodeTypeCache.clear();
-//      }
 	@Override
 	public T adapt(Relationship s) {
 
 		try {
-			return ((T) createRelationship(securityContext, s));
+			return createRelationship(securityContext, s);
+			
 		} catch (FrameworkException fex) {
+			
 			logger.log(Level.WARNING, "Unable to adapt relationship", fex);
 		}
 
@@ -169,15 +166,15 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 	 * @param input
 	 * @return
 	 */
-	public List<AbstractRelationship> createRelationships(final SecurityContext securityContext, final Iterable<Relationship> input) throws FrameworkException {
+	public List<T> createRelationships(final SecurityContext securityContext, final Iterable<Relationship> input) throws FrameworkException {
 
-		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
+		List<T> rels = new LinkedList<T>();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
 			for (Relationship rel : input) {
 
-				AbstractRelationship n = createRelationship(securityContext, rel);
+				T n = createRelationship(securityContext, rel);
 
 				rels.add(n);
 
@@ -187,48 +184,8 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		return rels;
 	}
-//
-//	public AbstractRelationship createRelationship(final SecurityContext securityContext, final RelationshipDataContainer data) throws FrameworkException {
-//
-//		if (data == null) {
-//
-//			logger.log(Level.SEVERE, "Could not create relationship: Empty data container.");
-//
-//			return null;
-//
-//		}
-//
-//		Map properties              = data.getProperties();
-//		String combinedRelType      = properties.containsKey(AbstractRelationship.HiddenKey.combinedType.name())
-//					      ? (String) properties.get(AbstractRelationship.HiddenKey.combinedType.name())
-//					      : null;
-//		Class relClass              = EntityContext.getNamedRelationClass(combinedRelType);
-//		AbstractRelationship newRel = null;
-//
-//		if (relClass != null) {
-//
-//			try {
-//				newRel = (AbstractRelationship) relClass.newInstance();
-//			} catch (Throwable t) {
-//				newRel = null;
-//			}
-//
-//		}
-//
-//		if (newRel == null) {
-//
-//			newRel = new GenericRelationship();
-//
-//		}
-//
-//		newRel.init(securityContext, data);
-//		newRel.commit();
-//		newRel.onRelationshipInstantiation();
-//
-//		return newRel;
-//	}
 	
-	private Class findNamedRelation(Relationship relationship) {
+	private Class<T> findNamedRelation(Relationship relationship) {
 		
 		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.type.name());
 		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.type.name());

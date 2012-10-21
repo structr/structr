@@ -67,7 +67,6 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
 	 * @param parameters
 	 * @return
 	 */
-	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		Principal user          = null;
@@ -116,10 +115,10 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
 	 */
 	private List<Image> saveImagesFromWebsiteUrl(final Principal user, final String urlString, final AbstractNode parentNode) throws FrameworkException {
 
-		Command saveImage  = Services.command(securityContext, SaveImageFromUrl.class);
-		List<Image> result = new LinkedList<Image>();
-		Document doc       = Jsoup.parse(urlString);
-		Elements elements  = doc.getElementsByTag("img");
+		SaveImageFromUrl saveImage = Services.command(securityContext, SaveImageFromUrl.class);
+		List<Image> result         = new LinkedList<Image>();
+		Document doc               = Jsoup.parse(urlString);
+		Elements elements          = doc.getElementsByTag("img");
 
 		for (Element el : elements) {
 

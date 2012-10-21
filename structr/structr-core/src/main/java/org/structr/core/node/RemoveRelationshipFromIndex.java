@@ -54,64 +54,26 @@ public class RemoveRelationshipFromIndex extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
-
-		Command findRel = Services.command(securityContext, FindRelationshipCommand.class);
-
-		for (Enum indexName : (NodeService.RelationshipIndex[]) arguments.get("relationshipIndices")) {
-
-			indices.put(indexName, (Index<Relationship>) arguments.get(indexName.name()));
-
-		}
-
-		long id                  = 0;
-		AbstractRelationship rel = null;
-
-		switch (parameters.length) {
-
-			case 1 :
-
-				// remove this node from index
-				if (parameters[0] instanceof Long) {
-
-					id  = ((Long) parameters[0]).longValue();
-					rel = (AbstractRelationship) findRel.execute(id);
-
-					removeRelationshipFromAllIndices(rel);
-
-				} else if (parameters[0] instanceof String) {
-
-					id  = Long.parseLong((String) parameters[0]);
-					rel = (AbstractRelationship) findRel.execute(id);
-
-					removeRelationshipFromAllIndices(rel);
-
-				} else if (parameters[0] instanceof AbstractRelationship) {
-
-					rel = (AbstractRelationship) parameters[0];
-
-					removeRelationshipFromAllIndices(rel);
-
-				} else if (parameters[0] instanceof List) {
-
-					removeNodesFromAllIndices((List<AbstractRelationship>) parameters[0]);
-
-				}
-
-				break;
-
-			default :
-				logger.log(Level.SEVERE, "Wrong number of parameters for the remove relationship from index command: {0}", parameters);
-
-				return null;
-
-		}
-
-		return null;
+	public void execute(List<AbstractRelationship> relationships) throws FrameworkException {
+		
+		init();
+		removeRelationshipsFromAllIndices(relationships);
 	}
 
-	private void removeNodesFromAllIndices(final List<AbstractRelationship> rels) {
+	public void execute(AbstractRelationship relationship) throws FrameworkException {
+		
+		init();
+		removeRelationshipFromAllIndices(relationship);
+	}
+
+	private void init() {
+
+		for (Enum indexName : (NodeService.RelationshipIndex[]) arguments.get("relationshipIndices")) {
+			indices.put(indexName, (Index<Relationship>) arguments.get(indexName.name()));
+		}
+	}
+	
+	private void removeRelationshipsFromAllIndices(final List<AbstractRelationship> rels) {
 
 		for (AbstractRelationship rel : rels) {
 

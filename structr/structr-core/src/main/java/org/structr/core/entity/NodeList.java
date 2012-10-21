@@ -43,7 +43,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
 import org.structr.core.node.NodeFactory;
-import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -90,9 +89,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 	//~--- fields ---------------------------------------------------------
 
 	private Set<Decorator<AbstractNode>> decorators = new LinkedHashSet<Decorator<AbstractNode>>();
-	private Command factory                         = null;
+	private NodeFactory factory                     = null;
 	private int maxLength                           = -1;
-	private Command transaction                     = null;
+	private TransactionCommand transaction           = null;
 	private Set<Evaluator> evaluators               = new LinkedHashSet<Evaluator>();
 
 	//~--- constructors ---------------------------------------------------
@@ -107,7 +106,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		this.maxLength   = maxLength;
 		this.transaction = Services.command(securityContext, TransactionCommand.class);
-		this.factory     = Services.command(securityContext, NodeFactoryCommand.class);;
+		this.factory     = new NodeFactory(securityContext);
 
 	}
 
@@ -881,7 +880,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 			if (node != null) {
 
-				return ((AbstractNode) factory.execute(node));
+				return factory.createNode(node);
 			}
 
 		} catch (FrameworkException fex) {
@@ -916,7 +915,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		try {
 
-			return ((AbstractNode) factory.execute(getLastRawNode()));
+			return factory.createNode(getLastRawNode());
 
 		} catch (FrameworkException fex) {
 

@@ -21,7 +21,7 @@
 
 package org.structr.core.entity;
 
-import java.util.Map;
+import org.structr.common.PropertySet;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -45,7 +45,7 @@ public class GenericNode extends AbstractNode {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
 		return true;
 	}
 }

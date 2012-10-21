@@ -21,6 +21,7 @@ package org.structr.core;
 import java.util.*;
 import org.structr.common.Property;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertySet;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -31,9 +32,7 @@ import org.structr.core.entity.AbstractNode;
  * @author Christian Morgner
  */
 
-public class GraphObjectMap implements GraphObject, Map<PropertyKey, Object> {
-
-	private Map<PropertyKey, Object> values = new LinkedHashMap<PropertyKey, Object>();
+public class GraphObjectMap extends PropertySet implements GraphObject {
 
 	@Override
 	public long getId() {
@@ -52,12 +51,12 @@ public class GraphObjectMap implements GraphObject, Map<PropertyKey, Object> {
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
-		return values.keySet();
+		return properties.keySet();
 	}
 
 	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {
-		values.put(key, value);
+		properties.put(key, value);
 	}
 
 	@Override
@@ -102,7 +101,7 @@ public class GraphObjectMap implements GraphObject, Map<PropertyKey, Object> {
 
 	@Override
 	public void removeProperty(PropertyKey key) throws FrameworkException {
-		values.remove(key);
+		properties.remove(key);
 	}
 
 	@Override
@@ -130,7 +129,7 @@ public class GraphObjectMap implements GraphObject, Map<PropertyKey, Object> {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
 		return true;
 	}
 
@@ -165,62 +164,62 @@ public class GraphObjectMap implements GraphObject, Map<PropertyKey, Object> {
 	// ----- interface map -----
 	@Override
 	public int size() {
-		return values.size();
+		return properties.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return values.isEmpty();
+		return properties.isEmpty();
 	}
 
 	@Override
 	public boolean containsKey(Object key) {
-		return values.containsKey(key);
+		return properties.containsKey(key);
 	}
 
 	@Override
 	public boolean containsValue(Object value) {
-		return values.containsValue(value);
+		return properties.containsValue(value);
 	}
 
 	@Override
 	public Object get(Object key) {
-		return values.get(key);
+		return properties.get(key);
 	}
 
 	@Override
 	public Object put(PropertyKey key, Object value) {
-		return values.put(key, value);
+		return properties.put(key, value);
 	}
 
 	@Override
 	public Object remove(Object key) {
-		return values.remove(key);
+		return properties.remove(key);
 	}
 
 	@Override
 	public void putAll(Map m) {
-		values.putAll(m);
+		properties.putAll(m);
 	}
 
 	@Override
 	public void clear() {
-		values.clear();
+		properties.clear();
 	}
 
 	@Override
 	public Set keySet() {
-		return values.keySet();
+		return properties.keySet();
 	}
 
 	@Override
 	public Collection values() {
-		return values.values();
+		return properties.values();
 	}
 
 	@Override
 	public Set entrySet() {
-		return values.entrySet();
+		return properties.entrySet();
 	}
 
 	@Override

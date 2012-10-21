@@ -131,9 +131,9 @@ public abstract class Resource {
 	// ----- methods -----
 	public RestMethodResult doDelete() throws FrameworkException {
 
-		final Command deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
-		final Command deleteRel  = Services.command(securityContext, DeleteRelationshipCommand.class);
-		Iterable<? extends GraphObject> results;
+		final DeleteNodeCommand deleteNode        = Services.command(securityContext, DeleteNodeCommand.class);
+		final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+		Iterable<? extends GraphObject> results   = null;
 
 		// catch 204, DELETE must return 200 if resource is empty
 		try {
@@ -155,7 +155,7 @@ public abstract class Resource {
 
 						if (obj instanceof AbstractRelationship) {
 
-							deleteRel.execute(obj);
+							deleteRel.execute((AbstractRelationship)obj);
 
 						} else if (obj instanceof AbstractNode) {
 
@@ -178,7 +178,7 @@ public abstract class Resource {
 //
 //                                                      }
 							// delete cascading
-							deleteNode.execute(obj, true);
+							deleteNode.execute((AbstractNode)obj, true);
 						}
 
 					}
@@ -338,18 +338,15 @@ public abstract class Resource {
 
 	protected ResourceAccess findGrant() throws FrameworkException {
 
-		final Command search                         = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+		final SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
 		final String uriPart                         = EntityContext.normalizeEntityName(this.getResourceSignature());
 		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		final AbstractNode topNode                   = null;
-		final boolean includeDeletedAndHidden        = false;
-		final boolean publicOnly                     = false;
-		ResourceAccess grant                   = null;
+		ResourceAccess grant                         = null;
 
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
 		searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, uriPart));
 
-		final Result result = (Result) search.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+		final Result result = search.execute(searchAttributes);
 
 		if (result.isEmpty()) {
 

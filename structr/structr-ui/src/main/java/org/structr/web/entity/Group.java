@@ -58,14 +58,14 @@ public class Group extends AbstractNode implements Principal {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void grant(Permission permission, AccessControllable obj) {
+	public void grant(Permission permission, AbstractNode obj) {
 
 		obj.getSecurityRelationship(this).addPermission(permission);
 
 	}
 
 	@Override
-	public void revoke(Permission permission, AccessControllable obj) {
+	public void revoke(Permission permission, AbstractNode obj) {
 
 		obj.getSecurityRelationship(this).removePermission(permission);
 

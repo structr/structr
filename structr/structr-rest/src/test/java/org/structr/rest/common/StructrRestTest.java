@@ -30,7 +30,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -67,6 +66,7 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.hamcrest.Matcher;
+import org.structr.common.PropertySet;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.context.ApplicationContextListener;
@@ -88,13 +88,13 @@ public class StructrRestTest extends TestCase {
 	//~--- fields ---------------------------------------------------------
 
 	protected Map<String, String> context = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
-	protected Command createNodeCommand;
-	protected Command createRelationshipCommand;
-	protected Command deleteNodeCommand;
-	protected Command findNodeCommand;
-	protected Command graphDbCommand;
+	protected CreateNodeCommand createNodeCommand;
+	protected CreateRelationshipCommand createRelationshipCommand;
+	protected DeleteNodeCommand deleteNodeCommand;
+	protected FindNodeCommand findNodeCommand;
+	protected GraphDatabaseCommand graphDbCommand;
 	protected SecurityContext securityContext;
-	protected Command transactionCommand;
+	protected TransactionCommand transactionCommand;
 
 	// the jetty server
 	private boolean running = false;
@@ -242,19 +242,9 @@ public class StructrRestTest extends TestCase {
 
 	public void test00DbAvailable() {
 
-		try {
+		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
-			GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
-
-			assertTrue(graphDb != null);
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.SEVERE, ex.toString());
-			fail("Unexpected exception");
-
-		}
-
+		assertTrue(graphDb != null);
 	}
 
 	@Override
@@ -323,9 +313,8 @@ public class StructrRestTest extends TestCase {
 
 	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
 
-		final Map<String, Object> props = new HashMap<String, Object>();
-
-		props.put(AbstractNode.type.name(), type);
+		final PropertySet props = new PropertySet();
+		props.put(AbstractNode.type, type);
 
 		return (List<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
 

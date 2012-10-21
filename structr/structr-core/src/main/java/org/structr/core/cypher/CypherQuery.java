@@ -24,9 +24,8 @@ import java.util.Map;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CypherQueryCommand;
 
 /**
@@ -35,16 +34,16 @@ import org.structr.core.node.CypherQueryCommand;
  */
 public class CypherQuery {
 
-	private Map<String, Object> parameters  = new LinkedHashMap<String, Object>();
-	private boolean includeHiddenAndDeleted = false;
-	private Command cypherQueryCommand      = null;
-	private boolean descending              = false;
-	private boolean publicOnly              = false;
-	private String indexQuery               = null;
-	private String indexName                = null;
-	private String sortKey                  = null;
-	private long limit                      = -1;
-	private long offset                     = -1;
+	private Map<String, Object> parameters        = new LinkedHashMap<String, Object>();
+	private boolean includeHiddenAndDeleted       = false;
+	private CypherQueryCommand cypherQueryCommand = null;
+	private boolean descending                    = false;
+	private boolean publicOnly                    = false;
+	private String indexQuery                     = null;
+	private String indexName                      = null;
+	private String sortKey                        = null;
+	private long limit                            = -1;
+	private long offset                           = -1;
 
 	private CypherQuery() {}
 	
@@ -117,8 +116,8 @@ public class CypherQuery {
 		return this;
 	}
 	
-	public List<AbstractNode> execute() throws FrameworkException {
-		return (List<AbstractNode>)cypherQueryCommand.execute(toString(), getParameters(), includeHiddenAndDeleted, publicOnly);
+	public List<GraphObject> execute() throws FrameworkException {
+		return cypherQueryCommand.execute(toString(), getParameters(), includeHiddenAndDeleted, publicOnly);
 	}
 	
 	@Override

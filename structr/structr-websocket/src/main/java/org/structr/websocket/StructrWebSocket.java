@@ -30,7 +30,6 @@ import org.eclipse.jetty.websocket.WebSocket;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
@@ -293,7 +292,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	private FileUploadHandler handleExistingFile(final String uuid) {
 
-		Command getNode = Services.command(getSecurityContext(), GetNodeByIdCommand.class);
+		GetNodeByIdCommand getNode = Services.command(getSecurityContext(), GetNodeByIdCommand.class);
 
 		FileUploadHandler newHandler = null;
 		

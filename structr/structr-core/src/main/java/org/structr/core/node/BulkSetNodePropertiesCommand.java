@@ -27,7 +27,6 @@ import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
@@ -45,6 +44,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Property;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,38 +56,29 @@ import org.structr.common.Property;
  *
  * @author Axel Morgner
  */
-public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
+public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = Logger.getLogger(BulkSetNodePropertiesCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		final Command searchNode               = Services.command(superUserContext, SearchNodeCommand.class);
-
-		if (!((parameters != null) && (parameters.length == 1) && (parameters[0] instanceof Map) && !((Map) parameters[0]).isEmpty())) {
-
-			throw new IllegalArgumentException("This command requires one argument of type Map. Map must not be empty.");
-		}
-
-		final Map<String, Object> properties = (Map<String, Object>) parameters[0];
+		final SearchNodeCommand searchNode     = Services.command(superUserContext, SearchNodeCommand.class);
 
 		if (graphDb != null) {
 
-			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-
-			transactionCommand.execute(new BatchTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction() {
 
 				@Override
 				public Object execute(Transaction tx) throws FrameworkException {
 
-					long n        = 0L;
-					Result result = null;
+					Result<AbstractNode> result = null;
+					long n                      = 0L;
 
 					if (properties.containsKey(AbstractNode.type.name())) {
 
@@ -95,18 +86,16 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 
 						attrs.add(Search.andExactType((String) properties.get(AbstractNode.type.name())));
 
-						result = (Result) searchNode.execute(null, false, false, attrs);
+						result = searchNode.execute(attrs);
 
 						properties.remove(AbstractNode.type.name());
 
 					} else {
 
-						result = (Result) nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+						result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 					}
 
-					for (GraphObject obj : result.getResults()) {
-
-						AbstractNode node = (AbstractNode) obj;
+					for (AbstractNode node : result.getResults()) {
 
 						// Treat only "our" nodes
 						if (node.getStringProperty(AbstractNode.uuid) != null) {
@@ -150,8 +139,6 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 			});
 
 		}
-
-		return null;
 
 	}
 

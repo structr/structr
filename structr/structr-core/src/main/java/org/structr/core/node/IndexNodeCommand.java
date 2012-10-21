@@ -24,14 +24,11 @@ package org.structr.core.node;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.Person;
@@ -48,7 +45,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.index.lucene.ValueContext;
-import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.core.node.search.SearchNodeCommand;
 
@@ -57,7 +53,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 /**
  * Command for indexing nodes
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class IndexNodeCommand extends NodeServiceCommand {
 
@@ -66,115 +62,36 @@ public class IndexNodeCommand extends NodeServiceCommand {
 	//~--- fields ---------------------------------------------------------
 
 	private Map<String, Index> indices = new HashMap<String, Index>();
-	GraphDatabaseService graphDb;
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public void execute(final AbstractNode node, PropertyKey propertyKey) throws FrameworkException {
 
-		graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		init();
+		indexProperty(node, propertyKey);
+	}
+
+	public void execute(final AbstractNode node) throws FrameworkException {
+
+		init();
+		indexNode(node);
+	}
+
+	public void execute(final List<AbstractNode> nodes) throws FrameworkException {
+
+		init();
+		indexNodes(nodes);
+	}
+
+	private void init() {
 
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
 			indices.put(indexName.name(), (Index<Node>) arguments.get(indexName.name()));
 
 		}
-
-		long id           = 0;
-		AbstractNode node = null;
-		PropertyKey key   = null;
-
-		switch (parameters.length) {
-
-			case 1 :
-
-				// index all properties of this node
-				if (parameters[0] instanceof Long) {
-
-					id = ((Long) parameters[0]).longValue();
-
-					Command findNode = Services.command(securityContext, FindNodeCommand.class);
-
-					node = (AbstractNode) findNode.execute(id);
-
-					indexNode(node);
-
-				} else if (parameters[0] instanceof String) {
-
-					id = Long.parseLong((String) parameters[0]);
-
-					Command findNode = Services.command(securityContext, FindNodeCommand.class);
-
-					node = (AbstractNode) findNode.execute(id);
-
-					indexNode(node);
-
-				} else if (parameters[0] instanceof AbstractNode) {
-
-					node = (AbstractNode) parameters[0];
-
-					indexNode(node);
-
-				} else if (parameters[0] instanceof List) {
-
-					indexNodes((List<AbstractNode>) parameters[0]);
-
-				}
-
-				break;
-
-			case 2 :
-
-				// index a certain property
-				if (parameters[0] instanceof Long) {
-
-					id = ((Long) parameters[0]).longValue();
-
-					Command findNode = Services.command(securityContext, FindNodeCommand.class);
-
-					node = (AbstractNode) findNode.execute(id);
-
-				} else if (parameters[0] instanceof String) {
-
-					id = Long.parseLong((String) parameters[0]);
-
-					Command findNode = Services.command(securityContext, FindNodeCommand.class);
-
-					node = (AbstractNode) findNode.execute(id);
-
-				} else if (parameters[0] instanceof AbstractNode) {
-
-					node = (AbstractNode) parameters[0];
-
-					// id   = node.getId();
-
-				}
-
-				if (parameters[1] instanceof PropertyKey) {
-
-					key = (PropertyKey) parameters[1];
-
-				} else if (parameters[1] instanceof String) {
-
-					key = new Property((String)parameters[1]);
-
-				}
-
-				indexProperty(node, key);
-
-				break;
-
-			default :
-				logger.log(Level.SEVERE, "Wrong number of parameters for the index node command: {0}", parameters);
-
-				return null;
-
-		}
-
-		return null;
 	}
-
+	
 	private void indexNodes(final List<AbstractNode> nodes) {
 
 		for (AbstractNode node : nodes) {

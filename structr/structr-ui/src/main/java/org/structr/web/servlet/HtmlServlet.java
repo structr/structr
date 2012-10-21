@@ -116,7 +116,7 @@ public class HtmlServlet extends HttpServlet {
 	
 	public static final DecimalFormat decimalFormat     = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	
-	public static Command searchNodesAsSuperuser;
+	public static SearchNodeCommand searchNodesAsSuperuser;
 
 	
 	//~--- static initializers --------------------------------------------
@@ -681,7 +681,7 @@ public class HtmlServlet extends HttpServlet {
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 		searchAttrs.add(Search.orExactType(Page.class.getSimpleName()));
 		
-		Result results = (Result) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
+		Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
 
 		logger.log(Level.FINE, "{0} results", results.size());
 
@@ -721,7 +721,7 @@ public class HtmlServlet extends HttpServlet {
 			searchAttrs.add(group);
 
 			// Searching for pages needs super user context anyway
-			Result results = (Result) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
+			Result results = searchNodesAsSuperuser.execute(searchAttrs);
 
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
@@ -1131,20 +1131,16 @@ public class HtmlServlet extends HttpServlet {
 		// fetch search results
 		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		AbstractNode topNode                   = null;
-		boolean includeDeletedAndHidden        = false;
-		boolean publicOnly                     = false;
 
 		searchAttributes.add(Search.andContent(search));
 		searchAttributes.add(Search.andExactType(Content.class.getSimpleName()));
 
 		try {
 
-			Result result = (Result) searchNodesAsSuperuser.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result<Content> result = searchNodesAsSuperuser.execute(searchAttributes);
+			for (Content content : result.getResults()) {
 
-			for (GraphObject obj : result.getResults()) {
-
-				resultPages.addAll(PageHelper.getPages(securityContext, (Content) obj));
+				resultPages.addAll(PageHelper.getPages(securityContext, content));
 
 			}
 

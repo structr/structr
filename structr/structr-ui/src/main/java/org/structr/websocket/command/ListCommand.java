@@ -57,15 +57,10 @@ public class ListCommand extends AbstractCommand {
 //              searchAttributes.addAll(Search.andExactTypeAndSubtypes(CaseHelper.toUpperCamelCase(type)));
 		searchAttributes.add(Search.andExactType(CaseHelper.toUpperCamelCase(type)));
 
-		AbstractNode topNode            = null;
-		boolean includeDeletedAndHidden = false;
-		boolean publicOnly              = false;
-
 		try {
 
 			// do search
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly,
-							    searchAttributes);
+			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(searchAttributes);
 			
 			List<? extends GraphObject> resultList = result.getResults();
 

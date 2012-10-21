@@ -68,11 +68,11 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			Map<String, Object> props = new HashMap<String, Object>();
-			PropertyKey key           = AbstractNode.name;
-			String name               = "89w3hklsdfghsdkljth";
+			PropertySet props = new PropertySet();
+			PropertyKey key   = AbstractNode.name;
+			String name       = "89w3hklsdfghsdkljth";
 
-			props.put(key.name(), name);
+			props.put(key, name);
 
 			AbstractNode node                      = createTestNode("Something", props);
 			boolean includeDeletedAndHidden        = true;
@@ -81,7 +81,7 @@ public class SearchResultsTest extends StructrTest {
 
 			searchAttributes.add(new TextualSearchAttribute(key, name, SearchOperator.AND));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -93,7 +93,7 @@ public class SearchResultsTest extends StructrTest {
 			searchAttributes.clear();
 			searchAttributes.add(new TextualSearchAttribute(key, name, SearchOperator.AND));
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -111,12 +111,12 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			Map<String, Object> props = new HashMap<String, Object>();
-			PropertyKey key           = new Property("someDate");
-			Date date                 = new Date();
-			String type               = "Something";
+			PropertySet props = new PropertySet();
+			PropertyKey key   = new Property("someDate");
+			Date date         = new Date();
+			String type       = "Something";
 
-			props.put(key.name(), date);
+			props.put(key, date);
 
 			AbstractNode node                      = createTestNode(type, props);
 			boolean includeDeletedAndHidden        = true;
@@ -126,7 +126,7 @@ public class SearchResultsTest extends StructrTest {
 			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
 			searchAttributes.add(new FilterSearchAttribute(key, date.getTime(), SearchOperator.AND));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));

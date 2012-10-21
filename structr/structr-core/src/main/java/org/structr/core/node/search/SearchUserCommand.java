@@ -27,15 +27,12 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.structr.common.PropertyKey;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.core.node.NodeFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,10 +43,9 @@ import org.structr.core.entity.Principal;
  */
 public class SearchUserCommand extends NodeServiceCommand {
 
-	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		final Command findNode             = Services.command(securityContext, FindNodeCommand.class);
+		final NodeFactory nodeFactory = new NodeFactory(securityContext);
 
 		switch (parameters.length) {
 
@@ -63,7 +59,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 					for (final Node n : index.get(AbstractNode.name.name(), userName)) {
 
-						final AbstractNode s = (AbstractNode) findNode.execute(n);
+						final AbstractNode s = nodeFactory.createNode(n);
 
 						if (s.getType().equals(Principal.class.getSimpleName())) {
 
@@ -87,7 +83,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 				final IndexHits<Node> indexHits = index.query( key.name(), "\"" + userNickName + "\"" );
 				try {
 					for (final Node n : indexHits) {
-						final Object u = findNode.execute(n);
+						final Object u = nodeFactory.createNode(n);
 						if (u != null) {
 							return u;
 						}

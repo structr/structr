@@ -51,7 +51,7 @@ public class EntityResolverResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 		
-		Command searchCommand = Services.command(securityContext, GetNodeByIdCommand.class);
+		GetNodeByIdCommand searchCommand = Services.command(securityContext, GetNodeByIdCommand.class);
 		RestMethodResult result = new RestMethodResult(200);
 
 		for(Object o : propertySet.values()) {

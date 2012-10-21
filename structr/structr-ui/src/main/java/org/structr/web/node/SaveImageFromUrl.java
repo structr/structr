@@ -79,7 +79,6 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 	 * @param parameters
 	 * @return
 	 */
-	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		Principal user          = null;
@@ -126,11 +125,11 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 		} else if (user != null && urlString != null && parentNode != null) {
 
 			// Create new image node first
-			Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(user,
+			Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(
 						     new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
 						     new NodeAttribute(org.structr.core.entity.File.url, urlString),
 						     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true),
-						     new NodeAttribute(AbstractNode.visibleToPublicUsers, true), true);    // Update index
+						     new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
 			Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
 

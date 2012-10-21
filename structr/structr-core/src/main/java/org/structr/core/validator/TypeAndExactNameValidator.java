@@ -69,7 +69,7 @@ public class TypeAndExactNameValidator extends PropertyValidator<String> {
 
 		// just check for existance
 		try {
-			Result nodes = (Result)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+			Result nodes = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 			if(nodes != null && !nodes.isEmpty()) {
 
 				return true;

@@ -56,111 +56,54 @@ public class TransactionCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
 
-		GraphDatabaseService graphDb             = (GraphDatabaseService) arguments.get("graphDb");
-		boolean topLevelTransaction              = false;
-		FrameworkException exception             = null;
-		Object ret                               = null;
+		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
+		boolean topLevelTransaction    = false;
+		FrameworkException exception   = null;
+		T ret                          = null;
+		Transaction tx                 = graphDb.beginTx();
+		topLevelTransaction            = tx instanceof TopLevelTransaction;
 
-		if ((parameters.length > 0) && (parameters[0] instanceof StructrTransaction)) {
+		try {
 
-			StructrTransaction transaction = (StructrTransaction) parameters[0];
-			Transaction tx                 = graphDb.beginTx();
-			topLevelTransaction            = tx instanceof TopLevelTransaction;
+			ret = transaction.execute();
 
-			try {
+			tx.success();
+			logger.log(Level.FINEST, "Transaction successfull");
 
-				ret = transaction.execute();
+		} catch (FrameworkException frameworkException) {
 
-				tx.success();
-				logger.log(Level.FINEST, "Transaction successfull");
+			tx.failure();
+			logger.log(Level.WARNING, "Transaction failure", frameworkException);
 
-			} catch (FrameworkException frameworkException) {
+			// store exception for later use
+			exception = frameworkException;
 
-				tx.failure();
-				logger.log(Level.WARNING, "Transaction failure", frameworkException);
+		} catch(DeadlockDetectedException ddex) {
 
-				// store exception for later use
-				exception = frameworkException;
+			tx.failure();
 
-			} catch(DeadlockDetectedException ddex) {
+			logger.log(Level.SEVERE, "Neo4j detected a deadlock!", ddex.getMessage());
 
-				tx.failure();
+			/*
+			* Maybe the transaction can be restarted here
+			*/
 
-				logger.log(Level.SEVERE, "Neo4j detected a deadlock!", ddex.getMessage());
+		} finally {
 
-				/*
-				* Maybe the transaction can be restarted here
-				*/
+			synchronized(TransactionCommand.class) {
 
-			} finally {
+				long transactionKey = nextLong();
+				EntityContext.setSecurityContext(securityContext);
+				EntityContext.setTransactionKey(transactionKey);
 
-				synchronized(TransactionCommand.class) {
+				try {
+					tx.finish();
+				} catch (Throwable t) {
 
-					long transactionKey = nextLong();
-					EntityContext.setSecurityContext(securityContext);
-					EntityContext.setTransactionKey(transactionKey);
-
-					try {
-						tx.finish();
-					} catch (Throwable t) {
-
-						// transaction failed, look for "real" cause..
-						exception = EntityContext.getFrameworkException(transactionKey);
-					}
-				}
-			}
-
-		} else if ((parameters.length > 0) && (parameters[0] instanceof BatchTransaction)) {
-
-			BatchTransaction transaction = (BatchTransaction) parameters[0];
-			Transaction tx               = graphDb.beginTx();
-			topLevelTransaction          = tx instanceof TopLevelTransaction;
-
-
-			try {
-
-				ret = transaction.execute(tx);
-
-				tx.success();
-				logger.log(Level.FINEST, "Transaction successfull");
-
-
-			} catch (FrameworkException frameworkException) {
-
-				tx.failure();
-				logger.log(Level.WARNING, "Transaction failure", frameworkException);
-
-				// store exception for later use
-				exception = frameworkException;
-
-			} catch(DeadlockDetectedException ddex) {
-
-				tx.failure();
-
-				logger.log(Level.SEVERE, "Neo4j detected a deadlock!", ddex.getMessage());
-
-				/*
-					* Maybe the transaction can be restarted here
-					*/
-
-			} finally {
-
-				synchronized(TransactionCommand.class) {
-
-					long transactionKey = nextLong();
-					EntityContext.setSecurityContext(securityContext);
-					EntityContext.setTransactionKey(transactionKey);
-
-					try {
-						tx.finish();
-					} catch (Throwable t) {
-
-						// transaction failed, look for "real" cause..
-						exception = EntityContext.getFrameworkException(transactionKey);
-					}
+					// transaction failed, look for "real" cause..
+					exception = EntityContext.getFrameworkException(transactionKey);
 				}
 			}
 		}
@@ -172,85 +115,155 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 		if(topLevelTransaction) {
 
-			TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet();
+			notifyChangeSet(graphDb, EntityContext.getTransactionChangeSet());
+		}
+		
+		return ret;
+	}
 
-			// determine propagation set
-			final Queue<AbstractNode> propagationQueue = changeSet.getPropagationQueue();
-			final Set<AbstractNode> propagationSet     = new LinkedHashSet<AbstractNode>();
+	public <T> T execute(BatchTransaction<T> transaction) throws FrameworkException {
 
-			// add initial set of modified nodes; this line makes sure that the
-			// modified nodes themselves are notified of a propagated change
-			// as well.
-			propagationSet.addAll(propagationQueue);
-			
-			if (!propagationQueue.isEmpty()) {
-				
-				do {
-
-					final AbstractNode node = propagationQueue.poll();
-					if (!propagationSet.contains(node)) {
-
-						propagationSet.addAll(node.getNodesForModificationPropagation());
-					}
-
-				} while(!propagationQueue.isEmpty());
-			}
-			
-			
-			Transaction postProcessingTransaction = graphDb.beginTx();
-
-			try {
-
-				// TEST: propagated modification event
-				propagateModification(securityContext, propagationSet);
-				
-				// after transaction callbacks
-				afterCreation(securityContext, changeSet.getCreatedNodes());
-				afterCreation(securityContext, changeSet.getCreatedRelationships());
-
-				afterModification(securityContext, changeSet.getModifiedNodes());
-				afterModification(securityContext, changeSet.getModifiedRelationships());
-
-				afterDeletion(securityContext, changeSet.getDeletedNodes());
-				afterDeletion(securityContext, changeSet.getDeletedRelationships());
-
-				afterOwnerModification(securityContext, changeSet.getOwnerModifiedNodes());
-				afterSecurityModification(securityContext, changeSet.getSecurityModifiedNodes());
-				afterLocationModification(securityContext, changeSet.getLocationModifiedNodes());
-				
-				// clear aggregated transaction data
-				EntityContext.clearTransactionData();
-
-				postProcessingTransaction.success();
+		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		boolean topLevelTransaction  = false;
+		FrameworkException exception = null;
+		T ret                        = null;
+		Transaction tx               = graphDb.beginTx();
+		topLevelTransaction          = tx instanceof TopLevelTransaction;
 
 
-			} catch (Throwable t) {
+		try {
 
-				postProcessingTransaction.failure();
+			ret = transaction.execute(tx);
 
-			} finally {
+			tx.success();
+			logger.log(Level.FINEST, "Transaction successfull");
 
-				// enable post-processing of the secondary transaction
+
+		} catch (FrameworkException frameworkException) {
+
+			tx.failure();
+			logger.log(Level.WARNING, "Transaction failure", frameworkException);
+
+			// store exception for later use
+			exception = frameworkException;
+
+		} catch(DeadlockDetectedException ddex) {
+
+			tx.failure();
+
+			logger.log(Level.SEVERE, "Neo4j detected a deadlock!", ddex.getMessage());
+
+			/*
+				* Maybe the transaction can be restarted here
+				*/
+
+		} finally {
+
+			synchronized(TransactionCommand.class) {
+
 				long transactionKey = nextLong();
 				EntityContext.setSecurityContext(securityContext);
 				EntityContext.setTransactionKey(transactionKey);
 
 				try {
-					postProcessingTransaction.finish();
+					tx.finish();
 				} catch (Throwable t) {
 
 					// transaction failed, look for "real" cause..
-					//t.printStackTrace();
-					logger.log(Level.FINE, "Transaction failure", t);
+					exception = EntityContext.getFrameworkException(transactionKey);
 				}
-
-				// clear transaction data
-				EntityContext.clearTransactionData();
-
 			}
+		}
+
+		if(exception != null) {
+			throw exception;
+		}
+
+		
+		if(topLevelTransaction) {
+
+			notifyChangeSet(graphDb, EntityContext.getTransactionChangeSet());
 		}
 		
 		return ret;
+	}
+	
+	private void notifyChangeSet(GraphDatabaseService graphDb, TransactionChangeSet changeSet) {
+		
+		// determine propagation set
+		final Queue<AbstractNode> propagationQueue = changeSet.getPropagationQueue();
+		final Set<AbstractNode> propagationSet     = new LinkedHashSet<AbstractNode>();
+
+		// add initial set of modified nodes; this line makes sure that the
+		// modified nodes themselves are notified of a propagated change
+		// as well.
+		propagationSet.addAll(propagationQueue);
+
+		if (!propagationQueue.isEmpty()) {
+
+			do {
+
+				final AbstractNode node = propagationQueue.poll();
+				if (!propagationSet.contains(node)) {
+
+					propagationSet.addAll(node.getNodesForModificationPropagation());
+				}
+
+			} while(!propagationQueue.isEmpty());
+		}
+
+
+		Transaction postProcessingTransaction = graphDb.beginTx();
+
+		try {
+
+			// TEST: propagated modification event
+			propagateModification(securityContext, propagationSet);
+
+			// after transaction callbacks
+			afterCreation(securityContext, changeSet.getCreatedNodes());
+			afterCreation(securityContext, changeSet.getCreatedRelationships());
+
+			afterModification(securityContext, changeSet.getModifiedNodes());
+			afterModification(securityContext, changeSet.getModifiedRelationships());
+
+			afterDeletion(securityContext, changeSet.getDeletedNodes());
+			afterDeletion(securityContext, changeSet.getDeletedRelationships());
+
+			afterOwnerModification(securityContext, changeSet.getOwnerModifiedNodes());
+			afterSecurityModification(securityContext, changeSet.getSecurityModifiedNodes());
+			afterLocationModification(securityContext, changeSet.getLocationModifiedNodes());
+
+			// clear aggregated transaction data
+			EntityContext.clearTransactionData();
+
+			postProcessingTransaction.success();
+
+
+		} catch (Throwable t) {
+
+			postProcessingTransaction.failure();
+
+		} finally {
+
+			// enable post-processing of the secondary transaction
+			long transactionKey = nextLong();
+			EntityContext.setSecurityContext(securityContext);
+			EntityContext.setTransactionKey(transactionKey);
+
+			try {
+				postProcessingTransaction.finish();
+			} catch (Throwable t) {
+
+				// transaction failed, look for "real" cause..
+				//t.printStackTrace();
+				logger.log(Level.FINE, "Transaction failure", t);
+			}
+
+			// clear transaction data
+			EntityContext.clearTransactionData();
+
+		}
 	}
 	
 	private void afterCreation(SecurityContext securityContext, Set<? extends GraphObject> data) {

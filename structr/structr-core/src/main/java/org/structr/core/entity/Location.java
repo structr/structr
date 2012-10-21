@@ -20,7 +20,9 @@
 package org.structr.core.entity;
 
 import org.structr.common.Property;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.DoubleConverter;
@@ -39,6 +41,10 @@ public class Location extends AbstractNode {
 	public static final Property<Double> longitude = new Property<Double>("longitude");
 	public static final Property<Double> altitude  = new Property<Double>("altitude");
 
+	public static final View publicView = new View(PropertyView.Public,
+		latitude, longitude, altitude
+	);
+	
 	static {
 
 		// ----- initialize property sets -----

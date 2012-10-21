@@ -33,12 +33,9 @@ import org.neo4j.kernel.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
-import org.structr.core.Command;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.node.*;
 import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -46,15 +43,11 @@ import org.structr.core.notion.Notion;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.EntityContext;
+import org.structr.common.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,7 +56,7 @@ import org.structr.core.EntityContext;
  *
  * @author Christian Morgner
  */
-public class RelationClass {
+public class RelationClass<T extends AbstractNode> {
 
 	public static final int DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED = 4;
 //	public static final int DELETE_BOTH     = 3;
@@ -99,26 +92,15 @@ public class RelationClass {
 
 	//~--- methods --------------------------------------------------------
 
-	public void createRelationship(final SecurityContext securityContext, final GraphObject sourceNode, final Object value) throws FrameworkException {
-		createRelationship(securityContext, sourceNode, value, Collections.EMPTY_MAP);
+	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
+		createRelationship(securityContext, sourceNode, targetNode, new PropertySet());
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final GraphObject sourceNode, final Object value, final Map properties) throws FrameworkException {
+	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode, final PropertySet properties) throws FrameworkException {
 
 		// create relationship if it does not already exist
-		final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-		final Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-		AbstractNode targetNode;
-
-		if (value instanceof AbstractNode) {
-
-			targetNode = (AbstractNode) value;
-
-		} else {
-
-			targetNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(value);
-
-		}
+		final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+		final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
@@ -130,12 +112,12 @@ public class RelationClass {
 				@Override
 				public Object execute() throws FrameworkException {
 
-                                        Map<String, Object> props = new HashMap(properties);
+                                        PropertySet props = new PropertySet(properties);
 
 					// set cascade delete value
 					if (cascadeDelete > 0) {
 
-						props.put(AbstractRelationship.cascadeDelete.name(), new Integer(cascadeDelete));
+						props.put(AbstractRelationship.cascadeDelete, new Integer(cascadeDelete));
 
 					}
 
@@ -144,11 +126,11 @@ public class RelationClass {
 
 					if (direction.equals(Direction.OUTGOING)) {
 
-						newRel = (AbstractRelationship) createRel.execute(sourceNode, finalTargetNode, relType, props, true);
+						newRel = createRel.execute(sourceNode, finalTargetNode, relType, props, true);
 
 					} else {
 
-						newRel = (AbstractRelationship) createRel.execute(finalTargetNode, sourceNode, relType, props, true);
+						newRel = createRel.execute(finalTargetNode, sourceNode, relType, props, true);
 
 					}
 
@@ -229,25 +211,14 @@ public class RelationClass {
 
 			}
 
-			throw new FrameworkException(type, new IdNotFoundToken(value));
+			throw new FrameworkException(type, new IdNotFoundToken(targetNode));
 
 		}
 	}
 
-	public void removeRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws FrameworkException {
+	public void removeRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
 
-		final Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-		AbstractNode targetNode = null;
-
-		if (value instanceof AbstractNode) {
-
-			targetNode = (AbstractNode) value;
-
-		} else {
-
-			targetNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(value);
-
-		}
+		final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
@@ -338,32 +309,29 @@ public class RelationClass {
 
 			}
 
-			throw new FrameworkException(type, new IdNotFoundToken(value));
+			throw new FrameworkException(type, new IdNotFoundToken(targetNode));
 
 		}
 	}
 
 	public AbstractNode addRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
 
-		return (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
 
 			@Override
-			public Object execute() throws FrameworkException {
+			public AbstractNode execute() throws FrameworkException {
 
-				AbstractNode relatedNode = (AbstractNode) Services.command(securityContext,
-								   CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, getDestType().getSimpleName()));
-
-				Command createRel           = Services.command(securityContext, CreateRelationshipCommand.class);
-                                
-                                Map<String, Object> props = new LinkedHashMap<String, Object>();
+				AbstractNode relatedNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, getDestType().getSimpleName()));
+                                PropertySet props        = new PropertySet();
 
                                 if (cascadeDelete > 0) {
 
-					props.put(AbstractRelationship.cascadeDelete.name(), new Integer(cascadeDelete));
+					props.put(AbstractRelationship.cascadeDelete, new Integer(cascadeDelete));
 
 				}
                                 
-				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(node, relatedNode, getRelType(), props, false);
+				// create relationship
+				Services.command(securityContext, CreateRelationshipCommand.class).execute(node, relatedNode, getRelType(), props, false);
 
 				return relatedNode;
 			}
@@ -394,7 +362,7 @@ public class RelationClass {
 	}
 
 	// ----- public methods -----
-	public List<AbstractNode> getRelatedNodes(final SecurityContext securityContext, final AbstractNode node) {
+	public List<T> getRelatedNodes(final SecurityContext securityContext, final T node) {
 
 		if (cardinality.equals(Cardinality.OneToMany) || cardinality.equals(Cardinality.ManyToMany)) {
 
@@ -433,11 +401,10 @@ public class RelationClass {
 	}
 
 	// ----- private methods -----
-	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
+	private <T extends AbstractNode> List<T> getTraversalResults(final SecurityContext securityContext, final T node) {
 
-		// final Class realType              = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-		final NodeFactory nodeFactory     = new NodeFactory<AbstractNode>(securityContext);
-		final List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
+		final NodeFactory<T> nodeFactory = new NodeFactory<T>(securityContext);
+		final List<T> nodeList           = new LinkedList<T>();
 
 		// use traverser
 		Iterable<Node> nodes = Traversal.description().uniqueness(Uniqueness.NODE_PATH).breadthFirst().relationships(relType, direction).evaluator(new Evaluator() {
@@ -459,7 +426,7 @@ public class RelationClass {
 					} else {
 
 						try {
-							AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(path.endNode());
+							T abstractNode = nodeFactory.createNode(path.endNode());
 							if(abstractNode != null) {
 
 								// use inheritance

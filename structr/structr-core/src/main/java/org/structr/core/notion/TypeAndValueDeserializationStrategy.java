@@ -81,8 +81,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 
 		// just check for existance
-		Result result = (Result) Services.command(securityContext,
-						   SearchNodeCommand.class).execute(null, false, false, attrs);
+		Result result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 		int resultCount = result.size();
 
 		switch (resultCount) {
@@ -91,15 +90,15 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				if ((source != null) && createIfNotExisting) {
 
 					// create node and return it
-					AbstractNode newNode = (AbstractNode) Services.command(
-								   securityContext, CreateNodeCommand.class).execute(
-								   new NodeAttribute(
-								       AbstractNode.type,
-								       type.getSimpleName()), new NodeAttribute(
-									   propertyKey, source.toString()));
+					AbstractNode newNode = Services.command(securityContext, CreateNodeCommand.class).execute(
+								   new NodeAttribute(AbstractNode.type, type.getSimpleName()),
+								   new NodeAttribute(propertyKey, source.toString())
+					                       );
 
 					if (newNode != null) {
+						
 						return newNode;
+						
 					} else {
 
 						logger.log(Level.WARNING,
@@ -122,13 +121,12 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		if (source != null) {
 
-			Map<String, Object> attributes = new LinkedHashMap<String, Object>();
+			Map<PropertyKey, Object> attributes = new LinkedHashMap<PropertyKey, Object>();
 
-			attributes.put(propertyKey.name(), source.toString());
-			attributes.put("type", type.getSimpleName());
+			attributes.put(propertyKey,       source.toString());
+			attributes.put(AbstractNode.type, type.getSimpleName());
 
-			throw new FrameworkException(type.getSimpleName(),
-						     new PropertiesNotFoundToken(AbstractNode.base, attributes));
+			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
 		}
 		
 		return null;

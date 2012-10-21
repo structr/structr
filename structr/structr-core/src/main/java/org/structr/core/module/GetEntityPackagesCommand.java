@@ -16,29 +16,24 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.module;
 
 import java.util.Set;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
-public class GetEntityPackagesCommand extends ModuleServiceCommand
-{
-	@Override
-	public Object execute(Object... parameters)
-	{
-		ModuleService service = (ModuleService)getArgument("moduleService");
-		Set<String> ret = null;
+public class GetEntityPackagesCommand extends ModuleServiceCommand {
 
-		if(service != null)
-		{
-			ret = service.getNodeEntityPackages();
+	public Set<String> execute() {
+		
+		ModuleService service = (ModuleService)getArgument("moduleService");
+		if(service != null) {
+			
+			return service.getNodeEntityPackages();
 		}
 
-		return(ret);
+		return null;
 	}
-
 }

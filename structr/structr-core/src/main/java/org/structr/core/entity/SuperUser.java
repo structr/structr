@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
@@ -33,8 +32,8 @@ import org.structr.common.error.FrameworkException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import org.structr.common.Property;
+import org.structr.common.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,10 +54,10 @@ public class SuperUser implements Principal {
 	public void removeProperty(PropertyKey key) throws FrameworkException {}
 
 	@Override
-	public void grant(Permission permission, AccessControllable obj) {}
+	public void grant(Permission permission, AbstractNode obj) {}
 
 	@Override
-	public void revoke(Permission permission, AccessControllable obj) {}
+	public void revoke(Permission permission, AbstractNode obj) {}
 
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {}
@@ -78,7 +77,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
 
 		return true;
 

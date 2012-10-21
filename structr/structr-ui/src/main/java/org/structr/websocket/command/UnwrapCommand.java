@@ -21,7 +21,6 @@
 
 package org.structr.websocket.command;
 
-import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
 
@@ -43,10 +42,11 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Property;
+import org.structr.common.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,7 +74,6 @@ public class UnwrapCommand extends AbstractCommand {
 		final String pageId                = (String) relData.get("pageId");
 		final String parentId              = (String) nodeData.get("parentId");
 		final AbstractNode parentNode      = getNode(parentId);
-		final Long position                = Long.parseLong((String) relData.get(pageId));
 
 		if (nodeToWrap != null) {
 
@@ -83,7 +82,8 @@ public class UnwrapCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
+					PropertySet nodeProps  = PropertySet.convert(nodeData);
+					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeProps);
 					String componentId     = newComponent.getStringProperty(AbstractNode.uuid);
 
 					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, pageId,
@@ -96,11 +96,11 @@ public class UnwrapCommand extends AbstractCommand {
 						if (rel != null) {
 
 							// First element in new component, so set position to 0
-							Map<String, Object> relProps = new LinkedHashMap<String, Object>();
+							PropertySet relProps = new PropertySet();
 
-							relProps.put(pageId, 0);
+							relProps.put(new Property(pageId), 0);
 							//relProps.put("pageId", pageId);
-							relProps.put("componentId", componentId);
+							relProps.put(new Property("componentId"), componentId);
 
 							try {
 

@@ -16,29 +16,16 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.agent;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
-public class ResumeAgentCommand extends AgentServiceCommand
-{
-	@Override
-	public Object execute(Object... parameters)
-	{
-		AgentService agentService = (AgentService)arguments.get("agentService");
-		if(agentService != null)
-		{
-			if(parameters.length > 0 && parameters[0] instanceof Agent)
-			{
-				Agent agent = (Agent)parameters[0];
-				agent.resumeAgent();
-			}
-		}
+public class ResumeAgentCommand extends AgentServiceCommand {
 
-		return(null);
+	public void execute(Agent agent) {
+
+		agent.resumeAgent();
 	}
 }
-

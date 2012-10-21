@@ -24,7 +24,6 @@ package org.structr.rest.resource;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.Task;
@@ -43,6 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.PropertyKey;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.MaintenanceCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,9 +95,10 @@ public class MaintenanceResource extends Resource {
 
 						Services.command(securityContext, ProcessTaskCommand.class).execute(task);
 
-					} else if (Command.class.isAssignableFrom(taskOrCommand)) {
+					} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
 
-						Services.command(securityContext, taskOrCommand).execute(propertySet);
+						MaintenanceCommand cmd = (MaintenanceCommand)Services.command(securityContext, taskOrCommand);
+						cmd.execute(propertySet);
 
 					} else {
 						return new RestMethodResult(HttpServletResponse.SC_NOT_FOUND);

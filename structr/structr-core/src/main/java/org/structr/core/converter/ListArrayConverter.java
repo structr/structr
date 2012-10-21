@@ -19,8 +19,8 @@
 
 package org.structr.core.converter;
 
-import java.util.List;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Value;
 
 /**
@@ -33,26 +33,12 @@ public class ListArrayConverter extends PropertyConverter {
 	public static final String SEP = ",";
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
-
-		if (source == null) {
-			return source;
-		}
-		
-		if (source instanceof List) {
-			return ((List)source).toArray(new String[0]);
-		}
-		
-		if (source instanceof String) {
-			return StringUtils.split((String) source, SEP);
-		}
-
-		return source;
+	public Object convertForSetter(Object source, Value value) throws FrameworkException {
+		return StringUtils.split((String) source, SEP);
 	}
 
 	@Override
 	public Object convertForGetter(Object source, Value value) {
-		
 		return StringUtils.join((String[]) source, SEP);
 	}
 }

@@ -27,9 +27,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.NodeService.RelationshipIndex;
 import org.structr.core.node.search.Search;
@@ -41,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.Property;
 import org.structr.common.PropertyKey;
 import org.structr.core.entity.AbstractNode;
 
@@ -61,104 +58,23 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 	private Map<String, Index> indices = new HashMap<String, Index>();
 
 	//~--- methods --------------------------------------------------------
+	
+	public void execute(AbstractRelationship relationship, PropertyKey propertyKey) throws FrameworkException {
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+		init();
+		indexProperty(relationship, propertyKey);
+	}
+	
+	public void execute(AbstractRelationship relationship) throws FrameworkException {
 
-		Command findRel = Services.command(securityContext, FindRelationshipCommand.class);
+		init();
+		indexRelationship(relationship);
+	}
 
-		for (Enum indexName : (RelationshipIndex[]) arguments.get("relationshipIndices")) {
+	public void execute(List<AbstractRelationship> relationships) throws FrameworkException {
 
-			indices.put(indexName.name(), (Index<Relationship>) arguments.get(indexName.name()));
-
-		}
-
-		long id                  = 0;
-		AbstractRelationship rel = null;
-		PropertyKey key          = null;
-
-		switch (parameters.length) {
-
-			case 1 :
-
-				// index all properties of this relationship
-				if (parameters[0] instanceof Long) {
-
-					id  = ((Long) parameters[0]).longValue();
-					rel = (AbstractRelationship) findRel.execute(id);
-
-					indexRelationship(rel);
-
-				} else if (parameters[0] instanceof String) {
-
-					id  = Long.parseLong((String) parameters[0]);
-					rel = (AbstractRelationship) findRel.execute(id);
-
-					indexRelationship(rel);
-
-				} else if (parameters[0] instanceof AbstractRelationship) {
-
-					rel = (AbstractRelationship) parameters[0];
-
-					indexRelationship(rel);
-
-				} else if (parameters[0] instanceof List) {
-
-					indexRelationships((List<AbstractRelationship>) parameters[0]);
-
-				}
-
-				break;
-
-			case 2 :
-
-				// index a certain property
-				if (parameters[0] instanceof Long) {
-
-					id  = ((Long) parameters[0]).longValue();
-					rel = (AbstractRelationship) findRel.execute(id);
-
-				} else if (parameters[0] instanceof String) {
-
-					id  = Long.parseLong((String) parameters[0]);
-					rel = (AbstractRelationship) findRel.execute(id);
-
-				} else if (parameters[0] instanceof AbstractRelationship) {
-
-					rel = (AbstractRelationship) parameters[0];
-
-					// id   = node.getId();
-
-				}
-
-				if (parameters[1] instanceof PropertyKey) {
-
-					key = (Property) parameters[1];
-
-				} else if (parameters[1] instanceof String) {
-
-					key = new Property( (String) parameters[1]);
-
-				}
-
-				if (rel == null) {
-
-					logger.log(Level.SEVERE, "Wrong type of parameters for the index relationship command: {0}", parameters);
-
-				}
-
-				indexProperty(rel, key);
-
-				break;
-
-			default :
-				logger.log(Level.SEVERE, "Wrong number of parameters for the index relationship command: {0}", parameters);
-
-				return null;
-
-		}
-
-		return null;
+		init();
+		indexRelationships(relationships);
 	}
 
 	private void indexRelationships(final List<AbstractRelationship> rels) throws FrameworkException {
@@ -168,6 +84,15 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 			indexRelationship(rel);
 
 		}
+	}
+
+	private void init() {
+
+		for (Enum indexName : (RelationshipIndex[]) arguments.get("relationshipIndices")) {
+			indices.put(indexName.name(), (Index<Relationship>) arguments.get(indexName.name()));
+
+		}
+		
 	}
 
 	private void indexRelationship(final AbstractRelationship rel) throws FrameworkException {

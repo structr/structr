@@ -16,33 +16,23 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.agent;
 
 /**
  *
  * @author cmorgner
  */
-public class ProcessTaskCommand extends AgentServiceCommand
-{
-	@Override
-	public Object execute(Object... parameters)
-	{
+public class ProcessTaskCommand extends AgentServiceCommand {
+
+	public void execute(Task... tasks) {
+		
 		AgentService agentService = (AgentService)arguments.get("agentService");
-
-		if(agentService != null)
-		{
-			for(Object o : parameters)
-			{
-				if(o instanceof Task)
-				{
-					Task task = (Task)o;
-					agentService.processTask(task);
-				}
-
+		if(agentService != null) {
+			
+			for(Task task : tasks) {
+				
+				agentService.processTask(task);
 			}
 		}
-
-		return(null);
 	}
 }

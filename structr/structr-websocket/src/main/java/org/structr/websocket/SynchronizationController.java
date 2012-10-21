@@ -41,6 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Property;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -208,11 +209,13 @@ public class SynchronizationController implements StructrTransactionListener {
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
 			AbstractNode startNode            = relationship.getStartNode();
 			AbstractNode endNode              = relationship.getEndNode();
-			Map<String, Object> relProperties = relationship.getProperties();
+			PropertySet relProperties         = relationship.getProperties();
 
-			relProperties.put("startNodeId", startNode.getUuid());
-			relProperties.put("endNodeId", endNode.getUuid());
-			message.setRelData(relProperties);
+			relProperties.put(new Property("startNodeId"), startNode.getUuid());
+			relProperties.put(new Property("endNodeId"), endNode.getUuid());
+			
+			Map<String, Object> properties = PropertySet.revert(relProperties);
+			message.setRelData(properties);
 
 		}
 
@@ -241,11 +244,13 @@ public class SynchronizationController implements StructrTransactionListener {
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
 			AbstractNode startNode            = relationship.getStartNode();
 			AbstractNode endNode              = relationship.getEndNode();
-			Map<String, Object> relProperties = relationship.getProperties();
+			PropertySet relProperties         = relationship.getProperties();
 
-			relProperties.put("startNodeId", startNode.getUuid());
-			relProperties.put("endNodeId", endNode.getUuid());
-			message.setRelData(relProperties);
+			relProperties.put(new Property("startNodeId"), startNode.getUuid());
+			relProperties.put(new Property("endNodeId"), endNode.getUuid());
+			
+			Map<String, Object> properties = PropertySet.revert(relProperties);
+			message.setRelData(properties);
 
 		}
 
@@ -333,7 +338,7 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, Map<String, Object> properties) {
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, PropertySet properties) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -349,7 +354,7 @@ public class SynchronizationController implements StructrTransactionListener {
 			WebSocketMessage message = new WebSocketMessage();
 			String startNodeId       = relationship.getCachedStartNodeId();
 			String endNodeId         = relationship.getCachedEndNodeId();
-			String pageId	 = (String) properties.get("pageId");
+			String pageId	         = (String) properties.get(new Property("pageId"));
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
@@ -367,7 +372,7 @@ public class SynchronizationController implements StructrTransactionListener {
 		} else {
 
 			WebSocketMessage message = new WebSocketMessage();
-			String uuid              = properties.get("uuid").toString();
+			String uuid              = properties.get(AbstractNode.uuid).toString();
 
 			message.setId(uuid);
 			message.setCommand("DELETE");

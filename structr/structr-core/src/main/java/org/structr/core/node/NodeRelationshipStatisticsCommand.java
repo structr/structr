@@ -25,7 +25,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -54,48 +53,22 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	/**
-	 * First argument is the AbstractNode to get relationships for.
-	 * Second argument is the relationship direction {@see Direction}
-	 *
-	 * @param parameters
-	 * @return list with relationships that match relationship type and direction
-	 */
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public Map<RelationshipType, Long> execute(AbstractNode sNode) throws FrameworkException {
+		return execute(sNode, null);
+	}
+	
+	public Map<RelationshipType, Long> execute(AbstractNode sNode, Direction dir) throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Map<RelationshipType, Long> statistics = new LinkedHashMap<RelationshipType, Long>();
+		Iterable<Relationship> rels            = null;
+		Node node                              = sNode.getNode();
 
-		Object arg0              = parameters[0];
-		Object arg1              = parameters[1];
-		AbstractNode sNode       = (AbstractNode) arg0;
-		Direction dir            = (Direction) arg1;
-		Node node                = null;
-		long id                  = -1;
-
-		try {
-
-			id = sNode.getId();
-
-			if (id > -1) {
-				node = graphDb.getNodeById(sNode.getId());
-			} else {
-				return statistics;
-			}
-
-		} catch (Exception e) {
-
-			logger.log(Level.WARNING, "Not found: " + id, e.getMessage());
-
-			return statistics;
-		}
-
-		Iterable<Relationship> rels;
-
-		if (arg1 != null) {
+		if (dir != null) {
+			
 			rels = node.getRelationships(dir);
+			
 		} else {
+			
 			rels = node.getRelationships();
 		}
 

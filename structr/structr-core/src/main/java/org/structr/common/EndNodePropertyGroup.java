@@ -31,7 +31,7 @@ import org.structr.core.entity.AbstractRelationship;
  *
  * @author Christian Morgner
  */
-public class EndNodePropertyGroup implements PropertyGroup {
+public class EndNodePropertyGroup implements PropertyGroup<Map<String, Object>> {
 
 	private PropertyKey[] keys = null;
 
@@ -40,7 +40,7 @@ public class EndNodePropertyGroup implements PropertyGroup {
 	}
 
 	@Override
-	public Object getGroupedProperties(GraphObject source) {
+	public Map<String, Object> getGroupedProperties(GraphObject source) {
 
 		if(source instanceof AbstractRelationship) {
 
@@ -59,6 +59,6 @@ public class EndNodePropertyGroup implements PropertyGroup {
 	}
 
 	@Override
-	public void setGroupedProperties(Object source, GraphObject destination) throws FrameworkException {
+	public void setGroupedProperties(Map<String, Object> source, GraphObject destination) throws FrameworkException {
 	}
 }

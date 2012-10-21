@@ -350,7 +350,7 @@ public class Structr {
 		checkPrerequisites(configuration);
 		
 		Server server                        = new Server(restPort);
-		ContextHandlerCollection contexts = new ContextHandlerCollection();
+		ContextHandlerCollection contexts    = new ContextHandlerCollection();
 		contexts.addHandler(new DefaultHandler());
 		
 		List<Connector> connectors           = new LinkedList<Connector>();

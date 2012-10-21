@@ -51,7 +51,7 @@ import org.structr.common.PropertyKey;
  *
  * @author Christian Morgner
  */
-public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, JsonSerializer<PropertySet>, JsonDeserializer<PropertySet> {
+public class PropertySetGSONAdapter implements InstanceCreator<JsonInput>, JsonSerializer<JsonInput>, JsonDeserializer<JsonInput> {
 
 	private static final Logger logger = Logger.getLogger(PropertySetGSONAdapter.class.getName());
 
@@ -71,19 +71,19 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public PropertySet createInstance(Type type) {
-		return new PropertySet();
+	public JsonInput createInstance(Type type) {
+		return new JsonInput();
 	}
 
 	@Override
-	public JsonElement serialize(PropertySet src, Type typeOfSrc, JsonSerializationContext context) {
+	public JsonElement serialize(JsonInput src, Type typeOfSrc, JsonSerializationContext context) {
 		return null;
 	}
 
 	@Override
-	public PropertySet deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public JsonInput deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
-		PropertySet wrapper = new PropertySet();
+		JsonInput wrapper = new JsonInput();
 
 		if (json.isJsonObject()) {
 
