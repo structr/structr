@@ -102,14 +102,18 @@ public class StructrTest extends TestCase {
 
 		Services.shutdown();
 
-		File testDir = new File(context.get(Services.BASE_PATH));
+		try {
+			File testDir = new File(context.get(Services.BASE_PATH));
 
-		if (testDir.isDirectory()) {
+			if (testDir.isDirectory()) {
 
-			FileUtils.deleteDirectory(testDir);
-		} else {
+				FileUtils.deleteDirectory(testDir);
+			} else {
 
-			testDir.delete();
+				testDir.delete();
+			}
+			
+		} catch(Throwable t) {
 		}
 
 		super.tearDown();

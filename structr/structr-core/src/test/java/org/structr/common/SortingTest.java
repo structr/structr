@@ -230,9 +230,7 @@ public class SortingTest extends StructrTest {
 //                              }
 				node.setName("TestOne-" + name);
 
-				long timestamp = (new Date()).getTime();
-
-				node.setProperty(TestOne.aDate, timestamp);
+				node.setProperty(TestOne.aDate, new Date());
 
 				// System.out.println(node.getStringProperty(AbstractNode.name) + ", " + node.getProperty(TestOne.Key.aDate) + " (set: " + timestamp + ")");
 
@@ -457,11 +455,10 @@ public class SortingTest extends StructrTest {
 			}
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
 			searchAttributes.add(Search.andType(type));
 
 			// searchAttributes.add(Search.orExactProperty(TestOne.Key.aLong, "10"));
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result<AbstractNode> result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertEquals(number, result.size());
 
@@ -472,7 +469,7 @@ public class SortingTest extends StructrTest {
 
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
 
-			for (GraphObject obj : result.getResults()) {
+			for (AbstractNode obj : result.getResults()) {
 
 				System.out.println(obj.getStringProperty(AbstractNode.name) + ": " + obj.getLongProperty(key));
 			}

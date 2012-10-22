@@ -882,7 +882,7 @@ public class EntityContext {
 	}
 
 	// ----- static relationship methods -----
-	public static <T extends AbstractNode> RelationClass<T> getRelationClass(Class sourceType, Class destType) {
+	public static RelationClass getRelationClass(Class sourceType, Class destType) {
 
 		RelationClass relation = null;
 		Class localType        = sourceType;

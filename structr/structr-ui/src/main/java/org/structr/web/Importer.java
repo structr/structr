@@ -397,7 +397,7 @@ public class Importer {
 
 		}
 
-		Result result = (Result) searchNode.execute(searchAttrs);
+		Result<AbstractNode> result = searchNode.execute(searchAttrs);
 
 		if (result.size() > 1) {
 
@@ -409,10 +409,8 @@ public class Importer {
 			return null;
 		}
 
-		for (GraphObject obj : result.getResults()) {
+		for (AbstractNode foundNode : result.getResults()) {
 			
-			AbstractNode foundNode = (AbstractNode) obj;
-
 			String foundNodePath = foundNode.getStringProperty(HtmlElement.path);
 
 			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);

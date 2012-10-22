@@ -518,7 +518,7 @@ public class Component extends AbstractNode implements Element {
 	//~--- set methods ----------------------------------------------------
 
 	@Override
-	public void setProperty(PropertyKey key, Object value) throws FrameworkException {
+	public <T> void setProperty(PropertyKey<T> key, T value) throws FrameworkException {
 
 		if (contentNodes.containsKey(key.name())) {
 
@@ -526,7 +526,7 @@ public class Component extends AbstractNode implements Element {
 
 			if (node != null) {
 
-				node.setProperty(Content.content, value);
+				node.setProperty(Content.content, value.toString());
 
 			}
 

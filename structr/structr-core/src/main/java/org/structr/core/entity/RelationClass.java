@@ -378,11 +378,11 @@ public class RelationClass<T extends AbstractNode> {
 		return null;
 	}
 
-	public AbstractNode getRelatedNode(final SecurityContext securityContext, final AbstractNode node) {
+	public <T extends AbstractNode> T getRelatedNode(final SecurityContext securityContext, final AbstractNode node) {
 
 		if (cardinality.equals(Cardinality.OneToOne) || cardinality.equals(Cardinality.ManyToOne)) {
 
-			List<AbstractNode> nodes = getTraversalResults(securityContext, node);
+			List<T> nodes = getTraversalResults(securityContext, node);
 
 			if ((nodes != null) && nodes.iterator().hasNext()) {
 
@@ -401,7 +401,7 @@ public class RelationClass<T extends AbstractNode> {
 	}
 
 	// ----- private methods -----
-	private <T extends AbstractNode> List<T> getTraversalResults(final SecurityContext securityContext, final T node) {
+	private <T extends AbstractNode> List<T> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
 
 		final NodeFactory<T> nodeFactory = new NodeFactory<T>(securityContext);
 		final List<T> nodeList           = new LinkedList<T>();

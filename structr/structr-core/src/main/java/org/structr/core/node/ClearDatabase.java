@@ -66,12 +66,10 @@ public class ClearDatabase extends NodeServiceCommand {
 				@Override
 				public Object execute(Transaction tx) throws FrameworkException {
 
-					Result result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+					Result<AbstractNode> result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 					long nodes    = 0L;
 
-					for (GraphObject obj : result.getResults()) {
-						
-						AbstractNode node = (AbstractNode) obj;
+					for (AbstractNode node : result.getResults()) {
 
 						// Delete only "our" nodes
 						if (node.getStringProperty(AbstractNode.uuid) != null) {

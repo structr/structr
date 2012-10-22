@@ -301,8 +301,10 @@ public class DynamicTypeResource extends TypeResource {
 
 						final Content newContent = (Content) createNodeCommand.execute(contentTemplateProperties);
 
-						newContent.setProperty(Content.content, propertySet.get(dataKey));
-
+						Object dataKeyValue = propertySet.get(dataKey);
+						if (dataKeyValue != null) {
+							newContent.setProperty(Content.content, dataKeyValue.toString());
+						}
 
 						// remove non-local data key from set
 						propertySet.remove(dataKey);

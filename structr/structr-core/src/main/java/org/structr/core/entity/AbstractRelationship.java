@@ -82,7 +82,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	static {
 
-		EntityContext.registerPropertySet(AbstractRelationship.class, PropertyView.All, uuid);
 		EntityContext.registerSearchableProperty(AbstractRelationship.class, RelationshipIndex.rel_uuid.name(), uuid);
 
 		// register transformation for automatic uuid creation
@@ -425,11 +424,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public Object getProperty(final PropertyKey key) {
+	public <T> T getProperty(final PropertyKey<T> key) {
 		return getProperty(key, true);
 	}
 
-	private Object getProperty(final PropertyKey key, boolean applyConverter) {
+	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
 
 		// early null check, this should not happen...
 		if (key == null || key.name() == null) {
@@ -458,7 +457,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 					cachedRawProperties.put(key, value);
 				}
 				
-				return value;
+				return (T)value;
 
 			}
 			
@@ -475,7 +474,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 					cachedRawProperties.put(key, value);
 				}
 
-				return value;
+				return (T)value;
 				
 			}
 			
@@ -484,7 +483,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 			if (propertyGroup != null) {
 
-				return propertyGroup.getGroupedProperties(this);
+				return (T)propertyGroup.getGroupedProperties(this);
 			}
 
 			if (dbRelationship.hasProperty(key.name())) {
@@ -531,7 +530,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			}
 		}
 
-		return value;
+		return (T)value;
 
 	}
 
@@ -876,6 +875,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 * @param key
 	 * @return
 	 */
+	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
 
 		return getProperty(key);
@@ -1044,7 +1044,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
+	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		PropertyKey startNodeIdKey = getStartNodeIdKey();
 		PropertyKey endNodeIdKey   = getEndNodeIdKey();

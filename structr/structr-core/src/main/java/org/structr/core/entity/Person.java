@@ -27,8 +27,17 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.Permission;
 import org.structr.common.Property;
+import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.core.Services;
+import org.structr.core.node.CreateRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -37,7 +46,7 @@ import org.structr.common.View;
  * @author amorgner
  *
  */
-public class Person extends PrincipalImpl {
+public class Person extends AbstractNode implements Principal {
 
 	public static final Property<String>  salutation          = new Property<String>("salutation");
 	public static final Property<String>  firstName           = new Property<String>("firstName");
@@ -312,5 +321,125 @@ public class Person extends PrincipalImpl {
 		setProperty(Person.gender, value);
 
 	}
+
+	@Override
+	public void block() throws FrameworkException {
+
+		setBlocked(Boolean.TRUE);
+
+	}
+
+	@Override
+	public void grant(Permission permission, AbstractNode obj) {
+
+		AbstractRelationship secRel = obj.getSecurityRelationship(this);
+
+		if (secRel == null) {
+
+			try {
+
+				secRel = createSecurityRelationshipTo(obj);
+
+			} catch (FrameworkException ex) {
+
+				Logger.getLogger(Person.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
+
+			}
+
+		}
+
+		secRel.addPermission(permission);
+
+	}
+
+	@Override
+	public void revoke(Permission permission, AbstractNode obj) {
+
+		AbstractRelationship secRel = obj.getSecurityRelationship(this);
+
+		if (secRel == null) {
+
+			try {
+
+				secRel = createSecurityRelationshipTo(obj);
+
+			} catch (FrameworkException ex) {
+
+				Logger.getLogger(Person.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
+
+			}
+
+		}
+
+		secRel.removePermission(permission);
+
+	}
+
+	private AbstractRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
+
+		return Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
+
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public String getEncryptedPassword() {
+
+		boolean dbNodeHasProperty = dbNode.hasProperty(password.name());
+
+		if (dbNodeHasProperty) {
+
+			Object dbValue = dbNode.getProperty(password.name());
+
+			return (String) dbValue;
+
+		} else {
+
+			return null;
+		}
+
+	}
+
+	@Override
+	public Boolean getBlocked() {
+
+		return (Boolean) getProperty(blocked);
+
+	}
+
+	@Override
+	public List<Principal> getParents() {
+
+		List<Principal> parents               = new LinkedList<Principal>();
+		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
+
+		for (AbstractRelationship rel : parentRels) {
+
+			AbstractNode node = rel.getEndNode();
+
+			if (node instanceof Principal) {
+
+				parents.add((Principal) node);
+			}
+
+		}
+
+		return parents;
+
+	}
+
+	@Override
+	public Boolean isBlocked() {
+
+		return Boolean.TRUE.equals(getBlocked());
+
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	@Override
+	public void setBlocked(final Boolean blocked) throws FrameworkException {}
+
 
 }

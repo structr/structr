@@ -72,7 +72,7 @@ public interface GraphObject {
 	 * @param value the value to set
 	 * @throws FrameworkException 
 	 */
-	public void setProperty(final PropertyKey key, Object value) throws FrameworkException;
+	public <T> void setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
 	
 	/**
 	 * Returns the (converted, validated, transformed, etc.) property for the given
@@ -81,8 +81,8 @@ public interface GraphObject {
 	 * @param propertyKey the property key to retrieve the value for
 	 * @return the converted, validated, transformed property value
 	 */
-	public Object getProperty(final PropertyKey propertyKey);
-
+	public <T> T getProperty(final PropertyKey<T> propertyKey);
+	
 	/**
 	 * Returns the property value for the given key as a String object.
 	 * 

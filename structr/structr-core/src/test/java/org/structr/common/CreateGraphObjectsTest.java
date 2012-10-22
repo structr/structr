@@ -37,7 +37,6 @@ import org.structr.core.entity.Location;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PlainText;
-import org.structr.core.entity.PrincipalImpl;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.node.StructrTransaction;
 
@@ -195,7 +194,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 					assertTrue(entityList.contains(NodeList.class));
 					assertTrue(entityList.contains(Folder.class));
 					assertTrue(entityList.contains(PlainText.class));
-					assertTrue(entityList.contains(PrincipalImpl.class));
 					assertTrue(entityList.contains(Person.class));
 					assertTrue(entityList.contains(ResourceAccess.class));
 					

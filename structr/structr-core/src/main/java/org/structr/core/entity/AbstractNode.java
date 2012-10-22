@@ -99,12 +99,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final Property<String>        categories                  = new Property<String>("categories");
 	public static final Property<String>        ownerId                     = new Property<String>("ownerId");
 
+	public static final View uiView = new View(PropertyView.Ui,
+		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, categories, ownerId
+	);
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.All, uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, categories, ownerId);
-		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.Ui, uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, categories, ownerId);
 		EntityContext.registerPropertyConverter(AbstractNode.class, visibilityStartDate, DateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, visibilityEndDate, DateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, lastModifiedDate, DateConverter.class);
@@ -114,8 +116,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerPropertyConverter(AbstractNode.class, visibleToPublicUsers, BooleanConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, visibleToAuthenticatedUsers, BooleanConverter.class);
 		
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, categories, ownerId);
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, categories, ownerId);
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
 		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), uuid);
 
 		EntityContext.registerPropertyRelation(AbstractNode.class, ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, Cardinality.ManyToOne, new PropertyNotion(uuid));
@@ -659,11 +661,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the converted, validated, transformed property value
 	 */
 	@Override
-	public Object getProperty(final PropertyKey key) {
+	public <T> T getProperty(final PropertyKey<T> key) {
 		return getProperty(key, true);
 	}
 	
-	private Object getProperty(final PropertyKey key, boolean applyConverter) {
+	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
 
 		// early null check, this should not happen...
 		if (key == null || key.name() == null) {
@@ -674,7 +676,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		
 		if (isDirty) {
 
-			return properties.get(key.name());
+			return (T)properties.get(key);
 		}
 
 		if (dbNode == null) {
@@ -682,7 +684,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return null;
 		}
 
-		value             = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
+		value             = (T)(applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key));
 		Class type        = this.getClass();
 		boolean dontCache = false;
 
@@ -690,7 +692,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (value == null) {
 			
 			// ----- BEGIN property group resolution -----
-			PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+			PropertyGroup<T> propertyGroup = EntityContext.getPropertyGroup(type, key);
 
 			if (propertyGroup != null) {
 
@@ -783,7 +785,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			}
 		}
 		
-		return value;
+		// TODO: check type of return value here
+		return (T)value;
 
 	}
 
@@ -1100,9 +1103,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param type the type of the related node to fetch
 	 * @return a single related node of the given type
 	 */
-	public AbstractNode getRelatedNode(Class type) {
+	public <T extends AbstractNode> T getRelatedNode(Class<T> type) {
 
-		RelationClass rc = EntityContext.getRelationClass(this.getClass(), type);
+		RelationClass<T> rc = EntityContext.getRelationClass(this.getClass(), type);
 
 		if (rc != null) {
 
@@ -1704,10 +1707,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param convertedValue
 	 */
 	@Override
-	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
-
+	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 		setProperty(key, value, updateIndexDefault);
-
 	}
 
 	/**
@@ -1754,9 +1755,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param convertedValue
 	 * @param updateIndex
 	 */
-	public void setProperty(final PropertyKey key, final Object value, final boolean updateIndex) throws FrameworkException {
+	public <T> void setProperty(final PropertyKey<T> key, final T value, final boolean updateIndex) throws FrameworkException {
 
-		Object oldValue = getProperty(key);
+		T oldValue = getProperty(key);
 
 		// check null cases
 		if ((oldValue == null) && (value == null)) {
@@ -1781,7 +1782,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
-	private void setPropertyInternal(final PropertyKey key, final Object value) throws FrameworkException {
+	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		final Class type = this.getClass();
 
