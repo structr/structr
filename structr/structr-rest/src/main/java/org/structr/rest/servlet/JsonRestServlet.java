@@ -112,6 +112,11 @@ public class JsonRestServlet extends HttpServlet {
 		this.defaultPropertyView = defaultPropertyView;
 		this.defaultIdProperty   = idProperty;
 
+		// initialize internal resources with exact matching from EntityContext
+		for(RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
+			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
+		}
+
 		// inject resources
 		resourceMap.putAll(resourceProvider.getResources());
 
