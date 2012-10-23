@@ -197,7 +197,7 @@ public class Importer {
 
 					AbstractNode page = findOrCreateNode(attrs, "/");
 
-					createChildNodes(parsedDocument, page, page.getStringProperty(AbstractNode.uuid), baseUrl);
+					createChildNodes(parsedDocument, page, page.getProperty(AbstractNode.uuid), baseUrl);
 
 					return page;
 
@@ -209,7 +209,7 @@ public class Importer {
 
 				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
-				return res.getStringProperty(AbstractNode.uuid);
+				return res.getProperty(AbstractNode.uuid);
 
 			}
 
@@ -411,7 +411,7 @@ public class Importer {
 
 		for (AbstractNode foundNode : result.getResults()) {
 			
-			String foundNodePath = foundNode.getStringProperty(HtmlElement.path);
+			String foundNodePath = foundNode.getProperty(HtmlElement.path);
 
 			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
 

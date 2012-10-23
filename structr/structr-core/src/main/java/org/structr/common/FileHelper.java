@@ -63,7 +63,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final org.structr.core.entity.File fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		String uuid = fileNode.getStringProperty(AbstractNode.uuid);
+		String uuid = fileNode.getProperty(AbstractNode.uuid);
 
 		if (uuid == null) {
 

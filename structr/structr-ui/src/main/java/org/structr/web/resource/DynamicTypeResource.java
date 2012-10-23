@@ -250,7 +250,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		// copy properties to map
 		templateProperties.put(AbstractNode.type,                        Component.class.getSimpleName());
-		templateProperties.put(Component.kind,                           template.getStringProperty(Component.kind));
+		templateProperties.put(Component.kind,                           template.getProperty(Component.kind));
 		templateProperties.put(AbstractNode.uuid,                        componentId);
 		templateProperties.put(AbstractNode.visibleToPublicUsers,        template.getBooleanProperty(AbstractNode.visibleToPublicUsers));
 		templateProperties.put(AbstractNode.visibleToAuthenticatedUsers, template.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
@@ -284,20 +284,20 @@ public class DynamicTypeResource extends TypeResource {
 					if (node instanceof Content) {
 
 						final Content contentTemplate = (Content) node;
-						final String dataKey          = contentTemplate.getStringProperty(Content.dataKey);
+						final String dataKey          = contentTemplate.getProperty(Content.dataKey);
 
 						// create new content node with content from property set
 						contentTemplateProperties.clear();
 						
 						contentTemplateProperties.put(AbstractNode.type,        Content.class.getSimpleName());
-						contentTemplateProperties.put(Content.typeDefinitionId,	contentTemplate.getStringProperty(Content.typeDefinitionId));
+						contentTemplateProperties.put(Content.typeDefinitionId,	contentTemplate.getProperty(Content.typeDefinitionId));
 						contentTemplateProperties.put(Content.dataKey,          dataKey);
 						
 						contentTemplateProperties.put(AbstractNode.visibleToPublicUsers,	contentTemplate.getBooleanProperty(AbstractNode.visibleToPublicUsers));
 						contentTemplateProperties.put(AbstractNode.visibleToAuthenticatedUsers,	contentTemplate.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
 						
-//						contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			contentTemplate.getStringProperty(Content.UiKey.validationExpression.name()));
-//						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		contentTemplate.getStringProperty(Content.UiKey.validationErrorMessage.name()));
+//						contentTemplateProperties.put(Content.UiKey.validationExpression.name(),			contentTemplate.getProperty(Content.UiKey.validationExpression.name()));
+//						contentTemplateProperties.put(Content.UiKey.validationErrorMessage.name(),		contentTemplate.getProperty(Content.UiKey.validationErrorMessage.name()));
 
 						final Content newContent = (Content) createNodeCommand.execute(contentTemplateProperties);
 

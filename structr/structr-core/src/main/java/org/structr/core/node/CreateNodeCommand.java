@@ -113,7 +113,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 					AbstractRelationship securityRel = createRel.execute(owner, node, RelType.SECURITY, true);    // avoid duplicates
 
 					securityRel.setAllowed(Permission.values());
-					logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.name));
+					logger.log(Level.FINEST, "All permissions given to user {0}", user.getProperty(AbstractNode.name));
 					node.unlockReadOnlyPropertiesOnce();
 					node.setProperty(AbstractNode.createdBy, user.getProperty(AbstractNode.uuid), false);
 

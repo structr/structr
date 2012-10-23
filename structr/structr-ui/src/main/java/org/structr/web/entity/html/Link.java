@@ -51,11 +51,11 @@ public class Link extends HtmlElement {
 	public static final Property<String>         linkableId = new Property<String>("linkable_id");
 	public static final Property<List<Linkable>> linkable   = new Property<List<Linkable>>("linkable");
 
-	public static final View uiView = new View(PropertyView.Ui,
+	public static final View uiView = new View(Link.class, PropertyView.Ui,
 		linkableId, linkable
 	);
 	
-	public static final View htmlView = new View(PropertyView.Html,
+	public static final View htmlView = new View(Link.class, PropertyView.Html,
 		_href, _rel, _media, _hreflang, _type, _sizes
 	);
 

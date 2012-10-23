@@ -69,11 +69,11 @@ public class Content extends AbstractNode {
 	public static final Property<String>       dataKey          = new Property<String>("data-key");
 	public static final Property<String>       typeDefinitionId = new Property<String>("typeDefinitionId");
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(Content.class, PropertyView.Ui,
 		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
 	);
 
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(Content.class, PropertyView.Public,
 		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
 	);
 
@@ -179,7 +179,7 @@ public class Content extends AbstractNode {
 
 		if (key.equals(Content.content)) {
 
-			String value = getStringProperty(key);
+			String value = getProperty(Content.content);
 
 			if (value != null) {
 
@@ -208,7 +208,7 @@ public class Content extends AbstractNode {
 
 		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
 
-			String componentId = in.getStringProperty(Component.componentId);
+			String componentId = in.getProperty(Component.componentId);
 
 			if (componentId != null) {
 
@@ -233,14 +233,14 @@ public class Content extends AbstractNode {
 
 	}
 
-	public String getPropertyWithVariableReplacement(HttpServletRequest request, AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey key) {
+	public String getPropertyWithVariableReplacement(HttpServletRequest request, AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey<String> key) {
 
 		if (securityContext.getRequest() == null) {
 
 			securityContext.setRequest(request);
 		}
 
-		return HtmlElement.replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getStringProperty(key));
+		return HtmlElement.replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getProperty(key));
 
 	}
 

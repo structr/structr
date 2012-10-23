@@ -63,11 +63,11 @@ public class Component extends AbstractNode implements Element {
 	public static final Property<String> pageId      = new Property<String>("pageId");
 	public static final Property<String> kind        = new Property<String>("kind");
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(Component.class, PropertyView.Ui,
 		type, name, kind, paths
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(Component.class, PropertyView.Public,
 		type, name, kind, paths
 	);
 	
@@ -97,7 +97,7 @@ public class Component extends AbstractNode implements Element {
 
 	@Override
 	public void onNodeInstantiation() {
-		collectProperties(this, getStringProperty(AbstractNode.uuid), 0, null);
+		collectProperties(this, getProperty(AbstractNode.uuid), 0, null);
 	}
 
 	@Override
@@ -135,9 +135,9 @@ public class Component extends AbstractNode implements Element {
 
 		if (ref != null) {
 
-			if (componentId.equals(ref.getStringProperty(Component.componentId))) {
+			if (componentId.equals(ref.getProperty(Component.componentId))) {
 
-				String dataKey = startNode.getStringProperty(Content.dataKey);
+				String dataKey = startNode.getProperty(Content.dataKey);
 
 				if (dataKey != null) {
 
@@ -164,7 +164,7 @@ public class Component extends AbstractNode implements Element {
 
 			if (endNode instanceof Component) {
 
-				String subType = endNode.getStringProperty(Component.kind);
+				String subType = endNode.getProperty(Component.kind);
 
 				if (subType != null) {
 
@@ -245,7 +245,7 @@ public class Component extends AbstractNode implements Element {
 	}
 
 	@Override
-	public Object getProperty(PropertyKey key) {
+	public <T> T getProperty(PropertyKey<T> key) {
 
 		// try local properties first
 		if (contentNodes.containsKey(key.name())) {
@@ -254,18 +254,18 @@ public class Component extends AbstractNode implements Element {
 
 			if ((node != null) && (node != this)) {
 
-				return node.getStringProperty(Content.content);
+				return (T)node.getProperty(Content.content);
 
 			}
 
 		} else if (subTypes.contains(EntityContext.normalizeEntityName(key.name()))) {
 
-			String componentId      = getStringProperty(AbstractNode.uuid);
+			String componentId      = getProperty(AbstractNode.uuid);
 			List<Component> results = new LinkedList<Component>();
 
 			collectChildren(results, this, componentId, 0, null);
 
-			return results;
+			return (T)results;
 
 		}
 
@@ -280,7 +280,7 @@ public class Component extends AbstractNode implements Element {
 
 		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
 
-			String componentId = in.getStringProperty(Component.componentId);
+			String componentId = in.getProperty(Component.componentId);
 
 			if (componentId != null) {
 
@@ -297,7 +297,7 @@ public class Component extends AbstractNode implements Element {
 //
 //              for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
 //
-//                      String pageId = in.getStringProperty(Key.pageId.name());
+//                      String pageId = in.getProperty(Key.pageId.name());
 //
 //                      if (pageId != null) {
 //
@@ -330,12 +330,12 @@ public class Component extends AbstractNode implements Element {
 				if ((componentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
 					
 					// Add content nodes if they don't have the data-key property set
-					if (endNode instanceof Content && endNode.getStringProperty(Content.dataKey) == null) {
+					if (endNode instanceof Content && endNode.getProperty(Content.dataKey) == null) {
 						
 						rels.add(abstractRelationship);
 						
 					// Add content or component nodes if rel's componentId attribute matches
-					} else if (componentId.equals(abstractRelationship.getStringProperty(Component.componentId))) {
+					} else if (componentId.equals(abstractRelationship.getProperty(Component.componentId))) {
 
 						rels.add(abstractRelationship);
 
@@ -487,7 +487,7 @@ public class Component extends AbstractNode implements Element {
 
 			}
 
-			String componentId = node.getStringProperty(AbstractNode.uuid);
+			String componentId = node.getProperty(AbstractNode.uuid);
 
 			// new default behaviour: make all components visible
 			// only filter if uuids are present in the request URI

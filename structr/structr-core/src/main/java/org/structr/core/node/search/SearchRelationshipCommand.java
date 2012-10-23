@@ -418,7 +418,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 //                      if ((value != null) && isExactMatch(value)) {
 //
 //                              String key          = attr.getKey();
-//                              String nodeValue    = node.getStringProperty(key);
+//                              String nodeValue    = node.getProperty(key);
 //                              String decodedValue = decodeExactMatch(value);
 //
 //                              if (!nodeValue.equals(decodedValue)) {

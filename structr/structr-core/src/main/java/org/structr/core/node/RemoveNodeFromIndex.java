@@ -86,7 +86,7 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 	private void removeNodeFromAllIndices(final AbstractNode node) {
 
-		if (node.getStringProperty(AbstractNode.uuid) == null) {
+		if (node.getProperty(AbstractNode.uuid) == null) {
 
 			logger.log(Level.WARNING, "Will not remove node from indices which has no UUID");
 

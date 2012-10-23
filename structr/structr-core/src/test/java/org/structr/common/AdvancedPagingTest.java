@@ -162,40 +162,40 @@ public class AdvancedPagingTest extends PagingTest {
 
 			assertTrue(result.size() == 2);
 			
-			assertEquals("TestOne-0", result.get(0).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-1", result.get(1).getStringProperty(AbstractNode.name));
+			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
 			
 			page = -1;
 			
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-6", result.get(0).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-7", result.get(1).getStringProperty(AbstractNode.name));
+			assertEquals("TestOne-6", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-7", result.get(1).getProperty(AbstractNode.name));
 			
 			page = -2;
 			
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-4", result.get(0).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-5", result.get(1).getStringProperty(AbstractNode.name));
+			assertEquals("TestOne-4", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-5", result.get(1).getProperty(AbstractNode.name));
 
 			page = -3;
 			
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-2", result.get(0).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-3", result.get(1).getStringProperty(AbstractNode.name));
+			assertEquals("TestOne-2", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-3", result.get(1).getProperty(AbstractNode.name));
 
 			page = -4;
 			
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-0", result.get(0).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-1", result.get(1).getStringProperty(AbstractNode.name));
+			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
 
 			// now with offsetId
 			
@@ -204,16 +204,16 @@ public class AdvancedPagingTest extends PagingTest {
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-3", result.get(0).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-4", result.get(1).getStringProperty(AbstractNode.name));
+			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
 
 			page = -1;
 			
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-1", result.get(0).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-2", result.get(1).getStringProperty(AbstractNode.name));
+			assertEquals("TestOne-1", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-2", result.get(1).getProperty(AbstractNode.name));
 			
 		} catch (FrameworkException ex) {
 
@@ -267,13 +267,13 @@ public class AdvancedPagingTest extends PagingTest {
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
 
 			assertTrue(result.size() == 7);
-			assertEquals("TestOne-3", result.get(0).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-4", result.get(1).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-5", result.get(2).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-6", result.get(3).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-7", result.get(4).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-8", result.get(5).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-9", result.get(6).getStringProperty(AbstractNode.name));
+			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
+			assertEquals("TestOne-5", result.get(2).getProperty(AbstractNode.name));
+			assertEquals("TestOne-6", result.get(3).getProperty(AbstractNode.name));
+			assertEquals("TestOne-7", result.get(4).getProperty(AbstractNode.name));
+			assertEquals("TestOne-8", result.get(5).getProperty(AbstractNode.name));
+			assertEquals("TestOne-9", result.get(6).getProperty(AbstractNode.name));
 			
 		} catch (FrameworkException ex) {
 
@@ -325,8 +325,8 @@ public class AdvancedPagingTest extends PagingTest {
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-0", result.get(0).getStringProperty(AbstractNode.name));
-			assertEquals("TestOne-1", result.get(1).getStringProperty(AbstractNode.name));
+			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
 
 			// unknown offsetId
 			

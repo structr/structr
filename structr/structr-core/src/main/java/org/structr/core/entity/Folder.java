@@ -45,7 +45,7 @@ public class Folder extends AbstractNode {
 	public static final Property<List<File>>   files        = new Property<List<File>>("files");
 	public static final Property<List<Image>>  images       = new Property<List<Image>>("images");
 
-	public static final View uiView = new View(PropertyView.Ui,
+	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parentFolder, folders, files, images
 	);
 	

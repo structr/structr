@@ -38,7 +38,7 @@ public class Base extends HtmlElement {
 	public static final Property<String> _href   = new HtmlProperty("href");
 	public static final Property<String> _target = new HtmlProperty("target");
 
-	public static final View htmlView = new View(PropertyView.Html,
+	public static final View htmlView = new View(Base.class, PropertyView.Html,
 		_href, _target
 	);
 

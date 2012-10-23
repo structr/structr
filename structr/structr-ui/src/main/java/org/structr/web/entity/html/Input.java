@@ -71,7 +71,7 @@ public class Input extends HtmlElement {
 	public static final Property<String> _value          = new HtmlProperty("value");
 	public static final Property<String> _width          = new HtmlProperty("width");
 	
-	public static final View htmlView = new View(PropertyView.Html,
+	public static final View htmlView = new View(Input.class, PropertyView.Html,
 	    
 		_accept, _alt, _autocomplete, _autofocus, _checked, _dirname, _disabled, _form, _formaction, _formenctype, _formmethod,
 		_formnovalidate, _formtarget, _height, _list, _max, _maxlength, _min, _multiple, _name, _pattern, _placeholder,

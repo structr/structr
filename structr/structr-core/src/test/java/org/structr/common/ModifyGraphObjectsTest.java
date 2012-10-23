@@ -83,8 +83,8 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			});
 
 			// Check defaults
-			assertTrue(node.getStringProperty(AbstractNode.type).equals(type));
-			assertTrue(node.getStringProperty(AbstractNode.name).equals(name));
+			assertTrue(node.getProperty(AbstractNode.type).equals(type));
+			assertTrue(node.getProperty(AbstractNode.name).equals(name));
 			assertTrue(!node.getBooleanProperty(AbstractNode.hidden));
 			assertTrue(!node.getBooleanProperty(AbstractNode.deleted));
 			assertTrue(!node.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
@@ -94,7 +94,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 			// Modify values
 			node.setProperty(AbstractNode.name, name);
-			assertTrue(node.getStringProperty(AbstractNode.name).equals(name));
+			assertTrue(node.getProperty(AbstractNode.name).equals(name));
 			node.setProperty(AbstractNode.hidden, true);
 			assertTrue(node.getBooleanProperty(AbstractNode.hidden));
 			node.setProperty(AbstractNode.deleted, true);
@@ -127,11 +127,11 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 			// Modify values
 			rel.setProperty(key1, val1);
-			assertTrue(rel.getStringProperty(key1).equals(val1));
+			assertTrue(rel.getProperty(key1).equals(val1));
 			
 			val1 = "öljkhöohü8osdfhoödhi";
 			rel.setProperty(key1, val1);
-			assertTrue(rel.getStringProperty(key1).equals(val1));
+			assertTrue(rel.getProperty(key1).equals(val1));
 			
 
 		} catch (FrameworkException ex) {

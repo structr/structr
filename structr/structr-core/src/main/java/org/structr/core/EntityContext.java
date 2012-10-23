@@ -21,6 +21,7 @@
 
 package org.structr.core;
 
+import java.lang.reflect.Field;
 import org.structr.core.converter.PropertyConverter;
 import org.apache.commons.lang.StringUtils;
 
@@ -57,7 +58,9 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.structr.common.Property;
 import org.structr.common.PropertySet;
+import org.structr.common.View;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeService.RelationshipIndex;
 
@@ -82,13 +85,14 @@ public class EntityContext {
 	private static final Map<Class, Map<Class, RelationClass>> globalRelationClassMap    = new LinkedHashMap<Class, Map<Class, RelationClass>>();
 	private static final Map<Class, Set<PropertyKey>> globalReadOnlyPropertyMap          = new LinkedHashMap<Class, Set<PropertyKey>>();
 	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
+	private static final Map<Class, Map<String, PropertyKey>> globalClassPropertyMap     = new LinkedHashMap<Class, Map<String, PropertyKey>>();
 
 	// This map contains a mapping from (sourceType, propertyKey) -> RelationClass
 	private static final Map<Class, Map<PropertyKey, Class<? extends PropertyConverter>>> globalAggregatedPropertyConverterMap = new LinkedHashMap<Class, Map<PropertyKey, Class<? extends PropertyConverter>>>();
 	private static final Map<Class, Map<PropertyKey, Class<? extends PropertyConverter>>> globalPropertyConverterMap           = new LinkedHashMap<Class, Map<PropertyKey, Class<? extends PropertyConverter>>>();
 	private static final Map<Class, Map<PropertyKey, RelationClass>> globalPropertyRelationClassMap                            = new LinkedHashMap<Class, Map<PropertyKey, RelationClass>>();
-	private static final Map<Class, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                    = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap                               = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                         = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 
 	// This map contains view-dependent result set transformations
 	private static final Map<Class, Map<String, ViewTransformation>> viewTransformations = new LinkedHashMap<Class, Map<String, ViewTransformation>>();
@@ -155,6 +159,22 @@ public class EntityContext {
 		}
 	}
 
+	public static void scanEntity(Object entity) {
+		
+		List<View> views          = getFieldsOfType(View.class, entity);
+		List<Property> properties = getFieldsOfType(Property.class, entity);
+		Class type                = entity.getClass();
+		
+		Map<String, PropertyKey> classPropertyMap = getClassPropertyMapForType(type);
+		for (PropertyKey key : properties) {
+			classPropertyMap.put(key.name(), key);
+		}
+		
+		for (View view : views) {
+			registerPropertySet(type, view.name(), view.properties());
+		}
+	}
+	
 	/**
 	 * Initialize the entity context with all classes from the module service,
 	 */
@@ -381,32 +401,16 @@ public class EntityContext {
 	 */
 	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
 
-		Set<PropertyKey> properties = getPropertySet(type, propertyView);
+		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
+		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
+		
+		if (properties == null) {
+			properties = new LinkedHashSet<PropertyKey>();
+			propertyViewMap.put(propertyView, properties);
+		}
 
 		// add all properties from set
 		properties.addAll(Arrays.asList(propertySet));
-
-		/*
-		// include property sets from superclass
-		Class superClass = type.getSuperclass();
-
-		while ((superClass != null) &&!superClass.equals(Object.class)) {
-
-			Set<PropertyKey> superProperties = getPropertySet(superClass, propertyView);
-
-			properties.addAll(superProperties);
-
-			// one level up :)
-			superClass = superClass.getSuperclass();
-
-		}
-		
-		// include property sets from interfaces
-		for(Class interfaceClass : getInterfacesForType(type)) {
-			properties.addAll(getPropertySet(interfaceClass, propertyView));
-		}
-		*/
-
 	}
 
 	// ----- validator methods -----
@@ -481,12 +485,12 @@ public class EntityContext {
 		}
 	}
 
-	// ----- read-only property map -----
+	// ----- scanEntity-only property map -----
 	/**
-	 * Defines the given property of the given entity to be read-only.
+	 * Defines the given property of the given entity to be scanEntity-only.
 	 * 
 	 * @param type the type of the entities
-	 * @param key the key that should be set read-only
+	 * @param key the key that should be set scanEntity-only
 	 */
 	public static void registerReadOnlyProperty(Class type, PropertyKey key) {
 		getReadOnlyPropertySetForType(type).add(key);
@@ -830,7 +834,7 @@ public class EntityContext {
 		Class localType                                  = type;
 
 		// collect for all superclasses
-		while (!localType.equals(Object.class)) {
+		while (localType != null && !localType.equals(Object.class)) {
 
 			transformations.addAll(getEntityCreationTransformationsForType(localType));
 
@@ -955,7 +959,7 @@ public class EntityContext {
 		RelationClass relation = null;
 		Class localType        = sourceType;
 
-		while ((relation == null) &&!localType.equals(Object.class)) {
+		while ((relation == null) && localType != null && !localType.equals(Object.class)) {
 
 			relation  = getPropertyRelationshipMapForType(localType).get(propertyKey);
 
@@ -1010,41 +1014,32 @@ public class EntityContext {
 			views.addAll(view.keySet());
 		}
 		
-		return views;
+		return Collections.unmodifiableSet(views);
 	}
 	
 	public static Set<PropertyKey> getPropertySet(Class type, String propertyView) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
-		Set<PropertyKey> propertySet                  = propertyViewMap.get(propertyView);
+		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
 
-		if (propertySet == null) {
-
-			propertySet = new LinkedHashSet<PropertyKey>();
-
-			propertyViewMap.put(propertyView, propertySet);
+		if (properties == null) {
+			properties = new LinkedHashSet<PropertyKey>();
 		}
-
-		// add property set from interfaces
-		for(Class interfaceClass : getInterfacesForType(type)) {
-			propertySet.addAll(getPropertySet(interfaceClass, propertyView));
-			}
-
-		// test: fill property set with values from supertypes
-		Class superClass = type.getSuperclass();
-
-		while ((superClass != null) &&!superClass.equals(Object.class)) {
-
-			Set<PropertyKey> superProperties = getPropertySet(superClass, propertyView);
-
-			propertySet.addAll(superProperties);
-
-			// one level up :)
-			superClass = superClass.getSuperclass();
-
+		
+		// read-only
+		return Collections.unmodifiableSet(properties);
+	}
+	
+	public static PropertyKey getPropertyKeyForName(Class type, String name) {
+		
+		Map<String, PropertyKey> classPropertyMap = getClassPropertyMapForType(type);
+		PropertyKey key                           = classPropertyMap.get(name);
+		
+		if (key == null) {
+			key = new Property(name);
 		}
-
-		return propertySet;
+		
+		return key;
 	}
 
 	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
@@ -1054,7 +1049,7 @@ public class EntityContext {
 		Class localType                                       = type;
 
 		// try all superclasses
-		while (!localType.equals(Object.class)) {
+		while (localType != null && !localType.equals(Object.class)) {
 
 			validatorMap = getPropertyValidatorMapForType(localType);
 			
@@ -1088,7 +1083,7 @@ public class EntityContext {
 			Map<PropertyKey, Class<? extends PropertyConverter>> converterMap = null;
 			Class localType                                                   = type;
 
-			while ((clazz == null) &&!localType.equals(Object.class)) {
+			while ((clazz == null) && localType != null && !localType.equals(Object.class)) {
 
 				converterMap = getPropertyConverterMapForType(localType);
 				clazz        = converterMap.get(propertyKey);
@@ -1134,7 +1129,7 @@ public class EntityContext {
 		Class localType                                = type;
 		Value value                                    = null;
 
-		while ((value == null) &&!localType.equals(Object.class)) {
+		while ((value == null) && localType != null && !localType.equals(Object.class)) {
 
 			conversionParameterMap = getPropertyConversionParameterMapForType(localType);
 			value                  = conversionParameterMap.get(propertyKey);
@@ -1218,6 +1213,21 @@ public class EntityContext {
 		}
 
 		return propertyViewMap;
+	}
+
+	private static Map<String, PropertyKey> getClassPropertyMapForType(Class type) {
+
+		Map<String, PropertyKey> classPropertyMap = globalClassPropertyMap.get(type);
+
+		if (classPropertyMap == null) {
+
+			classPropertyMap = new LinkedHashMap<String, PropertyKey>();
+
+			globalClassPropertyMap.put(type, classPropertyMap);
+
+		}
+
+		return classPropertyMap;
 	}
 
 	private static Map<PropertyKey, Set<PropertyValidator>> getPropertyValidatorMapForType(Class type) {
@@ -1406,7 +1416,7 @@ public class EntityContext {
 		Class localType    = type;
 
 		// try all superclasses
-		while (!isReadOnly &&!localType.equals(Object.class)) {
+		while (!isReadOnly && localType != null && !localType.equals(Object.class)) {
 
 			isReadOnly = getReadOnlyPropertySetForType(localType).contains(key);
 
@@ -1448,7 +1458,7 @@ public class EntityContext {
 		Class localType     = type;
 
 		// try all superclasses
-		while (!isWriteOnce &&!localType.equals(Object.class)) {
+		while (!isWriteOnce && localType != null && !localType.equals(Object.class)) {
 
 			isWriteOnce = getWriteOncePropertySetForType(localType).contains(key);
 
@@ -1962,6 +1972,26 @@ public class EntityContext {
 		
 		return list;
 		
+	}
+	
+	private static <T> List<T> getFieldsOfType(Class<T> type, Object entity) {
+		
+		List<T> fields = new LinkedList<T>();
+		
+		for (Field field : entity.getClass().getFields()) {
+			
+			if (type.equals(field.getType())) {
+				
+				try {
+					fields.add((T)field.get(entity));
+					
+				} catch(Throwable t) {
+					t.printStackTrace();
+				}
+			}
+		}
+		
+		return fields;
 	}
 	
 	private static class ThreadLocalChangeSet extends ThreadLocal<TransactionChangeSet> {

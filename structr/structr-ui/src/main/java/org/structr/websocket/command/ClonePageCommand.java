@@ -94,9 +94,9 @@ public class ClonePageCommand extends AbstractCommand {
 
 					if (newPage != null) {
 
-						String pageId                      = newPage.getStringProperty(AbstractNode.uuid);
+						String pageId                      = newPage.getProperty(AbstractNode.uuid);
 						List<AbstractRelationship> relsOut = nodeToClone.getOutgoingRelationships(RelType.CONTAINS);
-						String originalPageId              = nodeToClone.getStringProperty(AbstractNode.uuid);
+						String originalPageId              = nodeToClone.getProperty(AbstractNode.uuid);
 						Html htmlNode                      = null;
 
 						for (AbstractRelationship out : relsOut) {

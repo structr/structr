@@ -24,7 +24,6 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
-import org.structr.core.IterableAdapter;
 
 /**
  *
@@ -37,7 +36,7 @@ public class ValidationHelper {
 	// ----- public static methods -----
 	public static boolean checkStringMinLength(GraphObject node, PropertyKey<String> key, int minLength, ErrorBuffer errorBuffer) {
 
-		String value = node.getStringProperty(key);
+		String value = node.getProperty(key);
 		String type  = node.getType();
 
 		if (StringUtils.isNotBlank(value)) {
@@ -63,7 +62,7 @@ public class ValidationHelper {
 
 		String type  = node.getType();
 
-		if (StringUtils.isNotBlank(node.getStringProperty(key))) {
+		if (StringUtils.isNotBlank(node.getProperty(key))) {
 
 			return false;
 
@@ -87,9 +86,9 @@ public class ValidationHelper {
 
 		if (value != null) {
 
-			if (value instanceof IterableAdapter) {
+			if (value instanceof Iterable) {
 
-				if (((IterableAdapter) value).iterator().hasNext()) {
+				if (((Iterable) value).iterator().hasNext()) {
 
 					return false;
 
@@ -149,9 +148,9 @@ public class ValidationHelper {
 
 		String type  = node.getType();
 
-		if (StringUtils.isNotBlank(node.getStringProperty(key))) {
+		if (StringUtils.isNotBlank(node.getProperty(key))) {
 
-			if (Arrays.asList(values).contains(node.getStringProperty(key))) {
+			if (Arrays.asList(values).contains(node.getProperty(key))) {
 
 				return false;
 
@@ -189,16 +188,16 @@ public class ValidationHelper {
 
 	public static boolean checkNullOrStringInArray(GraphObject node, PropertyKey<String> key, String[] values, ErrorBuffer errorBuffer) {
 
-		String value = node.getStringProperty(key);
+		String value = node.getProperty(key);
 		String type  = node.getType();
 
 		if(value == null) {
 			return false;
 		}
 
-		if (StringUtils.isNotBlank(node.getStringProperty(key))) {
+		if (StringUtils.isNotBlank(node.getProperty(key))) {
 
-			if (Arrays.asList(values).contains(node.getStringProperty(key))) {
+			if (Arrays.asList(values).contains(node.getProperty(key))) {
 
 				return false;
 

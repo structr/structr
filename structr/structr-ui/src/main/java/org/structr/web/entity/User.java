@@ -56,11 +56,11 @@ public class User extends Person implements Principal {
 	public static final Property<Boolean> frontendUser    = new Property<Boolean>("frontendUser");
 	public static final Property<String>  group           = new Property<String>("group");
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, group
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
 		realName
 	);
 	
@@ -133,19 +133,19 @@ public class User extends Person implements Principal {
 
 	public String getRealName() {
 
-		return getStringProperty(Person.realName);
+		return getProperty(Person.realName);
 
 	}
 
 	public String getConfirmationKey() {
 
-		return getStringProperty(User.confirmationKey);
+		return getProperty(User.confirmationKey);
 
 	}
 
 	public String getSessionId() {
 
-		return getStringProperty(Principal.sessionId);
+		return getProperty(Principal.sessionId);
 
 	}
 

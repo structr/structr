@@ -48,6 +48,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.structr.common.Property;
 import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.core.*;
 
 //~--- classes ----------------------------------------------------------------
@@ -176,6 +177,9 @@ public class ModuleService implements SingletonService {
 					if (AbstractNode.class.isAssignableFrom(clazz)) {
 
 						EntityContext.init(clazz);
+						
+						// try to instantiate class
+						try { EntityContext.scanEntity(clazz.newInstance()); } catch(Throwable t) {}
 
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();
@@ -183,8 +187,6 @@ public class ModuleService implements SingletonService {
 						nodeEntityClassCache.put(simpleName, clazz);
 						nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
-						registerProperties(clazz);
-						
 						for (Class interfaceClass : clazz.getInterfaces()) {
 
 							String interfaceName           = interfaceClass.getSimpleName();
@@ -207,12 +209,33 @@ public class ModuleService implements SingletonService {
 					// register entity classes
 					if (AbstractRelationship.class.isAssignableFrom(clazz)) {
 
+						EntityContext.init(clazz);
+
+						// try to instantiate class
+						try { EntityContext.scanEntity(clazz.newInstance()); } catch(Throwable t) {}
+
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();
 
 						relationshipClassCache.put(simpleName, clazz);
 						relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
+						for (Class interfaceClass : clazz.getInterfaces()) {
+
+							String interfaceName           = interfaceClass.getSimpleName();
+							Set<Class> classesForInterface = interfaceCache.get(interfaceName);
+
+							if (classesForInterface == null) {
+
+								classesForInterface = new LinkedHashSet<Class>();
+
+								interfaceCache.put(interfaceName, classesForInterface);
+
+							}
+
+							classesForInterface.add(clazz);
+
+						}
 					}
 
 					// register services
@@ -232,6 +255,7 @@ public class ModuleService implements SingletonService {
 
 					}
 				}
+				
 			} catch (Throwable t) {}
 
 		}
@@ -580,40 +604,5 @@ public class ModuleService implements SingletonService {
 
 		// we're always running :)
 		return (true);
-	}
-
-	
-	private void registerProperties(Class<? extends GraphObject> type) {
-		
-		for(Field field : type.getFields()) {
-
-			if (Property.class.isAssignableFrom(field.getType())) {
-				
-				int modifiers = field.getModifiers();
-
-				if (Modifier.isPublic(modifiers) && Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers)) {
-
-					// we have a public static final Property field
-					try {
-						
-						Property<?> property = (Property)field.get(this);
-						
-						EntityContext.registerPropertySet(type, PropertyView.All, property);
-						
-						for (String view : property.getViews()) {
-							
-							EntityContext.registerPropertySet(type, view, property);
-							
-						}
-						
-						
-					} catch(Throwable t) {
-						
-						t.printStackTrace();
-					}
-					
-				}
-			}
-		}
 	}
 }

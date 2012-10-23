@@ -62,7 +62,7 @@ public class DynamicValidator extends PropertyValidator {
 				
 				Content content = (Content) object;
 				
-				String dataKey = content.getStringProperty(Content.content);
+				String dataKey = content.getProperty(Content.content);
 				String parentComponentId = null;
 				
 				Component component = content.getParentComponent();
@@ -73,13 +73,13 @@ public class DynamicValidator extends PropertyValidator {
 				TypeDefinition typeDefinition = content.getTypeDefinition();
 				if (typeDefinition != null) {
 					
-					String regex   = typeDefinition.getStringProperty(TypeDefinition.validationExpression);
+					String regex   = typeDefinition.getProperty(TypeDefinition.validationExpression);
 					if (value != null && regex != null) {
 
 						Matcher matcher = getMatcher(regex, value.toString());
 						if (!matcher.matches()) {
 
-							final String errorMessage = typeDefinition.getStringProperty(TypeDefinition.validationErrorMessage);
+							final String errorMessage = typeDefinition.getProperty(TypeDefinition.validationErrorMessage);
 							if (errorMessage != null) {
 								
 								Map<String, Object> attrs = new HashMap<String, Object>();
@@ -101,12 +101,12 @@ public class DynamicValidator extends PropertyValidator {
 					
 				} else {
 					
-					logger.log(Level.WARNING, "No type definition for Content entity {0}", object.getStringProperty(AbstractNode.uuid));
+					logger.log(Level.WARNING, "No type definition for Content entity {0}", object.getProperty(AbstractNode.uuid));
 				}
 				
 			} else {
 					
-				logger.log(Level.WARNING, "Trying to validate node of type {0} which is not Content", object.getStringProperty(AbstractNode.type));
+				logger.log(Level.WARNING, "Trying to validate node of type {0} which is not Content", object.getProperty(AbstractNode.type));
 			}
 		}
 		

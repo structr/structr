@@ -102,7 +102,7 @@ public class ChildrenCommand extends AbstractCommand {
 				pos = rel.getLongProperty(new Property("*"));
 			}
 
-			String relCompId             = rel.getStringProperty(Component.componentId);
+			String relCompId             = rel.getProperty(Component.componentId);
 			boolean isComponentOrContent = ((endNode instanceof Component) || (endNode instanceof Content));
 
 			if (pos == null || (isComponentOrContent && relCompId != null && !relCompId.equals(componentId))) {

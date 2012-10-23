@@ -429,7 +429,7 @@ public class HtmlServlet extends HttpServlet {
 				request.getSession().setAttribute(LAST_GET_URL, request.getPathInfo());
 
 				PrintWriter out            = response.getWriter();
-				String uuid                = page.getStringProperty(AbstractNode.uuid);
+				String uuid                = page.getProperty(AbstractNode.uuid);
 				final StringBuilder buffer = new StringBuilder(8192);
 				
 				List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
@@ -457,7 +457,7 @@ public class HtmlServlet extends HttpServlet {
 					double end     = System.nanoTime();
 					logger.log(Level.INFO, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
 
-					String contentType = page.getStringProperty(Page.contentType);
+					String contentType = page.getProperty(Page.contentType);
 
 					if (contentType != null) {
 
@@ -795,13 +795,13 @@ public class HtmlServlet extends HttpServlet {
 //			}
 			
 			String id   = startNode.getUuid();
-			tag = startNode.getStringProperty(Element.tag);
+			tag = startNode.getProperty(Element.tag);
 
 			if (startNode instanceof Component && searchClass != null) {
 			
 				// If a search class is given, respect search attributes
 				// Filters work with AND
-				String kind = startNode.getStringProperty(Component.kind);
+				String kind = startNode.getProperty(Component.kind);
 
 				if ((kind != null) && kind.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
 
@@ -830,7 +830,7 @@ public class HtmlServlet extends HttpServlet {
 				content = contentNode.getPropertyWithVariableReplacement(request, page, pageId, componentId, viewComponent, Content.content);
 
 				// examine content type and apply converter
-				String contentType = contentNode.getStringProperty(Content.contentType);
+				String contentType = contentNode.getProperty(Content.contentType);
 
 				if (contentType != null) {
 
@@ -862,7 +862,7 @@ public class HtmlServlet extends HttpServlet {
 			// check for component
 			if (startNode instanceof Component) {
 
-				localComponentId = startNode.getStringProperty(AbstractNode.uuid);
+				localComponentId = startNode.getProperty(AbstractNode.uuid);
 
 			}
 

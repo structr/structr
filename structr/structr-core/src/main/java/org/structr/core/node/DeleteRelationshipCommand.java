@@ -105,7 +105,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 		if (rel != null) {
 
-			if (rel.getStringProperty(AbstractRelationship.uuid) == null) {
+			if (rel.getProperty(AbstractRelationship.uuid) == null) {
 
 				logger.log(Level.WARNING, "Will not delete relationship which has no UUID");
 

@@ -22,7 +22,7 @@ public class TypeDefinition extends AbstractNode {
 	public static final Property<String> converter              = new Property<String>("converter");
 	public static final Property<String> converterDefaultValue  = new Property<String>("converterDefaultValue");
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(TypeDefinition.class, PropertyView.Public,
 	    validationExpression, validationErrorMessage, converter, converterDefaultValue
 	);
 	

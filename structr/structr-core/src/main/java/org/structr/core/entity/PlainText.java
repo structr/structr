@@ -49,19 +49,19 @@ public class PlainText extends AbstractNode {
 
 	public String getContent() {
 
-		return getStringProperty(PlainText.content);
+		return getProperty(PlainText.content);
 
 	}
 
 	public String getContentType() {
 
-		return getStringProperty(PlainText.contentType);
+		return getProperty(PlainText.contentType);
 
 	}
 
 	public String getSize() {
 
-		return getStringProperty(PlainText.size);
+		return getProperty(PlainText.size);
 
 	}
 

@@ -68,7 +68,7 @@ public class File extends AbstractNode implements Linkable {
 	public static final Property<Long> checksum           = new Property<Long>("checksum");
 	public static final Property<Integer> cacheForSeconds = new Property<Integer>("cacheForSeconds");
 
-	public static final View uiView = new View(PropertyView.Ui,
+	public static final View uiView = new View(File.class, PropertyView.Ui,
 		contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds
 	);
 	
@@ -113,13 +113,13 @@ public class File extends AbstractNode implements Linkable {
 
 	public String getUrl() {
 
-		return getStringProperty(File.url);
+		return getProperty(File.url);
 
 	}
 
 	public String getContentType() {
 
-		return getStringProperty(File.contentType);
+		return getProperty(File.contentType);
 
 	}
 
@@ -189,7 +189,7 @@ public class File extends AbstractNode implements Linkable {
 
 	public String getRelativeFilePath() {
 
-		return getStringProperty(File.relativeFilePath);
+		return getProperty(File.relativeFilePath);
 
 	}
 

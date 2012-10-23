@@ -47,11 +47,11 @@ public class Condition extends AbstractNode {
 
 	public static final Property<String> query = new Property<String>("query");
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(Condition.class, PropertyView.Ui,
 		type, name, query
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(Condition.class, PropertyView.Public,
 		type, name, query
 	);
 
@@ -73,7 +73,7 @@ public class Condition extends AbstractNode {
 
 	public boolean isSatisfied(HttpServletRequest request, AbstractRelationship rel) {
 
-		String uuid          = rel.getStringProperty(Component.componentId);
+		String uuid          = rel.getProperty(Component.componentId);
 		String requestedUuid = (String) request.getParameter("id");
 
 		if (uuid != null && requestedUuid != null) {

@@ -96,6 +96,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	//~--- fields ---------------------------------------------------------
 
+	protected Class entityType     = getClass();
 	private String cachedEndNodeId = null;
 
 	// test
@@ -116,7 +117,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	//~--- constructors ---------------------------------------------------
 
 //      public enum Permission implements PropertyKey {
-//              allowed, denied, read, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
+//              allowed, denied, scanEntity, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
 //      }
 	public AbstractRelationship() {
 
@@ -394,7 +395,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	@Override
 	public String getUuid() {
 
-		return getStringProperty(AbstractRelationship.uuid);
+		return getProperty(AbstractRelationship.uuid);
 
 	}
 	
@@ -531,26 +532,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 
 		return (T)value;
-
-	}
-
-	@Override
-	public String getStringProperty(final PropertyKey<String> key) {
-
-		Object propertyValue = getProperty(key);
-		String result        = null;
-
-		if (propertyValue == null) {
-
-			return null;
-		}
-
-		if (propertyValue instanceof String) {
-
-			result = ((String) propertyValue);
-		}
-
-		return result;
 
 	}
 
@@ -923,7 +904,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public String getOtherNodeId(final AbstractNode node) {
 
-		return getOtherNode(node).getStringProperty(AbstractRelationship.uuid);
+		return getOtherNode(node).getProperty(AbstractRelationship.uuid);
 
 	}
 
@@ -1071,13 +1052,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		Class type = this.getClass();
 
-		// check for read-only properties
+		// check for scanEntity-only properties
 		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
 				// permit write operation once and
-				// lock read-only properties again
+				// lock scanEntity-only properties again
 				readOnlyPropertiesUnlocked = false;
 			} else {
 
@@ -1349,9 +1330,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	@Override
 	public PropertyKey getPropertyKeyForName(String name) {
-		
-		//TODO: implement this
-		
-		return new Property(name);
+		return EntityContext.getPropertyKeyForName(entityType, name);
 	}
 }

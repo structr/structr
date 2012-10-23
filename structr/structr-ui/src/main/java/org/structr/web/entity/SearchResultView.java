@@ -38,11 +38,11 @@ import org.structr.core.node.NodeService;
 public class SearchResultView extends View {
 
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(SearchResultView.class, PropertyView.Ui,
 		type, name, query
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(SearchResultView.class, PropertyView.Public,
 		type, name, query
 	);
 	

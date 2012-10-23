@@ -244,6 +244,8 @@ public class Services {
 					createService(serviceClass);
 				} catch (Throwable t) {
 
+					t.printStackTrace();
+					
 					logger.log(Level.WARNING, "Exception while registering service {0}: {1}",
 						   new Object[] { serviceClass.getName(),
 								  t.getMessage() });

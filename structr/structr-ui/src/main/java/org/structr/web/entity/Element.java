@@ -47,7 +47,7 @@ public interface Element extends GraphObject {
 	public static final Property<String>      tag   = new Property<String>("tag");
 	public static final Property<Set<String>> paths = new Property<Set<String>>("paths");
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(Element.class, PropertyView.Ui,
 		AbstractNode.name, tag
 	);
 

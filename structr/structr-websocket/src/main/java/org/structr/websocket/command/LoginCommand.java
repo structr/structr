@@ -77,7 +77,7 @@ public class LoginCommand extends AbstractCommand {
 					// store token in response data
 					webSocketData.getNodeData().clear();
 					webSocketData.setToken(token);
-					webSocketData.getNodeData().put("username", user.getStringProperty(AbstractNode.name));
+					webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
 
 					// authenticate socket
 					this.getWebSocket().setAuthenticated(token, user);

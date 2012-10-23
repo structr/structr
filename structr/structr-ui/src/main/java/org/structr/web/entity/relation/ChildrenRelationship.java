@@ -41,7 +41,7 @@ public class ChildrenRelationship extends AbstractRelationship {
 	public static final Property<String> parentId = new Property<String>("parentId");
 	public static final Property<String> childId  = new Property<String>("childId");
 
-	public static final View uiView = new View(PropertyView.Ui,
+	public static final View uiView = new View(ChildrenRelationship.class, PropertyView.Ui,
 		parentId, childId
 	);
 	

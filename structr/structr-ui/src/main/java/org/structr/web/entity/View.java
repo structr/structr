@@ -56,11 +56,11 @@ public class View extends AbstractNode implements Element {
 
 	public static final Property<String> query = new Property<String>("query");
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(View.class, PropertyView.Ui,
 		type, name, query, paths
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(View.class, PropertyView.Public,
 		type, name, query, paths
 	);
 	
@@ -98,7 +98,7 @@ public class View extends AbstractNode implements Element {
 
 	protected String getQuery(HttpServletRequest request) {
 		
-		String rawQuery = getStringProperty(query);
+		String rawQuery = getProperty(query);
 		String query    = rawQuery;
 
 		if (request != null && query != null) {

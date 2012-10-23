@@ -84,10 +84,10 @@ public class UnwrapCommand extends AbstractCommand {
 
 					PropertySet nodeProps  = PropertySet.convert(nodeData);
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeProps);
-					String componentId     = newComponent.getStringProperty(AbstractNode.uuid);
+					String componentId     = newComponent.getProperty(AbstractNode.uuid);
 
 					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, pageId,
-						newComponent.getStringProperty(AbstractNode.uuid), false);
+						newComponent.getProperty(AbstractNode.uuid), false);
 
 					if ((parentNode != null) && (newComponent != null)) {
 

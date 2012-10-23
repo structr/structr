@@ -125,7 +125,7 @@ public class MaintenanceResource extends Resource {
 				? "non-null"
 				: "null", ((securityContext != null)
 												     && (securityContext.getUser() != null))
-					  ? securityContext.getUser().getStringProperty(AbstractNode.name)
+					  ? securityContext.getUser().getProperty(AbstractNode.name)
 					  : "null" });
 
 			throw new NotAllowedException();

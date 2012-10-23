@@ -96,12 +96,12 @@ public class RelationshipHelper {
 			props.remove(AbstractRelationship.createdDate);
 			
 			// Overwrite combined rel type with new dest node type
-			props.put(AbstractRelationship.combinedType, EntityContext.createCombinedRelationshipType(in.getStringProperty(AbstractRelationship.combinedType), cloneNode.getClass()));
+			props.put(AbstractRelationship.combinedType, EntityContext.createCombinedRelationshipType(in.getProperty(AbstractRelationship.combinedType), cloneNode.getClass()));
 			
 			AbstractRelationship newInRel = createRel.execute(startNode, cloneNode, relType, props, false);
 
 			// only set componentId if set and avoid setting the component id of the clone node itself
-			if ((componentId != null) &&!(cloneNode.getStringProperty(AbstractNode.uuid).equals(componentId))) {
+			if ((componentId != null) &&!(cloneNode.getProperty(AbstractNode.uuid).equals(componentId))) {
 
 				newInRel.setProperty(Component.componentId, componentId);
 

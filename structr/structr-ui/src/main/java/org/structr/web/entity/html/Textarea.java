@@ -47,7 +47,7 @@ public class Textarea extends HtmlElement {
 	public static final Property<String> _wrap        = new HtmlProperty("wrap");
 	public static final Property<String> _cols        = new HtmlProperty("cols");
 	
-	public static final View htmlView = new View(PropertyView.Html,
+	public static final View htmlView = new View(Textarea.class, PropertyView.Html,
 	    _name, _disabled, _form, _readonly, _maxlenght, _autofocus, _required, _placeholder, _dirname, _rows, _wrap, _cols
 	);
 	

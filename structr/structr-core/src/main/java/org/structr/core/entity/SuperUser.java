@@ -177,14 +177,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Object getProperty(PropertyKey key) {
-
-		return null;
-
-	}
-
-	@Override
-	public String getStringProperty(PropertyKey<String> propertyKey) {
+	public <T> T getProperty(PropertyKey<T> key) {
 
 		return null;
 

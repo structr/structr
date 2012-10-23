@@ -149,7 +149,7 @@ public class SearchResultsTest extends StructrTest {
 			String val1              = "54354354546806849870";
 
 			rel.setProperty(key1, val1);
-			assertTrue(rel.getStringProperty(key1).equals(val1));
+			assertTrue(rel.getProperty(key1).equals(val1));
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 

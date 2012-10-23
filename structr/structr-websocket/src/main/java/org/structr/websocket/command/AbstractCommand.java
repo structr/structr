@@ -61,9 +61,9 @@ public abstract class AbstractCommand {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Connection connection      = null;
-	private PropertyKey idProperty     = null;
-	private StructrWebSocket webSocket = null;
+	private Connection connection          = null;
+	private PropertyKey<String> idProperty = null;
+	private StructrWebSocket webSocket     = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -77,7 +77,7 @@ public abstract class AbstractCommand {
 		return connection;
 	}
 
-	public PropertyKey getIdProperty() {
+	public PropertyKey<String> getIdProperty() {
 		return idProperty;
 	}
 
@@ -182,7 +182,7 @@ public abstract class AbstractCommand {
 
 		if (idProperty != null) {
 
-			return node.getStringProperty(idProperty);
+			return node.getProperty(idProperty);
 
 		} else {
 
@@ -197,7 +197,7 @@ public abstract class AbstractCommand {
 		this.connection = connection;
 	}
 
-	public void setIdProperty(final PropertyKey idProperty) {
+	public void setIdProperty(final PropertyKey<String> idProperty) {
 		this.idProperty = idProperty;
 	}
 

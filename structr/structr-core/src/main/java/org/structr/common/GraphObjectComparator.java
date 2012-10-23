@@ -77,10 +77,10 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 				try {
 					logger.log(Level.WARNING, "Cannot compare {0} of type {1} to {2} of type {3}, sort key {4} not found.",
 						new Object[] {
-							n1.getStringProperty(AbstractNode.uuid),
-							n1.getStringProperty(AbstractNode.type),
-							n2.getStringProperty(AbstractNode.uuid),
-							n2.getStringProperty(AbstractNode.type),
+							n1.getProperty(AbstractNode.uuid),
+							n1.getProperty(AbstractNode.type),
+							n2.getProperty(AbstractNode.uuid),
+							n2.getProperty(AbstractNode.type),
 							sortKey
 						});
 
@@ -105,10 +105,10 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 			
 			logger.log(Level.WARNING, "Cannot compare properties {0} of type {1} to {2} of type {3}, property {4} error.",
 				new Object[] {
-					n1.getStringProperty(AbstractNode.uuid),
-					n1.getStringProperty(AbstractNode.type),
-					n2.getStringProperty(AbstractNode.uuid),
-					n2.getStringProperty(AbstractNode.type),
+					n1.getProperty(AbstractNode.uuid),
+					n1.getProperty(AbstractNode.type),
+					n2.getProperty(AbstractNode.uuid),
+					n2.getProperty(AbstractNode.type),
 					sortKey
 				});
 		}

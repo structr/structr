@@ -75,7 +75,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 					for(AbstractRelationship rel : rels) {
 
 						// Treat only "our" rels
-						if(rel.getStringProperty(AbstractNode.uuid) != null) {
+						if(rel.getProperty(AbstractNode.uuid) != null) {
 
 							// copy properties
 							// FIXME: synthetic Property generation

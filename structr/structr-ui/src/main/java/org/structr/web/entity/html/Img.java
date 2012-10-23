@@ -47,7 +47,7 @@ public class Img extends HtmlElement {
 	public static final Property<String> _width       = new HtmlProperty("width");
 	public static final Property<String> _height      = new HtmlProperty("height");
 	
-	public static final View htmlView = new View(PropertyView.Html,
+	public static final View htmlView = new View(Img.class, PropertyView.Html,
 	    _alt, _src, _crossorigin, _usemap, _ismap, _width, _height
 	);
 	

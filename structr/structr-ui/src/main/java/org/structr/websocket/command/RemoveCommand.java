@@ -107,7 +107,7 @@ public class RemoveCommand extends AbstractCommand {
 
 							if (pageId == null || rel.getProperty(pageIdProperty) != null) {
 
-//                                                              if (rel.getEndNode().equals(nodeToRemove) && ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))) {
+//                                                              if (rel.getEndNode().equals(nodeToRemove) && ((componentId == null) || componentId.equals(rel.getProperty("componentId")))) {
 								if (rel.getEndNode().equals(nodeToRemove)) {
 
 									relsToReorder.remove(rel);

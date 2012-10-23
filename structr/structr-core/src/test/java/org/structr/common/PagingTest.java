@@ -167,7 +167,7 @@ public class PagingTest extends StructrTest {
 
 //              for (GraphObject obj : result.getResults()) {
 //                      
-//                      System.out.println(obj.getStringProperty(AbstractNode.name));
+//                      System.out.println(obj.getProperty(AbstractNode.name));
 //                      
 //              }
 		logger.log(Level.INFO, "Raw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
@@ -186,7 +186,7 @@ public class PagingTest extends StructrTest {
 		for (int j = 0; j < expectedResultCount; j++) {
 
 			String expectedName = "TestOne-" + (offset + j + startIndex);
-			String gotName      = result.get(j).getStringProperty(AbstractNode.name);
+			String gotName      = result.get(j).getProperty(AbstractNode.name);
 
 			System.out.println(expectedName + ", got: " + gotName);
 			assertEquals(expectedName, gotName);

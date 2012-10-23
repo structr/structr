@@ -105,7 +105,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		try {
 
-			String uuid = node.getStringProperty(AbstractNode.uuid);
+			String uuid = node.getProperty(AbstractNode.uuid);
 
 			// Don't index non-structr relationship
 			if (uuid == null) {

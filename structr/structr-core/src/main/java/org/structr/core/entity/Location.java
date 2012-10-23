@@ -41,7 +41,7 @@ public class Location extends AbstractNode {
 	public static final Property<Double> longitude = new Property<Double>("longitude");
 	public static final Property<Double> altitude  = new Property<Double>("altitude");
 
-	public static final View publicView = new View(PropertyView.Public,
+	public static final View publicView = new View(Location.class, PropertyView.Public,
 		latitude, longitude, altitude
 	);
 	

@@ -21,8 +21,6 @@
 
 package org.structr.web.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.Folder;
 
 //~--- classes ----------------------------------------------------------------

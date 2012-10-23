@@ -149,11 +149,11 @@ public abstract class HtmlElement extends PageElement implements Element {
 	public static final Property<String> _data               = new HtmlProperty("data");
 
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(HtmlElement.class, PropertyView.Public,
 	    name, tag, path, parents, paths
 	);
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(HtmlElement.class, PropertyView.Ui,
 	    
 		name, tag, path, parents, paths,
 	    
@@ -167,7 +167,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 	    
 	);
 	
-	public static final org.structr.common.View htmlView = new org.structr.common.View(PropertyView.Html,
+	public static final org.structr.common.View htmlView = new org.structr.common.View(HtmlElement.class, PropertyView.Html,
 	    
 		_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style, _tabindex, _title,
 	    
@@ -426,7 +426,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 		if (functionMatcher.matches()) {
 
 			String viewComponentId            = viewComponent != null
-				? viewComponent.getStringProperty(AbstractNode.uuid)
+				? viewComponent.getProperty(AbstractNode.uuid)
 				: null;
 			String functionGroup              = functionMatcher.group(1);
 			String parameter                  = functionMatcher.group(2);
@@ -576,10 +576,8 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 	}
 
-	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey key) {
-
-		return replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getStringProperty(key));
-
+	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey<String> key) {
+		return replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getProperty(key));
 	}
 
 	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,

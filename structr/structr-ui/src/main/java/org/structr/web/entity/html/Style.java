@@ -45,7 +45,7 @@ public class Style extends HtmlElement {
 	public static final Property<String> _type   = new HtmlProperty("type");
 	public static final Property<String> _scoped = new HtmlProperty("scoped");
 
-	public static final View htmlView = new View(PropertyView.Html,
+	public static final View htmlView = new View(Style.class, PropertyView.Html,
 		_media, _type, _scoped
 	);
 

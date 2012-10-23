@@ -106,12 +106,18 @@ public class JsonRestServlet extends HttpServlet {
 	private PropertySetGSONAdapter propertySetAdapter           = null;
 	private Value<String> propertyView                          = null;
 	private ResultGSONAdapter resultGsonAdapter                 = null;
+	private ResourceProvider resourceProvider                   = null;
 
 	public JsonRestServlet(ResourceProvider resourceProvider, String defaultPropertyView, PropertyKey<String> idProperty) {
 		
+		this.resourceProvider    = resourceProvider;
 		this.defaultPropertyView = defaultPropertyView;
 		this.defaultIdProperty   = idProperty;
-
+	}
+	
+	@Override
+	public void init() {
+		
 		// initialize internal resources with exact matching from EntityContext
 		for(RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
 			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
@@ -122,11 +128,6 @@ public class JsonRestServlet extends HttpServlet {
 
 		// initialize variables
 		this.propertyView  = new ThreadLocalPropertyView();
-
-		// initialize internal resources with exact matching from EntityContext
-		for(RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
-			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
-		}
 
 		// initialize adapters
 		this.resultGsonAdapter  = new ResultGSONAdapter(propertyView, defaultIdProperty);
@@ -140,6 +141,7 @@ public class JsonRestServlet extends HttpServlet {
                         .registerTypeAdapter(JsonInput.class, propertySetAdapter)
                         .registerTypeAdapter(Result.class, resultGsonAdapter)
                         .create();
+		
 	}
 
 	@Override

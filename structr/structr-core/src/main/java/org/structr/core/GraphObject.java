@@ -84,14 +84,6 @@ public interface GraphObject {
 	public <T> T getProperty(final PropertyKey<T> propertyKey);
 	
 	/**
-	 * Returns the property value for the given key as a String object.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a String object
-	 */
-	public String getStringProperty(final PropertyKey<String> propertyKey);
-
-	/**
 	 * Returns the property value for the given key as an Integer object.
 	 * 
 	 * @param key the property key to retrieve the value for

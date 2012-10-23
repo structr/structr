@@ -18,25 +18,28 @@
  */
 package org.structr.common;
 
+import org.structr.core.GraphObject;
+
 /**
  *
  * @author Christian Morgner
  */
 public class View {
-	
+
 	private Property[] properties = null;
-	
-	public View(String name, Property... keys) {
-		
+	private String name = null;
+
+	public View(Class<? extends GraphObject> type, String name, Property... keys) {
+
 		this.properties = keys;
-		
-		for (Property key : keys) {
-			key.addToView(name);
-		}
+		this.name = name;
 	}
-	
+
 	public Property[] properties() {
 		return properties;
 	}
 	
+	public String name() {
+		return name;
+	}
 }

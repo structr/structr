@@ -98,7 +98,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 					for (AbstractNode node : result.getResults()) {
 
 						// Treat only "our" nodes
-						if (node.getStringProperty(AbstractNode.uuid) != null) {
+						if (node.getProperty(AbstractNode.uuid) != null) {
 
 							for (Entry entry : properties.entrySet()) {
 

@@ -44,7 +44,7 @@ public class LinkRelationship extends AbstractRelationship {
 	public static final Property<String> targetId = new Property<String>("targetId");
 	public static final Property<String> type     = new Property<String>("type");
 
-	public static final View uiView = new View(PropertyView.Ui,
+	public static final View uiView = new View(LinkRelationship.class, PropertyView.Ui,
 		sourceId, targetId, type	
 	);
 	

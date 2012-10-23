@@ -35,11 +35,11 @@ public class RemoteView extends View {
 	public static final Property<String> remoteUser     = new Property<String>("remoteUser");
 	public static final Property<String> remotePassword = new Property<String>("remotePassword");
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(RemoteView.class, PropertyView.Ui,
 		repositoryUrl, remoteUser, remotePassword
 	);
 		
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(RemoteView.class, PropertyView.Public,
 		repositoryUrl, remoteUser, remotePassword
 	);
 		
@@ -64,9 +64,9 @@ public class RemoteView extends View {
 
 			List<GraphObject> resultList = new LinkedList<GraphObject>();
 			String query                 = getQuery(request);
-			String repositoryUrl         = getStringProperty(RemoteView.repositoryUrl);
-			String username              = getStringProperty(RemoteView.remoteUser);
-			String password              = getStringProperty(RemoteView.remotePassword);
+			String repositoryUrl         = getProperty(RemoteView.repositoryUrl);
+			String username              = getProperty(RemoteView.remoteUser);
+			String password              = getProperty(RemoteView.remotePassword);
 			
 			// fetch factories
 			RelationshipFactory relFactory  = new RelationshipFactory(securityContext);

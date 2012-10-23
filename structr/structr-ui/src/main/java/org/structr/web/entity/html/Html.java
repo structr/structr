@@ -43,7 +43,7 @@ public class Html extends HtmlElement {
 
 	public static final Property<String> _manifest = new HtmlProperty("manifest");
 
-	public static final View htmlView = new View(PropertyView.Html,
+	public static final View htmlView = new View(Html.class, PropertyView.Html,
 		_manifest
 	);
 	

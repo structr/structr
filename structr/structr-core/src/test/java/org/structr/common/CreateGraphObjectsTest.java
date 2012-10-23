@@ -229,7 +229,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 							AbstractNode node = (AbstractNode) createNodeCommand.execute(props);
 
-							assertTrue(type.equals(node.getStringProperty(AbstractNode.type)));
+							assertTrue(type.equals(node.getProperty(AbstractNode.type)));
 
 							// Remove mandatory fields for ResourceAccess from props map
 							if (type.equals(ResourceAccess.class.getSimpleName())) {

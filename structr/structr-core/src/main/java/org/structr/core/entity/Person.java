@@ -67,7 +67,7 @@ public class Person extends AbstractNode implements Principal {
 	public static final Property<String>  gender              = new Property<String>("gender");
 	public static final Property<Boolean> newsletter          = new Property<Boolean>("newsletter");
 	
-	public static final View publicView = new View(PropertyView.Public,
+	public static final View publicView = new View(Person.class, PropertyView.Public,
 		salutation, firstName, middleNameOrInitial, lastName
 	);
 	
@@ -87,91 +87,91 @@ public class Person extends AbstractNode implements Principal {
 
 	public String getFirstName() {
 
-		return getStringProperty(Person.firstName);
+		return getProperty(Person.firstName);
 
 	}
 
 	public String getLastName() {
 
-		return getStringProperty(Person.lastName);
+		return getProperty(Person.lastName);
 
 	}
 
 	public String getSalutation() {
 
-		return getStringProperty(Person.salutation);
+		return getProperty(Person.salutation);
 
 	}
 
 	public String getMiddleNameOrInitial() {
 
-		return getStringProperty(Person.middleNameOrInitial);
+		return getProperty(Person.middleNameOrInitial);
 
 	}
 
 	public String getEmail() {
 
-		return getStringProperty(Person.email);
+		return getProperty(Person.email);
 
 	}
 
 	public String getEmail2() {
 
-		return getStringProperty(Person.email2);
+		return getProperty(Person.email2);
 
 	}
 
 	public String getPhoneNumber1() {
 
-		return getStringProperty(Person.phoneNumber1);
+		return getProperty(Person.phoneNumber1);
 
 	}
 
 	public String getPhoneNumber2() {
 
-		return getStringProperty(Person.phoneNumber2);
+		return getProperty(Person.phoneNumber2);
 
 	}
 
 	public String getFaxNumber1() {
 
-		return getStringProperty(Person.faxNumber1);
+		return getProperty(Person.faxNumber1);
 
 	}
 
 	public String getFaxNumber2() {
 
-		return getStringProperty(Person.faxNumber2);
+		return getProperty(Person.faxNumber2);
 
 	}
 
 	public String getStreet() {
 
-		return getStringProperty(Person.street);
+		return getProperty(Person.street);
 
 	}
 
 	public String getZipCode() {
 
-		return getStringProperty(Person.zipCode);
+		return getProperty(Person.zipCode);
 
 	}
 
 	public String getState() {
 
-		return getStringProperty(Person.state);
+		return getProperty(Person.state);
 
 	}
 
 	public String getCountry() {
 
-		return getStringProperty(Person.country);
+		return getProperty(Person.country);
 
 	}
 
 	public String getCity() {
 
-		return getStringProperty(Person.city);
+		return getProperty(Person.city);
 
 	}
 
@@ -189,7 +189,7 @@ public class Person extends AbstractNode implements Principal {
 
 	public String getGender() {
 
-		return getStringProperty(Person.gender);
+		return getProperty(Person.gender);
 
 	}
 

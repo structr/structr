@@ -43,7 +43,6 @@ import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.IterableAdapter;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
@@ -99,7 +98,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final Property<String>        categories                  = new Property<String>("categories");
 	public static final Property<String>        ownerId                     = new Property<String>("ownerId");
 
-	public static final View uiView = new View(PropertyView.Ui,
+	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
 		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, categories, ownerId
 	);
 	
@@ -118,7 +117,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
-		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), uuid);
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), uuid);
 
 		EntityContext.registerPropertyRelation(AbstractNode.class, ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, Cardinality.ManyToOne, new PropertyNotion(uuid));
 
@@ -137,6 +136,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected PropertySet cachedConvertedProperties  = new PropertySet();
 	protected PropertySet cachedRawProperties        = new PropertySet();
 	protected Principal cachedOwnerNode              = null;
+	protected Class entityType                      = getClass();
 
 	// request parameters
 	protected SecurityContext securityContext                     = null;
@@ -301,10 +301,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Can be used to permit the setting of a read-only
+	 * Can be used to permit the setting of a scanEntity-only
 	 * property once. The lock will be restored automatically
 	 * after the next setProperty operation. This method exists
-	 * to prevent automatic set methods from setting a read-only
+	 * to prevent automatic set methods from setting a scanEntity-only
 	 * property while allowing a manual set method to override this
 	 * default behaviour.
 	 */
@@ -328,13 +328,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			}
 
-			// check for read-only properties
+			// check for scanEntity-only properties
 			if (EntityContext.isReadOnlyProperty(this.getClass(), key)) {
 
 				if (readOnlyPropertiesUnlocked) {
 
 					// permit write operation once and
-					// lock read-only properties again
+					// lock scanEntity-only properties again
 					readOnlyPropertiesUnlocked = false;
 				} else {
 
@@ -360,96 +360,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
-	/**
-	 * Returns the number of elements in the given Iterable
-	 *
-	 * @param iterable
-	 * @return the number of elements in the given iterable
-	 */
-	protected int countIterableElements(Iterable iterable) {
-
-		// 1st try: IterableAdapter with pre-set size?
-		if (iterable instanceof IterableAdapter) {
-			
-			IterableAdapter adapter = (IterableAdapter)iterable;
-			
-			if (adapter.size() >= 0) {
-				return adapter.size();
-			}
-		}
-		
-		// 2nd try: Collection?
-		if (iterable instanceof Collection) {
-			
-			return ((Collection)iterable).size();
-		}
-		
-		// fallback: count..
-		int count = 0;
-
-		for (Object o : iterable) {
-
-			count++;
-		}
-
-		return (count);
-
-	}
-
-	/**
-	 * Checks if the given object is an Iterable and collects the elements
-	 * into a set. Returns null otherwise.
-	 * 
-	 * @param source
-	 * @return the elements of the given iterable object in a set, or null
-	 */
-	protected Set toSet(Object source) {
-
-		if (source instanceof Iterable) {
-
-			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>) source;
-			Set<AbstractNode> nodes         = new LinkedHashSet();
-
-			for (AbstractNode node : iterable) {
-
-				nodes.add(node);
-			}
-
-			return nodes;
-
-		}
-
-		return null;
-
-	}
-
-	/**
-	 * Checks if the given object is an Interable and collects the elements
-	 * into a list. Returns null otherwise.
-	 * 
-	 * @param source
-	 * @return the elements of the given iterable object in a list, or null
-	 */
-	protected List toList(Object source) {
-
-		if (source instanceof Iterable) {
-
-			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>) source;
-			List<AbstractNode> nodes        = new LinkedList();
-
-			for (AbstractNode node : iterable) {
-
-				nodes.add(node);
-			}
-
-			return nodes;
-
-		}
-
-		return null;
-
-	}
-
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -468,7 +378,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public String getType() {
-		return getStringProperty(AbstractNode.type);
+		return getProperty(AbstractNode.type);
 	}
 
 	/**
@@ -478,7 +388,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public String getName() {
 		
-		String name = getStringProperty(AbstractNode.name);
+		String name = getProperty(AbstractNode.name);
 		if (name == null) {
 			name = getNodeId().toString();
 		}
@@ -504,7 +414,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public String getUuid() {
 
-		return getStringProperty(AbstractNode.uuid);
+		return getProperty(AbstractNode.uuid);
 
 	}
 
@@ -624,9 +534,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
-
 		return EntityContext.getPropertySet(this.getClass(), propertyView);
-
 	}
 
 	/**
@@ -721,7 +629,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 						case ManyToMany :
 						case OneToMany :
-							value     = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
+							value     = Notion.convertList(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
 							dontCache = true;
 							break;
 
@@ -805,32 +713,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		logger.log(Level.WARNING, "Could not create MD5 hex out of value {0}", value);
 
 		return null;
-
-	}
-
-	/**
-	 * Returns the property value for the given key as a String object.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a String object
-	 */
-	@Override
-	public String getStringProperty(final PropertyKey<String> key) {
-
-		Object propertyValue = getProperty(key);
-		String result        = null;
-
-		if (propertyValue == null) {
-
-			return null;
-		}
-
-		if (propertyValue instanceof String) {
-
-			result = ((String) propertyValue);
-		}
-
-		return result;
 
 	}
 
@@ -1794,13 +1676,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 		
-		// check for read-only properties
+		// check for scanEntity-only properties
 		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key.name()))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
 				// permit write operation once and
-				// lock read-only properties again
+				// lock scanEntity-only properties again
 				readOnlyPropertiesUnlocked = false;
 			} else {
 
@@ -1860,9 +1742,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				}
 
 				// support collection resources, too
-				if (existingValue instanceof IterableAdapter) {
+				if (existingValue instanceof Iterable) {
 
-					for (Object val : ((IterableAdapter) existingValue)) {
+					for (Object val : ((Iterable) existingValue)) {
 
 						GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(val);
 						if (graphObject instanceof AbstractNode) {
@@ -1991,9 +1873,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public PropertyKey getPropertyKeyForName(String name) {
-		
-		//TODO: implement this correctly!
-		
-		return new Property(name);
+		return EntityContext.getPropertyKeyForName(entityType, name);
 	}
 }

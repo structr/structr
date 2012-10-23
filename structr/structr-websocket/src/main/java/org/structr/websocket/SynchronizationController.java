@@ -202,7 +202,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		message.setCommand("UPDATE");
 
-		String uuid = graphObject.getStringProperty(AbstractNode.uuid);
+		String uuid = graphObject.getProperty(AbstractNode.uuid);
 		
 		if (graphObject instanceof AbstractRelationship) {
 
@@ -237,7 +237,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		message.setCommand("UPDATE");
 
-		String uuid = graphObject.getStringProperty(AbstractNode.uuid);
+		String uuid = graphObject.getProperty(AbstractNode.uuid);
 
 		if (graphObject instanceof AbstractRelationship) {
 
@@ -282,10 +282,10 @@ public class SynchronizationController implements StructrTransactionListener {
 
 				message.setCommand("ADD");
 				message.setGraphObject(relationship);
-				message.setId(startNode.getStringProperty(AbstractNode.uuid));
+				message.setId(startNode.getProperty(AbstractNode.uuid));
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
 
-				String pageId = relationship.getStringProperty(new Property<String>("pageId"));
+				String pageId = relationship.getProperty(new Property<String>("pageId"));
 
 				if (pageId != null) {
 
@@ -297,8 +297,8 @@ public class SynchronizationController implements StructrTransactionListener {
 				}
 
 				messageStack.add(message);
-				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.uuid),
-					endNode.getStringProperty(AbstractNode.uuid) });
+				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getProperty(AbstractNode.uuid),
+					endNode.getProperty(AbstractNode.uuid) });
 
 			}
 
@@ -314,7 +314,7 @@ public class SynchronizationController implements StructrTransactionListener {
 			list.add(graphObject);
 			message.setResult(list);
 			messageStack.add(message);
-			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getStringProperty(AbstractNode.uuid));
+			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getProperty(AbstractNode.uuid));
 
 		}
 

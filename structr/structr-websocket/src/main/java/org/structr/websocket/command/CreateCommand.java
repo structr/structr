@@ -80,7 +80,7 @@ public class CreateCommand extends AbstractCommand {
 			if (newNode instanceof File) {
 
 				File fileNode = (File) newNode;
-				String uuid   = newNode.getStringProperty(AbstractNode.uuid);
+				String uuid   = newNode.getProperty(AbstractNode.uuid);
 
 				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
 				getWebSocket().createFileUploadHandler((File) newNode);

@@ -58,11 +58,11 @@ public class ResourceAccess extends AbstractNode {
 	public static final Property<String> signature = new Property<String>("signature");
 	public static final Property<Long>   flags     = new Property<Long>("flags");
 
-	public static final View uiView = new View(PropertyView.Ui,
+	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags
 	);
 	
-	public static final View publicView = new View(PropertyView.Public,
+	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
 		signature, flags
 	);
 	
@@ -75,7 +75,7 @@ public class ResourceAccess extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
 		
-		// signature and type must be read-only
+		// signature and type must be scanEntity-only
 		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.type);
 		EntityContext.registerWriteOnceProperty(ResourceAccess.class, signature);
 		
@@ -135,7 +135,7 @@ public class ResourceAccess extends AbstractNode {
 	public String getResourceSignature() {
 		
 		if (cachedResourceSignature == null) {
-			cachedResourceSignature = getStringProperty(ResourceAccess.signature);
+			cachedResourceSignature = getProperty(ResourceAccess.signature);
 		}
 		
 		return cachedResourceSignature;

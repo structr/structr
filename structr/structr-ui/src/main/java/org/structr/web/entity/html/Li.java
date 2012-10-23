@@ -42,7 +42,7 @@ public class Li extends HtmlElement {
 
 	public static final Property<String> _value = new HtmlProperty("value");
 	
-	public static final View htmlView = new View(PropertyView.Html,
+	public static final View htmlView = new View(Li.class, PropertyView.Html,
 		_value
 	);
 

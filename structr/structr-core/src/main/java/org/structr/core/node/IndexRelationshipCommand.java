@@ -97,7 +97,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 	private void indexRelationship(final AbstractRelationship rel) throws FrameworkException {
 
-		String uuid = rel.getStringProperty(AbstractRelationship.uuid);
+		String uuid = rel.getProperty(AbstractRelationship.uuid);
 
 		// Don't index non-structr relationship
 		if (uuid == null) {
@@ -106,7 +106,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		}
 
-		String combinedKey = rel.getStringProperty(AbstractRelationship.combinedType);
+		String combinedKey = rel.getProperty(AbstractRelationship.combinedType);
 
 		if (combinedKey == null) {
 
@@ -176,7 +176,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		logger.log(Level.INFO, "Indexing key {0} with value {1} of ID {2}", new Object[] {
 			key,
 			value != null ? value : "null",
-			rel.getStringProperty("uuid")
+			rel.getProperty("uuid")
 		} );
 		*/
 		

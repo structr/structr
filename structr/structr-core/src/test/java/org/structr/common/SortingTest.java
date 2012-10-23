@@ -107,7 +107,7 @@ public class SortingTest extends StructrTest {
 
 //                      for (GraphObject obj : result.getResults()) {
 //                              
-//                              System.out.println(obj.getStringProperty(AbstractNode.name));
+//                              System.out.println(obj.getProperty(AbstractNode.name));
 //                              
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
@@ -118,7 +118,7 @@ public class SortingTest extends StructrTest {
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
 				String expectedName = "TestOne-" + (offset + j);
-				String gotName     = result.get(j).getStringProperty(AbstractNode.name);
+				String gotName     = result.get(j).getProperty(AbstractNode.name);
 
 				System.out.println(expectedName + ", got: " + gotName);
 				assertEquals(expectedName, gotName);
@@ -176,7 +176,7 @@ public class SortingTest extends StructrTest {
 
 //                      for (GraphObject obj : result.getResults()) {
 //                              
-//                              System.out.println(obj.getStringProperty(AbstractNode.name));
+//                              System.out.println(obj.getProperty(AbstractNode.name));
 //                              
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
@@ -187,7 +187,7 @@ public class SortingTest extends StructrTest {
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
 				int expectedNumber = number + offset - 1 - j;
-				String gotName     = result.get(j).getStringProperty(AbstractNode.name);
+				String gotName     = result.get(j).getProperty(AbstractNode.name);
 
 				System.out.println(expectedNumber + ", got: " + gotName);
 				assertEquals(Integer.toString(expectedNumber), gotName);
@@ -232,7 +232,7 @@ public class SortingTest extends StructrTest {
 
 				node.setProperty(TestOne.aDate, new Date());
 
-				// System.out.println(node.getStringProperty(AbstractNode.name) + ", " + node.getProperty(TestOne.Key.aDate) + " (set: " + timestamp + ")");
+				// System.out.println(node.getProperty(AbstractNode.name) + ", " + node.getProperty(TestOne.Key.aDate) + " (set: " + timestamp + ")");
 
 			}
 
@@ -253,7 +253,7 @@ public class SortingTest extends StructrTest {
 
 //                      for (GraphObject obj : result.getResults()) {
 //
-//                              System.out.println(obj.getStringProperty(AbstractNode.name) + ", " + obj.getProperty(TestOne.Key.aDate.name()));
+//                              System.out.println(obj.getProperty(AbstractNode.name) + ", " + obj.getProperty(TestOne.Key.aDate.name()));
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
@@ -263,7 +263,7 @@ public class SortingTest extends StructrTest {
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
 				String expectedName = "TestOne-" + (offset + j);
-				String gotName     = result.get(j).getStringProperty(AbstractNode.name);
+				String gotName     = result.get(j).getProperty(AbstractNode.name);
 
 				System.out.println(expectedName + ", got: " + gotName);
 				assertEquals(expectedName, gotName);
@@ -325,7 +325,7 @@ public class SortingTest extends StructrTest {
 
 //                      for (GraphObject obj : result.getResults()) {
 //
-//                              System.out.println(obj.getStringProperty(AbstractNode.name) + ", " + obj.getDateProperty(AbstractNode.lastModifiedDate));
+//                              System.out.println(obj.getProperty(AbstractNode.name) + ", " + obj.getDateProperty(AbstractNode.lastModifiedDate));
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
@@ -335,7 +335,7 @@ public class SortingTest extends StructrTest {
 			for (int j = 0; j < pageSize; j++) {
 
 				int expectedNumber = number + offset - 1 - j;
-				String gotName     = result.get(j).getStringProperty(AbstractNode.name);
+				String gotName     = result.get(j).getProperty(AbstractNode.name);
 
 				System.out.println(expectedNumber + ", got: " + gotName);
 				assertEquals(Integer.toString(expectedNumber), gotName);
@@ -397,7 +397,7 @@ public class SortingTest extends StructrTest {
 
 //                      for (GraphObject obj : result.getResults()) {
 //
-//                              System.out.println(obj.getStringProperty(AbstractNode.name) + ": " + obj.getIntProperty(key));
+//                              System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getIntProperty(key));
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
@@ -450,7 +450,7 @@ public class SortingTest extends StructrTest {
 
 				i++;
 
-				System.out.println(node.getStringProperty(AbstractNode.name) + ": " + node.getLongProperty(key));
+				System.out.println(node.getProperty(AbstractNode.name) + ": " + node.getLongProperty(key));
 
 			}
 
@@ -471,7 +471,7 @@ public class SortingTest extends StructrTest {
 
 			for (AbstractNode obj : result.getResults()) {
 
-				System.out.println(obj.getStringProperty(AbstractNode.name) + ": " + obj.getLongProperty(key));
+				System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getLongProperty(key));
 			}
 
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });

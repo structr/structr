@@ -70,7 +70,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		deletedNodes.add(node);
 
-		if (node.getStringProperty(AbstractNode.uuid) == null) {
+		if (node.getProperty(AbstractNode.uuid) == null) {
 
 			logger.log(Level.WARNING, "Will not delete node which has no UUID");
 

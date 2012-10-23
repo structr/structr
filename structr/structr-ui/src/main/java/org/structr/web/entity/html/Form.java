@@ -49,7 +49,7 @@ public class Form extends HtmlElement {
 	public static final Property<String> _novalidate    = new HtmlProperty("novalidate");
 	public static final Property<String> _target        = new HtmlProperty("target");
 
-	public static final View htmlView = new View(PropertyView.Html,
+	public static final View htmlView = new View(Form.class, PropertyView.Html,
 	    _acceptCharset, _action, _autocomplete, _enctype, _method, _name, _novalidate, _target
 	);
 	

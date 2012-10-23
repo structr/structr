@@ -38,7 +38,7 @@ public interface Linkable extends GraphObject {
 
 	public static final Property<List<AbstractNode>> linkingElements = new Property<List<AbstractNode>>("linkingElements");
 
-	public static final View uiView = new View(PropertyView.Ui, linkingElements);
+	public static final View uiView = new View(Linkable.class, PropertyView.Ui, linkingElements);
 	
 	//~--- inner classes --------------------------------------------------
 

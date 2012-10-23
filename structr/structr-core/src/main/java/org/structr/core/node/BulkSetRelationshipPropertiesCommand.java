@@ -92,7 +92,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 					for (AbstractRelationship rel : rels) {
 
 						// Treat only "our" nodes
-						if (rel.getStringProperty(AbstractRelationship.uuid) != null) {
+						if (rel.getProperty(AbstractRelationship.uuid) != null) {
 
 							for (Entry entry : properties.entrySet()) {
                                                                 

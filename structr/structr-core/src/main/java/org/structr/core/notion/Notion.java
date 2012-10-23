@@ -33,6 +33,8 @@ import org.structr.core.GraphObject;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,6 +52,8 @@ import java.util.List;
  */
 public abstract class Notion {
 
+	private static final Logger logger = Logger.getLogger(Notion.class.getName());
+	
 	protected DeserializationStrategy deserializationStrategy = null;
 	protected String idProperty                               = null;
 	protected SecurityContext securityContext                 = null;
@@ -153,5 +157,21 @@ public abstract class Notion {
 
 	public void setIdProperty(String idProperty) {
 		this.idProperty = idProperty;
+	}
+	
+	public static <S, T> List<T> convertList(List<S> source, Adapter<S, T> adapter) {
+		
+		List<T> result = new LinkedList<T>();
+		for(S s : source) {
+	
+			try {
+				result.add(adapter.adapt(s));
+				
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Error in iterable adapter", fex);
+			}
+	}
+		
+		return result;
 	}
 }

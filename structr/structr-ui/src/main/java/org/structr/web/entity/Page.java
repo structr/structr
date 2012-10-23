@@ -58,11 +58,11 @@ public class Page extends AbstractNode implements Linkable {
 	public static final Property<Integer>         cacheForSeconds = new Property<Integer>("cacheForSeconds");
 	public static final Property<Integer>         version         = new Property<Integer>("version");
 
-	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
 		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
 		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
 	);
 	

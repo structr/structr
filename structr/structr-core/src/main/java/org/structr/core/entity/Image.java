@@ -68,7 +68,7 @@ public class Image extends File {
 	public static final Property<Integer> height   = new Property<Integer>("height");
 	public static final Property<Integer> width    = new Property<Integer>("width");
 
-	public static final View uiView = new View(PropertyView.Ui,
+	public static final View uiView = new View(Image.class, PropertyView.Ui,
 		width, height
 	);
 	
