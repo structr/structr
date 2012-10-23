@@ -12,7 +12,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;

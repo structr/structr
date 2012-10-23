@@ -21,6 +21,8 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
+
 /**
  * Simple class to hold a {@link PropertyKey} and a {@link Class}
  *

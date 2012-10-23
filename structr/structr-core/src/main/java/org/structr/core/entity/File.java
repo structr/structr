@@ -44,7 +44,7 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.View;
 import org.structr.core.converter.IntConverter;
 

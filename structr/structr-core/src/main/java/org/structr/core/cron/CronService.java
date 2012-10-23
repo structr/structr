@@ -123,26 +123,27 @@ public class CronService extends Thread implements RunnableService {
 	public void initialize(Map<String, String> context) {
 
 		String taskList = Services.getConfigValue(context, TASKS, "");
-		String[] tasks = taskList.split("[ \\t]+");
+		if (taskList != null) {
+			
+			for(String task : taskList.split("[ \\t]+")) {
 
-		for(String task : tasks) {
+				String expression = (String)context.get(task.concat(EXPRESSION_SUFFIX));
+				if(expression != null) {
 
-			String expression = (String)context.get(task.concat(EXPRESSION_SUFFIX));
-			if(expression != null) {
+					CronEntry entry = CronEntry.parse(task, expression);
+					if(entry != null) {
 
-				CronEntry entry = CronEntry.parse(task, expression);
-				if(entry != null) {
+						logger.log(Level.INFO, "Adding cron entry {0} for {1}", new Object[]{ entry, task });
 
-					logger.log(Level.INFO, "Adding cron entry {0} for {1}", new Object[]{ entry, task });
-					
-					cronEntries.add(entry);
+						cronEntries.add(entry);
+
+					} else {
+						logger.log(Level.WARNING, "Unable to parse cron expression for taks {0}, ignoring.", task);
+					}
 
 				} else {
-					logger.log(Level.WARNING, "Unable to parse cron expression for taks {0}, ignoring.", task);
+					logger.log(Level.WARNING, "No cron expression for task {0}, ignoring.", task);
 				}
-
-			} else {
-				logger.log(Level.WARNING, "No cron expression for task {0}, ignoring.", task);
 			}
 		}
 	}

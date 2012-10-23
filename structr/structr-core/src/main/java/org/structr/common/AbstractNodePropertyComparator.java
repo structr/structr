@@ -19,6 +19,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
 import java.util.Comparator;
 import org.structr.core.entity.AbstractNode;
 

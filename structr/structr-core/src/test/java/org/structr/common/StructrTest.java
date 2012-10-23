@@ -21,6 +21,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertySet;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;

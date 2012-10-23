@@ -21,7 +21,7 @@ package org.structr.core.converter;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.Value;
 import org.structr.core.notion.Notion;

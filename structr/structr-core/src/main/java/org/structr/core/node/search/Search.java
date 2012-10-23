@@ -24,7 +24,7 @@ package org.structr.core.node.search;
 import org.apache.commons.lang.StringUtils;
 
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;

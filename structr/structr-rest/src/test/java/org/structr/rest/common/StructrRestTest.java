@@ -66,7 +66,7 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.hamcrest.Matcher;
-import org.structr.common.PropertySet;
+import org.structr.common.property.PropertySet;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.context.ApplicationContextListener;

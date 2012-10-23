@@ -19,6 +19,8 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.Property;
 import java.util.Arrays;
 import java.util.Date;
 import org.apache.commons.lang.StringUtils;

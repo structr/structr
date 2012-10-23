@@ -19,9 +19,9 @@
 package org.structr.core;
 
 import java.util.*;
-import org.structr.common.Property;
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertySet;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertySet;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -61,7 +61,7 @@ public class GraphObjectMap extends PropertySet implements GraphObject {
 
 	@Override
 	public <T> T getProperty(PropertyKey<T> propertyKey) {
-		return getProperty(propertyKey);
+		return (T)properties.get(propertyKey);
 	}
 
 	@Override

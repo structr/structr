@@ -30,10 +30,10 @@ import org.structr.core.Value;
 public class StringToInt extends Converter<String, Integer> {
 	
 	public StringToInt(Value<String> source) {
-		super(source, new PropertyConverter<String, Integer>() {
+		super(source, new PropertyConverter<String, Integer, Integer>() {
 
 			@Override
-			public String convertForSetter(Integer source, Value value) {
+			public String convertForSetter(Integer source, Value<Integer> value) {
 				
 				if (source != null) {
 					
@@ -44,7 +44,7 @@ public class StringToInt extends Converter<String, Integer> {
 			}
 
 			@Override
-			public Integer convertForGetter(String source, Value value) {
+			public Integer convertForGetter(String source, Value<Integer> value) {
 				
 				if (source != null) {
 					

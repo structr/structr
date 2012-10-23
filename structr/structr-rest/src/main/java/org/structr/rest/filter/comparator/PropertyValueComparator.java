@@ -22,7 +22,7 @@ package org.structr.rest.filter.comparator;
 import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.GraphObject;
 
 /**

@@ -42,7 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------

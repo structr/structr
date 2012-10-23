@@ -21,7 +21,7 @@
 
 package org.structr.web.entity.relation;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
@@ -31,7 +31,7 @@ import org.structr.web.entity.Component;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 
 //~--- classes ----------------------------------------------------------------
 

@@ -45,8 +45,8 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertySet;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertySet;
 import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------

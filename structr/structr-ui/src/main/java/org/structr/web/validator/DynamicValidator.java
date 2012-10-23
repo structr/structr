@@ -26,7 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;

@@ -21,6 +21,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;

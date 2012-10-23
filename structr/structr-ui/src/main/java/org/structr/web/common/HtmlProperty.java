@@ -1,6 +1,6 @@
 package org.structr.web.common;
 
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 
 /**

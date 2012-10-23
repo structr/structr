@@ -21,8 +21,7 @@ package org.structr.core.converter;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.PropertyKey;
-import org.structr.common.SecurityContext;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TooShortToken;
 import org.structr.core.Value;
@@ -30,10 +29,10 @@ import org.structr.core.Value;
 /**
  * @author Axel Morgner
  */
-public class PasswordConverter extends PropertyConverter<String, String> {
+public class PasswordConverter extends PropertyConverter<String, String, ValidationInfo> {
 
 	@Override
-	public String convertForSetter(String clearTextPassword, Value value) throws FrameworkException {
+	public String convertForSetter(String clearTextPassword, Value<ValidationInfo> value) throws FrameworkException {
 		
 		if (StringUtils.isBlank(clearTextPassword)) return null;
 
@@ -57,41 +56,7 @@ public class PasswordConverter extends PropertyConverter<String, String> {
 	}
 
 	@Override
-	public String convertForGetter(String passwordHash, Value value) {
+	public String convertForGetter(String passwordHash, Value<ValidationInfo> value) {
 		return passwordHash;
-	}
-	
-	public static class ValidationInfo implements Value<ValidationInfo> {
-
-		private PropertyKey errorKey = null;
-		private String errorType = null;
-		private int minLength = -1;
-
-		public ValidationInfo(String errorType, PropertyKey errorKey, int minLength) {
-			this.errorType = errorType;
-			this.errorKey  = errorKey;
-			this.minLength = minLength;
-		}		
-		
-		@Override
-		public void set(SecurityContext securityContext, ValidationInfo value) throws FrameworkException {
-		}
-
-		@Override
-		public ValidationInfo get(SecurityContext securityContext) {
-			return this;
-		}
-
-		public String getErrorType() {
-			return errorType;
-		}
-
-		public PropertyKey getErrorKey() {
-			return errorKey;
-		}
-
-		public int getMinLength() {
-			return minLength;
-		}
 	}
 }

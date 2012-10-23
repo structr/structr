@@ -21,13 +21,15 @@
 
 package org.structr.core.entity;
 
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertySet;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.time.DateUtils;
 
 import org.neo4j.graphdb.*;
 
 import org.structr.common.*;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;

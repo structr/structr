@@ -32,7 +32,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.kernel.Traversal;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
@@ -50,7 +50,7 @@ import org.structr.core.node.TransactionCommand;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------

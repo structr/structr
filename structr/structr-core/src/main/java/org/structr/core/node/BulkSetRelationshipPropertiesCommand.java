@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.search.Search;

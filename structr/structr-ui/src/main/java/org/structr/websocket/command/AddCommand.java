@@ -47,9 +47,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.Property;
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertySet;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 

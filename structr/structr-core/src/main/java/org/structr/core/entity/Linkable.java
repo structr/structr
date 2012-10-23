@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import org.structr.common.property.Property;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.*;

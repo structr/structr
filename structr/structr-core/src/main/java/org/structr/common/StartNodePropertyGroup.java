@@ -19,6 +19,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;

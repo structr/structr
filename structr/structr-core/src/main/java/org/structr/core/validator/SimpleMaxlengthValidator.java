@@ -19,7 +19,7 @@
 
 package org.structr.core.validator;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.TooLongToken;
 import org.structr.core.GraphObject;

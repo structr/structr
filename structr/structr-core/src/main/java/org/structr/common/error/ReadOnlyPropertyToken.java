@@ -22,7 +22,7 @@ package org.structr.common.error;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 
 /**
  *

@@ -20,7 +20,7 @@ package org.structr.core.entity;
 
 import java.util.Collections;
 import java.util.List;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.SecurityContext;
 
 /**

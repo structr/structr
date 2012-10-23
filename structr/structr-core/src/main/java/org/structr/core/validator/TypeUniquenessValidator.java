@@ -38,7 +38,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------

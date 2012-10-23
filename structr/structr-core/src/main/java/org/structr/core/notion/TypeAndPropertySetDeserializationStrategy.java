@@ -23,8 +23,8 @@ package org.structr.core.notion;
 
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertySet;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertySet;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;

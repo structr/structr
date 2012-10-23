@@ -20,7 +20,7 @@ package org.structr.core.entity;
 
 import com.vividsolutions.jts.index.bintree.Key;
 import java.util.logging.Logger;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;

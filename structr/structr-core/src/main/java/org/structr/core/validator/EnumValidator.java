@@ -21,7 +21,7 @@ package org.structr.core.validator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ValueToken;

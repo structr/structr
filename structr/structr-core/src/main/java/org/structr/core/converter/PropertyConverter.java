@@ -31,7 +31,7 @@ import org.structr.core.Value;
  *
  * @author Christian Morgner
  */
-public abstract class PropertyConverter<S, T> {
+public abstract class PropertyConverter<S, T, V> {
 
 	protected SecurityContext securityContext = null;
 	protected GraphObject currentObject = null;
@@ -44,7 +44,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract S convertForSetter(T source, Value value) throws FrameworkException;
+	public abstract S convertForSetter(T source, Value<V> value) throws FrameworkException;
 	
 	/**
 	 * Converts from source type to destination type. Caution: source
@@ -53,7 +53,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract T convertForGetter(S source, Value value);
+	public abstract T convertForGetter(S source, Value<V> value);
 
 	/**
 	 * Convert from source type to Comparable to allow a more
@@ -64,7 +64,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param value
 	 * @return 
 	 */
-	public Comparable convertForSorting(S source, Value value) {
+	public Comparable convertForSorting(S source, Value<V> value) {
 		
 		T target = convertForGetter(source, value);
 		if(target != null) {

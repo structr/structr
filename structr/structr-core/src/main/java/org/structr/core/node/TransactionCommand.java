@@ -112,7 +112,6 @@ public class TransactionCommand extends NodeServiceCommand {
 			throw exception;
 		}
 
-		
 		if(topLevelTransaction) {
 
 			notifyChangeSet(graphDb, EntityContext.getTransactionChangeSet());

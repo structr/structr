@@ -46,7 +46,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.*;

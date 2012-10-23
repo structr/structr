@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.common.property;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -118,7 +119,7 @@ public class PropertySet implements Map<PropertyKey, Object> {
 		return dest;
 	}
 	
-	public static PropertySet convert(Map<String, Object> source) {
+	public static PropertySet convert(Map<String, Object> source) throws FrameworkException {
 		
 		Object typeName = source.get(AbstractNode.type.name());
 		if (typeName != null) {
@@ -138,12 +139,10 @@ public class PropertySet implements Map<PropertyKey, Object> {
 			logger.log(Level.WARNING, "No entity type found in source map");
 		}
 			
-		Thread.dumpStack();
-		
 		return fallbackPropertyMap(source);
 	}
 	
-	public static PropertySet convert(Class<? extends GraphObject> type, Map<String, Object> source) {
+	public static PropertySet convert(Class<? extends GraphObject> type, Map<String, Object> source) throws FrameworkException {
 
 		// fallback: AbstractNode
 		if (type == null) {
@@ -158,12 +157,10 @@ public class PropertySet implements Map<PropertyKey, Object> {
 			logger.log(Level.WARNING, "Unable to convert property map: {0}", t.getMessage());
 		}
 			
-		Thread.dumpStack();
-		
 		return fallbackPropertyMap(source);
 	}
 	
-	public static PropertySet convert(GraphObject entity, Map<String, Object> source) {
+	public static PropertySet convert(GraphObject entity, Map<String, Object> source) throws FrameworkException {
 		
 		PropertySet resultMap = new PropertySet();
 		
@@ -174,7 +171,10 @@ public class PropertySet implements Map<PropertyKey, Object> {
 			
 			if (key != null && value != null) {
 
-				resultMap.put(entity.getPropertyKeyForName(key), value);
+				PropertyKey propertyKey = entity.getPropertyKeyForName(key);
+				Object propertyValue    = propertyKey.fromPrimitive(entity, value);
+				
+				resultMap.put(propertyKey, propertyValue);
 			}
 		}
 		
@@ -182,6 +182,11 @@ public class PropertySet implements Map<PropertyKey, Object> {
 	}
 	
 	private static PropertySet fallbackPropertyMap(Map<String, Object> source) {
+
+		logger.log(Level.WARNING, "Using fallback property set conversion without type safety!");
+		
+		Thread.dumpStack();
+		
 	
 		PropertySet map = new PropertySet();
 		for (Entry<String, Object> entry : source.entrySet()) {

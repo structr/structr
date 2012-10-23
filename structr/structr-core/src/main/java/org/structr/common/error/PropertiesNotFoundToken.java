@@ -25,7 +25,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 
 /**
  *

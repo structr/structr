@@ -24,9 +24,9 @@ package org.structr.web.entity.html;
 import java.util.List;
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;

@@ -36,8 +36,8 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import org.structr.common.Property;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 

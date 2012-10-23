@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;

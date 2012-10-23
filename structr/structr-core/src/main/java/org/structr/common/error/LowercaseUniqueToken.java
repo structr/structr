@@ -1,6 +1,6 @@
 package org.structr.common.error;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 
 
 /**

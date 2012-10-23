@@ -2,7 +2,7 @@ package org.structr.web.entity;
 
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;

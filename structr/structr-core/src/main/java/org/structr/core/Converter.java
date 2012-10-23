@@ -28,10 +28,10 @@ import org.structr.common.error.FrameworkException;
  */
 public class Converter<S, T> implements Value<T> {
 
-	private PropertyConverter<S, T> converter = null;
+	private PropertyConverter<S, T, T> converter = null;
 	private Value<S> source = null;
 	
-	public Converter(Value<S> source, PropertyConverter<S, T> converter) {
+	public Converter(Value<S> source, PropertyConverter<S, T, T> converter) {
 		this.converter = converter;
 		this.source = source;
 	}

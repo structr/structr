@@ -45,7 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.index.lucene.ValueContext;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- classes ----------------------------------------------------------------

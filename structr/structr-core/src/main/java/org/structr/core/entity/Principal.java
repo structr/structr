@@ -28,7 +28,7 @@ import org.structr.core.GraphObject;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 
 //~--- interfaces -------------------------------------------------------------
 

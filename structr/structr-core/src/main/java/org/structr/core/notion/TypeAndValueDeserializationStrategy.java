@@ -22,7 +22,7 @@
 package org.structr.core.notion;
 
 import java.util.*;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
@@ -40,6 +40,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.TypeToken;
+import org.structr.core.JsonInput;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -54,12 +55,12 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 	//~--- fields ---------------------------------------------------------
 
-	protected boolean createIfNotExisting = false;
-	protected PropertyKey propertyKey     = null;
+	protected boolean createIfNotExisting     = false;
+	protected PropertyKey<String> propertyKey = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public TypeAndValueDeserializationStrategy(PropertyKey propertyKey, boolean createIfNotExisting) {
+	public TypeAndValueDeserializationStrategy(PropertyKey<String> propertyKey, boolean createIfNotExisting) {
 
 		this.createIfNotExisting = createIfNotExisting;
 		this.propertyKey         = propertyKey;
@@ -76,6 +77,38 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 		attrs.add(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
 		if (source != null) {
+
+			// FIXME: use uuid only here?
+			if (source instanceof JsonInput) {
+
+				Object value = ((JsonInput)source).getAttributes().get(propertyKey.name());
+				if (value != null) {
+					
+					String stringValue = value.toString();
+					attrs.add(Search.andExactProperty(propertyKey, stringValue));
+				}
+
+			} else if (source instanceof GraphObject) {
+				
+				GraphObject obj = (GraphObject)source;
+				if (propertyKey != null) {
+					
+					attrs.add(Search.andExactProperty(propertyKey, obj.getProperty(propertyKey)));
+					
+				} else {
+					
+					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
+					PropertyKey<String> idProperty = obj.getPropertyKeyForName(AbstractNode.uuid.name());
+					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
+					
+				}
+				
+				
+			} else {
+
+				attrs.add(Search.andExactUuid(source.toString()));
+
+			}
 			attrs.add(Search.andExactProperty(propertyKey, source.toString()));
 		}
 

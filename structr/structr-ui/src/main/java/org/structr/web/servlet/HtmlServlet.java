@@ -21,6 +21,8 @@
 
 package org.structr.web.servlet;
 
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;

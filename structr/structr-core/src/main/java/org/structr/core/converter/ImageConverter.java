@@ -35,7 +35,7 @@ import org.structr.core.entity.Image;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.KeyAndClass;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.Services;
 import org.structr.core.node.IndexNodeCommand;
 

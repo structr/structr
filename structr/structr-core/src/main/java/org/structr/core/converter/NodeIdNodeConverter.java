@@ -33,16 +33,16 @@ import org.structr.core.node.NodeFactory;
  *
  * @author Axel Morgner
  */
-public class NodeIdNodeConverter extends PropertyConverter<Long, AbstractNode> {
+public class NodeIdNodeConverter extends PropertyConverter<Long, AbstractNode, Object> {
 
 	@Override
-	public Long convertForSetter(AbstractNode node, Value value) {
+	public Long convertForSetter(AbstractNode node, Value<Object> value) {
 		if (node == null) return null;
 		return node.getId();
 	}
 
 	@Override
-	public AbstractNode convertForGetter(Long nodeId, Value value) {
+	public AbstractNode convertForGetter(Long nodeId, Value<Object> value) {
 		
 		if (nodeId == null) return null;
 		

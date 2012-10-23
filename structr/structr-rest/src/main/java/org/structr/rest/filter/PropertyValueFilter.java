@@ -21,7 +21,7 @@ package org.structr.rest.filter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Predicate;

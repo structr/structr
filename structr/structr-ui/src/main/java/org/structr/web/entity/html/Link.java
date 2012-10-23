@@ -21,6 +21,7 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.common.property.Property;
 import java.util.List;
 import org.apache.commons.lang.ArrayUtils;
 

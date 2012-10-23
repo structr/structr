@@ -21,6 +21,8 @@
 
 package org.structr.common;
 
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertySet;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;

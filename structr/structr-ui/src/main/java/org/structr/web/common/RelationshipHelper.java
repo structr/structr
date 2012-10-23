@@ -21,6 +21,8 @@
 
 package org.structr.web.common;
 
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertySet;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 

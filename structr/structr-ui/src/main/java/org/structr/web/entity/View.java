@@ -25,7 +25,7 @@ import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
@@ -43,7 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------

@@ -19,7 +19,7 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.Property;
+import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;

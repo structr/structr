@@ -28,8 +28,8 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertySet;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertySet;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;

@@ -21,6 +21,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertySet;
 import com.mortennobel.imagescaling.ResampleOp;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;

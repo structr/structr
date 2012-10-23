@@ -21,7 +21,7 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.PropertySet;
+import org.structr.common.property.PropertySet;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;

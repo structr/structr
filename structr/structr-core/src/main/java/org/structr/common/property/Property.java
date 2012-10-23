@@ -16,10 +16,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.common.property;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 
 /**
  *
@@ -27,9 +27,8 @@ import java.util.Set;
  */
 public class Property<T> implements PropertyKey<T> {
 
-	private Set<String> views = new LinkedHashSet<String>();
-	private T defaultValue    = null;
-	private String name       = null;
+	protected T defaultValue    = null;
+	protected String name       = null;
 	
 	public Property(String name) {
 		this.name = name;
@@ -76,12 +75,9 @@ public class Property<T> implements PropertyKey<T> {
 		
 		return false;
 	}
-	
-	public void addToView(String name) {
-		views.add(name);
-	}
 
-	public Set<String> getViews() {
-		return views;
+	@Override
+	public T fromPrimitive(GraphObject entity, Object source) throws FrameworkException {
+		return (T)source;
 	}
 }

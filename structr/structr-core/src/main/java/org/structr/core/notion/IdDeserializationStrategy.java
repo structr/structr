@@ -21,7 +21,7 @@
 
 package org.structr.core.notion;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.PropertySet;
+import org.structr.common.property.PropertySet;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -56,14 +56,14 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected boolean createIfNotExisting = false;
-	protected PropertyKey propertyKey     = null;
+	protected boolean createIfNotExisting     = false;
+	protected PropertyKey<String> propertyKey = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public IdDeserializationStrategy() {}
 
-	public IdDeserializationStrategy(PropertyKey propertyKey, boolean createIfNotExisting) {
+	public IdDeserializationStrategy(PropertyKey<String> propertyKey, boolean createIfNotExisting) {
 
 		this.propertyKey         = propertyKey;
 		this.createIfNotExisting = createIfNotExisting;
@@ -90,6 +90,22 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 				}
 
+			} else if (source instanceof GraphObject) {
+				
+				GraphObject obj = (GraphObject)source;
+				if (propertyKey != null) {
+					
+					attrs.add(Search.andExactProperty(propertyKey, obj.getProperty(propertyKey)));
+					
+				} else {
+					
+					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
+					PropertyKey<String> idProperty = obj.getPropertyKeyForName(AbstractNode.uuid.name());
+					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
+					
+				}
+				
+				
 			} else {
 
 				attrs.add(Search.andExactUuid(source.toString()));

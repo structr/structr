@@ -19,8 +19,8 @@
 package org.structr.rest.entity;
 
 import java.util.Date;
-import org.structr.common.Property;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.DateConverter;

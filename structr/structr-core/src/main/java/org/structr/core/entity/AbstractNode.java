@@ -21,6 +21,8 @@
 
 package org.structr.core.entity;
 
+import org.structr.common.property.PropertySet;
+import org.structr.common.property.Property;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -32,7 +34,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.*;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -693,9 +695,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			}
 		}
 		
-		// TODO: check type of return value here
-		return (T)value;
-
+		try {
+			
+			return (T)value;
+			
+		} catch(Throwable t) {
+			throw new IllegalStateException("Value for key " + key.name() + " has incorrect type, maybe you forgot to register a PropertyConverter?");
+		}
 	}
 
 	public String getPropertyMD5(final PropertyKey key) {

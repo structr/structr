@@ -22,6 +22,9 @@
 package org.structr.common;
 
 
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertySet;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.StructrTransaction;

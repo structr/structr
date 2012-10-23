@@ -19,6 +19,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
 import java.util.Collections;
 import org.structr.core.GraphObject;
 import java.util.Comparator;
