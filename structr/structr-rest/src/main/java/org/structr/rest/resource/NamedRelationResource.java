@@ -1,37 +1,43 @@
 /*
  *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
 import javax.servlet.http.HttpServletRequest;
+
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.*;
+import org.structr.core.Command;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.Predicate;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationshipMapping;
@@ -55,8 +61,8 @@ public class NamedRelationResource extends WrappingResource {
 	private HttpServletRequest request = null;
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
-		
+	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) {
+
 		this.namedRelation = EntityContext.getNamedRelation(part);
 		this.securityContext = securityContext;
 		this.request = request;
@@ -65,53 +71,53 @@ public class NamedRelationResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(final String sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
-		List<GraphObject> relationResults = new LinkedList<GraphObject>();
+		final List<GraphObject> relationResults = new LinkedList<GraphObject>();
 		if(wrappedResource != null) {
 
 			// extract relationships from wrapped resource
-			List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId).getResults();
-			for(GraphObject obj : results) {
+			final List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId).getResults();
+			for(final GraphObject obj : results) {
 				if (obj instanceof AbstractNode) {
-					relationResults.addAll(namedRelation.getRelationships((AbstractNode) obj));
+					relationResults.addAll(namedRelation.getRelationships(obj));
 				}
 			}
 
 		} else {
 
 			// fetch all relationships of a specific combinedType and return them
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 			searchAttributes.add(Search.andExactRelType(namedRelation));
-			
-			// add searchable attributes from EntityContext
-			hasSearchableAttributesForRelationships(namedRelation.getEntityClass().getSimpleName(), request, searchAttributes);
 
-			relationResults.addAll((List<AbstractRelationship>)Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
+			// add searchable attributes from EntityContext
+			searchAttributes.addAll(extractSearchableAttributesForRelationships(namedRelation.getEntityClass().getSimpleName(), request));
+
+			relationResults.addAll((List<AbstractRelationship>) Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
 
 		}
 
 		// filter by searchable properties
-		final List<SearchAttribute> filterAttributes = new LinkedList<SearchAttribute>();
-		hasSearchableAttributesForRelationships(namedRelation.getEntityClass().getSimpleName(), request, filterAttributes);
-		
+		final List<SearchAttribute> filterAttributes =
+						extractSearchableAttributesForRelationships(namedRelation.getEntityClass().getSimpleName(), request);
+
 		if(!filterAttributes.isEmpty()) {
 
-			Predicate<GraphObject> predicate = new Predicate<GraphObject>() {
+			final Predicate<GraphObject> predicate = new Predicate<GraphObject>() {
 
 				@Override
-				public boolean evaluate(SecurityContext securityContext, GraphObject... objs) {
+				public boolean evaluate(final SecurityContext securityContext, final GraphObject... objs) {
 
 					if(objs.length > 0) {
 
-						GraphObject obj = objs[0];
-						
-						for(SearchAttribute attr : filterAttributes) {
+						final GraphObject obj = objs[0];
 
-							String value = ((TextualSearchAttribute)attr).getValue();
-							String key = ((TextualSearchAttribute)attr).getKey();
+						for(final SearchAttribute attr : filterAttributes) {
 
-							Object val = "\"" + obj.getProperty(key) + "\"";
+							final String value = ((TextualSearchAttribute)attr).getValue();
+							final String key = ((TextualSearchAttribute)attr).getKey();
+
+							final Object val = "\"" + obj.getProperty(key) + "\"";
 							if(val != null && val.equals(value)) {
 								return true;
 							}
@@ -122,57 +128,57 @@ public class NamedRelationResource extends WrappingResource {
 				}
 			};
 
-			for(Iterator<GraphObject> it = relationResults.iterator(); it.hasNext();) {
+			for(final Iterator<GraphObject> it = relationResults.iterator(); it.hasNext();) {
 
 				if(!predicate.evaluate(securityContext, it.next())) {
 					it.remove();
 				}
 			}
 		}
-		
+
 		return new Result(relationResults, null, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		// create new relationship of specified combinedType here
 
-		AbstractRelationship relationshipEntity = namedRelation.newEntityClass();
+		final AbstractRelationship relationshipEntity = namedRelation.newEntityClass();
 		if(relationshipEntity != null) {
 
 			// initialize entity temporarily
 			relationshipEntity.init(securityContext);
 
-			Command createRel        = Services.command(securityContext, CreateRelationshipCommand.class);
-			AbstractNode startNode   = relationshipEntity.identifyStartNode(namedRelation, propertySet);
-			AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
-			RelationshipType relType = namedRelation.getRelType();
-			ErrorBuffer errorBuffer  = new ErrorBuffer();
+			final Command createRel        = Services.command(securityContext, CreateRelationshipCommand.class);
+			final AbstractNode startNode   = relationshipEntity.identifyStartNode(namedRelation, propertySet);
+			final AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
+			final RelationshipType relType = namedRelation.getRelType();
+			final ErrorBuffer errorBuffer  = new ErrorBuffer();
 			boolean hasError         = false;
 
 			if(startNode == null) {
 				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getStartNodeIdKey().name()));
 				hasError = true;
 			}
-			
+
 			if(endNode == null) {
 				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getEndNodeIdKey().name()));
 				hasError = true;
 			}
-			
+
 			if(hasError) {
 				throw new FrameworkException(422, errorBuffer);
 			}
-			
-			Class sourceType = namedRelation.getSourceType();
-			Class destType = namedRelation.getDestType();
+
+			final Class sourceType = namedRelation.getSourceType();
+			final Class destType = namedRelation.getDestType();
 
 			propertySet.put(AbstractRelationship.HiddenKey.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
 
 			// create new relationship with startNode, endNode, relType and propertySet
-			AbstractRelationship newRel = (AbstractRelationship)createRel.execute(startNode, endNode, relType, propertySet, false);
-			RestMethodResult result = new RestMethodResult(201);
+			final AbstractRelationship newRel = (AbstractRelationship)createRel.execute(startNode, endNode, relType, propertySet, false);
+			final RestMethodResult result = new RestMethodResult(201);
 			result.addHeader("Location", buildLocationHeader(newRel));
 
 			return result;
@@ -183,7 +189,7 @@ public class NamedRelationResource extends WrappingResource {
 	}
 
 	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 		throw new IllegalMethodException();
 	}
 
@@ -198,7 +204,7 @@ public class NamedRelationResource extends WrappingResource {
 	}
 
 	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
+	public Resource tryCombineWith(final Resource next) throws FrameworkException {
 
 		if(next instanceof UuidResource) {
 			return new NamedRelationIdResource(this, (UuidResource)next, securityContext);

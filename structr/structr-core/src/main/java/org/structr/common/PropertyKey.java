@@ -34,5 +34,4 @@ package org.structr.common;
 public interface PropertyKey
 {
 	public String name();
-	public int ordinal();
 }

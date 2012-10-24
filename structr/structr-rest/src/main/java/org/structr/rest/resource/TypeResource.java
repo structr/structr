@@ -147,7 +147,7 @@ public class TypeResource extends SortableResource {
 				searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 				// searchable attributes from EntityContext
-				hasSearchableAttributesForNodes(rawType, request, searchAttributes);
+                                searchAttributes.addAll(extractSearchableAttributesFromRequest());
 
 			}
 			
@@ -320,10 +320,8 @@ public class TypeResource extends SortableResource {
 
 	}
 
-	public boolean hasSearchableAttributes(List<SearchAttribute> attributes) throws FrameworkException {
-
-		return hasSearchableAttributesForNodes(rawType, request, attributes);
-
+	protected List<SearchAttribute> extractSearchableAttributesFromRequest() throws FrameworkException {
+		return extractSearchableAttributesForNodes(rawType, request);
 	}
 
 	@Override
