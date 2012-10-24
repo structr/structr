@@ -472,30 +472,26 @@ public abstract class Resource {
 
 	protected List<SearchAttribute> extractSearchableAttributesForNodes(final String rawType,
 	                                                                    final HttpServletRequest request) throws FrameworkException {
-
-		List<SearchAttribute> searchAttributes = Collections.emptyList();
-
-		// searchable attributes
-		if (rawType != null && request != null &&!request.getParameterMap().isEmpty()) {
-
-			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-
-			final Set<String> searchableProperties =
-							getSearchableProperties(rawType,
-							                        looseSearch,
-							                        NodeService.NodeIndex.fulltext.name(),
-							                        NodeService.NodeIndex.keyword.name());
-
-			searchAttributes = checkAndAssembleSearchAttributes(request, looseSearch, searchableProperties);
-
-		}
-
-		return searchAttributes;
+		return extractSearchableAttributes(rawType,
+		                                   request,
+		                                   NodeService.NodeIndex.fulltext.name(),
+		                                   NodeService.NodeIndex.keyword.name());
 	}
 
 
 	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final String rawType,
-	                                                                            final HttpServletRequest request) throws FrameworkException {
+	                                                                            final HttpServletRequest request)
+	                                                                            				throws FrameworkException {
+		return extractSearchableAttributes(rawType,
+		                                   request,
+		                                   NodeService.RelationshipIndex.rel_fulltext.name(),
+		                                   NodeService.RelationshipIndex.rel_keyword.name());
+	}
+
+	private static List<SearchAttribute> extractSearchableAttributes(final String rawType,
+	                                                          final HttpServletRequest request,
+	                                                          final String fulltextIndex,
+	                                                          final String keywordIndex) throws FrameworkException {
 		List<SearchAttribute> searchAttributes = Collections.emptyList();
 
 		// searchable attributes
@@ -506,14 +502,14 @@ public abstract class Resource {
 			final Set<String> searchableProperties =
 							getSearchableProperties(rawType,
 							                        looseSearch,
-							                        NodeService.RelationshipIndex.rel_fulltext.name(),
-							                        NodeService.RelationshipIndex.rel_fulltext.name());
+							                        fulltextIndex,
+							                        keywordIndex);
 
 			searchAttributes = checkAndAssembleSearchAttributes(request, looseSearch, searchableProperties);
 
 		}
-
 		return searchAttributes;
+
 	}
 
 
