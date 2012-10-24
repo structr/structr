@@ -18,31 +18,32 @@
  */
 package org.structr.common.property;
 
-import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
+import org.structr.core.converter.AggregatingConverter;
+import org.structr.core.converter.Aggregation;
 import org.structr.core.converter.PropertyConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class IntProperty extends Property<Integer> {
+public class AggregatorProperty<T> extends Property<T> {
 	
-	public IntProperty(String name) {
-		this(name, null);
-	}
+	private Aggregation aggregation = null;
 	
-	public IntProperty(String name, Integer defaultValue) {
-		super(name, defaultValue);
+	public AggregatorProperty(String name, Aggregation aggregator) {
+		super(name);
+		
+		this.aggregation = aggregator;
 	}
 	
 	@Override
-	public PropertyConverter<?, Integer> databaseConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+	public PropertyConverter<?, T> databaseConverter(SecurityContext securityContext) {
+		return new AggregatingConverter(securityContext, aggregation);
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return new AggregatingConverter(securityContext, aggregation);
 	}
 }

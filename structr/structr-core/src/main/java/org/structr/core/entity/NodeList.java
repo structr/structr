@@ -89,10 +89,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 	//~--- fields ---------------------------------------------------------
 
 	private Set<Decorator<AbstractNode>> decorators = new LinkedHashSet<Decorator<AbstractNode>>();
+	private Set<Evaluator> evaluators               = new LinkedHashSet<Evaluator>();
 	private NodeFactory factory                     = null;
 	private int maxLength                           = -1;
-	private TransactionCommand transaction           = null;
-	private Set<Evaluator> evaluators               = new LinkedHashSet<Evaluator>();
 
 	//~--- constructors ---------------------------------------------------
 
@@ -105,7 +104,6 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 	public NodeList(int maxLength) {
 
 		this.maxLength   = maxLength;
-		this.transaction = Services.command(securityContext, TransactionCommand.class);
 		this.factory     = new NodeFactory(securityContext);
 
 	}
@@ -193,7 +191,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		try {
 
-			Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+			Boolean returnValue = (Boolean) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
@@ -231,7 +229,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		try {
 
-			Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+			Boolean returnValue = (Boolean) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
@@ -279,7 +277,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		try {
 
-			Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+			Boolean returnValue = (Boolean) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
@@ -407,7 +405,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		try {
 
-			transaction.execute(new StructrTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
@@ -500,7 +498,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		try {
 
-			transaction.execute(new StructrTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {

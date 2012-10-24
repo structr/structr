@@ -82,9 +82,6 @@ public class File extends AbstractNode implements Linkable {
 
 		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(),  uiView.properties());
-		
-		EntityContext.registerPropertyConverter(File.class, cacheForSeconds, IntConverter.class);
-
 	}
 
 	//~--- constant enums -------------------------------------------------

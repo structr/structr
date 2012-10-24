@@ -18,31 +18,32 @@
  */
 package org.structr.common.property;
 
-import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.converter.RelatedNodePropertyMapper;
+import org.structr.core.converter.ParameterHolder;
 
 /**
  *
  * @author Christian Morgner
  */
-public class IntProperty extends Property<Integer> {
+public class RelatedNodeProperty<T> extends Property<T> {
 	
-	public IntProperty(String name) {
-		this(name, null);
-	}
+	private ParameterHolder holder = null;
 	
-	public IntProperty(String name, Integer defaultValue) {
-		super(name, defaultValue);
+	public RelatedNodeProperty(String name, ParameterHolder<T> holder) {
+		super(name);
+		
+		this.holder = holder;
 	}
 	
 	@Override
-	public PropertyConverter<?, Integer> databaseConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+	public PropertyConverter<?, T> databaseConverter(SecurityContext securityContext) {
+		return new RelatedNodePropertyMapper(securityContext, holder);
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return new RelatedNodePropertyMapper(securityContext, holder);
 	}
 }

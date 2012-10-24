@@ -22,7 +22,6 @@ package org.structr.core.converter;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
 
@@ -120,31 +119,5 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 		}
 
 		return relatedNode;
-	}
-
-	//~--- inner classes --------------------------------------------------
-
-	public static class ParameterHolder {
-
-		private PropertyKey targetKey = null;
-		private Class targetType      = null;
-
-		//~--- constructors -------------------------------------------
-
-		public ParameterHolder(PropertyKey targetKey, Class targetType) {
-
-			this.targetKey  = targetKey;
-			this.targetType = targetType;
-		}
-
-		//~--- get methods --------------------------------------------
-
-		public PropertyKey getTargetKey() {
-			return targetKey;
-		}
-
-		public Class getTargetType() {
-			return targetType;
-		}
 	}
 }

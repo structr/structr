@@ -16,30 +16,29 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.property;
+package org.structr.core.converter;
 
-import org.structr.common.SecurityContext;
-import org.structr.core.converter.PropertyConverter;
+import org.structr.common.property.PropertyKey;
 
 /**
  *
  * @author Christian Morgner
  */
-public abstract class SourceProperty<T> extends Property<T> {
-	
-	public SourceProperty(String name) {
-		super(name);
-	}
-	
-	public abstract PropertyConverter<?, T> getSource(SecurityContext securityContext);
-	
-	@Override
-	public PropertyConverter<?, T> databaseConverter(SecurityContext securityContext) {
-		return getSource(securityContext);
+public class ParameterHolder<T> {
+
+	private PropertyKey<T> targetKey = null;
+	private Class targetType = null;
+
+	public ParameterHolder(PropertyKey<T> targetKey, Class targetType) {
+		this.targetKey = targetKey;
+		this.targetType = targetType;
 	}
 
-	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return getSource(securityContext);
+	public PropertyKey<T> getTargetKey() {
+		return targetKey;
+	}
+
+	public Class getTargetType() {
+		return targetType;
 	}
 }

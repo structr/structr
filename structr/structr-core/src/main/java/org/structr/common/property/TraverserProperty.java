@@ -18,31 +18,32 @@
  */
 package org.structr.common.property;
 
-import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.converter.TraversingConverter;
+import org.structr.core.traversal.TraverserInterface;
 
 /**
  *
  * @author Christian Morgner
  */
-public class IntProperty extends Property<Integer> {
+public class TraverserProperty<T> extends Property<T> {
+
+	private TraverserInterface traverserInterface = null;
 	
-	public IntProperty(String name) {
-		this(name, null);
-	}
-	
-	public IntProperty(String name, Integer defaultValue) {
-		super(name, defaultValue);
+	public TraverserProperty(String name, TraverserInterface traverser) {
+		super(name);
+		
+		this.traverserInterface = traverser;
 	}
 	
 	@Override
-	public PropertyConverter<?, Integer> databaseConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+	public PropertyConverter<?, T> databaseConverter(SecurityContext securityContext) {
+		return new TraversingConverter(securityContext, traverserInterface);
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return new TraversingConverter(securityContext, traverserInterface);
 	}
 }

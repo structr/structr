@@ -90,8 +90,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		// register uuid validator
 		EntityContext.registerPropertyValidator(AbstractRelationship.class, uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
-
-		EntityContext.registerPropertyConverter(AbstractRelationship.class, createdDate, DateConverter.class);
 		
 	}
 

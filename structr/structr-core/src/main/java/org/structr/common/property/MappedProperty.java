@@ -18,31 +18,32 @@
  */
 package org.structr.common.property;
 
-import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.converter.PropertyMapper;
 
 /**
  *
  * @author Christian Morgner
  */
-public class IntProperty extends Property<Integer> {
+public class MappedProperty<S, T> extends Property<S> {
 	
-	public IntProperty(String name) {
-		this(name, null);
-	}
+	private PropertyKey<T> mappedKey = null;
 	
-	public IntProperty(String name, Integer defaultValue) {
-		super(name, defaultValue);
+	public MappedProperty(String name, PropertyKey<T> mappedKey) {
+		super(name);
+		
+		this.mappedKey = mappedKey;
 	}
 	
 	@Override
-	public PropertyConverter<?, Integer> databaseConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+	public PropertyConverter<T, S> databaseConverter(SecurityContext securityContext) {
+		return new PropertyMapper(securityContext, mappedKey);
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+	public PropertyConverter<T, S> inputConverter(SecurityContext securityContext) {
+		return new PropertyMapper(securityContext, mappedKey);
 	}
+	
 }

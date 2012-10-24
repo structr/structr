@@ -68,18 +68,12 @@ public class ResourceAccess extends AbstractNode {
 	
 	static {
 
-//		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.Public, Key.values());
-//		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.All, Key.values());
-//		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.Ui, Key.values());
-
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
 		
 		// signature and type must be scanEntity-only
 		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.type);
 		EntityContext.registerWriteOnceProperty(ResourceAccess.class, signature);
-		
-		EntityContext.registerPropertyConverter(ResourceAccess.class, flags, IntConverter.class);
 
 	}
 

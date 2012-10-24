@@ -18,31 +18,31 @@
  */
 package org.structr.common.property;
 
-import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.converter.ResultCountConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class IntProperty extends Property<Integer> {
+public class ElementCounter extends IntProperty {
 	
-	public IntProperty(String name) {
-		this(name, null);
-	}
+	private Property<? extends Iterable> collectionProperty = null;
 	
-	public IntProperty(String name, Integer defaultValue) {
-		super(name, defaultValue);
+	public ElementCounter(String name, Property<? extends Iterable> collectionProperty) {
+		super(name);
+		
+		this.collectionProperty = collectionProperty;
 	}
 	
 	@Override
 	public PropertyConverter<?, Integer> databaseConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+		return new ResultCountConverter(securityContext, collectionProperty);
 	}
 
 	@Override
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+		return new ResultCountConverter(securityContext, collectionProperty);
 	}
 }

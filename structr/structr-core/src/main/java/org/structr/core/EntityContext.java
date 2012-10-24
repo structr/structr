@@ -58,6 +58,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.structr.common.PropertyView;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertySet;
 import org.structr.common.View;
@@ -169,6 +170,9 @@ public class EntityContext {
 		for (PropertyKey key : properties) {
 			classPropertyMap.put(key.name(), key);
 		}
+		
+		// register all properties in the "all" view
+		registerPropertySet(type, PropertyView.All, properties.toArray(new PropertyKey[0]));
 		
 		for (View view : views) {
 			registerPropertySet(type, view.name(), view.properties());
@@ -459,9 +463,9 @@ public class EntityContext {
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param propertyConverterClass the type of the converter to register
 	 */
-	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
-		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
-	}
+//	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
+//		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
+//	}
 
 	/**
 	 * Registers a property converter for the given property key of all entities with
@@ -471,17 +475,17 @@ public class EntityContext {
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param propertyConverterClass the type of the converter to register
 	 */
-	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
-
-		getPropertyConverterMapForType(type).put(propertyKey, propertyConverterClass);
-
-		if (value != null) {
-
-			getPropertyConversionParameterMapForType(type).put(propertyKey, value);
-			globalKnownPropertyKeys.add(propertyKey);
-
-		}
-	}
+//	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
+//
+//		getPropertyConverterMapForType(type).put(propertyKey, propertyConverterClass);
+//
+//		if (value != null) {
+//
+//			getPropertyConversionParameterMapForType(type).put(propertyKey, value);
+//			globalKnownPropertyKeys.add(propertyKey);
+//
+//		}
+//	}
 
 	// ----- scanEntity-only property map -----
 	/**

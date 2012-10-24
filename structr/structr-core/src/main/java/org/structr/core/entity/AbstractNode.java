@@ -108,16 +108,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	static {
 
-		// TODO: remove these if changes to typed property keys are done
-		EntityContext.registerPropertyConverter(AbstractNode.class, visibilityStartDate,         DateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, visibilityEndDate,           DateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, lastModifiedDate,            DateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, createdDate,                 DateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, deleted,                     BooleanConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, hidden,                      BooleanConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, visibleToPublicUsers,        BooleanConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, visibleToAuthenticatedUsers, BooleanConverter.class);
-		
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), uuid);
