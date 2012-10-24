@@ -29,7 +29,6 @@ import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.converter.ImageConverter;
@@ -52,6 +51,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.Property;
 import org.structr.common.View;
+import org.structr.common.property.IntProperty;
+import org.structr.core.property.ImageDataProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,9 +65,9 @@ public class Image extends File {
 
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
-	public static final Property<String> imageData = new Property<String>("imageData");
-	public static final Property<Integer> height   = new Property<Integer>("height");
-	public static final Property<Integer> width    = new Property<Integer>("width");
+	public static final Property<String> imageData = new ImageDataProperty("imageData");
+	public static final Property<Integer> height   = new IntProperty("height");
+	public static final Property<Integer> width    = new IntProperty("width");
 
 	public static final View uiView = new View(Image.class, PropertyView.Ui,
 		width, height

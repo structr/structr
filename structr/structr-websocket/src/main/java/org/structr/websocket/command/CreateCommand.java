@@ -64,8 +64,8 @@ public class CreateCommand extends AbstractCommand {
 
 				nodeData.put(AbstractNode.visibleToAuthenticatedUsers.name(), true);
 
-				// convert
-				PropertySet properties = PropertySet.convert(nodeData);
+				// convertFromInput
+				PropertySet properties = PropertySet.convertFromInput(securityContext, nodeData);
 				
 				return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
 			}

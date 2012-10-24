@@ -38,19 +38,20 @@ import org.structr.core.node.NodeService;
 import org.structr.core.node.search.Search;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.web.common.PageHelper;
-import org.structr.web.converter.DynamicConverter;
-import org.structr.web.converter.PathsConverter;
 import org.structr.web.entity.html.*;
 import org.structr.web.validator.DynamicValidator;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.*;
+import org.structr.common.property.IntProperty;
+import org.structr.web.property.DynamicContentProperty;
+import org.structr.web.property.PathsProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,13 +64,13 @@ public class Content extends AbstractNode {
 
 	private static final Logger logger         = Logger.getLogger(Content.class.getName());
 
-	public static final Property<String>       tag              = new Property<String>("tag");
-	public static final Property<String>       content          = new Property<String>("content");
-	public static final Property<String>       contentType      = new Property<String>("contentType");
-	public static final Property<Integer>      size             = new Property<Integer>("size");
-	public static final Property<List<String>> paths            = new Property<List<String>>("paths");
-	public static final Property<String>       dataKey          = new Property<String>("data-key");
-	public static final Property<String>       typeDefinitionId = new Property<String>("typeDefinitionId");
+	public static final Property<String>      tag              = new Property<String>("tag");
+	public static final Property<String>      content          = new DynamicContentProperty("content");
+	public static final Property<String>      contentType      = new Property<String>("contentType");
+	public static final Property<Integer>     size             = new IntProperty("size");
+	public static final Property<Set<String>> paths            = new PathsProperty(("paths"));
+	public static final Property<String>      dataKey          = new Property<String>("data-key");
+	public static final Property<String>      typeDefinitionId = new Property<String>("typeDefinitionId");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Content.class, PropertyView.Ui,
 		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
@@ -83,13 +84,12 @@ public class Content extends AbstractNode {
 
 	static {
 
-		EntityContext.registerPropertyConverter(Content.class, paths, PathsConverter.class);
-		
 //		EntityContext.registerPropertySet(Content.class, PropertyView.All, attributes);
 //		EntityContext.registerPropertySet(Content.class, PropertyView.Public, attributes);
 //		EntityContext.registerPropertySet(Content.class, PropertyView.Ui, attributes);
 		
 		EntityContext.registerPropertyRelation(Content.class, typeDefinitionId, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid));
+		
 		EntityContext.registerEntityRelation(Content.class, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid));
 		EntityContext.registerEntityRelation(Content.class, Element.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Title.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
@@ -135,7 +135,6 @@ public class Content extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
 		
 		EntityContext.registerPropertyValidator(Content.class, content, new DynamicValidator(content));
-		EntityContext.registerPropertyConverter(Content.class, content, DynamicConverter.class);
 
 	}
 

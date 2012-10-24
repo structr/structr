@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,44 +16,25 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.structr.core.converter;
+package org.structr.core.property;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.common.property.SourceProperty;
+import org.structr.core.converter.ImageConverter;
+import org.structr.core.converter.PropertyConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RelationshipEndNodeTypeConverter extends PropertyConverter {
-
-	public RelationshipEndNodeTypeConverter(SecurityContext securityContext) {
-		super(securityContext);
-	}
+public class ImageDataProperty extends SourceProperty {
 	
-	@Override
-	public Object convertForSetter(Object source) {
-		return null;
+	public ImageDataProperty(String name) {
+		super(name);
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
-		
-		if(currentObject instanceof AbstractRelationship) {
-			
-			AbstractRelationship rel = (AbstractRelationship)currentObject;
-			if(rel != null) {
-				
-				AbstractNode endNode = rel.getEndNode();
-				if(endNode != null) {
-					
-					return endNode.getType();
-				}
-			}
-		}
-		
-		return null;
+	public PropertyConverter getSource(SecurityContext securityContext) {
+		return new ImageConverter(securityContext, null);
 	}
 }

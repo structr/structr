@@ -18,23 +18,24 @@
  */
 package org.structr.common.property;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Property<T> implements PropertyKey<T> {
+public class Property<JavaType> implements PropertyKey<JavaType> {
 
-	protected T defaultValue    = null;
-	protected String name       = null;
+	protected JavaType defaultValue = null;
+	protected String name           = null;
 	
 	public Property(String name) {
 		this.name = name;
 	}
 	
-	public Property(String name, T defaultValue) {
+	public Property(String name, JavaType defaultValue) {
 		this.name = name;
 		this.defaultValue = defaultValue;
 	}
@@ -50,7 +51,7 @@ public class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public T defaultValue() {
+	public JavaType defaultValue() {
 		return defaultValue;
 	}
 	
@@ -61,7 +62,7 @@ public class Property<T> implements PropertyKey<T> {
 			return name.hashCode();
 		}
 		
-		// TODO: null key is not unique, is that ok?
+		// TODO: check if it's ok if null key is not unique
 		return super.hashCode();
 	}
 	
@@ -75,9 +76,44 @@ public class Property<T> implements PropertyKey<T> {
 		
 		return false;
 	}
+	
+	@Override
+	public PropertyConverter<?, JavaType> databaseConverter(SecurityContext securityContext) {
+		return new Identitiy<Object, JavaType>(securityContext);
+	}
 
 	@Override
-	public T fromPrimitive(GraphObject entity, Object source) throws FrameworkException {
-		return (T)source;
+	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext) {
+		return new Identitiy<Object, JavaType>(securityContext);
+	}
+	
+	protected class Identitiy<S, T> extends PropertyConverter<S, T> {
+
+		public Identitiy(SecurityContext securityContext) {
+			this(securityContext, null, false);
+		}
+		
+		public Identitiy(SecurityContext securityContext, Integer sortKey) {
+			this(securityContext, sortKey, false);
+		}
+		
+		public Identitiy(SecurityContext securityContext, boolean sortFinalResults) {
+			this(securityContext, null, sortFinalResults);
+		}
+		
+		public Identitiy(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
+			super(securityContext, sortKey, sortFinalResults);
+		}
+		
+		@Override
+		public S convertForSetter(T source) throws FrameworkException {
+			return (S)source;
+		}
+
+		@Override
+		public T convertForGetter(S source) {
+			return (T)source;
+		}
+		
 	}
 }

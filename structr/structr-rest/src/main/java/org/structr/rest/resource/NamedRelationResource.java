@@ -178,8 +178,8 @@ public class NamedRelationResource extends WrappingResource {
 
 			propertySet.put(AbstractRelationship.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
 
-			// convert properties
-			PropertySet properties = PropertySet.convert(relationshipEntity, propertySet);
+			// convertFromInput properties
+			PropertySet properties = PropertySet.convertFromInput(securityContext, relationshipEntity, propertySet);
 			
 			// create new relationship with startNode, endNode, relType and propertySet
 			final AbstractRelationship newRel = createRel.execute(startNode, endNode, relType, properties, false);

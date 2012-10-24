@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.common.property.BooleanProperty;
 import org.structr.common.property.Property;
 
 //~--- interfaces -------------------------------------------------------------
@@ -41,9 +42,8 @@ public interface Principal extends GraphObject {
 
 	public static final Property<String>  sessionId = new Property<String>("sessionId");
 	public static final Property<String>  groups    = new Property<String>("groups");
-	public static final Property<Boolean> blocked   = new Property<Boolean>("blocked");
-	public static final Property<String>  realName = new Property<String>("realName");
-	public static final Property<String>  password = new Property<String>("password");
+	public static final Property<Boolean> blocked   = new BooleanProperty("blocked");
+	public static final Property<String>  realName  = new Property<String>("realName");
 
 	
 	//~--- methods --------------------------------------------------------

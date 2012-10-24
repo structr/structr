@@ -18,6 +18,8 @@
  */
 package org.structr.core;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -28,21 +30,32 @@ import org.structr.common.error.FrameworkException;
  */
 public class Converter<S, T> implements Value<T> {
 
-	private PropertyConverter<S, T, T> converter = null;
+	private static final Logger logger = Logger.getLogger(Converter.class.getName());
+	private PropertyConverter<S, T> converter = null;
 	private Value<S> source = null;
 	
-	public Converter(Value<S> source, PropertyConverter<S, T, T> converter) {
+	public Converter(Value<S> source, PropertyConverter<S, T> converter) {
 		this.converter = converter;
 		this.source = source;
 	}
 	
 	@Override
 	public void set(SecurityContext securityContext, T value) throws FrameworkException {
-		source.set(securityContext, converter.convertForSetter(value, this));
+		source.set(securityContext, converter.convertForSetter(value));
 	}
 
 	@Override
 	public T get(SecurityContext securityContext) {
-		return converter.convertForGetter(source.get(securityContext), this);
+		
+		try {
+			
+			return converter.convertForGetter(source.get(securityContext));
+			
+		} catch(FrameworkException fex) {
+			
+			logger.log(Level.WARNING, "Unable to obtain value for Converter {0}", getClass().getName());
+		}
+		
+		return null;
 	}
 }

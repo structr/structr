@@ -21,9 +21,9 @@ package org.structr.core.converter;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.NodeFactory;
@@ -33,16 +33,20 @@ import org.structr.core.node.NodeFactory;
  *
  * @author Axel Morgner
  */
-public class NodeIdNodeConverter extends PropertyConverter<Long, AbstractNode, Object> {
+public class NodeIdNodeConverter extends PropertyConverter<Long, AbstractNode> {
 
+	public NodeIdNodeConverter(SecurityContext securityContext) {
+		super(securityContext);
+	}
+	
 	@Override
-	public Long convertForSetter(AbstractNode node, Value<Object> value) {
+	public Long convertForSetter(AbstractNode node) {
 		if (node == null) return null;
 		return node.getId();
 	}
 
 	@Override
-	public AbstractNode convertForGetter(Long nodeId, Value<Object> value) {
+	public AbstractNode convertForGetter(Long nodeId) {
 		
 		if (nodeId == null) return null;
 		

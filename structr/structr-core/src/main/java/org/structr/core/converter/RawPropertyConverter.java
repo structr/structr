@@ -19,7 +19,8 @@
 
 package org.structr.core.converter;
 
-import org.structr.core.Value;
+import org.structr.common.SecurityContext;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -29,33 +30,33 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public class RawPropertyConverter extends PropertyConverter {
 
+	private PropertyKey key = null;
+	
+	public RawPropertyConverter(SecurityContext securityContext, PropertyKey key) {
+		
+		super(securityContext);
+		
+		this.key = key;
+	}
+	
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convertForSetter(Object source) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) {
 
-		if(value != null) {
-
-			Object v = value.get(securityContext);
-			if(v instanceof String) {
-
-				String key = (String)v;
-
-				try {
-					if(currentObject instanceof AbstractNode) {
-						return ((AbstractNode)currentObject).getNode().getProperty(key);
-					} else
-					if(currentObject instanceof AbstractRelationship) {
-						return ((AbstractRelationship)currentObject).getRelationship().getProperty(key);
-					}
-
-				} catch(Throwable t) {
-
-				}
+		try {
+			if(currentObject instanceof AbstractNode) {
+				return ((AbstractNode)currentObject).getNode().getProperty(key.name());
+			} else
+			if(currentObject instanceof AbstractRelationship) {
+				return ((AbstractRelationship)currentObject).getRelationship().getProperty(key.name());
 			}
+
+		} catch(Throwable t) {
+
 		}
 
 		return source;

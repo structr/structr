@@ -4,8 +4,6 @@
  */
 package org.structr.common.property;
 
-import org.structr.common.property.DateProperty;
-
 /**
  * Date converter for the ISO 8601 format.
  * 

@@ -24,8 +24,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.property.DoubleProperty;
 import org.structr.core.EntityContext;
-import org.structr.core.converter.DoubleConverter;
 import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
@@ -37,9 +37,9 @@ import org.structr.core.node.NodeService.NodeIndex;
  */
 public class Location extends AbstractNode {
 
-	public static final Property<Double> latitude  = new Property<Double>("latitude");
-	public static final Property<Double> longitude = new Property<Double>("longitude");
-	public static final Property<Double> altitude  = new Property<Double>("altitude");
+	public static final Property<Double> latitude  = new DoubleProperty("latitude");
+	public static final Property<Double> longitude = new DoubleProperty("longitude");
+	public static final Property<Double> altitude  = new DoubleProperty("altitude");
 
 	public static final View publicView = new View(Location.class, PropertyView.Public,
 		latitude, longitude, altitude
@@ -51,9 +51,9 @@ public class Location extends AbstractNode {
 //		EntityContext.registerPropertySet(Location.class, PropertyView.All, Key.values());
 
 		// ----- initialize property converters -----
-		EntityContext.registerPropertyConverter(Location.class, Location.latitude, DoubleConverter.class);
-		EntityContext.registerPropertyConverter(Location.class, Location.longitude, DoubleConverter.class);
-		EntityContext.registerPropertyConverter(Location.class, Location.altitude, DoubleConverter.class);
+//		EntityContext.registerPropertyConverter(Location.class, Location.latitude, DoubleConverter.class);
+//		EntityContext.registerPropertyConverter(Location.class, Location.longitude, DoubleConverter.class);
+//		EntityContext.registerPropertyConverter(Location.class, Location.altitude, DoubleConverter.class);
 
 		// ----- initialize validators -----
 		// ----- initialize searchable properties

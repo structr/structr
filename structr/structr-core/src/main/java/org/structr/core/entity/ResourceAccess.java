@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import com.vividsolutions.jts.index.bintree.Key;
 import java.util.logging.Logger;
 import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
@@ -27,6 +26,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.LongProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.IntConverter;
 import org.structr.core.node.NodeService;
@@ -56,7 +56,7 @@ public class ResourceAccess extends AbstractNode {
 	private Long cachedFlags     = null;
 
 	public static final Property<String> signature = new Property<String>("signature");
-	public static final Property<Long>   flags     = new Property<Long>("flags");
+	public static final Property<Long>   flags     = new LongProperty("flags");
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags

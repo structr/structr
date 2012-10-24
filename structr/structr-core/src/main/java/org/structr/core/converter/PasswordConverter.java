@@ -21,34 +21,43 @@ package org.structr.core.converter;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TooShortToken;
-import org.structr.core.Value;
 
 /**
  * @author Axel Morgner
  */
-public class PasswordConverter extends PropertyConverter<String, String, ValidationInfo> {
+public class PasswordConverter extends PropertyConverter<String, String> {
 
+	private ValidationInfo validationInfo = null;
+	
+	public PasswordConverter(SecurityContext securityContext) {
+		this(securityContext, null);
+	}
+	
+	public PasswordConverter(SecurityContext securityContext, ValidationInfo info) {
+		
+		super(securityContext);
+		
+		this.validationInfo = info;
+	}
+	
 	@Override
-	public String convertForSetter(String clearTextPassword, Value<ValidationInfo> value) throws FrameworkException {
+	public String convertForSetter(String clearTextPassword) throws FrameworkException {
 		
 		if (StringUtils.isBlank(clearTextPassword)) return null;
 
-		if (value != null) {
+		if (validationInfo != null) {
 			
-			ValidationInfo validationInfo = (ValidationInfo)value.get(securityContext);
-			if (validationInfo != null) {
+			String errorType     = validationInfo.getErrorType();
+			PropertyKey errorKey = validationInfo.getErrorKey();
+			int minLength        = validationInfo.getMinLength();
 
-				String errorType     = validationInfo.getErrorType();
-				PropertyKey errorKey = validationInfo.getErrorKey();
-				int minLength        = validationInfo.getMinLength();
+			if (minLength > 0 && clearTextPassword.length() < minLength) {
 
-				if (minLength > 0 && clearTextPassword.length() < minLength) {
-
-					throw new FrameworkException(errorType, new TooShortToken(errorKey, minLength));
-				}
+				throw new FrameworkException(errorType, new TooShortToken(errorKey, minLength));
 			}
 		}
 		
@@ -56,7 +65,7 @@ public class PasswordConverter extends PropertyConverter<String, String, Validat
 	}
 
 	@Override
-	public String convertForGetter(String passwordHash, Value<ValidationInfo> value) {
+	public String convertForGetter(String passwordHash) {
 		return passwordHash;
 	}
 }

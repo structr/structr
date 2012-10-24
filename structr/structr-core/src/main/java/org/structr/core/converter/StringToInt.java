@@ -20,6 +20,7 @@
 
 package org.structr.core.converter;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.Converter;
 import org.structr.core.Value;
 
@@ -30,10 +31,11 @@ import org.structr.core.Value;
 public class StringToInt extends Converter<String, Integer> {
 	
 	public StringToInt(Value<String> source) {
-		super(source, new PropertyConverter<String, Integer, Integer>() {
+		
+		super(source, new PropertyConverter<String, Integer>(null) {
 
 			@Override
-			public String convertForSetter(Integer source, Value<Integer> value) {
+			public String convertForSetter(Integer source) {
 				
 				if (source != null) {
 					
@@ -44,7 +46,7 @@ public class StringToInt extends Converter<String, Integer> {
 			}
 
 			@Override
-			public Integer convertForGetter(String source, Value<Integer> value) {
+			public Integer convertForGetter(String source) {
 				
 				if (source != null) {
 					

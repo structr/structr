@@ -72,7 +72,7 @@ public class InsertCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					PropertySet nodeProperties = PropertySet.convert(properties);
+					PropertySet nodeProperties = PropertySet.convertFromInput(securityContext, properties);
 					return Services.command(securityContext, CreateNodeCommand.class).execute(nodeProperties);
 
 				}
@@ -99,7 +99,7 @@ public class InsertCommand extends AbstractCommand {
 
 					try {
 
-						PropertySet relProperties = PropertySet.convert(relData);
+						PropertySet relProperties = PropertySet.convertFromInput(securityContext, relData);
 						rel.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
 
 					} catch (Throwable t) {

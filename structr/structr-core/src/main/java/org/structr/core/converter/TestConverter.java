@@ -19,7 +19,7 @@
 
 package org.structr.core.converter;
 
-import org.structr.core.Value;
+import org.structr.common.SecurityContext;
 
 /**
  *
@@ -28,13 +28,17 @@ import org.structr.core.Value;
 
 public class TestConverter extends PropertyConverter {
 
+	public TestConverter(SecurityContext securityContext) {
+		super(securityContext);
+	}
+	
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convertForSetter(Object source) {
 		return source;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) {
 		return source;
 	}
 }

@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,17 +51,21 @@ public class PathsConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(PathsConverter.class.getName());
 
+	public PathsConverter(SecurityContext securityContext) {
+		super(securityContext);
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convertForSetter(Object source) {
 
 		// read only
 		return null;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) {
 
 		AbstractNode startNode         = (AbstractNode) currentObject;
 		TraversalDescription localDesc = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_PATH).relationships(RelType.CONTAINS, Direction.INCOMING);

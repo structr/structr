@@ -27,7 +27,7 @@ import org.structr.rest.entity.TestOne;
  *
  * @author Axel Morgner
  */
-public class SearchTest extends StructrRestTest {
+public class SortTest extends StructrRestTest {
 
 	/**
 	 * Test a more complex object
@@ -76,7 +76,7 @@ public class SearchTest extends StructrRestTest {
 	/**
 	 * Test a more complex object
 	 */
-	public void test02SearchTestOne() {
+	public void test02SortTestOne() {
 
 		// create some objects
 		

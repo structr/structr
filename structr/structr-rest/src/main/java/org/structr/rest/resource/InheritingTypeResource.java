@@ -103,12 +103,22 @@ public class InheritingTypeResource extends TypeResource {
 			}
 
 			Integer sortType = null;
-			final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
-			if (converter != null) {
-				if (converter instanceof IntConverter) {
-					sortType = SortField.INT;
-				} else if (converter instanceof DateConverter) {
-					sortType = SortField.LONG;
+//			final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
+			
+			if (sortKey != null) {
+				
+				final PropertyConverter converter = sortKey.inputConverter(securityContext);
+				if (converter != null) {
+					
+					sortType = converter.getSortType();
+					/*
+					if (converter instanceof IntConverter) {
+						sortType = SortField.INT;
+					} else if (converter instanceof DateConverter) {
+						sortType = SortField.LONG;
+					}
+					*/
+
 				}
 			}
 

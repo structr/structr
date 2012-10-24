@@ -36,6 +36,9 @@ import org.structr.common.property.Property;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.property.BooleanProperty;
+import org.structr.common.property.ISO8601DateProperty;
+import org.structr.common.property.PasswordProperty;
 import org.structr.core.Services;
 import org.structr.core.node.CreateRelationshipCommand;
 
@@ -54,6 +57,7 @@ public class Person extends AbstractNode implements Principal {
 	public static final Property<String>  lastName            = new Property<String>("lastName");
 	public static final Property<String>  email               = new Property<String>("email");
 	public static final Property<String>  email2              = new Property<String>("email2");
+	public static final Property<String>  password            = new PasswordProperty("password");
 	public static final Property<String>  phoneNumber1        = new Property<String>("phoneNumber1");
 	public static final Property<String>  phoneNumber2        = new Property<String>("phoneNumber2");
 	public static final Property<String>  faxNumber1          = new Property<String>("faxNumber1");
@@ -63,9 +67,9 @@ public class Person extends AbstractNode implements Principal {
 	public static final Property<String>  city                = new Property<String>("city");
 	public static final Property<String>  state               = new Property<String>("state");
 	public static final Property<String>  country             = new Property<String>("country");
-	public static final Property<Date>    birthday            = new Property<Date>("birthday");
+	public static final Property<Date>    birthday            = new ISO8601DateProperty("birthday");
 	public static final Property<String>  gender              = new Property<String>("gender");
-	public static final Property<Boolean> newsletter          = new Property<Boolean>("newsletter");
+	public static final Property<Boolean> newsletter          = new BooleanProperty("newsletter");
 	
 	public static final View publicView = new View(Person.class, PropertyView.Public,
 		salutation, firstName, middleNameOrInitial, lastName

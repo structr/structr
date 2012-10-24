@@ -45,16 +45,12 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.lucene.search.SortField;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.property.PropertySet;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.DateConverter;
-import org.structr.core.converter.IntConverter;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.converter.ResultCountConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -172,16 +168,30 @@ public class TypeResource extends SortableResource {
 			
 			Integer sortType = null;
 			boolean sortFinalResults = false;
-			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
-			if (converter != null) {
-				if (converter instanceof IntConverter) {
-					sortType = SortField.INT;
-				} else if (converter instanceof DateConverter) {
-					sortType = SortField.LONG;
-				} else if (converter instanceof ResultCountConverter) {
-					sortFinalResults = true;
+			
+//			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
+			
+			if (sortKey != null) {
+				
+				PropertyConverter converter = sortKey.databaseConverter(securityContext);
+				if (converter != null) {
+					
+					sortType = converter.getSortType();
+					sortFinalResults = converter.sortFinalResults();
+
+					/*
+					if (converter instanceof IntConverter) {
+						sortType = SortField.INT;
+					} else if (converter instanceof DateConverter) {
+						sortType = SortField.LONG;
+					} else if (converter instanceof ResultCountConverter) {
+						sortFinalResults = true;
+					}
+					*/
+
 				}
 			}
+			
 			// do search
 			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
 				includeDeletedAndHidden,
@@ -264,7 +274,7 @@ public class TypeResource extends SortableResource {
 
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
-		PropertySet properties = PropertySet.convert(entityClass, propertySet);
+		PropertySet properties = PropertySet.convertFromInput(securityContext, entityClass, propertySet);
 		properties.put(AbstractNode.type, entityClass.getSimpleName());
 		
 		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);

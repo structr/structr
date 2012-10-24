@@ -48,7 +48,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.converter.BooleanConverter;
 import org.structr.core.node.*;
 import org.structr.core.node.NodeRelationshipStatisticsCommand;
@@ -66,6 +65,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.*;
 import org.structr.core.converter.DateConverter;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.notion.PropertyNotion;
@@ -89,14 +89,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final Property<String>        name                        = new Property<String>("name");
 	public static final Property<String>        type                        = new Property<String>("type");
 	public static final Property<String>        createdBy                   = new Property<String>("createdBy");
-	public static final Property<Boolean>       deleted                     = new Property<Boolean>("deleted");
-	public static final Property<Boolean>       hidden                      = new Property<Boolean>("hidden");
-	public static final Property<Date>          createdDate                 = new Property<Date>("createdDate");
-	public static final Property<Date>          lastModifiedDate            = new Property<Date>("lastModifiedDate");
-	public static final Property<Boolean>       visibleToPublicUsers        = new Property<Boolean>("visibleToPublicUsers");
-	public static final Property<Boolean>       visibleToAuthenticatedUsers = new Property<Boolean>("visibleToAuthenticatedUsers");
-	public static final Property<Date>	    visibilityStartDate         = new Property<Date>("visibilityStartDate");
-	public static final Property<Date>	    visibilityEndDate           = new Property<Date>("visibilityEndDate");
+	public static final Property<Boolean>       deleted                     = new BooleanProperty("deleted");
+	public static final Property<Boolean>       hidden                      = new BooleanProperty("hidden");
+	public static final Property<Date>          createdDate                 = new ISO8601DateProperty("createdDate");
+	public static final Property<Date>          lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate");
+	public static final Property<Boolean>       visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
+	public static final Property<Boolean>       visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
+	public static final Property<Date>	    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
+	public static final Property<Date>	    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
 	public static final Property<String>        categories                  = new Property<String>("categories");
 	public static final Property<String>        ownerId                     = new Property<String>("ownerId");
 
@@ -108,13 +108,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	static {
 
-		EntityContext.registerPropertyConverter(AbstractNode.class, visibilityStartDate, DateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, visibilityEndDate, DateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, lastModifiedDate, DateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, createdDate, DateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, deleted, BooleanConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, hidden, BooleanConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, visibleToPublicUsers, BooleanConverter.class);
+		// TODO: remove these if changes to typed property keys are done
+		EntityContext.registerPropertyConverter(AbstractNode.class, visibilityStartDate,         DateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, visibilityEndDate,           DateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, lastModifiedDate,            DateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, createdDate,                 DateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, deleted,                     BooleanConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, hidden,                      BooleanConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, visibleToPublicUsers,        BooleanConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, visibleToAuthenticatedUsers, BooleanConverter.class);
 		
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
@@ -668,15 +669,25 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if(applyConverter) {
 
 				// apply property converters
-				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+//				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+				PropertyConverter converter = key.databaseConverter(securityContext);
 
 				if (converter != null) {
 
-					Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+//					Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
 
 					converter.setCurrentObject(this);
 
-					value = converter.convertForGetter(value, conversionValue);
+					try {
+						value = converter.convertForGetter(value);
+						
+					} catch(FrameworkException fex) {
+						logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+							key.name(),
+							getClass().getSimpleName(),
+							fex.getMessage()
+						});
+					}
 
 				}
 			}
@@ -951,13 +962,23 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		Class type = getClass();
 		
 		// check property converter
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+//		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+		PropertyConverter converter = key.databaseConverter(securityContext);
 		if (converter != null) {
 			
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+//			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
 			converter.setCurrentObject(this);
 
-			return converter.convertForSorting(propertyValue, conversionValue);
+			try {
+				return converter.convertForSorting(propertyValue);
+
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+					key.name(),
+					getClass().getSimpleName(),
+					fex.getMessage()
+				});
+			}
 		}
 		
 		// conversion failed, may the property value itself is comparable
@@ -965,7 +986,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return (Comparable)propertyValue;
 		}
 		
-		// last try: convert to String to make comparable
+		// last try: convertFromInput to String to make comparable
 		if(propertyValue != null) {
 			return propertyValue.toString();
 		}
@@ -1767,22 +1788,22 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 						rel.removeRelationship(securityContext, this, (AbstractNode)graphObject);
 					}
-
 				}
 			}
 
 		} else {
 
-			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+//			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+			PropertyConverter converter = key.databaseConverter(securityContext);
 			final Object convertedValue;
 
 			if (converter != null) {
 
-				Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+//				Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
 
 				converter.setCurrentObject(this);
 
-				convertedValue = converter.convertForSetter(value, conversionValue);
+				convertedValue = converter.convertForSetter(value);
 
 			} else {
 
@@ -1819,25 +1840,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 							if (convertedValue == null) {
 
 								dbNode.removeProperty(key.name());
+								
 							} else {
 
 								// Setting last modified date explicetely is not allowed
-								if (!key.equals(AbstractNode.lastModifiedDate.name())) {
+								if (!key.equals(AbstractNode.lastModifiedDate)) {
 
-									if (convertedValue instanceof Date) {
+									dbNode.setProperty(key.name(), convertedValue);
 
-										dbNode.setProperty(key.name(), ((Date) convertedValue).getTime());
-									} else {
+									// set last modified date if not already happened
+									dbNode.setProperty(AbstractNode.lastModifiedDate.name(), System.currentTimeMillis());
 
-										dbNode.setProperty(key.name(), convertedValue);
-
-										// set last modified date if not already happened
-										dbNode.setProperty(AbstractNode.lastModifiedDate.name(), (new Date()).getTime());
-
-									}
-
-									// notify listeners here
-									// EntityContext.getGlobalModificationListener().propertyModified(securityContext, thisNode, key, oldValue, convertedValue);
 
 								} else {
 

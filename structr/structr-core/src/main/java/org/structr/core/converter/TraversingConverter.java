@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
@@ -44,57 +45,49 @@ public class TraversingConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(TraversingConverter.class.getName());
 
+	private TraverserInterface traverserInterface = null;
+	
+	public TraversingConverter(SecurityContext securityContext, TraverserInterface traverserInterface) {
+		super(securityContext);
+		
+		this.traverserInterface = traverserInterface;
+	}
+	
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) throws FrameworkException {
 		
-		// source is not used here (can safely be null!)
-		
-		if(currentObject != null && value != null) {
+		if(currentObject != null) {
 			
-			Object valueObject = value.get(securityContext);
-			if(valueObject != null) {
-				
-				if(valueObject instanceof TraverserInterface) {
-					
-					TraverserInterface traverserInterface = (TraverserInterface)valueObject;
-					TraversalDescription description = traverserInterface.getTraversalDescription(securityContext, source);
-					AbstractNode currentNode = (AbstractNode)currentObject;
+			TraversalDescription description = traverserInterface.getTraversalDescription(securityContext, source);
+			AbstractNode currentNode = (AbstractNode)currentObject;
 
-					Comparator<AbstractNode> comparator = traverserInterface.getComparator();
+			Comparator<AbstractNode> comparator = traverserInterface.getComparator();
+			List<AbstractNode> nodes = getTraversalResults(comparator, description, currentNode);
 
-					try {
-						List<AbstractNode> nodes = getTraversalResults(comparator, description, currentNode);
-						
-						if (traverserInterface.collapseSingleResult() && nodes.isEmpty()) {
-							return null;
-						}
-						
-						List<GraphObject> transformedNodes = traverserInterface.transformResult(nodes);
+			if (traverserInterface.collapseSingleResult() && nodes.isEmpty()) {
+				return null;
+			}
 
-						Notion notion = traverserInterface.getNotion();
-						if(notion != null && !rawMode) {
+			List<GraphObject> transformedNodes = traverserInterface.transformResult(nodes);
 
-							Adapter<GraphObject, Object> adapter = notion.getAdapterForGetter(securityContext);
+			Notion notion = traverserInterface.getNotion();
+			if(notion != null && !rawMode) {
 
-							List<Object> results = new LinkedList<Object>();
-							for(GraphObject obj : transformedNodes) {
-								results.add(adapter.adapt(obj));
-							}
+				Adapter<GraphObject, Object> adapter = notion.getAdapterForGetter(securityContext);
 
-							// important: remove results from this iteration
-							traverserInterface.cleanup();
-
-							return (traverserInterface.collapseSingleResult() && results.size() == 1) ? results.get(0) : results;
-
-						} else {
-
-							return transformedNodes;
-						}
-
-					} catch(FrameworkException fex) {
-						logger.log(Level.WARNING, "Error while converting property", fex);
-					}
+				List<Object> results = new LinkedList<Object>();
+				for(GraphObject obj : transformedNodes) {
+					results.add(adapter.adapt(obj));
 				}
+
+				// important: remove results from this iteration
+				traverserInterface.cleanup();
+
+				return (traverserInterface.collapseSingleResult() && results.size() == 1) ? results.get(0) : results;
+
+			} else {
+
+				return transformedNodes;
 			}
 		}
 		
@@ -102,7 +95,7 @@ public class TraversingConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convertForSetter(Object source) {
 		return source;
 	}
 	

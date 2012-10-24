@@ -30,6 +30,7 @@ import org.structr.core.entity.RelationClass;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,62 +42,48 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(RelatedNodePropertyMapper.class.getName());
 
+	private ParameterHolder holder = null;
+	
+	public RelatedNodePropertyMapper(SecurityContext securityContext, ParameterHolder holder) {
+		
+		super(securityContext);
+		
+		this.holder = holder;
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convertForSetter(Object source) {
 
-		if (value != null) {
+		PropertyKey targetKey    = holder.getTargetKey();
+		Class targetType         = holder.getTargetType();
+		AbstractNode relatedNode = getRelatedNode(targetType);
 
-			Object param = value.get(securityContext);
+		if (relatedNode != null) {
 
-			if ((param != null) && (param instanceof ParameterHolder)) {
+			try {
+				relatedNode.setProperty(targetKey, source);
+			} catch (FrameworkException fex) {
 
-				ParameterHolder holder   = (ParameterHolder) param;
-				PropertyKey targetKey    = holder.getTargetKey();
-				Class targetType         = holder.getTargetType();
-				AbstractNode relatedNode = getRelatedNode(targetType);
-
-				if (relatedNode != null) {
-
-					try {
-						relatedNode.setProperty(targetKey, source);
-					} catch (FrameworkException fex) {
-
-						logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.name(),
-							targetType });
-					}
-
-				}
-
+				logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.name(),
+					targetType });
 			}
-
 		}
-
+		
 		return null;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) {
 
-		if (value != null) {
+		PropertyKey targetKey    = holder.getTargetKey();
+		Class targetType         = holder.getTargetType();
+		AbstractNode relatedNode = getRelatedNode(targetType);
 
-			Object param = value.get(securityContext);
+		if (relatedNode != null) {
 
-			if ((param != null) && (param instanceof ParameterHolder)) {
-
-				ParameterHolder holder   = (ParameterHolder) param;
-				PropertyKey targetKey    = holder.getTargetKey();
-				Class targetType         = holder.getTargetType();
-				AbstractNode relatedNode = getRelatedNode(targetType);
-
-				if (relatedNode != null) {
-
-					return relatedNode.getProperty(targetKey);
-
-				}
-
-			}
+			return relatedNode.getProperty(targetKey);
 
 		}
 

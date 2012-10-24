@@ -168,6 +168,8 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			
 		} catch(Throwable t) {
 			
+			t.printStackTrace();
+			
 			logger.log(Level.WARNING, "Unable to index node {0}: {1}", new Object[] { node.getNode().getId(), t.getMessage() } );
 			
 		}
@@ -216,7 +218,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 		Object value            = node.getProperty(key);    // dbNode.getProperty(key);
 		Object valueForIndexing = node.getPropertyForIndexing(key);
 		
-		if ((value == null && EntityContext.getPropertyConverter(securityContext, node.getClass(), key) == null) || (value != null && value instanceof String && StringUtils.isEmpty((String) value))) {
+		if ((value == null && key.databaseConverter(securityContext) == null) || (value != null && value instanceof String && StringUtils.isEmpty((String) value))) {
 			valueForIndexing = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 			value = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 		}

@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import org.structr.common.property.Property;
 import org.structr.common.SecurityContext;
+import org.structr.common.property.IntProperty;
 
 /**
  *
@@ -30,7 +31,7 @@ import org.structr.common.SecurityContext;
 public class Cache extends AbstractNode {
 
 	public static final Property<String>  sortKey = new Property<String>("sortKey");
-	public static final Property<Integer> size    = new Property<Integer>("size");
+	public static final Property<Integer> size    = new IntProperty("size");
 	
 	private int internalSize = 0;
 	

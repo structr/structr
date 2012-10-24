@@ -82,7 +82,7 @@ public class UnwrapCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					PropertySet nodeProps  = PropertySet.convert(nodeData);
+					PropertySet nodeProps  = PropertySet.convertFromInput(securityContext, nodeData);
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeProps);
 					String componentId     = newComponent.getProperty(AbstractNode.uuid);
 

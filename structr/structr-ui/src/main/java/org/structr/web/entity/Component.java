@@ -28,7 +28,6 @@ import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -44,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.property.LongProperty;
 import org.structr.common.property.Property;
 
 //~--- classes ----------------------------------------------------------------
@@ -379,7 +379,7 @@ public class Component extends AbstractNode implements Element {
 		try {
 
 //                      Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
-			PropertyKey<Long> pageIdProperty = new Property<Long>(pageId);
+			PropertyKey<Long> pageIdProperty = new LongProperty(pageId);
 			PropertyKey wildcardProperty     = new Property("*");
 			Object prop = null;
 			final String key;

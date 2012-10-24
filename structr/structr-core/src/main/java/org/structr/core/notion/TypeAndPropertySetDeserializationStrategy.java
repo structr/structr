@@ -64,7 +64,7 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 
 		if (source instanceof JsonInput) {
 
-			PropertySet attributes      = PropertySet.convert(type, ((JsonInput)source).getAttributes());
+			PropertySet attributes      = PropertySet.convertFromInput(securityContext, type, ((JsonInput)source).getAttributes());
 			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 			
 			for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {

@@ -161,9 +161,9 @@ public class EntityContext {
 
 	public static void scanEntity(Object entity) {
 		
-		List<View> views          = getFieldsOfType(View.class, entity);
-		List<Property> properties = getFieldsOfType(Property.class, entity);
-		Class type                = entity.getClass();
+		List<PropertyKey> properties = getFieldsOfType(PropertyKey.class, entity);
+		List<View> views             = getFieldsOfType(View.class, entity);
+		Class type                   = entity.getClass();
 		
 		Map<String, PropertyKey> classPropertyMap = getClassPropertyMapForType(type);
 		for (PropertyKey key : properties) {
@@ -459,7 +459,6 @@ public class EntityContext {
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param propertyConverterClass the type of the converter to register
 	 */
-//	public static <S, T> void registerPropertyConverter(Class type, PropertyKey<T> propertyKey, Class<? extends PropertyConverter<S, T>> propertyConverterClass) {
 	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
 		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
 	}
@@ -472,7 +471,6 @@ public class EntityContext {
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param propertyConverterClass the type of the converter to register
 	 */
-//	public static <S, T> void registerPropertyConverter(Class type, PropertyKey<T> propertyKey, Class<? extends PropertyConverter<S, T>> propertyConverterClass, Value value) {
 	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
 
 		getPropertyConverterMapForType(type).put(propertyKey, propertyConverterClass);
@@ -1075,83 +1073,83 @@ public class EntityContext {
 		return validators;
 	}
 
-	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
-
-		Class clazz = getAggregatedPropertyConverterMapForType(type).get(propertyKey);
-		if(clazz == null) {
-			
-			Map<PropertyKey, Class<? extends PropertyConverter>> converterMap = null;
-			Class localType                                                   = type;
-
-			while ((clazz == null) && localType != null && !localType.equals(Object.class)) {
-
-				converterMap = getPropertyConverterMapForType(localType);
-				clazz        = converterMap.get(propertyKey);
-
-				// try converters from interfaces as well
-				if(clazz == null) {
-
-					for(Class interfaceClass : getInterfacesForType(localType)) {
-						clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
-						if(clazz != null) {
-							break;
-						}
-					}
-				}
-
-				localType = localType.getSuperclass();
-			}
-			
-			getAggregatedPropertyConverterMapForType(type).put(propertyKey, clazz);
-		}
-
-		PropertyConverter propertyConverter = null;
-		if (clazz != null) {
-
-			try {
-
-				propertyConverter = (PropertyConverter) clazz.newInstance();
-
-				propertyConverter.setSecurityContext(securityContext);
-
-			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Unable to instantiate property PropertyConverter {0}: {1}", new Object[] { clazz.getName(), t.getMessage() });
-			}
-
-		}
-
-		return propertyConverter;
-	}
-
-	public static Value getPropertyConversionParameter(Class type, PropertyKey propertyKey) {
-
-		Map<PropertyKey, Value> conversionParameterMap = null;
-		Class localType                                = type;
-		Value value                                    = null;
-
-		while ((value == null) && localType != null && !localType.equals(Object.class)) {
-
-			conversionParameterMap = getPropertyConversionParameterMapForType(localType);
-			value                  = conversionParameterMap.get(propertyKey);
-
-			// try parameters from interfaces as well
-			if(value == null) {
-
-				for(Class interfaceClass : getInterfacesForType(localType)) {
-					value = getPropertyConversionParameterMapForType(interfaceClass).get(propertyKey);
-					if(value != null) {
-						break;
-					}
-				}
-			}
-			
-//                      logger.log(Level.INFO, "Conversion parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
-			localType = localType.getSuperclass();
-
-		}
-
-		return value;
-	}
+//	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
+//
+//		Class clazz = getAggregatedPropertyConverterMapForType(type).get(propertyKey);
+//		if(clazz == null) {
+//			
+//			Map<PropertyKey, Class<? extends PropertyConverter>> converterMap = null;
+//			Class localType                                                   = type;
+//
+//			while ((clazz == null) && localType != null && !localType.equals(Object.class)) {
+//
+//				converterMap = getPropertyConverterMapForType(localType);
+//				clazz        = converterMap.get(propertyKey);
+//
+//				// try converters from interfaces as well
+//				if(clazz == null) {
+//
+//					for(Class interfaceClass : getInterfacesForType(localType)) {
+//						clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
+//						if(clazz != null) {
+//							break;
+//						}
+//					}
+//				}
+//
+//				localType = localType.getSuperclass();
+//			}
+//			
+//			getAggregatedPropertyConverterMapForType(type).put(propertyKey, clazz);
+//		}
+//
+//		PropertyConverter propertyConverter = null;
+//		if (clazz != null) {
+//
+//			try {
+//
+//				propertyConverter = (PropertyConverter) clazz.newInstance();
+//
+//				propertyConverter.setSecurityContext(securityContext);
+//
+//			} catch (Throwable t) {
+//				logger.log(Level.WARNING, "Unable to instantiate property PropertyConverter {0}: {1}", new Object[] { clazz.getName(), t.getMessage() });
+//			}
+//
+//		}
+//
+//		return propertyConverter;
+//	}
+//
+//	public static Value getPropertyConversionParameter(Class type, PropertyKey propertyKey) {
+//
+//		Map<PropertyKey, Value> conversionParameterMap = null;
+//		Class localType                                = type;
+//		Value value                                    = null;
+//
+//		while ((value == null) && localType != null && !localType.equals(Object.class)) {
+//
+//			conversionParameterMap = getPropertyConversionParameterMapForType(localType);
+//			value                  = conversionParameterMap.get(propertyKey);
+//
+//			// try parameters from interfaces as well
+//			if(value == null) {
+//
+//				for(Class interfaceClass : getInterfacesForType(localType)) {
+//					value = getPropertyConversionParameterMapForType(interfaceClass).get(propertyKey);
+//					if(value != null) {
+//						break;
+//					}
+//				}
+//			}
+//			
+////                      logger.log(Level.INFO, "Conversion parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
+//			localType = localType.getSuperclass();
+//
+//		}
+//
+//		return value;
+//	}
 
 	public static Set<PropertyKey> getSearchableProperties(Class type, String index) {
 		return getSearchableProperties(type.getSimpleName(), index);
@@ -1680,8 +1678,8 @@ public class EntityContext {
 					AbstractRelationship entity = relFactory.createRelationship(securityContext, rel);
 					if (entity != null) {
 						
-						// convert properties
-						PropertySet properties = PropertySet.convert(entity, removedRelProperties.get(rel));
+						// convertFromInput properties
+						PropertySet properties = PropertySet.convertFromDatabase(securityContext, entity, removedRelProperties.get(rel));
 						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
 						
@@ -1723,7 +1721,7 @@ public class EntityContext {
 					
 					if (entity != null) {
 						
-						PropertySet properties = PropertySet.convert(entity, removedNodeProperties.get(node));
+						PropertySet properties = PropertySet.convertFromDatabase(securityContext, entity, removedNodeProperties.get(node));
 						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
 						
@@ -1980,7 +1978,7 @@ public class EntityContext {
 		
 		for (Field field : entity.getClass().getFields()) {
 			
-			if (type.equals(field.getType())) {
+			if (type.isAssignableFrom(field.getType())) {
 				
 				try {
 					fields.add((T)field.get(entity));

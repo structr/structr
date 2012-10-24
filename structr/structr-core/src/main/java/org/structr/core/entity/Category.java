@@ -21,12 +21,6 @@
 
 package org.structr.core.entity;
 
-import java.util.Date;
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
-
-//~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author amorgner

@@ -20,9 +20,11 @@ package org.structr.common.property;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.apache.lucene.search.SortField;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 
 /**
  *
@@ -39,32 +41,85 @@ public class DateProperty extends Property<Date> {
 	}
 	
 	@Override
-	public Date fromPrimitive(GraphObject entity, Object o) throws FrameworkException {
+	public PropertyConverter<Long, Date> databaseConverter(SecurityContext securityContext) {
+		return new DatabaseConverter(securityContext);
+	}
+
+	@Override
+	public PropertyConverter<String, Date> inputConverter(SecurityContext securityContext) {
+		return new InputConverter(securityContext);
+	}
+	
+	private class DatabaseConverter extends PropertyConverter<Long, Date> {
+
+		public DatabaseConverter(SecurityContext securityContext) {
+			super(securityContext);
+		}
 		
-		if (o != null) {
-			
-			if (o instanceof Long) {
+		@Override
+		public Long convertForSetter(Date source) throws FrameworkException {
+
+			if (source != null) {
 				
-				// FIXME: should we really allow longs here?
-				Date date = new Date();
-				date.setTime((Long)o);
-				
-				return date;
-				
-			} else {
-				
-				try {
-					return dateFormat.parse(o.toString());
-					
-				} catch(Throwable t) {
-					
-					throw new FrameworkException(entity.getType(), new DateFormatToken(this));
-				}
+				return source.getTime();
 			}
+			
+			return null;
+		}
+
+		@Override
+		public Date convertForGetter(Long source) throws FrameworkException {
+
+			if (source != null) {
+
+				return new Date(source);
+			}
+
+			return null;
 			
 		}
 		
-		return null;
 	}
 	
+	private class InputConverter extends PropertyConverter<String, Date> {
+
+		public InputConverter(SecurityContext securityContext) {
+			super(securityContext);
+		}
+		
+		@Override
+		public String convertForSetter(Date source) throws FrameworkException {
+
+			if (source != null) {
+				return dateFormat.format(source);
+			}
+			
+			return null;
+		}
+
+		@Override
+		public Date convertForGetter(String source) throws FrameworkException {
+
+			if (source != null) {
+
+				try {
+					return dateFormat.parse(source);
+
+				} catch(Throwable t) {
+
+					throw new FrameworkException(currentObject.getClass().getSimpleName(), new DateFormatToken(DateProperty.this));
+				}
+
+			}
+
+			return null;
+			
+		}
+		
+		@Override
+		public Integer getSortType() {
+			return SortField.LONG;
+		}
+		
+	}
 }

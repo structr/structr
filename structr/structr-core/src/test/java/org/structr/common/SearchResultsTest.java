@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.ISO8601DateProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,7 +78,7 @@ public class SearchResultsTest extends StructrTest {
 
 			props.put(key, name);
 
-			AbstractNode node                      = createTestNode("Something", props);
+			AbstractNode node                      = createTestNode(TestOne.class.getSimpleName(), props);
 			boolean includeDeletedAndHidden        = true;
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
@@ -115,9 +116,9 @@ public class SearchResultsTest extends StructrTest {
 		try {
 
 			PropertySet props = new PropertySet();
-			PropertyKey key   = new Property("someDate");
+			PropertyKey key   = TestOne.aDate;
 			Date date         = new Date();
-			String type       = "Something";
+			String type       = TestOne.class.getSimpleName();
 
 			props.put(key, date);
 
@@ -127,11 +128,11 @@ public class SearchResultsTest extends StructrTest {
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
-			searchAttributes.add(new FilterSearchAttribute(key, date.getTime(), SearchOperator.AND));
+			searchAttributes.add(new FilterSearchAttribute(key, date, SearchOperator.AND));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
-			assertTrue(result.size() == 1);
+			assertEquals(1, result.size());
 			assertTrue(result.get(0).equals(node));
 
 		} catch (FrameworkException ex) {

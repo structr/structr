@@ -24,9 +24,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -119,7 +121,7 @@ public class PropertySet implements Map<PropertyKey, Object> {
 		return dest;
 	}
 	
-	public static PropertySet convert(Map<String, Object> source) throws FrameworkException {
+	public static PropertySet convertFromInput(SecurityContext securityContext, Map<String, Object> source) throws FrameworkException {
 		
 		Object typeName = source.get(AbstractNode.type.name());
 		if (typeName != null) {
@@ -127,7 +129,7 @@ public class PropertySet implements Map<PropertyKey, Object> {
 			Class<? extends GraphObject> type = EntityContext.getEntityClassForRawType(typeName.toString());
 			if (type != null) {
 				
-				return convert(type, source);
+				return convertFromInput(securityContext, type, source);
 				
 			} else {
 				
@@ -142,7 +144,7 @@ public class PropertySet implements Map<PropertyKey, Object> {
 		return fallbackPropertyMap(source);
 	}
 	
-	public static PropertySet convert(Class<? extends GraphObject> type, Map<String, Object> source) throws FrameworkException {
+	public static PropertySet convertFromInput(SecurityContext securityContext, Class<? extends GraphObject> type, Map<String, Object> source) throws FrameworkException {
 
 		// fallback: AbstractNode
 		if (type == null) {
@@ -150,7 +152,7 @@ public class PropertySet implements Map<PropertyKey, Object> {
 		}
 		
 		try {
-			return convert(type.newInstance(), source);
+			return convertFromInput(securityContext, type.newInstance(), source);
 			
 		} catch(Throwable t) {
 			
@@ -160,7 +162,7 @@ public class PropertySet implements Map<PropertyKey, Object> {
 		return fallbackPropertyMap(source);
 	}
 	
-	public static PropertySet convert(GraphObject entity, Map<String, Object> source) throws FrameworkException {
+	public static PropertySet convertFromDatabase(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
 		
 		PropertySet resultMap = new PropertySet();
 		
@@ -171,10 +173,53 @@ public class PropertySet implements Map<PropertyKey, Object> {
 			
 			if (key != null && value != null) {
 
-				PropertyKey propertyKey = entity.getPropertyKeyForName(key);
-				Object propertyValue    = propertyKey.fromPrimitive(entity, value);
+				PropertyKey propertyKey     = entity.getPropertyKeyForName(key);
+				PropertyConverter converter = propertyKey.databaseConverter(securityContext);
 				
-				resultMap.put(propertyKey, propertyValue);
+				if (converter != null) {
+					
+					Object propertyValue = converter.convertForGetter(value);
+					resultMap.put(propertyKey, propertyValue);
+					
+				} else {
+					
+					logger.log(Level.WARNING, "No converter registered for key {0} of type {1}!", new Object[] {
+						propertyKey.name(),
+						entity.getClass().getSimpleName()
+					});
+				}
+			}
+		}
+		
+		return resultMap;
+	}
+	
+	public static PropertySet convertFromInput(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
+		
+		PropertySet resultMap = new PropertySet();
+		
+		for (Entry<String, Object> entry : source.entrySet()) {
+	
+			String key   = entry.getKey();
+			Object value = entry.getValue();
+			
+			if (key != null && value != null) {
+
+				PropertyKey propertyKey     = entity.getPropertyKeyForName(key);
+				PropertyConverter converter = propertyKey.inputConverter(securityContext);
+				
+				if (converter != null) {
+					
+					Object propertyValue = converter.convertForGetter(value);
+					resultMap.put(propertyKey, propertyValue);
+					
+				} else {
+					
+					logger.log(Level.WARNING, "No converter registered for key {0} of type {1}!", new Object[] {
+						propertyKey.name(),
+						entity.getClass().getSimpleName()
+					});
+				}
 			}
 		}
 		

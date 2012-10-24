@@ -22,7 +22,7 @@ package org.structr.core.converter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.structr.core.Value;
+import org.structr.common.SecurityContext;
 
 /**
  *
@@ -32,9 +32,12 @@ public class PasswordEncrypter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(PasswordEncrypter.class.getName());
 
+	public PasswordEncrypter(SecurityContext securityContext) {
+		super(securityContext);
+	}
+	
 	@Override
-	public Object convertForSetter(Object source, Value value) {
-
+	public Object convertForSetter(Object source) {
 
 		if(source != null) {
 
@@ -53,6 +56,7 @@ public class PasswordEncrypter extends PropertyConverter {
 
 				logger.log(Level.WARNING, "Received object of invalid type {0}, returning null.", source.getClass().getName());
 			}
+			
 		} else {
 
 			logger.log(Level.WARNING, "Received null object, returning null.");
@@ -62,13 +66,11 @@ public class PasswordEncrypter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
-//		Thread.dumpStack();
+	public Object convertForGetter(Object source) {
 		return source;
 	}
 
 	public static String encryptPassword(String password) {
-//		Thread.dumpStack();
 		return DigestUtils.sha512Hex(password);
 	}
 }

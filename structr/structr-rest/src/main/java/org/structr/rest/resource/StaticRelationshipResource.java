@@ -147,16 +147,17 @@ public class StaticRelationshipResource extends SortableResource {
 				final PropertyKey key = sourceNode.getPropertyKeyForName(typeResource.getRawType());
 
 				// String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
-				final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+//				final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+				final PropertyConverter converter = key.inputConverter(securityContext);
 
 				if (converter != null) {
 
-					final Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+//					final Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
 
 					converter.setCurrentObject(sourceNode);
 					converter.setRawMode(true);    // disable notion
 
-					final Object value = converter.convertForGetter(null, conversionValue);
+					final Object value = converter.convertForGetter(null);
 
 					// create error message in advance to avoid having to construct it twice in different locations
 					final StringBuilder msgBuilder = new StringBuilder();

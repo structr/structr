@@ -18,22 +18,29 @@
  */
 package org.structr.core.converter;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Value;
 
 /**
  * A converter that translates enums to Strings and back.
  * 
  * @author Christian Morgner
  */
-public class EnumConverter extends PropertyConverter<String, Enum, Class<? extends Enum>> {
+public class EnumConverter extends PropertyConverter<String, Enum> {
 
 	private static final Logger logger = Logger.getLogger(EnumConverter.class.getName());
 	
+	private Class<? extends Enum> enumClass = null;
+	
+	public EnumConverter(SecurityContext securityContext, Class<? extends Enum> enumClass) {
+		super(securityContext);
+		
+		this.enumClass = enumClass;
+	}
+	
 	@Override
-	public String convertForSetter(Enum source, Value<Class<? extends Enum>> value) throws FrameworkException {
+	public String convertForSetter(Enum source) throws FrameworkException {
 		
 		if (source != null) {
 			return source.name();
@@ -43,21 +50,14 @@ public class EnumConverter extends PropertyConverter<String, Enum, Class<? exten
 	}
 
 	@Override
-	public Enum convertForGetter(String source, Value<Class<? extends Enum>> value) {
+	public Enum convertForGetter(String source) {
 		
 		if (source != null) {
 			
-			if (value != null) {
-				
-				Class<? extends Enum> enumClass = value.get(securityContext);
-				if (enumClass != null) {
+			if (enumClass != null) {
 					
-					return Enum.valueOf(enumClass, source);
-				}
+				return Enum.valueOf(enumClass, source);
 			}
-			
-			logger.log(Level.WARNING, "EnumConverter without value!");
-			
 		}
 		
 		return null;

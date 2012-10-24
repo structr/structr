@@ -18,8 +18,9 @@
  */
 package org.structr.common.property;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 
 /**
  *
@@ -41,13 +42,43 @@ public class EnumProperty<T extends Enum> extends Property<T> {
 	}
 	
 	@Override
-	public T fromPrimitive(GraphObject entity, Object o) throws FrameworkException {
-		
-		if (o != null) {
-			
-			return (T)Enum.valueOf(enumType, o.toString());
+	public PropertyConverter<String, T> databaseConverter(SecurityContext securityContext) {
+		return new EnumStringConverter(securityContext);
+	}
+
+	@Override
+	public PropertyConverter<String, T> inputConverter(SecurityContext securityContext) {
+		return new EnumStringConverter(securityContext);
+	}
+	
+	private class EnumStringConverter extends PropertyConverter<String, T> {
+
+		public EnumStringConverter(SecurityContext securityContext) {
+			super(securityContext);
 		}
 		
-		return null;
+		@Override
+		public String convertForSetter(T source) throws FrameworkException {
+
+			if (source != null) {
+				
+				return source.toString();
+			}
+			
+			return null;
+		}
+
+		@Override
+		public T convertForGetter(String source) throws FrameworkException {
+
+			if (source != null) {
+
+				return (T)Enum.valueOf(enumType, source.toString());
+			}
+
+			return null;
+			
+		}
+		
 	}
 }

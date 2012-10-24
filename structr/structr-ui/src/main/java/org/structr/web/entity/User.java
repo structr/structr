@@ -28,8 +28,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.converter.BooleanConverter;
-import org.structr.core.converter.PasswordConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Person;
@@ -40,7 +38,9 @@ import org.structr.core.node.NodeService.NodeIndex;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.common.property.BooleanProperty;
 import org.structr.common.property.Property;
+import org.structr.common.property.PasswordProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,8 +52,8 @@ import org.structr.common.property.Property;
 public class User extends Person implements Principal {
 
 	public static final Property<String>  confirmationKey = new Property<String>("confirmationKey");
-	public static final Property<Boolean> backendUser     = new Property<Boolean>("backendUser");
-	public static final Property<Boolean> frontendUser    = new Property<Boolean>("frontendUser");
+	public static final Property<Boolean> backendUser     = new BooleanProperty("backendUser");
+	public static final Property<Boolean> frontendUser    = new BooleanProperty("frontendUser");
 	public static final Property<String>  group           = new Property<String>("group");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
@@ -66,8 +66,6 @@ public class User extends Person implements Principal {
 	
 	static {
 
-		EntityContext.registerPropertyConverter(User.class, password, PasswordConverter.class);
-		
 //		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
 //		EntityContext.registerPropertySet(User.class, PropertyView.Ui, Key.values());
 //		EntityContext.registerPropertySet(User.class, PropertyView.Public, realName);
@@ -77,10 +75,6 @@ public class User extends Person implements Principal {
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(),     name, email);
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(),  uiView.properties());
-		
-		EntityContext.registerPropertyConverter(User.class, backendUser, BooleanConverter.class);
-		EntityContext.registerPropertyConverter(User.class, frontendUser, BooleanConverter.class);
-
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -165,7 +159,7 @@ public class User extends Person implements Principal {
 
 	public void setPassword(final String passwordValue) throws FrameworkException {
 
-		setProperty(Person.password, passwordValue);
+		setProperty(password, passwordValue);
 
 	}
 

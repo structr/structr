@@ -25,7 +25,6 @@ import java.util.Set;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.property.Property;
 
-import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
@@ -33,7 +32,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService.NodeIndex;
-import org.structr.web.converter.PathsConverter;
+import org.structr.web.property.PathsProperty;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -45,7 +44,7 @@ import org.structr.web.converter.PathsConverter;
 public interface Element extends GraphObject {
 
 	public static final Property<String>      tag   = new Property<String>("tag");
-	public static final Property<Set<String>> paths = new Property<Set<String>>("paths");
+	public static final Property<Set<String>> paths = new PathsProperty("paths");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Element.class, PropertyView.Ui,
 		AbstractNode.name, tag
@@ -72,8 +71,6 @@ public interface Element extends GraphObject {
 			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), uiView.properties());
 			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(),  uiView.properties());
 			
-			EntityContext.registerPropertyConverter(Element.class, Element.paths, PathsConverter.class);
-
 //                      EntityContext.registerEntityRelation(Element.class,     Page.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
 
 		}

@@ -19,7 +19,6 @@
 package org.structr.core.entity;
 
 import org.neo4j.graphdb.Direction;
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 

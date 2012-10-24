@@ -92,7 +92,7 @@ public class AddCommand extends AbstractCommand {
 					@Override
 					public AbstractNode execute() throws FrameworkException {
 
-						PropertySet nodeProps = PropertySet.convert(nodeData);
+						PropertySet nodeProps = PropertySet.convertFromInput(securityContext, nodeData);
 						return Services.command(securityContext, CreateNodeCommand.class).execute(nodeProps);
 
 					}
@@ -181,8 +181,8 @@ public class AddCommand extends AbstractCommand {
 							// overwrite with new position
 							relData.put(newPageId, maxPos + 1);
 							
-							// convert relationship properties
-							PropertySet relProperties = PropertySet.convert(relData);
+							// convertFromInput relationship properties
+							PropertySet relProperties = PropertySet.convertFromInput(securityContext, relData);
 							
 							rel.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
 							
@@ -248,8 +248,8 @@ public class AddCommand extends AbstractCommand {
 							// New content node is at position 0!!
 							relData.put(newPageId, 0L);
 							
-							// convert relationship properties
-							PropertySet relProperties = PropertySet.convert(relData);
+							// convertFromInput relationship properties
+							PropertySet relProperties = PropertySet.convertFromInput(securityContext, relData);
 							
 							rel.createRelationship(securityContext, nodeToAdd, contentNode, relProperties);
 

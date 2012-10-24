@@ -21,71 +21,44 @@ package org.structr.core.converter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Value;
 
 /**
  *
  * @author Christian Morgner
  */
-public class BidirectionalPropertyMapper extends PropertyMapper {
+public class BidirectionalPropertyMapper extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(BidirectionalPropertyMapper.class.getName());
 	
+	private PropertyKey mappedKey = null;
+	
+	public BidirectionalPropertyMapper(SecurityContext securityContext, PropertyKey key) {
+		super(securityContext);
+		
+		this.mappedKey = key;
+	}
+	
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convertForSetter(Object source) {
 
-		if(value != null) {
+		try {
+			currentObject.setProperty(mappedKey, source);
 
-			Object valueObject = value.get(securityContext);
-			if(valueObject instanceof PropertyKey) {
+		} catch(FrameworkException fex) {
 
-				PropertyKey mappedKey = (PropertyKey)valueObject;
-				
-				try {
-					currentObject.setProperty(mappedKey, source);
-					
-				} catch(FrameworkException fex) {
-					
-					logger.log(Level.WARNING, "Unable to set mapped property {0} on {1}: {2}", new Object[] { mappedKey, currentObject, fex.getMessage() } );
-				}
-
-			} else {
-
-				logger.log(Level.WARNING, "Value parameter is not a String!");
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "Required value parameter is missing!");
+			logger.log(Level.WARNING, "Unable to set mapped property {0} on {1}: {2}", new Object[] { mappedKey, currentObject, fex.getMessage() } );
 		}
 
 		return null;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) {
 
-		if(value != null) {
-
-			Object valueObject = value.get(securityContext);
-			if(valueObject instanceof PropertyKey) {
-
-				PropertyKey mappedKey = (PropertyKey)valueObject;
-				return currentObject.getProperty(mappedKey);
-
-			} else {
-
-				logger.log(Level.WARNING, "Value parameter is not a String!");
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "Required value parameter is missing!");
-		}
-
-		return source;
+		return currentObject.getProperty(mappedKey);
 	}
 	
 }

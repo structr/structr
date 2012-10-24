@@ -74,6 +74,9 @@ public class TransactionCommand extends NodeServiceCommand {
 
 		} catch (FrameworkException frameworkException) {
 
+			// CHM
+			frameworkException.printStackTrace();
+			
 			tx.failure();
 			logger.log(Level.WARNING, "Transaction failure", frameworkException);
 
@@ -101,6 +104,9 @@ public class TransactionCommand extends NodeServiceCommand {
 				try {
 					tx.finish();
 				} catch (Throwable t) {
+					
+					// CHM
+					t.printStackTrace();
 
 					// transaction failed, look for "real" cause..
 					exception = EntityContext.getFrameworkException(transactionKey);
@@ -140,6 +146,9 @@ public class TransactionCommand extends NodeServiceCommand {
 
 		} catch (FrameworkException frameworkException) {
 
+			// CHM
+			frameworkException.printStackTrace();
+
 			tx.failure();
 			logger.log(Level.WARNING, "Transaction failure", frameworkException);
 
@@ -168,6 +177,9 @@ public class TransactionCommand extends NodeServiceCommand {
 					tx.finish();
 				} catch (Throwable t) {
 
+					// CHM
+					t.printStackTrace();
+			
 					// transaction failed, look for "real" cause..
 					exception = EntityContext.getFrameworkException(transactionKey);
 				}
@@ -241,6 +253,9 @@ public class TransactionCommand extends NodeServiceCommand {
 
 		} catch (Throwable t) {
 
+			// CHM
+			t.printStackTrace();
+			
 			postProcessingTransaction.failure();
 
 		} finally {
@@ -252,8 +267,12 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			try {
 				postProcessingTransaction.finish();
+				
 			} catch (Throwable t) {
 
+				// CHM
+				t.printStackTrace();
+			
 				// transaction failed, look for "real" cause..
 				//t.printStackTrace();
 				logger.log(Level.FINE, "Transaction failure", t);

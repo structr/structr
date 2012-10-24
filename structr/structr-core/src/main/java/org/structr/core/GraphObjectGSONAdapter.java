@@ -31,8 +31,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
+import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -141,8 +144,27 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 					} else {
 
-	//                                      jsonObject.add(key, new JsonPrimitive(value.toString()));
-						jsonObject.add(key.name(), primitive(value));
+						try {
+							SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+							PropertyConverter converter = key.inputConverter(securityContext);
+							
+							if (converter != null) {
+								
+								jsonObject.add(key.name(), toPrimitive(converter.convertForSetter(value)));
+								
+							} else {
+								
+								jsonObject.add(key.name(), toPrimitive(value));
+							}
+							
+						} catch(FrameworkException fex) {
+							
+							logger.log(Level.WARNING, "Exception while serializing property {0} of entity {1}: {2}", new Object[] {
+								key.name(),
+								src.getType(),
+								fex.getMessage()
+							});
+						}
 					}
 				} else {
 
@@ -193,7 +215,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 					// serialize primitive, this is for PropertyNotion
 					// property.add(new JsonPrimitive(o.toString()));
-					property.add(primitive(o));
+					property.add(toPrimitive(o));
 				}
 
 			}
@@ -202,49 +224,6 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 		return property;
 	}
 	
-	
-	private JsonObject serializePrimitive(PropertyKey key, Object value, boolean includeTypeInOutput) {
-
-		JsonObject property = new JsonObject();
-
-		// id property mapping
-		if (key.equals(idProperty)) {
-
-			key = id;
-
-		}
-
-		property.add("key", new JsonPrimitive(key.name()));
-
-		if (value != null) {
-
-			property.add("value", primitive(value));
-
-			// include type?
-			if (includeTypeInOutput) {
-
-				String valueType = value.getClass().getSimpleName();
-
-				property.add("type", new JsonPrimitive(valueType));
-
-			}
-
-		} else {
-
-			property.add("value", new JsonNull());
-
-			// include type?
-			if (includeTypeInOutput) {
-
-				property.add("type", new JsonNull());
-
-			}
-
-		}
-
-		return property;
-	}
-
 	private JsonObject serializeMap(Map<String, Object> map, Type typeOfT, JsonSerializationContext context, String localPropertyView, boolean includeType, int depth) {
 
 		JsonObject object = new JsonObject();
@@ -280,7 +259,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 						
 					} else {
 
-						object.add(key, primitive(value));
+						object.add(key, toPrimitive(value));
 
 					}
 				} else {
@@ -295,7 +274,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 		return object;
 	}
 
-	private static JsonPrimitive primitive(final Object value) {
+	private static JsonPrimitive toPrimitive(final Object value) {
 
 		JsonPrimitive p;
 

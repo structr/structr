@@ -82,7 +82,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 			if (source instanceof JsonInput) {
 
 				JsonInput properties = (JsonInput) source;
-				PropertySet map      = PropertySet.convert(type, properties.getAttributes());
+				PropertySet map      = PropertySet.convertFromInput(securityContext, type, properties.getAttributes());
 				
 				for (Entry<PropertyKey, Object> entry : map.entrySet()) {
 

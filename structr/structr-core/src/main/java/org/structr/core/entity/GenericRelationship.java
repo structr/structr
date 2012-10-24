@@ -48,7 +48,7 @@ import org.structr.core.node.NodeService.RelationshipIndex;
 public class GenericRelationship extends AbstractRelationship {
 
 	public static final Property<String> startNodeId = new Property<String>("startNodeId");
-	public static final Property<String> endNodeId = new Property<String>("endNodeId");
+	public static final Property<String> endNodeId   = new Property<String>("endNodeId");
 
 	public static final View uiView = new View(GenericRelationship.class, PropertyView.Ui,
 		startNodeId, endNodeId

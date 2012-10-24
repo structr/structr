@@ -18,13 +18,14 @@
  */
 package org.structr.core.converter;
 
-import org.structr.core.Value;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.SecurityContext;
+import org.structr.core.Value;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -35,9 +36,17 @@ public class IntConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(IntConverter.class.getName());
 
+	private Value<Integer> value = null;
+	
+	public IntConverter(SecurityContext securityContext, Value<Integer> value) {
+		super(securityContext);
+		
+		this.value = value;
+	}
+	
 	//~--- methods --------------------------------------------------------
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convertForSetter(Object source) {
 
 		if (source != null) {
 
@@ -59,7 +68,7 @@ public class IntConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) {
 		
 		if (source == null && value != null) {
 			return value.get(securityContext);

@@ -20,8 +20,8 @@
 package org.structr.core.converter;
 
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Value;
 
 /**
  * A property converter that can convert Lists to Arrays and back.
@@ -30,15 +30,19 @@ import org.structr.core.Value;
  */
 public class ListArrayConverter extends PropertyConverter {
 	
+	public ListArrayConverter(SecurityContext securityContext) {
+		super(securityContext);
+	}
+	
 	public static final String SEP = ",";
 
 	@Override
-	public Object convertForSetter(Object source, Value value) throws FrameworkException {
+	public Object convertForSetter(Object source) throws FrameworkException {
 		return StringUtils.split((String) source, SEP);
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) {
 		return StringUtils.join((String[]) source, SEP);
 	}
 }

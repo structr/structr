@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,44 +16,31 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.structr.common.property;
 
-package org.structr.core.converter;
-
+import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.converter.PropertyConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RelationshipEndNodeTypeConverter extends PropertyConverter {
-
-	public RelationshipEndNodeTypeConverter(SecurityContext securityContext) {
-		super(securityContext);
+public class DoubleProperty extends Property<Double> {
+	
+	public DoubleProperty(String name) {
+		super(name);
 	}
 	
 	@Override
-	public Object convertForSetter(Object source) {
-		return null;
+	public PropertyConverter<?, Double> databaseConverter(SecurityContext securityContext) {
+		return new Identitiy<Object, Double>(securityContext, SortField.DOUBLE);
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
-		
-		if(currentObject instanceof AbstractRelationship) {
-			
-			AbstractRelationship rel = (AbstractRelationship)currentObject;
-			if(rel != null) {
-				
-				AbstractNode endNode = rel.getEndNode();
-				if(endNode != null) {
-					
-					return endNode.getType();
-				}
-			}
-		}
-		
-		return null;
+	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext) {
+		return new Identitiy<Object, Double>(securityContext, SortField.DOUBLE);
 	}
+
+	
 }

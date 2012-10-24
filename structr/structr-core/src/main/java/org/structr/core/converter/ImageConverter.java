@@ -35,6 +35,7 @@ import org.structr.core.entity.Image;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.KeyAndClass;
+import org.structr.common.SecurityContext;
 import org.structr.common.property.PropertyKey;
 import org.structr.core.Services;
 import org.structr.core.node.IndexNodeCommand;
@@ -51,10 +52,19 @@ public class ImageConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(ImageConverter.class.getName());
 
+	private KeyAndClass keyAndClass = null;
+	
+	public ImageConverter(SecurityContext securityContext, KeyAndClass kc) {
+		
+		super(securityContext);
+		
+		this.keyAndClass = kc;
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convertForSetter(Object source) {
 
 		if (source == null) {
 
@@ -64,7 +74,10 @@ public class ImageConverter extends PropertyConverter {
 		try {
 
 			Image img = null;
-			KeyAndClass kc = (KeyAndClass) value.get(securityContext);
+			
+			// FIXME: keyAndClass is null, the following code WILL throw an NPE!
+			
+			
 			
 			if (source instanceof byte[]) {
 
@@ -72,13 +85,13 @@ public class ImageConverter extends PropertyConverter {
 				MagicMatch match = Magic.getMagicMatch(data);
 				String mimeType  = match.getMimeType();
 
-				img = ImageHelper.createImage(securityContext, data, mimeType, kc.getCls());
+				img = ImageHelper.createImage(securityContext, data, mimeType, keyAndClass.getCls());
 
 			} else if (source instanceof String) {
 
 				if (StringUtils.isNotBlank((String) source)) {
 
-					img = ImageHelper.createImageBase64(securityContext, (String) source, kc.getCls());
+					img = ImageHelper.createImageBase64(securityContext, (String) source, keyAndClass.getCls());
 				}
 
 			}
@@ -89,7 +102,7 @@ public class ImageConverter extends PropertyConverter {
 				// manual indexing needed here
 				Services.command(securityContext, IndexNodeCommand.class).execute(img);
 				
-				currentObject.setProperty(kc.getPropertyKey(), img.getUuid());
+				currentObject.setProperty(keyAndClass.getPropertyKey(), img.getUuid());
 			}
 			
 			return null;
@@ -105,29 +118,9 @@ public class ImageConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) {
 
 		return source;
-
-//              
-//              if (source == null) {
-//
-//                      return null;
-//              }
-//
-//              try {
-//
-//                      return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(source);
-//
-//              } catch (Throwable t) {
-//
-//                      logger.log(Level.WARNING, "Cannot retrieve image node from source data", t);
-//
-//                      return null;
-//
-//              }
-//
-
 	}
 
 }

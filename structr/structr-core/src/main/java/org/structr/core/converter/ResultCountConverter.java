@@ -22,6 +22,7 @@ package org.structr.core.converter;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.common.property.PropertyKey;
 import org.structr.core.Value;
 
@@ -34,45 +35,45 @@ public class ResultCountConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(ResultCountConverter.class.getName());
 	
+	private PropertyKey propertyKey = null;
+	
+	public ResultCountConverter(SecurityContext securityContext, PropertyKey propertyKey) {
+		
+		super(securityContext);
+		
+		this.propertyKey = propertyKey;
+	}
+	
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convertForSetter(Object source) {
 		return source;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object convertForGetter(Object source) {
 		
 		int count = 0;
 		
-		if(currentObject != null && value != null) {
+		if(currentObject != null) {
 			
-			Object val = value.get(securityContext);
-			
-			if(val != null && val instanceof PropertyKey) {
-				
-				Object toCount = currentObject.getProperty((PropertyKey)val);
-				if(toCount != null) {
+			Object toCount = currentObject.getProperty(propertyKey);
+			if(toCount != null) {
 
-					if (toCount instanceof Collection) {
+				if (toCount instanceof Collection) {
 
-						count = ((Collection)toCount).size();
+					count = ((Collection)toCount).size();
 
-					} else if (toCount instanceof Iterable) {
+				} else if (toCount instanceof Iterable) {
 
-						for(Object o : ((Iterable)toCount)) {
-							count++;
-						}
-
-					} else {
-
-						// a single object
-						count = 1;
+					for(Object o : ((Iterable)toCount)) {
+						count++;
 					}
+
+				} else {
+
+					// a single object
+					count = 1;
 				}
-				
-			} else {
-				
-				logger.log(Level.WARNING, "PasswordConverter for type {0} called with invalid parameter {1}", new Object[] { currentObject.getType(), val != null ? val : "null" } );
 			}
 		}
 		

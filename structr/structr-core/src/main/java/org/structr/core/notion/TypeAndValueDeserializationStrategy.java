@@ -106,10 +106,9 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				
 			} else {
 
-				attrs.add(Search.andExactUuid(source.toString()));
+				attrs.add(Search.andExactProperty(propertyKey, source.toString()));
 
 			}
-			attrs.add(Search.andExactProperty(propertyKey, source.toString()));
 		}
 
 

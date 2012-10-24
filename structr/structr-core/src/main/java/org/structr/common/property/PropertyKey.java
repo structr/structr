@@ -19,26 +19,21 @@
 
 package org.structr.common.property;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.common.SecurityContext;
+import org.structr.core.converter.PropertyConverter;
 
 /**
- * Convenience interface to enable the use of enum types as node property keys.
- * The signature of this interface matches the signature of the enum class, so
- * you can use the following code to define property keys for
- * {@see org.structr.core.entity.AbstractNode} and subclasses.
- *
- * <pre>
- * public enum Key implements PropertyKey { property1, property2, property3 }
- * </pre>
+ * Interface for typed node property keys.
  *
  * @author Christian Morgner
  */
-public interface PropertyKey<T> {
+public interface PropertyKey<JavaType> {
 	
 	public String name();
 	
-	public Object defaultValue();
+	public JavaType defaultValue();
 	
-	public T fromPrimitive(GraphObject entity, Object source) throws FrameworkException;
+	public PropertyConverter<?, JavaType> databaseConverter(SecurityContext securityContext);
+	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
+	
 }
