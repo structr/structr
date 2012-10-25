@@ -234,7 +234,7 @@ public class Content extends AbstractNode {
 
 	}
 
-	public String getPropertyWithVariableReplacement(HttpServletRequest request, AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey<String> key) {
+	public String getPropertyWithVariableReplacement(HttpServletRequest request, AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey<String> key) throws FrameworkException {
 
 		if (securityContext.getRequest() == null) {
 

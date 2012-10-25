@@ -22,6 +22,7 @@ package org.structr.core.converter;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.property.PropertyKey;
+import org.structr.core.GraphObject;
 
 /**
  *
@@ -33,20 +34,20 @@ public class PropertyMapper extends PropertyConverter {
 
 	private PropertyKey mappedKey = null;
 	
-	public PropertyMapper(SecurityContext securityContext, PropertyKey key) {
+	public PropertyMapper(SecurityContext securityContext, GraphObject entity, PropertyKey key) {
 		
-		super(securityContext);
+		super(securityContext, entity);
 		
 		this.mappedKey = key;
 	}
 	
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 		return source;
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 		return currentObject.getProperty(mappedKey);
 	}
 }

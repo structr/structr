@@ -22,7 +22,7 @@
 package org.structr.common;
 
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
@@ -106,7 +106,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			testPaging(pageSize, page, number, offset, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc);
 
-			PropertySet props = new PropertySet();
+			PropertyMap props = new PropertyMap();
 
 			props.put(sortKey, "TestOne-09");
 			this.createTestNode(type, props);

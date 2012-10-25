@@ -18,25 +18,37 @@
  */
 package org.structr.common.property;
 
+import java.lang.reflect.Constructor;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.converter.TraversingConverter;
-import org.structr.core.traversal.TraverserInterface;
 
 /**
  *
  * @author Christian Morgner
  */
-public class TraverserProperty<T> extends Property<T> {
-
-	private TraverserInterface traverserInterface = null;
+public class ConverterProperty<T> extends Property<T> {
 	
-	public TraverserProperty(String name, TraverserInterface traverser) {
+	private static final Logger logger = Logger.getLogger(ConverterProperty.class.getName());
+	private Constructor constructor    = null;
+	
+	public ConverterProperty(String name, Class<? extends PropertyConverter<?, T>> converterClass) {
+		
 		super(name);
 		
-		this.traverserInterface = traverser;
+		try {
+			this.constructor = converterClass.getConstructor(SecurityContext.class, GraphObject.class);
+			
+		} catch(NoSuchMethodException nsmex) {
+			
+			logger.log(Level.SEVERE, "Unable to instantiate converter of type {0} for key {1}", new Object[] {
+				converterClass.getName(),
+				name
+			});
+		}
 		
 		// make us known to the entity context
 		EntityContext.registerConvertedProperty(this);
@@ -44,11 +56,28 @@ public class TraverserProperty<T> extends Property<T> {
 	
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new TraversingConverter(securityContext, entity, traverserInterface);
+		return createConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return null;
+	}
+	
+	private PropertyConverter createConverter(SecurityContext securityContext, GraphObject entity) {
+		
+		try {
+			
+			return (PropertyConverter<?, T>)constructor.newInstance(securityContext, entity);
+			
+		} catch(Throwable t) {
+			
+			logger.log(Level.SEVERE, "Unable to instantiate converter of type {0} for key {1}", new Object[] {
+				constructor.getClass().getName(),
+				name
+			});
+		}
+		
 		return null;
 	}
 }

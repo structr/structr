@@ -45,7 +45,7 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @author Christian Morgner
  */
-public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, JsonDeserializer<GraphObject> {
+public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 	private static final Logger logger       = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
 	private static final Property<String> id = new Property<String>("id");
@@ -71,15 +71,6 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 		return serializeFlatNameValue(src, typeOfSrc, context, localPropertyView, 0);
 	}
-
-	@Override
-	public GraphObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-
-		String localPropertyView       = propertyView.get(null);
-
-		return deserializeFlatNameValue(json, typeOfT, context, localPropertyView, 0);
-	}
-	
 	
 	// ----- private methods -----
 	private JsonElement serializeFlatNameValue(GraphObject src, Type typeOfSrc, JsonSerializationContext context, String localPropertyView, int depth) {
@@ -150,25 +141,29 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 							
 							if (converter != null) {
 								
-								jsonObject.add(key.name(), toPrimitive(converter.convertForSetter(value)));
+								
+								jsonObject.add(key.name(), toPrimitive(converter.revert(value)));
 								
 							} else {
 								
 								jsonObject.add(key.name(), toPrimitive(value));
 							}
 							
-						} catch(FrameworkException fex) {
+						} catch(Throwable t) {
+							
+							// CHM: remove debug code later
+							t.printStackTrace();
 							
 							logger.log(Level.WARNING, "Exception while serializing property {0} of entity {1}: {2}", new Object[] {
 								key.name(),
 								src.getType(),
-								fex.getMessage()
+								t.getMessage()
 							});
 						}
 					}
 				} else {
 
-					jsonObject.add(key.name(), new JsonNull());
+					jsonObject.add(key.name(), null);
 
 				}
 
@@ -176,11 +171,6 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 		}
 
 		return jsonObject;
-	}
-	
-	private GraphObject deserializeFlatNameValue(JsonElement json, Type typeOfT, JsonDeserializationContext context, String localPropertyView, int depth) throws JsonParseException {
-		logger.log(Level.WARNING, "Deserialization of nested (key,value,type) objects not supported yet.");
-		return null;
 	}
 	
 	private JsonArray serializeIterable(Iterable value, Type typeOfSrc, JsonSerializationContext context, String localPropertyView, int depth) {
@@ -264,7 +254,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 					}
 				} else {
 
-					object.add(key, new JsonNull());
+					object.add(key, null);
 
 				}
 			}
@@ -274,30 +264,33 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 		return object;
 	}
 
-	private static JsonPrimitive toPrimitive(final Object value) {
+	private static JsonElement toPrimitive(final Object value) {
 
-		JsonPrimitive p;
+		JsonElement p = null;
 
-		if (value instanceof Number) {
+		if (value != null) {
+			
+			if (value instanceof Number) {
 
-			p = new JsonPrimitive((Number) value);
+				p = new JsonPrimitive((Number) value);
 
-		} else if (value instanceof Character) {
+			} else if (value instanceof Character) {
 
-			p = new JsonPrimitive((Character) value);
+				p = new JsonPrimitive((Character) value);
 
-		} else if (value instanceof String) {
+			} else if (value instanceof String) {
 
-			p = new JsonPrimitive((String) value);
+				p = new JsonPrimitive((String) value);
 
-		} else if (value instanceof Boolean) {
+			} else if (value instanceof Boolean) {
 
-			p = new JsonPrimitive((Boolean) value);
+				p = new JsonPrimitive((Boolean) value);
 
-		} else {
+			} else {
 
-			p = new JsonPrimitive(value.toString());
+				p = new JsonPrimitive(value.toString());
 
+			}
 		}
 
 		return p;

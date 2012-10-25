@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,15 +16,12 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.structr.common.property;
 
-package org.structr.common;
-
-import org.structr.common.property.PropertyKey;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.common.error.FrameworkException;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyGroup;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -32,34 +29,23 @@ import org.structr.core.entity.AbstractRelationship;
  *
  * @author Christian Morgner
  */
-public class StartNodePropertyGroup implements PropertyGroup<Map<String, Object>> {
-
-	private PropertyKey[] keys = null;
-
-	public StartNodePropertyGroup(PropertyKey... keys) {
-		this.keys = keys;
+public class StartNodeGroup extends GroupProperty {
+	
+	public StartNodeGroup(String name, Class<? extends GraphObject> entityClass, PropertyKey... properties) {
+		super(name, entityClass, properties);
 	}
 
 	@Override
-	public Map<String, Object> getGroupedProperties(GraphObject source) {
+	public Map<String, Object> getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
 		if(source instanceof AbstractRelationship) {
 
-			Map<String, Object> props = new LinkedHashMap<String, Object>();
 			AbstractRelationship rel  = (AbstractRelationship)source;
 			AbstractNode startNode    = rel.getStartNode();
 
-			for(PropertyKey key : keys) {
-				props.put(key.name(), startNode.getProperty(key));
-			}
-
-			return props;
+			return super.getGroupedProperties(securityContext, startNode);
 		}
 
 		return null;
-	}
-
-	@Override
-	public void setGroupedProperties(Map<String, Object> source, GraphObject destination) throws FrameworkException {
 	}
 }

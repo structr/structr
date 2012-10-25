@@ -38,7 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,7 +72,7 @@ public class InsertCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					PropertySet nodeProperties = PropertySet.convertFromInput(securityContext, properties);
+					PropertyMap nodeProperties = PropertyMap.inputTypeToJavaType(securityContext, properties);
 					return Services.command(securityContext, CreateNodeCommand.class).execute(nodeProperties);
 
 				}
@@ -99,7 +99,7 @@ public class InsertCommand extends AbstractCommand {
 
 					try {
 
-						PropertySet relProperties = PropertySet.convertFromInput(securityContext, relData);
+						PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 						rel.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
 
 					} catch (Throwable t) {

@@ -29,7 +29,7 @@ import org.structr.core.PropertyGroup;
  *
  * @author Christian Morgner
  */
-public class CombinedPropertyGroup implements PropertyGroup {
+public class CombinedPropertyGroup implements PropertyGroup<String> {
 
 	private PropertyKey[] propertyKeys = null;
 	private String separator = null;
@@ -40,7 +40,7 @@ public class CombinedPropertyGroup implements PropertyGroup {
 	}
 
 	@Override
-	public Object getGroupedProperties(GraphObject source) {
+	public String getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
 		StringBuilder combinedPropertyValue = new StringBuilder();
 		int len = propertyKeys.length;
@@ -56,6 +56,8 @@ public class CombinedPropertyGroup implements PropertyGroup {
 	}
 
 	@Override
-	public void setGroupedProperties(Object source, GraphObject destination) {
+	public void setGroupedProperties(SecurityContext securityContext, String source, GraphObject destination) {
+		
+		// don't know how to split the input over the source keys, so no set
 	}
 }

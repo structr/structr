@@ -37,7 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -90,7 +90,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		return newRel;
 	}
 
-	public T createRelationship(final SecurityContext securityContext, final PropertySet properties) throws FrameworkException {
+	public T createRelationship(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
 		String combinedRelType = (String) properties.get(AbstractRelationship.combinedType);
 		T newRel               = createRelationship(securityContext, combinedRelType);

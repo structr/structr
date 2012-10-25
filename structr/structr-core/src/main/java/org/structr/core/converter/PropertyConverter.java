@@ -30,7 +30,7 @@ import org.structr.core.GraphObject;
  *
  * @author Christian Morgner
  */
-public abstract class PropertyConverter<S, T> {
+public abstract class PropertyConverter<SourceType, TargetType> {
 
 	protected SecurityContext securityContext = null;
 	protected GraphObject currentObject       = null;
@@ -38,20 +38,21 @@ public abstract class PropertyConverter<S, T> {
 	protected boolean rawMode                 = false;
 	protected Integer sortType                = null;
 
-	public PropertyConverter(SecurityContext securityContext) {
-		this(securityContext, null);
+	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject) {
+		this(securityContext, currentObject, null);
 	}
 
-	public PropertyConverter(SecurityContext securityContext, boolean sortFinalResults) {
-		this(securityContext, null, sortFinalResults);
+	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, boolean sortFinalResults) {
+		this(securityContext, currentObject, null, sortFinalResults);
 	}
 
-	public PropertyConverter(SecurityContext securityContext, Integer sortType) {
-		this(securityContext, sortType, false);
+	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, Integer sortType) {
+		this(securityContext, currentObject, sortType, false);
 	}
 
-	public PropertyConverter(SecurityContext securityContext, Integer sortType, boolean sortFinalResults) {
+	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, Integer sortType, boolean sortFinalResults) {
 		this.securityContext = securityContext;
+		this.currentObject = currentObject;
 		this.sortType = sortType;
 		this.sortFinalResults = sortFinalResults;
 	}
@@ -63,7 +64,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract S convertForSetter(T source) throws FrameworkException;
+	public abstract SourceType revert(TargetType source) throws FrameworkException;
 	
 	/**
 	 * Converts from source type to destination type. Caution: source
@@ -72,7 +73,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract T convertForGetter(S source) throws FrameworkException;
+	public abstract TargetType convert(SourceType source) throws FrameworkException;
 
 	/**
 	 * Convert from source type to Comparable to allow a more
@@ -83,9 +84,9 @@ public abstract class PropertyConverter<S, T> {
 	 * @param value
 	 * @return 
 	 */
-	public Comparable convertForSorting(S source) throws FrameworkException {
+	public Comparable convertForSorting(SourceType source) throws FrameworkException {
 		
-		T target = convertForGetter(source);
+		TargetType target = convert(source);
 		if(target != null) {
 			
 			if (target instanceof Comparable) {
@@ -98,14 +99,6 @@ public abstract class PropertyConverter<S, T> {
 		}
 		
 		return null;
-	}
-	
-	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
-	}
-	
-	public void setCurrentObject(GraphObject currentObject) {
-		this.currentObject = currentObject;
 	}
 
 	public void setRawMode(boolean rawMode) {

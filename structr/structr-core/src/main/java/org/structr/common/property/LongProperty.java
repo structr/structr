@@ -20,6 +20,8 @@ package org.structr.common.property;
 
 import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -33,12 +35,57 @@ public class LongProperty extends Property<Long> {
 	}
 	
 	@Override
-	public PropertyConverter<?, Long> databaseConverter(SecurityContext securityContext) {
-		return new Identitiy<Object, Long>(securityContext, SortField.LONG);
+	public PropertyConverter<Long, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, Long> inputConverter(SecurityContext securityContext) {
-		return new Identitiy<Object, Long>(securityContext, SortField.LONG);
+		return new InputConverter(securityContext, SortField.LONG);
+	}
+	
+	protected class InputConverter extends PropertyConverter<Object, Long> {
+
+		public InputConverter(SecurityContext securityContext) {
+			this(securityContext, null, false);
+		}
+		
+		public InputConverter(SecurityContext securityContext, Integer sortKey) {
+			this(securityContext, sortKey, false);
+		}
+		
+		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
+			this(securityContext, null, sortFinalResults);
+		}
+		
+		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
+			super(securityContext, null, sortKey, sortFinalResults);
+		}
+		
+		@Override
+		public Object revert(Long source) throws FrameworkException {
+			return source;
+		}
+
+		@Override
+		public Long convert(Object source) {
+			
+			// FIXME: be more strict when dealing with "wrong" input types
+			if (source != null) {
+				
+				if (source instanceof Number) {
+
+					return ((Number)source).longValue();
+					
+				}
+				
+				if (source instanceof String) {
+					
+					return Long.parseLong(source.toString());
+				}
+			}
+			
+			return null;
+		}
 	}
 }

@@ -46,7 +46,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -61,7 +61,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 
 	public T execute(Collection<NodeAttribute> attributes) throws FrameworkException {
 		
-		PropertySet properties = new PropertySet();
+		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
 			
 			properties.put(attribute.getKey(), attribute.getValue());
@@ -73,7 +73,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 	
 	public T execute(NodeAttribute... attributes) throws FrameworkException {
 		
-		PropertySet properties = new PropertySet();
+		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
 			
 			properties.put(attribute.getKey(), attribute.getValue());
@@ -82,7 +82,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 		return execute(properties);
 	}
 	
-	public T execute(PropertySet attributes) throws FrameworkException {
+	public T execute(PropertyMap attributes) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Principal user               = securityContext.getUser();
@@ -94,7 +94,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 			Date now                            = new Date();
 
 			// Determine node type
-			PropertySet properties = new PropertySet(attributes);
+			PropertyMap properties = new PropertyMap(attributes);
 			Object typeObject      = properties.get(AbstractNode.type);
 			String nodeType        = (typeObject != null) ? typeObject.toString() : "GenericNode";
 

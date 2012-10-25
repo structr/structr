@@ -21,6 +21,8 @@
 
 package org.structr.web.converter;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -48,8 +50,8 @@ public class DynamicConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(DynamicConverter.class.getName());
 
-	public DynamicConverter(SecurityContext securityContext) {
-		super(securityContext);
+	public DynamicConverter(SecurityContext securityContext, GraphObject entity) {
+		super(securityContext, entity);
 	}
 	
 	//~--- fields ---------------------------------------------------------
@@ -59,14 +61,14 @@ public class DynamicConverter extends PropertyConverter {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 
 		instantiateConverter(currentObject);
 
 		try {
 
 			return converter != null
-			       ? converter.convertForSetter(source)
+			       ? converter.convert(source)
 			       : source;
 
 		} catch (FrameworkException ex) {
@@ -80,13 +82,13 @@ public class DynamicConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 
 		instantiateConverter(currentObject);
 
 		try {
 			Object result = (converter != null
-			? converter.convertForGetter(source)
+			? converter.revert(source)
 			: source);
 
 			return result != null ? result.toString() : null;
@@ -126,7 +128,9 @@ public class DynamicConverter extends PropertyConverter {
 
 						try {
 
-							converter = (PropertyConverter) converterClass.newInstance();
+							// 1st try: databse converter
+							Constructor constructor = converterClass.getConstructor(SecurityContext.class, GraphObject.class);
+							converter = (PropertyConverter) constructor.newInstance(securityContext, currentObject);
 
 						} catch (InstantiationException ex) {
 
@@ -136,6 +140,41 @@ public class DynamicConverter extends PropertyConverter {
 
 							logger.log(Level.SEVERE, null, ex);
 
+						} catch (NoSuchMethodException ex) {
+
+							logger.log(Level.SEVERE, null, ex);
+
+						} catch (InvocationTargetException ex) {
+
+							logger.log(Level.SEVERE, null, ex);
+
+						}
+
+						if (converter == null) {
+							
+							try {
+
+								// 2nd try: input
+								Constructor constructor = converterClass.getConstructor(SecurityContext.class);
+								converter = (PropertyConverter) constructor.newInstance(securityContext);
+
+							} catch (InstantiationException ex) {
+
+								logger.log(Level.SEVERE, null, ex);
+
+							} catch (IllegalAccessException ex) {
+
+								logger.log(Level.SEVERE, null, ex);
+
+							} catch (NoSuchMethodException ex) {
+
+								logger.log(Level.SEVERE, null, ex);
+
+							} catch (InvocationTargetException ex) {
+
+								logger.log(Level.SEVERE, null, ex);
+
+							}
 						}
 
 					}

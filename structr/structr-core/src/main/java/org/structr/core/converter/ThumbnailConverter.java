@@ -29,6 +29,7 @@ import org.structr.core.entity.Image;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -43,8 +44,8 @@ public class ThumbnailConverter extends PropertyConverter {
 
 	private ThumbnailParameters parameters = null;
 	
-	public ThumbnailConverter(SecurityContext securityContext, ThumbnailParameters parameters) {
-		super(securityContext);
+	public ThumbnailConverter(SecurityContext securityContext, GraphObject entity, ThumbnailParameters parameters) {
+		super(securityContext, entity);
 		
 		this.parameters = parameters;
 	}
@@ -52,14 +53,14 @@ public class ThumbnailConverter extends PropertyConverter {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 
 		return source;
 
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 
 		Image thumbnail = ((Image) currentObject).getScaledImage(parameters.getMaxWidth(), parameters.getMaxHeight(), parameters.getCropToFit());
 

@@ -24,7 +24,7 @@ package org.structr.common;
 
 import org.structr.common.property.PropertyKey;
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.StructrTransaction;
@@ -67,7 +67,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 		try {
 
 			AbstractNode node;
-			final PropertySet props = new PropertySet();
+			final PropertyMap props = new PropertyMap();
 			String type             = "UnknownTestType";
 			String name             = "GenericNode-name";
 

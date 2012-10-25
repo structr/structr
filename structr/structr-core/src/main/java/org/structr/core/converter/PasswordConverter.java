@@ -39,13 +39,13 @@ public class PasswordConverter extends PropertyConverter<String, String> {
 	
 	public PasswordConverter(SecurityContext securityContext, ValidationInfo info) {
 		
-		super(securityContext);
+		super(securityContext, null);
 		
 		this.validationInfo = info;
 	}
 	
 	@Override
-	public String convertForSetter(String clearTextPassword) throws FrameworkException {
+	public String convert(String clearTextPassword) throws FrameworkException {
 		
 		if (StringUtils.isBlank(clearTextPassword)) return null;
 
@@ -65,7 +65,7 @@ public class PasswordConverter extends PropertyConverter<String, String> {
 	}
 
 	@Override
-	public String convertForGetter(String passwordHash) {
+	public String revert(String passwordHash) {
 		return passwordHash;
 	}
 }

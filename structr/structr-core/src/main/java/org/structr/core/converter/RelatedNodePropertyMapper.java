@@ -30,6 +30,7 @@ import org.structr.core.entity.RelationClass;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,24 +42,23 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(RelatedNodePropertyMapper.class.getName());
 
-	private ParameterHolder holder = null;
+	private PropertyKey targetKey = null;
+	private Class targetType = null;
 	
-	public RelatedNodePropertyMapper(SecurityContext securityContext, ParameterHolder holder) {
+	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, Class targetType, PropertyKey targetKey) {
 		
-		super(securityContext);
+		super(securityContext, currentObject);
 		
-		this.holder = holder;
+		this.targetType = targetType;
+		this.targetKey = targetKey;
 	}
 	
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 
-		PropertyKey targetKey    = holder.getTargetKey();
-		Class targetType         = holder.getTargetType();
 		AbstractNode relatedNode = getRelatedNode(targetType);
-
 		if (relatedNode != null) {
 
 			try {
@@ -74,10 +74,8 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 
-		PropertyKey targetKey    = holder.getTargetKey();
-		Class targetType         = holder.getTargetType();
 		AbstractNode relatedNode = getRelatedNode(targetType);
 
 		if (relatedNode != null) {

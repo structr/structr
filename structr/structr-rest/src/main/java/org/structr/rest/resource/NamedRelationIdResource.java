@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.NodeFactory;
@@ -81,15 +82,18 @@ public class NamedRelationIdResource extends WrappingResource {
 
 	}
 
+	/* CHM: why does this method exist?
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
 
 		List<? extends GraphObject> results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 		for(GraphObject o : results) {
 
+			final Class type = o.getClass();
+			
 			for(Entry<String, Object> entry : propertySet.entrySet()) {
 
-				PropertyKey key = o.getPropertyKeyForName(entry.getKey());
+				PropertyKey key = EntityContext.getPropertyKeyForName(type, entry.getKey());
 				Object val      = entry.getValue();
 
 				o.setProperty(key, val);
@@ -98,7 +102,8 @@ public class NamedRelationIdResource extends WrappingResource {
 
 		return new RestMethodResult(200);
 	}
-
+	*/
+	
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 		throw new IllegalMethodException();

@@ -33,17 +33,17 @@ import org.structr.common.SecurityContext;
  *
  * @author Axel Morgner
  */
-public class BooleanConverter extends PropertyConverter<Object, Boolean> {
+public class BooleanConverter extends PropertyConverter<Boolean, Object> {
 
 	private static final Logger logger = Logger.getLogger(BooleanConverter.class.getName());
 	private static final String[] TRUE_VALUES = { "true", "1", "on" };
 
 	public BooleanConverter(SecurityContext securityContext) {
-		super(securityContext);
+		super(securityContext, null);
 	}
 
 	@Override
-	public Object convertForSetter(Boolean source) {
+	public Object convert(Boolean source) {
 
 		if (source != null) {
 
@@ -55,7 +55,7 @@ public class BooleanConverter extends PropertyConverter<Object, Boolean> {
 	}
 
 	@Override
-	public Boolean convertForGetter(Object source) {
+	public Boolean revert(Object source) {
 		
 		if (source != null) {
 

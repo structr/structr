@@ -27,14 +27,14 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class DateConverter extends PropertyConverter<Long, Date> {
+public class DateConverter extends PropertyConverter<Date, Long> {
 
 	public DateConverter(SecurityContext securityContext) {
-		super(securityContext);
+		super(securityContext, null);
 	}
 	
 	@Override
-	public Long convertForSetter(Date source) throws FrameworkException {
+	public Long convert(Date source) throws FrameworkException {
 
 		if(source != null) {
 			
@@ -45,7 +45,7 @@ public class DateConverter extends PropertyConverter<Long, Date> {
 	}
 
 	@Override
-	public Date convertForGetter(Long source) throws FrameworkException {
+	public Date revert(Long source) throws FrameworkException {
 		
 		if (source != null) {
 			return new Date(source);
@@ -55,7 +55,7 @@ public class DateConverter extends PropertyConverter<Long, Date> {
 	}
 
 	@Override
-	public Comparable convertForSorting(Long source) throws FrameworkException {
+	public Comparable convertForSorting(Date source) throws FrameworkException {
 
 		if (source != null) {
 			

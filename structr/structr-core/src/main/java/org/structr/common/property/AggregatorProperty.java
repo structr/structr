@@ -19,6 +19,7 @@
 package org.structr.common.property;
 
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.AggregatingConverter;
 import org.structr.core.converter.Aggregation;
 import org.structr.core.converter.PropertyConverter;
@@ -27,7 +28,7 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @author Christian Morgner
  */
-public class AggregatorProperty<T> extends Property<T> {
+public class AggregatorProperty<JavaType> extends Property<JavaType> {
 	
 	private Aggregation aggregation = null;
 	
@@ -38,12 +39,12 @@ public class AggregatorProperty<T> extends Property<T> {
 	}
 	
 	@Override
-	public PropertyConverter<?, T> databaseConverter(SecurityContext securityContext) {
-		return new AggregatingConverter(securityContext, aggregation);
+	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new AggregatingConverter(securityContext, entity, aggregation);
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return new AggregatingConverter(securityContext, aggregation);
+	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext) {
+		return null;
 	}
 }

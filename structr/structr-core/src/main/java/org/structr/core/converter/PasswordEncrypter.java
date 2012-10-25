@@ -33,11 +33,11 @@ public class PasswordEncrypter extends PropertyConverter {
 	private static final Logger logger = Logger.getLogger(PasswordEncrypter.class.getName());
 
 	public PasswordEncrypter(SecurityContext securityContext) {
-		super(securityContext);
+		super(securityContext, null);
 	}
 	
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 
 		if(source != null) {
 
@@ -66,7 +66,7 @@ public class PasswordEncrypter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 		return source;
 	}
 

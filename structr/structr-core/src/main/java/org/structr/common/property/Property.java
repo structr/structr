@@ -19,7 +19,7 @@
 package org.structr.common.property;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -78,42 +78,12 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 	
 	@Override
-	public PropertyConverter<?, JavaType> databaseConverter(SecurityContext securityContext) {
-		return new Identitiy<Object, JavaType>(securityContext);
+	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject currentObject) {
+		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext) {
-		return new Identitiy<Object, JavaType>(securityContext);
-	}
-	
-	protected class Identitiy<S, T> extends PropertyConverter<S, T> {
-
-		public Identitiy(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public Identitiy(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public Identitiy(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public Identitiy(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, sortKey, sortFinalResults);
-		}
-		
-		@Override
-		public S convertForSetter(T source) throws FrameworkException {
-			return (S)source;
-		}
-
-		@Override
-		public T convertForGetter(S source) {
-			return (T)source;
-		}
-		
+		return null;
 	}
 }

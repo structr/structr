@@ -24,6 +24,7 @@ import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -41,8 +42,8 @@ public class DateProperty extends Property<Date> {
 	}
 	
 	@Override
-	public PropertyConverter<Long, Date> databaseConverter(SecurityContext securityContext) {
-		return new DatabaseConverter(securityContext);
+	public PropertyConverter<Date, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new DatabaseConverter(securityContext, entity);
 	}
 
 	@Override
@@ -50,14 +51,14 @@ public class DateProperty extends Property<Date> {
 		return new InputConverter(securityContext);
 	}
 	
-	private class DatabaseConverter extends PropertyConverter<Long, Date> {
+	private class DatabaseConverter extends PropertyConverter<Date, Long> {
 
-		public DatabaseConverter(SecurityContext securityContext) {
-			super(securityContext);
+		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
+			super(securityContext, entity);
 		}
 		
 		@Override
-		public Long convertForSetter(Date source) throws FrameworkException {
+		public Long convert(Date source) throws FrameworkException {
 
 			if (source != null) {
 				
@@ -68,7 +69,7 @@ public class DateProperty extends Property<Date> {
 		}
 
 		@Override
-		public Date convertForGetter(Long source) throws FrameworkException {
+		public Date revert(Long source) throws FrameworkException {
 
 			if (source != null) {
 
@@ -78,27 +79,16 @@ public class DateProperty extends Property<Date> {
 			return null;
 			
 		}
-		
 	}
 	
 	private class InputConverter extends PropertyConverter<String, Date> {
 
 		public InputConverter(SecurityContext securityContext) {
-			super(securityContext);
-		}
-		
-		@Override
-		public String convertForSetter(Date source) throws FrameworkException {
-
-			if (source != null) {
-				return dateFormat.format(source);
-			}
-			
-			return null;
+			super(securityContext, null);
 		}
 
 		@Override
-		public Date convertForGetter(String source) throws FrameworkException {
+		public Date convert(String source) throws FrameworkException {
 
 			if (source != null) {
 
@@ -107,13 +97,23 @@ public class DateProperty extends Property<Date> {
 
 				} catch(Throwable t) {
 
-					throw new FrameworkException(currentObject.getClass().getSimpleName(), new DateFormatToken(DateProperty.this));
+					throw new FrameworkException(DateProperty.this.getClass().getDeclaringClass().getSimpleName(), new DateFormatToken(DateProperty.this));
 				}
 
 			}
 
 			return null;
 			
+		}
+		
+		@Override
+		public String revert(Date source) throws FrameworkException {
+
+			if (source != null) {
+				return dateFormat.format(source);
+			}
+			
+			return null;
 		}
 		
 		@Override

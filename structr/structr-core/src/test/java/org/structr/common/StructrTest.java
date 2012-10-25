@@ -21,7 +21,7 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;
@@ -161,7 +161,7 @@ public class StructrTest extends TestCase {
 
 	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
 
-		final PropertySet props = new PropertySet();
+		final PropertyMap props = new PropertyMap();
 		props.put(AbstractNode.type, type);
 
 		return transactionCommand.execute(new StructrTransaction<List<AbstractNode>>() {
@@ -185,10 +185,10 @@ public class StructrTest extends TestCase {
 	}
 
 	protected AbstractNode createTestNode(final String type) throws FrameworkException {
-		return createTestNode(type, new PropertySet());
+		return createTestNode(type, new PropertyMap());
 	}
 
-	protected AbstractNode createTestNode(final String type, final PropertySet props) throws FrameworkException {
+	protected AbstractNode createTestNode(final String type, final PropertyMap props) throws FrameworkException {
 
 		props.put(AbstractNode.type, type);
 

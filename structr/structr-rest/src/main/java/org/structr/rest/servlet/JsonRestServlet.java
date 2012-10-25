@@ -25,7 +25,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -34,7 +33,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
-import org.structr.core.PropertySetGSONAdapter;
+import org.structr.core.JsonInputGSONAdapter;
 import org.structr.core.Value;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
@@ -66,7 +65,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
@@ -103,7 +101,7 @@ public class JsonRestServlet extends HttpServlet {
 	private String defaultPropertyView                          = PropertyView.Public;
 	private Gson gson                                           = null;
 	private Writer logWriter                                    = null;
-	private PropertySetGSONAdapter propertySetAdapter           = null;
+	private JsonInputGSONAdapter jsonInputAdapter               = null;
 	private Value<String> propertyView                          = null;
 	private ResultGSONAdapter resultGsonAdapter                 = null;
 	private ResourceProvider resourceProvider                   = null;
@@ -131,14 +129,14 @@ public class JsonRestServlet extends HttpServlet {
 
 		// initialize adapters
 		this.resultGsonAdapter  = new ResultGSONAdapter(propertyView, defaultIdProperty);
-		this.propertySetAdapter = new PropertySetGSONAdapter(propertyView, defaultIdProperty);
+		this.jsonInputAdapter = new JsonInputGSONAdapter(propertyView, defaultIdProperty);
 
 		// create GSON serializer
 		this.gson = new GsonBuilder()
                         .setPrettyPrinting()
                         .serializeNulls()
                         .registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
-                        .registerTypeAdapter(JsonInput.class, propertySetAdapter)
+                        .registerTypeAdapter(JsonInput.class, jsonInputAdapter)
                         .registerTypeAdapter(Result.class, resultGsonAdapter)
                         .create();
 		
@@ -260,20 +258,8 @@ public class JsonRestServlet extends HttpServlet {
 			// set sort key
 			if (sortKeyName != null) {
 				
-				try {
-					Class<? extends GraphObject> type = resource.getEntityClass();
-					GraphObject typeInstance          = type.newInstance();
-
-					if (typeInstance != null) {
-
-						sortKey = typeInstance.getPropertyKeyForName(sortKeyName);
-					}
-
-				} catch(Throwable t) {
-
-					// fallback if no search property key could be determined
-					sortKey = new Property(sortKeyName);
-				}
+				Class<? extends GraphObject> type = resource.getEntityClass();
+				sortKey = EntityContext.getPropertyKeyForName(type, sortKeyName);
 			}
 			
 			// do action

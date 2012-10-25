@@ -55,12 +55,13 @@ import org.structr.core.notion.ObjectNotion;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.View;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeService.RelationshipIndex;
@@ -162,21 +163,38 @@ public class EntityContext {
 
 	public static void scanEntity(Object entity) {
 		
-		List<PropertyKey> properties = getFieldsOfType(PropertyKey.class, entity);
-		List<View> views             = getFieldsOfType(View.class, entity);
-		Class type                   = entity.getClass();
+		Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, entity);
+		Map<Field, View> views                = getFieldValuesOfType(View.class, entity);
+		Class entityType                      = entity.getClass();
 		
-		Map<String, PropertyKey> classPropertyMap = getClassPropertyMapForType(type);
-		for (PropertyKey key : properties) {
-			classPropertyMap.put(key.name(), key);
+		for (Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
+
+			PropertyKey propertyKey = entry.getValue();
+			Field field             = entry.getKey();
+
+			// register field in entity class and declaring superclass
+			registerProperty(field.getDeclaringClass(), propertyKey);
+			registerProperty(entityType, propertyKey);
 		}
 		
-		// register all properties in the "all" view
-		registerPropertySet(type, PropertyView.All, properties.toArray(new PropertyKey[0]));
-		
-		for (View view : views) {
-			registerPropertySet(type, view.name(), view.properties());
+		for (Entry<Field, View> entry : views.entrySet()) {
+			
+			Field field = entry.getKey();
+			View view   = entry.getValue();
+
+			for (PropertyKey propertyKey : view.properties()) {
+
+				// register field in view for entity class and declaring superclass
+				registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
+				registerPropertySet(entityType, view.name(), propertyKey);
+			}
 		}
+	}
+	
+	private static void registerProperty(Class type, PropertyKey propertyKey) {
+		
+		getClassPropertyMapForType(type).put(propertyKey.name(), propertyKey);
+		registerPropertySet(type, PropertyView.All, propertyKey);
 	}
 	
 	/**
@@ -707,6 +725,10 @@ public class EntityContext {
 		buf.append(destType);
 
 		return buf.toString();
+	}
+	
+	public static void registerConvertedProperty(PropertyKey propertyKey) {
+		globalKnownPropertyKeys.add(propertyKey);
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -1574,7 +1596,7 @@ public class EntityContext {
 						AbstractNode modifiedNode = nodeFactory.createNode(node, true, false);
 						if (modifiedNode != null) {
 
-							PropertyKey key = modifiedNode.getPropertyKeyForName(entry.key());
+							PropertyKey key = getPropertyKeyForName(modifiedNode.getClass(), entry.key());
 							
 							changeSet.modify(modifiedNode);
 
@@ -1608,7 +1630,7 @@ public class EntityContext {
 						AbstractRelationship modifiedRel = relFactory.createRelationship(securityContext, rel);
 						if (modifiedRel != null) {
 							
-							PropertyKey key = modifiedRel.getPropertyKeyForName(entry.key());
+							PropertyKey key = getPropertyKeyForName(modifiedRel.getClass(), entry.key());
 							
 							changeSet.modify(modifiedRel);
 
@@ -1683,7 +1705,7 @@ public class EntityContext {
 					if (entity != null) {
 						
 						// convertFromInput properties
-						PropertySet properties = PropertySet.convertFromDatabase(securityContext, entity, removedRelProperties.get(rel));
+						PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedRelProperties.get(rel));
 						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
 						
@@ -1725,7 +1747,7 @@ public class EntityContext {
 					
 					if (entity != null) {
 						
-						PropertySet properties = PropertySet.convertFromDatabase(securityContext, entity, removedNodeProperties.get(node));
+						PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedNodeProperties.get(node));
 						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
 						
@@ -1756,7 +1778,7 @@ public class EntityContext {
 					
 					if (nodeEntity != null) {
 						
-						PropertyKey key  = nodeEntity.getPropertyKeyForName(entry.key());
+						PropertyKey key  = getPropertyKeyForName(nodeEntity.getClass(), entry.key());
 						Object value     = entry.value();
 
 						// iterate over validators
@@ -1804,8 +1826,8 @@ public class EntityContext {
 					
 					if (relEntity != null) {
 						
-						PropertyKey key             = relEntity.getPropertyKeyForName(entry.key());
-						Object value                = entry.value();
+						PropertyKey key = getPropertyKeyForName(relEntity.getClass(), entry.key());
+						Object value    = entry.value();
 
 						// iterate over validators
 						// FIXME: synthetic property key
@@ -1976,16 +1998,16 @@ public class EntityContext {
 		
 	}
 	
-	private static <T> List<T> getFieldsOfType(Class<T> type, Object entity) {
+	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> type, Object entity) {
 		
-		List<T> fields = new LinkedList<T>();
+		Map<Field, T> fields = new LinkedHashMap<Field, T>();
 		
 		for (Field field : entity.getClass().getFields()) {
 			
 			if (type.isAssignableFrom(field.getType())) {
 				
 				try {
-					fields.add((T)field.get(entity));
+					fields.put(field, (T)field.get(entity));
 					
 				} catch(Throwable t) {
 					t.printStackTrace();

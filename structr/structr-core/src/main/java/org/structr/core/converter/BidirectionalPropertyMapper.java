@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 
 /**
  *
@@ -35,14 +36,14 @@ public class BidirectionalPropertyMapper extends PropertyConverter {
 	
 	private PropertyKey mappedKey = null;
 	
-	public BidirectionalPropertyMapper(SecurityContext securityContext, PropertyKey key) {
-		super(securityContext);
+	public BidirectionalPropertyMapper(SecurityContext securityContext, GraphObject entity, PropertyKey key) {
+		super(securityContext, entity);
 		
 		this.mappedKey = key;
 	}
 	
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 
 		try {
 			currentObject.setProperty(mappedKey, source);
@@ -56,7 +57,7 @@ public class BidirectionalPropertyMapper extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 
 		return currentObject.getProperty(mappedKey);
 	}

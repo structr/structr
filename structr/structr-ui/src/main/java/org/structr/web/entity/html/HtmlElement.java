@@ -52,6 +52,7 @@ import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.property.Property;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.web.common.HtmlProperty;
@@ -381,7 +382,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 	// ----- static methods -----
 	public static String replaceVariables(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
-		String rawValue) {
+		String rawValue) throws FrameworkException {
 
 		String value = null;
 
@@ -416,7 +417,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 	}
 
 	public static String extractFunctions(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
-		String source) {
+		String source) throws FrameworkException {
 
 		// re-use matcher from previous calls
 		Matcher functionMatcher = threadLocalFunctionMatcher.get();
@@ -576,12 +577,12 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 	}
 
-	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey<String> key) {
+	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey<String> key) throws FrameworkException {
 		return replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getProperty(key));
 	}
 
 	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
-		String refKey) {
+		String refKey) throws FrameworkException {
 
 		AbstractNode node                = startNode;
 		String[] parts                   = refKey.split("[\\.]+");

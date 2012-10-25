@@ -20,11 +20,10 @@
 package org.structr.core.converter;
 
 import java.util.Collection;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.property.PropertyKey;
-import org.structr.core.Value;
+import org.structr.core.GraphObject;
 
 /**
  *
@@ -37,20 +36,20 @@ public class ResultCountConverter extends PropertyConverter {
 	
 	private PropertyKey propertyKey = null;
 	
-	public ResultCountConverter(SecurityContext securityContext, PropertyKey propertyKey) {
+	public ResultCountConverter(SecurityContext securityContext, GraphObject entity, PropertyKey propertyKey) {
 		
-		super(securityContext);
+		super(securityContext, entity);
 		
 		this.propertyKey = propertyKey;
 	}
 	
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 		return source;
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 		
 		int count = 0;
 		

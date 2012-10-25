@@ -24,7 +24,7 @@ package org.structr.core.notion;
 import java.util.*;
 import java.util.Map.Entry;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -47,7 +47,7 @@ import org.structr.core.Result;
  *
  * @author Christian Morgner
  */
-public class TypeAndPropertySetDeserializationStrategy implements DeserializationStrategy {
+public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject> implements DeserializationStrategy<S, T> {
 
 	protected PropertyKey[] propertyKeys = null;
 
@@ -60,23 +60,39 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public GraphObject deserialize(SecurityContext securityContext, Class<? extends GraphObject> type, Object source) throws FrameworkException {
+	public T deserialize(SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
 
 		if (source instanceof JsonInput) {
-
-			PropertySet attributes      = PropertySet.convertFromInput(securityContext, type, ((JsonInput)source).getAttributes());
-			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 			
+			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, ((JsonInput)source).getAttributes());
+			return deserialize(securityContext, type, attributes);
+		}
+		
+		if (source instanceof Map) {
+			
+			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)source);
+			return deserialize(securityContext, type, attributes);
+		}
+		
+		return null;
+	}
+
+	private T deserialize(SecurityContext securityContext, Class<T> type, PropertyMap attributes) throws FrameworkException {
+
+		if (attributes != null) {
+			
+			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+
 			for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {
 				attrs.add(Search.andExactProperty(entry.getKey(), entry.getValue().toString()));
 			}
 
 			// just check for existance
-			Result result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
+			Result<T> result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 			if (result.size() == 1) {
-				
+
 				GraphObject obj = result.get(0);
-				
+
 				if(!type.isAssignableFrom(obj.getClass())) {
 					throw new FrameworkException(type.getSimpleName(), new TypeToken(AbstractNode.base, type.getSimpleName()));
 				}
@@ -84,8 +100,9 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 			}
 
 			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
+			
 		}
-
+		
 		return null;
 	}
 }

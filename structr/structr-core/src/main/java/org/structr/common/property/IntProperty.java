@@ -20,6 +20,8 @@ package org.structr.common.property;
 
 import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -37,12 +39,57 @@ public class IntProperty extends Property<Integer> {
 	}
 	
 	@Override
-	public PropertyConverter<?, Integer> databaseConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return new Identitiy(securityContext, SortField.INT);
+		return new InputConverter(securityContext, SortField.INT);
+	}
+	
+	protected class InputConverter extends PropertyConverter<Object, Integer> {
+
+		public InputConverter(SecurityContext securityContext) {
+			this(securityContext, null, false);
+		}
+		
+		public InputConverter(SecurityContext securityContext, Integer sortKey) {
+			this(securityContext, sortKey, false);
+		}
+		
+		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
+			this(securityContext, null, sortFinalResults);
+		}
+		
+		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
+			super(securityContext, null, sortKey, sortFinalResults);
+		}
+		
+		@Override
+		public Object revert(Integer source) throws FrameworkException {
+			return source;
+		}
+
+		@Override
+		public Integer convert(Object source) {
+			
+			// FIXME: be more strict when dealing with "wrong" input types
+			if (source != null) {
+				
+				if (source instanceof Number) {
+
+					return ((Number)source).intValue();
+					
+				}
+				
+				if (source instanceof String) {
+					
+					return Integer.parseInt(source.toString());
+				}
+			}
+			
+			return null;
+		}
 	}
 }

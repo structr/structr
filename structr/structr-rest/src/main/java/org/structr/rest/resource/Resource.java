@@ -22,6 +22,7 @@ package org.structr.rest.resource;
 //~--- JDK imports ------------------------------------------------------------
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +44,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSearchField;
-import org.structr.core.Command;
+import org.structr.common.property.PropertyMap;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -195,10 +196,14 @@ public abstract class Resource {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final Iterable<? extends GraphObject> results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
+		final Result<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null);
+		final List<GraphObject> results = result.getResults();
+		
+		if (results != null && !results.isEmpty()) {
 
-		if (results != null) {
-
+			final Class type = results.get(0).getClass();
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
+			
 			final StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
@@ -206,10 +211,9 @@ public abstract class Resource {
 
 					for (final GraphObject obj : results) {
 
-						for (final Entry<String, Object> attr : propertySet.entrySet()) {
+						for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
-							PropertyKey key = obj.getPropertyKeyForName(attr.getKey());
-							obj.setProperty(key, attr.getValue());
+							obj.setProperty(attr.getKey(), attr.getValue());
 
 						}
 
@@ -262,21 +266,11 @@ public abstract class Resource {
 		if (type1 != null && type2 != null) {
 
 			return EntityContext.getRelationClass(type1, type2);
-
 		}
 
 		if (type1 != null) {
 
-			GraphObject typeInstance = null;
-			
-			try { typeInstance = type1.newInstance(); } catch(Throwable t) {}
-			
-			PropertyKey key = typeInstance != null ?
-			    
-						typeInstance.getPropertyKeyForName(typeResource2.getRawType())
-						:
-						new Property(typeResource2.getRawType());
-			
+			PropertyKey key = EntityContext.getPropertyKeyForName(type1, typeResource2.getRawType());
 			return EntityContext.getRelationClassForProperty(type1, key);
 
 		}
@@ -493,7 +487,7 @@ public abstract class Resource {
 
 			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
-			final Set<String> searchableProperties =
+			final Set<PropertyKey> searchableProperties =
 							getSearchableProperties(rawType,
 							                        looseSearch,
 							                        fulltextIndex,

@@ -23,7 +23,7 @@ package org.structr.common;
 
 import org.structr.common.property.PropertyKey;
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
@@ -72,7 +72,7 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			PropertySet props = new PropertySet();
+			PropertyMap props = new PropertyMap();
 			PropertyKey key   = AbstractNode.name;
 			String name       = "89w3hklsdfghsdkljth";
 
@@ -115,7 +115,7 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			PropertySet props = new PropertySet();
+			PropertyMap props = new PropertyMap();
 			PropertyKey key   = TestOne.aDate;
 			Date date         = new Date();
 			String type       = TestOne.class.getSimpleName();

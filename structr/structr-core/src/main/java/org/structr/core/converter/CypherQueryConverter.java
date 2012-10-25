@@ -27,6 +27,7 @@ import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.cypher.CypherQueryHandler;
 import org.structr.core.entity.AbstractNode;
@@ -44,9 +45,9 @@ public class CypherQueryConverter extends PropertyConverter {
 	private ExecutionEngine engine          = null;
 	private CypherQueryHandler handler      = null;
 
-	public CypherQueryConverter(SecurityContext securityContext, CypherQueryHandler handler) {
+	public CypherQueryConverter(SecurityContext securityContext, GraphObject entity, CypherQueryHandler handler) {
 		
-		super(securityContext);
+		super(securityContext, entity);
 		
 		this.handler = handler;
 		
@@ -61,13 +62,12 @@ public class CypherQueryConverter extends PropertyConverter {
 	}
 	
 	@Override
-	public Object convertForSetter(Object source) throws FrameworkException {
-
-		throw new UnsupportedOperationException("This converter is read-only!");
+	public Object convert(Object source) throws FrameworkException {
+		return source;
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 		
 		if (currentObject != null) {
 

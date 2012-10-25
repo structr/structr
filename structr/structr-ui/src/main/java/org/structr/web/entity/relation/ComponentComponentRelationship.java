@@ -80,7 +80,7 @@ public class ComponentComponentRelationship extends AbstractRelationship {
 
 			for (String key : dbRelationship.getPropertyKeys()) {
 
-				keys.add(getPropertyKeyForName(key));
+				keys.add(EntityContext.getPropertyKeyForName(entityType, key));
 			}
 
 		}

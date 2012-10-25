@@ -37,12 +37,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
 import org.structr.core.Adapter;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -144,20 +142,16 @@ public class StaticRelationshipResource extends SortableResource {
 				// as the property key for getProperty
 				// look for a property converter for the given type and key
 				final Class type      = sourceNode.getClass();
-				final PropertyKey key = sourceNode.getPropertyKeyForName(typeResource.getRawType());
+				final PropertyKey key = EntityContext.getPropertyKeyForName(type, typeResource.getRawType());
 
-				// String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
-//				final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-				final PropertyConverter converter = key.inputConverter(securityContext);
+				// use database converter here, because results will be converted for output during serialization!
+				final PropertyConverter converter = key.databaseConverter(securityContext, sourceNode);
 
 				if (converter != null) {
 
-//					final Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
-					converter.setCurrentObject(sourceNode);
 					converter.setRawMode(true);    // disable notion
 
-					final Object value = converter.convertForGetter(null);
+					final Object value = converter.revert(null);
 
 					// create error message in advance to avoid having to construct it twice in different locations
 					final StringBuilder msgBuilder = new StringBuilder();
@@ -239,7 +233,9 @@ public class StaticRelationshipResource extends SortableResource {
 
 				if (startNode != null) {
 
-					if (EntityContext.isReadOnlyProperty(startNode.getClass(), startNode.getPropertyKeyForName(typeResource.getRawType()))) {
+					Class startNodeType = startNode.getClass();
+					
+					if (EntityContext.isReadOnlyProperty(startNodeType, EntityContext.getPropertyKeyForName(startNodeType, typeResource.getRawType()))) {
 
 						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
 
@@ -341,9 +337,11 @@ public class StaticRelationshipResource extends SortableResource {
 
 				if (sourceNode != null && rel != null) {
 
-					if (EntityContext.isReadOnlyProperty(sourceNode.getClass(), sourceNode.getPropertyKeyForName(typeResource.getRawType()))) {
+					Class sourceNodeType = sourceNode.getClass();
+					
+					if (EntityContext.isReadOnlyProperty(sourceNodeType, EntityContext.getPropertyKeyForName(sourceNodeType, typeResource.getRawType()))) {
 
-						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNode.getClass(), typeResource.getRawType() });
+						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 
 						return null;
 

@@ -31,7 +31,6 @@ import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
-import org.structr.core.converter.ImageConverter;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteNodeCommand;
@@ -49,8 +48,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.*;
 import org.structr.common.property.Property;
-import org.structr.common.View;
 import org.structr.common.property.IntProperty;
 import org.structr.core.property.ImageDataProperty;
 
@@ -65,7 +64,7 @@ public class Image extends File {
 
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
-	public static final Property<String> imageData = new ImageDataProperty("imageData");
+	public static final Property<String> imageData = new ImageDataProperty("imageData", new KeyAndClass(null, null));	// FIXME!!?
 	public static final Property<Integer> height   = new IntProperty("height");
 	public static final Property<Integer> width    = new IntProperty("width");
 
@@ -79,12 +78,6 @@ public class Image extends File {
 	static {
 
 		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
-//		EntityContext.registerPropertySet(Image.class, PropertyView.All, Key.values());
-//		EntityContext.registerPropertySet(Image.class, PropertyView.Ui, Key.values());
-
-		// Write data to disk (and convert, if it's a base64 encoded string)
-		EntityContext.registerPropertyConverter(Image.class, Image.imageData, ImageConverter.class);
-
 	}
 
 	//~--- fields ---------------------------------------------------------

@@ -3,6 +3,7 @@ package org.structr.web.property;
 import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.common.property.Property;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.web.converter.PathsConverter;
 
@@ -17,12 +18,12 @@ public class PathsProperty extends Property<Set<String>> {
 	}
 	
 	@Override
-	public PropertyConverter<?, Set<String>> databaseConverter(SecurityContext securityContext) {
-		return new PathsConverter(securityContext);
+	public PropertyConverter<Set<String>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new PathsConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, Set<String>> inputConverter(SecurityContext securityContext) {
-		return new PathsConverter(securityContext);
+		return null;
 	}
 }

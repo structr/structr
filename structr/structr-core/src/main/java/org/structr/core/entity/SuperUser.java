@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,7 +77,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 
 		return true;
 
@@ -306,10 +306,5 @@ public class SuperUser implements Principal {
 	@Override
 	public Object getPropertyForIndexing(PropertyKey key) {
 		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public PropertyKey getPropertyKeyForName(String name) {
-		return new Property(name);
 	}
 }

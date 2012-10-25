@@ -46,7 +46,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -119,7 +119,7 @@ public class ClonePageCommand extends AbstractCommand {
 
 							if (rel != null) {
 
-								PropertySet relProps = new PropertySet();
+								PropertyMap relProps = new PropertyMap();
 								relProps.put(new Property(pageId), 0);
 
 								try {

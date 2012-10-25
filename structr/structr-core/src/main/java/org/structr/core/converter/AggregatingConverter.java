@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
 
@@ -36,20 +37,20 @@ public class AggregatingConverter extends PropertyConverter {
 
 	private Aggregation aggregation = null;
 	
-	public AggregatingConverter(SecurityContext securityContext, Aggregation aggregation) {
-		super(securityContext);
+	public AggregatingConverter(SecurityContext securityContext, GraphObject entity, Aggregation aggregation) {
+		super(securityContext, entity);
 		
 		this.aggregation = aggregation;
 	}
 	
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 		// read only
 		return null;
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 		
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 			

@@ -36,13 +36,13 @@ public class DoubleConverter extends PropertyConverter {
 	private Value<Double> value = null;
 	
 	public DoubleConverter(SecurityContext securityContext, Value<Double> value) {
-		super(securityContext);
+		super(securityContext, null);
 		
 		this.value = value;
 	}
 	
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 
 		if (source != null) {
 			
@@ -66,7 +66,7 @@ public class DoubleConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 
 		if (source == null && value != null) {
 			return value;

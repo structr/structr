@@ -27,7 +27,6 @@ import net.sf.jmimemagic.MagicMatch;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.ImageHelper;
-import org.structr.core.Value;
 import org.structr.core.entity.Image;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -36,7 +35,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
-import org.structr.common.property.PropertyKey;
 import org.structr.core.Services;
 import org.structr.core.node.IndexNodeCommand;
 
@@ -56,7 +54,7 @@ public class ImageConverter extends PropertyConverter {
 	
 	public ImageConverter(SecurityContext securityContext, KeyAndClass kc) {
 		
-		super(securityContext);
+		super(securityContext, null);
 		
 		this.keyAndClass = kc;
 	}
@@ -64,7 +62,7 @@ public class ImageConverter extends PropertyConverter {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 
 		if (source == null) {
 
@@ -118,7 +116,7 @@ public class ImageConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 
 		return source;
 	}

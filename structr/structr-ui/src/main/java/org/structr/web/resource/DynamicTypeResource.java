@@ -36,7 +36,7 @@ import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -246,7 +246,7 @@ public class DynamicTypeResource extends TypeResource {
 		final CreateNodeCommand createNodeCommand  = Services.command(securityContext, CreateNodeCommand.class);
 		final String componentId		   = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 		final Component template		   = templates.get(templates.size()-1);
-		final PropertySet templateProperties	   = new PropertySet();
+		final PropertyMap templateProperties	   = new PropertyMap();
 
 		// copy properties to map
 		templateProperties.put(AbstractNode.type,                        Component.class.getSimpleName());
@@ -276,7 +276,7 @@ public class DynamicTypeResource extends TypeResource {
 				RelationshipHelper.copyRelationships(SecurityContext.getSuperUserInstance(), template, comp, RelType.CONTAINS, finalParentComponentId, true);
 
 				// RelationshipHelper.tagOutgoingRelsWithComponentId(comp, comp, comp.getUuid());
-				final PropertySet contentTemplateProperties = new PropertySet();
+				final PropertyMap contentTemplateProperties = new PropertyMap();
 
 				for (final AbstractNode node : template.getContentNodes().values()) {
 
@@ -326,7 +326,7 @@ public class DynamicTypeResource extends TypeResource {
 
 			for (final String keyName : propertySet.keySet()) {
 
-				PropertyKey key = newComponent.getPropertyKeyForName(keyName);
+				PropertyKey key = EntityContext.getPropertyKeyForName(Component.class, keyName);
 				newComponent.setProperty(key, propertySet.get(keyName));
 			}
 

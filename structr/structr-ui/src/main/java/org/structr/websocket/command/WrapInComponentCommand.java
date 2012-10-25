@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,7 +77,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					PropertySet nodeProps  = PropertySet.convertFromInput(securityContext, nodeData);
+					PropertyMap nodeProps  = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeProps);
 					String componentId     = newComponent.getUuid();
 
@@ -90,7 +90,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 						if (rel != null) {
 
 							// First element in new component, so set position to 0
-							PropertySet relProps = new PropertySet();
+							PropertyMap relProps = new PropertyMap();
 
 							relProps.put(new Property(pageId), 0);
 

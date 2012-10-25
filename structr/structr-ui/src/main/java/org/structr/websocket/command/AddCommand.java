@@ -49,7 +49,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -92,7 +92,7 @@ public class AddCommand extends AbstractCommand {
 					@Override
 					public AbstractNode execute() throws FrameworkException {
 
-						PropertySet nodeProps = PropertySet.convertFromInput(securityContext, nodeData);
+						PropertyMap nodeProps = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
 						return Services.command(securityContext, CreateNodeCommand.class).execute(nodeProps);
 
 					}
@@ -182,7 +182,7 @@ public class AddCommand extends AbstractCommand {
 							relData.put(newPageId, maxPos + 1);
 							
 							// convertFromInput relationship properties
-							PropertySet relProperties = PropertySet.convertFromInput(securityContext, relData);
+							PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 							
 							rel.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
 							
@@ -249,7 +249,7 @@ public class AddCommand extends AbstractCommand {
 							relData.put(newPageId, 0L);
 							
 							// convertFromInput relationship properties
-							PropertySet relProperties = PropertySet.convertFromInput(securityContext, relData);
+							PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 							
 							rel.createRelationship(securityContext, nodeToAdd, contentNode, relProperties);
 

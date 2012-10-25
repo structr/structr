@@ -22,7 +22,7 @@
 package org.structr.common;
 
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
@@ -86,7 +86,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
 
-			final PropertySet props = new PropertySet();
+			final PropertyMap props = new PropertyMap();
 
 			props.put(AbstractNode.type, "UnknownTestTypeÄÖLß");
 
@@ -161,7 +161,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 	 */
 	public void test03CheckNodeEntities() {
 
-		final PropertySet props = new PropertySet();
+		final PropertyMap props = new PropertyMap();
 
 		try {
 
@@ -346,7 +346,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			final AbstractNode startNode   = nodes.get(0);
 			final AbstractNode endNode     = nodes.get(1);
 			final RelationshipType relType = RelType.UNDEFINED;
-			final PropertySet props        = new PropertySet();
+			final PropertyMap props        = new PropertyMap();
 
 			props.put(new Property("foo"), "bar");
 			props.put(new Property("bar"), 123);

@@ -19,7 +19,7 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -72,7 +72,7 @@ public class GeoHelper {
 
 	public static Location createLocation(final GeoCodingResult coords) throws FrameworkException {
 
-		final PropertySet props = new PropertySet();
+		final PropertyMap props = new PropertyMap();
 		double latitude         = coords.getLatitude();
 		double longitude        = coords.getLongitude();
 		String type             = Location.class.getSimpleName();

@@ -21,7 +21,7 @@ package org.structr.core;
 import java.util.*;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -32,7 +32,7 @@ import org.structr.core.entity.AbstractNode;
  * @author Christian Morgner
  */
 
-public class GraphObjectMap extends PropertySet implements GraphObject {
+public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public long getId() {
@@ -124,7 +124,7 @@ public class GraphObjectMap extends PropertySet implements GraphObject {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 
@@ -215,11 +215,6 @@ public class GraphObjectMap extends PropertySet implements GraphObject {
 	@Override
 	public Set entrySet() {
 		return properties.entrySet();
-	}
-
-	@Override
-	public PropertyKey getPropertyKeyForName(String name) {
-		return new Property(name);
 	}
 
 	@Override

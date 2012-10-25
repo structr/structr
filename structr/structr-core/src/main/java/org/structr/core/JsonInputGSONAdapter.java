@@ -51,9 +51,9 @@ import org.structr.common.property.PropertyKey;
  *
  * @author Christian Morgner
  */
-public class PropertySetGSONAdapter implements InstanceCreator<JsonInput>, JsonSerializer<JsonInput>, JsonDeserializer<JsonInput> {
+public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSerializer<JsonInput>, JsonDeserializer<JsonInput> {
 
-	private static final Logger logger = Logger.getLogger(PropertySetGSONAdapter.class.getName());
+	private static final Logger logger = Logger.getLogger(JsonInputGSONAdapter.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -61,9 +61,9 @@ public class PropertySetGSONAdapter implements InstanceCreator<JsonInput>, JsonS
 
 	//~--- constructors ---------------------------------------------------
 
-	public PropertySetGSONAdapter() {}
+	public JsonInputGSONAdapter() {}
 
-	public PropertySetGSONAdapter(Value<String> propertyView, PropertyKey idProperty) {
+	public JsonInputGSONAdapter(Value<String> propertyView, PropertyKey idProperty) {
 
 		this.idProperty     = idProperty;
 	}

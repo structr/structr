@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import java.util.Collection;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -47,7 +48,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -93,10 +95,10 @@ public class RelationClass<T extends AbstractNode> {
 	//~--- methods --------------------------------------------------------
 
 	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
-		createRelationship(securityContext, sourceNode, targetNode, new PropertySet());
+		createRelationship(securityContext, sourceNode, targetNode, new PropertyMap());
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode, final PropertySet properties) throws FrameworkException {
+	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode, final PropertyMap properties) throws FrameworkException {
 
 		// create relationship if it does not already exist
 		final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -112,7 +114,7 @@ public class RelationClass<T extends AbstractNode> {
 				@Override
 				public Object execute() throws FrameworkException {
 
-                                        PropertySet props = new PropertySet(properties);
+                                        PropertyMap props = new PropertyMap(properties);
 
 					// set cascade delete value
 					if (cascadeDelete > 0) {
@@ -322,7 +324,7 @@ public class RelationClass<T extends AbstractNode> {
 			public AbstractNode execute() throws FrameworkException {
 
 				AbstractNode relatedNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, getDestType().getSimpleName()));
-                                PropertySet props        = new PropertySet();
+                                PropertyMap props        = new PropertyMap();
 
                                 if (cascadeDelete > 0) {
 

@@ -25,7 +25,6 @@ import au.com.bytecode.opencsv.CSVReader;
 
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
@@ -52,8 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
@@ -188,7 +187,6 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 			});
 			final List<List<NodeAttribute>> creationList = new LinkedList<List<NodeAttribute>>();
 			String targetClassName                       = targetClass.getSimpleName();
-			GraphObject typeInstance                     = null;
 			String[] line                                = null;
 
 			do {
@@ -211,7 +209,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
 						String csvValue = line[i];
 						String keyName  = fieldIndex.get(i);
-						PropertyKey key = typeInstance != null ? typeInstance.getPropertyKeyForName(keyName) : new Property(keyName);
+						PropertyKey key = EntityContext.getPropertyKeyForName(targetClass, keyName);
 
 						nodeAttributes.add(new NodeAttribute(key, csvValue));
 

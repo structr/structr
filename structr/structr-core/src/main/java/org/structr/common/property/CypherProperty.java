@@ -16,50 +16,40 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.converter;
+package org.structr.common.property;
 
-import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.converter.CypherQueryConverter;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.cypher.CypherQueryHandler;
 
 /**
- * A converter that translates enums to Strings and back.
- * 
+ *
  * @author Christian Morgner
  */
-public class EnumConverter extends PropertyConverter<String, Enum> {
-
-	private static final Logger logger = Logger.getLogger(EnumConverter.class.getName());
+public class CypherProperty<T> extends Property<T> {
 	
-	private Class<? extends Enum> enumClass = null;
+	private CypherQueryHandler handler = null;
 	
-	public EnumConverter(SecurityContext securityContext, Class<? extends Enum> enumClass) {
-		super(securityContext);
+	public CypherProperty(String name, CypherQueryHandler handler) {
+		super(name);
 		
-		this.enumClass = enumClass;
+		this.handler = handler;
+		
+		// make us known to the entity context
+		EntityContext.registerConvertedProperty(this);
+
 	}
 	
 	@Override
-	public String convertForSetter(Enum source) throws FrameworkException {
-		
-		if (source != null) {
-			return source.name();
-		}
-		
-		return null;
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new CypherQueryConverter(securityContext, entity, handler);
 	}
 
 	@Override
-	public Enum convertForGetter(String source) {
-		
-		if (source != null) {
-			
-			if (enumClass != null) {
-					
-				return Enum.valueOf(enumClass, source);
-			}
-		}
-		
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
 }

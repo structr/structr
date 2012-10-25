@@ -22,7 +22,7 @@
 package org.structr.core.entity;
 
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.time.DateUtils;
 
@@ -59,7 +59,6 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.*;
-import org.structr.core.converter.DateConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -99,15 +98,15 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	private String cachedEndNodeId = null;
 
 	// test
-	protected PropertySet cachedConvertedProperties = new PropertySet();
-	protected PropertySet cachedRawProperties       = new PropertySet();
+	protected PropertyMap cachedConvertedProperties = new PropertyMap();
+	protected PropertyMap cachedRawProperties       = new PropertyMap();
 	private String cachedStartNodeId                = null;
 	protected SecurityContext securityContext       = null;
 	private boolean readOnlyPropertiesUnlocked      = false;
 
 	// reference to database relationship
 	protected Relationship dbRelationship;
-	protected PropertySet properties;
+	protected PropertyMap properties;
 	protected String cachedUuid = null;
 	protected boolean isDirty;
 
@@ -120,19 +119,19 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 //      }
 	public AbstractRelationship() {
 
-		this.properties = new PropertySet();
+		this.properties = new PropertyMap();
 		isDirty         = true;
 
 	}
 
-	public AbstractRelationship(final PropertySet properties) {
+	public AbstractRelationship(final PropertyMap properties) {
 
 		this.properties = properties;
 		isDirty         = true;
 
 	}
 
-	public AbstractRelationship(final SecurityContext securityContext, final PropertySet data) {
+	public AbstractRelationship(final SecurityContext securityContext, final PropertyMap data) {
 
 		if (data != null) {
 
@@ -411,16 +410,17 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	public PropertySet getProperties() {
+	public PropertyMap getProperties() throws FrameworkException {
 
-		PropertySet properties = new PropertySet();
+		Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
 		for (String key : dbRelationship.getPropertyKeys()) {
 
-			properties.put(getPropertyKeyForName(key), dbRelationship.getProperty(key));
+			properties.put(key, dbRelationship.getProperty(key));
 		}
 
-		return properties;
+		// convert the database properties back to their java types
+		return PropertyMap.databaseTypeToJavaType(securityContext, this, properties);
 
 	}
 
@@ -480,11 +480,21 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			}
 			
 			// ----- BEGIN property group resolution -----
-			PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+			PropertyGroup<T> propertyGroup = EntityContext.getPropertyGroup(type, key);
 
 			if (propertyGroup != null) {
 
-				return (T)propertyGroup.getGroupedProperties(this);
+				try {
+					return propertyGroup.getGroupedProperties(securityContext, this);
+					
+				} catch(FrameworkException fex) {
+					
+					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+						key.name(),
+						entityType.getSimpleName(),
+						fex.getMessage()
+					});
+				}
 			}
 
 			if (dbRelationship.hasProperty(key.name())) {
@@ -492,39 +502,28 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				value = dbRelationship.getProperty(key.name());
 			}
 
-			// no value found, use schema default
-			if (value == null) {
-
-				value = key.defaultValue();
-				dontCache = true;
-			}
-
 			// only apply converter if requested
 			// (required for getComparableProperty())
 			if(applyConverter) {
 
-				// apply property converters
-//				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-				PropertyConverter converter = key.databaseConverter(securityContext);
-
+				PropertyConverter converter = key.databaseConverter(securityContext, this);
 				if (converter != null) {
-
-//					Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
-					converter.setCurrentObject(this);
 
 					try {
 
-						value = converter.convertForGetter(value);
+						value = converter.revert(value);
 						
-					} catch(FrameworkException fex) {
+					} catch(Throwable t) {
+						
+						// CHM: remove debugging code later
+						t.printStackTrace();
+						
 						logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
 							key.name(),
 							getClass().getSimpleName(),
-							fex.getMessage()
+							t.getMessage()
 						});
 					}
-
 				}
 			}
 
@@ -540,6 +539,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 					cachedRawProperties.put(key, value);
 				}
 			}
+		}
+
+		// no value found, use schema default
+		if (value == null) {
+
+			value = key.defaultValue();
+			dontCache = true;
 		}
 
 		return (T)value;
@@ -732,13 +738,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		
 		// check property converter
 //		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-		PropertyConverter converter = key.databaseConverter(securityContext);
+		PropertyConverter converter = key.databaseConverter(securityContext, this);
 		if (converter != null) {
 			
-//			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-			converter.setCurrentObject(this);
-
-
 			try {
 				return converter.convertForSorting(propertyValue);
 
@@ -959,7 +961,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		
 		cachedUuid = (String)properties.get(AbstractRelationship.uuid);
 		
@@ -1037,7 +1039,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setProperties(final PropertySet properties) throws FrameworkException {
+	public void setProperties(final PropertyMap properties) throws FrameworkException {
 
 		for (Entry<PropertyKey, Object> prop : properties.entrySet()) {
 
@@ -1095,23 +1097,19 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		if (propertyGroup != null) {
 
-			propertyGroup.setGroupedProperties(value, this);
+			propertyGroup.setGroupedProperties(securityContext, value, this);
 
 			return;
 
 		}
 
 //		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-		PropertyConverter converter = key.databaseConverter(securityContext);
+		PropertyConverter converter = key.databaseConverter(securityContext, this);
 		final Object convertedValue;
 
 		if (converter != null) {
 
-//			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
-			converter.setCurrentObject(this);
-
-			convertedValue = converter.convertForSetter(value);
+			convertedValue = converter.convert(value);
 
 		} else {
 
@@ -1345,10 +1343,5 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		dbRelationship.setProperty(AbstractRelationship.allowed.name(), allowed);
 
-	}
-
-	@Override
-	public PropertyKey getPropertyKeyForName(String name) {
-		return EntityContext.getPropertyKeyForName(entityType, name);
 	}
 }

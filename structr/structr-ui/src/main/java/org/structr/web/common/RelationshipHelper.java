@@ -22,7 +22,7 @@
 package org.structr.web.common;
 
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 
@@ -93,7 +93,7 @@ public class RelationshipHelper {
 
 			}
 
-			PropertySet props = in.getProperties();
+			PropertyMap props = in.getProperties();
 			props.remove(AbstractRelationship.uuid);
 			props.remove(AbstractRelationship.createdDate);
 			
@@ -149,7 +149,7 @@ public class RelationshipHelper {
 
 			}
 			
-			PropertySet props = out.getProperties();
+			PropertyMap props = out.getProperties();
 			props.remove(AbstractRelationship.uuid);
 
 			AbstractRelationship newOutRel = createRel.execute(cloneNode, endNode, relType, props, false);

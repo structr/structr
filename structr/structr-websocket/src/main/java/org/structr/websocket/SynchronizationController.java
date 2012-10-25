@@ -39,9 +39,10 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -209,13 +210,20 @@ public class SynchronizationController implements StructrTransactionListener {
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
 			AbstractNode startNode            = relationship.getStartNode();
 			AbstractNode endNode              = relationship.getEndNode();
-			PropertySet relProperties         = relationship.getProperties();
-
-			relProperties.put(new Property("startNodeId"), startNode.getUuid());
-			relProperties.put(new Property("endNodeId"), endNode.getUuid());
 			
-			Map<String, Object> properties = PropertySet.revert(relProperties);
-			message.setRelData(properties);
+			try {
+				PropertyMap relProperties         = relationship.getProperties();
+
+				relProperties.put(new Property("startNodeId"), startNode.getUuid());
+				relProperties.put(new Property("endNodeId"), endNode.getUuid());
+
+				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+				message.setRelData(properties);
+				
+			} catch(FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Unable to convert properties from type {0} to input type", relationship.getClass());
+			}
 
 		}
 
@@ -244,13 +252,20 @@ public class SynchronizationController implements StructrTransactionListener {
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
 			AbstractNode startNode            = relationship.getStartNode();
 			AbstractNode endNode              = relationship.getEndNode();
-			PropertySet relProperties         = relationship.getProperties();
-
-			relProperties.put(new Property("startNodeId"), startNode.getUuid());
-			relProperties.put(new Property("endNodeId"), endNode.getUuid());
 			
-			Map<String, Object> properties = PropertySet.revert(relProperties);
-			message.setRelData(properties);
+			try {
+				PropertyMap relProperties         = relationship.getProperties();
+
+				relProperties.put(new Property("startNodeId"), startNode.getUuid());
+				relProperties.put(new Property("endNodeId"), endNode.getUuid());
+
+				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+				message.setRelData(properties);
+				
+			} catch(FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Unable to convert properties from type {0} to input type", relationship.getClass());
+			}
 
 		}
 
@@ -338,7 +353,7 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, PropertySet properties) {
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, PropertyMap properties) {
 
 		messageStack = messageStackMap.get(transactionKey);
 

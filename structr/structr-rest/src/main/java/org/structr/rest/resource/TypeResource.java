@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
@@ -173,7 +173,7 @@ public class TypeResource extends SortableResource {
 			
 			if (sortKey != null) {
 				
-				PropertyConverter converter = sortKey.databaseConverter(securityContext);
+				PropertyConverter converter = sortKey.inputConverter(securityContext);
 				if (converter != null) {
 					
 					sortType = converter.getSortType();
@@ -274,7 +274,7 @@ public class TypeResource extends SortableResource {
 
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
-		PropertySet properties = PropertySet.convertFromInput(securityContext, entityClass, propertySet);
+		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 		properties.put(AbstractNode.type, entityClass.getSimpleName());
 		
 		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);

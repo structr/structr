@@ -20,7 +20,7 @@
 package org.structr.core;
 
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -44,5 +44,5 @@ public interface StructrTransactionListener {
 
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertySet properties) throws FrameworkException;
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyMap properties) throws FrameworkException;
 }

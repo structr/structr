@@ -18,8 +18,12 @@
  */
 package org.structr.common.property;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.structr.common.SecurityContext;
-import org.structr.core.converter.BooleanConverter;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -28,17 +32,96 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class BooleanProperty extends Property<Boolean> {
 	
+	private static final Set<String> TRUE_VALUES = new LinkedHashSet<String>(Arrays.asList(new String[] { "true", "1", "on" }));
+
 	public BooleanProperty(String name) {
 		super(name);
 	}
 	
 	@Override
-	public PropertyConverter<?, Boolean> databaseConverter(SecurityContext securityContext) {
-		return new BooleanConverter(securityContext);
+	public PropertyConverter<Boolean, Boolean> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new DatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext) {
-		return new BooleanConverter(securityContext);
+		return new InputConverter(securityContext);
+	}
+	
+	protected class DatabaseConverter extends PropertyConverter<Boolean, Boolean> {
+
+		public DatabaseConverter(SecurityContext securityContext) {
+			this(securityContext, null, false);
+		}
+		
+		public DatabaseConverter(SecurityContext securityContext, Integer sortKey) {
+			this(securityContext, sortKey, false);
+		}
+		
+		public DatabaseConverter(SecurityContext securityContext, boolean sortFinalResults) {
+			this(securityContext, null, sortFinalResults);
+		}
+		
+		public DatabaseConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
+			super(securityContext, null, sortKey, sortFinalResults);
+		}
+		
+		@Override
+		public Boolean revert(Boolean source) throws FrameworkException {
+			return source;
+		}
+
+		@Override
+		public Boolean convert(Boolean source) {
+			
+			if (source != null) {
+				return source;
+			}
+			
+			return false;
+		}
+	}
+
+	protected class InputConverter extends PropertyConverter<Object, Boolean> {
+
+		public InputConverter(SecurityContext securityContext) {
+			this(securityContext, null, false);
+		}
+		
+		public InputConverter(SecurityContext securityContext, Integer sortKey) {
+			this(securityContext, sortKey, false);
+		}
+		
+		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
+			this(securityContext, null, sortFinalResults);
+		}
+		
+		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
+			super(securityContext, null, sortKey, sortFinalResults);
+		}
+		
+		@Override
+		public Object revert(Boolean source) throws FrameworkException {
+			return source;
+		}
+
+		@Override
+		public Boolean convert(Object source) {
+			
+			// FIXME: be more strict when dealing with "wrong" input types
+			if (source != null) {
+				
+				if (source instanceof Boolean) {
+					return (Boolean)source;
+				}
+				
+				if (source instanceof String) {
+					
+					return TRUE_VALUES.contains(source.toString().toLowerCase());
+				}
+			}
+			
+			return null;
+		}
 	}
 }

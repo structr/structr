@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -31,7 +30,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
-import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeFactory;
 import org.structr.core.notion.Notion;
@@ -41,20 +39,20 @@ import org.structr.core.traversal.TraverserInterface;
  *
  * @author Christian Morgner
  */
-public class TraversingConverter extends PropertyConverter {
+public class TraversingConverter<T> extends PropertyConverter<Object, T> {
 
 	private static final Logger logger = Logger.getLogger(TraversingConverter.class.getName());
 
 	private TraverserInterface traverserInterface = null;
 	
-	public TraversingConverter(SecurityContext securityContext, TraverserInterface traverserInterface) {
-		super(securityContext);
+	public TraversingConverter(SecurityContext securityContext, GraphObject entity, TraverserInterface traverserInterface) {
+		super(securityContext, entity);
 		
 		this.traverserInterface = traverserInterface;
 	}
 	
 	@Override
-	public Object convertForGetter(Object source) throws FrameworkException {
+	public Object revert(T source) throws FrameworkException {
 		
 		if(currentObject != null) {
 			
@@ -83,11 +81,11 @@ public class TraversingConverter extends PropertyConverter {
 				// important: remove results from this iteration
 				traverserInterface.cleanup();
 
-				return (traverserInterface.collapseSingleResult() && results.size() == 1) ? results.get(0) : results;
+				return (T)((traverserInterface.collapseSingleResult() && results.size() == 1) ? results.get(0) : results);
 
 			} else {
 
-				return transformedNodes;
+				return (T)transformedNodes;
 			}
 		}
 		
@@ -95,8 +93,8 @@ public class TraversingConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForSetter(Object source) {
-		return source;
+	public T convert(Object source) throws FrameworkException {
+		return null;
 	}
 	
 	// ----- private methods -----

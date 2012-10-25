@@ -20,6 +20,7 @@
 package org.structr.core.converter;
 
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.notion.Notion;
@@ -32,22 +33,22 @@ public class HyperRelationConverter extends PropertyConverter {
 
 	private HyperRelation hyperRelation = null;
 	
-	public HyperRelationConverter(SecurityContext securityContext, HyperRelation rel) {
-		super(securityContext);
+	public HyperRelationConverter(SecurityContext securityContext, GraphObject entity, HyperRelation rel) {
+		super(securityContext, entity);
 		
 		this.hyperRelation = rel;
 	}
 	
 	
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 		
 		// read only
 		return null;
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 
 		if(currentObject != null) {
 

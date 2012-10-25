@@ -14,12 +14,14 @@
  *  GNU General Public License for more details.
  * 
  *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ *  aDouble with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.common.property;
 
 import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -33,14 +35,57 @@ public class DoubleProperty extends Property<Double> {
 	}
 	
 	@Override
-	public PropertyConverter<?, Double> databaseConverter(SecurityContext securityContext) {
-		return new Identitiy<Object, Double>(securityContext, SortField.DOUBLE);
+	public PropertyConverter<Double, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext) {
-		return new Identitiy<Object, Double>(securityContext, SortField.DOUBLE);
+		return new InputConverter(securityContext, SortField.DOUBLE);
 	}
-
 	
+	protected class InputConverter extends PropertyConverter<Object, Double> {
+
+		public InputConverter(SecurityContext securityContext) {
+			this(securityContext, null, false);
+		}
+		
+		public InputConverter(SecurityContext securityContext, Integer sortKey) {
+			this(securityContext, sortKey, false);
+		}
+		
+		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
+			this(securityContext, null, sortFinalResults);
+		}
+		
+		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
+			super(securityContext, null, sortKey, sortFinalResults);
+		}
+		
+		@Override
+		public Object revert(Double source) throws FrameworkException {
+			return source;
+		}
+
+		@Override
+		public Double convert(Object source) {
+			
+			// FIXME: be more strict when dealing with "wrong" input types
+			if (source != null) {
+				
+				if (source instanceof Number) {
+
+					return ((Number)source).doubleValue();
+					
+				}
+				
+				if (source instanceof String) {
+					
+					return Double.parseDouble(source.toString());
+				}
+			}
+			
+			return null;
+		}
+	}
 }

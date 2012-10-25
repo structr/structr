@@ -19,9 +19,10 @@
 package org.structr.common.property;
 
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelatedNodePropertyMapper;
-import org.structr.core.converter.ParameterHolder;
 
 /**
  *
@@ -29,21 +30,26 @@ import org.structr.core.converter.ParameterHolder;
  */
 public class RelatedNodeProperty<T> extends Property<T> {
 	
-	private ParameterHolder holder = null;
+	private PropertyKey targetKey = null;
+	private Class targetType = null;
 	
-	public RelatedNodeProperty(String name, ParameterHolder<T> holder) {
+	public RelatedNodeProperty(String name, Class targetType, PropertyKey<T> targetKey) {
 		super(name);
 		
-		this.holder = holder;
+		this.targetType = targetType;
+		this.targetKey  = targetKey;
+		
+		// make us known to the entity context
+		EntityContext.registerConvertedProperty(this);
 	}
 	
 	@Override
-	public PropertyConverter<?, T> databaseConverter(SecurityContext securityContext) {
-		return new RelatedNodePropertyMapper(securityContext, holder);
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject currentObject) {
+		return new RelatedNodePropertyMapper(securityContext, currentObject, targetType, targetKey);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return new RelatedNodePropertyMapper(securityContext, holder);
+		return targetKey.inputConverter(securityContext);
 	}
 }

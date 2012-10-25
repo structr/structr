@@ -28,28 +28,28 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class Converter<S, T> implements Value<T> {
+public class Converter<SourceType, TargetType> implements Value<TargetType> {
 
 	private static final Logger logger = Logger.getLogger(Converter.class.getName());
-	private PropertyConverter<S, T> converter = null;
-	private Value<S> source = null;
+	private PropertyConverter<SourceType, TargetType> converter = null;
+	private Value<SourceType> source = null;
 	
-	public Converter(Value<S> source, PropertyConverter<S, T> converter) {
+	public Converter(Value<SourceType> source, PropertyConverter<SourceType, TargetType> converter) {
 		this.converter = converter;
 		this.source = source;
 	}
 	
 	@Override
-	public void set(SecurityContext securityContext, T value) throws FrameworkException {
-		source.set(securityContext, converter.convertForSetter(value));
+	public void set(SecurityContext securityContext, TargetType value) throws FrameworkException {
+		source.set(securityContext, converter.revert(value));
 	}
 
 	@Override
-	public T get(SecurityContext securityContext) {
+	public TargetType get(SecurityContext securityContext) {
 		
 		try {
 			
-			return converter.convertForGetter(source.get(securityContext));
+			return converter.convert(source.get(securityContext));
 			
 		} catch(FrameworkException fex) {
 			

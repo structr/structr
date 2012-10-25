@@ -25,12 +25,13 @@ import org.structr.common.property.PropertyKey;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.PropertyMap;
+import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -39,10 +40,10 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class MapPropertyGroup implements PropertyGroup {
+public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 
-	private static final Logger logger = Logger.getLogger(MapPropertyGroup.class.getName());
-	private PropertyKey[] propertyKeys = null;
+	private static final Logger logger   = Logger.getLogger(MapPropertyGroup.class.getName());
+	protected PropertyKey[] propertyKeys = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -53,13 +54,34 @@ public class MapPropertyGroup implements PropertyGroup {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Object getGroupedProperties(GraphObject source) {
+	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
-		Map<String, Object> groupedProperties = new LinkedHashMap<String, Object>();
+		PropertyMap groupedProperties = new PropertyMap();
 
 		for (PropertyKey key : propertyKeys) {
 
-			groupedProperties.put(key.name(), source.getProperty(key));
+			PropertyConverter converter = key.inputConverter(securityContext);
+			if (converter != null) {
+				
+				try {
+					Object convertedValue = converter.revert(source.getProperty(key));
+					groupedProperties.put(key, convertedValue);
+					
+				} catch(FrameworkException fex) {
+					
+					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
+						key.name(),
+						source.getClass().getSimpleName(),
+						fex.getMessage()
+						
+					});
+				}
+				
+				
+			} else {
+				
+				groupedProperties.put(key, source.getProperty(key));
+			}
 
 		}
 
@@ -69,7 +91,7 @@ public class MapPropertyGroup implements PropertyGroup {
 	//~--- set methods ----------------------------------------------------
 
 	@Override
-	public void setGroupedProperties(Object source, GraphObject destination) throws FrameworkException {
+	public void setGroupedProperties(SecurityContext securityContext, PropertyMap source, GraphObject destination) throws FrameworkException {
 
 		if (source == null) {
 
@@ -79,51 +101,12 @@ public class MapPropertyGroup implements PropertyGroup {
 
 			}
 
-		} else if (source instanceof Map) {
-
-			logger.log(Level.INFO, "Parameter is a Map");
+			return;
 			
-			for (Entry<String, Object> attr : ((Map<String, Object>) source).entrySet()) {
+		}
 
-				String key   = attr.getKey();
-				Object value = attr.getValue();
-
-				if (value instanceof JsonInput) {
-
-					setGroupedProperties(value, destination);
-
-				} else {
-					
-					PropertyKey propertyKey = destination.getPropertyKeyForName(key);
-					destination.setProperty(propertyKey, value);
-
-				}
-
-			}
-
-		} else if (source instanceof JsonInput) {
-
-			logger.log(Level.INFO, "Parameter is a PropertySet");
-			
-			for (Entry<String, Object> entry : ((JsonInput)source).getAttributes().entrySet()) {
-
-				String key   = entry.getKey();
-				Object value = entry.getValue();
-
-				if (value instanceof JsonInput) {
-
-					// recursive put/post
-					setGroupedProperties(value, destination);
-					
-				} else {
-
-					PropertyKey propertyKey = destination.getPropertyKeyForName(key);
-					destination.setProperty(propertyKey, value);
-
-				}
-
-			}
-
+		for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+			destination.setProperty(entry.getKey(), entry.getValue());
 		}
 	}
 }

@@ -29,7 +29,7 @@ import java.util.Set;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -94,7 +94,7 @@ public class GenericRelationship extends AbstractRelationship {
 		if(dbRelationship != null) {
 			
 			for(String key : dbRelationship.getPropertyKeys()) {
-				keys.add(getPropertyKeyForName(key));
+				keys.add(EntityContext.getPropertyKeyForName(entityType, key));
 			}
 		}
 		
@@ -112,7 +112,7 @@ public class GenericRelationship extends AbstractRelationship {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertySet properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 }

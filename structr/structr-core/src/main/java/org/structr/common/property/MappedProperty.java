@@ -19,6 +19,7 @@
 package org.structr.common.property;
 
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.PropertyMapper;
 
@@ -26,7 +27,7 @@ import org.structr.core.converter.PropertyMapper;
  *
  * @author Christian Morgner
  */
-public class MappedProperty<S, T> extends Property<S> {
+public class MappedProperty<T> extends Property<T> {
 	
 	private PropertyKey<T> mappedKey = null;
 	
@@ -37,13 +38,13 @@ public class MappedProperty<S, T> extends Property<S> {
 	}
 	
 	@Override
-	public PropertyConverter<T, S> databaseConverter(SecurityContext securityContext) {
-		return new PropertyMapper(securityContext, mappedKey);
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new PropertyMapper(securityContext, entity, mappedKey);
 	}
 
 	@Override
-	public PropertyConverter<T, S> inputConverter(SecurityContext securityContext) {
-		return new PropertyMapper(securityContext, mappedKey);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return mappedKey.inputConverter(securityContext);
 	}
 	
 }

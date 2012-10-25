@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -179,7 +179,7 @@ public class NamedRelationResource extends WrappingResource {
 			propertySet.put(AbstractRelationship.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
 
 			// convertFromInput properties
-			PropertySet properties = PropertySet.convertFromInput(securityContext, relationshipEntity, propertySet);
+			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, relationshipEntity.getClass(), propertySet);
 			
 			// create new relationship with startNode, endNode, relType and propertySet
 			final AbstractRelationship newRel = createRel.execute(startNode, endNode, relType, properties, false);

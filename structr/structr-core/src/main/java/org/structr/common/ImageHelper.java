@@ -21,7 +21,7 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import com.mortennobel.imagescaling.ResampleOp;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -105,7 +105,7 @@ public abstract class ImageHelper {
 		throws FrameworkException, IOException {
 
 		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
-		PropertySet props                          = new PropertySet();
+		PropertyMap props                          = new PropertyMap();
 
 		props.put(AbstractNode.type, imageType.getSimpleName());
 		props.put(File.contentType, contentType);

@@ -66,7 +66,7 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.hamcrest.Matcher;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.context.ApplicationContextListener;
@@ -258,7 +258,7 @@ public class StructrRestTest extends TestCase {
 			// do we need to wait here? answer: yes!
 			
 			do {
-				try { Thread.sleep(10); } catch(Throwable t) {}
+				try { Thread.sleep(100); } catch(Throwable t) {}
 				
 			} while(!server.isStopped());
 
@@ -331,7 +331,7 @@ public class StructrRestTest extends TestCase {
 
 	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
 
-		final PropertySet props = new PropertySet();
+		final PropertyMap props = new PropertyMap();
 		props.put(AbstractNode.type, type);
 
 		return (List<AbstractNode>) transactionCommand.execute(new StructrTransaction() {

@@ -93,19 +93,25 @@ public class SchemaResource extends Resource {
 					
 					for (PropertyKey property : properties) {
 
-						StringBuilder converterPlusValue = new StringBuilder();
-						PropertyConverter converter      = property.databaseConverter(securityContext); //EntityContext.getPropertyConverter(securityContext, type, property);
-//						Value conversionValue            = EntityContext.getPropertyConversionParameter(type, property);
+						StringBuilder converterPlusValue    = new StringBuilder();
+						PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
+						PropertyConverter inputConverter    = property.inputConverter(securityContext);
+						
+						converterPlusValue.append("(");
 
-						if (converter != null) {
-							converterPlusValue.append(converter.getClass().getName());
+						if (databaseConverter != null) {
+							converterPlusValue.append(" databaseConverter: ");
+							converterPlusValue.append(databaseConverter.getClass().getName());
+							converterPlusValue.append(" ");
 						}
 
-//						if (conversionValue != null) {
-//							converterPlusValue.append("(");
-//							converterPlusValue.append(conversionValue.getClass().getName());
-//							converterPlusValue.append(")");
-//						}
+						if (inputConverter != null) {
+							converterPlusValue.append(" inputConverter: ");
+							converterPlusValue.append(inputConverter.getClass().getName());
+							converterPlusValue.append(" ");
+						}
+						
+						converterPlusValue.append(")");
 
 						propertyConverterMap.put(property.name(), converterPlusValue.toString());
 					}

@@ -21,6 +21,7 @@ package org.structr.core.converter;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.property.PropertyKey;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -32,20 +33,20 @@ public class RawPropertyConverter extends PropertyConverter {
 
 	private PropertyKey key = null;
 	
-	public RawPropertyConverter(SecurityContext securityContext, PropertyKey key) {
+	public RawPropertyConverter(SecurityContext securityContext, GraphObject entity, PropertyKey key) {
 		
-		super(securityContext);
+		super(securityContext, entity);
 		
 		this.key = key;
 	}
 	
 	@Override
-	public Object convertForSetter(Object source) {
+	public Object convert(Object source) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public Object revert(Object source) {
 
 		try {
 			if(currentObject instanceof AbstractNode) {

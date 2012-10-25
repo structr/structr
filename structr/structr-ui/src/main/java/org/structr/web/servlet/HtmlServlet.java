@@ -756,7 +756,7 @@ public class HtmlServlet extends HttpServlet {
 	//~--- get methods ----------------------------------------------------
 
 	private void getContent(SecurityContext securityContext, final String pageId, final String componentId, final StringBuilder buffer, final AbstractNode page, final AbstractNode startNode,
-				int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) {
+				int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) throws FrameworkException {
 
 		String localComponentId    = componentId;
 		String content             = null;

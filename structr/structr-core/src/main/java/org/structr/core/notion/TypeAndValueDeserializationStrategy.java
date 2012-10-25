@@ -40,8 +40,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.TypeToken;
-import org.structr.core.JsonInput;
-import org.structr.core.Result;
+import org.structr.core.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -98,7 +97,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				} else {
 					
 					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = obj.getPropertyKeyForName(AbstractNode.uuid.name());
+					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.name());
 					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
 					
 				}

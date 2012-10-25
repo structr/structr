@@ -18,8 +18,10 @@
  */
 package org.structr.core.property;
 
+import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
-import org.structr.common.property.SourceProperty;
+import org.structr.common.property.Property;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.ImageConverter;
 import org.structr.core.converter.PropertyConverter;
 
@@ -27,14 +29,23 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @author Christian Morgner
  */
-public class ImageDataProperty extends SourceProperty {
+public class ImageDataProperty<T> extends Property<String> {
 	
-	public ImageDataProperty(String name) {
+	private KeyAndClass keyAndClass = null;
+	
+	public ImageDataProperty(String name, KeyAndClass keyAndClass) {
 		super(name);
+		
+		this.keyAndClass = keyAndClass;
+	}
+	
+	@Override
+	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new ImageConverter(securityContext, keyAndClass);
 	}
 
 	@Override
-	public PropertyConverter getSource(SecurityContext securityContext) {
-		return new ImageConverter(securityContext, null);
+	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
+		return null;
 	}
 }

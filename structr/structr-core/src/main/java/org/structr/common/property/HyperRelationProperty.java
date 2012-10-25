@@ -19,31 +19,37 @@
 package org.structr.common.property;
 
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.HyperRelation;
+import org.structr.core.converter.HyperRelationConverter;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.converter.ResultCountConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class ElementCounter extends IntProperty {
+public class HyperRelationProperty<T> extends Property<T> {
 	
-	private Property<? extends Iterable> collectionProperty = null;
+	private HyperRelation hyperRelation = null;
 	
-	public ElementCounter(String name, Property<? extends Iterable> collectionProperty) {
+	public HyperRelationProperty(String name, HyperRelation hyperRelation) {
 		super(name);
 		
-		this.collectionProperty = collectionProperty;
+		this.hyperRelation = hyperRelation;
+		
+		// make us known to the entity context
+		EntityContext.registerConvertedProperty(this);
 	}
 	
 	@Override
-	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new ResultCountConverter(securityContext, entity, collectionProperty);
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new HyperRelationConverter(securityContext, entity, hyperRelation);
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return null;	// no conversion of the database value
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return null;
 	}
+	
 }

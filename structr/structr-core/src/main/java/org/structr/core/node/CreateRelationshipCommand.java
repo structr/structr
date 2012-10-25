@@ -44,7 +44,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -82,15 +82,15 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), null, checkDuplicates);
 	}
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertySet properties, boolean checkDuplicates) throws FrameworkException {
+	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, properties, checkDuplicates);
 	}
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType, final PropertySet properties, boolean checkDuplicates) throws FrameworkException {
+	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
 		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), properties, checkDuplicates);
 	}
 	
-	private synchronized T createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertySet properties, final boolean checkDuplicates)
+	private synchronized T createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertyMap properties, final boolean checkDuplicates)
 		throws FrameworkException {
 
 		return (T) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
@@ -109,7 +109,7 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 						if (rel.getRelType().equals(relType) && rel.getStartNode().equals(fromNode)) {
 
                                                         // At least one property of new rel has to be different to the tested existing node
-							PropertySet relProps = rel.getProperties();
+							PropertyMap relProps = rel.getProperties();
 							boolean propsEqual   = true;
 
 							for (Entry<PropertyKey, Object> entry : properties.entrySet()) {

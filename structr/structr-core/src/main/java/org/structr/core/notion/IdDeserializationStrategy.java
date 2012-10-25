@@ -41,8 +41,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.PropertySet;
-import org.structr.core.Result;
+import org.structr.common.property.PropertyMap;
+import org.structr.core.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,7 +50,7 @@ import org.structr.core.Result;
  *
  * @author Christian Morgner
  */
-public class IdDeserializationStrategy implements DeserializationStrategy {
+public class IdDeserializationStrategy<S, T extends GraphObject> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(IdDeserializationStrategy.class.getName());
 
@@ -72,7 +72,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public GraphObject deserialize(final SecurityContext securityContext, final Class<? extends GraphObject> type, Object source) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source) throws FrameworkException {
 
 		if (source != null) {
 
@@ -82,7 +82,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 			if (source instanceof JsonInput) {
 
 				JsonInput properties = (JsonInput) source;
-				PropertySet map      = PropertySet.convertFromInput(securityContext, type, properties.getAttributes());
+				PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, type, properties.getAttributes());
 				
 				for (Entry<PropertyKey, Object> entry : map.entrySet()) {
 
@@ -100,7 +100,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 				} else {
 					
 					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = obj.getPropertyKeyForName(AbstractNode.uuid.name());
+					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.name());
 					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
 					
 				}
@@ -112,7 +112,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 			}
 
-			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
+			Result<T> results = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 			int size       = results.size();
 
 			switch (size) {
@@ -130,7 +130,7 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 		} else if (createIfNotExisting) {
 
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
+			return (T)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
 
 				@Override
 				public AbstractNode execute() throws FrameworkException {

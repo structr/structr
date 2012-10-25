@@ -20,6 +20,8 @@ package org.structr.common.property;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ValueToken;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -42,23 +44,54 @@ public class EnumProperty<T extends Enum> extends Property<T> {
 	}
 	
 	@Override
-	public PropertyConverter<String, T> databaseConverter(SecurityContext securityContext) {
-		return new EnumStringConverter(securityContext);
+	public PropertyConverter<T, String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new DatabaseConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<String, T> inputConverter(SecurityContext securityContext) {
-		return new EnumStringConverter(securityContext);
+		return new InputConverter(securityContext);
 	}
 	
-	private class EnumStringConverter extends PropertyConverter<String, T> {
+	protected class DatabaseConverter extends PropertyConverter<T, String> {
 
-		public EnumStringConverter(SecurityContext securityContext) {
-			super(securityContext);
+		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
+			super(securityContext, entity);
+		}
+
+		@Override
+		public T revert(String source) throws FrameworkException {
+
+			if (source != null) {
+
+				return (T)Enum.valueOf(enumType, source.toString());
+			}
+
+			return null;
+			
 		}
 		
 		@Override
-		public String convertForSetter(T source) throws FrameworkException {
+		public String convert(T source) throws FrameworkException {
+
+			if (source != null) {
+				
+				return source.toString();
+			}
+			
+			return null;
+		}
+		
+	}
+	
+	protected class InputConverter extends PropertyConverter<String, T> {
+
+		public InputConverter(SecurityContext securityContext) {
+			super(securityContext, null);
+		}
+		
+		@Override
+		public String revert(T source) throws FrameworkException {
 
 			if (source != null) {
 				
@@ -69,11 +102,17 @@ public class EnumProperty<T extends Enum> extends Property<T> {
 		}
 
 		@Override
-		public T convertForGetter(String source) throws FrameworkException {
+		public T convert(String source) throws FrameworkException {
 
 			if (source != null) {
 
-				return (T)Enum.valueOf(enumType, source.toString());
+				try {
+					return (T)Enum.valueOf(enumType, source.toString());
+					
+				} catch(Throwable t) {
+					
+					throw new FrameworkException(enumType.getDeclaringClass().getSimpleName(), new ValueToken(EnumProperty.this, enumType.getEnumConstants()));
+				}
 			}
 
 			return null;

@@ -28,21 +28,21 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class ListArrayConverter extends PropertyConverter {
+public class ListArrayConverter extends PropertyConverter<String[], String> {
 	
 	public ListArrayConverter(SecurityContext securityContext) {
-		super(securityContext);
+		super(securityContext, null);
 	}
 	
 	public static final String SEP = ",";
 
 	@Override
-	public Object convertForSetter(Object source) throws FrameworkException {
+	public String[] revert(String source) throws FrameworkException {
 		return StringUtils.split((String) source, SEP);
 	}
 
 	@Override
-	public Object convertForGetter(Object source) {
+	public String convert(String[] source) {
 		return StringUtils.join((String[]) source, SEP);
 	}
 }

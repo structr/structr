@@ -20,6 +20,7 @@
 package org.structr.common.property;
 
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -33,7 +34,7 @@ public interface PropertyKey<JavaType> {
 	
 	public JavaType defaultValue();
 	
-	public PropertyConverter<?, JavaType> databaseConverter(SecurityContext securityContext);
+	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy);
 	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
 	
 }

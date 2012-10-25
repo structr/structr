@@ -47,7 +47,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertySet;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -128,12 +128,12 @@ public class CreateSimplePage extends AbstractCommand {
 
 	private AbstractNode createElement(final AbstractNode page, final String type, final int position, final AbstractNode parentElement) throws FrameworkException {
 
-		PropertySet nodeData = new PropertySet();
+		PropertyMap nodeData = new PropertyMap();
 
 		nodeData.put(AbstractNode.visibleToAuthenticatedUsers, true);
 		nodeData.put(AbstractNode.type,                        Page.class.getSimpleName());
 
-		PropertySet relData = new PropertySet();
+		PropertyMap relData = new PropertyMap();
 
 		if (page != null) {
 
