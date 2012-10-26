@@ -39,14 +39,16 @@ public class IntConverter extends PropertyConverter {
 	@Override
 	public Object convertForSetter(Object source, Value value) {
 
+		Integer convertedValue = null;
+		
 		if (source != null) {
 
 			if (source instanceof Integer) {
-				return source;
+				convertedValue = (Integer) source;
 			} else if (source instanceof Double) {
-				return Math.round((Double) source);
+				convertedValue = (int) Math.round((Double) source);
 			} else if (source instanceof Float) {
-				return Math.round((Float) source);
+				convertedValue = (int) Math.round((Float) source);
 			} else if (source instanceof String) {
 				if (StringUtils.isBlank((String) source)) {
 					return null;
@@ -55,7 +57,7 @@ public class IntConverter extends PropertyConverter {
 			}
 		}
 
-		return source;
+		return convertedValue;
 	}
 
 	@Override
