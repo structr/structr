@@ -71,7 +71,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<String>   uuid          = new Property<String>("uuid");
 	public static final Property<String>   combinedType  = new Property<String>("combinedType");
 	public static final Property<Integer>  cascadeDelete = new IntProperty("cascadeDelete");
 	public static final Property<Date>     createdDate   = new ISO8601DateProperty("createdDate");

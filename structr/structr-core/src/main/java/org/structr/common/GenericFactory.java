@@ -16,10 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.property;
+package org.structr.common;
 
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -27,23 +25,10 @@ import org.structr.core.entity.AbstractRelationship;
  *
  * @author Christian Morgner
  */
-public class StartNodeGroup extends GroupProperty {
+public interface GenericFactory {
 	
-	public StartNodeGroup(String name, Class<? extends GraphObject> entityClass, PropertyKey... properties) {
-		super(name, entityClass, properties);
-	}
-
-	@Override
-	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
-
-		if(source instanceof AbstractRelationship) {
-
-			AbstractRelationship rel  = (AbstractRelationship)source;
-			AbstractNode startNode    = rel.getStartNode();
-
-			return super.getGroupedProperties(securityContext, startNode);
-		}
-
-		return null;
-	}
+	public AbstractRelationship createGenericRelationship();
+	public AbstractNode createGenericNode();
+	
+	public boolean isGeneric(Class<?> entityClass);
 }

@@ -61,6 +61,18 @@ public class TransactionChangeSet {
 		securityModifiedNodes.addAll(changeSet.getSecurityModifiedNodes());
 		locationModifiedNodes.addAll(changeSet.getLocationModifiedNodes());
 		
+		// remove deleted node from other transactions when merging
+		ownerModifiedNodes.removeAll(deletedNodes);
+		securityModifiedNodes.removeAll(deletedNodes);
+		locationModifiedNodes.removeAll(deletedNodes);
+		
+		modifiedNodes.removeAll(deletedNodes);
+		createdNodes.removeAll(deletedNodes);
+		
+		// remove deleted relationships from other transactions when merging
+		modifiedRels.removeAll(deletedRels);
+		createdRels.removeAll(deletedRels);
+		
 		propagationQueue.addAll(changeSet.getPropagationQueue());
 	}
 	
@@ -110,11 +122,20 @@ public class TransactionChangeSet {
 	}
 
 	public void modify(AbstractNode modified) {
-		modifiedNodes.add(modified);
-		propagationQueue.add(modified);
+		
+		if (!deletedNodes.contains(modified)) {
+			modifiedNodes.add(modified);
+			propagationQueue.add(modified);
+		}
 	}
 	
 	public void delete(AbstractNode deleted) {
+		createdNodes.remove(deleted);
+		modifiedNodes.remove(deleted);
+		ownerModifiedNodes.remove(deleted);
+		securityModifiedNodes.remove(deleted);
+		locationModifiedNodes.remove(deleted);
+
 		deletedNodes.add(deleted);
 	}
 	
@@ -123,10 +144,16 @@ public class TransactionChangeSet {
 	}
 
 	public void modify(AbstractRelationship modified) {
-		modifiedRels.add(modified);
+		
+		if (!deletedRels.contains(modified)) {
+			modifiedRels.add(modified);
+		}
 	}
 	
 	public void delete(AbstractRelationship deleted) {
+		createdRels.remove(deleted);
+		modifiedRels.remove(deleted);
+		
 		deletedRels.add(deleted);
 	}
 	

@@ -83,9 +83,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	// properties
 	public static final Property<String>        base                        = new Property<String>("base");
-	public static final Property<String>        uuid                        = new Property<String>("uuid");
 	public static final Property<String>        name                        = new Property<String>("name");
-	public static final Property<String>        type                        = new Property<String>("type");
 	public static final Property<String>        createdBy                   = new Property<String>("createdBy");
 	public static final Property<Boolean>       deleted                     = new BooleanProperty("deleted");
 	public static final Property<Boolean>       hidden                      = new BooleanProperty("hidden");
@@ -703,7 +701,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 		
 		try {
-			
+
 			return (T)value;
 			
 		} catch(Throwable t) {
@@ -954,8 +952,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public Comparable getComparableProperty(final PropertyKey<? extends Comparable> key) {
 
-		Object propertyValue = getProperty(key, false);	// get "raw" property without converter
-		Class type = getClass();
+		Object propertyValue = getProperty(key);
 		
 		// check property converter
 		PropertyConverter converter = key.databaseConverter(securityContext, this);

@@ -91,12 +91,13 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 		if (graphDb != null) {
 
 			CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+			String genericNodeType              = EntityContext.getGenericFactory().createGenericNode().getClass().getSimpleName();
 			Date now                            = new Date();
 
 			// Determine node type
 			PropertyMap properties = new PropertyMap(attributes);
 			Object typeObject      = properties.get(AbstractNode.type);
-			String nodeType        = (typeObject != null) ? typeObject.toString() : "GenericNode";
+			String nodeType        = (typeObject != null) ? typeObject.toString() : genericNodeType;
 
 			NodeFactory<T> nodeFactory = new NodeFactory<T>(SecurityContext.getSuperUserInstance());
 

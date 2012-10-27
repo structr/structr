@@ -58,7 +58,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 	@Override
 	public Object convert(Object source) {
 
-		AbstractNode relatedNode = getRelatedNode(targetType);
+		AbstractNode relatedNode = getRelatedNode(targetType, true);
 		if (relatedNode != null) {
 
 			try {
@@ -76,7 +76,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		AbstractNode relatedNode = getRelatedNode(targetType);
+		AbstractNode relatedNode = getRelatedNode(targetType, false);
 
 		if (relatedNode != null) {
 
@@ -89,7 +89,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	//~--- get methods ----------------------------------------------------
 
-	private AbstractNode getRelatedNode(Class targetType) {
+	private AbstractNode getRelatedNode(Class targetType, boolean add) {
 
 		AbstractNode relatedNode = null;
 
@@ -102,7 +102,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 				relatedNode = rel.getRelatedNode(securityContext, localNode);
 
-				if (relatedNode == null) {
+				if (relatedNode == null && add) {
 
 					try {
 						relatedNode = rel.addRelatedNode(securityContext, localNode);

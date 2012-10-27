@@ -25,6 +25,7 @@ import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.Property;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -34,6 +35,9 @@ import org.structr.core.entity.AbstractRelationship;
  * @author Christian Morgner
  */
 public interface GraphObject {
+
+	public static final Property<String>  uuid = new Property<String>("uuid");
+	public static final Property<String>  type = new Property<String>("type");
 
 	// ----- methods common to both types -----
 	/**

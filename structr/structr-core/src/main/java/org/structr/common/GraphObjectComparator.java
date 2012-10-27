@@ -104,6 +104,8 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 			
 		} catch(Throwable t) {
 			
+			t.printStackTrace();
+			
 			logger.log(Level.WARNING, "Cannot compare properties {0} of type {1} to {2} of type {3}, property {4} error.",
 				new Object[] {
 					n1.getProperty(AbstractNode.uuid),

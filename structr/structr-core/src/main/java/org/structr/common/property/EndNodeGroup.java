@@ -18,7 +18,6 @@
  */
 package org.structr.common.property;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -35,7 +34,7 @@ public class EndNodeGroup extends GroupProperty {
 	}
 
 	@Override
-	public Map<String, Object> getGroupedProperties(SecurityContext securityContext, GraphObject source) {
+	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
 		if(source instanceof AbstractRelationship) {
 

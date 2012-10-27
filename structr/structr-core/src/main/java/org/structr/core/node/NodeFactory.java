@@ -33,12 +33,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
-import org.structr.core.Command;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.module.GetEntityClassCommand;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -49,6 +47,7 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -150,7 +149,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 		if (newNode == null) {
 			// FIXME
-			newNode = (T)new GenericNode();
+			newNode = (T)EntityContext.getGenericFactory().createGenericNode();
 		}
 		
 

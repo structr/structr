@@ -43,7 +43,6 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.node.*;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.IndexRelationshipCommand;
@@ -59,10 +58,10 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.structr.common.PropertyView;
+import org.structr.common.*;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyMap;
-import org.structr.common.View;
+import org.structr.core.module.ModuleService;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeService.RelationshipIndex;
 
@@ -116,6 +115,7 @@ public class EntityContext {
 	private static final Map<Thread, SecurityContext> securityContextMap                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
 	private static final Map<Thread, Long> transactionKeyMap                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 	private static final ThreadLocalChangeSet globalChangeSet                                               = new ThreadLocalChangeSet();
+	private static GenericFactory genericFactory                                                            = new DefaultGenericFactory();
 
 	//~--- methods --------------------------------------------------------
 
@@ -166,14 +166,17 @@ public class EntityContext {
 		Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, entity);
 		Map<Field, View> views                = getFieldValuesOfType(View.class, entity);
 		Class entityType                      = entity.getClass();
-		
+
 		for (Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
 
 			PropertyKey propertyKey = entry.getValue();
 			Field field             = entry.getKey();
+			Class declaringClass    = field.getDeclaringClass();
 
-			// register field in entity class and declaring superclass
-			registerProperty(field.getDeclaringClass(), propertyKey);
+			if (declaringClass != null) {
+				registerProperty(declaringClass, propertyKey);
+			}
+			
 			registerProperty(entityType, propertyKey);
 		}
 		
@@ -202,7 +205,7 @@ public class EntityContext {
 	 */
 	public static void init() {
 
-		cachedEntities = Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
+		cachedEntities = Services.getService(ModuleService.class).getCachedNodeEntities();
 	}
 
 	/**
@@ -1055,11 +1058,19 @@ public class EntityContext {
 	}
 	
 	public static PropertyKey getPropertyKeyForName(Class type, String name) {
-		
+
 		Map<String, PropertyKey> classPropertyMap = getClassPropertyMapForType(type);
 		PropertyKey key                           = classPropertyMap.get(name);
 		
 		if (key == null) {
+			
+			// first try: uuid
+			if (GraphObject.uuid.name().equals(name)) {
+				return GraphObject.uuid;
+			}
+
+			logger.log(Level.WARNING, "No property key instance found for type {0}, key {1}", new Object[] { type != null ? type.getName() : "null", name } );
+			
 			key = new Property(name);
 		}
 		
@@ -1505,8 +1516,14 @@ public class EntityContext {
 
 		return isWriteOnce;
 	}
-
-	//~--- set methods ----------------------------------------------------
+	
+	public static GenericFactory getGenericFactory() {
+		return genericFactory;
+	}
+	
+	public static void registerGenericFactory(GenericFactory factory) {
+		genericFactory = factory;
+	}
 
 	public static synchronized TransactionChangeSet getTransactionChangeSet() {
 		return globalChangeSet.get();
@@ -1526,7 +1543,7 @@ public class EntityContext {
 	public static synchronized void setTransactionKey(Long transactionKey) {
 		transactionKeyMap.put(Thread.currentThread(), transactionKey);
 	}
-
+	
 	//~--- inner classes --------------------------------------------------
 
 	// <editor-fold defaultstate="collapsed" desc="EntityContextModificationListener">
@@ -1998,24 +2015,56 @@ public class EntityContext {
 		
 	}
 	
-	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> type, Object entity) {
+	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> entityType, Object entity) {
 		
-		Map<Field, T> fields = new LinkedHashMap<Field, T>();
+		Map<Field, T> fields   = new LinkedHashMap<Field, T>();
+		Set<Class<?>> allTypes = getAllTypes(entity.getClass());
 		
-		for (Field field : entity.getClass().getFields()) {
+		for (Class<?> type : allTypes) {
 			
-			if (type.isAssignableFrom(field.getType())) {
-				
-				try {
-					fields.put(field, (T)field.get(entity));
-					
-				} catch(Throwable t) {
-					t.printStackTrace();
+			for (Field field : type.getDeclaredFields()) {
+
+				if (entityType.isAssignableFrom(field.getType())) {
+
+					try {
+						fields.put(field, (T)field.get(entity));
+
+					} catch(Throwable t) { }
 				}
 			}
 		}
 		
 		return fields;
+	}
+	
+	private static Set<Class<?>> getAllTypes(Class<?> type) {
+
+		Set<Class<?>> types = new LinkedHashSet<Class<?>>();
+		Class localType     = type;
+			
+		do {
+			
+			collectAllInterfaces(localType, types);
+			types.add(localType);
+			
+			localType = localType.getSuperclass();
+
+		} while (!localType.equals(Object.class));
+		
+		return types;
+	}
+	
+	private static void collectAllInterfaces(Class<?> type, Set<Class<?>> interfaces) {
+
+		if (interfaces.contains(type)) {
+			return;
+		}
+		
+		for (Class iface : type.getInterfaces()) {
+			
+			collectAllInterfaces(iface, interfaces);
+			interfaces.add(iface);
+		}
 	}
 	
 	private static class ThreadLocalChangeSet extends ThreadLocal<TransactionChangeSet> {

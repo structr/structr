@@ -33,7 +33,7 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @author Christian Morgner
  */
-public class GroupProperty extends Property<PropertyMap> implements PropertyGroup<Map<String, Object>> {
+public class GroupProperty extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
 	
 	private static final Logger logger = Logger.getLogger(GroupProperty.class.getName());
 	
@@ -80,9 +80,9 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	
 	// ----- interface PropertyGroup -----
 	@Override
-	public Map<String, Object> getGroupedProperties(SecurityContext securityContext, GraphObject source) {
+	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
-		Map<String, Object> groupedProperties = new LinkedHashMap<String, Object>();
+		PropertyMap groupedProperties = new PropertyMap();
 
 		for (PropertyKey key : propertyKeys) {
 
@@ -93,7 +93,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 				
 				try {
 					Object convertedValue = converter.revert(value);
-					groupedProperties.put(key.name(), convertedValue);
+					groupedProperties.put(key, convertedValue);
 					
 				} catch(FrameworkException fex) {
 					
@@ -108,7 +108,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 				
 			} else {
 				
-				groupedProperties.put(key.name(), value);
+				groupedProperties.put(key, value);
 			}
 
 		}
@@ -117,7 +117,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public void setGroupedProperties(SecurityContext securityContext, Map<String, Object> source, GraphObject destination) throws FrameworkException {
+	public void setGroupedProperties(SecurityContext securityContext, PropertyMap source, GraphObject destination) throws FrameworkException {
 
 		if (source == null) {
 
@@ -133,7 +133,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 
 		for (PropertyKey key : propertyKeys) {
 			
-			Object value = source.get(key.name());
+			Object value = source.get(key);
 
 			PropertyConverter converter = key.inputConverter(securityContext);
 			if (converter != null) {

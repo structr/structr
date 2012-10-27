@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-import java.util.Collection;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -48,8 +47,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.GenericFactory;
 import org.structr.common.property.PropertyMap;
-import org.structr.core.GraphObject;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -138,6 +138,7 @@ public class RelationClass<T extends AbstractNode> {
 
 					if (newRel != null) {
 
+						GenericFactory genericFactory = EntityContext.getGenericFactory();
 						switch (cardinality) {
 
 							case ManyToOne :
@@ -150,10 +151,12 @@ public class RelationClass<T extends AbstractNode> {
 
 								for (AbstractRelationship rel : rels) {
 
+									boolean isGeneric = genericFactory.isGeneric(rel.getClass());
+									
 									// if (rel.getOtherNode(finalSourceNode).getType().equals(destType)) {
 									// if (destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass())) {
 									if ((!rel.equals(newRel)
-										&& ((!(rel instanceof GenericRelationship) && newRel.getClass().isAssignableFrom(rel.getClass()))
+										&& ((!isGeneric && newRel.getClass().isAssignableFrom(rel.getClass()))
 										    || destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass())))) {
 
 										deleteRel.execute(rel);
@@ -175,10 +178,12 @@ public class RelationClass<T extends AbstractNode> {
 
 								for (AbstractRelationship rel : rels) {
 
+									boolean isGeneric = genericFactory.isGeneric(rel.getClass());
+									    
 									// if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
 									// if (sourceNode.getClass().isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())) {
 									if ((!rel.equals(newRel)
-										&& ((!(rel instanceof GenericRelationship) && newRel.getClass().isAssignableFrom(rel.getClass()))
+										&& ((!isGeneric && newRel.getClass().isAssignableFrom(rel.getClass()))
 										    || sourceType.isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())))) {
 
 										deleteRel.execute(rel);

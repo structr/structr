@@ -562,13 +562,13 @@ public class Services {
 		return services;
 	}
 	
-	public static Service getService(Class type) {
+	public static <T extends Service> T getService(Class<T> type) {
 		
 		for (Service service : serviceCache.values()) {
 			
 			if (type.equals(service.getClass())) {
 				
-				return service;
+				return (T)service;
 			}
 		}
 		

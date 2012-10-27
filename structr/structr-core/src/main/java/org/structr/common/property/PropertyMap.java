@@ -74,6 +74,10 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 		return properties.get(key);
 	}
 
+	public <T> T get(PropertyKey<T> key) {
+		return (T)properties.get(key);
+	}
+
 	@Override
 	public Object put(PropertyKey key, Object value) {
 		return properties.put(key, value);
@@ -273,7 +277,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 				try {
 					Object propertyValue = converter.revert(entry.getValue());
 					inputTypedProperties.put(propertyKey.name(), propertyValue);
-
+					
 				} catch(ClassCastException cce) {
 
 					cce.printStackTrace();

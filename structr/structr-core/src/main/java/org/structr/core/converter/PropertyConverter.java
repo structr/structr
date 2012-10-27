@@ -80,22 +80,21 @@ public abstract class PropertyConverter<SourceType, TargetType> {
 	 * fine-grained control over the sorted results. Override 
 	 * this method to modify sorting behaviour of entities.
 	 * 
-	 * @param source
+	 * @param target
 	 * @param value
 	 * @return 
 	 */
 	public Comparable convertForSorting(SourceType source) throws FrameworkException {
 		
-		TargetType target = convert(source);
-		if(target != null) {
+		if(source != null) {
 			
-			if (target instanceof Comparable) {
+			if (source instanceof Comparable) {
 				
-				return (Comparable)target;
+				return (Comparable)source;
 			}
 			
 			// fallback
-			return target.toString();
+			return source.toString();
 		}
 		
 		return null;

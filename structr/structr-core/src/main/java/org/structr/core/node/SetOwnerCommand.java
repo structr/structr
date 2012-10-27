@@ -27,7 +27,6 @@ import org.structr.common.RelType;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
