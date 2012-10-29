@@ -31,9 +31,139 @@ public class AdvancedPagingTest extends StructrRestTest {
 
 	
 	/**
+	 * Paging with offsetId
+	 */
+	public void test01Paging() {
+
+		// create a root object
+		
+		String resource = "/test_two";
+		
+		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
+			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
+			.expect().statusCode(201).when().post(resource).getHeader("Location");
+		
+		String baseId = getUuidFromLocation(location);
+		
+		resource = resource.concat("/").concat(baseId).concat("/test_one");
+		
+		String offsetId = null;
+		
+		// create sub objects
+		for (int i=0; i<10; i++) {
+			
+			location = RestAssured.given().contentType("application/json; charset=UTF-8")
+			.body(" { 'name' : 'TestOne-" + i + "', 'anInt' : " + i + ", 'aLong' : " + i + ", 'aDate' : '2012-09-18T0" + i + ":33:12+0200' } ")
+			.expect().statusCode(201).when().post(resource).getHeader("Location");
+			
+			String id = getUuidFromLocation(location);
+			
+			if (i == 3) {
+				offsetId = id;
+			}
+			
+			System.out.println("Object created: " + id);
+			
+		}
+		
+		System.out.println("Offset ID: " + offsetId);
+		
+		resource = "/test_one";
+		
+		for (int page=1; page<5; page++) {
+			
+			String url = resource + "?sort=name&pageSize=2&page=" + page;
+			
+			System.out.println("Testing page " + page + " with URL " + url);
+		
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result",			hasSize(2))
+					.body("result_count",		equalTo(10))
+
+					.body("result[0]",		isEntity(TestOne.class))
+					.body("result[0].name ",	equalTo("TestOne-" + ((2*page)-2)))
+
+					.body("result[1]",		isEntity(TestOne.class))
+					.body("result[1].name ",	equalTo("TestOne-" + ((2*page)-1)))
+
+				.when()
+					.get(url);		
+		
+		}
+		
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(10))
+
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-3"))
+
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-4"))
+
+			.when()
+				.get(resource + "?sort=name&pageSize=2&page=1&pageStartId=" + offsetId);		
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",			hasSize(2))
+				.body("result_count",		equalTo(10))
+
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-1"))
+
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-2"))
+
+			.when()
+				.get(resource + "?sort=name&pageSize=2&page=-1&pageStartId=" + offsetId);		
+
+		
+		// with empty pageSize: Should start at offset element (index 3) and return 0, 1, 2
+		
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",			hasSize(3))
+				.body("result_count",		equalTo(10))
+
+				.body("result[0]",		isEntity(TestOne.class))
+				.body("result[0].name ",	equalTo("TestOne-0"))
+
+				.body("result[1]",		isEntity(TestOne.class))
+				.body("result[1].name ",	equalTo("TestOne-1"))
+
+				.body("result[2]",		isEntity(TestOne.class))
+				.body("result[2].name ",	equalTo("TestOne-2"))
+
+			.when()
+				.get(resource + "?sort=name&page=-1&pageStartId=" + offsetId);		
+		
+		
+	}
+	
+	
+	/**
 	 * Paging of subresources
 	 */
-	public void test01PagingOfSubresources() {
+	public void test02PagingOfSubresources() {
 
 		// create a root object
 		
@@ -160,5 +290,6 @@ public class AdvancedPagingTest extends StructrRestTest {
 	}
 	
 	
+			
 		
 }
