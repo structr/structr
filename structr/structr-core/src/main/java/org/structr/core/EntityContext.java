@@ -55,6 +55,7 @@ import org.structr.core.notion.ObjectNotion;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -112,9 +113,10 @@ public class EntityContext {
 	private static final Map<String, Class> reverseInterfaceMap                                             = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                                        = new LinkedHashMap<String, Class>();
 
-	private static final Map<Thread, SecurityContext> securityContextMap                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
-	private static final Map<Thread, Long> transactionKeyMap                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
-	private static final ThreadLocalChangeSet globalChangeSet                                               = new ThreadLocalChangeSet();
+	private static final Map<Long, TransactionChangeSet> globalChangeSets                                   = new ConcurrentHashMap<Long, TransactionChangeSet>();
+	private static final ThreadLocal<SecurityContext> securityContextMap                                    = new ThreadLocal<SecurityContext>();
+	private static final ThreadLocal<Long> transactionKeyMap                                                = new ThreadLocal<Long>();
+//	private static final ThreadLocalChangeSet globalChangeSet                                               = new ThreadLocalChangeSet();
 	private static GenericFactory genericFactory                                                            = new DefaultGenericFactory();
 
 	//~--- methods --------------------------------------------------------
@@ -174,6 +176,8 @@ public class EntityContext {
 			Class declaringClass    = field.getDeclaringClass();
 
 			if (declaringClass != null) {
+				
+				propertyKey.setDeclaringClassName(declaringClass.getSimpleName());
 				registerProperty(declaringClass, propertyKey);
 			}
 			
@@ -1069,7 +1073,7 @@ public class EntityContext {
 				return GraphObject.uuid;
 			}
 
-			logger.log(Level.WARNING, "No property key instance found for type {0}, key {1}", new Object[] { type != null ? type.getName() : "null", name } );
+			// logger.log(Level.WARNING, "No property key instance found for type {0}, key {1}", new Object[] { type != null ? type.getName() : "null", name } );
 			
 			key = new Property(name);
 		}
@@ -1525,23 +1529,23 @@ public class EntityContext {
 		genericFactory = factory;
 	}
 
-	public static synchronized TransactionChangeSet getTransactionChangeSet() {
-		return globalChangeSet.get();
+	public static synchronized TransactionChangeSet getTransactionChangeSet(long transactionKey) {
+		return globalChangeSets.get(transactionKey);
 	}
 	
-	public static synchronized void clearTransactionData() {
+	public static synchronized void clearTransactionData(long transactionKey) {
 
-		securityContextMap.remove(Thread.currentThread());
-		transactionKeyMap.remove(Thread.currentThread());
-		globalChangeSet.get().clear();
+		securityContextMap.remove();
+		transactionKeyMap.remove();
+		globalChangeSets.remove(transactionKey);
 	}
 	
 	public static synchronized void setSecurityContext(SecurityContext securityContext) {
-		securityContextMap.put(Thread.currentThread(), securityContext);
+		securityContextMap.set(securityContext);
 	}
 
 	public static synchronized void setTransactionKey(Long transactionKey) {
-		transactionKeyMap.put(Thread.currentThread(), transactionKey);
+		transactionKeyMap.set(transactionKey);
 	}
 	
 	//~--- inner classes --------------------------------------------------
@@ -1553,15 +1557,13 @@ public class EntityContext {
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
 
-			Thread currentThread = Thread.currentThread();
-
-			if (!transactionKeyMap.containsKey(currentThread)) {
-
+			Long transactionKeyValue = transactionKeyMap.get();
+			
+			if (transactionKeyValue == null) {
 				return -1L;
-
 			}
-
-			long transactionKey = transactionKeyMap.get(Thread.currentThread());
+			
+			long transactionKey = transactionKeyMap.get();
 			
 			// check if node service is ready
 			if (!Services.isReady(NodeService.class)) {
@@ -1572,7 +1574,7 @@ public class EntityContext {
 
 			}
 
-			SecurityContext securityContext                   = securityContextMap.get(currentThread);
+			SecurityContext securityContext                   = securityContextMap.get();
 			SecurityContext superUserContext                  = SecurityContext.getSuperUserInstance();
 			IndexNodeCommand indexNodeCommand                 = Services.command(superUserContext, IndexNodeCommand.class);
 			IndexRelationshipCommand indexRelationshipCommand = Services.command(superUserContext, IndexRelationshipCommand.class);
@@ -1586,6 +1588,9 @@ public class EntityContext {
 				ErrorBuffer errorBuffer                                     = new ErrorBuffer();
 				NodeFactory nodeFactory                                     = new NodeFactory(securityContext);
 				boolean hasError                                            = false;
+				
+				// store change set
+				globalChangeSets.put(transactionKey, changeSet);
 
 				// notify transaction listeners
 				for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
@@ -1614,6 +1619,11 @@ public class EntityContext {
 						if (modifiedNode != null) {
 
 							PropertyKey key = getPropertyKeyForName(modifiedNode.getClass(), entry.key());
+							
+							// only send modification events for non-system properties
+							if (!key.isSystemProperty()) {
+								changeSet.nonSystemProperty();
+							}
 							
 							changeSet.modify(modifiedNode);
 
@@ -1649,6 +1659,11 @@ public class EntityContext {
 							
 							PropertyKey key = getPropertyKeyForName(modifiedRel.getClass(), entry.key());
 							
+							// only send modification events for non-system properties
+							if (!key.isSystemProperty()) {
+								changeSet.nonSystemProperty();
+							}
+							
 							changeSet.modify(modifiedRel);
 
 							// notify registered listeners
@@ -1659,7 +1674,7 @@ public class EntityContext {
 					}
 
 				}
-
+						
 				// 2: notify listeners of node creation (so the modifications can later be tracked)
 				for (Node node : sortNodes(data.createdNodes())) {
 
@@ -1797,6 +1812,11 @@ public class EntityContext {
 						
 						PropertyKey key  = getPropertyKeyForName(nodeEntity.getClass(), entry.key());
 						Object value     = entry.value();
+						
+						// only send modification events for non-system properties
+						if (!key.isSystemProperty()) {
+							changeSet.nonSystemProperty();
+						}
 
 						// iterate over validators
 						// FIXME: synthetic property key
@@ -1845,6 +1865,11 @@ public class EntityContext {
 						
 						PropertyKey key = getPropertyKeyForName(relEntity.getClass(), entry.key());
 						Object value    = entry.value();
+
+						// only send modification events for non-system properties
+						if (!key.isSystemProperty()) {
+							changeSet.nonSystemProperty();
+						}
 
 						// iterate over validators
 						// FIXME: synthetic property key
@@ -1934,8 +1959,6 @@ public class EntityContext {
 				for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 					listener.commit(securityContext, transactionKey);
 				}
-
-				globalChangeSet.get().include(changeSet);
 				
 				
 			} catch (FrameworkException fex) {

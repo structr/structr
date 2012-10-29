@@ -37,6 +37,10 @@ public class MappedProperty<T> extends Property<T> {
 		this.mappedKey = mappedKey;
 	}
 	
+	public PropertyKey<T> mappedKey() {
+		return mappedKey;
+	}
+	
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new PropertyMapper(securityContext, entity, mappedKey);

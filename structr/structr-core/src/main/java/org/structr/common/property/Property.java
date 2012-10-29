@@ -28,8 +28,11 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class Property<JavaType> implements PropertyKey<JavaType> {
 
-	protected JavaType defaultValue = null;
-	protected String name           = null;
+	protected String declaringClassName  = null;
+	protected JavaType defaultValue      = null;
+	protected String name                = null;
+	protected boolean isReadOnlyProperty = false;
+	protected boolean isSystemProperty   = false;
 	
 	public Property(String name) {
 		this.name = name;
@@ -38,6 +41,20 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	public Property(String name, JavaType defaultValue) {
 		this.name = name;
 		this.defaultValue = defaultValue;
+	}
+	
+	public Property<JavaType> systemProperty() {
+		this.isSystemProperty = true;
+		return this;
+	}
+	
+	public Property<JavaType> readOnly() {
+		this.isReadOnlyProperty = true;
+		return this;
+	}
+	
+	public void setDeclaringClassName(String name) {
+		this.declaringClassName = declaringClassName;
 	}
 	
 	@Override
@@ -85,5 +102,15 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext) {
 		return null;
+	}
+
+	@Override
+	public boolean isSystemProperty() {
+		return isSystemProperty;
+	}
+
+	@Override
+	public boolean isReadOnlyProperty() {
+		return isReadOnlyProperty;
 	}
 }

@@ -71,16 +71,27 @@ public class SetOwnerCommand extends NodeServiceCommand {
 
 	private void setOwner(final AbstractNode node, final AbstractNode user) throws FrameworkException {
 
-		DeleteRelationshipCommand delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+		// Create outer transaction to bundle inner transactions
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		// Remove any existing OWNS relationships
-		for (AbstractRelationship s : node.getRelationships(RelType.OWNS, Direction.INCOMING)) {
+			@Override
+			public Object execute() throws FrameworkException {
 
-			delRel.execute(s);
-		}
+				DeleteRelationshipCommand delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 
-		// Create new relationship to user and grant permissions to user or group
-		Services.command(securityContext, CreateRelationshipCommand.class).execute(user, node, RelType.OWNS);
+				// Remove any existing OWNS relationships
+				for (AbstractRelationship s : node.getRelationships(RelType.OWNS, Direction.INCOMING)) {
+
+					delRel.execute(s);
+				}
+
+				// Create new relationship to user and grant permissions to user or group
+				Services.command(securityContext, CreateRelationshipCommand.class).execute(user, node, RelType.OWNS);
+				
+				return null;
+			}
+
+		});
 	}
 
 	private void setOwner(final List<AbstractNode> nodeList, final AbstractNode user) throws FrameworkException {

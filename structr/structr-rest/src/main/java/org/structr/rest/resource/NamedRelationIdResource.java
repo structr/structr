@@ -82,7 +82,9 @@ public class NamedRelationIdResource extends WrappingResource {
 
 	}
 
-	/* CHM: why does this method exist?
+	/*
+	 * 
+	 * 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
 

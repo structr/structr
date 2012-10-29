@@ -28,17 +28,16 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.Set;
+import java.util.logging.Level;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.kernel.DeadlockDetectedException;
-import org.neo4j.kernel.TopLevelTransaction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.TransactionChangeSet;
 import org.structr.core.entity.AbstractNode;
 
@@ -52,155 +51,317 @@ public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                 = Logger.getLogger(TransactionCommand.class.getName());
 	private static final AtomicLong transactionCounter = new AtomicLong(0);
+	private static final int MAX_DEPTH                 = 16;
+	private static final boolean debug                 = false;
 
-
-	//~--- methods --------------------------------------------------------
-
+	private static final ThreadLocal<Transaction> tramsactions = new ThreadLocal<Transaction>();
+	private static final ThreadLocal<Long> transactionKeys     = new ThreadLocal<Long>();
+	private static final ThreadLocal<Long> depths              = new ThreadLocal<Long>();
+	
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
 
-		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		boolean topLevelTransaction    = false;
-		FrameworkException exception   = null;
-		T ret                          = null;
-		Transaction tx                 = graphDb.beginTx();
-		topLevelTransaction            = tx instanceof TopLevelTransaction;
-
-		try {
-
-			ret = transaction.execute();
-
-			tx.success();
-			logger.log(Level.FINEST, "Transaction successfull");
-
-		} catch (FrameworkException frameworkException) {
-
-			// CHM
-			frameworkException.printStackTrace();
+		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		Long transactionKey          = transactionKeys.get();
+		Transaction tx               = tramsactions.get();
+		Throwable exception          = null;
+		T ret                        = null;
+		
+		if (tx == null || transactionKey == null) {
 			
-			tx.failure();
-			logger.log(Level.WARNING, "Transaction failure", frameworkException);
+			tx = graphDb.beginTx();
+			transactionKey = nextLong();
+			
+			transactionKeys.set(transactionKey);
+			tramsactions.set(tx);
+			
+			EntityContext.setSecurityContext(securityContext);
+			EntityContext.setTransactionKey(transactionKey);
 
-			// store exception for later use
-			exception = frameworkException;
+			try {
 
-		} catch(DeadlockDetectedException ddex) {
+				ret = transaction.execute();
 
-			tx.failure();
+				tx.success();
 
-			logger.log(Level.SEVERE, "Neo4j detected a deadlock!", ddex.getMessage());
+			} catch (Throwable t) {
 
-			/*
-			* Maybe the transaction can be restarted here
-			*/
+				// CHM
+				t.printStackTrace();
 
-		} finally {
+				tx.failure();
 
-			synchronized(TransactionCommand.class) {
+				// store exception for later use
+				exception = t;
 
-				long transactionKey = nextLong();
-				EntityContext.setSecurityContext(securityContext);
-				EntityContext.setTransactionKey(transactionKey);
+			} finally {
 
-				try {
-					tx.finish();
-				} catch (Throwable t) {
-					
-					// CHM
-					t.printStackTrace();
+				tramsactions.remove();
+				transactionKeys.remove();
 
-					// transaction failed, look for "real" cause..
-					exception = EntityContext.getFrameworkException(transactionKey);
+				synchronized(TransactionCommand.class) {
+
+					try {
+
+						tx.finish();
+
+
+					} catch (Throwable t) {
+
+						// CHM
+						t.printStackTrace();
+
+						// transaction failed, look for "real" cause..
+						exception = EntityContext.getFrameworkException(transactionKey);
+					}
 				}
 			}
-		}
 
-		if(exception != null) {
-			throw exception;
-		}
+			if(exception != null) {
 
-		if(topLevelTransaction) {
+				exception.printStackTrace();
 
-			notifyChangeSet(graphDb, EntityContext.getTransactionChangeSet());
+				if (exception instanceof FrameworkException) {
+					
+					EntityContext.clearTransactionData(transactionKey);
+					throw (FrameworkException)exception;
+				}
+			}
+
+			final TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet(transactionKey);
+			Long depthValue = depths.get();
+			long depth      = 0;
+			
+			if (depthValue != null) {
+				depth = depthValue.longValue();
+			}
+
+			if (debug) {
+				
+				indent();
+				System.out.println("BEFORE CHANGESET: " + transactionKey);
+			}
+			
+			if (changeSet != null) {
+			
+				if (debug) {
+				
+					indent();
+					System.out.println("BEFORE DEPTH: " + depth);
+				}
+
+				if (depth < MAX_DEPTH && !changeSet.systemOnly()) {
+					
+					if (debug) {
+
+						indent();
+						System.out.println("AFTER DEPTH: " + depth);
+					}
+					
+					depths.set(depth + 1);
+
+					try {
+						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+							@Override
+							public Object execute() throws FrameworkException {
+
+								notifyChangeSet(changeSet);
+
+								return null;
+							}
+
+						});
+
+					} catch(Throwable t) { t.printStackTrace(); }
+
+					depths.set(depth);
+					
+				} else {
+					
+					if (depth == MAX_DEPTH) {
+						logger.log(Level.SEVERE, "Maximum depth of nested modifications reached! You probably forgot to mark a property as a system property.");
+					}
+					
+					if (debug) {
+
+						indent();
+						System.out.println("CHANGESET STATS: " + changeSet.toString());
+					}
+				}
+			}
+
+			EntityContext.clearTransactionData(transactionKey);
+			
+			return ret;
+			
+		} else {
+
+			if (debug) {
+				
+				indent();
+				System.out.println("EXISTING TRANSACTION: " + transactionKey);
+			}
+			
+			return transaction.execute();
 		}
-		
-		return ret;
 	}
 
 	public <T> T execute(BatchTransaction<T> transaction) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		boolean topLevelTransaction  = false;
-		FrameworkException exception = null;
+		Long transactionKey          = transactionKeys.get();
+		Transaction tx               = tramsactions.get();
+		Throwable exception          = null;
 		T ret                        = null;
-		Transaction tx               = graphDb.beginTx();
-		topLevelTransaction          = tx instanceof TopLevelTransaction;
-
-
-		try {
-
-			ret = transaction.execute(tx);
-
-			tx.success();
-			logger.log(Level.FINEST, "Transaction successfull");
-
-
-		} catch (FrameworkException frameworkException) {
-
-			// CHM
-			frameworkException.printStackTrace();
-
-			tx.failure();
-			logger.log(Level.WARNING, "Transaction failure", frameworkException);
-
-			// store exception for later use
-			exception = frameworkException;
-
-		} catch(DeadlockDetectedException ddex) {
-
-			tx.failure();
-
-			logger.log(Level.SEVERE, "Neo4j detected a deadlock!", ddex.getMessage());
-
-			/*
-				* Maybe the transaction can be restarted here
-				*/
-
-		} finally {
-
-			synchronized(TransactionCommand.class) {
-
-				long transactionKey = nextLong();
-				EntityContext.setSecurityContext(securityContext);
-				EntityContext.setTransactionKey(transactionKey);
-
-				try {
-					tx.finish();
-				} catch (Throwable t) {
-
-					// CHM
-					t.printStackTrace();
+		
+		if (tx == null || transactionKey == null) {
 			
-					// transaction failed, look for "real" cause..
-					exception = EntityContext.getFrameworkException(transactionKey);
+			tx = graphDb.beginTx();
+			transactionKey = nextLong();
+			
+			transactionKeys.set(transactionKey);
+			tramsactions.set(tx);
+			
+			EntityContext.setSecurityContext(securityContext);
+			EntityContext.setTransactionKey(transactionKey);
+
+			if (debug) {
+				
+				indent();
+				System.out.println("NEW TRANSACTION: " + transactionKey);
+			}
+			
+			try {
+
+				ret = transaction.execute(tx);
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				// CHM
+				t.printStackTrace();
+
+				tx.failure();
+
+				// store exception for later use
+				exception = t;
+
+			} finally {
+
+				tramsactions.remove();
+				transactionKeys.remove();
+
+				synchronized(TransactionCommand.class) {
+
+					try {
+
+						tx.finish();
+
+
+					} catch (Throwable t) {
+
+						// CHM
+						t.printStackTrace();
+
+						// transaction failed, look for "real" cause..
+						exception = EntityContext.getFrameworkException(transactionKey);
+					}
 				}
 			}
-		}
 
-		if(exception != null) {
-			throw exception;
-		}
+			if(exception != null) {
 
-		
-		if(topLevelTransaction) {
+				exception.printStackTrace();
 
-			notifyChangeSet(graphDb, EntityContext.getTransactionChangeSet());
+				if (exception instanceof FrameworkException) {
+					
+					EntityContext.clearTransactionData(transactionKey);
+					throw (FrameworkException)exception;
+				}
+			}
+
+			final TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet(transactionKey);
+			Long depthValue = depths.get();
+			long depth      = 0;
+			
+			if (depthValue != null) {
+				depth = depthValue.longValue();
+			}
+
+			if (debug) {
+				
+				indent();
+				System.out.println("BEFORE CHANGESET: " + transactionKey);
+			}
+			
+			if (changeSet != null) {
+			
+				if (debug) {
+				
+					indent();
+					System.out.println("BEFORE DEPTH: " + depth);
+				}
+
+				if (depth < MAX_DEPTH && !changeSet.systemOnly()) {
+					
+					if (debug) {
+
+						indent();
+						System.out.println("AFTER DEPTH: " + depth);
+					}
+					
+					depths.set(depth + 1);
+					
+					try {
+						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+							@Override
+							public Object execute() throws FrameworkException {
+
+								notifyChangeSet(changeSet);
+
+								return null;
+							}
+
+						});
+
+					} catch(Throwable t) { t.printStackTrace(); }
+
+					depths.set(depth);
+					
+				} else {
+					
+					if (depth == MAX_DEPTH) {
+						logger.log(Level.SEVERE, "Maximum depth of nested modifications reached! You probably forgot to mark a property as a system property.");
+					}
+					
+					if (debug) {
+
+						indent();
+						System.out.println("CHANGESET STATS: " + changeSet.toString());
+					}
+				}
+			}
+				
+			EntityContext.clearTransactionData(transactionKey);
+
+			return ret;
+			
+		} else {
+
+			if (debug) {
+				
+				indent();
+				System.out.println("EXISTING TRANSACTION: " + transactionKey);
+			}
+			
+			return transaction.execute(tx);
 		}
-		
-		return ret;
 	}
 	
-	private void notifyChangeSet(GraphDatabaseService graphDb, TransactionChangeSet changeSet) {
-		
+	private void notifyChangeSet(TransactionChangeSet changeSet) {
+
 		// determine propagation set
 		final Queue<AbstractNode> propagationQueue = changeSet.getPropagationQueue();
 		final Set<AbstractNode> propagationSet     = new LinkedHashSet<AbstractNode>();
@@ -223,65 +384,21 @@ public class TransactionCommand extends NodeServiceCommand {
 			} while(!propagationQueue.isEmpty());
 		}
 
+		propagateModification(securityContext, propagationSet);
 
-		Transaction postProcessingTransaction = graphDb.beginTx();
+		afterOwnerModification(securityContext, changeSet.getOwnerModifiedNodes());
+		afterSecurityModification(securityContext, changeSet.getSecurityModifiedNodes());
+		afterLocationModification(securityContext, changeSet.getLocationModifiedNodes());
 
-		try {
+		afterDeletion(securityContext, changeSet.getDeletedNodes());
+		afterDeletion(securityContext, changeSet.getDeletedRelationships());
 
-			// TEST: propagated modification event
-			propagateModification(securityContext, propagationSet);
+		afterModification(securityContext, changeSet.getModifiedNodes());
+		afterModification(securityContext, changeSet.getModifiedRelationships());
 
-			// after transaction callbacks
-			afterCreation(securityContext, changeSet.getCreatedNodes());
-			afterCreation(securityContext, changeSet.getCreatedRelationships());
-
-			afterModification(securityContext, changeSet.getModifiedNodes());
-			afterModification(securityContext, changeSet.getModifiedRelationships());
-
-			afterDeletion(securityContext, changeSet.getDeletedNodes());
-			afterDeletion(securityContext, changeSet.getDeletedRelationships());
-
-			afterOwnerModification(securityContext, changeSet.getOwnerModifiedNodes());
-			afterSecurityModification(securityContext, changeSet.getSecurityModifiedNodes());
-			afterLocationModification(securityContext, changeSet.getLocationModifiedNodes());
-
-			// clear aggregated transaction data
-			EntityContext.clearTransactionData();
-
-			postProcessingTransaction.success();
-
-
-		} catch (Throwable t) {
-
-			// CHM
-			t.printStackTrace();
-			
-			postProcessingTransaction.failure();
-
-		} finally {
-
-			// enable post-processing of the secondary transaction
-			long transactionKey = nextLong();
-			EntityContext.setSecurityContext(securityContext);
-			EntityContext.setTransactionKey(transactionKey);
-
-			try {
-				postProcessingTransaction.finish();
-				
-			} catch (Throwable t) {
-
-				// CHM
-				t.printStackTrace();
-			
-				// transaction failed, look for "real" cause..
-				//t.printStackTrace();
-				logger.log(Level.FINE, "Transaction failure", t);
-			}
-
-			// clear transaction data
-			EntityContext.clearTransactionData();
-
-		}
+		// after transaction callbacks
+		afterCreation(securityContext, changeSet.getCreatedNodes());
+		afterCreation(securityContext, changeSet.getCreatedRelationships());
 	}
 	
 	private void afterCreation(SecurityContext securityContext, Set<? extends GraphObject> data) {
@@ -357,5 +474,18 @@ public class TransactionCommand extends NodeServiceCommand {
 
 	private long nextLong() {
 		return transactionCounter.incrementAndGet();
+	}
+	
+	private void indent() {
+		Long depthValue = depths.get();
+		long depth      = 0;
+
+		if (depthValue != null) {
+			depth = depthValue.longValue();
+		}
+		
+		for (int i=0; i<depth+1; i++) {
+			System.out.print("        ");
+		}
 	}
 }

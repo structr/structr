@@ -155,6 +155,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 		newNode.init(factoryProfile.getSecurityContext(), node);
 		newNode.onNodeInstantiation();
+		
 		newNode.setType(nodeType);
 
 		// check access

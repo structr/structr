@@ -36,5 +36,18 @@ public interface PropertyKey<JavaType> {
 	
 	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy);
 	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
+
+	public void setDeclaringClassName(String declaringClassName);
+	
+	/**
+	 * Indicates whether this property is a system property or not. If a transaction
+	 * contains only modifications AND those modifications affect system properties
+	 * only, structr will NOT call afterModification callbacks.
+	 * 
+	 * @return 
+	 */
+	public boolean isSystemProperty();
+	
+	public boolean isReadOnlyProperty();
 	
 }

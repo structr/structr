@@ -155,7 +155,6 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 
 					if ((properties != null) &&!properties.isEmpty()) {
 
-						// FIXME: synthetic Property generation
 						for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 							newRel.setProperty(entry.getKey(), entry.getValue());
 						}

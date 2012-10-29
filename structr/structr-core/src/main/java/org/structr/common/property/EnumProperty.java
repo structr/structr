@@ -111,7 +111,7 @@ public class EnumProperty<T extends Enum> extends Property<T> {
 					
 				} catch(Throwable t) {
 					
-					throw new FrameworkException(enumType.getDeclaringClass().getSimpleName(), new ValueToken(EnumProperty.this, enumType.getEnumConstants()));
+					throw new FrameworkException(declaringClassName, new ValueToken(EnumProperty.this, enumType.getEnumConstants()));
 				}
 			}
 

@@ -38,7 +38,7 @@ public interface GraphObject {
 
 	public static final Property<String>  uuid = new Property<String>("uuid");
 	public static final Property<String>  type = new Property<String>("type");
-
+	
 	// ----- methods common to both types -----
 	/**
 	 * Returns the database ID of this graph object.

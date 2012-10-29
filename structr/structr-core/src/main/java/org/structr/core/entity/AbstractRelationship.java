@@ -73,7 +73,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public static final Property<String>   combinedType  = new Property<String>("combinedType");
 	public static final Property<Integer>  cascadeDelete = new IntProperty("cascadeDelete");
-	public static final Property<Date>     createdDate   = new ISO8601DateProperty("createdDate");
+	public static final Property<Date>     createdDate   = new ISO8601DateProperty("createdDate").systemProperty();
 	public static final Property<String[]> allowed       = new Property<String[]>("allowed");
 	
 	
@@ -1075,7 +1075,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		Class type = this.getClass();
 
-		// check for scanEntity-only properties
+		// check for read-only properties
 		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
 
 			if (readOnlyPropertiesUnlocked) {
