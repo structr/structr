@@ -35,7 +35,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.IndexNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -52,9 +54,9 @@ public class ImageConverter extends PropertyConverter {
 
 	private KeyAndClass keyAndClass = null;
 	
-	public ImageConverter(SecurityContext securityContext, KeyAndClass kc) {
+	public ImageConverter(SecurityContext securityContext, GraphObject entity, KeyAndClass kc) {
 		
-		super(securityContext, null);
+		super(securityContext, entity);
 		
 		this.keyAndClass = kc;
 	}
@@ -73,9 +75,9 @@ public class ImageConverter extends PropertyConverter {
 
 			Image img = null;
 			
-			// FIXME: keyAndClass is null, the following code WILL throw an NPE!
-			
-			
+			if (keyAndClass == null) {
+				return false;
+			}
 			
 			if (source instanceof byte[]) {
 
@@ -97,8 +99,8 @@ public class ImageConverter extends PropertyConverter {
 			
 			if (img != null) {
 				
-				// manual indexing needed here
-				Services.command(securityContext, IndexNodeCommand.class).execute(img);
+				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
+				Services.command(securityContext, IndexNodeCommand.class).execute(img, AbstractNode.uuid);
 				
 				currentObject.setProperty(keyAndClass.getPropertyKey(), img.getUuid());
 			}

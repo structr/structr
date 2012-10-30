@@ -21,21 +21,22 @@
 
 package org.structr.core.entity;
 
-
 import org.neo4j.graphdb.Direction;
 
+import org.structr.common.*;
 import org.structr.common.ImageHelper;
 import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.IntProperty;
+import org.structr.common.property.Property;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
-import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -48,10 +49,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.*;
-import org.structr.common.property.Property;
-import org.structr.common.property.IntProperty;
-import org.structr.core.property.ImageDataProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,15 +61,11 @@ public class Image extends File {
 
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
-	public static final Property<String> imageData = new ImageDataProperty("imageData", new KeyAndClass(null, null));	// FIXME!!?
-	public static final Property<Integer> height   = new IntProperty("height");
-	public static final Property<Integer> width    = new IntProperty("width");
+	// public static final Property<String> imageData = new ImageDataProperty("imageData", new KeyAndClass(null, null));     // FIXME!!?
+	public static final Property<Integer> height = new IntProperty("height");
+	public static final Property<Integer> width  = new IntProperty("width");
+	public static final View uiView              = new View(Image.class, PropertyView.Ui, width, height);
 
-	public static final View uiView = new View(Image.class, PropertyView.Ui,
-		width, height
-	);
-	
-	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -85,9 +78,6 @@ public class Image extends File {
 	// Cached list with relationships to thumbnails
 	private List<AbstractRelationship> thumbnailRelationships = null;
 
-	//~--- constant enums -------------------------------------------------
-
-	
 	//~--- methods --------------------------------------------------------
 
 	public void removeThumbnails() {
@@ -242,10 +232,41 @@ public class Image extends File {
 //                                                      {
 							thumbnail = (Image) r.getEndNode();
 
-							// Check age: Use thumbnail only if younger than original image
-							if (!(originalImage.getLastModifiedDate().after(thumbnail.getLastModifiedDate()))) {
+							// Use thumbnail only if checksum of original image matches with stored checksum
+							Long storedChecksum  = r.getProperty(Image.checksum);
+							Long currentChecksum = originalImage.getProperty(Image.checksum);
+
+//                                                      if (!(originalImage.getLastModifiedDate().after(thumbnail.getLastModifiedDate()))) {
+							if (storedChecksum != null && storedChecksum.equals(currentChecksum)) {
 
 								return thumbnail;
+//							} else {
+//
+//								// Remove outdated thumbnail
+//								
+//								final Image thumbnailToDelete = thumbnail;
+//
+//								try {
+//
+////									Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+////
+////										@Override
+////										public Image execute() throws FrameworkException {
+//
+//											//Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(thumbnailToDelete);
+//
+////											return null;
+////
+////										}
+////
+////									});
+//
+//								} catch (FrameworkException fex) {
+//
+//									logger.log(Level.WARNING, "Unable to delete thumbnail", fex);
+//
+//								}
+//
 							}
 						}
 
@@ -257,7 +278,7 @@ public class Image extends File {
 
 		}
 
-		// No thumbnail exists, or thumbnail is too old, so let's create a new one
+		// No thumbnail exists, or thumbnail was too old, so let's create a new one
 		logger.log(Level.INFO, "Creating thumbnail for {0}", getName());
 
 		try {
@@ -268,28 +289,21 @@ public class Image extends File {
 				public Image execute() throws FrameworkException {
 
 					CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-
-					Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
+					Thumbnail thumbnailData             = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 
 					if (thumbnailData != null) {
 
 						Integer tnWidth  = thumbnailData.getWidth();
 						Integer tnHeight = thumbnailData.getHeight();
 						Image thumbnail  = null;
+						byte[] data      = null;
 
 						try {
 
-							byte[] data = thumbnailData.getBytes();
-							int size    = data.length;
+							data = thumbnailData.getBytes();
 
 							// create thumbnail node
 							thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class);
-
-							thumbnail.setSize(size);
-							thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
-							thumbnail.setHidden(originalImage.getHidden());
-							thumbnail.setVisibleToPublicUsers(originalImage.getVisibleToPublicUsers());
-							thumbnail.setVisibleToAuthenticatedUsers(originalImage.getVisibleToAuthenticatedUsers());
 
 						} catch (IOException ex) {
 
@@ -304,10 +318,22 @@ public class Image extends File {
 
 							// Add to cache list
 							thumbnailRelationships.add(thumbnailRelationship);
+
+							int size = data.length;
+
+							thumbnail.setSize(size);
+							thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
+							thumbnail.setWidth(tnWidth);
+							thumbnail.setHeight(tnHeight);
+							thumbnail.setHidden(originalImage.getHidden());
+							thumbnail.setVisibleToPublicUsers(originalImage.getVisibleToPublicUsers());
+							thumbnail.setVisibleToAuthenticatedUsers(originalImage.getVisibleToAuthenticatedUsers());
 							thumbnailRelationship.setProperty(Image.width, tnWidth);
 							thumbnailRelationship.setProperty(Image.height, tnHeight);
+							thumbnailRelationship.setProperty(Image.checksum, originalImage.getProperty(checksum));
 						}
 
+						// Services.command(securityContext, IndexNodeCommand.class).execute(thumbnail);
 						return thumbnail;
 
 					} else {
@@ -321,8 +347,6 @@ public class Image extends File {
 				}
 
 			});
-
-			Services.command(securityContext, IndexNodeCommand.class).execute(thumbnail);
 
 		} catch (FrameworkException fex) {
 

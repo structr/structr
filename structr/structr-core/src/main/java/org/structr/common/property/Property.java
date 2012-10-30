@@ -53,8 +53,9 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 		return this;
 	}
 	
+	@Override
 	public void setDeclaringClassName(String name) {
-		this.declaringClassName = declaringClassName;
+		this.declaringClassName = name;
 	}
 	
 	@Override

@@ -197,4 +197,66 @@ public class FileHelper {
 
 	}
 
+	/**
+	 * Calculate CRC32 checksum of given file
+	 * 
+	 * @param file
+	 * @return 
+	 */
+	public static Long getChecksum(final org.structr.core.entity.File file) {
+
+		String relativeFilePath = file.getRelativeFilePath();
+
+		if (relativeFilePath != null) {
+
+			String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+			java.io.File fileOnDisk = new java.io.File(filePath);
+			Long checksum;
+
+			try {
+
+				checksum = FileUtils.checksumCRC32(fileOnDisk);
+
+				logger.log(Level.FINE, "Checksum of file {0} ({1}): {2}", new Object[] { file.getUuid(), filePath, checksum });
+
+				return checksum;
+
+			} catch (Exception ex) {
+
+				logger.log(Level.WARNING, "Could not calculate checksum of file " + filePath, ex);
+
+			}
+
+		}
+		
+		return null;
+		
+	}
+	
+	/**
+	 * Return size of file on disk, or -1 if not possible
+	 * 
+	 * @param file
+	 * @return 
+	 */
+	public static long getSize(final org.structr.core.entity.File file) {
+		
+		String path = file.getRelativeFilePath();
+
+		if (path != null) {
+
+			String filePath         = Services.getFilePath(Path.Files, path);
+			java.io.File fileOnDisk = new java.io.File(filePath);
+			long fileSize           = fileOnDisk.length();
+
+			logger.log(Level.FINE, "File size of node {0} ({1}): {2}", new Object[] { file.getUuid(), filePath, fileSize });
+
+			return fileSize;
+
+		}
+
+		return -1;
+		
+	}
+	
 }

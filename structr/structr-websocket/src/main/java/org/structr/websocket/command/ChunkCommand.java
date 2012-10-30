@@ -80,7 +80,7 @@ public class ChunkCommand extends AbstractCommand {
 			
 			// This should trigger setting of lastModifiedDate in any case
 			file.setChecksum(0L);
-			file.getChecksum();
+//			file.getChecksum();
 			
 			getWebSocket().send(MessageBuilder.status().code(200).message("File saved successfully!").build(), true);
 
