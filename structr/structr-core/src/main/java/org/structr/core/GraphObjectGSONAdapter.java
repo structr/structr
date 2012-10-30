@@ -137,8 +137,6 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		if (serializer == null && !nonSerializerClasses.contains(type)) {
 
-			System.out.println("cache miss for type " + type);
-			
 			do {
 				serializer = serializers.get(localType);
 				localType = localType.getSuperclass();
