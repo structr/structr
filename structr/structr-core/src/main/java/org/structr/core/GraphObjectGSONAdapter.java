@@ -158,7 +158,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				localType = localType.getSuperclass();
 
 			} while (serializer == null && !localType.equals(Object.class));
-
+			
 			
 			// cache found serializer
 			if (serializer != null) {
