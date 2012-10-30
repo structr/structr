@@ -139,24 +139,25 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 			do {
 				serializer = serializers.get(localType);
+
+				if (serializer == null) {
+
+					Set<Class> interfaces = new LinkedHashSet<Class>();
+					collectAllInterfaces(localType, interfaces);
+
+					for (Class interfaceType : interfaces) {
+
+						serializer = serializers.get(interfaceType);
+
+						if (serializer != null) {
+							break;
+						}
+					}
+				}
+
 				localType = localType.getSuperclass();
 
 			} while (serializer == null && !localType.equals(Object.class));
-
-			if (serializer == null) {
-
-				Set<Class> interfaces = new LinkedHashSet<Class>();
-				collectAllInterfaces(type, interfaces);
-				
-				for (Class interfaceType : interfaces) {
-
-					serializer = serializers.get(interfaceType);
-
-					if (serializer != null) {
-						break;
-					}
-				}
-			}
 			
 			// cache found serializer
 			if (serializer != null) {
