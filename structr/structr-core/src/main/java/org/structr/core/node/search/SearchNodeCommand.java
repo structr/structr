@@ -277,7 +277,18 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 					synchronized (index) {
 
-						hits = index.query(queryContext);
+						try {
+							hits = index.query(queryContext);
+							
+						} catch (NumberFormatException nfe) {
+							
+							logger.log(Level.SEVERE, "Could not sort results", nfe);
+							
+							// retry without sorting
+							queryContext.sort(null);
+							hits = index.query(queryContext);
+							
+						}
 					}
 				} else {
 
