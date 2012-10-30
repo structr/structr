@@ -342,7 +342,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 		// We have an offsetId, so first we need to
 		// find the node with this uuid to get the offset
-		List<AbstractNode> allNodes = new LinkedList();
+		List<AbstractNode> nodesUpToOffset = new LinkedList();
 		int i                       = 0;
 		boolean gotOffset           = false;
 
@@ -350,7 +350,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 			AbstractNode n = createNode(node);
 
-			allNodes.add(n);
+			nodesUpToOffset.add(n);
 
 			if (!gotOffset) {
 
@@ -377,8 +377,16 @@ public class NodeFactory<T extends AbstractNode> {
 
 			throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
 		}
+		
+		if (offset < 0) {
+			
+			// Remove last item
+			nodesUpToOffset.remove(nodesUpToOffset.size()-1);
+			
+			return new Result(nodesUpToOffset, size, true, false);
+		}
 
-		for (AbstractNode node : allNodes) {
+		for (AbstractNode node : nodesUpToOffset) {
 
 			if (node != null) {
 
@@ -454,7 +462,8 @@ public class NodeFactory<T extends AbstractNode> {
 			// FIXME: IndexHits#size() may be inaccurate!
 			int size = input.size();
 
-			fromIndex = (page - 1) * pageSize;
+			fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
+			//fromIndex = (page - 1) * pageSize;
 
 			// The overall count may be inaccurate
 			return page(input, size, fromIndex, pageSize);
