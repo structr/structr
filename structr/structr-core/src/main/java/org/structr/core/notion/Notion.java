@@ -21,7 +21,7 @@
 
 package org.structr.core.notion;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
@@ -33,6 +33,8 @@ import org.structr.core.GraphObject;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,13 +50,15 @@ import java.util.List;
  *
  * @author Christian Morgner
  */
-public abstract class Notion {
+public abstract class Notion<T> {
 
-	protected DeserializationStrategy deserializationStrategy = null;
-	protected String idProperty                               = null;
-	protected SecurityContext securityContext                 = null;
-	protected SerializationStrategy serializationStrategy     = null;
-	protected Class type                                      = null;
+	private static final Logger logger = Logger.getLogger(Notion.class.getName());
+	
+	protected DeserializationStrategy<T, GraphObject> deserializationStrategy = null;
+	protected String idProperty                                               = null;
+	protected SecurityContext securityContext                                 = null;
+	protected SerializationStrategy<GraphObject, T> serializationStrategy     = null;
+	protected Class<GraphObject> type                                         = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -75,38 +79,38 @@ public abstract class Notion {
 	 */
 	public abstract PropertyKey getPrimaryPropertyKey();
 
-	public Adapter<GraphObject, Object> getAdapterForGetter(final SecurityContext securityContext) {
+	public Adapter<GraphObject, T> getAdapterForGetter(final SecurityContext securityContext) {
 
 		this.securityContext = securityContext;
 
-		return new Adapter<GraphObject, Object>() {
+		return new Adapter<GraphObject, T>() {
 
 			@Override
-			public Object adapt(GraphObject s) throws FrameworkException {
+			public T adapt(GraphObject s) throws FrameworkException {
 				return serializationStrategy.serialize(securityContext, type, s);
 			}
 		};
 	}
 
-	public Adapter<Object, GraphObject> getAdapterForSetter(final SecurityContext securityContext) {
+	public Adapter<T, GraphObject> getAdapterForSetter(final SecurityContext securityContext) {
 
-		return new Adapter<Object, GraphObject>() {
+		return new Adapter<T, GraphObject>() {
 
 			@Override
-			public GraphObject adapt(Object s) throws FrameworkException {
+			public GraphObject adapt(T s) throws FrameworkException {
 				return deserializationStrategy.deserialize(securityContext, type, s);
 			}
 		};
 	}
 
-	public Adapter<Collection<GraphObject>, Object> getCollectionAdapterForGetter(final SecurityContext securityContext) {
+	public Adapter<Collection<GraphObject>, Collection<T>> getCollectionAdapterForGetter(final SecurityContext securityContext) {
 
-		return new Adapter<Collection<GraphObject>, Object>() {
+		return new Adapter<Collection<GraphObject>, Collection<T>>() {
 
 			@Override
-			public Object adapt(Collection<GraphObject> s) throws FrameworkException {
+			public Collection<T> adapt(Collection<GraphObject> s) throws FrameworkException {
 
-				List list = new LinkedList();
+				List<T> list = new LinkedList<T>();
 
 				for (GraphObject o : s) {
 
@@ -119,24 +123,17 @@ public abstract class Notion {
 		};
 	}
 
-	public Adapter<Object, Collection<GraphObject>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
+	public Adapter<Collection<T>, Collection<GraphObject>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
 
-		return new Adapter<Object, Collection<GraphObject>>() {
+		return new Adapter<Collection<T>, Collection<GraphObject>>() {
 
 			@Override
-			public Collection<GraphObject> adapt(Object s) throws FrameworkException {
+			public Collection<GraphObject> adapt(Collection<T> s) throws FrameworkException {
 
 				List<GraphObject> list = new LinkedList<GraphObject>();
+				for (T t : s) {
 
-				if (s instanceof Iterable) {
-
-					Iterable iterable = (Iterable) s;
-
-					for (Object o : iterable) {
-
-						list.add(deserializationStrategy.deserialize(securityContext, type, o));
-
-					}
+					list.add(deserializationStrategy.deserialize(securityContext, type, t));
 
 				}
 
@@ -147,11 +144,27 @@ public abstract class Notion {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setType(Class type) {
+	public void setType(Class<GraphObject> type) {
 		this.type = type;
 	}
 
 	public void setIdProperty(String idProperty) {
 		this.idProperty = idProperty;
+	}
+	
+	public static <S, T> List<T> convertList(List<S> source, Adapter<S, T> adapter) {
+		
+		List<T> result = new LinkedList<T>();
+		for(S s : source) {
+	
+			try {
+				result.add(adapter.adapt(s));
+				
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Error in iterable adapter", fex);
+			}
+	}
+		
+		return result;
 	}
 }

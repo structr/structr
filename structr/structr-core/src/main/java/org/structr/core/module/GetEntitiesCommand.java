@@ -16,29 +16,24 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.module;
 
 import java.util.Map;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
-public class GetEntitiesCommand extends ModuleServiceCommand
-{
-	@Override
-	public Object execute(Object... parameters)
-	{
-		ModuleService service = (ModuleService)getArgument("moduleService");
-		Map<String, Class> ret = null;
+public class GetEntitiesCommand extends ModuleServiceCommand {
 
-		if(service != null)
-		{
-			ret = service.getCachedNodeEntities();
+	public Map<String, Class> execute() {
+
+		ModuleService service = (ModuleService)getArgument("moduleService");
+		if(service != null) {
+			
+			return service.getCachedNodeEntities();
 		}
 
-		return(ret);
+		return null;
 	}
-
 }

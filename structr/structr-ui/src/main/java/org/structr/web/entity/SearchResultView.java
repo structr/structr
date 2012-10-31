@@ -23,7 +23,6 @@ package org.structr.web.entity;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
@@ -38,20 +37,27 @@ import org.structr.core.node.NodeService;
  */
 public class SearchResultView extends View {
 
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(SearchResultView.class, PropertyView.Ui,
+		type, name, query
+	);
+	
+	public static final org.structr.common.View publicView = new org.structr.common.View(SearchResultView.class, PropertyView.Public,
+		type, name, query
+	);
+	
+	
 	static {
 
-		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.All, Key.values());
-		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.Public, Key.values());
-		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.Ui, Key.values());
+//		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.Public, Key.values());
+//		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.Ui, Key.values());
+		
 		EntityContext.registerEntityRelation(SearchResultView.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(SearchResultView.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.keyword.name(), Key.values());
+		
+		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
 
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey{ type, name, query }
-
 }

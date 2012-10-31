@@ -27,7 +27,6 @@ import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.web.common.RelationshipHelper;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -37,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,19 +62,20 @@ public class SortCommand extends AbstractCommand {
 
 			for (String id : nodeData.keySet()) {
 
-				AbstractNode nodeToSort         = getNode(id);
-				Long pos                        = Long.parseLong((String) nodeData.get(id));
-				List<AbstractRelationship> rels = nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING);
+				AbstractNode nodeToSort          = getNode(id);
+				Long pos                         = Long.parseLong((String) nodeData.get(id));
+				List<AbstractRelationship> rels  = nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING);
+				PropertyKey<Long> pageIdProperty = new Property<Long>(pageId);
 
 				for (AbstractRelationship rel : rels) {
 
 					try {
 
-						Long oldPos = rel.getLongProperty(pageId);
+						Long oldPos = rel.getLongProperty(pageIdProperty);
 
 						if ((oldPos != null) && !(oldPos.equals(pos))) {
 
-							rel.setProperty(pageId, pos);
+							rel.setProperty(pageIdProperty, pos);
 						}
 
 					} catch (FrameworkException fex) {

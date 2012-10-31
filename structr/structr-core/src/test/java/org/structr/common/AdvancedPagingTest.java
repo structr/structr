@@ -21,6 +21,8 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
@@ -93,18 +95,18 @@ public class AdvancedPagingTest extends PagingTest {
 
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(searchAttributes);
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = AbstractNode.Key.name.name();
-			boolean sortDesc = false;
-			int pageSize     = 2;
-			int page         = 1;
+			PropertyKey sortKey = AbstractNode.name;
+			boolean sortDesc    = false;
+			int pageSize        = 2;
+			int page            = 1;
 
 			testPaging(pageSize, page, number, offset, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc);
 
-			Map<String, Object> props = new HashMap();
+			PropertyMap props = new PropertyMap();
 
 			props.put(sortKey, "TestOne-09");
 			this.createTestNode(type, props);
@@ -149,71 +151,71 @@ public class AdvancedPagingTest extends PagingTest {
 
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(searchAttributes);
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = AbstractNode.Key.name.name();
-			boolean sortDesc = false;
-			int pageSize     = 2;
-			int page         = 1;
+			PropertyKey sortKey = AbstractNode.name;
+			boolean sortDesc    = false;
+			int pageSize        = 2;
+			int page            = 1;
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
 			
-			assertEquals("TestOne-0", result.get(0).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-1", result.get(1).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
 			
 			page = -1;
 			
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-6", result.get(0).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-7", result.get(1).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-6", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-7", result.get(1).getProperty(AbstractNode.name));
 			
 			page = -2;
 			
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-4", result.get(0).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-5", result.get(1).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-4", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-5", result.get(1).getProperty(AbstractNode.name));
 
 			page = -3;
 			
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-2", result.get(0).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-3", result.get(1).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-2", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-3", result.get(1).getProperty(AbstractNode.name));
 
 			page = -4;
 			
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-0", result.get(0).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-1", result.get(1).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
 
 			// now with offsetId
 			
 			page = 1;
 			
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-3", result.get(0).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-4", result.get(1).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
 
 			page = -1;
 			
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-1", result.get(0).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-2", result.get(1).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-1", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-2", result.get(1).getProperty(AbstractNode.name));
 			
 		} catch (FrameworkException ex) {
 
@@ -253,27 +255,27 @@ public class AdvancedPagingTest extends PagingTest {
 
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = AbstractNode.Key.name.name();
-			boolean sortDesc = false;
-			int pageSize     = 10;
-			int page         = 1;
+			PropertyKey sortKey = AbstractNode.name;
+			boolean sortDesc    = false;
+			int pageSize        = 10;
+			int page            = 1;
 
 			// now with offsetId
 			
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
 
 			assertTrue(result.size() == 7);
-			assertEquals("TestOne-3", result.get(0).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-4", result.get(1).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-5", result.get(2).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-6", result.get(3).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-7", result.get(4).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-8", result.get(5).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-9", result.get(6).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
+			assertEquals("TestOne-5", result.get(2).getProperty(AbstractNode.name));
+			assertEquals("TestOne-6", result.get(3).getProperty(AbstractNode.name));
+			assertEquals("TestOne-7", result.get(4).getProperty(AbstractNode.name));
+			assertEquals("TestOne-8", result.get(5).getProperty(AbstractNode.name));
+			assertEquals("TestOne-9", result.get(6).getProperty(AbstractNode.name));
 			
 		} catch (FrameworkException ex) {
 
@@ -313,27 +315,27 @@ public class AdvancedPagingTest extends PagingTest {
 
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = AbstractNode.Key.name.name();
-			boolean sortDesc = false;
-			int pageSize     = 2;
-			int page         = -5;
+			PropertyKey sortKey = AbstractNode.name;
+			boolean sortDesc    = false;
+			int pageSize        = 2;
+			int page            = -5;
 			
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			assertTrue(result.size() == 2);
-			assertEquals("TestOne-0", result.get(0).getStringProperty(AbstractNode.Key.name));
-			assertEquals("TestOne-1", result.get(1).getStringProperty(AbstractNode.Key.name));
+			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
 
 			// unknown offsetId
 			
 			page = 1;
 			
 			try {
-				searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, "00000000000000000000");
+				searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, "00000000000000000000");
 				
 				fail("Should have failed with a FrameworkException with 'id not found' token");
 				

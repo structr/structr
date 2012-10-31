@@ -1,6 +1,6 @@
 package org.structr.core.validator;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -32,8 +32,7 @@ public class LowercaseTypeUniquenessValidator extends PropertyValidator<String> 
 
 
 	@Override
-	public boolean isValid(final GraphObject object, final String key,
-	                       final String value, final ErrorBuffer errorBuffer) {
+	public boolean isValid(final GraphObject object, final PropertyKey<String> key, final String value, final ErrorBuffer errorBuffer) {
 
 		final AbstractNode result = lookup(nodeIndex, propertyKey, value);
 		if (result == null) {

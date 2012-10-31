@@ -63,7 +63,6 @@ public class ExtractAndSetImageDimensionsAndFormat extends NodeServiceCommand {
 	 * @param parameters
 	 * @return
 	 */
-	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		List<Image> images = new LinkedList<Image>();

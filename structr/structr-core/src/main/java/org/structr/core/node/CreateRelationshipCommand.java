@@ -22,7 +22,6 @@
 package org.structr.core.node;
 
 import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -33,7 +32,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Transformation;
-import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -45,6 +43,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,120 +60,62 @@ import java.util.logging.Logger;
  *
  * @author cmorgner
  */
-public class CreateRelationshipCommand extends NodeServiceCommand {
+public class CreateRelationshipCommand<T extends AbstractRelationship> extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateRelationshipCommand.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
-	private RelationshipFactory relationshipFactory;
-
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) throws FrameworkException {
+		return createRelationship(fromNode, toNode, relType, null, false);
+	}
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType) throws FrameworkException {
+		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), null, false);
+	}
 
-		relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
+	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, boolean checkDuplicates) throws FrameworkException {
+		return createRelationship(fromNode, toNode, relType, null, checkDuplicates);
+	}
 
-		if ((graphDb != null) && (parameters.length == 3)) {
+	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType, boolean checkDuplicates) throws FrameworkException {
+		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), null, checkDuplicates);
+	}
 
-			Object arg0              = parameters[0];    // start node
-			Object arg1              = parameters[1];    // end node
-			Object arg2              = parameters[2];    // relationship combinedType
-			RelationshipType relType = null;
+	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
+		return createRelationship(fromNode, toNode, relType, properties, checkDuplicates);
+	}
 
-			if (arg2 instanceof String) {
+	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
+		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), properties, checkDuplicates);
+	}
+	
+	private synchronized T createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertyMap properties, final boolean checkDuplicates)
+		throws FrameworkException {
 
-				relType = getRelationshipTypeFor((String) arg2);
+		return (T) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-			} else if (arg2 instanceof RelationshipType) {
-
-				relType = (RelationshipType) arg2;
-
-			} else {
-
-				throw new UnsupportedArgumentError("Wrong argument type(s).");
-
-			}
-
-			if ((arg0 instanceof AbstractNode) && (arg1 instanceof AbstractNode)) {
-
-				AbstractNode startNode = (AbstractNode) arg0;
-				AbstractNode endNode   = (AbstractNode) arg1;
-
-				return createRelationship(startNode, endNode, relType, null);
-
-			} else {
-
-				throw new UnsupportedArgumentError("Wrong argument type(s).");
-
-			}
-
-		} else if ((graphDb != null) && (parameters.length == 5)) {
-
-			Object arg0 = parameters[0];                 // start node
-			Object arg1 = parameters[1];                 // end node
-			Object arg2 = parameters[2];                 // relationship type or combinedType
-			Object arg3 = parameters[3];                 // properties
-			Object arg4 = parameters[4];                 // check duplicates
-
-			// parameters
-			Map<String, Object> properties = null;
-			RelationshipType relType       = null;
-
-			if (arg2 instanceof String) {
-
-				relType = getRelationshipTypeFor((String) arg2);
-
-			} else if (arg2 instanceof RelationshipType) {
-
-				relType = (RelationshipType) arg2;
-
-			} else {
-
-				throw new UnsupportedArgumentError("Wrong argument type(s).");
-
-			}
-
-			if (arg3 instanceof Map) {
-
-				properties = (Map<String, Object>) arg3;
-
-			}
-
-			boolean checkDuplicates = false;
-
-			if (arg4 instanceof Boolean) {
-
-				checkDuplicates = ((Boolean) arg4) == true;
-
-			}
-
-			if ((arg0 instanceof AbstractNode) && (arg1 instanceof AbstractNode)) {
-
-				AbstractNode startNode = (AbstractNode) arg0;
-				AbstractNode endNode   = (AbstractNode) arg1;
+			@Override
+			public Object execute() throws FrameworkException {
 
 				if (checkDuplicates) {
 
-					List<AbstractRelationship> incomingRels = endNode.getIncomingRelationships();
+					List<AbstractRelationship> incomingRels = toNode.getIncomingRelationships();
 
 					for (AbstractRelationship rel : incomingRels) {
 
                                                 // Duplicate check:
                                                 // First, check if relType and start node are equal
-						if (rel.getRelType().equals(relType) && rel.getStartNode().equals(startNode)) {
+						if (rel.getRelType().equals(relType) && rel.getStartNode().equals(fromNode)) {
 
                                                         // At least one property of new rel has to be different to the tested existing node
-							Map<String, Object> relProps = rel.getProperties();
-							boolean propsEqual           = true;
+							PropertyMap relProps = rel.getProperties();
+							boolean propsEqual   = true;
 
-							for (Entry entry : properties.entrySet()) {
+							for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-								String key = (String) entry.getKey();
-								Object val = entry.getValue();
+								PropertyKey key = entry.getKey();
+								Object val      = entry.getValue();
 
 								if (!relProps.containsKey(key) || !relProps.get(key).equals(val)) {
 
@@ -199,39 +141,23 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 				}
 
-				return createRelationship(startNode, endNode, relType, properties);
 
-			} else {
+				
+				RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
+				Node startNode                             = fromNode.getNode();
+				Node endNode                               = toNode.getNode();
+				Relationship rel                           = startNode.createRelationshipTo(endNode, relType);
+				T newRel                                   = relationshipFactory.createRelationship(securityContext, rel);
 
-				throw new UnsupportedArgumentError("Wrong argument type(s).");
-
-			}
-
-		}
-
-		return null;
-	}
-
-	private synchronized AbstractRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final Map<String, Object> properties)
-		throws FrameworkException {
-
-		return (AbstractRelationship) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				Node startNode              = fromNode.getNode();
-				Node endNode                = toNode.getNode();
-				Relationship rel            = startNode.createRelationshipTo(endNode, relType);
-				AbstractRelationship newRel = relationshipFactory.createRelationship(securityContext, rel);
-
-				newRel.setProperty(AbstractRelationship.HiddenKey.createdDate.name(), new Date());
+				newRel.setProperty(AbstractRelationship.createdDate, new Date());
 
 				if (newRel != null) {
 
 					if ((properties != null) &&!properties.isEmpty()) {
 
-						newRel.setProperties(properties);
+						for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
+							newRel.setProperty(entry.getKey(), entry.getValue());
+						}
 
 					}
 

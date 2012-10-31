@@ -32,11 +32,9 @@ import org.structr.common.AccessMode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.PropertySet;
-import org.structr.core.PropertySet.PropertyFormat;
-import org.structr.core.PropertySetGSONAdapter;
+import org.structr.core.JsonInput;
+import org.structr.core.JsonInputGSONAdapter;
 import org.structr.core.Value;
-import org.structr.core.node.NodeAttribute;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
@@ -56,12 +54,7 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,7 +65,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.*;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.node.NodeFactory;
 import org.structr.rest.exception.NotFoundException;
@@ -97,121 +92,54 @@ public class JsonRestServlet extends HttpServlet {
 	public static final String REQUEST_PARAMETER_OFFSET_ID              = "pageStartId";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
-	private static final String SERVLET_PARAMETER_RESOURCE_PROVIDER     = "ResourceProvider";
-	private static final String SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW = "DefaultPropertyView";
-	private static final String SERVLET_PARAMETER_ID_PROPERTY           = "IdProperty";
-	private static final String SERVLET_PARAMETER_PROPERTY_FORMAT       = "PropertyFormat";
-//	private static final String SERVLET_PARAMETER_REQUEST_LOGGING       = "RequestLogging";
 	private static final Logger logger                                  = Logger.getLogger(JsonRestServlet.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Pattern, Class> resourceMap           = null;
-	private String defaultIdProperty                  = null;
-	private String defaultPropertyView                = PropertyView.Public;
-	private Gson gson                                 = null;
-	private Writer logWriter                          = null;
-	private PropertySetGSONAdapter propertySetAdapter = null;
-	private Value<String> propertyView                = null;
-	private ResultGSONAdapter resultGsonAdapter       = null;
+	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
+	private PropertyKey defaultIdProperty                       = AbstractNode.uuid;
+	private String defaultPropertyView                          = PropertyView.Public;
+	private Gson gson                                           = null;
+	private Writer logWriter                                    = null;
+	private JsonInputGSONAdapter jsonInputAdapter               = null;
+	private Value<String> propertyView                          = null;
+	private ResultGSONAdapter resultGsonAdapter                 = null;
+	private ResourceProvider resourceProvider                   = null;
 
-	//~--- methods --------------------------------------------------------
-
+	public JsonRestServlet(ResourceProvider resourceProvider, String defaultPropertyView, PropertyKey<String> idProperty) {
+		
+		this.resourceProvider    = resourceProvider;
+		this.defaultPropertyView = defaultPropertyView;
+		this.defaultIdProperty   = idProperty;
+	}
+	
 	@Override
 	public void init() {
-
-		// initialize variables
-		this.resourceMap = new LinkedHashMap<Pattern, Class>();
-		this.propertyView  = new ThreadLocalPropertyView();
-
+		
 		// initialize internal resources with exact matching from EntityContext
 		for(RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
 			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
 		}
 
-		// external resource constraint initialization
-		String externalProviderName = this.getInitParameter(SERVLET_PARAMETER_RESOURCE_PROVIDER);
+		// inject resources
+		resourceMap.putAll(resourceProvider.getResources());
 
-		if (externalProviderName != null) {
-
-			String[] parts = externalProviderName.split("[, ]+");
-
-			for (String part : parts) {
-
-				try {
-
-					logger.log(Level.INFO, "Injecting resources from provider {0}", part);
-
-					Class providerClass       = Class.forName(part);
-					ResourceProvider provider = (ResourceProvider) providerClass.newInstance();
-
-					// inject constraints
-					resourceMap.putAll(provider.getResources());
-
-				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Unable to inject external resources", t);
-				}
-
-			}
-
-		}
-
-		// property view initialization
-		String defaultPropertyViewName = this.getInitParameter(SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW);
-
-		if (defaultPropertyViewName != null) {
-
-			logger.log(Level.FINE, "Setting default property view to {0}", defaultPropertyViewName);
-
-			this.defaultPropertyView = defaultPropertyViewName;
-
-		}
-
-		// primary key
-		String defaultIdPropertyName = this.getInitParameter(SERVLET_PARAMETER_ID_PROPERTY);
-
-		if (defaultIdPropertyName != null) {
-
-			logger.log(Level.FINE, "Setting default id property to {0}", defaultIdPropertyName);
-
-			this.defaultIdProperty = defaultIdPropertyName;
-
-		}
-
-		PropertyFormat propertyFormat = initializePropertyFormat();
+		// initialize variables
+		this.propertyView  = new ThreadLocalPropertyView();
 
 		// initialize adapters
-		this.resultGsonAdapter  = new ResultGSONAdapter(propertyFormat, propertyView, defaultIdProperty);
-		this.propertySetAdapter = new PropertySetGSONAdapter(propertyFormat, propertyView, defaultIdProperty);
+		this.resultGsonAdapter  = new ResultGSONAdapter(propertyView, defaultIdProperty);
+		this.jsonInputAdapter = new JsonInputGSONAdapter(propertyView, defaultIdProperty);
 
 		// create GSON serializer
 		this.gson = new GsonBuilder()
                         .setPrettyPrinting()
                         .serializeNulls()
                         .registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
-                        .registerTypeAdapter(PropertySet.class, propertySetAdapter)
+                        .registerTypeAdapter(JsonInput.class, jsonInputAdapter)
                         .registerTypeAdapter(Result.class, resultGsonAdapter)
                         .create();
-
-//		String requestLoggingParameter = this.getInitParameter(SERVLET_PARAMETER_REQUEST_LOGGING);
-//
-//		if ((requestLoggingParameter != null) && "true".equalsIgnoreCase(requestLoggingParameter)) {
-//
-//			// initialize access log
-//			String logFileName = Services.getBasePath().concat("/logs/access.log");
-//
-//			try {
-//
-//				File logFile = new File(logFileName);
-//
-//				logFile.getParentFile().mkdir();
-//
-//				logWriter = new FileWriter(logFileName);
-//
-//			} catch (IOException ioex) {
-//				logger.log(Level.WARNING, "Could not open access log file {0}: {1}", new Object[] { logFileName, ioex.getMessage() });
-//			}
-//		}
+		
 	}
 
 	@Override
@@ -242,8 +170,8 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			SecurityContext securityContext = getSecurityContext(request, response);
-			List<Resource> chain        = parsePath(securityContext, request);
-			Resource resourceConstraint = optimizeConstraintChain(chain);
+			List<Resource> chain            = parsePath(securityContext, request);
+			Resource resourceConstraint     = optimizeConstraintChain(chain);
 
 			// let authenticator examine request again
 			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
@@ -321,10 +249,18 @@ public class JsonRestServlet extends HttpServlet {
 			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
 			String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
 			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-			String sortKey           = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
 			int pageSize		 = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 			int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			PropertyKey sortKey      = null;
+
+			// set sort key
+			if (sortKeyName != null) {
+				
+				Class<? extends GraphObject> type = resource.getEntityClass();
+				sortKey = EntityContext.getPropertyKeyForName(type, sortKeyName);
+			}
 			
 			// do action
 			Result result            = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
@@ -550,7 +486,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
+			final JsonInput propertySet   = gson.fromJson(request.getReader(), JsonInput.class);
 			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
@@ -638,15 +574,15 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
+			final JsonInput propertySet   = gson.fromJson(request.getReader(), JsonInput.class);
 			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<Resource> chain        = parsePath(securityContext, request);
-				Resource resourceConstraint = optimizeConstraintChain(chain);
-				Map<String, Object> properties        = convertPropertySetToMap(propertySet);
+				List<Resource> chain           = parsePath(securityContext, request);
+				Resource resourceConstraint    = optimizeConstraintChain(chain);
+				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// do action
 				RestMethodResult result = resourceConstraint.doPut(properties);
@@ -756,20 +692,20 @@ public class JsonRestServlet extends HttpServlet {
 				}
 				
 				// look for matching pattern
-				for (Entry<Pattern, Class> entry : resourceMap.entrySet()) {
+				for (Entry<Pattern, Class<? extends Resource>> entry : resourceMap.entrySet()) {
 
 					Pattern pattern = entry.getKey();
 					Matcher matcher = pattern.matcher(pathParts[i]);
 
 					if (matcher.matches()) {
 
-						Class type = entry.getValue();
-						Resource resource = null;
+						Class<? extends Resource> type = entry.getValue();
+						Resource resource              = null;
 						
 						try {
 
 							// instantiate resource constraint
-							resource = (Resource) type.newInstance();
+							resource = type.newInstance();
 
 						} catch (Throwable t) {
 							logger.log(Level.WARNING, "Error instantiating constraint class", t);
@@ -914,29 +850,6 @@ public class JsonRestServlet extends HttpServlet {
 		throw new IllegalPathException();
 	}
 
-	private PropertyFormat initializePropertyFormat() {
-
-		// ----- set property format from init parameters -----
-		String propertyFormatParameter = this.getInitParameter(SERVLET_PARAMETER_PROPERTY_FORMAT);
-		PropertyFormat propertyFormat  = PropertyFormat.NestedKeyValueType;
-
-		if (propertyFormatParameter != null) {
-
-			try {
-
-				propertyFormat = PropertyFormat.valueOf(propertyFormatParameter);
-
-				logger.log(Level.FINE, "Setting property format to {0}", propertyFormatParameter);
-
-			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Cannot use property format {0}, unknown format.", propertyFormatParameter);
-			}
-
-		}
-
-		return propertyFormat;
-	}
-
 	private Resource applyViewTransformation(HttpServletRequest request, SecurityContext securityContext, Resource finalResource) throws FrameworkException {
 
 		Resource transformedResource = finalResource;
@@ -1043,63 +956,14 @@ public class JsonRestServlet extends HttpServlet {
 		return buf.toString();
 	}
 
-	private Map<String, Object> convertPropertySetToMap(PropertySet propertySet) {
-
-		Map<String, Object> properties        = new LinkedHashMap<String, Object>();
-
-		// copy properties to map
-		if(propertySet != null) {
-
-			for (NodeAttribute attr : propertySet.getAttributes()) {
-				String key = attr.getKey();
-				Object val = attr.getValue();
-
-				// store value
-				properties.put(key, val);
-			}
+	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
+		
+		if (propertySet != null) {
+			return propertySet.getAttributes();
 		}
-
-		return properties;
+		
+		return new LinkedHashMap<String, Object>();
 	}
-
-//	private void logRequest(String method, HttpServletRequest request) {
-//
-////
-////              if(logWriter != null) {
-////
-////                      try {
-////                              logWriter.append(accessLogDateFormat.format(System.currentTimeMillis()));
-////                              logWriter.append(" ");
-////                              logWriter.append(StringUtils.rightPad(method, 8));
-////                              logWriter.append(request.getRequestURI());
-////                              logWriter.append("\n");
-////
-////                              BufferedReader reader = request.getReader();
-////                              if(reader.markSupported()) {
-////                                      reader.mark(65535);
-////                              }
-////
-////                              String line = reader.readLine();
-////                              while(line != null) {
-////                                      logWriter.append("        ");
-////                                      logWriter.append(line);
-////                                      line = reader.readLine();
-////                                      logWriter.append("\n");
-////                              }
-////
-////                              reader.reset();
-////
-////                              logWriter.flush();
-////
-////                      } catch(IOException ioex) {
-////                              // ignore
-////                      }
-////              }
-//	}
-
-	// </editor-fold>
-
-	//~--- get methods ----------------------------------------------------
 
 	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
@@ -1110,8 +974,7 @@ public class JsonRestServlet extends HttpServlet {
 		
 		return securityContext;
 	}
-
-	//~--- inner classes --------------------------------------------------
+	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="nested classes">
 	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {

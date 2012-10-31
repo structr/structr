@@ -26,22 +26,22 @@ import org.structr.core.Services;
  *
  * @author Christian Morgner
  */
-public class ThreadLocalCommand extends ThreadLocal<Command> {
+public class ThreadLocalCommand<T extends Command> extends ThreadLocal<T> {
 	
 	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-	private Class type = null;
+	private Class<T> type                   = null;
 	
-	public ThreadLocalCommand(SecurityContext securityContext, Class type) {
+	public ThreadLocalCommand(SecurityContext securityContext, Class<T> type) {
 		this.securityContext = securityContext;
 		this.type = type;
 	}
 	
-	public ThreadLocalCommand(Class type) {
+	public ThreadLocalCommand(Class<T> type) {
 		this.type = type;
 	}
 	
 	@Override
-	protected Command initialValue() {
+	protected T initialValue() {
 		return Services.command(securityContext, type);
 	}
 }

@@ -19,7 +19,7 @@
 
 package org.structr.core.notion;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -52,6 +52,6 @@ public class ObjectNotion extends Notion {
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return AbstractNode.Key.uuid;
+		return AbstractNode.uuid;
 	}
 }

@@ -36,6 +36,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.structr.core.EntityContext;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,15 +58,10 @@ public class ListCommand extends AbstractCommand {
 //              searchAttributes.addAll(Search.andExactTypeAndSubtypes(CaseHelper.toUpperCamelCase(type)));
 		searchAttributes.add(Search.andExactType(CaseHelper.toUpperCamelCase(type)));
 
-		AbstractNode topNode            = null;
-		boolean includeDeletedAndHidden = false;
-		boolean publicOnly              = false;
-
 		try {
 
 			// do search
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden, publicOnly,
-							    searchAttributes);
+			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(searchAttributes);
 			
 			List<? extends GraphObject> resultList = result.getResults();
 
@@ -85,8 +81,11 @@ public class ListCommand extends AbstractCommand {
 							@Override
 							public int compare(GraphObject n1, GraphObject n2) {
 
-								Comparable c1 = (Comparable) n1.getProperty(sortKey);
-								Comparable c2 = (Comparable) n2.getProperty(sortKey);
+								Class t1 = n1.getClass();
+								Class t2 = n2.getClass();
+								
+								Comparable c1 = (Comparable) n1.getProperty(EntityContext.getPropertyKeyForName(t1, sortKey));
+								Comparable c2 = (Comparable) n2.getProperty(EntityContext.getPropertyKeyForName(t2, sortKey));
 
 								return (c2.compareTo(c1));
 
@@ -101,8 +100,11 @@ public class ListCommand extends AbstractCommand {
 							@Override
 							public int compare(GraphObject n1, GraphObject n2) {
 
-								Comparable c1 = (Comparable) n1.getProperty(sortKey);
-								Comparable c2 = (Comparable) n2.getProperty(sortKey);
+								Class t1 = n1.getClass();
+								Class t2 = n2.getClass();
+								
+								Comparable c1 = (Comparable) n1.getProperty(EntityContext.getPropertyKeyForName(t1, sortKey));
+								Comparable c2 = (Comparable) n2.getProperty(EntityContext.getPropertyKeyForName(t2, sortKey));
 
 								return (c1.compareTo(c2));
 

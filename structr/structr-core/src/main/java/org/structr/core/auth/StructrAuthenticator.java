@@ -104,16 +104,14 @@ public class StructrAuthenticator implements Authenticator {
 	@Override
 	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		Command searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		String userName  = (String) request.getSession().getAttribute(USERNAME_KEY);
 		
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 		attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
 		attrs.add(Search.andExactName(userName));
 		
-		Result userList   = (Result) searchNode.execute(null, false, false, attrs);
-		
-		Principal user = null;
+		Result userList = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
+		Principal user  = null;
 		
 		if (!userList.isEmpty()) {
 			user = (Principal) userList.get(0);

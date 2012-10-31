@@ -42,6 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.property.PropertyKey;
 import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------
@@ -62,7 +63,7 @@ public class UuidResource extends FilterableResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		GraphObject obj = null;
 
@@ -114,7 +115,7 @@ public class UuidResource extends FilterableResource {
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		Result results = (Result) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, true, false, attrs);
+		Result results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
 		int size       = results.size();
 
 		switch (size) {
@@ -147,7 +148,7 @@ public class UuidResource extends FilterableResource {
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		List<AbstractRelationship> results = (List<AbstractRelationship>) Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs);
+		List<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs);
 		int size                           = results.size();
 
 		switch (size) {

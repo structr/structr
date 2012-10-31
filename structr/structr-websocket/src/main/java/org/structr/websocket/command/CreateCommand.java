@@ -36,6 +36,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.PropertyMap;
 import org.structr.core.entity.File;
 
 //~--- classes ----------------------------------------------------------------
@@ -61,9 +62,12 @@ public class CreateCommand extends AbstractCommand {
 
 				Map<String, Object> nodeData = webSocketData.getNodeData();
 
-				nodeData.put(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true);
+				nodeData.put(AbstractNode.visibleToAuthenticatedUsers.name(), true);
 
-				return Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
+				// convertFromInput
+				PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
+				
+				return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
 			}
 		};
 
@@ -76,7 +80,7 @@ public class CreateCommand extends AbstractCommand {
 			if (newNode instanceof File) {
 
 				File fileNode = (File) newNode;
-				String uuid   = newNode.getStringProperty(AbstractNode.Key.uuid);
+				String uuid   = newNode.getProperty(AbstractNode.uuid);
 
 				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
 				getWebSocket().createFileUploadHandler((File) newNode);

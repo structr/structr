@@ -21,23 +21,24 @@
 
 package org.structr.core;
 
-import com.google.gson.*;
-
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.RelationshipType;
-
-import org.structr.core.PropertySet.PropertyFormat;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import com.google.gson.*;
 import java.lang.reflect.Type;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertyMap;
+import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,21 +48,44 @@ import java.util.logging.Logger;
  *
  * @author Christian Morgner
  */
-public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, JsonDeserializer<GraphObject> {
+public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
-	private static final Logger logger    = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
-	private int outputNestingDepth        = Services.getOutputNestingDepth();
-	private String idProperty             = null;
-	private PropertyFormat propertyFormat = null;
-	private Value<String> propertyView    = null;
-
+	private static final Logger logger                      = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
+		
+	
+	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<Class, Serializer>();
+	private final Map<Class, Serializer> serializers     = new LinkedHashMap<Class, Serializer>();
+	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<Class>();
+	private final Property<String> id                    = new Property<String>("id");
+	private final int outputNestingDepth                 = Services.getOutputNestingDepth();
+	private final Serializer<GraphObject> root           = new RootSerializer();
+	private PropertyKey idProperty                       = null;
+	private SecurityContext securityContext              = null;
+	private Value<String> propertyView                   = null;
+ 	
 	//~--- constructors ---------------------------------------------------
 
-	public GraphObjectGSONAdapter(PropertyFormat propertyFormat, Value<String> propertyView, String idProperty) {
+	public GraphObjectGSONAdapter(Value<String> propertyView, PropertyKey idProperty) {
 
-		this.propertyFormat = propertyFormat;
-		this.propertyView   = propertyView;
-		this.idProperty     = idProperty;
+		this.securityContext = SecurityContext.getSuperUserInstance();
+		this.propertyView    = propertyView;
+		this.idProperty      = idProperty;
+
+		serializers.put(GraphObject.class, root);
+		serializers.put(PropertyMap.class, new PropertyMapSerializer());
+		serializers.put(Iterable.class,    new IterableSerializer());
+		serializers.put(Map.class,         new MapSerializer());
+		
+		nonSerializerClasses.add(Object.class);
+		nonSerializerClasses.add(String.class);
+		nonSerializerClasses.add(Integer.class);
+		nonSerializerClasses.add(Long.class);
+		nonSerializerClasses.add(Double.class);
+		nonSerializerClasses.add(Float.class);
+		nonSerializerClasses.add(Byte.class);
+		nonSerializerClasses.add(Character.class);
+		nonSerializerClasses.add(StringBuffer.class);
+		nonSerializerClasses.add(Boolean.class);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -69,487 +93,272 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 	@Override
 	public JsonElement serialize(GraphObject src, Type typeOfSrc, JsonSerializationContext context) {
 
-		String localPropertyView     = propertyView.get(null);
-		JsonElement serializedOutput = null;
+		String localPropertyView  = propertyView.get(null);
 
-		switch (propertyFormat) {
-
-			case NestedKeyValueType :
-				serializedOutput = serializeNestedKeyValueType(src, typeOfSrc, context, true, localPropertyView, 0);
-
-				break;
-
-			case NestedKeyValue :
-				serializedOutput = serializeNestedKeyValueType(src, typeOfSrc, context, false, localPropertyView, 0);
-
-				break;
-
-			case FlatNameValue :
-				serializedOutput = serializeFlatNameValue(src, typeOfSrc, context, localPropertyView, 0);
-
-				break;
-
-		}
-
-		return serializedOutput;
+		return root.serialize(src, localPropertyView, 0);
 	}
 
-	@Override
-	public GraphObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	private static JsonElement toPrimitive(final Object value) {
 
-		String localPropertyView       = propertyView.get(null);
-		GraphObject deserializedOutput = null;
+		JsonElement p = null;
 
-		switch (propertyFormat) {
+		if (value != null) {
+			
+			if (value instanceof Number) {
 
-			case NestedKeyValueType :
-				deserializedOutput = deserializeNestedKeyValueType(json, typeOfT, context, true, localPropertyView, 0);
+				p = new JsonPrimitive((Number) value);
 
-				break;
+			} else if (value instanceof Character) {
 
-			case NestedKeyValue :
-				deserializedOutput = deserializeNestedKeyValueType(json, typeOfT, context, false, localPropertyView, 0);
+				p = new JsonPrimitive((Character) value);
 
-				break;
+			} else if (value instanceof String) {
 
-			case FlatNameValue :
-				deserializedOutput = deserializeFlatNameValue(json, typeOfT, context, localPropertyView, 0);
+				p = new JsonPrimitive((String) value);
 
-				break;
+			} else if (value instanceof Boolean) {
 
-		}
-
-		return deserializedOutput;
-	}
-	
-	
-	// ----- private methods -----
-	private JsonElement serializeNestedKeyValueType(GraphObject src, Type typeOfSrc, JsonSerializationContext context, boolean includeTypeInOutput, String localPropertyView, int depth) {
-
-		// prevent endless recursion by pruning at depth 2
-		if (depth > outputNestingDepth) {
-
-			return null;
-
-		}
-
-		JsonObject jsonObject = new JsonObject();
-
-		// id (only if idProperty is not set)
-		if (idProperty == null) {
-
-			jsonObject.add("id", new JsonPrimitive(src.getId()));
-
-		} else {
-
-			Object idPropertyValue = src.getProperty(idProperty);
-
-			if (idPropertyValue != null) {
-
-				String idString = idPropertyValue.toString();
-
-				jsonObject.add("id", new JsonPrimitive(idString));
-
-			}
-
-		}
-
-		/*
-		 * String type = src.getType();
-		 * if (type != null) {
-		 *
-		 *       jsonObject.add("type", new JsonPrimitive(type));
-		 *
-		 * }
-		 */
-
-		// property keys
-		JsonArray properties = new JsonArray();
-
-		for (String key : src.getPropertyKeys(localPropertyView)) {
-
-			Object value = src.getProperty(key);
-
-			if (value instanceof Iterable) {
-
-				JsonArray property = new JsonArray();
-
-				for (Object o : (Iterable) value) {
-
-					if (o instanceof GraphObject) {
-
-						GraphObject obj                      = (GraphObject) o;
-						JsonElement recursiveSerializedValue = this.serializeNestedKeyValueType(obj, typeOfSrc, context, includeTypeInOutput, localPropertyView, depth + 1);
-
-						if (recursiveSerializedValue != null) {
-
-							property.add(recursiveSerializedValue);
-
-						}
-
-					} else if (o instanceof Map) {
-
-						properties.add(serializeMap((Map) o, typeOfSrc, context, localPropertyView, includeTypeInOutput, true, depth));
-
-					} else {
-
-						// serialize primitive, this is for PropertyNotion
-						properties.add(serializePrimitive(key, o, includeTypeInOutput));
-					}
-
-					// TODO: Unterstützung von Notions mit mehr als einem Property bei der Ausgabe!
-					// => neuer Typ?
-
-				}
-
-				properties.add(property);
-
-			} else if (value instanceof GraphObject) {
-
-				GraphObject graphObject = (GraphObject) value;
-
-				properties.add(this.serializeNestedKeyValueType(graphObject, typeOfSrc, context, includeTypeInOutput, localPropertyView, depth + 1));
-
-			} else if (value instanceof Map) {
-
-				properties.add(serializeMap((Map) value, typeOfSrc, context, localPropertyView, includeTypeInOutput, true, depth));
+				p = new JsonPrimitive((Boolean) value);
 
 			} else {
 
-				properties.add(serializePrimitive(key, value, includeTypeInOutput));
+				p = new JsonPrimitive(value.toString());
 
 			}
-
-		}
-
-		jsonObject.add("properties", properties);
-
-		if (src instanceof AbstractNode) {
-
-			// outgoing relationships
-			Map<RelationshipType, Long> outRelStatistics = ((AbstractNode) src).getRelationshipInfo(Direction.OUTGOING);
-
-			if (outRelStatistics != null) {
-
-				JsonArray outRels = new JsonArray();
-
-				for (Entry<RelationshipType, Long> entry : outRelStatistics.entrySet()) {
-
-					RelationshipType relType = entry.getKey();
-					Long count               = entry.getValue();
-					JsonObject outRelEntry   = new JsonObject();
-
-					outRelEntry.add("type", new JsonPrimitive(relType.name()));
-					outRelEntry.add("count", new JsonPrimitive(count));
-					outRels.add(outRelEntry);
-
-				}
-
-				jsonObject.add("out", outRels);
-
-			}
-
-			// incoming relationships
-			Map<RelationshipType, Long> inRelStatistics = ((AbstractNode) src).getRelationshipInfo(Direction.INCOMING);
-
-			if (inRelStatistics != null) {
-
-				JsonArray inRels = new JsonArray();
-
-				for (Entry<RelationshipType, Long> entry : inRelStatistics.entrySet()) {
-
-					RelationshipType relType = entry.getKey();
-					Long count               = entry.getValue();
-					JsonObject inRelEntry    = new JsonObject();
-
-					inRelEntry.add("type", new JsonPrimitive(relType.name()));
-					inRelEntry.add("count", new JsonPrimitive(count));
-					inRels.add(inRelEntry);
-
-				}
-
-				jsonObject.add("in", inRels);
-
-			}
-		} else if (src instanceof AbstractRelationship) {
-
-			// start node id (for relationships)
-			String startNodeId = ((AbstractRelationship) src).getStartNodeId();
-
-			if (startNodeId != null) {
-
-				jsonObject.add("startNodeId", new JsonPrimitive(startNodeId));
-
-			}
-
-			// end node id (for relationships)
-			String endNodeId = ((AbstractRelationship) src).getEndNodeId();
-
-			if (endNodeId != null) {
-
-				jsonObject.add("endNodeId", new JsonPrimitive(endNodeId));
-
-			}
-		}
-
-		return jsonObject;
-	}
-
-	private JsonElement serializeFlatNameValue(GraphObject src, Type typeOfSrc, JsonSerializationContext context, String localPropertyView, int depth) {
-
-		// prevent endless recursion by pruning at depth 2
-		if (depth > outputNestingDepth) {
-
-			return null;
-
-		}
-
-		JsonObject jsonObject = new JsonObject();
-
-		// id (only if idProperty is not set)
-		if (idProperty == null) {
-
-			jsonObject.add("id", new JsonPrimitive(src.getId()));
-
-		} else {
-
-			Object idPropertyValue = src.getProperty(idProperty);
-
-			if (idPropertyValue != null) {
-
-				String idString = idPropertyValue.toString();
-
-				jsonObject.add("id", new JsonPrimitive(idString));
-
-			}
-
-		}
-
-		// property keys
-		Iterable<String> keys = src.getPropertyKeys(localPropertyView);
-		if(keys != null) {
-			for (String key : keys) {
-
-				Object value = src.getProperty(key);
-
-				if (value != null) {
-
-					// id property mapping
-					if (key.equals(idProperty)) {
-
-						key = "id";
-
-					}
-
-					if (value instanceof Iterable) {
-
-						jsonObject.add(key, serializeIterable((Iterable)value, typeOfSrc, context, localPropertyView, depth));
-
-					} else if (value instanceof GraphObject) {
-
-						GraphObject graphObject = (GraphObject) value;
-
-						jsonObject.add(key, this.serializeFlatNameValue(graphObject, typeOfSrc, context, localPropertyView, depth + 1));
-
-					} else if (value instanceof Map) {
-
-						jsonObject.add(key, serializeMap((Map) value, typeOfSrc, context, localPropertyView, false, false, depth));
-
-					} else {
-
-	//                                      jsonObject.add(key, new JsonPrimitive(value.toString()));
-						jsonObject.add(key, primitive(value));
-					}
-				} else {
-
-					jsonObject.add(key, new JsonNull());
-
-				}
-
-			}
-		}
-
-		return jsonObject;
-	}
-	
-	private GraphObject deserializeFlatNameValue(JsonElement json, Type typeOfT, JsonDeserializationContext context, String localPropertyView, int depth) throws JsonParseException {
-		logger.log(Level.WARNING, "Deserialization of nested (key,value,type) objects not supported yet.");
-		return null;
-	}
-	
-	private GraphObject deserializeNestedKeyValueType(JsonElement json, Type typeOfT, JsonDeserializationContext context, boolean includeTypeInOutput, String localPropertyView, int depth) {
-		logger.log(Level.WARNING, "Deserialization of nested (key,value,type) objects not supported yet.");
-		return null;
-	}
-	
-	private JsonArray serializeIterable(Iterable value, Type typeOfSrc, JsonSerializationContext context, String localPropertyView, int depth) {
-		
-		JsonArray property = new JsonArray();
-
-		for (Object o : value) {
-
-			// non-null check in case a lazy evaluator returns null
-			if (o != null) {
-
-				if (o instanceof GraphObject) {
-
-					GraphObject obj                      = (GraphObject) o;
-					JsonElement recursiveSerializedValue = this.serializeFlatNameValue(obj, typeOfSrc, context, localPropertyView, depth + 1);
-
-					if (recursiveSerializedValue != null) {
-
-						property.add(recursiveSerializedValue);
-
-					}
-
-				} else if (o instanceof Map) {
-
-					property.add(serializeMap((Map) o, typeOfSrc, context, localPropertyView, false, false, depth));
-
-				} else if (o instanceof Iterable) {
-
-					property.add(serializeIterable((Iterable) o, typeOfSrc, context, localPropertyView, depth));
-
-				} else {
-
-					// serialize primitive, this is for PropertyNotion
-					// property.add(new JsonPrimitive(o.toString()));
-					property.add(primitive(o));
-				}
-
-			}
-		}
-
-		return property;
-	}
-	
-	
-	private JsonObject serializePrimitive(String key, Object value, boolean includeTypeInOutput) {
-
-		JsonObject property = new JsonObject();
-
-		// id property mapping
-		if (key.equals(idProperty)) {
-
-			key = "id";
-
-		}
-
-		property.add("key", new JsonPrimitive(key));
-
-		if (value != null) {
-
-			property.add("value", primitive(value));
-
-			// include type?
-			if (includeTypeInOutput) {
-
-				String valueType = value.getClass().getSimpleName();
-
-				property.add("type", new JsonPrimitive(valueType));
-
-			}
-
-		} else {
-
-			property.add("value", new JsonNull());
-
-			// include type?
-			if (includeTypeInOutput) {
-
-				property.add("type", new JsonNull());
-
-			}
-
-		}
-
-		return property;
-	}
-
-	private JsonObject serializeMap(Map<String, Object> map, Type typeOfT, JsonSerializationContext context, String localPropertyView, boolean includeType, boolean nested, int depth) {
-
-		JsonObject object = new JsonObject();
-
-		for (Entry<String, Object> entry : map.entrySet()) {
-
-			String key   = entry.getKey();
-			Object value = entry.getValue();
-
-			if (key != null) {
-
-				// id property mapping
-				if (key.equals(idProperty)) {
-
-					key = "id";
-
-				}
-
-				if (value != null) {
-
-					// serialize graph objects that are nested in the map..
-					if (value instanceof GraphObject) {
-
-						if (nested) {
-
-							object.add(key, serializeNestedKeyValueType((GraphObject) value, typeOfT, context, includeType, localPropertyView, depth + 1));
-
-						} else {
-
-							object.add(key, serializeFlatNameValue((GraphObject) value, typeOfT, context, localPropertyView, depth + 1));
-
-						}
-
-					} else if(value instanceof Map) {
-						
-						object.add(key, serializeMap((Map)value, typeOfT, context, localPropertyView, false, false, depth + 1));
-
-					} else if(value instanceof Iterable) {
-						
-						object.add(key, serializeIterable((Iterable)value, typeOfT, context, localPropertyView, depth));
-						
-					} else {
-
-						object.add(key, primitive(value));
-
-					}
-				} else {
-
-					object.add(key, new JsonNull());
-
-				}
-			}
-
-		}
-
-		return object;
-	}
-
-	private static JsonPrimitive primitive(final Object value) {
-
-		JsonPrimitive p;
-
-		if (value instanceof Number) {
-
-			p = new JsonPrimitive((Number) value);
-
-		} else if (value instanceof Character) {
-
-			p = new JsonPrimitive((Character) value);
-
-		} else if (value instanceof String) {
-
-			p = new JsonPrimitive((String) value);
-
-		} else if (value instanceof Boolean) {
-
-			p = new JsonPrimitive((Boolean) value);
-
-		} else {
-
-			p = new JsonPrimitive(value.toString());
-
 		}
 
 		return p;
+	}
+	
+	private Serializer getSerializerForType(Class type) {
+
+		Class localType       = type;
+		Serializer serializer = serializerCache.get(type);
+
+		if (serializer == null && !nonSerializerClasses.contains(type)) {
+
+			do {
+				serializer = serializers.get(localType);
+				
+				if (serializer == null) {
+
+					Set<Class> interfaces = new LinkedHashSet<Class>();
+					collectAllInterfaces(localType, interfaces);
+
+					for (Class interfaceType : interfaces) {
+
+						serializer = serializers.get(interfaceType);
+
+						if (serializer != null) {
+							break;
+						}
+					}
+				}
+				
+				localType = localType.getSuperclass();
+
+			} while (serializer == null && !localType.equals(Object.class));
+			
+			
+			// cache found serializer
+			if (serializer != null) {
+				serializerCache.put(type, serializer);
+			}
+		}
+		
+		return serializer;
+	}
+	
+	private void collectAllInterfaces(Class type, Set<Class> interfaces) {
+
+		if (interfaces.contains(type)) {
+			return;
+		}
+		
+		for (Class iface : type.getInterfaces()) {
+			
+			collectAllInterfaces(iface, interfaces);
+			interfaces.add(iface);
+		}
+	}
+	
+	public abstract class Serializer<T> {
+		
+		public abstract JsonElement serialize(T value, String localPropertyView, int depth);
+		
+		public JsonElement serializeRoot(Object value, String localPropertyView, int depth) {
+			
+			if (value != null) {
+				
+				Serializer serializer = getSerializerForType(value.getClass());
+				if (serializer != null) {
+
+					return serializer.serialize(value, localPropertyView, depth+1);
+				}
+			}
+			
+			return toPrimitive(value);
+		}
+		
+		public JsonElement serializeProperty(PropertyKey key, Object value, String localPropertyView, int depth) {
+			
+			try {
+				PropertyConverter converter = key.inputConverter(securityContext);
+
+				if (converter != null) {
+
+					return serializeRoot(converter.revert(value), localPropertyView, depth);
+
+				} else {
+
+					return serializeRoot(value, localPropertyView, depth);
+				}
+
+			} catch(Throwable t) {
+
+				// CHM: remove debug code later
+				t.printStackTrace();
+
+				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}, {2}) of entity {3}: {4}", new Object[] {
+					key.name(),
+					key.getClass(),
+					key.getClass().getDeclaringClass(),
+					value.getClass().getName(),
+					t.getMessage()
+				});
+			}
+			
+			return null;
+
+		}
+	}
+	
+	public class RootSerializer extends Serializer<GraphObject> {
+
+		@Override
+		public JsonElement serialize(GraphObject source, String localPropertyView, int depth) {
+			
+			// prevent endless recursion by pruning at depth 2
+			if (depth > outputNestingDepth) {
+
+				return null;
+
+			}
+
+			JsonObject jsonObject = new JsonObject();
+
+			// id (only if idProperty is not set)
+			if (idProperty == null) {
+
+				jsonObject.add("id", new JsonPrimitive(source.getId()));
+
+			} else {
+
+				Object idPropertyValue = source.getProperty(idProperty);
+
+				if (idPropertyValue != null) {
+
+					String idString = idPropertyValue.toString();
+
+					jsonObject.add("id", new JsonPrimitive(idString));
+
+				}
+
+			}
+
+			// property keys
+			Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
+			if(keys != null) {
+				for (PropertyKey key : keys) {
+
+					Object value = source.getProperty(key);
+					PropertyKey localKey = key;
+
+					if (localKey.equals(idProperty)) {
+
+						localKey = id;
+					}
+
+					if (value != null) {
+
+						jsonObject.add(localKey.name(), serializeProperty(key, value, localPropertyView, depth));
+
+					} else {
+
+						jsonObject.add(localKey.name(), null);
+
+					}
+
+				}
+			}
+
+			return jsonObject;
+		}
+	}
+	
+	public class IterableSerializer extends Serializer<Iterable> {
+
+		@Override
+		public JsonElement serialize(Iterable value, String localPropertyView, int depth) {
+
+			JsonArray array = new JsonArray();
+			
+			for (Object o : value) {
+				
+				array.add(serializeRoot(o, localPropertyView, depth));
+			}
+			
+			return array;
+		}
+	}
+	
+	public class MapSerializer extends Serializer {
+
+		@Override
+		public JsonElement serialize(Object source, String localPropertyView, int depth) {
+
+			JsonObject object = new JsonObject();
+			
+			for (Entry<String, Object> entry : ((Map<String, Object>)source).entrySet()) {
+				
+				String key = entry.getKey();
+				Object value = entry.getValue();
+				
+				// id property mapping again..
+				if (idProperty.name().equals(key)) {
+					key = "id";
+				}
+				
+				object.add(key, serializeRoot(value, localPropertyView, depth));
+			}
+			
+			return object;
+		}
+	}
+	
+	public class PropertyMapSerializer extends Serializer<PropertyMap> {
+		
+		public PropertyMapSerializer() {}
+
+		@Override
+		public JsonElement serialize(PropertyMap source, String localPropertyView, int depth) {
+
+			JsonObject object = new JsonObject();
+			
+			for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+				
+				PropertyKey key = entry.getKey();
+				if (key.equals(idProperty)) {
+
+					key = id;
+				}
+				
+				Object value = entry.getValue();
+				
+				object.add(key.name(), serializeProperty(key, value, localPropertyView, depth));
+			}
+			
+			return object;
+		}
 	}
 }

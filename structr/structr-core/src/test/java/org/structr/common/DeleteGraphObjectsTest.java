@@ -21,6 +21,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -34,9 +35,14 @@ import org.structr.core.node.StructrTransaction;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Result;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,36 +77,35 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		try {
 
-			AbstractNode node;
-			final Map<String, Object> props = new HashMap<String, Object>();
-			String type                     = "UnknownTestType";
-			String name                     = "GenericNode-name";
+			final PropertyMap props = new PropertyMap();
+			String type             = "UnknownTestType";
+			String name             = "GenericNode-name";
 
-			props.put(AbstractNode.Key.type.name(), type);
-			props.put(AbstractNode.Key.name.name(), name);
+			props.put(AbstractNode.type, type);
+			props.put(AbstractNode.name, name);
 
-			node = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
+			final AbstractNode node = transactionCommand.execute(new StructrTransaction<AbstractNode>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public AbstractNode execute() throws FrameworkException {
 
 					// Create node with a type which has no entity class => should result in a node of type 'GenericNode'
-					return (AbstractNode) createNodeCommand.execute(props);
+					return createNodeCommand.execute(props);
 				}
 
 			});
 
 			assertTrue(node != null);
 
-			final String nodeId = node.getUuid();
-
+			String uuid = node.getUuid();
+			
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
-					return deleteNodeCommand.execute(nodeId);
-
+					deleteNodeCommand.execute(node);
+					return null;
 				}
 
 			});
@@ -108,8 +113,13 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			try {
 
 				// Node should not be found after deletion
-				findNodeCommand.execute(nodeId);
-				fail("Should have raised a not found exception");
+				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+				attrs.add(Search.andExactUuid(uuid));
+				
+				Result result = searchNodeCommand.execute(attrs);
+				
+				assertEquals("Node should have been deleted", 0, result.size());
+				
 			} catch (FrameworkException fe) {}
 
 		} catch (FrameworkException ex) {
@@ -353,7 +363,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 				AbstractNode end         = createTestNode(type2.getSimpleName());
 				AbstractRelationship rel = createTestRelationship(start, end, RelType.UNDEFINED);
 
-				rel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDeleteFlag);
+				rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
 
 				return rel;
 
@@ -370,8 +380,8 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				return deleteNodeCommand.execute(node, true);
-
+				deleteNodeCommand.execute(node, true);
+				return null;
 			}
 
 		});

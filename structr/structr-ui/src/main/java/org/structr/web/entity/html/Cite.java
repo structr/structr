@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Cite extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Cite.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Cite.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Cite.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Cite.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Cite.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Cite.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

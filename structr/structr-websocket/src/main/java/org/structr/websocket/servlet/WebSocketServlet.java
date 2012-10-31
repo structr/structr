@@ -43,6 +43,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.EntityContext;
 import org.structr.websocket.SynchronizationController;
 
@@ -54,13 +55,17 @@ import org.structr.websocket.SynchronizationController;
  */
 public class WebSocketServlet extends HttpServlet {
 
-	private static final String SERVLET_PARAMETER_ID_PROPERTY = "IdProperty";
 	private static final String STRUCTR_PROTOCOL              = "structr";
 	private static ServletConfig config                       = null;
 	private static WebSocketFactory factory                   = null;
 	private static final Logger logger                        = Logger.getLogger(WebSocketServlet.class.getName());
 
 	private SynchronizationController syncController          = null;
+	private PropertyKey idProperty                            = null;
+	
+	public WebSocketServlet(PropertyKey idProperty) {
+		this.idProperty = idProperty;
+	}
 
 	//~--- methods --------------------------------------------------------
 
@@ -70,17 +75,8 @@ public class WebSocketServlet extends HttpServlet {
 		// servlet config
 		config = this.getServletConfig();
 
-		// primary key
-		final String idPropertyName = this.getInitParameter(SERVLET_PARAMETER_ID_PROPERTY);
-
-		if (idPropertyName != null) {
-
-			logger.log(Level.INFO, "Setting id property to {0}", idPropertyName);
-
-		}
-
 		// create GSON serializer
-		final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(idPropertyName)).create();
+		final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(idProperty)).create();
 
 		syncController = new SynchronizationController(gson);
 		EntityContext.registerTransactionListener(syncController);
@@ -93,7 +89,7 @@ public class WebSocketServlet extends HttpServlet {
 
 				if (STRUCTR_PROTOCOL.equals(protocol)) {
 
-					return new StructrWebSocket(syncController, config, request, gson, idPropertyName);
+					return new StructrWebSocket(syncController, config, request, gson, idProperty);
 
 				} else {
 

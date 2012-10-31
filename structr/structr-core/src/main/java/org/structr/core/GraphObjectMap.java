@@ -19,7 +19,9 @@
 package org.structr.core;
 
 import java.util.*;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -30,9 +32,7 @@ import org.structr.core.entity.AbstractNode;
  * @author Christian Morgner
  */
 
-public class GraphObjectMap implements GraphObject, Map<String, Object> {
-
-	private Map<String, Object> values = new LinkedHashMap<String, Object>();
+public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public long getId() {
@@ -41,52 +41,27 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 
 	@Override
 	public String getUuid() {
-		return getStringProperty(AbstractNode.Key.uuid);
+		return getProperty(AbstractNode.uuid);
 	}
 
 	@Override
 	public String getType() {
-		return getStringProperty(AbstractNode.Key.uuid);
+		return getProperty(AbstractNode.uuid);
 	}
 
 	@Override
-	public Iterable<String> getPropertyKeys(String propertyView) {
-		return values.keySet();
-	}
-
-	@Override
-	public void setProperty(String key, Object value) throws FrameworkException {
-		values.put(key, value);
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
+		return properties.keySet();
 	}
 
 	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {
-		setProperty(key.name(), value);
+		properties.put(key, value);
 	}
 
 	@Override
-	public Object getProperty(String key) {
-		return values.get(key);
-	}
-
-	@Override
-	public Object getProperty(PropertyKey propertyKey) {
-		return getProperty(propertyKey.name());
-	}
-
-	@Override
-	public String getStringProperty(String key) {
-		return (String)getProperty(key);
-	}
-
-	@Override
-	public String getStringProperty(PropertyKey propertyKey) {
-		return (String)getProperty(propertyKey);
-	}
-
-	@Override
-	public Integer getIntProperty(String key) {
-		return (Integer)getProperty(key);
+	public <T> T getProperty(PropertyKey<T> propertyKey) {
+		return (T)properties.get(propertyKey);
 	}
 
 	@Override
@@ -95,18 +70,8 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	}
 
 	@Override
-	public Long getLongProperty(String key) {
-		return (Long)getProperty(key);
-	}
-
-	@Override
 	public Long getLongProperty(PropertyKey propertyKey) {
 		return (Long)getProperty(propertyKey);
-	}
-
-	@Override
-	public Date getDateProperty(String key) {
-		return (Date)getProperty(key);
 	}
 
 	@Override
@@ -115,18 +80,8 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	}
 
 	@Override
-	public boolean getBooleanProperty(String key) throws FrameworkException {
-		return (Boolean)getProperty(key);
-	}
-
-	@Override
 	public boolean getBooleanProperty(PropertyKey key) throws FrameworkException {
 		return (Boolean)getProperty(key);
-	}
-
-	@Override
-	public Double getDoubleProperty(String key) throws FrameworkException {
-		return (Double)getProperty(key);
 	}
 
 	@Override
@@ -140,13 +95,8 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	}
 
 	@Override
-	public Comparable getComparableProperty(String key) throws FrameworkException {
-		return (Comparable)getProperty(key);
-	}
-
-	@Override
-	public void removeProperty(String key) throws FrameworkException {
-		values.remove(key);
+	public void removeProperty(PropertyKey key) throws FrameworkException {
+		properties.remove(key);
 	}
 
 	@Override
@@ -174,7 +124,7 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 
@@ -209,66 +159,66 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	// ----- interface map -----
 	@Override
 	public int size() {
-		return values.size();
+		return properties.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return values.isEmpty();
+		return properties.isEmpty();
 	}
 
 	@Override
 	public boolean containsKey(Object key) {
-		return values.containsKey(key);
+		return properties.containsKey(key);
 	}
 
 	@Override
 	public boolean containsValue(Object value) {
-		return values.containsValue(value);
+		return properties.containsValue(value);
 	}
 
 	@Override
 	public Object get(Object key) {
-		return values.get(key);
+		return properties.get(key);
 	}
 
 	@Override
-	public Object put(String key, Object value) {
-		return values.put(key, value);
+	public Object put(PropertyKey key, Object value) {
+		return properties.put(key, value);
 	}
 
 	@Override
 	public Object remove(Object key) {
-		return values.remove(key);
+		return properties.remove(key);
 	}
 
 	@Override
 	public void putAll(Map m) {
-		values.putAll(m);
+		properties.putAll(m);
 	}
 
 	@Override
 	public void clear() {
-		values.clear();
+		properties.clear();
 	}
 
 	@Override
 	public Set keySet() {
-		return values.keySet();
+		return properties.keySet();
 	}
 
 	@Override
 	public Collection values() {
-		return values.values();
+		return properties.values();
 	}
 
 	@Override
 	public Set entrySet() {
-		return values.entrySet();
+		return properties.entrySet();
 	}
 
 	@Override
-	public Object getPropertyForIndexing(String key) {
-		return getProperty(key);
+	public Object getPropertyForIndexing(PropertyKey key) {
+		return null;
 	}
 }

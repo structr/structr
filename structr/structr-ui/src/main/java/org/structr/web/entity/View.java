@@ -25,7 +25,7 @@ import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
@@ -43,6 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.property.Property;
 import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
@@ -53,21 +54,29 @@ import org.structr.core.node.NodeService.NodeIndex;
  */
 public class View extends AbstractNode implements Element {
 
+	public static final Property<String> query = new Property<String>("query");
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(View.class, PropertyView.Ui,
+		type, name, query, paths
+	);
+	
+	public static final org.structr.common.View publicView = new org.structr.common.View(View.class, PropertyView.Public,
+		type, name, query, paths
+	);
+	
 	static {
 
-		EntityContext.registerPropertySet(View.class, PropertyView.All, Key.values());
-		EntityContext.registerPropertySet(View.class, PropertyView.Public, Key.values());
-		EntityContext.registerPropertySet(View.class, PropertyView.Ui, Key.values());
+//		EntityContext.registerPropertySet(View.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(View.class, PropertyView.Public, Key.values());
+//		EntityContext.registerPropertySet(View.class, PropertyView.Ui, Key.values());
+		
 		EntityContext.registerEntityRelation(View.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(View.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(), Key.values());
+		
+		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.fulltext.name(), publicView.properties());
+		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(),  publicView.properties());
 
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey{ type, name, query, paths }
 
 	//~--- get methods ----------------------------------------------------
 
@@ -89,7 +98,7 @@ public class View extends AbstractNode implements Element {
 
 	protected String getQuery(HttpServletRequest request) {
 		
-		String rawQuery = getStringProperty("query");
+		String rawQuery = getProperty(query);
 		String query    = rawQuery;
 
 		if (request != null && query != null) {

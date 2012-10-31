@@ -19,7 +19,7 @@
 
 package org.structr.core.notion;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 
 /**
  * A notion that returns only a single property of the source object.

@@ -20,8 +20,10 @@
 package org.structr.core.converter;
 
 import java.util.Collection;
-import org.structr.core.IterableAdapter;
-import org.structr.core.Value;
+import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.common.property.PropertyKey;
+import org.structr.core.GraphObject;
 
 /**
  *
@@ -30,45 +32,46 @@ import org.structr.core.Value;
 
 public class ResultCountConverter extends PropertyConverter {
 
+	private static final Logger logger = Logger.getLogger(ResultCountConverter.class.getName());
+	
+	private PropertyKey propertyKey = null;
+	
+	public ResultCountConverter(SecurityContext securityContext, GraphObject entity, PropertyKey propertyKey) {
+		
+		super(securityContext, entity);
+		
+		this.propertyKey = propertyKey;
+	}
+	
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convert(Object source) {
 		return source;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object revert(Object source) {
 		
 		int count = 0;
 		
-		if(currentObject != null && value != null) {
+		if(currentObject != null) {
 			
-			Object val = value.get(securityContext);
-			
-			if(val != null) {
-				
-				Object toCount = currentObject.getProperty(val.toString());
-				if(toCount != null) {
+			Object toCount = currentObject.getProperty(propertyKey);
+			if(toCount != null) {
 
-					if (toCount instanceof Collection) {
+				if (toCount instanceof Collection) {
 
-						count = ((Collection)toCount).size();
+					count = ((Collection)toCount).size();
 
-					} else if (toCount instanceof IterableAdapter && ((IterableAdapter)toCount).size() >= 0) {
+				} else if (toCount instanceof Iterable) {
 
-						return ((IterableAdapter)toCount).size();
-						
-						
-					} else if (toCount instanceof Iterable) {
-
-						for(Object o : ((Iterable)toCount)) {
-							count++;
-						}
-
-					} else {
-
-						// a single object
-						count = 1;
+					for(Object o : ((Iterable)toCount)) {
+						count++;
 					}
+
+				} else {
+
+					// a single object
+					count = 1;
 				}
 			}
 		}

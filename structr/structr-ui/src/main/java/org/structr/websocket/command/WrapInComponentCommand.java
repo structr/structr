@@ -38,10 +38,11 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,7 +69,6 @@ public class WrapInComponentCommand extends AbstractCommand {
 		final String pageId                = (String) relData.get("pageId");
 		final String parentId              = (String) nodeData.get("parentId");
 		final AbstractNode parentNode      = getNode(parentId);
-		final Long position                = Long.parseLong((String) relData.get(pageId));
 
 		if (nodeToWrap != null) {
 
@@ -77,7 +77,8 @@ public class WrapInComponentCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
+					PropertyMap nodeProps  = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
+					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeProps);
 					String componentId     = newComponent.getUuid();
 
 					RelationshipHelper.moveIncomingRelationships(SecurityContext.getSuperUserInstance(), nodeToWrap, newComponent, RelType.CONTAINS, pageId, componentId, false);
@@ -89,12 +90,12 @@ public class WrapInComponentCommand extends AbstractCommand {
 						if (rel != null) {
 
 							// First element in new component, so set position to 0
-							Map<String, Object> relProps = new LinkedHashMap<String, Object>();
+							PropertyMap relProps = new PropertyMap();
 
-							relProps.put(pageId, 0);
+							relProps.put(new Property(pageId), 0);
 
 							// relProps.put("pageId", pageId);
-							relProps.put("componentId", componentId);
+							relProps.put(new Property("componentId"), componentId);
 
 							try {
 								rel.createRelationship(securityContext, newComponent, nodeToWrap, relProps);

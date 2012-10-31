@@ -23,22 +23,19 @@ import java.util.Set;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
 public class GetAgentPackagesCommand extends ModuleServiceCommand
 {
-	@Override
-	public Object execute(Object... parameters)
-	{
+	public Set<String> execute() {
+	
 		ModuleService service = (ModuleService)getArgument("moduleService");
-		Set<String> ret = null;
-
-		if(service != null)
-		{
-			ret = service.getAgentPackages();
+		if(service != null) {
+			
+			return service.getAgentPackages();
 		}
 
-		return(ret);
+		return null;
 	}
 
 }

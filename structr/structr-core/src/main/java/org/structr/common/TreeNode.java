@@ -77,7 +77,7 @@ public class TreeNode {
 
 	public TreeNode getNode(final String uuid) {
 
-		if ((data != null) && data.getStringProperty(AbstractNode.Key.uuid).equals(uuid)) {
+		if ((data != null) && data.getProperty(AbstractNode.uuid).equals(uuid)) {
 
 			return this;
 

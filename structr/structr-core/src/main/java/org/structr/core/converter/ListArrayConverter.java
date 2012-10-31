@@ -19,40 +19,30 @@
 
 package org.structr.core.converter;
 
-import java.util.List;
 import org.apache.commons.lang.StringUtils;
-import org.structr.core.Value;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  * A property converter that can convert Lists to Arrays and back.
  *
  * @author Christian Morgner
  */
-public class ListArrayConverter extends PropertyConverter {
+public class ListArrayConverter extends PropertyConverter<String[], String> {
+	
+	public ListArrayConverter(SecurityContext securityContext) {
+		super(securityContext, null);
+	}
 	
 	public static final String SEP = ",";
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
-
-		if (source == null) {
-			return source;
-		}
-		
-		if (source instanceof List) {
-			return ((List)source).toArray(new String[0]);
-		}
-		
-		if (source instanceof String) {
-			return StringUtils.split((String) source, SEP);
-		}
-
-		return source;
+	public String[] revert(String source) throws FrameworkException {
+		return StringUtils.split((String) source, SEP);
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
-		
+	public String convert(String[] source) {
 		return StringUtils.join((String[]) source, SEP);
 	}
 }

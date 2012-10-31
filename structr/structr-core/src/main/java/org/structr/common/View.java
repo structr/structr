@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,24 +16,31 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.structr.common;
 
-package org.structr.core.module;
+import org.structr.common.property.Property;
+import org.structr.core.GraphObject;
 
 /**
- * - stop services
- * - remove commands
- * - remove entities
- * - remove module index from $BASEDIR/modules/index/$NAME.index
- * - remove module from global module index ($BASEDIR/modules/modules.conf)
  *
  * @author Christian Morgner
  */
-public class UninstallModuleCommand extends ModuleServiceCommand
-{
+public class View {
 
-	@Override
-	public Object execute(Object... parameters)
-	{
-		throw new UnsupportedOperationException("Not supported yet.");
+	private Property[] properties = null;
+	private String name = null;
+
+	public View(Class<? extends GraphObject> type, String name, Property... keys) {
+
+		this.properties = keys;
+		this.name = name;
+	}
+
+	public Property[] properties() {
+		return properties;
+	}
+	
+	public String name() {
+		return name;
 	}
 }

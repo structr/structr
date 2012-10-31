@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Param extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Param.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Param.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Param.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Param.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Param.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Param.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- get methods ----------------------------------------------------
 

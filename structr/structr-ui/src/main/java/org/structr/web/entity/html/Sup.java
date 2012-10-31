@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Sup extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Sup.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Sup.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Sup.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Sup.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Sup.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Sup.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

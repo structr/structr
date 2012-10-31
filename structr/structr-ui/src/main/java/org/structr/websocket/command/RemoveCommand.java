@@ -48,6 +48,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -66,7 +68,7 @@ public class RemoveCommand extends AbstractCommand {
 
 		// create static relationship
 		String id                = webSocketData.getId();
-		String parentId          = (String) webSocketData.getNodeData().get("id");
+		// String parentId          = (String) webSocketData.getNodeData().get("id");
 		//final String componentId = (String) webSocketData.getNodeData().get("componentId");
 		final String treeAddress = (String) webSocketData.getNodeData().get("treeAddress");
 		final String pageId;
@@ -96,15 +98,16 @@ public class RemoveCommand extends AbstractCommand {
 					@Override
 					public Object execute() throws FrameworkException {
 
-						Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-						boolean hasPageId;
+						DeleteRelationshipCommand deleteRel      = Services.command(securityContext, DeleteRelationshipCommand.class);
 						List<AbstractRelationship> relsToReorder = new ArrayList<AbstractRelationship>();
-
+						PropertyKey<Long> pageIdProperty         = new Property<Long>(pageId);
+						boolean hasPageId;
+						
 						for (AbstractRelationship rel : rels) {
 
-							if (pageId == null || rel.getProperty(pageId) != null) {
+							if (pageId == null || rel.getProperty(pageIdProperty) != null) {
 
-//                                                              if (rel.getEndNode().equals(nodeToRemove) && ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))) {
+//                                                              if (rel.getEndNode().equals(nodeToRemove) && ((componentId == null) || componentId.equals(rel.getProperty("componentId")))) {
 								if (rel.getEndNode().equals(nodeToRemove)) {
 
 									relsToReorder.remove(rel);
@@ -112,11 +115,12 @@ public class RemoveCommand extends AbstractCommand {
 									if (pos == null) {
 
 										deleteRel.execute(rel);
+										
 									} else {
 
-										if (pos.equals(rel.getLongProperty(pageId))) {
+										if (pos.equals(rel.getLongProperty(pageIdProperty))) {
 
-											rel.removeProperty(pageId);
+											rel.removeProperty(pageIdProperty);
 											//RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
 
 											hasPageId = hasPageIds(securityContext, rel);
@@ -185,27 +189,28 @@ public class RemoveCommand extends AbstractCommand {
 
 	private boolean hasPageIds(final SecurityContext securityContext, final AbstractRelationship rel) throws FrameworkException {
 
-		Command searchNode = Services.command(securityContext, SearchNodeCommand.class);
-		long count         = 0;
+		SearchNodeCommand searchNode = Services.command(securityContext, SearchNodeCommand.class);
+		long count                   = 0;
 
-		for (Entry entry : rel.getProperties().entrySet()) {
+		for (Entry<PropertyKey, Object> entry : rel.getProperties().entrySet()) {
 
-			String key = (String) entry.getKey();
+			PropertyKey key = entry.getKey();
 
 			// Object val = entry.getValue();
 			// Check if key is a node id (UUID format)
-			if (key.matches("[a-zA-Z0-9]{32}")) {
+			if (key.name().matches("[a-zA-Z0-9]{32}")) {
 
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 				attrs.add(Search.andExactType(Page.class.getSimpleName()));
-				attrs.add(Search.andExactUuid(key));
+				attrs.add(Search.andExactUuid(key.name()));
 
-				Result results = (Result) searchNode.execute(null, false, false, attrs);
+				Result results = searchNode.execute(attrs);
 
 				if (results != null && !results.isEmpty()) {
 
 					count++;
+					
 				} else {
 
 					// UUID, but not page found: Remove this property

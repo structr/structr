@@ -27,7 +27,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.TreeNode;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectGSONAdapter;
-import org.structr.core.PropertySet.PropertyFormat;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.StaticValue;
@@ -41,6 +40,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,9 +57,9 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 	//~--- constructors ---------------------------------------------------
 
-	public WebSocketDataGSONAdapter(String idProperty) {
+	public WebSocketDataGSONAdapter(PropertyKey idProperty) {
 
-		graphObjectSerializer = new GraphObjectGSONAdapter(PropertyFormat.FlatNameValue, propertyView, idProperty);
+		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, idProperty);
 
 	}
 
@@ -163,7 +163,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			if (!src.getModifiedProperties().isEmpty()) {
 
-				for (String modifiedKey : src.getModifiedProperties()) {
+				for (PropertyKey modifiedKey : src.getModifiedProperties()) {
 					
 					modifiedProperties.add(toJsonPrimitive(modifiedKey));
 
@@ -173,10 +173,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 						if (graphObject instanceof AbstractNode) {
 
-							src.getNodeData().put(modifiedKey, newValue);
+							src.getNodeData().put(modifiedKey.name(), newValue);
 						} else {
 
-							src.getRelData().put(modifiedKey, newValue);
+							src.getRelData().put(modifiedKey.name(), newValue);
 						}
 
 					}
@@ -189,7 +189,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			if (!src.getRemovedProperties().isEmpty()) {
 
-				for (String removedKey : src.getRemovedProperties()) {
+				for (PropertyKey removedKey : src.getRemovedProperties()) {
 
 					removedProperties.add(toJsonPrimitive(removedKey));
 				}
@@ -291,7 +291,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		JsonPrimitive jp;
 
-		if (value instanceof String) {
+		if (value instanceof PropertyKey) {
+
+			jp = new JsonPrimitive(((PropertyKey)value).name());
+		} else if (value instanceof String) {
 
 			jp = new JsonPrimitive((String) value);
 		} else if (value instanceof Number) {

@@ -48,7 +48,6 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		RelationshipFactory relationshipFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
@@ -106,7 +105,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 		if (rel != null) {
 
-			if (rel.getStringProperty(AbstractRelationship.Key.uuid) == null) {
+			if (rel.getProperty(AbstractRelationship.uuid) == null) {
 
 				logger.log(Level.WARNING, "Will not delete relationship which has no UUID");
 
@@ -114,11 +113,10 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			}
 
-			final Command transactionCommand    = Services.command(securityContext, TransactionCommand.class);
 			final Relationship relToDelete      = rel.getRelationship();
 			final AbstractRelationship finalRel = rel;
 
-			transactionCommand.execute(new StructrTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {

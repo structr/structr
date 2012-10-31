@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Select extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Select.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Select.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Select.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Select.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Select.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Select.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

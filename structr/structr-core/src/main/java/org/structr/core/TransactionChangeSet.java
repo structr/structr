@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
@@ -33,7 +34,10 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public class TransactionChangeSet {
 
+	private static final Logger logger = Logger.getLogger(TransactionChangeSet.class.getName());
+	
 	private Queue<AbstractNode> propagationQueue    = new ConcurrentLinkedQueue<AbstractNode>();
+	private boolean systemOnly                      = true;
 	
 	private Set<AbstractRelationship> modifiedRels  = new LinkedHashSet<AbstractRelationship>();
 	private Set<AbstractRelationship> createdRels   = new LinkedHashSet<AbstractRelationship>();
@@ -61,6 +65,18 @@ public class TransactionChangeSet {
 		securityModifiedNodes.addAll(changeSet.getSecurityModifiedNodes());
 		locationModifiedNodes.addAll(changeSet.getLocationModifiedNodes());
 		
+		// remove deleted node from other transactions when merging
+		ownerModifiedNodes.removeAll(deletedNodes);
+		securityModifiedNodes.removeAll(deletedNodes);
+		locationModifiedNodes.removeAll(deletedNodes);
+		
+		modifiedNodes.removeAll(deletedNodes);
+		createdNodes.removeAll(deletedNodes);
+		
+		// remove deleted relationships from other transactions when merging
+		modifiedRels.removeAll(deletedRels);
+		createdRels.removeAll(deletedRels);
+		
 		propagationQueue.addAll(changeSet.getPropagationQueue());
 	}
 	
@@ -78,6 +94,40 @@ public class TransactionChangeSet {
 		locationModifiedNodes.clear();
 		
 		propagationQueue.clear();
+	}
+
+	@Override
+	public String toString() {
+		
+		StringBuilder buf = new StringBuilder();
+		
+		buf.append("Nodes: ");
+		buf.append(createdNodes.size());
+		buf.append("/");
+		buf.append(modifiedNodes.size());
+		buf.append("/");
+		buf.append(deletedNodes.size());
+		buf.append(", ");
+		buf.append("Rels: ");
+		buf.append(createdRels.size());
+		buf.append("/");
+		buf.append(modifiedRels.size());
+		buf.append("/");
+		buf.append(deletedRels.size());
+		
+		if (systemOnly) {
+			buf.append(" system only");
+		}
+
+		return buf.toString();
+	}
+	
+	public void nonSystemProperty() {
+		systemOnly = false;
+	}
+	
+	public boolean systemOnly() {
+		return systemOnly;
 	}
 	
 	public boolean isNew(AbstractNode node) {
@@ -105,29 +155,56 @@ public class TransactionChangeSet {
 	}
 	
 	public void create(AbstractNode created) {
+		
 		createdNodes.add(created);
 		propagationQueue.add(created);
+		
+		systemOnly = false;
 	}
 
 	public void modify(AbstractNode modified) {
-		modifiedNodes.add(modified);
-		propagationQueue.add(modified);
+		
+		if (!deletedNodes.contains(modified)) {
+			modifiedNodes.add(modified);
+			propagationQueue.add(modified);
+		}
 	}
 	
 	public void delete(AbstractNode deleted) {
+		
+		propagationQueue.remove(deleted);
+		createdNodes.remove(deleted);
+		modifiedNodes.remove(deleted);
+		ownerModifiedNodes.remove(deleted);
+		securityModifiedNodes.remove(deleted);
+		locationModifiedNodes.remove(deleted);
+
 		deletedNodes.add(deleted);
+		
+		systemOnly = false;
 	}
 	
 	public void create(AbstractRelationship created) {
 		createdRels.add(created);
+		
+		systemOnly = false;
 	}
 
 	public void modify(AbstractRelationship modified) {
-		modifiedRels.add(modified);
+		
+		if (!deletedRels.contains(modified)) {
+			modifiedRels.add(modified);
+		}
 	}
 	
 	public void delete(AbstractRelationship deleted) {
+		
+		createdRels.remove(deleted);
+		modifiedRels.remove(deleted);
+		
 		deletedRels.add(deleted);
+		
+		systemOnly = false;
 	}
 	
 	public void modifyRelationshipEndpoint(AbstractNode node, RelationshipType relationshipType) {
@@ -160,18 +237,30 @@ public class TransactionChangeSet {
 	}
 	
 	public void modifyOwner(AbstractNode ownerModified) {
-		ownerModifiedNodes.add(ownerModified);
-		propagationQueue.add(ownerModified);
+		
+		if (!deletedNodes.contains(ownerModified)) {
+			
+			ownerModifiedNodes.add(ownerModified);
+			propagationQueue.add(ownerModified);
+		}
 	}
 	
 	public void modifySecurity(AbstractNode securityModified) {
-		securityModifiedNodes.add(securityModified);
-		propagationQueue.add(securityModified);
+		
+		if (!deletedNodes.contains(securityModified)) {
+			
+			securityModifiedNodes.add(securityModified);
+			propagationQueue.add(securityModified);
+		}
 	}
 	
 	public void modifyLocation(AbstractNode locationModified) {
-		locationModifiedNodes.add(locationModified);
-		propagationQueue.add(locationModified);
+		
+		if (!deletedNodes.contains(locationModified)) {
+			
+			locationModifiedNodes.add(locationModified);
+			propagationQueue.add(locationModified);
+		}
 	}
 	
 	public Set<AbstractRelationship> getModifiedRelationships() {

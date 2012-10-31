@@ -34,54 +34,39 @@ import org.structr.common.error.FrameworkException;
  */
 public class ECMAScriptCommand extends NodeServiceCommand {
 
-    private static final Logger logger = Logger.getLogger(ECMAScriptCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(ECMAScriptCommand.class.getName());
 
-    @Override
-    public Object execute(Object... parameters) throws FrameworkException {
+	public String execute(String scriptContent) throws FrameworkException {
 
-        StringBuilder out = new StringBuilder();
+		StringBuilder out = new StringBuilder();
 
-        StringBuilder scriptContent = new StringBuilder();
+		if(scriptContent != null && !scriptContent.isEmpty()) {
 
-        // this command takes exactly 1 parameter of type String
-        if (parameters != null && parameters.length == 1) {
+			// the following block is needed to turn some non-standard
+			// features on like load, print etc.
+			Global global = new Global();
+			Context cx = ContextFactory.getGlobal().enterContext();
+			global.init(cx);
+			cx.setOptimizationLevel(-1); // don't compile (there's a 64KB limit)
+			//cx.setLanguageVersion(Context.VERSION_1_5);
+			Scriptable scope = cx.initStandardObjects(global);
 
-            Object o = parameters[0];
+			try {
+				// wrap output to be accessible from inside script
+				Object wrappedOut = Context.javaToJS(out, scope);
+				ScriptableObject.putProperty(scope, "out", wrappedOut);
+				Object result = cx.evaluateString(scope, scriptContent.toString(), "ScriptCommand", 1, null);
+				logger.log(Level.INFO, Context.toString(result));
 
-            if (o instanceof String) {
-
-                scriptContent.append((String) o);
-
-                if (scriptContent != null && scriptContent.length() > 0) {
-
-                    // the following block is needed to turn some non-standard
-                    // features on like load, print etc.
-                    Global global = new Global();
-                    Context cx = ContextFactory.getGlobal().enterContext();
-                    global.init(cx);
-                    cx.setOptimizationLevel(-1); // don't compile (there's a 64KB limit)
-                    //cx.setLanguageVersion(Context.VERSION_1_5);
-                    Scriptable scope = cx.initStandardObjects(global);
-
-                    try {
-                        // wrap output to be accessible from inside script
-                        Object wrappedOut = Context.javaToJS(out, scope);
-                        ScriptableObject.putProperty(scope, "out", wrappedOut);
-                        Object result = cx.evaluateString(scope, scriptContent.toString(), "ScriptCommand", 1, null);
-                        logger.log(Level.INFO, Context.toString(result));
-
-                    } catch (Throwable t) {
-                        logger.log(Level.SEVERE, "Error evaluating script", t);
-                    } finally {
-                        Context.exit();
-                    }
+			} catch(Throwable t) {
+				logger.log(Level.SEVERE, "Error evaluating script", t);
+			} finally {
+				Context.exit();
+			}
 
 
-                }
-            }
+		}
 
-        }
-        return out.toString();
-
-    }
+		return out.toString();
+	}
 }

@@ -27,9 +27,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -38,6 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.Property;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.search.Search;
@@ -54,32 +53,22 @@ import org.structr.core.node.search.SearchRelationshipCommand;
  *
  * @author Axel Morgner
  */
-public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
+public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = Logger.getLogger(BulkSetRelationshipPropertiesCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		final RelationshipFactory relationshipFactory      = (RelationshipFactory) arguments.get("relationshipFactory");
-                final Command searchRel = Services.command(SecurityContext.getSuperUserInstance(), SearchRelationshipCommand.class);
+		final GraphDatabaseService graphDb            = (GraphDatabaseService) arguments.get("graphDb");
+		final RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
+                final SearchRelationshipCommand searchRel     = Services.command(SecurityContext.getSuperUserInstance(), SearchRelationshipCommand.class);
                 
-                if (!((parameters != null) && (parameters.length == 1) && (parameters[0] instanceof Map) && !((Map) parameters[0]).isEmpty())) {
-                        
-                        throw new IllegalArgumentException("This command requires one argument of type Map. Map must not be empty.");
-                        
-                }
-                
-                final Map<String, Object> properties = (Map<String, Object>) parameters[0];
-
 		if (graphDb != null) {
 
-			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-
-			transactionCommand.execute(new BatchTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction() {
 
 				@Override
 				public Object execute(Transaction tx) throws FrameworkException {
@@ -87,13 +76,13 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 					long n                  = 0L;
                                         List<AbstractRelationship> rels = null;
                                         
-                                        if (properties.containsKey(AbstractRelationship.HiddenKey.combinedType.name())) {
+                                        if (properties.containsKey(AbstractRelationship.combinedType.name())) {
                                                 
                                                 List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.HiddenKey.combinedType.name())));
+                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.combinedType.name())));
                                                 
                                                 rels = (List<AbstractRelationship>) searchRel.execute(attrs);
-                                                properties.remove(AbstractRelationship.HiddenKey.combinedType.name());
+                                                properties.remove(AbstractRelationship.combinedType.name());
                                                 
                                         } else {
                                         
@@ -103,14 +92,15 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 					for (AbstractRelationship rel : rels) {
 
 						// Treat only "our" nodes
-						if (rel.getStringProperty(AbstractRelationship.Key.uuid) != null) {
+						if (rel.getProperty(AbstractRelationship.uuid) != null) {
 
 							for (Entry entry : properties.entrySet()) {
                                                                 
                                                                 String key = (String) entry.getKey();
                                                                 Object val = entry.getValue();
                                                                 
-                                                                rel.setProperty(key, val);
+								// FIXME: synthetic Property generation
+                                                                rel.setProperty(new Property(key), val);
                                                                 
                                                         }
 
@@ -139,7 +129,5 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 			});
 
 		}
-
-		return null;
 	}
 }

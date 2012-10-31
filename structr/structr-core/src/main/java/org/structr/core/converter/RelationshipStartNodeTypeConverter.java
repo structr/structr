@@ -19,7 +19,8 @@
 
 package org.structr.core.converter;
 
-import org.structr.core.Value;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -29,13 +30,12 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public class RelationshipStartNodeTypeConverter extends PropertyConverter {
 
-	@Override
-	public Object convertForSetter(Object source, Value value) {
-		return null;
+	public RelationshipStartNodeTypeConverter(SecurityContext securityContext, GraphObject entity) {
+		super(securityContext, entity);
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object revert(Object source) {
 		
 		if(currentObject instanceof AbstractRelationship) {
 			
@@ -50,6 +50,11 @@ public class RelationshipStartNodeTypeConverter extends PropertyConverter {
 			}
 		}
 		
+		return null;
+	}
+	
+	@Override
+	public Object convert(Object source) {
 		return null;
 	}
 }

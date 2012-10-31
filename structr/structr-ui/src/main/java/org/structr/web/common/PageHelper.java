@@ -31,6 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.property.PropertyKey;
 import org.structr.web.entity.Page;
 
 //~--- classes ----------------------------------------------------------------
@@ -71,7 +73,7 @@ public class PageHelper {
 	 * @param node
 	 * @return
 	 */
-	public static List<Page> getPages(SecurityContext securityContext, final AbstractNode node) {
+	public static List<Page> getPages(SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
 
 		List<Page> pages = new LinkedList<Page>();
 		AbstractNode pageNode;
@@ -79,9 +81,9 @@ public class PageHelper {
 
 		for (AbstractRelationship rel : rels) {
 
-			for (String key : rel.getProperties().keySet()) {
+			for (PropertyKey key : rel.getProperties().keySet()) {
 
-				pageNode = getNodeById(securityContext, key);
+				pageNode = getNodeById(securityContext, key.name());
 
 				if (pageNode != null && pageNode instanceof Page) {
 

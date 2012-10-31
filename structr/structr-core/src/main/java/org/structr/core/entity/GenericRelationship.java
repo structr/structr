@@ -25,12 +25,14 @@ package org.structr.core.entity;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 import org.neo4j.graphdb.Relationship;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -45,23 +47,22 @@ import org.structr.core.node.NodeService.RelationshipIndex;
  */
 public class GenericRelationship extends AbstractRelationship {
 
+	public static final Property<String> startNodeId = new Property<String>("startNodeId");
+	public static final Property<String> endNodeId   = new Property<String>("endNodeId");
+
+	public static final View uiView = new View(GenericRelationship.class, PropertyView.Ui,
+		startNodeId, endNodeId
+	);
+	
 	static {
 
-		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All, Key.values());
 
-		EntityContext.registerSearchableProperty(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
+		EntityContext.registerSearchableProperty(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), AbstractRelationship.uuid);
 		
 		// register start and end node for ui view
-		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.Ui, UiKey.values());
+//		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.Ui, UiKey.values());
 		
-	}
-
-	public enum HiddenKey implements PropertyKey {
-		cascadeDelete;
-	}
-	
-	public enum UiKey implements PropertyKey {
-		startNodeId, endNodeId
 	}
 	
 	//~--- constructors ---------------------------------------------------
@@ -74,26 +75,26 @@ public class GenericRelationship extends AbstractRelationship {
 
 	@Override
 	public PropertyKey getStartNodeIdKey() {
-		return UiKey.startNodeId;
+		return startNodeId;
 	}
 
 	@Override
 	public PropertyKey getEndNodeIdKey() {
-		return UiKey.endNodeId;
+		return endNodeId;
 	}
 		
 	@Override
-	public Iterable<String> getPropertyKeys(String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 		
-		Set<String> keys = new LinkedHashSet<String>();
+		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
 		
-		keys.add(UiKey.startNodeId.name());
-		keys.add(UiKey.endNodeId.name());
+		keys.add(startNodeId);
+		keys.add(endNodeId);
 		
 		if(dbRelationship != null) {
 			
 			for(String key : dbRelationship.getPropertyKeys()) {
-				keys.add(key);
+				keys.add(EntityContext.getPropertyKeyForName(entityType, key));
 			}
 		}
 		
@@ -111,7 +112,7 @@ public class GenericRelationship extends AbstractRelationship {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 }

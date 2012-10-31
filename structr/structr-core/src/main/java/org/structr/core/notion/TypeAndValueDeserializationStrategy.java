@@ -22,7 +22,7 @@
 package org.structr.core.notion;
 
 import java.util.*;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
@@ -40,7 +40,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.TypeToken;
-import org.structr.core.Result;
+import org.structr.core.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -54,12 +54,12 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 	//~--- fields ---------------------------------------------------------
 
-	protected boolean createIfNotExisting = false;
-	protected PropertyKey propertyKey     = null;
+	protected boolean createIfNotExisting     = false;
+	protected PropertyKey<String> propertyKey = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public TypeAndValueDeserializationStrategy(PropertyKey propertyKey, boolean createIfNotExisting) {
+	public TypeAndValueDeserializationStrategy(PropertyKey<String> propertyKey, boolean createIfNotExisting) {
 
 		this.createIfNotExisting = createIfNotExisting;
 		this.propertyKey         = propertyKey;
@@ -76,13 +76,43 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 		attrs.add(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
 		if (source != null) {
-			attrs.add(Search.andExactProperty(propertyKey, source.toString()));
+
+			// FIXME: use uuid only here?
+			if (source instanceof JsonInput) {
+
+				Object value = ((JsonInput)source).getAttributes().get(propertyKey.name());
+				if (value != null) {
+					
+					String stringValue = value.toString();
+					attrs.add(Search.andExactProperty(propertyKey, stringValue));
+				}
+
+			} else if (source instanceof GraphObject) {
+				
+				GraphObject obj = (GraphObject)source;
+				if (propertyKey != null) {
+					
+					attrs.add(Search.andExactProperty(propertyKey, obj.getProperty(propertyKey)));
+					
+				} else {
+					
+					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
+					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.name());
+					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
+					
+				}
+				
+				
+			} else {
+
+				attrs.add(Search.andExactProperty(propertyKey, source.toString()));
+
+			}
 		}
 
 
 		// just check for existance
-		Result result = (Result) Services.command(securityContext,
-						   SearchNodeCommand.class).execute(null, false, false, attrs);
+		Result result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 		int resultCount = result.size();
 
 		switch (resultCount) {
@@ -91,15 +121,15 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				if ((source != null) && createIfNotExisting) {
 
 					// create node and return it
-					AbstractNode newNode = (AbstractNode) Services.command(
-								   securityContext, CreateNodeCommand.class).execute(
-								   new NodeAttribute(
-								       AbstractNode.Key.type.name(),
-								       type.getSimpleName()), new NodeAttribute(
-									   propertyKey.name(), source.toString()));
+					AbstractNode newNode = Services.command(securityContext, CreateNodeCommand.class).execute(
+								   new NodeAttribute(AbstractNode.type, type.getSimpleName()),
+								   new NodeAttribute(propertyKey, source.toString())
+					                       );
 
 					if (newNode != null) {
+						
 						return newNode;
+						
 					} else {
 
 						logger.log(Level.WARNING,
@@ -115,20 +145,19 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				GraphObject obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException("base", new TypeToken(propertyKey.name(), type.getSimpleName()));
+					throw new FrameworkException("base", new TypeToken(propertyKey, type.getSimpleName()));
 				}
 				return obj;
 		}
 
 		if (source != null) {
 
-			Map<String, Object> attributes = new LinkedHashMap<String, Object>();
+			Map<PropertyKey, Object> attributes = new LinkedHashMap<PropertyKey, Object>();
 
-			attributes.put(propertyKey.name(), source.toString());
-			attributes.put("type", type.getSimpleName());
+			attributes.put(propertyKey,       source.toString());
+			attributes.put(AbstractNode.type, type.getSimpleName());
 
-			throw new FrameworkException(type.getSimpleName(),
-						     new PropertiesNotFoundToken("base", attributes));
+			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
 		}
 		
 		return null;

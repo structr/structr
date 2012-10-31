@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,25 +16,31 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.structr.common.error;
 
-package org.structr.core.converter;
-
-import org.structr.core.Value;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import java.util.Date;
+import org.structr.common.property.PropertyKey;
 
 /**
  *
  * @author Christian Morgner
  */
+public class DateFormatToken extends SemanticErrorToken {
 
-public class TestConverter extends PropertyConverter {
-
-	@Override
-	public Object convertForSetter(Object source, Value value) {
-		return source;
+	public DateFormatToken(PropertyKey<Date> propertyKey) {
+		super(propertyKey);
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
-		return source;
+	public JsonElement getContent() {
+		return new JsonPrimitive(getErrorToken());
+	}
+
+
+	@Override
+	public String getErrorToken() {
+		return "invalid_date_format";
 	}
 }

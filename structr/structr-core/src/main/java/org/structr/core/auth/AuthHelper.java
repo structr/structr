@@ -71,14 +71,14 @@ public class AuthHelper {
 
 			try {
 
-				Command searchNode            = Services.command(securityContext, SearchNodeCommand.class);
-				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+				SearchNodeCommand searchNode = Services.command(securityContext, SearchNodeCommand.class);
+				List<SearchAttribute> attrs  = new LinkedList<SearchAttribute>();
 
 				attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
 //				attrs.add(Search.andExactType("User"));
 				attrs.add(Search.andExactName(userName));
 
-				Result userList = (Result) searchNode.execute(null, false, false, attrs);
+				Result userList = searchNode.execute(attrs);
 				
 				if (!userList.isEmpty()) {
 					user = (Principal) userList.get(0);
@@ -143,19 +143,19 @@ public class AuthHelper {
 		Principal user              = null;
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-		attrs.add(Search.andExactProperty(Principal.Key.sessionId, messageToken));
+		attrs.add(Search.andExactProperty(Principal.sessionId, messageToken));
 		attrs.add(Search.andExactType("User"));
 
 		try {
 
 			// we need to search with a super user security context here..
-			Result results = (Result) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
+			Result results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
 
 			if (!results.isEmpty()) {
 
 				user = (Principal) results.get(0);
 
-				if ((user != null) && messageToken.equals(user.getProperty(Principal.Key.sessionId))) {
+				if ((user != null) && messageToken.equals(user.getProperty(Principal.sessionId))) {
 
 					return user;
 				}

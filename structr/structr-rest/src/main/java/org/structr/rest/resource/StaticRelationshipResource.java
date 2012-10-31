@@ -32,17 +32,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections.ListUtils;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
 import org.structr.core.Adapter;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -88,7 +86,7 @@ public class StaticRelationshipResource extends SortableResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Result doGet(final String sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		// fetch results from typedIdResource (should be a single node)
 		final List<? extends GraphObject> results = typedIdResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
@@ -143,20 +141,17 @@ public class StaticRelationshipResource extends SortableResource {
 				// we need to use the raw type of the second type constraint
 				// as the property key for getProperty
 				// look for a property converter for the given type and key
-				final Class type = sourceNode.getClass();
-				final String key = typeResource.getRawType();
+				final Class type      = sourceNode.getClass();
+				final PropertyKey key = EntityContext.getPropertyKeyForName(type, typeResource.getRawType());
 
-				// String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
-				final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+				// use database converter here, because results will be converted for output during serialization!
+				final PropertyConverter converter = key.databaseConverter(securityContext, sourceNode);
 
 				if (converter != null) {
 
-					final Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
-					converter.setCurrentObject(sourceNode);
 					converter.setRawMode(true);    // disable notion
 
-					final Object value = converter.convertForGetter(null, conversionValue);
+					final Object value = converter.revert(null);
 
 					// create error message in advance to avoid having to construct it twice in different locations
 					final StringBuilder msgBuilder = new StringBuilder();
@@ -225,7 +220,7 @@ public class StaticRelationshipResource extends SortableResource {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final List<? extends GraphObject> results = typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
-		final Command searchNode  = Services.command(securityContext, SearchNodeCommand.class);
+		final SearchNodeCommand searchNode        = Services.command(securityContext, SearchNodeCommand.class);
 
 		if (results != null) {
 
@@ -238,7 +233,9 @@ public class StaticRelationshipResource extends SortableResource {
 
 				if (startNode != null) {
 
-					if (EntityContext.isReadOnlyProperty(startNode.getClass(), typeResource.getRawType())) {
+					Class startNodeType = startNode.getClass();
+					
+					if (EntityContext.isReadOnlyProperty(startNodeType, EntityContext.getPropertyKeyForName(startNodeType, typeResource.getRawType()))) {
 
 						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
 
@@ -246,9 +243,9 @@ public class StaticRelationshipResource extends SortableResource {
 
 					}
 
-					final Command deleteRel               = Services.command(securityContext, DeleteRelationshipCommand.class);
-					final List<AbstractRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
-					final StructrTransaction transaction        = new StructrTransaction() {
+					final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+					final List<AbstractRelationship> rels     = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
+					final StructrTransaction transaction      = new StructrTransaction() {
 
 						@Override
 						public Object execute() throws FrameworkException {
@@ -257,7 +254,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 								final AbstractNode otherNode = rel.getOtherNode(startNode);
 								final Class otherNodeType    = otherNode.getClass();
-								final String id              = otherNode.getStringProperty(AbstractNode.Key.uuid.name());
+								final String id              = otherNode.getProperty(AbstractNode.uuid);
 
 								// Delete relationship only if not contained in property set
 								// check type of other node as well, there can be relationships
@@ -282,7 +279,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 								attrs.add(Search.andExactUuid(uuid));
 
-								final Result results = (Result) searchNode.execute(null, false, false, attrs);
+								final Result results = searchNode.execute(attrs);
 
 								if (results.isEmpty()) {
 
@@ -303,7 +300,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 								if (!type.equals(targetNode.getClass())) {
 
-									throw new FrameworkException(startNode.getClass().getSimpleName(), new TypeToken(uuid, type.getSimpleName()));
+									throw new FrameworkException(startNode.getClass().getSimpleName(), new TypeToken(AbstractNode.uuid, type.getSimpleName()));
 
 								}
 
@@ -340,9 +337,11 @@ public class StaticRelationshipResource extends SortableResource {
 
 				if (sourceNode != null && rel != null) {
 
-					if (EntityContext.isReadOnlyProperty(sourceNode.getClass(), typeResource.getRawType())) {
+					Class sourceNodeType = sourceNode.getClass();
+					
+					if (EntityContext.isReadOnlyProperty(sourceNodeType, EntityContext.getPropertyKeyForName(sourceNodeType, typeResource.getRawType()))) {
 
-						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNode.getClass(), typeResource.getRawType() });
+						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 
 						return null;
 
@@ -374,10 +373,13 @@ public class StaticRelationshipResource extends SortableResource {
 
 									otherNode = deserializationStrategy.adapt(key);
 
-									if (otherNode != null) {
+									if (otherNode != null && otherNode instanceof AbstractNode) {
 
-										rel.createRelationship(securityContext, sourceNode, otherNode);
+										rel.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
 
+									} else {
+										
+										logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
 									}
 
 								}
@@ -387,9 +389,13 @@ public class StaticRelationshipResource extends SortableResource {
 								// create a single relationship
 								otherNode = deserializationStrategy.adapt(keySource);
 
-								if (otherNode != null) {
+								if (otherNode != null && otherNode instanceof AbstractNode) {
 
-									rel.createRelationship(securityContext, sourceNode, otherNode);
+									rel.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
+
+								} else {
+
+									logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
 
 								}
 							}

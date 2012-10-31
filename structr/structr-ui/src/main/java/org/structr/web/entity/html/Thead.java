@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Thead extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Thead.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Thead.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Thead.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Thead.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Thead.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Thead.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

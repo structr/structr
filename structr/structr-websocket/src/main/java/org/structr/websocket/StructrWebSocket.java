@@ -30,13 +30,11 @@ import org.eclipse.jetty.websocket.WebSocket;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.Principal;
-import org.structr.core.node.search.Search;
 import org.structr.websocket.command.*;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateCommand;
@@ -55,13 +53,13 @@ import java.io.IOException;
 import java.security.SecureRandom;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.node.GetNodeByIdCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -111,7 +109,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private ServletConfig config                     = null;
 	private Connection connection                    = null;
 	private Gson gson                                = null;
-	private String idProperty                        = null;
+	private PropertyKey idProperty                   = null;
 	private HttpServletRequest request               = null;
 	private SecurityContext securityContext          = null;
 	private SynchronizationController syncController = null;
@@ -120,7 +118,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	//~--- constructors ---------------------------------------------------
 
-	public StructrWebSocket(final SynchronizationController syncController, final ServletConfig config, final HttpServletRequest request, final Gson gson, final String idProperty) {
+	public StructrWebSocket(final SynchronizationController syncController, final ServletConfig config, final HttpServletRequest request, final Gson gson, final PropertyKey idProperty) {
 
 		this.uploads        = new LinkedHashMap<String, FileUploadHandler>();
 		this.syncController = syncController;
@@ -286,7 +284,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	// ----- file handling -----
 	public void createFileUploadHandler(File file) {
 
-		String uuid = file.getStringProperty(AbstractNode.Key.uuid);
+		String uuid = file.getProperty(AbstractNode.uuid);
 
 		uploads.put(uuid, new FileUploadHandler(file));
 
@@ -294,7 +292,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	private FileUploadHandler handleExistingFile(final String uuid) {
 
-		Command getNode = Services.command(getSecurityContext(), GetNodeByIdCommand.class);
+		GetNodeByIdCommand getNode = Services.command(getSecurityContext(), GetNodeByIdCommand.class);
 
 		FileUploadHandler newHandler = null;
 		

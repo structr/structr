@@ -24,11 +24,14 @@ package org.structr.web.entity.html;
 import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
+import org.structr.common.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
+import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -37,15 +40,23 @@ import org.structr.core.entity.RelationClass;
  */
 public class Meta extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] { "name", "http-equiv", "content", "charset" };
+	public static final Property<String> _name      = new HtmlProperty("name");
+	public static final Property<String> _httpEquiv = new HtmlProperty("http-equiv");
+	public static final Property<String> _content   = new HtmlProperty("content");
+	public static final Property<String> _charset   = new HtmlProperty("charset");
 
+	public static final View htmlView = new View(Meta.class, PropertyView.Html,
+		_name, _httpEquiv, _content, _charset
+	);
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
-
-		EntityContext.registerPropertySet(Meta.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Meta.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Meta.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//		EntityContext.registerPropertySet(Meta.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Meta.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Meta.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Meta.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 
 	}
@@ -53,9 +64,9 @@ public class Meta extends HtmlElement {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public String[] getHtmlAttributes() {
+	public Property[] getHtmlAttributes() {
 
-		return (String[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlAttributes);
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
 

@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Rp extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Rp.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Rp.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Rp.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Rp.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Rp.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Rp.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

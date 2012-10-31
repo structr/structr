@@ -19,7 +19,6 @@
 
 package org.structr.core.notion;
 
-import java.util.Collection;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -28,6 +27,6 @@ import org.structr.core.GraphObject;
  *
  * @author Christian Morgner
  */
-public interface SerializationStrategy {
-	public Object serialize(SecurityContext securityContext, Class type, GraphObject source) throws FrameworkException;
+public interface SerializationStrategy<S extends GraphObject, T> {
+	public T serialize(SecurityContext securityContext, Class<S> type, S source) throws FrameworkException;
 }

@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Bdo extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Bdo.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Bdo.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Bdo.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Bdo.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Bdo.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Bdo.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

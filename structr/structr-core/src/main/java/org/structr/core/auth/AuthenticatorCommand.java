@@ -36,49 +36,44 @@ public class AuthenticatorCommand extends Command {
 
 	private static final Logger logger = Logger.getLogger(AuthenticatorCommand.class.getName());
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public Authenticator execute(ServletConfig servletConfig) throws FrameworkException {
 
-		if(parameters != null && parameters.length == 1 && parameters[0] instanceof ServletConfig) {
+		Authenticator authenticator = null;
+		if(servletConfig != null) {
 
-			ServletConfig servletConfig = (ServletConfig)parameters[0];
-			Authenticator authenticator = null;
-			if(servletConfig != null) {
+			// In a multi-context environment (e.g. WebSocket, REST and plain HTTP),
+			// it's bad idea to store the authenticator service in the servlet context
+			//Authenticator authenticator = (Authenticator)servletConfig.getServletContext().getAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
+			//if(authenticator == null) {
 
-				// In a multi-context environment (e.g. WebSocket, REST and plain HTTP),
-				// it's bad idea to store the authenticator service in the servlet context
-				//Authenticator authenticator = (Authenticator)servletConfig.getServletContext().getAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
-				//if(authenticator == null) {
 
-					
-					String authenticatorClassName = servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
-					if(authenticatorClassName != null) {
+				String authenticatorClassName = servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
+				if(authenticatorClassName != null) {
 
-						try {
-							Class authenticatorClass = Class.forName(authenticatorClassName);
-							authenticator = (Authenticator)authenticatorClass.newInstance();
+					try {
+						Class authenticatorClass = Class.forName(authenticatorClassName);
+						authenticator = (Authenticator)authenticatorClass.newInstance();
 
-							// cache instance
-							servletConfig.getServletContext().setAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, authenticator);	
+						// cache instance
+						servletConfig.getServletContext().setAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, authenticator);	
 
-						} catch(Throwable t) {
+					} catch(Throwable t) {
 
-							logger.log(Level.SEVERE, "Error instantiating authenticator for servlet with context path {0}: {1}",
-							new Object[] {
-								servletConfig.getServletName(), t
-							});
+						logger.log(Level.SEVERE, "Error instantiating authenticator for servlet with context path {0}: {1}",
+						new Object[] {
+							servletConfig.getServletName(), t
+						});
 
-						}
-
-					} else {
-
-						logger.log(Level.SEVERE, "No authenticator for servlet with context path {0}", servletConfig.getServletName());
 					}
-				//}
 
-				// return instance
-				return authenticator;
-			}
+				} else {
+
+					logger.log(Level.SEVERE, "No authenticator for servlet with context path {0}", servletConfig.getServletName());
+				}
+			//}
+
+			// return instance
+			return authenticator;
 		}
 
 		return null;

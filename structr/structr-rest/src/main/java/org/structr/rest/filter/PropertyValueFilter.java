@@ -21,6 +21,7 @@ package org.structr.rest.filter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
@@ -35,11 +36,11 @@ public class PropertyValueFilter<T extends Comparable> extends Filter {
 
 	private static final Logger logger = Logger.getLogger(PropertyValueFilter.class.getName());
 	
-	private Predicate<T> predicate = null;
-	private String propertyKey = null;
-	private Value<T> value = null;
+	private Predicate<T> predicate  = null;
+	private PropertyKey propertyKey = null;
+	private Value<T> value          = null;
 
-	public PropertyValueFilter(String propertyKey, Predicate<T> predicate, Value<T> value) {
+	public PropertyValueFilter(PropertyKey propertyKey, Predicate<T> predicate, Value<T> value) {
 		this.propertyKey = propertyKey;
 		this.predicate = predicate;
 		this.value = value;
@@ -52,7 +53,7 @@ public class PropertyValueFilter<T extends Comparable> extends Filter {
 		if (t != null) {
 			return predicate.evaluate(securityContext, t, value.get(securityContext));
 		} else {
-			logger.log(Level.WARNING, "Null property for key {0} on ID {1}", new Object[] { propertyKey, object.getProperty(AbstractNode.Key.uuid.name()) });
+			logger.log(Level.WARNING, "Null property for key {0} on ID {1}", new Object[] { propertyKey, object.getProperty(AbstractNode.uuid) });
 		}
 		
 		return false;

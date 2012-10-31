@@ -38,9 +38,9 @@ public class Q extends HtmlElement {
 
 	static {
 
-		EntityContext.registerPropertySet(Q.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Q.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Q.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Q.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Q.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Q.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 		
 		EntityContext.registerEntityRelation(Q.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 

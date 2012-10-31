@@ -34,10 +34,10 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.Result;
-import org.structr.core.PropertySet.PropertyFormat;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -49,8 +49,8 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
 
-	public ResultGSONAdapter(PropertyFormat propertyFormat, Value<String> propertyView, String idProperty) {
-		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyFormat, propertyView, idProperty);
+	public ResultGSONAdapter(Value<String> propertyView, PropertyKey idProperty) {
+		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyView, idProperty);
 	}
 
 	@Override
@@ -101,7 +101,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 				JsonArray resultArray = new JsonArray();
 				for(GraphObject graphObject : results) {
-					Object value = graphObject.getProperty(AbstractNode.Key.uuid.name());	// FIXME: UUID key hard-coded, use variable in Result here!
+					Object value = graphObject.getProperty(AbstractNode.uuid);	// FIXME: UUID key hard-coded, use variable in Result here!
 					if(value != null) {
 						resultArray.add(new JsonPrimitive(value.toString()));
 					}

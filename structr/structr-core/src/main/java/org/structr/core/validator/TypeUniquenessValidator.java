@@ -38,6 +38,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -65,7 +66,7 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public boolean isValid(GraphObject object, String key, String value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey<String> key, String value, ErrorBuffer errorBuffer) {
 
 		if ((value == null) || ((value != null) && (value.length() == 0))) {
 
@@ -77,12 +78,9 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 
 		if ((key != null) && (value != null)) {
 
-			AbstractNode topNode            = null;
-			Boolean includeDeletedAndHidden = false;
-			Boolean publicOnly              = false;
-			boolean nodeExists              = false;
-			String id;
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
+			boolean nodeExists               = false;
+			String id                        = null;
 
 			attributes.add(Search.andExactType(type));
 			attributes.add(Search.andExactProperty(key, value));
@@ -91,8 +89,7 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 
 			try {
 
-				resultList = (Result) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeletedAndHidden,
-					publicOnly, attributes, type, key);
+				resultList = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attributes);
 				nodeExists = !resultList.isEmpty();
 
 			} catch (FrameworkException fex) {

@@ -74,13 +74,13 @@ public class ChunkCommand extends AbstractCommand {
 			File file = (File) getNode(uuid);
 			
 			// Set proper size
-			file.setProperty(File.Key.size, (sequenceNumber * chunkSize) + data.length);
+			file.setProperty(File.size, (long)(sequenceNumber * chunkSize) + data.length);
 			
 			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
 			
 			// This should trigger setting of lastModifiedDate in any case
 			file.setChecksum(0L);
-			file.getChecksum();
+//			file.getChecksum();
 			
 			getWebSocket().send(MessageBuilder.status().code(200).message("File saved successfully!").build(), true);
 

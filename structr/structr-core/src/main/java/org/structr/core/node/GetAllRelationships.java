@@ -19,9 +19,11 @@
 package org.structr.core.node;
 
 import java.util.Collections;
+import java.util.List;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  * Get all relationships in the database.
@@ -32,16 +34,16 @@ import org.structr.common.error.FrameworkException;
  */
 public class GetAllRelationships extends NodeServiceCommand {
 
-    @Override
-    public Object execute(Object... parameters) throws FrameworkException {
+	public List<AbstractRelationship> execute() throws FrameworkException {
 
-        GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        RelationshipFactory relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
+		RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
+		GraphDatabaseService graphDb            = (GraphDatabaseService)arguments.get("graphDb");
 
-        if (graphDb != null) {
-            return relationshipFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
-        }
-        
-        return Collections.emptyList();
-    }
+		if(graphDb != null) {
+			
+			return relationshipFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+		}
+
+		return Collections.emptyList();
+	}
 }

@@ -39,6 +39,10 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -191,7 +195,7 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	@Override
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -199,18 +203,27 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		message.setCommand("UPDATE");
 
-		String uuid = graphObject.getStringProperty(AbstractNode.Key.uuid.name());
+		String uuid = graphObject.getProperty(AbstractNode.uuid);
 		
 		if (graphObject instanceof AbstractRelationship) {
 
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
 			AbstractNode startNode            = relationship.getStartNode();
 			AbstractNode endNode              = relationship.getEndNode();
-			Map<String, Object> relProperties = relationship.getProperties();
+			
+			try {
+				PropertyMap relProperties         = relationship.getProperties();
 
-			relProperties.put("startNodeId", startNode.getUuid());
-			relProperties.put("endNodeId", endNode.getUuid());
-			message.setRelData(relProperties);
+				relProperties.put(new Property("startNodeId"), startNode.getUuid());
+				relProperties.put(new Property("endNodeId"), endNode.getUuid());
+
+				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+				message.setRelData(properties);
+				
+			} catch(FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Unable to convert properties from type {0} to input type", relationship.getClass());
+			}
 
 		}
 
@@ -224,7 +237,7 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	@Override
-	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue) {
+	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -232,18 +245,27 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		message.setCommand("UPDATE");
 
-		String uuid = graphObject.getStringProperty(AbstractNode.Key.uuid.name());
+		String uuid = graphObject.getProperty(AbstractNode.uuid);
 
 		if (graphObject instanceof AbstractRelationship) {
 
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
 			AbstractNode startNode            = relationship.getStartNode();
 			AbstractNode endNode              = relationship.getEndNode();
-			Map<String, Object> relProperties = relationship.getProperties();
+			
+			try {
+				PropertyMap relProperties         = relationship.getProperties();
 
-			relProperties.put("startNodeId", startNode.getUuid());
-			relProperties.put("endNodeId", endNode.getUuid());
-			message.setRelData(relProperties);
+				relProperties.put(new Property("startNodeId"), startNode.getUuid());
+				relProperties.put(new Property("endNodeId"), endNode.getUuid());
+
+				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+				message.setRelData(properties);
+				
+			} catch(FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Unable to convert properties from type {0} to input type", relationship.getClass());
+			}
 
 		}
 
@@ -275,10 +297,10 @@ public class SynchronizationController implements StructrTransactionListener {
 
 				message.setCommand("ADD");
 				message.setGraphObject(relationship);
-				message.setId(startNode.getStringProperty("uuid"));
+				message.setId(startNode.getProperty(AbstractNode.uuid));
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
 
-				String pageId = relationship.getStringProperty("pageId");
+				String pageId = relationship.getProperty(new Property<String>("pageId"));
 
 				if (pageId != null) {
 
@@ -290,8 +312,8 @@ public class SynchronizationController implements StructrTransactionListener {
 				}
 
 				messageStack.add(message);
-				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
-					endNode.getStringProperty(AbstractNode.Key.uuid) });
+				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getProperty(AbstractNode.uuid),
+					endNode.getProperty(AbstractNode.uuid) });
 
 			}
 
@@ -307,7 +329,7 @@ public class SynchronizationController implements StructrTransactionListener {
 			list.add(graphObject);
 			message.setResult(list);
 			messageStack.add(message);
-			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getStringProperty(AbstractNode.Key.uuid));
+			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getProperty(AbstractNode.uuid));
 
 		}
 
@@ -331,7 +353,7 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, Map<String, Object> properties) {
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, PropertyMap properties) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -347,7 +369,7 @@ public class SynchronizationController implements StructrTransactionListener {
 			WebSocketMessage message = new WebSocketMessage();
 			String startNodeId       = relationship.getCachedStartNodeId();
 			String endNodeId         = relationship.getCachedEndNodeId();
-			String pageId	 = (String) properties.get("pageId");
+			String pageId	         = (String) properties.get(new Property("pageId"));
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
@@ -365,7 +387,7 @@ public class SynchronizationController implements StructrTransactionListener {
 		} else {
 
 			WebSocketMessage message = new WebSocketMessage();
-			String uuid              = properties.get("uuid").toString();
+			String uuid              = properties.get(AbstractNode.uuid).toString();
 
 			message.setId(uuid);
 			message.setCommand("DELETE");

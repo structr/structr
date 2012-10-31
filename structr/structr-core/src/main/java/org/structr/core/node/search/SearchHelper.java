@@ -57,37 +57,30 @@ public class SearchHelper {
 	}
 
 	public static Query type(String type) {
-		return new TermQuery(new Term(AbstractNode.Key.type.name(), StringUtils.capitalize(type)));
+		return new TermQuery(new Term(AbstractNode.type.name(), StringUtils.capitalize(type)));
 	}
 
 	public static Query typeAndSubtypes(String type) {
 
-		try {
-			Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
-			Class parentClass           = entities.get(StringUtils.capitalize(type));
-			BooleanQuery query          = new BooleanQuery();
+		Map<String, Class> entities = Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
+		Class parentClass           = entities.get(StringUtils.capitalize(type));
+		BooleanQuery query          = new BooleanQuery();
 
-			// no parent class found, return unmodified type query
-			if (parentClass == null) {
-				return type(type);
-			}
-
-			for (Map.Entry<String, Class> entity : entities.entrySet()) {
-
-				Class entityClass = entity.getValue();
-				if (parentClass.isAssignableFrom(entityClass)) {
-					query.add(type(entity.getKey()), Occur.SHOULD);
-				}
-
-			}
-
-			return query;
-
-		} catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to create type and subtype query", fex);
+		// no parent class found, return unmodified type query
+		if (parentClass == null) {
+			return type(type);
 		}
 
-		return type(type);
+		for (Map.Entry<String, Class> entity : entities.entrySet()) {
+
+			Class entityClass = entity.getValue();
+			if (parentClass.isAssignableFrom(entityClass)) {
+				query.add(type(entity.getKey()), Occur.SHOULD);
+			}
+
+		}
+
+		return query;
 	}
 
 	public static Query and(Query query1, Query query2) {

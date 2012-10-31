@@ -21,11 +21,10 @@
 
 package org.structr.core.entity;
 
+import org.structr.common.property.Property;
+import java.util.List;
 import org.neo4j.graphdb.Direction;
-
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.common.*;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.notion.PropertyNotion;
@@ -38,16 +37,18 @@ import org.structr.core.notion.PropertyNotion;
  */
 public interface Linkable extends GraphObject {
 
-	public enum Key implements PropertyKey{ linkingElements }
+	public static final Property<List<AbstractNode>> linkingElements = new Property<List<AbstractNode>>("linkingElements");
 
+	public static final View uiView = new View(Linkable.class, PropertyView.Ui, linkingElements);
+	
 	//~--- inner classes --------------------------------------------------
 
 	static class Impl {
 
 		static {
 
-			EntityContext.registerPropertySet(Linkable.class, PropertyView.Ui, Key.linkingElements);
-			EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, AbstractNode.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
+//			EntityContext.registerPropertySet(Linkable.class, PropertyView.Ui, linkingElements);
+			EntityContext.registerPropertyRelation(Linkable.class, Linkable.linkingElements, AbstractNode.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.uuid));
 
 		}
 

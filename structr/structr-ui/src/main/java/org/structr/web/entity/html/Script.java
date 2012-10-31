@@ -21,18 +21,18 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.common.property.Property;
+import java.util.List;
 import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
-
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.common.*;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -42,36 +42,48 @@ import org.structr.web.entity.Content;
  */
 public class Script extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] { "src", "async", "defer", "type", "charset" };
+	public static final Property<String> _src     = new HtmlProperty("src");
+	public static final Property<String> _async   = new HtmlProperty("async");
+	public static final Property<String> _defer   = new HtmlProperty("defer");
+	public static final Property<String> _type    = new HtmlProperty("type");
+	public static final Property<String> _charset = new HtmlProperty("charset");
 
+	public static final Property<String>         linkableId = new Property<String>("linkable_id");
+	public static final Property<List<Linkable>> linkable   = new Property<List<Linkable>>("linkable");
+
+	public static final View uiView = new View(Script.class, PropertyView.Ui,
+		linkableId, linkable
+	);
+
+	public static final View htmlView = new View(Script.class, PropertyView.Html,
+		_src, _async, _defer, _type, _charset
+	);
+
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(Script.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Script.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Script.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Script.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Script.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Script.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Script.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Script.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Script.class, Div.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Script.class, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name),
+		EntityContext.registerEntityRelation(Script.class, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name),
 			RelationClass.DELETE_NONE);
-		EntityContext.registerPropertyRelation(Script.class, Script.UiKey.linkable_id, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne,
-			new PropertyNotion(AbstractNode.Key.uuid), RelationClass.DELETE_NONE);
+		EntityContext.registerPropertyRelation(Script.class, Script.linkableId, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne,
+			new PropertyNotion(AbstractNode.uuid), RelationClass.DELETE_NONE);
 
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum UiKey implements PropertyKey{ linkable, linkable_id }
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public String[] getHtmlAttributes() {
+	public Property[] getHtmlAttributes() {
 
-		return (String[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlAttributes);
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
-
 }

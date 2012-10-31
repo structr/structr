@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Fieldset extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Fieldset.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Fieldset.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Fieldset.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Fieldset.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Fieldset.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Fieldset.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

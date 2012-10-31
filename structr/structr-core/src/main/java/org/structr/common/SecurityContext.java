@@ -322,7 +322,7 @@ public class SecurityContext {
 		}
 
 		logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, (user != null)
-			? user.getStringProperty(AbstractNode.Key.name)
+			? user.getProperty(AbstractNode.name)
 			: "null", accessMode, node, permission });
 
 		return isAllowed;
@@ -412,7 +412,7 @@ public class SecurityContext {
 //                      return false;
 //
 //              }
-		// users with read permissions may see the node
+		// users with scanEntity permissions may see the node
 		if (isAllowedInBackend(node, Permission.read)) {
 
 			return true;
@@ -500,7 +500,7 @@ public class SecurityContext {
 				// frontend user
 //                              if (user.isFrontendUser()) {
 //
-//                                      boolean hasReadPermission = node.isGranted(AbstractRelationship.Permission.read.name(), user);
+//                                      boolean hasReadPermission = node.isGranted(AbstractRelationship.Permission.scanEntity.name(), user);
 //
 //                                      if (!hasReadPermission) {
 //
@@ -532,7 +532,7 @@ public class SecurityContext {
 		switch (permission) {
 
 			case read :
-				return isVisibleInFrontend(node);    // read permission in frontend is equivalent to visibility here
+				return isVisibleInFrontend(node);    // scanEntity permission in frontend is equivalent to visibility here
 
 			// return node.isGranted(AbstractRelationship.READ_KEY, user);
 			default :

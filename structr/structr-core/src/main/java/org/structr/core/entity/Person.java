@@ -21,14 +21,26 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.Permission;
+import org.structr.common.property.Property;
+import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.property.BooleanProperty;
+import org.structr.common.property.ISO8601DateProperty;
+import org.structr.common.property.PasswordProperty;
+import org.structr.core.Services;
+import org.structr.core.node.CreateRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -37,133 +49,151 @@ import java.util.Date;
  * @author amorgner
  *
  */
-public class Person extends PrincipalImpl {
+public class Person extends AbstractNode implements Principal {
 
+	public static final Property<String>  salutation          = new Property<String>("salutation");
+	public static final Property<String>  firstName           = new Property<String>("firstName");
+	public static final Property<String>  middleNameOrInitial = new Property<String>("middleNameOrInitial");
+	public static final Property<String>  lastName            = new Property<String>("lastName");
+	public static final Property<String>  email               = new Property<String>("email");
+	public static final Property<String>  email2              = new Property<String>("email2");
+	public static final Property<String>  password            = new PasswordProperty("password");
+	public static final Property<String>  phoneNumber1        = new Property<String>("phoneNumber1");
+	public static final Property<String>  phoneNumber2        = new Property<String>("phoneNumber2");
+	public static final Property<String>  faxNumber1          = new Property<String>("faxNumber1");
+	public static final Property<String>  faxNumber2          = new Property<String>("faxNumber2");
+	public static final Property<String>  street              = new Property<String>("street");
+	public static final Property<String>  zipCode             = new Property<String>("zipCode");
+	public static final Property<String>  city                = new Property<String>("city");
+	public static final Property<String>  state               = new Property<String>("state");
+	public static final Property<String>  country             = new Property<String>("country");
+	public static final Property<Date>    birthday            = new ISO8601DateProperty("birthday");
+	public static final Property<String>  gender              = new Property<String>("gender");
+	public static final Property<Boolean> newsletter          = new BooleanProperty("newsletter");
+	
+	public static final View publicView = new View(Person.class, PropertyView.Public,
+		salutation, firstName, middleNameOrInitial, lastName
+	);
+	
 	static {
 
-		EntityContext.registerPropertySet(Person.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(Person.class, PropertyView.All, Key.values());
 
 		// public properties
-		EntityContext.registerPropertySet(Person.class, PropertyView.Public, Key.salutation, Key.firstName, Key.middleNameOrInitial, Key.lastName);
+//		EntityContext.registerPropertySet(Person.class, PropertyView.Public, Key.salutation, Key.firstName, Key.middleNameOrInitial, Key.lastName);
 
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public static enum Key implements PropertyKey {
-
-		salutation, firstName, middleNameOrInitial, lastName, email, email2, phoneNumber1, phoneNumber2, faxNumber1, faxNumber2, street, zipCode, city, state, country, birthday, gender,
-		newsletter
-
-	}
-
+	
 	//~--- get methods ----------------------------------------------------
 
 	public String getFirstName() {
 
-		return getStringProperty(Key.firstName.name());
+		return getProperty(Person.firstName);
 
 	}
 
 	public String getLastName() {
 
-		return getStringProperty(Key.lastName.name());
+		return getProperty(Person.lastName);
 
 	}
 
 	public String getSalutation() {
 
-		return getStringProperty(Key.salutation.name());
+		return getProperty(Person.salutation);
 
 	}
 
 	public String getMiddleNameOrInitial() {
 
-		return getStringProperty(Key.middleNameOrInitial.name());
+		return getProperty(Person.middleNameOrInitial);
 
 	}
 
 	public String getEmail() {
 
-		return getStringProperty(Key.email.name());
+		return getProperty(Person.email);
 
 	}
 
 	public String getEmail2() {
 
-		return getStringProperty(Key.email2.name());
+		return getProperty(Person.email2);
 
 	}
 
 	public String getPhoneNumber1() {
 
-		return getStringProperty(Key.phoneNumber1.name());
+		return getProperty(Person.phoneNumber1);
 
 	}
 
 	public String getPhoneNumber2() {
 
-		return getStringProperty(Key.phoneNumber2.name());
+		return getProperty(Person.phoneNumber2);
 
 	}
 
 	public String getFaxNumber1() {
 
-		return getStringProperty(Key.faxNumber1.name());
+		return getProperty(Person.faxNumber1);
 
 	}
 
 	public String getFaxNumber2() {
 
-		return getStringProperty(Key.faxNumber2.name());
+		return getProperty(Person.faxNumber2);
 
 	}
 
 	public String getStreet() {
 
-		return getStringProperty(Key.street.name());
+		return getProperty(Person.street);
 
 	}
 
 	public String getZipCode() {
 
-		return getStringProperty(Key.zipCode.name());
+		return getProperty(Person.zipCode);
 
 	}
 
 	public String getState() {
 
-		return getStringProperty(Key.state.name());
+		return getProperty(Person.state);
 
 	}
 
 	public String getCountry() {
 
-		return getStringProperty(Key.country.name());
+		return getProperty(Person.country);
 
 	}
 
 	public String getCity() {
 
-		return getStringProperty(Key.city.name());
+		return getProperty(Person.city);
 
 	}
 
 	public boolean getNewsletter() {
 
-		return getBooleanProperty(Key.newsletter.name());
+		return getBooleanProperty(Person.newsletter);
 
 	}
 
 	public Date getBirthday() {
 
-		return getDateProperty(Key.birthday.name());
+		return getDateProperty(Person.birthday);
 
 	}
 
 	public String getGender() {
 
-		return getStringProperty(Key.gender.name());
+		return getProperty(Person.gender);
 
 	}
 
@@ -171,7 +201,7 @@ public class Person extends PrincipalImpl {
 
 	public void setFirstName(final String firstName) throws FrameworkException {
 
-		setProperty(Key.firstName.name(), firstName);
+		setProperty(Person.firstName, firstName);
 
 		String lastName = ((getLastName() != null) &&!(getLastName().isEmpty()))
 				  ? getLastName()
@@ -183,117 +213,237 @@ public class Person extends PrincipalImpl {
 
 	public void setLastName(final String lastName) throws FrameworkException {
 
-		setProperty(Key.lastName.name(), lastName);
+		setProperty(Person.lastName, lastName);
 
 		String firstName = ((getFirstName() != null) &&!(getFirstName().isEmpty()))
 				   ? getFirstName()
 				   : "";
 
-		setProperty(AbstractNode.Key.name.name(), lastName + ", " + firstName);
+		setProperty(AbstractNode.name, lastName + ", " + firstName);
 
 	}
 
 	@Override
 	public void setName(final String name) throws FrameworkException {
 
-		setProperty(AbstractNode.Key.name.name(), name);
+		setProperty(AbstractNode.name, name);
 
 	}
 
 	public void setSalutation(final String salutation) throws FrameworkException {
 
-		setProperty(Key.salutation.name(), salutation);
+		setProperty(Person.salutation, salutation);
 
 	}
 
 	public void setMiddleNameOrInitial(final String middleNameOrInitial) throws FrameworkException {
 
-		setProperty(Key.middleNameOrInitial.name(), middleNameOrInitial);
+		setProperty(Person.middleNameOrInitial, middleNameOrInitial);
 
 	}
 
 	public void setEmail(final String email) throws FrameworkException {
 
-		setProperty(Key.email.name(), email);
+		setProperty(Person.email, email);
 
 	}
 
 	public void setEmail2(final String email2) throws FrameworkException {
 
-		setProperty(Key.email2.name(), email2);
+		setProperty(Person.email2, email2);
 
 	}
 
 	public void setPhoneNumber1(final String value) throws FrameworkException {
 
-		setProperty(Key.phoneNumber1.name(), value);
+		setProperty(Person.phoneNumber1, value);
 
 	}
 
 	public void setPhoneNumber2(final String value) throws FrameworkException {
 
-		setProperty(Key.phoneNumber2.name(), value);
+		setProperty(Person.phoneNumber2, value);
 
 	}
 
 	public void setFaxNumber1(final String value) throws FrameworkException {
 
-		setProperty(Key.faxNumber1.name(), value);
+		setProperty(Person.faxNumber1, value);
 
 	}
 
 	public void setFaxNumber2(final String value) throws FrameworkException {
 
-		setProperty(Key.faxNumber2.name(), value);
+		setProperty(Person.faxNumber2, value);
 
 	}
 
 	public void setStreet(final String value) throws FrameworkException {
 
-		setProperty(Key.street.name(), value);
+		setProperty(Person.street, value);
 
 	}
 
 	public void setZipCode(final String value) throws FrameworkException {
 
-		setProperty(Key.zipCode.name(), value);
+		setProperty(Person.zipCode, value);
 
 	}
 
 	public void setState(final String value) throws FrameworkException {
 
-		setProperty(Key.state.name(), value);
+		setProperty(Person.state, value);
 
 	}
 
 	public void setCountry(final String value) throws FrameworkException {
 
-		setProperty(Key.country.name(), value);
+		setProperty(Person.country, value);
 
 	}
 
 	public void setCity(final String value) throws FrameworkException {
 
-		setProperty(Key.city.name(), value);
+		setProperty(Person.city, value);
 
 	}
 
 	public void setNewsletter(final boolean value) throws FrameworkException {
 
-		setProperty(Key.newsletter.name(), value);
+		setProperty(Person.newsletter, value);
 
 	}
 
 	public void setBirthday(final Date value) throws FrameworkException {
 
-		setProperty(Key.birthday.name(), value);
+		setProperty(Person.birthday, value);
 
 	}
 
 	public void setGender(final String value) throws FrameworkException {
 
-		setProperty(Key.gender.name(), value);
+		setProperty(Person.gender, value);
 
 	}
+
+	@Override
+	public void block() throws FrameworkException {
+
+		setBlocked(Boolean.TRUE);
+
+	}
+
+	@Override
+	public void grant(Permission permission, AbstractNode obj) {
+
+		AbstractRelationship secRel = obj.getSecurityRelationship(this);
+
+		if (secRel == null) {
+
+			try {
+
+				secRel = createSecurityRelationshipTo(obj);
+
+			} catch (FrameworkException ex) {
+
+				Logger.getLogger(Person.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
+
+			}
+
+		}
+
+		secRel.addPermission(permission);
+
+	}
+
+	@Override
+	public void revoke(Permission permission, AbstractNode obj) {
+
+		AbstractRelationship secRel = obj.getSecurityRelationship(this);
+
+		if (secRel == null) {
+
+			try {
+
+				secRel = createSecurityRelationshipTo(obj);
+
+			} catch (FrameworkException ex) {
+
+				Logger.getLogger(Person.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
+
+			}
+
+		}
+
+		secRel.removePermission(permission);
+
+	}
+
+	private AbstractRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
+
+		return Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
+
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public String getEncryptedPassword() {
+
+		boolean dbNodeHasProperty = dbNode.hasProperty(password.name());
+
+		if (dbNodeHasProperty) {
+
+			Object dbValue = dbNode.getProperty(password.name());
+
+			return (String) dbValue;
+
+		} else {
+
+			return null;
+		}
+
+	}
+
+	@Override
+	public Boolean getBlocked() {
+
+		return (Boolean) getProperty(blocked);
+
+	}
+
+	@Override
+	public List<Principal> getParents() {
+
+		List<Principal> parents               = new LinkedList<Principal>();
+		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
+
+		for (AbstractRelationship rel : parentRels) {
+
+			AbstractNode node = rel.getEndNode();
+
+			if (node instanceof Principal) {
+
+				parents.add((Principal) node);
+			}
+
+		}
+
+		return parents;
+
+	}
+
+	@Override
+	public Boolean isBlocked() {
+
+		return Boolean.TRUE.equals(getBlocked());
+
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	@Override
+	public void setBlocked(final Boolean blocked) throws FrameworkException {}
+
 
 }

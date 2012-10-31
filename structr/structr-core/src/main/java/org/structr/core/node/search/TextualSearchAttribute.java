@@ -18,6 +18,7 @@
  */
 package org.structr.core.node.search;
 
+import org.structr.common.property.PropertyKey;
 import org.structr.core.node.NodeAttribute;
 
 /**
@@ -32,7 +33,7 @@ public class TextualSearchAttribute extends SearchAttribute {
 
     private NodeAttribute nodeAttribute;
 
-    public TextualSearchAttribute(final String key, final String value, final SearchOperator searchOp) {
+    public TextualSearchAttribute(final PropertyKey key, final String value, final SearchOperator searchOp) {
         nodeAttribute = new NodeAttribute(key, value);
         setSearchOperator(searchOp);
     }
@@ -47,7 +48,7 @@ public class TextualSearchAttribute extends SearchAttribute {
         this.nodeAttribute = (NodeAttribute) attribute;
     }
 
-    public String getKey() {
+    public PropertyKey getKey() {
         return nodeAttribute.getKey();
     }
 

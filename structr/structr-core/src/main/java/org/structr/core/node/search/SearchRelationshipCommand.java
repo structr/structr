@@ -51,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,25 +67,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
-
-		if ((parameters == null) || (parameters.length < 1) || (parameters.length > 1)) {
-
-			logger.log(Level.WARNING, "Exactly one parameter of type 'List<SearchAttribute>' is required for relationship search.");
-
-			return Collections.emptyList();
-
-		}
-
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-		if (parameters[0] instanceof List) {
-
-			searchAttrs = (List<SearchAttribute>) parameters[0];
-
-		}
-
+	public List<AbstractRelationship> execute(List<SearchAttribute> searchAttrs) throws FrameworkException {
 		return search(securityContext, searchAttrs);
 	}
 
@@ -185,12 +168,12 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 				QueryContext queryContext = new QueryContext(textualQueryString);
 				IndexHits hits;
 
-				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractRelationship.Key.uuid.name())) {
+				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractRelationship.uuid.name())) {
 
 					// Search for uuid only: Use UUID index
 					index = (Index<Relationship>) arguments.get(RelationshipIndex.rel_uuid.name());
 					synchronized(index) {
-						hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+						hits  = index.get(AbstractNode.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
 					}
 				} else if ((textualAttributes.size() > 1) && allExactMatch) {
 
@@ -231,7 +214,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 					for (FilterSearchAttribute attr : filters) {
 
-						String key         = attr.getKey();
+						PropertyKey key    = attr.getKey();
 						Object searchValue = attr.getValue();
 						SearchOperator op  = attr.getSearchOperator();
 						Object nodeValue   = rel.getProperty(key);
@@ -308,7 +291,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 	private String toQueryString(final TextualSearchAttribute singleAttribute, final boolean isFirst) {
 
-		String key        = singleAttribute.getKey();
+		PropertyKey key   = singleAttribute.getKey();
 		String value      = singleAttribute.getValue();
 		SearchOperator op = singleAttribute.getSearchOperator();
 
@@ -321,13 +304,13 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 		// NOT operator should always be applied
 		return ((isFirst &&!(op.equals(SearchOperator.NOT)))
 			? ""
-			: " " + op + " ") + expand(key, value);
+			: " " + op + " ") + expand(key.name(), value);
 	}
 
 	private Query toQuery(final TextualSearchAttribute singleAttribute) {
 
-		String key   = singleAttribute.getKey();
-		String value = singleAttribute.getValue();
+		PropertyKey key = singleAttribute.getKey();
+		String value    = singleAttribute.getValue();
 
 //              SearchOperator op = singleAttribute.getSearchOperator();
 		if ((key == null) || (value == null)) {
@@ -336,9 +319,9 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 		}
 
-		if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+		if (StringUtils.isNotBlank(key.name()) && StringUtils.isNotBlank(value)) {
 
-			return new TermQuery(new Term(key, value));
+			return new TermQuery(new Term(key.name(), value));
 
 		}
 
@@ -435,7 +418,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 //                      if ((value != null) && isExactMatch(value)) {
 //
 //                              String key          = attr.getKey();
-//                              String nodeValue    = node.getStringProperty(key);
+//                              String nodeValue    = node.getProperty(key);
 //                              String decodedValue = decodeExactMatch(value);
 //
 //                              if (!nodeValue.equals(decodedValue)) {

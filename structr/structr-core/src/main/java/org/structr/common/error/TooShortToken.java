@@ -22,6 +22,7 @@ package org.structr.common.error;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.structr.common.property.PropertyKey;
 
 /**
  *
@@ -31,7 +32,7 @@ public class TooShortToken extends SemanticErrorToken {
 
 	private int minLength = -1;
 
-	public TooShortToken(String propertyKey, int minLength) {
+	public TooShortToken(PropertyKey<String> propertyKey, int minLength) {
 
 		super(propertyKey);
 		this.minLength = minLength;

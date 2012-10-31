@@ -24,11 +24,14 @@ package org.structr.web.entity.html;
 import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
+import org.structr.common.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.Page;
 
 //~--- classes ----------------------------------------------------------------
@@ -38,15 +41,20 @@ import org.structr.web.entity.Page;
  */
 public class Html extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] { "manifest" };
+	public static final Property<String> _manifest = new HtmlProperty("manifest");
 
+	public static final View htmlView = new View(Html.class, PropertyView.Html,
+		_manifest
+	);
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(Html.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Html.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Html.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Html.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Html.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Html.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Html.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Html.class, Head.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Html.class, Body.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
@@ -56,9 +64,9 @@ public class Html extends HtmlElement {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public String[] getHtmlAttributes() {
+	public Property[] getHtmlAttributes() {
 
-		return (String[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlAttributes);
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
 

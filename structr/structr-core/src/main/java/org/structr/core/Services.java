@@ -132,16 +132,16 @@ public class Services {
 	 * @return the command
 	 * @throws NoSuchCommandException
 	 */
-	public static Command command(SecurityContext securityContext, Class commandType) {
+	public static <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
 
 		logger.log(Level.FINER, "Creating command ", commandType.getName());
 
 		Class serviceClass = null;
-		Command command    = null;
+		T command          = null;
 
 		try {
 
-			command      = (Command) commandType.newInstance();
+			command = commandType.newInstance();
 			command.setSecurityContext(securityContext);
 
 			serviceClass = command.getServiceClass();
@@ -244,6 +244,8 @@ public class Services {
 					createService(serviceClass);
 				} catch (Throwable t) {
 
+					t.printStackTrace();
+					
 					logger.log(Level.WARNING, "Exception while registering service {0}: {1}",
 						   new Object[] { serviceClass.getName(),
 								  t.getMessage() });
@@ -560,13 +562,13 @@ public class Services {
 		return services;
 	}
 	
-	public static Service getService(Class type) {
+	public static <T extends Service> T getService(Class<T> type) {
 		
 		for (Service service : serviceCache.values()) {
 			
 			if (type.equals(service.getClass())) {
 				
-				return service;
+				return (T)service;
 			}
 		}
 		

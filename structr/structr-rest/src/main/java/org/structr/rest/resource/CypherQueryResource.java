@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -43,7 +44,7 @@ public class CypherQueryResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		throw new IllegalMethodException();
 

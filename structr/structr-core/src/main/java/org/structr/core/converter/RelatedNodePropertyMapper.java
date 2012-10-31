@@ -19,10 +19,9 @@
 
 package org.structr.core.converter;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
 
@@ -30,6 +29,8 @@ import org.structr.core.entity.RelationClass;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,62 +42,45 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(RelatedNodePropertyMapper.class.getName());
 
+	private PropertyKey targetKey = null;
+	private Class targetType = null;
+	
+	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, Class targetType, PropertyKey targetKey) {
+		
+		super(securityContext, currentObject);
+		
+		this.targetType = targetType;
+		this.targetKey = targetKey;
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convert(Object source) {
 
-		if (value != null) {
+		AbstractNode relatedNode = getRelatedNode(targetType, true);
+		if (relatedNode != null) {
 
-			Object param = value.get(securityContext);
+			try {
+				relatedNode.setProperty(targetKey, source);
+			} catch (FrameworkException fex) {
 
-			if ((param != null) && (param instanceof ParameterHolder)) {
-
-				ParameterHolder holder   = (ParameterHolder) param;
-				PropertyKey targetKey    = holder.getTargetKey();
-				Class targetType         = holder.getTargetType();
-				AbstractNode relatedNode = getRelatedNode(targetType);
-
-				if (relatedNode != null) {
-
-					try {
-						relatedNode.setProperty(targetKey, source);
-					} catch (FrameworkException fex) {
-
-						logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.name(),
-							targetType });
-					}
-
-				}
-
+				logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.name(),
+					targetType });
 			}
-
 		}
-
+		
 		return null;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object revert(Object source) {
 
-		if (value != null) {
+		AbstractNode relatedNode = getRelatedNode(targetType, false);
 
-			Object param = value.get(securityContext);
+		if (relatedNode != null) {
 
-			if ((param != null) && (param instanceof ParameterHolder)) {
-
-				ParameterHolder holder   = (ParameterHolder) param;
-				PropertyKey targetKey    = holder.getTargetKey();
-				Class targetType         = holder.getTargetType();
-				AbstractNode relatedNode = getRelatedNode(targetType);
-
-				if (relatedNode != null) {
-
-					return relatedNode.getProperty(targetKey);
-
-				}
-
-			}
+			return relatedNode.getProperty(targetKey);
 
 		}
 
@@ -105,7 +89,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	//~--- get methods ----------------------------------------------------
 
-	private AbstractNode getRelatedNode(Class targetType) {
+	private AbstractNode getRelatedNode(Class targetType, boolean add) {
 
 		AbstractNode relatedNode = null;
 
@@ -118,7 +102,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 				relatedNode = rel.getRelatedNode(securityContext, localNode);
 
-				if (relatedNode == null) {
+				if (relatedNode == null && add) {
 
 					try {
 						relatedNode = rel.addRelatedNode(securityContext, localNode);
@@ -133,31 +117,5 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 		}
 
 		return relatedNode;
-	}
-
-	//~--- inner classes --------------------------------------------------
-
-	public static class ParameterHolder {
-
-		private PropertyKey targetKey = null;
-		private Class targetType      = null;
-
-		//~--- constructors -------------------------------------------
-
-		public ParameterHolder(PropertyKey targetKey, Class targetType) {
-
-			this.targetKey  = targetKey;
-			this.targetType = targetType;
-		}
-
-		//~--- get methods --------------------------------------------
-
-		public PropertyKey getTargetKey() {
-			return targetKey;
-		}
-
-		public Class getTargetType() {
-			return targetType;
-		}
 	}
 }

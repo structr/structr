@@ -26,7 +26,7 @@ import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -52,7 +52,10 @@ import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.property.Property;
 import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.PageHelper;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.PageElement;
@@ -67,19 +70,116 @@ import org.structr.web.entity.View;
  */
 public abstract class HtmlElement extends PageElement implements Element {
 
-	protected static final String[] htmlAttributes = new String[] {
-
-		// Core attributes
-		"accesskey", "class", "contenteditable", "contextmenu", "dir", "draggable", "dropzone", "hidden", "id", "lang", "spellcheck", "style", "tabindex", "title",
-
-		// Event-handler attributes
-		"onabort", "onblur", "oncanplay", "oncanplaythrough", "onchange", "onclick", "oncontextmenu", "ondblclick", "ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover",
-		"ondragstart", "ondrop", "ondurationchange", "onemptied", "onended", "onerror", "onfocus", "oninput", "oninvalid", "onkeydown", "onkeypress", "onkeyup", "onload", "onloadeddata",
-		"onloadedmetadata", "onloadstart", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onpause", "onplay", "onplaying", "onprogress",
-		"onratechange", "onreadystatechange", "onreset", "onscroll", "onseeked", "onseeking", "onselect", "onshow", "onstalled", "onsubmit", "onsuspend", "ontimeupdate", "onvolumechange",
-		"onwaiting",
-	};
 	private static final Logger logger                                             = Logger.getLogger(HtmlElement.class.getName());
+
+	public static final Property<List<HtmlElement>> parents  = new Property<List<HtmlElement>>("parents");
+	public static final Property<String>            path     = new Property<String>("path");
+	
+	// Core attributes
+	public static final Property<String> _accesskey          = new HtmlProperty("accesskey");
+	public static final Property<String> _class              = new HtmlProperty("class");
+	public static final Property<String> _contenteditable    = new HtmlProperty("contenteditable");
+	public static final Property<String> _contextmenu        = new HtmlProperty("contextmenu");
+	public static final Property<String> _dir                = new HtmlProperty("dir");
+	public static final Property<String> _draggable          = new HtmlProperty("draggable");
+	public static final Property<String> _dropzone           = new HtmlProperty("dropzone");
+	public static final Property<String> _hidden             = new HtmlProperty("hidden");
+	public static final Property<String> _id                 = new HtmlProperty("id");
+	public static final Property<String> _lang               = new HtmlProperty("lang");
+	public static final Property<String> _spellcheck         = new HtmlProperty("spellcheck");
+	public static final Property<String> _style              = new HtmlProperty("style");
+	public static final Property<String> _tabindex           = new HtmlProperty("tabindex");
+	public static final Property<String> _title              = new HtmlProperty("title");
+	
+	// Event-handler attributes
+	public static final Property<String> _onabort            = new HtmlProperty("onabort");
+	public static final Property<String> _onblur             = new HtmlProperty("onblur");
+	public static final Property<String> _oncanplay          = new HtmlProperty("oncanplay");
+	public static final Property<String> _oncanplaythrough   = new HtmlProperty("oncanplaythrough");
+	public static final Property<String> _onchange           = new HtmlProperty("onchange");
+	public static final Property<String> _onclick            = new HtmlProperty("onclick");
+	public static final Property<String> _oncontextmenu      = new HtmlProperty("oncontextmenu");
+	public static final Property<String> _ondblclick         = new HtmlProperty("ondblclick");
+	public static final Property<String> _ondrag             = new HtmlProperty("ondrag");
+	public static final Property<String> _ondragend          = new HtmlProperty("ondragend");
+	public static final Property<String> _ondragenter        = new HtmlProperty("ondragenter");
+	public static final Property<String> _ondragleave        = new HtmlProperty("ondragleave");
+	public static final Property<String> _ondragover         = new HtmlProperty("ondragover");
+	public static final Property<String> _ondragstart        = new HtmlProperty("ondragstart");
+	public static final Property<String> _ondrop             = new HtmlProperty("ondrop");
+	public static final Property<String> _ondurationchange   = new HtmlProperty("ondurationchange");
+	public static final Property<String> _onemptied          = new HtmlProperty("onemptied");
+	public static final Property<String> _onended            = new HtmlProperty("onended");
+	public static final Property<String> _onerror            = new HtmlProperty("onerror");
+	public static final Property<String> _onfocus            = new HtmlProperty("onfocus");
+	public static final Property<String> _oninput            = new HtmlProperty("oninput");
+	public static final Property<String> _oninvalid          = new HtmlProperty("oninvalid");
+	public static final Property<String> _onkeydown          = new HtmlProperty("onkeydown");
+	public static final Property<String> _onkeypress         = new HtmlProperty("onkeypress");
+	public static final Property<String> _onkeyup            = new HtmlProperty("onkeyup");
+	public static final Property<String> _onload             = new HtmlProperty("onload");
+	public static final Property<String> _onloadeddata       = new HtmlProperty("onloadeddata");
+	public static final Property<String> _onloadedmetadata   = new HtmlProperty("onloadedmetadata");
+	public static final Property<String> _onloadstart        = new HtmlProperty("onloadstart");
+	public static final Property<String> _onmousedown        = new HtmlProperty("onmousedown");
+	public static final Property<String> _onmousemove        = new HtmlProperty("onmousemove");
+	public static final Property<String> _onmouseout         = new HtmlProperty("onmouseout");
+	public static final Property<String> _onmouseover        = new HtmlProperty("onmouseover");
+	public static final Property<String> _onmouseup          = new HtmlProperty("onmouseup");
+	public static final Property<String> _onmousewheel       = new HtmlProperty("onmousewheel");
+	public static final Property<String> _onpause            = new HtmlProperty("onpause");
+	public static final Property<String> _onplay             = new HtmlProperty("onplay");
+	public static final Property<String> _onplaying          = new HtmlProperty("onplaying");
+	public static final Property<String> _onprogress         = new HtmlProperty("onprogress");
+	public static final Property<String> _onratechange       = new HtmlProperty("onratechange");
+	public static final Property<String> _onreadystatechange = new HtmlProperty("onreadystatechange");
+	public static final Property<String> _onreset            = new HtmlProperty("onreset");
+	public static final Property<String> _onscroll           = new HtmlProperty("onscroll");
+	public static final Property<String> _onseeked           = new HtmlProperty("onseeked");
+	public static final Property<String> _onseeking          = new HtmlProperty("onseeking");
+	public static final Property<String> _onselect           = new HtmlProperty("onselect");
+	public static final Property<String> _onshow             = new HtmlProperty("onshow");
+	public static final Property<String> _onstalled          = new HtmlProperty("onstalled");
+	public static final Property<String> _onsubmit           = new HtmlProperty("onsubmit");
+	public static final Property<String> _onsuspend          = new HtmlProperty("onsuspend");
+	public static final Property<String> _ontimeupdate       = new HtmlProperty("ontimeupdate");
+	public static final Property<String> _onvolumechange     = new HtmlProperty("onvolumechange");
+	public static final Property<String> _onwaiting          = new HtmlProperty("onwaiting");
+
+	// needed for Importer
+	public static final Property<String> _data               = new HtmlProperty("data");
+
+	
+	public static final org.structr.common.View publicView = new org.structr.common.View(HtmlElement.class, PropertyView.Public,
+	    name, tag, path, parents, paths
+	);
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(HtmlElement.class, PropertyView.Ui,
+	    
+		name, tag, path, parents, paths,
+	    
+		_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style, _tabindex, _title,
+	    
+		_onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick, _ondrag, _ondragend, _ondragenter, _ondragleave,
+		_ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied, _onended, _onerror, _onfocus, _oninput, _oninvalid, _onkeydown, _onkeypress,
+		_onkeyup, _onload, _onloadeddata, _onloadedmetadata, _onloadstart, _onmousedown, _onmousemove, _onmouseout, _onmouseover, _onmouseup, _onmousewheel,
+		_onpause, _onplay, _onplaying, _onprogress, _onratechange, _onreadystatechange, _onreset, _onscroll, _onseeked, _onseeking, _onselect, _onshow,
+		_onstalled, _onsubmit, _onsuspend, _ontimeupdate, _onvolumechange, _onwaiting
+	    
+	);
+	
+	public static final org.structr.common.View htmlView = new org.structr.common.View(HtmlElement.class, PropertyView.Html,
+	    
+		_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style, _tabindex, _title,
+	    
+		_onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick, _ondrag, _ondragend, _ondragenter, _ondragleave,
+		_ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied, _onended, _onerror, _onfocus, _oninput, _oninvalid, _onkeydown, _onkeypress,
+		_onkeyup, _onload, _onloadeddata, _onloadedmetadata, _onloadstart, _onmousedown, _onmousemove, _onmouseout, _onmouseover, _onmouseup, _onmousewheel,
+		_onpause, _onplay, _onplaying, _onprogress, _onratechange, _onreadystatechange, _onreset, _onscroll, _onseeked, _onseeking, _onselect, _onshow,
+		_onstalled, _onsubmit, _onsuspend, _ontimeupdate, _onvolumechange, _onwaiting
+	    
+	);
+	
 	private static final java.util.Map<String, Function<String, String>> functions = new LinkedHashMap<String, Function<String, String>>();
 	private static final ThreadLocalMatcher threadLocalFunctionMatcher             = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.+)\\)");
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher             = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
@@ -88,6 +188,23 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 	static {
 
+//		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.All, UiKey.values());
+//		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Public, UiKey.values());
+//		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Ui, UiKey.values());
+		
+//		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Ui, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
+		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), publicView.properties());
+		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(),  publicView.properties());
+		
+		EntityContext.registerPropertyRelation(HtmlElement.class, parents, HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
+		
+		EntityContext.registerEntityRelation(HtmlElement.class, Component.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(HtmlElement.class, View.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(HtmlElement.class, RemoteView.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+
+		
 		functions.put("md5", new Function<String, String>() {
 
 			@Override
@@ -239,27 +356,6 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 	}
 
-	static {
-
-		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.All, UiKey.values());
-		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Public, UiKey.values());
-		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Ui, UiKey.values());
-		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Ui, PropertyView.Html, htmlAttributes);
-		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
-		
-		EntityContext.registerPropertyRelation(HtmlElement.class, UiKey.parents, HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		
-		EntityContext.registerEntityRelation(HtmlElement.class, Component.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(HtmlElement.class, View.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(HtmlElement.class, RemoteView.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum UiKey implements PropertyKey{ name, tag, path, parents, paths }
-
 	//~--- methods --------------------------------------------------------
 
 	public boolean avoidWhitespace() {
@@ -286,7 +382,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 	// ----- static methods -----
 	public static String replaceVariables(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
-		String rawValue) {
+		String rawValue) throws FrameworkException {
 
 		String value = null;
 
@@ -321,7 +417,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 	}
 
 	public static String extractFunctions(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
-		String source) {
+		String source) throws FrameworkException {
 
 		// re-use matcher from previous calls
 		Matcher functionMatcher = threadLocalFunctionMatcher.get();
@@ -331,7 +427,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 		if (functionMatcher.matches()) {
 
 			String viewComponentId            = viewComponent != null
-				? viewComponent.getStringProperty(AbstractNode.Key.uuid)
+				? viewComponent.getProperty(AbstractNode.uuid)
 				: null;
 			String functionGroup              = functionMatcher.group(1);
 			String parameter                  = functionMatcher.group(2);
@@ -476,24 +572,23 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 	//~--- get methods ----------------------------------------------------
 
-	public String[] getHtmlAttributes() {
-
-		return htmlAttributes;
+	public Property[] getHtmlAttributes() {
+		return htmlView.properties();
 
 	}
 
-	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, String key) {
-
-		return replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getStringProperty(key));
-
+	public String getPropertyWithVariableReplacement(AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey<String> key) throws FrameworkException {
+		return replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getProperty(key));
 	}
 
 	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode page, AbstractNode startNode, String pageId, String componentId, AbstractNode viewComponent,
-		String refKey) {
+		String refKey) throws FrameworkException {
 
-		AbstractNode node   = startNode;
-		String[] parts      = refKey.split("[\\.]+");
-		String referenceKey = parts[parts.length - 1];
+		AbstractNode node                = startNode;
+		String[] parts                   = refKey.split("[\\.]+");
+		String referenceKey              = parts[parts.length - 1];
+		PropertyKey pageIdProperty       = new Property(pageId);
+		PropertyKey referenceKeyProperty = new Property(referenceKey);
 
 		// walk through template parts
 		for (int i = 0; (i < parts.length) && (node != null); i++) {
@@ -559,7 +654,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 				for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
 
-					if (rel.getProperty(pageId) != null) {
+					if (rel.getProperty(pageIdProperty) != null) {
 
 						node = rel.getStartNode();
 
@@ -644,7 +739,7 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 		if (node != null) {
 
-			return node.getProperty(referenceKey);
+			return node.getProperty(referenceKeyProperty);
 		}
 
 		return null;

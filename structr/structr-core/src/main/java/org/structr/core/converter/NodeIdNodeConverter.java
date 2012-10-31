@@ -19,33 +19,51 @@
 
 package org.structr.core.converter;
 
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.FindNodeCommand;
+import org.structr.core.node.GraphDatabaseCommand;
+import org.structr.core.node.NodeFactory;
 
 /**
  * Converts between nodeId and node
  *
  * @author Axel Morgner
  */
-public class NodeIdNodeConverter extends PropertyConverter<Long, AbstractNode> {
+public class NodeIdNodeConverter extends PropertyConverter<AbstractNode, Long> {
 
+	public NodeIdNodeConverter(SecurityContext securityContext) {
+		super(securityContext, null);
+	}
+	
 	@Override
-	public Long convertForSetter(AbstractNode node, Value value) {
+	public Long convert(AbstractNode node) {
 		if (node == null) return null;
 		return node.getId();
 	}
 
 	@Override
-	public AbstractNode convertForGetter(Long nodeId, Value value) {
+	public AbstractNode revert(Long nodeId) {
+		
 		if (nodeId == null) return null;
-		try {
-			return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(nodeId);
-		} catch(FrameworkException fex) {
-			fex.printStackTrace();
+		
+		NodeFactory factory = new NodeFactory(securityContext);
+		GraphDatabaseService graphDb = Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		
+		Node node = graphDb.getNodeById(nodeId);
+		if (node != null) {
+
+			try {
+				return factory.createNode(node);
+				
+			} catch(FrameworkException fex) {
+			}
 		}
+		
 		return null;
 	}
 }

@@ -21,9 +21,10 @@
 
 package org.structr.web.entity;
 
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -37,18 +38,20 @@ import org.structr.core.node.NodeService;
 import org.structr.core.node.search.Search;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.web.common.PageHelper;
-import org.structr.web.converter.DynamicConverter;
-import org.structr.web.converter.PathsConverter;
 import org.structr.web.entity.html.*;
 import org.structr.web.validator.DynamicValidator;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.property.IntProperty;
+import org.structr.web.property.DynamicContentProperty;
+import org.structr.web.property.PathsProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,27 +63,34 @@ import javax.servlet.http.HttpServletRequest;
 public class Content extends AbstractNode {
 
 	private static final Logger logger         = Logger.getLogger(Content.class.getName());
-	protected static final String[] attributes = new String[] {
 
-		UiKey.name.name(), UiKey.tag.name(), UiKey.content.name(), UiKey.contentType.name(), UiKey.size.name(), UiKey.type.name(), UiKey.paths.name(), UiKey.typeDefinitionId.name(),
+	public static final Property<String>      tag              = new Property<String>("tag");
+	public static final Property<String>      content          = new DynamicContentProperty("content");
+	public static final Property<String>      contentType      = new Property<String>("contentType");
+	public static final Property<Integer>     size             = new IntProperty("size");
+	public static final Property<Set<String>> paths            = new PathsProperty(("paths"));
+	public static final Property<String>      dataKey          = new Property<String>("data-key");
+	public static final Property<String>      typeDefinitionId = new Property<String>("typeDefinitionId");
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(Content.class, PropertyView.Ui,
+		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
+	);
 
-		// support for microformats
-		"data-key"
-
-	};
+	public static final org.structr.common.View publicView = new org.structr.common.View(Content.class, PropertyView.Public,
+		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
+	);
 
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertyConverter(Content.class, UiKey.paths, PathsConverter.class);
-		EntityContext.registerPropertySet(Content.class, PropertyView.All, attributes);
-		EntityContext.registerPropertySet(Content.class, PropertyView.Public, attributes);
-		EntityContext.registerPropertySet(Content.class, PropertyView.Ui, attributes);
-		EntityContext.registerPropertyRelation(Content.class, UiKey.typeDefinitionId, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne,
-			new PropertyNotion(AbstractNode.Key.uuid));
-		EntityContext.registerEntityRelation(Content.class, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne,
-			new PropertyNotion(AbstractNode.Key.uuid));
+//		EntityContext.registerPropertySet(Content.class, PropertyView.All, attributes);
+//		EntityContext.registerPropertySet(Content.class, PropertyView.Public, attributes);
+//		EntityContext.registerPropertySet(Content.class, PropertyView.Ui, attributes);
+		
+		EntityContext.registerPropertyRelation(Content.class, typeDefinitionId, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid));
+		
+		EntityContext.registerEntityRelation(Content.class, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid));
 		EntityContext.registerEntityRelation(Content.class, Element.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Title.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Body.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
@@ -120,18 +130,11 @@ public class Content extends AbstractNode {
 		EntityContext.registerEntityRelation(Content.class, Bdi.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Bdo.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Span.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), UiKey.values());
-		EntityContext.registerPropertyValidator(Content.class, UiKey.content, new DynamicValidator("content"));
-		EntityContext.registerPropertyConverter(Content.class, UiKey.content, DynamicConverter.class);
-
-	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum UiKey implements PropertyKey {
-
-		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
+		
+		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
+		
+		EntityContext.registerPropertyValidator(Content.class, content, new DynamicValidator(content));
 
 	}
 
@@ -173,11 +176,11 @@ public class Content extends AbstractNode {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public java.lang.Object getPropertyForIndexing(final String key) {
+	public java.lang.Object getPropertyForIndexing(final PropertyKey key) {
 
-		if (key.equals(Content.UiKey.content.name())) {
+		if (key.equals(Content.content)) {
 
-			String value = getStringProperty(key);
+			String value = getProperty(Content.content);
 
 			if (value != null) {
 
@@ -206,7 +209,7 @@ public class Content extends AbstractNode {
 
 		for (AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
 
-			String componentId = in.getStringProperty(Component.Key.componentId.name());
+			String componentId = in.getProperty(Component.componentId);
 
 			if (componentId != null) {
 
@@ -231,14 +234,14 @@ public class Content extends AbstractNode {
 
 	}
 
-	public String getPropertyWithVariableReplacement(HttpServletRequest request, AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, String key) {
+	public String getPropertyWithVariableReplacement(HttpServletRequest request, AbstractNode page, String pageId, String componentId, AbstractNode viewComponent, PropertyKey<String> key) throws FrameworkException {
 
 		if (securityContext.getRequest() == null) {
 
 			securityContext.setRequest(request);
 		}
 
-		return HtmlElement.replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getStringProperty(key));
+		return HtmlElement.replaceVariables(securityContext, page, this, pageId, componentId, viewComponent, super.getProperty(key));
 
 	}
 

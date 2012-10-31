@@ -21,7 +21,8 @@
 
 package org.structr.web.entity.relation;
 
-import org.structr.common.PropertyKey;
+import com.vividsolutions.jts.index.bintree.Key;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
@@ -32,6 +33,7 @@ import org.structr.web.entity.html.HtmlElement;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.structr.common.property.Property;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,6 +42,12 @@ import java.util.Set;
  * @author Christian Morgner
  */
 public class ContentRelationship extends AbstractRelationship {
+
+	public static final Property<String> parentId    = new Property<String>("parentId");
+	public static final Property<String> contentId   = new Property<String>("contentId");
+	public static final Property<String> componentId = new Property<String>("componentId");
+	public static final Property<String> pageId      = new Property<String>("pageId");
+	public static final Property<String> foo         = new Property<String>("foo");
 
 	static {
 
@@ -51,41 +59,33 @@ public class ContentRelationship extends AbstractRelationship {
 
 	}
 
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey{ parentId, contentId, componentId, pageId, foo }
-
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public PropertyKey getStartNodeIdKey() {
-
-		return Key.parentId;
-
+		return parentId;
 	}
 
 	@Override
 	public PropertyKey getEndNodeIdKey() {
-
-		return Key.contentId;
-
+		return contentId;
 	}
 
 	@Override
-	public Iterable<String> getPropertyKeys(String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 
-		Set<String> keys = new LinkedHashSet<String>();
+		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
 
-		keys.add(Key.parentId.name());
-		keys.add(Key.contentId.name());
-		keys.add(Key.componentId.name());
-		keys.add(Key.pageId.name());
+		keys.add(parentId);
+		keys.add(contentId);
+		keys.add(componentId);
+		keys.add(pageId);
 
 		if (dbRelationship != null) {
 
 			for (String key : dbRelationship.getPropertyKeys()) {
 
-				keys.add(key);
+				keys.add(EntityContext.getPropertyKeyForName(entityType, key));
 			}
 
 		}

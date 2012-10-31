@@ -22,7 +22,6 @@ package org.structr.core.converter;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Value;
 
 /**
  * A generic converter interface that can be used to convert
@@ -31,12 +30,33 @@ import org.structr.core.Value;
  *
  * @author Christian Morgner
  */
-public abstract class PropertyConverter<S, T> {
+public abstract class PropertyConverter<SourceType, TargetType> {
 
 	protected SecurityContext securityContext = null;
-	protected GraphObject currentObject = null;
-	protected boolean rawMode = false;
+	protected GraphObject currentObject       = null;
+	protected boolean sortFinalResults        = false;
+	protected boolean rawMode                 = false;
+	protected Integer sortType                = null;
 
+	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject) {
+		this(securityContext, currentObject, null);
+	}
+
+	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, boolean sortFinalResults) {
+		this(securityContext, currentObject, null, sortFinalResults);
+	}
+
+	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, Integer sortType) {
+		this(securityContext, currentObject, sortType, false);
+	}
+
+	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, Integer sortType, boolean sortFinalResults) {
+		this.securityContext = securityContext;
+		this.currentObject = currentObject;
+		this.sortType = sortType;
+		this.sortFinalResults = sortFinalResults;
+	}
+	
 	/**
 	 * Converts from destination type to source type. Caution: source
 	 * will be null if there is no value in the database.
@@ -44,7 +64,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract S convertForSetter(T source, Value value) throws FrameworkException;
+	public abstract SourceType revert(TargetType source) throws FrameworkException;
 	
 	/**
 	 * Converts from source type to destination type. Caution: source
@@ -53,40 +73,31 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract T convertForGetter(S source, Value value);
+	public abstract TargetType convert(SourceType source) throws FrameworkException;
 
 	/**
 	 * Convert from source type to Comparable to allow a more
 	 * fine-grained control over the sorted results. Override 
 	 * this method to modify sorting behaviour of entities.
 	 * 
-	 * @param source
+	 * @param target
 	 * @param value
 	 * @return 
 	 */
-	public Comparable convertForSorting(S source, Value value) {
+	public Comparable convertForSorting(SourceType source) throws FrameworkException {
 		
-		T target = convertForGetter(source, value);
-		if(target != null) {
+		if(source != null) {
 			
-			if (target instanceof Comparable) {
+			if (source instanceof Comparable) {
 				
-				return (Comparable)target;
+				return (Comparable)source;
 			}
 			
 			// fallback
-			return target.toString();
+			return source.toString();
 		}
 		
 		return null;
-	}
-	
-	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
-	}
-	
-	public void setCurrentObject(GraphObject currentObject) {
-		this.currentObject = currentObject;
 	}
 
 	public void setRawMode(boolean rawMode) {
@@ -95,5 +106,13 @@ public abstract class PropertyConverter<S, T> {
 	
 	public boolean getRawMode() {
 		return rawMode;
+	}
+	
+	public Integer getSortType() {
+		return sortType;
+	}
+	
+	public boolean sortFinalResults() {
+		return sortFinalResults;
 	}
 }

@@ -51,8 +51,7 @@ public class ReadLogCommand extends LogServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public Map<String, Object> execute(String key) throws FrameworkException {
 
 		TxPageFile logDb           = (TxPageFile) arguments.get("logDb");
 		Map<String, Object> result = new HashMap<String, Object>();
@@ -63,35 +62,27 @@ public class ReadLogCommand extends LogServiceCommand {
 			MultiIndexFactory multiIndexFactory       = new MultiIndexFactory(tx);
 			IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
 
-			if (parameters.length == 1) {
+			try {
 
-				String key = (String) parameters[0];
+				SortedIndex<String, Object> index  = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(key, indexFactory);
+				Iterator<Entry<String, Object>> it = index.iterator();
 
-				try {
+				while (it.hasNext()) {
 
-					SortedIndex<String, Object> index  = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(key, indexFactory);
-					Iterator<Entry<String, Object>> it = index.iterator();
+					Entry<String, Object> entry = it.next();
 
-					while (it.hasNext()) {
-
-						Entry<String, Object> entry = it.next();
-
-						result.put(entry.getKey(), entry.getValue());
-
-					}
-
-				} catch (org.fusesource.hawtdb.api.IndexException e) {
-
-					logger.log(Level.WARNING, "Could not read log db page for key {0}", key);
+					result.put(entry.getKey(), entry.getValue());
 
 				}
 
-			}
+			} catch (org.fusesource.hawtdb.api.IndexException e) {
 
+				logger.log(Level.WARNING, "Could not read log db page for key {0}", key);
+
+			}
 		}
 
 		return result;
-
 	}
 
 }

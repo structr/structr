@@ -54,59 +54,47 @@ public class WriteLogCommand extends LogServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public void execute(String key, String... obj) throws FrameworkException {
 
 		TxPageFile logDb = (TxPageFile) arguments.get("logDb");
 
 		if (logDb != null) {
 
-			if (parameters.length == 2) {
+			if (key != null) {
 
-				String key = (String) parameters[0];
+				synchronized (logDb) {
 
-				if (key != null) {
+					Transaction tx                            = logDb.tx();
+					MultiIndexFactory multiIndexFactory       = new MultiIndexFactory(tx);
+					IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
+					SortedIndex<String, Object> index         = null;
 
-					synchronized (logDb) {
+					try {
 
-						Transaction tx                            = logDb.tx();
-						MultiIndexFactory multiIndexFactory       = new MultiIndexFactory(tx);
-						IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
-						SortedIndex<String, Object> index         = null;
+						index = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(key, indexFactory);
 
-						try {
+					} catch (org.fusesource.hawtdb.api.IndexException e) {
 
-							index = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(key, indexFactory);
+						logger.log(Level.WARNING, "Could not open or create log db page for key {0}", key);
 
-						} catch (org.fusesource.hawtdb.api.IndexException e) {
-
-							logger.log(Level.WARNING, "Could not open or create log db page for key {0}", key);
-
-							index = (SortedIndex<String, Object>) multiIndexFactory.create(key, indexFactory);
-
-						}
-
-						String[] obj = (String[]) parameters[1];
-						String uuid  = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-
-						index.put(uuid, obj);
-						logger.log(Level.FINE, "Logged for key {0}: {1}", new Object[] { key, StringUtils.join((String[]) obj, ",") });
-						tx.commit();
-						logDb.flush();
+						index = (SortedIndex<String, Object>) multiIndexFactory.create(key, indexFactory);
 
 					}
 
+					String uuid  = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+
+					index.put(uuid, obj);
+
+					// disabled to avoid parameter evaluation 
+					// logger.log(Level.FINE, "Logged for key {0}: {1}", new Object[] { key, StringUtils.join((String[]) obj, ",") });
+					
+					tx.commit();
+					logDb.flush();
+
 				}
 
-			} else {
-
-				throw new IllegalArgumentException();
 			}
-
 		}
-
-		return null;
-
 	}
 
 }

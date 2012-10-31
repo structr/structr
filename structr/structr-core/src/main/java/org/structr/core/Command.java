@@ -48,7 +48,6 @@ public abstract class Command {
     protected Map<String, Object> arguments = null;
     protected Command.Status status = null;
     protected Command.ExitCode exitCode = null;
-    private final static String ERROR_MESSAGE = "errorMessage";
     private final static String EXIT_CODE = "exitCode";
     private Map<String, Object> exitStatus;
 
@@ -69,15 +68,6 @@ public abstract class Command {
         // Set default
         exitStatus.put(EXIT_CODE, exitCode.UNKNOWN);
     }
-
-    /**
-     * Executes this command. Override this method to implement your service-
-     * specific behaviour.
-     *
-     * @param parameters the parameters
-     * @return the result
-     */
-    public abstract Object execute(Object... parameters) throws FrameworkException;
 
     /**
      * Returns the service class this command belongs to. Implement this method
@@ -112,34 +102,6 @@ public abstract class Command {
     public final Object getArgument(String key) {
         return (this.arguments.get(key));
     }
-//
-//    public Command.Status getStatus() {
-//        return status;
-//    }
-//
-//    public void setStatus(final Command.Status status) {
-//        this.status = status;
-//    }
-//
-//    public Command.ExitCode getExitCode() {
-//        return (Command.ExitCode) exitStatus.get(EXIT_CODE);
-//    }
-//
-//    public void setExitCode(final Command.ExitCode exitCode) {
-//        if (exitCode != null) {
-//            this.exitStatus.put(EXIT_CODE, exitCode);
-//        }
-//    }
-//
-//    public String getErrorMessage() {
-//        return (String) exitStatus.get("errorMessage");
-//    }
-//
-//    public void setErrorMessage(final String errorMessage) {
-//        if (errorMessage != null) {
-//            this.exitStatus.put(ERROR_MESSAGE, errorMessage);
-//        }
-//    }
 
     public void setSecurityContext(SecurityContext securityContext) {
 	    this.securityContext = securityContext;

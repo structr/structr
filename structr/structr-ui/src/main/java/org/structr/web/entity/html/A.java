@@ -21,17 +21,22 @@
 
 package org.structr.web.entity.html;
 
+import java.util.List;
+import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.property.Property;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -41,17 +46,32 @@ import org.structr.web.entity.Content;
  */
 public class A extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] {
+	public static final Property<String> _href     = new HtmlProperty("href");
+	public static final Property<String> _target   = new HtmlProperty("target");
+	public static final Property<String> _ping     = new HtmlProperty("ping");
+	public static final Property<String> _rel      = new HtmlProperty("rel");
+	public static final Property<String> _media    = new HtmlProperty("media");
+	public static final Property<String> _hreflang = new HtmlProperty("hreflang");
+	public static final Property<String> _type     = new HtmlProperty("type");
 
-		"href", "target", "ping", "rel", "media", "hreflang", "type"
-	};
+	public static final Property<String>         linkableId = new Property<String>("linkable_id");
+	public static final Property<List<Linkable>> linkable   = new Property<List<Linkable>>("linkable");
 
+	public static final View uiView = new View(A.class, PropertyView.Ui,
+		linkableId, linkable
+	);
+	
+	public static final View htmlView = new View(A.class, PropertyView.Html,
+		_href, _target, _ping, _rel, _media, _hreflang, _type
+	);
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(A.class, PropertyView.Ui, UiKey.values());
-		EntityContext.registerPropertySet(A.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(A.class, PropertyView.Ui, UiKey.values());
+//		EntityContext.registerPropertySet(A.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(A.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(A.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(A.class, Img.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
@@ -68,19 +88,10 @@ public class A extends HtmlElement {
 		EntityContext.registerEntityRelation(A.class, P.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(A.class, Li.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 
-//              EntityContext.registerPropertyRelation(A.class, "_html_href", Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
-		EntityContext.registerEntityRelation(A.class, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name),
-			RelationClass.DELETE_NONE);
-		EntityContext.registerPropertyRelation(A.class, UiKey.linkable_id, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid),
-			RelationClass.DELETE_NONE);
-
-		//EntityContext.registerPropertyRelation(Linkable.class, Linkable.Key.linkingElements, A.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.Key.uuid));
+		EntityContext.registerEntityRelation(A.class, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name), RelationClass.DELETE_NONE);
+		EntityContext.registerPropertyRelation(A.class, linkableId, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid), RelationClass.DELETE_NONE);
 
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum UiKey implements PropertyKey{ linkable, linkable_id }
 
 	//~--- methods --------------------------------------------------------
 
@@ -91,6 +102,10 @@ public class A extends HtmlElement {
 
 	}
 
-	;
+	@Override
+	public Property[] getHtmlAttributes() {
 
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+
+	}
 }

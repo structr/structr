@@ -16,7 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.agent;
 
 import java.util.Collection;
@@ -26,19 +25,16 @@ import java.util.Collection;
  *
  * @author Christian Morgner
  */
-public class ListTasksCommand extends AgentServiceCommand
-{
-	@Override
-	public Object execute(Object... parameters)
-	{
-		AgentService agentService = (AgentService)arguments.get("agentService");
-		Collection<Task> ret = null;
+public class ListTasksCommand extends AgentServiceCommand {
 
-		if(agentService != null)
-		{
-			ret = agentService.getTaskQueue();
+	public Collection<Task> execute() {
+		
+		AgentService agentService = (AgentService)arguments.get("agentService");
+		if(agentService != null) {
+			
+			return agentService.getTaskQueue();
 		}
 
-		return(ret);
+		return null;
 	}
 }

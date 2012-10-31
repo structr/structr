@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Button extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Button.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Button.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Button.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Button.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Button.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Button.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

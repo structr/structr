@@ -21,12 +21,10 @@
 
 package org.structr.core.entity;
 
-import java.util.Map;
-import org.structr.common.PropertyView;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -35,12 +33,6 @@ import org.structr.core.EntityContext;
  * @author axel
  */
 public class GenericNode extends AbstractNode {
-
-	static {
-
-		EntityContext.registerPropertySet(GenericNode.class, PropertyView.All, Key.values());
-	}
-
 
 	@Override
 	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
@@ -53,7 +45,7 @@ public class GenericNode extends AbstractNode {
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, Map<String, Object> properties) throws FrameworkException {
+	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 }

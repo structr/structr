@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Summary extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Summary.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Summary.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Summary.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Summary.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Summary.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Summary.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

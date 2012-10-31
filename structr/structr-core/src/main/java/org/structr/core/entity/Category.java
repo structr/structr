@@ -21,12 +21,6 @@
 
 package org.structr.core.entity;
 
-import java.util.Date;
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
-
-//~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author amorgner
@@ -36,6 +30,6 @@ public class Category extends AbstractNode {
 
 	static {
 
-		EntityContext.registerPropertySet(Category.class, PropertyView.All, Key.values());
+// FIXME what is this for?		EntityContext.registerPropertySet(Category.class, PropertyView.All, Key.values());
 	}
 }

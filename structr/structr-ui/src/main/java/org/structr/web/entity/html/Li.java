@@ -21,12 +21,16 @@
 
 package org.structr.web.entity.html;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -36,15 +40,20 @@ import org.structr.web.entity.Content;
  */
 public class Li extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] { "value" };
+	public static final Property<String> _value = new HtmlProperty("value");
+	
+	public static final View htmlView = new View(Li.class, PropertyView.Html,
+		_value
+	);
 
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(Li.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Li.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Li.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Li.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Li.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Li.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Li.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Li.class, A.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Li.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
@@ -55,4 +64,10 @@ public class Li extends HtmlElement {
 
 	}
 
+	@Override
+	public Property[] getHtmlAttributes() {
+
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+
+	}
 }

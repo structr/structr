@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.lucene.search.SortField;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -67,7 +67,7 @@ public class InheritingTypeResource extends TypeResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		final AbstractNode topNode                   = null;
@@ -89,32 +89,41 @@ public class InheritingTypeResource extends TypeResource {
 
 					final GraphObject templateEntity  = (GraphObject)entityClass.newInstance();
 					final PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
-					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
+					sortDescending                    = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
 
 					if(sortKeyProperty != null) {
-						sortKey = sortKeyProperty.name();
+						sortKey = sortKeyProperty;
 					}
 
 				} catch(final Throwable t) {
 
 					// fallback to name
-					sortKey = "name";
+					sortKey = AbstractNode.name;
 				}
 			}
 
 			Integer sortType = null;
-			final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
-			if (converter != null) {
-				if (converter instanceof IntConverter) {
-					sortType = SortField.INT;
-				} else if (converter instanceof DateConverter) {
-					sortType = SortField.LONG;
+//			final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
+			
+			if (sortKey != null) {
+				
+				final PropertyConverter converter = sortKey.inputConverter(securityContext);
+				if (converter != null) {
+					
+					sortType = converter.getSortType();
+					/*
+					if (converter instanceof IntConverter) {
+						sortType = SortField.INT;
+					} else if (converter instanceof DateConverter) {
+						sortType = SortField.LONG;
+					}
+					*/
+
 				}
 			}
 
 			// do search
-			final Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
-				topNode,
+			final Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
 				includeDeletedAndHidden,
 				publicOnly,
 				searchAttributes,

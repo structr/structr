@@ -33,6 +33,7 @@ import org.structr.core.UnsupportedArgumentError;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,57 +42,35 @@ import java.util.logging.Logger;
  *
  * @author axel
  */
-public class FindRelationshipCommand extends NodeServiceCommand {
+public class FindRelationshipCommand<T extends AbstractRelationship> extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(FindRelationshipCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public T execute(Relationship relationship) throws FrameworkException {
 
-		GraphDatabaseService graphDb            = (GraphDatabaseService) arguments.get("graphDb");
-		RelationshipFactory relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
+		GraphDatabaseService graphDb               = (GraphDatabaseService) arguments.get("graphDb");
+		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
 
 		if (graphDb != null) {
 
-			switch (parameters.length) {
-
-				case 0 :
-					throw new UnsupportedArgumentError("No arguments supplied");
-
-				case 1 :
-					return (handleSingleArgument(graphDb, relationshipFactory, parameters[0]));
-
-				default :
-					throw new UnsupportedArgumentError("Too many argmuments supplied");
-
-			}
-
+			return relationshipFactory.createRelationship(securityContext, relationship);
 		}
 
 		return (null);
 	}
 
-	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private Object handleSingleArgument(GraphDatabaseService graphDb, RelationshipFactory relationshipFactory, Object argument) throws FrameworkException {
+	public T execute(Long id) throws FrameworkException {
 
-		Object result = null;
+		GraphDatabaseService graphDb               = (GraphDatabaseService) arguments.get("graphDb");
+		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
 
-		if (argument instanceof Relationship) {
-
-			result = relationshipFactory.createRelationship(securityContext, (Relationship) argument);
-
-		} else if (argument instanceof Long) {
-
-			// single long value: find node by id
-			long id          = ((Long) argument).longValue();
-			Relationship rel = null;
+		if (graphDb != null) {
 
 			try {
 
-				rel    = graphDb.getRelationshipById(id);
-				result = relationshipFactory.createRelationship(securityContext, rel);
+				return relationshipFactory.createRelationship(securityContext, graphDb.getRelationshipById(id));
 
 			} catch (NotFoundException nfe) {
 
@@ -99,25 +78,30 @@ public class FindRelationshipCommand extends NodeServiceCommand {
 
 				throw new FrameworkException("FindRelationshipCommand", new IdNotFoundToken(id));
 			}
-		} else if (argument instanceof String) {
+		}
+
+		return null;
+	}
+
+	public T execute(String idString) throws FrameworkException {
+
+		GraphDatabaseService graphDb               = (GraphDatabaseService) arguments.get("graphDb");
+		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
+
+		if (graphDb != null) {
 
 			// single string value, try to parse to long
 			try {
 
-				long id          = Long.parseLong((String) argument);
-				Relationship rel = graphDb.getRelationshipById(id);
-
-				result = relationshipFactory.createRelationship(securityContext, rel);
+				return relationshipFactory.createRelationship(securityContext, graphDb.getRelationshipById(Long.parseLong(idString)));
 
 			} catch (NumberFormatException ex) {
 
 				// failed :(
-				logger.log(Level.FINE, "Could not parse {0} to number", argument);
+				logger.log(Level.FINE, "Could not parse {0} to number", idString);
 			}
 		}
 
-		return result;
+		return null;
 	}
-
-	// </editor-fold>
 }

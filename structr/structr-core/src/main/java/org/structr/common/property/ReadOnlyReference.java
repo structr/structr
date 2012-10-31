@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,28 +16,20 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.structr.core.module;
+package org.structr.common.property;
 
 /**
- * Activates an EXISTING, deactivated module to the running system. Takes the
- * file name of the module file as a parameter.
  *
  * @author Christian Morgner
  */
-public class ActivateModuleCommand extends ModuleServiceCommand
-{
+public class ReadOnlyReference<T> extends Reference<T> {
+	
+	public ReadOnlyReference(PropertyKey propertyKey, Key referenceType, PropertyKey<T> referenceKey) {
+		super(propertyKey, referenceType, referenceKey);
+	}
+	
 	@Override
-	public Object execute(Object... parameters)
-	{
-		ModuleService service = (ModuleService)getArgument("moduleService");
-
-		if(service != null && parameters.length > 0)
-		{
-			String moduleName = (String)parameters[0];
-			service.scanResource(moduleName);
-		}
-
-		return(null);
+	public boolean isReadOnlyProperty() {
+		return true;
 	}
 }

@@ -21,10 +21,8 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
+import org.structr.common.property.Property;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -35,32 +33,35 @@ import org.structr.core.EntityContext;
  */
 public class PlainText extends AbstractNode {
 
+	public static final Property<String> content     = new Property<String>("content");
+	public static final Property<String> contentType = new Property<String>("contentType");
+	public static final Property<String> size        = new Property<String>("size");
+
 	static {
 
-		EntityContext.registerPropertySet(PlainText.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(PlainText.class, PropertyView.All, Key.values());
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ content, contentType, size; }
-
+	
 	//~--- get methods ----------------------------------------------------
 
 	public String getContent() {
 
-		return getStringProperty(Key.content.name());
+		return getProperty(PlainText.content);
 
 	}
 
 	public String getContentType() {
 
-		return getStringProperty(Key.contentType.name());
+		return getProperty(PlainText.contentType);
 
 	}
 
 	public String getSize() {
 
-		return getStringProperty(Key.size.name());
+		return getProperty(PlainText.size);
 
 	}
 
@@ -68,19 +69,19 @@ public class PlainText extends AbstractNode {
 
 	public void setContent(final String content) throws FrameworkException {
 
-		setProperty(Key.content.name(), content);
+		setProperty(PlainText.content, content);
 
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
 
-		setProperty(Key.contentType.name(), contentType);
+		setProperty(PlainText.contentType, contentType);
 
 	}
 
 	public void setSize(final String size) throws FrameworkException {
 
-		setProperty(Key.size.name(), size);
+		setProperty(PlainText.size, size);
 
 	}
 

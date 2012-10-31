@@ -28,6 +28,8 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -71,7 +73,7 @@ public class NamedRelationResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(final String sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		final List<GraphObject> relationResults = new LinkedList<GraphObject>();
 		if(wrappedResource != null) {
@@ -114,8 +116,8 @@ public class NamedRelationResource extends WrappingResource {
 
 						for(final SearchAttribute attr : filterAttributes) {
 
-							final String value = ((TextualSearchAttribute)attr).getValue();
-							final String key = ((TextualSearchAttribute)attr).getKey();
+							final String value    = ((TextualSearchAttribute)attr).getValue();
+							final PropertyKey key = ((TextualSearchAttribute)attr).getKey();
 
 							final Object val = "\"" + obj.getProperty(key) + "\"";
 							if(val != null && val.equals(value)) {
@@ -150,20 +152,20 @@ public class NamedRelationResource extends WrappingResource {
 			// initialize entity temporarily
 			relationshipEntity.init(securityContext);
 
-			final Command createRel        = Services.command(securityContext, CreateRelationshipCommand.class);
-			final AbstractNode startNode   = relationshipEntity.identifyStartNode(namedRelation, propertySet);
-			final AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
-			final RelationshipType relType = namedRelation.getRelType();
-			final ErrorBuffer errorBuffer  = new ErrorBuffer();
-			boolean hasError         = false;
+			CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+			AbstractNode startNode              = relationshipEntity.identifyStartNode(namedRelation, propertySet);
+			AbstractNode endNode                = relationshipEntity.identifyEndNode(namedRelation, propertySet);
+			RelationshipType relType            = namedRelation.getRelType();
+			ErrorBuffer errorBuffer             = new ErrorBuffer();
+			boolean hasError                    = false;
 
 			if(startNode == null) {
-				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getStartNodeIdKey().name()));
+				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getStartNodeIdKey()));
 				hasError = true;
 			}
 
 			if(endNode == null) {
-				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getEndNodeIdKey().name()));
+				errorBuffer.add(namedRelation.getName(), new EmptyPropertyToken(relationshipEntity.getEndNodeIdKey()));
 				hasError = true;
 			}
 
@@ -174,11 +176,15 @@ public class NamedRelationResource extends WrappingResource {
 			final Class sourceType = namedRelation.getSourceType();
 			final Class destType = namedRelation.getDestType();
 
-			propertySet.put(AbstractRelationship.HiddenKey.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
+			propertySet.put(AbstractRelationship.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
 
+			// convertFromInput properties
+			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, relationshipEntity.getClass(), propertySet);
+			
 			// create new relationship with startNode, endNode, relType and propertySet
-			final AbstractRelationship newRel = (AbstractRelationship)createRel.execute(startNode, endNode, relType, propertySet, false);
+			final AbstractRelationship newRel = createRel.execute(startNode, endNode, relType, properties, false);
 			final RestMethodResult result = new RestMethodResult(201);
+
 			result.addHeader("Location", buildLocationHeader(newRel));
 
 			return result;

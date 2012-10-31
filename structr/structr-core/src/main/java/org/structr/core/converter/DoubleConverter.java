@@ -22,6 +22,7 @@ package org.structr.core.converter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.math.NumberUtils;
+import org.structr.common.SecurityContext;
 import org.structr.core.Value;
 
 /**
@@ -32,8 +33,16 @@ public class DoubleConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(DoubleConverter.class.getName());
 
+	private Value<Double> value = null;
+	
+	public DoubleConverter(SecurityContext securityContext, Value<Double> value) {
+		super(securityContext, null);
+		
+		this.value = value;
+	}
+	
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convert(Object source) {
 
 		if (source != null) {
 			
@@ -57,7 +66,7 @@ public class DoubleConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object revert(Object source) {
 
 		if (source == null && value != null) {
 			return value;

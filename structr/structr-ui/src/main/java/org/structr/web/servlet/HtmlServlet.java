@@ -21,6 +21,8 @@
 
 package org.structr.web.servlet;
 
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
@@ -56,7 +58,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Image;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -117,7 +118,7 @@ public class HtmlServlet extends HttpServlet {
 	
 	public static final DecimalFormat decimalFormat     = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	
-	public static Command searchNodesAsSuperuser;
+	public static SearchNodeCommand searchNodesAsSuperuser;
 
 	
 	//~--- static initializers --------------------------------------------
@@ -430,7 +431,7 @@ public class HtmlServlet extends HttpServlet {
 				request.getSession().setAttribute(LAST_GET_URL, request.getPathInfo());
 
 				PrintWriter out            = response.getWriter();
-				String uuid                = page.getStringProperty(AbstractNode.Key.uuid);
+				String uuid                = page.getProperty(AbstractNode.uuid);
 				final StringBuilder buffer = new StringBuilder(8192);
 				
 				List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
@@ -458,7 +459,7 @@ public class HtmlServlet extends HttpServlet {
 					double end     = System.nanoTime();
 					logger.log(Level.INFO, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
 
-					String contentType = page.getStringProperty(Page.UiKey.contentType);
+					String contentType = page.getProperty(Page.contentType);
 
 					if (contentType != null) {
 
@@ -665,7 +666,8 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			NodeAttribute attr = new NodeAttribute(param.getKey(), val);
+			PropertyKey key = new Property(param.getKey());
+			NodeAttribute attr = new NodeAttribute(key, val);
 
 			attrs.add(attr);
 
@@ -681,13 +683,13 @@ public class HtmlServlet extends HttpServlet {
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 		searchAttrs.add(Search.orExactType(Page.class.getSimpleName()));
 		
-		Result results = (Result) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
+		Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
 
 		logger.log(Level.FINE, "{0} results", results.size());
 
 		if (!results.isEmpty()) {
 
-			Collections.sort(results.getResults(), new GraphObjectComparator(Page.UiKey.position.name(), AbstractNodeComparator.ASCENDING));
+			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, AbstractNodeComparator.ASCENDING));
 
 			return (Page) results.get(0);
 
@@ -721,7 +723,7 @@ public class HtmlServlet extends HttpServlet {
 			searchAttrs.add(group);
 
 			// Searching for pages needs super user context anyway
-			Result results = (Result) searchNodesAsSuperuser.execute(null, false, false, searchAttrs);
+			Result results = searchNodesAsSuperuser.execute(searchAttrs);
 
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
@@ -754,7 +756,7 @@ public class HtmlServlet extends HttpServlet {
 	//~--- get methods ----------------------------------------------------
 
 	private void getContent(SecurityContext securityContext, final String pageId, final String componentId, final StringBuilder buffer, final AbstractNode page, final AbstractNode startNode,
-				int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) {
+				int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) throws FrameworkException {
 
 		String localComponentId    = componentId;
 		String content             = null;
@@ -795,20 +797,20 @@ public class HtmlServlet extends HttpServlet {
 //			}
 			
 			String id   = startNode.getUuid();
-			tag = startNode.getStringProperty(Element.UiKey.tag);
+			tag = startNode.getProperty(Element.tag);
 
 			if (startNode instanceof Component && searchClass != null) {
 			
 				// If a search class is given, respect search attributes
 				// Filters work with AND
-				String kind = startNode.getStringProperty(Component.UiKey.kind);
+				String kind = startNode.getProperty(Component.kind);
 
 				if ((kind != null) && kind.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
 
 					for (NodeAttribute attr : attrs) {
 
-						String key = attr.getKey();
-						Object val = attr.getValue();
+						PropertyKey key = attr.getKey();
+						Object val      = attr.getValue();
 
 						if (!val.equals(startNode.getProperty(key))) {
 
@@ -827,10 +829,10 @@ public class HtmlServlet extends HttpServlet {
 				Content contentNode = (Content) startNode;
 
 				// fetch content with variable replacement
-				content = contentNode.getPropertyWithVariableReplacement(request, page, pageId, componentId, viewComponent, Content.UiKey.content.name());
+				content = contentNode.getPropertyWithVariableReplacement(request, page, pageId, componentId, viewComponent, Content.content);
 
 				// examine content type and apply converter
-				String contentType = contentNode.getStringProperty(Content.UiKey.contentType);
+				String contentType = contentNode.getProperty(Content.contentType);
 
 				if (contentType != null) {
 
@@ -862,7 +864,7 @@ public class HtmlServlet extends HttpServlet {
 			// check for component
 			if (startNode instanceof Component) {
 
-				localComponentId = startNode.getStringProperty(AbstractNode.Key.uuid);
+				localComponentId = startNode.getProperty(AbstractNode.uuid);
 
 			}
 
@@ -910,7 +912,7 @@ public class HtmlServlet extends HttpServlet {
 
 					if (el != null) {
 
-						for (String attribute : EntityContext.getPropertySet(startNode.getClass(), PropertyView.Html)) {
+						for (PropertyKey attribute : EntityContext.getPropertySet(startNode.getClass(), PropertyView.Html)) {
 
 							try {
 
@@ -918,7 +920,7 @@ public class HtmlServlet extends HttpServlet {
 
 								if ((value != null) && StringUtils.isNotBlank(value)) {
 
-									String key = attribute.substring(PropertyView.Html.length());
+									String key = attribute.name().substring(PropertyView.Html.length());
 
 									buffer.append(" ").append(key).append("=\"").append(value).append("\"");
 
@@ -1131,20 +1133,16 @@ public class HtmlServlet extends HttpServlet {
 		// fetch search results
 		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		AbstractNode topNode                   = null;
-		boolean includeDeletedAndHidden        = false;
-		boolean publicOnly                     = false;
 
 		searchAttributes.add(Search.andContent(search));
 		searchAttributes.add(Search.andExactType(Content.class.getSimpleName()));
 
 		try {
 
-			Result result = (Result) searchNodesAsSuperuser.execute(topNode, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result<Content> result = searchNodesAsSuperuser.execute(searchAttributes);
+			for (Content content : result.getResults()) {
 
-			for (GraphObject obj : result.getResults()) {
-
-				resultPages.addAll(PageHelper.getPages(securityContext, (Content) obj));
+				resultPages.addAll(PageHelper.getPages(securityContext, content));
 
 			}
 
@@ -1168,7 +1166,7 @@ public class HtmlServlet extends HttpServlet {
 		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
 		DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
 		Calendar cal              = new GregorianCalendar();
-		Integer seconds           = node.getIntProperty(Page.UiKey.cacheForSeconds);
+		Integer seconds           = node.getIntProperty(Page.cacheForSeconds);
 
 		if (seconds != null) {
 

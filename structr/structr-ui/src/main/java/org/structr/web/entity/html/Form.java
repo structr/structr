@@ -21,12 +21,16 @@
 
 package org.structr.web.entity.html;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -36,18 +40,27 @@ import org.structr.web.entity.Content;
  */
 public class Form extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] {
+	public static final Property<String> _acceptCharset = new HtmlProperty("accept-charset");
+	public static final Property<String> _action        = new HtmlProperty("action");
+	public static final Property<String> _autocomplete  = new HtmlProperty("autocomplete");
+	public static final Property<String> _enctype       = new HtmlProperty("enctype");
+	public static final Property<String> _method        = new HtmlProperty("method");
+	public static final Property<String> _name          = new HtmlProperty("name");
+	public static final Property<String> _novalidate    = new HtmlProperty("novalidate");
+	public static final Property<String> _target        = new HtmlProperty("target");
 
-		"accept-charset", "action", "autocomplete", "enctype", "method", "name", "novalidate", "target"
-	};
-
+	public static final View htmlView = new View(Form.class, PropertyView.Html,
+	    _acceptCharset, _action, _autocomplete, _enctype, _method, _name, _novalidate, _target
+	);
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(Form.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Form.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Form.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Form.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Form.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Form.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Form.class, Div.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Form.class, P.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Form.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
@@ -60,4 +73,10 @@ public class Form extends HtmlElement {
 
 	}
 
+	@Override
+	public Property[] getHtmlAttributes() {
+
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+
+	}
 }

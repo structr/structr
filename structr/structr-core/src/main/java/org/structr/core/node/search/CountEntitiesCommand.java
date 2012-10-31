@@ -41,27 +41,16 @@ public class CountEntitiesCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CountEntitiesCommand.class.getName());
 	
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public int execute(Class entityType) throws FrameworkException {
+		return execute(entityType, null, null);
+	}
+	
+	public int execute(Class entityType, String lowerTerm, String upperTerm) throws FrameworkException {
 		
 		Index<Node> index = (Index<Node>)arguments.get(NodeService.NodeIndex.keyword.name());
-		String lowerTerm = null;
-		String upperTerm = null;
-		String type = null;
+		String type       = entityType.getSimpleName();
 		int count = -1;
 
-		if(parameters.length > 0 && parameters[0] instanceof Class) {
-			type = ((Class)parameters[0]).getSimpleName();
-		}
-		
-		if(parameters.length > 1 && parameters[1] instanceof String) {
-			lowerTerm = (String)parameters[1];
-		}
-		
-		if(parameters.length > 2 && parameters[2] instanceof String) {
-			upperTerm = (String)parameters[2];
-		}
-		
 		if(type != null) {
 
 			// create type query first
@@ -89,7 +78,12 @@ public class CountEntitiesCommand extends NodeServiceCommand {
 			long start = System.currentTimeMillis();
 
 			IndexHits hits = index.query(actualQuery);
-			count = hits.size();
+			for (Object hit : hits) {
+				count++;
+			}
+			
+			// this is not accurate
+			// count = hits.size();
 
 			long end = System.currentTimeMillis();
 

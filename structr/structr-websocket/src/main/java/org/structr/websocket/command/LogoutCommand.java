@@ -36,7 +36,7 @@ public class LogoutCommand extends AbstractCommand {
 		if(user != null) {
 
 			try {
-				user.setProperty(Principal.Key.sessionId, null);
+				user.setProperty(Principal.sessionId, null);
 
 			} catch(FrameworkException fex) {
 				fex.printStackTrace();

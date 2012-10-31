@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Video extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Video.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Video.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Video.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Video.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Video.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Video.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

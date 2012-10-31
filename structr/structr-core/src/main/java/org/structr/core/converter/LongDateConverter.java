@@ -20,15 +20,19 @@
 package org.structr.core.converter;
 
 import java.util.Date;
-import org.structr.core.Value;
+import org.structr.common.SecurityContext;
 
 /**
  * @author Christian Morgner
  */
-public class LongDateConverter extends PropertyConverter<Long, Date> {
+public class LongDateConverter extends PropertyConverter<Date, Long> {
 
+	public LongDateConverter(SecurityContext securityContext) {
+		super(securityContext, null);
+	}
+	
 	@Override
-	public Long convertForSetter(Date source, Value value) {
+	public Long convert(Date source) {
 		if(source != null) {
 			return source.getTime();
 		}
@@ -37,7 +41,7 @@ public class LongDateConverter extends PropertyConverter<Long, Date> {
 	}
 
 	@Override
-	public Date convertForGetter(Long source, Value value) {
+	public Date revert(Long source) {
 
 		if(source != null) {
 			return new Date(source);

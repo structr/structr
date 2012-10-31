@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.CaseHelper;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
@@ -57,7 +59,7 @@ public class SchemaResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		
 		List<GraphObjectMap> resultList = new LinkedList<GraphObjectMap>();
 		
@@ -72,40 +74,46 @@ public class SchemaResource extends Resource {
 			
 			String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
 			
-			schema.setProperty("url",   url);
-			schema.setProperty("type",  rawType);
-			schema.setProperty("flags", SecurityContext.getResourceFlags(rawType));
+			schema.setProperty(new Property("url"),   url);
+			schema.setProperty(new Property("type"),  rawType);
+			schema.setProperty(new Property("flags"), SecurityContext.getResourceFlags(rawType));
 			
 			// list property sets for all views
 			Map<String, Map<String, Object>> views = new TreeMap<String, Map<String, Object>>();
 			Set<String> propertyViews              = EntityContext.getPropertyViews();
-			schema.setProperty("views", views);
+			schema.setProperty(new Property("views"), views);
 			
 			for (String view : propertyViews) {
 				
 				Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
-				Set<String> properties                   = EntityContext.getPropertySet(type, view);
+				Set<PropertyKey> properties              = EntityContext.getPropertySet(type, view);
 				
 				// ignore "all" and empty views
 				if (!"all".equals(view) && !properties.isEmpty()) {
 					
-					for (String property : properties) {
+					for (PropertyKey property : properties) {
 
-						StringBuilder converterPlusValue = new StringBuilder();
-						PropertyConverter converter      = EntityContext.getPropertyConverter(securityContext, type, property);
-						Value conversionValue            = EntityContext.getPropertyConversionParameter(type, property);
+						StringBuilder converterPlusValue    = new StringBuilder();
+						PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
+						PropertyConverter inputConverter    = property.inputConverter(securityContext);
+						
+						converterPlusValue.append("(");
 
-						if (converter != null) {
-							converterPlusValue.append(converter.getClass().getName());
+						if (databaseConverter != null) {
+							converterPlusValue.append(" databaseConverter: ");
+							converterPlusValue.append(databaseConverter.getClass().getName());
+							converterPlusValue.append(" ");
 						}
 
-						if (conversionValue != null) {
-							converterPlusValue.append("(");
-							converterPlusValue.append(conversionValue.getClass().getName());
-							converterPlusValue.append(")");
+						if (inputConverter != null) {
+							converterPlusValue.append(" inputConverter: ");
+							converterPlusValue.append(inputConverter.getClass().getName());
+							converterPlusValue.append(" ");
 						}
+						
+						converterPlusValue.append(")");
 
-						propertyConverterMap.put(property, converterPlusValue.toString());
+						propertyConverterMap.put(property.name(), converterPlusValue.toString());
 					}
 					
 					views.put(view, propertyConverterMap);

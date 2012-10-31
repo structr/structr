@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Aside extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Aside.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Aside.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Aside.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Aside.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Aside.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Aside.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

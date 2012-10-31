@@ -27,8 +27,8 @@ import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.cypher.CypherQueryHandler;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.GraphDatabaseCommand;
@@ -43,8 +43,13 @@ public class CypherQueryConverter extends PropertyConverter {
 	
 	private GraphDatabaseService graphDb    = null;
 	private ExecutionEngine engine          = null;
+	private CypherQueryHandler handler      = null;
 
-	public CypherQueryConverter() {
+	public CypherQueryConverter(SecurityContext securityContext, GraphObject entity, CypherQueryHandler handler) {
+		
+		super(securityContext, entity);
+		
+		this.handler = handler;
 		
 		try {
 			graphDb = (GraphDatabaseService)Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class).execute();
@@ -57,45 +62,38 @@ public class CypherQueryConverter extends PropertyConverter {
 	}
 	
 	@Override
-	public Object convertForSetter(Object source, Value value) throws FrameworkException {
-
-		throw new UnsupportedOperationException("This converter is read-only!");
+	public Object convert(Object source) throws FrameworkException {
+		return source;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object revert(Object source) {
 		
-		if (currentObject != null && value != null) {
+		if (currentObject != null) {
 
-			Object valueObject             = value.get(securityContext);
+			Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+			String query                   = handler.getQuery();
+			String name                    = currentObject.getProperty(AbstractNode.name);
+			String uuid                    = currentObject.getProperty(AbstractNode.uuid);
 
-			if (valueObject != null && valueObject instanceof CypherQueryHandler) {
-				
-				Map<String, Object> parameters = new LinkedHashMap<String, Object>();
-				CypherQueryHandler handler     = (CypherQueryHandler)valueObject;
-				String query                   = handler.getQuery();
-				String name                    = currentObject.getStringProperty(AbstractNode.Key.name);
-				String uuid                    = currentObject.getStringProperty(AbstractNode.Key.uuid);
-				
-				// initialize parameters
-				parameters.put("id",   uuid);
-				parameters.put("uuid", uuid);
-				parameters.put("name", name);
+			// initialize parameters
+			parameters.put("id",   uuid);
+			parameters.put("uuid", uuid);
+			parameters.put("name", name);
 
-				// initialize query handler with security context
-				handler.setSecurityContext(securityContext);
-				
-				try {
-					
-					List<AbstractNode> nodes = (List<AbstractNode>)handler.handleQueryResults(engine.execute(query, parameters));
-					
-					return nodes;
-					
-					
-				} catch(FrameworkException fex) {
-					
-					logger.log(Level.WARNING, "Exception while executing cypher query {0}: {1}", new Object[] { query, fex.getMessage() } );
-				}
+			// initialize query handler with security context
+			handler.setSecurityContext(securityContext);
+
+			try {
+
+				List<AbstractNode> nodes = (List<AbstractNode>)handler.handleQueryResults(engine.execute(query, parameters));
+
+				return nodes;
+
+
+			} catch(FrameworkException fex) {
+
+				logger.log(Level.WARNING, "Exception while executing cypher query {0}: {1}", new Object[] { query, fex.getMessage() } );
 			}
 		}
 		

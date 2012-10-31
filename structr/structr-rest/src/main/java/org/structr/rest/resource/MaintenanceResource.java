@@ -24,7 +24,6 @@ package org.structr.rest.resource;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.Task;
@@ -41,7 +40,9 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.MaintenanceCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,7 +71,7 @@ public class MaintenanceResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
@@ -94,9 +95,10 @@ public class MaintenanceResource extends Resource {
 
 						Services.command(securityContext, ProcessTaskCommand.class).execute(task);
 
-					} else if (Command.class.isAssignableFrom(taskOrCommand)) {
+					} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
 
-						Services.command(securityContext, taskOrCommand).execute(propertySet);
+						MaintenanceCommand cmd = (MaintenanceCommand)Services.command(securityContext, taskOrCommand);
+						cmd.execute(propertySet);
 
 					} else {
 						return new RestMethodResult(HttpServletResponse.SC_NOT_FOUND);
@@ -123,7 +125,7 @@ public class MaintenanceResource extends Resource {
 				? "non-null"
 				: "null", ((securityContext != null)
 												     && (securityContext.getUser() != null))
-					  ? securityContext.getUser().getStringProperty(AbstractNode.Key.name)
+					  ? securityContext.getUser().getProperty(AbstractNode.name)
 					  : "null" });
 
 			throw new NotAllowedException();

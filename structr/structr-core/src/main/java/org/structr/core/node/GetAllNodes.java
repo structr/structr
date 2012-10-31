@@ -19,9 +19,11 @@
 package org.structr.core.node;
 
 import java.util.Collections;
+import java.util.List;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * Get all nodes in the database.
@@ -32,16 +34,15 @@ import org.structr.common.error.FrameworkException;
  */
 public class GetAllNodes extends NodeServiceCommand {
 
-    @Override
-    public Object execute(Object... parameters) throws FrameworkException {
+	public List<AbstractNode> execute() throws FrameworkException {
 
-        GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        NodeFactory nodeFactory = new NodeFactory(securityContext);
+		GraphDatabaseService graphDb = (GraphDatabaseService)arguments.get("graphDb");
+		NodeFactory nodeFactory = new NodeFactory(securityContext);
 
-        if (graphDb != null) {
-            return nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
-        }
-        
-        return Collections.emptyList();
-    }
+		if(graphDb != null) {
+			return nodeFactory.bulkCreateNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+		}
+
+		return Collections.emptyList();
+	}
 }

@@ -55,59 +55,14 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public void execute(AbstractNode node) throws FrameworkException {
+		execute(node, false);
+	}
 
-		AbstractNode node = null;
-		Boolean cascade   = false;
-		Command findNode  = Services.command(securityContext, FindNodeCommand.class);
+	public void execute(AbstractNode node, boolean cascade) throws FrameworkException {
 
-		switch (parameters.length) {
-
-			case 1 :    // single parameter: node
-				node = (AbstractNode) findNode.execute(parameters[0]);
-
-				break;
-
-			case 2 :    // first parameter: node, second parameter: cascade
-				node = (AbstractNode) findNode.execute(parameters[0]);
-
-				if (parameters[1] instanceof String) {
-
-					cascade = Boolean.parseBoolean((String) parameters[2]);
-				} else if (parameters[1] instanceof Boolean) {
-
-					cascade = (Boolean) parameters[1];
-				}
-
-				break;
-
-			default :
-				break;
-
-		}
-
-		if (node == null) {
-
-			logger.log(Level.WARNING, "Could not delete node null");
-
-			return null;
-
-		}
-
-		if (node.getId() == 0) {
-
-			logger.log(Level.WARNING, "Deleting the root node is not allowed.");
-
-			return null;
-
-		}
-
-//              EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, node);
 		doDeleteNode(node, cascade);
 		deletedNodes.clear();
-
-		return null;
 
 	}
 
@@ -115,7 +70,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		deletedNodes.add(node);
 
-		if (node.getStringProperty(AbstractNode.Key.uuid) == null) {
+		if (node.getProperty(AbstractNode.uuid) == null) {
 
 			logger.log(Level.WARNING, "Will not delete node which has no UUID");
 
@@ -124,11 +79,10 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		}
 
 		// final Node node                  = graphDb.getNodeById(structrNode.getId());
-		final Command transactionCommand  = Services.command(securityContext, TransactionCommand.class);
-		final Command removeNodeFromIndex = Services.command(securityContext, RemoveNodeFromIndex.class);
-		final Command deleteRel           = Services.command(securityContext, DeleteRelationshipCommand.class);
+		final RemoveNodeFromIndex removeNodeFromIndex = Services.command(securityContext, RemoveNodeFromIndex.class);
+		final DeleteRelationshipCommand deleteRel     = Services.command(securityContext, DeleteRelationshipCommand.class);
 
-		transactionCommand.execute(new StructrTransaction() {
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {

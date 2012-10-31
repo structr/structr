@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Label extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Label.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Label.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Label.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Label.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Label.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Label.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

@@ -43,6 +43,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -60,9 +61,9 @@ public abstract class AbstractCommand {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Connection connection      = null;
-	private String idProperty          = null;
-	private StructrWebSocket webSocket = null;
+	private Connection connection          = null;
+	private PropertyKey<String> idProperty = null;
+	private StructrWebSocket webSocket     = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -76,7 +77,7 @@ public abstract class AbstractCommand {
 		return connection;
 	}
 
-	public String getIdProperty() {
+	public PropertyKey<String> getIdProperty() {
 		return idProperty;
 	}
 
@@ -102,8 +103,7 @@ public abstract class AbstractCommand {
 
 				attrs.add(Search.andExactProperty(idProperty, id));
 
-				Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null,
-								     true, false, attrs);
+				Result results = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, attrs);
 
 				if (!results.isEmpty()) {
 
@@ -182,7 +182,7 @@ public abstract class AbstractCommand {
 
 		if (idProperty != null) {
 
-			return node.getStringProperty(idProperty);
+			return node.getProperty(idProperty);
 
 		} else {
 
@@ -197,7 +197,7 @@ public abstract class AbstractCommand {
 		this.connection = connection;
 	}
 
-	public void setIdProperty(final String idProperty) {
+	public void setIdProperty(final PropertyKey<String> idProperty) {
 		this.idProperty = idProperty;
 	}
 

@@ -25,7 +25,6 @@ import au.com.bytecode.opencsv.CSVReader;
 
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
@@ -38,7 +37,6 @@ import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.NodeServiceCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.web.entity.CsvFile;
 import org.structr.web.entity.CsvFile;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -53,6 +51,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.structr.common.property.PropertyKey;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,7 +69,6 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		if (parameters == null || parameters.length < 2) {
@@ -164,19 +164,20 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 			}
 
 //                      List<String[]> lines = reader.readAll();
-			final Principal userCopy                  = user;
-			final AbstractNode sourceNodeCopy         = csvFileNode;
-			final Command transactionCommand          = Services.command(securityContext, TransactionCommand.class);
-			final Command createNode                  = Services.command(securityContext, CreateNodeCommand.class);
-			final Command createRel                   = Services.command(securityContext, CreateRelationshipCommand.class);
-			final NodeList<AbstractNode> nodeListNode = (NodeList<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
+			final Principal userCopy                    = user;
+			final AbstractNode sourceNodeCopy           = csvFileNode;
+			final TransactionCommand transactionCommand = Services.command(securityContext, TransactionCommand.class);
+			final CreateNodeCommand createNode          = Services.command(securityContext, CreateNodeCommand.class);
+			final CreateRelationshipCommand createRel   = Services.command(securityContext, CreateRelationshipCommand.class);
+			final NodeList<AbstractNode> nodeListNode   = transactionCommand.execute(new StructrTransaction<NodeList<AbstractNode>>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public NodeList<AbstractNode> execute() throws FrameworkException {
 
 					// If the node list node doesn't exist, create one
-					NodeList<AbstractNode> result = (NodeList) createNode.execute(userCopy, new NodeAttribute(AbstractNode.Key.type.name(), NodeList.class.getSimpleName()),
-										new NodeAttribute(AbstractNode.Key.name.name(), sourceNodeCopy.getName() + " List"));
+					NodeList<AbstractNode> result = (NodeList) createNode.execute(
+										new NodeAttribute(AbstractNode.type, NodeList.class.getSimpleName()),
+										new NodeAttribute(AbstractNode.name, sourceNodeCopy.getName() + " List"));
 
 					createRel.execute(sourceNodeCopy, result, RelType.CONTAINS);
 
@@ -202,12 +203,13 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 					// create a new list for each item
 					List<NodeAttribute> nodeAttributes = new LinkedList<NodeAttribute>();
 
-					nodeAttributes.add(new NodeAttribute(AbstractNode.Key.type.name(), targetClassName));
+					nodeAttributes.add(new NodeAttribute(AbstractNode.type, targetClassName));
 
 					for (int i = 0; i < col; i++) {
 
 						String csvValue = line[i];
-						String key      = fieldIndex.get(i);
+						String keyName  = fieldIndex.get(i);
+						PropertyKey key = EntityContext.getPropertyKeyForName(targetClass, keyName);
 
 						nodeAttributes.add(new NodeAttribute(key, csvValue));
 
@@ -230,7 +232,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
 					for (List<NodeAttribute> attrList : creationList) {
 
-						nodesToAdd.add((AbstractNode) createNode.execute(attrList, false));    // don't index
+						nodesToAdd.add(createNode.execute(attrList));    // don't index
 					}
 
 					// use bulk add
@@ -245,7 +247,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 			/*
 			 * final List<NodeAttribute> attrList = new LinkedList<NodeAttribute>();
 			 *
-			 * NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(), targetClass.getSimpleName());
+			 * NodeAttribute typeAttr = new NodeAttribute(AbstractNode.type.name(), targetClass.getSimpleName());
 			 * attrList.add(typeAttr);
 			 *
 			 * String[] line = null;

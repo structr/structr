@@ -19,8 +19,8 @@
 
 package org.structr.core.converter;
 
-import java.util.Collections;
-import org.structr.core.Value;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.notion.Notion;
@@ -31,42 +31,44 @@ import org.structr.core.notion.Notion;
  */
 public class HyperRelationConverter extends PropertyConverter {
 
+	private HyperRelation hyperRelation = null;
+	
+	public HyperRelationConverter(SecurityContext securityContext, GraphObject entity, HyperRelation rel) {
+		super(securityContext, entity);
+		
+		this.hyperRelation = rel;
+	}
+	
+	
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convert(Object source) {
 		
 		// read only
 		return null;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object revert(Object source) {
 
-		if(currentObject != null && value != null) {
-			
-			Object parameterObject = value.get(securityContext);
-			
-			if(parameterObject instanceof HyperRelation) {
+		if(currentObject != null) {
 
-				HyperRelation hyperRelation   = (HyperRelation)parameterObject;
-				AbstractNode parent           = (AbstractNode)currentObject;
-				Notion notion                 = hyperRelation.getNotion();
-				
-				// create temporary relation class
-				RelationClass parentRelation  = new RelationClass(
-									hyperRelation.getEntity(),
-									hyperRelation.getRelType(),
-									hyperRelation.getDirection(),
-									RelationClass.Cardinality.ManyToMany,
-									notion,
-									0
-								);
+			AbstractNode parent           = (AbstractNode)currentObject;
+			Notion notion                 = hyperRelation.getNotion();
 
-				return parentRelation.getRelatedNodes(securityContext, parent);
-			}
-			
+			// create temporary relation class
+			RelationClass parentRelation  = new RelationClass(
+								hyperRelation.getEntity(),
+								hyperRelation.getRelType(),
+								hyperRelation.getDirection(),
+								RelationClass.Cardinality.ManyToMany,
+								notion,
+								0
+							);
+
+			return parentRelation.getRelatedNodes(securityContext, parent);
 		}
 		
-		return Collections.emptyList();
+		return null;
 	}
 	
 }

@@ -21,9 +21,11 @@
 
 package org.structr.web.entity.relation;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Linkable;
@@ -38,32 +40,33 @@ import org.structr.web.entity.html.Link;
  */
 public class LinkRelationship extends AbstractRelationship {
 
+	public static final Property<String> sourceId = new Property<String>("sourceId");
+	public static final Property<String> targetId = new Property<String>("targetId");
+	public static final Property<String> type     = new Property<String>("type");
+
+	public static final View uiView = new View(LinkRelationship.class, PropertyView.Ui,
+		sourceId, targetId, type	
+	);
+	
 	static {
 
 		EntityContext.registerNamedRelation("resource_link", LinkRelationship.class, Link.class, Linkable.class, RelType.LINK);
 		EntityContext.registerNamedRelation("hyperlink", LinkRelationship.class, A.class, Linkable.class, RelType.LINK);
-		EntityContext.registerPropertySet(LinkRelationship.class, PropertyView.Ui, Key.values());
+		
+//		EntityContext.registerPropertySet(LinkRelationship.class, PropertyView.Ui, uiView.properties());
 
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey{ sourceId, targetId, type }
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public PropertyKey getStartNodeIdKey() {
-
-		return Key.sourceId;
-
+		return sourceId;
 	}
 
 	@Override
 	public PropertyKey getEndNodeIdKey() {
-
-		return Key.targetId;
-
+		return targetId;
 	}
 
 }

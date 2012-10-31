@@ -21,6 +21,7 @@ package org.structr.core.validator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ValueToken;
@@ -44,7 +45,7 @@ public class EnumValidator<T> extends PropertyValidator<T> {
 	}
 
 	@Override
-	public boolean isValid(GraphObject object, String key, T value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer) {
 
 		if (value == null) {
 

@@ -19,12 +19,14 @@
 package org.structr.core.entity;
 
 import java.util.logging.Logger;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.LongProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.IntConverter;
 import org.structr.core.node.NodeService;
@@ -52,33 +54,30 @@ public class ResourceAccess extends AbstractNode {
 
 	private String cachedResourceSignature = null;
 	private Long cachedFlags     = null;
-	
-	//~--- static initializers --------------------------------------------
 
+	public static final Property<String> signature = new Property<String>("signature");
+	public static final Property<Long>   flags     = new LongProperty("flags");
+
+	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
+		signature, flags
+	);
+	
+	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
+		signature, flags
+	);
+	
 	static {
 
-		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.Public, Key.values());
-		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.All, Key.values());
-		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.Ui, Key.values());
-
-		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  Key.values());
+		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
+		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
 		
-		// signature and type must be read-only
-		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.Key.type.name());
-		EntityContext.registerWriteOnceProperty(ResourceAccess.class, Key.signature.name());
-		
-		EntityContext.registerPropertyConverter(ResourceAccess.class, Key.flags, IntConverter.class);
+		// signature and type must be scanEntity-only
+		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.type);
+		EntityContext.registerWriteOnceProperty(ResourceAccess.class, signature);
 
 	}
 
 	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey {
-
-		signature, flags
-
-	}
 
 	//~--- methods --------------------------------------------------------
 
@@ -102,7 +101,7 @@ public class ResourceAccess extends AbstractNode {
 		cachedFlags = null;
 
 		// set modified property
-		setProperty(Key.flags, getFlags() | flag);
+		setProperty(ResourceAccess.flags, getFlags() | flag);
 	}
 	
 	public void clearFlag(long flag) throws FrameworkException {
@@ -111,13 +110,13 @@ public class ResourceAccess extends AbstractNode {
 		cachedFlags = null;
 
 		// set modified property
-		setProperty(Key.flags, getFlags() & ~flag);
+		setProperty(ResourceAccess.flags, getFlags() & ~flag);
 	}
 	
 	public long getFlags() {
 		
 		if (cachedFlags == null) {
-			cachedFlags = getLongProperty(Key.flags);
+			cachedFlags = getLongProperty(ResourceAccess.flags);
 		}
 		
 		if (cachedFlags != null) {
@@ -130,7 +129,7 @@ public class ResourceAccess extends AbstractNode {
 	public String getResourceSignature() {
 		
 		if (cachedResourceSignature == null) {
-			cachedResourceSignature = getStringProperty(Key.signature);
+			cachedResourceSignature = getProperty(ResourceAccess.signature);
 		}
 		
 		return cachedResourceSignature;
@@ -151,8 +150,8 @@ public class ResourceAccess extends AbstractNode {
 
 		boolean error = false;
 
-		error |= ValidationHelper.checkStringNotBlank(this, Key.signature, errorBuffer);
-		error |= ValidationHelper.checkPropertyNotNull(this, Key.flags, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this,  ResourceAccess.signature, errorBuffer);
+		error |= ValidationHelper.checkPropertyNotNull(this, ResourceAccess.flags, errorBuffer);
 //		error |= checkPropertyNotNull(Key.city, errorBuffer);
 
 		return !error;

@@ -22,9 +22,11 @@
 package org.structr.web.entity.html;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.structr.common.property.Property;
 
 import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
+import org.structr.common.View;
+import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -33,24 +35,29 @@ import org.structr.core.EntityContext;
  */
 public class Base extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] { "href", "target" };
+	public static final Property<String> _href   = new HtmlProperty("href");
+	public static final Property<String> _target = new HtmlProperty("target");
 
-	//~--- static initializers --------------------------------------------
+	public static final View htmlView = new View(Base.class, PropertyView.Html,
+		_href, _target
+	);
 
-	static {
-
-		EntityContext.registerPropertySet(Base.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Base.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Base.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//	//~--- static initializers --------------------------------------------
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Base.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Base.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Base.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public String[] getHtmlAttributes() {
+	public Property[] getHtmlAttributes() {
 
-		return (String[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlAttributes);
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
 

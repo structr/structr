@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Nav extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Nav.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Nav.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Nav.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Nav.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Nav.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Nav.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

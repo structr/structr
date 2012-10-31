@@ -20,25 +20,23 @@
 package org.structr.core.module;
 
 import java.util.Map;
+import org.structr.core.agent.Agent;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
-public class GetAgentsCommand extends ModuleServiceCommand
-{
-	@Override
-	public Object execute(Object... parameters)
-	{
+public class GetAgentsCommand extends ModuleServiceCommand {
+	
+	public Map<String, Class<? extends Agent>> execute() {
+		
 		ModuleService service = (ModuleService)getArgument("moduleService");
-		Map<String, Class> ret = null;
-
-		if(service != null)
-		{
-			ret = service.getCachedAgents();
+		
+		if(service != null) {
+			return service.getCachedAgents();
 		}
 
-		return(ret);
+		return null;
 	}
 
 }

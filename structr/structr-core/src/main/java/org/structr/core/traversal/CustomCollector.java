@@ -27,7 +27,7 @@ import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.Predicate;
 import org.structr.core.Value;
@@ -132,6 +132,6 @@ public abstract class CustomCollector implements TraverserInterface, Value<Trave
 	}
 	
 	protected boolean hasType(Node node, Class type) {
-		return hasPropertyValue(node, AbstractNode.Key.type, type.getSimpleName());
+		return hasPropertyValue(node, AbstractNode.type, type.getSimpleName());
 	}
 }

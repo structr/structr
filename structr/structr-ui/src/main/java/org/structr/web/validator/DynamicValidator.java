@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
@@ -45,15 +46,15 @@ public class DynamicValidator extends PropertyValidator {
 	private static final Map<String, Pattern> patterns = new LinkedHashMap<String, Pattern>();
 	private static final long MAX_PATTERNS             = 100;	// arbitrarily chosen, may be wrong!
 	
-	private String errorKey = null;
+	private PropertyKey errorKey = null;
 	
-	public DynamicValidator(String errorKey) {
+	public DynamicValidator(PropertyKey errorKey) {
 
 		this.errorKey = errorKey;
 	}
 	
 	@Override
-	public boolean isValid(GraphObject object, String key, Object value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey key, Object value, ErrorBuffer errorBuffer) {
 		
 		if (object != null) {
 			
@@ -61,7 +62,7 @@ public class DynamicValidator extends PropertyValidator {
 				
 				Content content = (Content) object;
 				
-				String dataKey = content.getStringProperty("data-key");
+				String dataKey = content.getProperty(Content.content);
 				String parentComponentId = null;
 				
 				Component component = content.getParentComponent();
@@ -72,13 +73,13 @@ public class DynamicValidator extends PropertyValidator {
 				TypeDefinition typeDefinition = content.getTypeDefinition();
 				if (typeDefinition != null) {
 					
-					String regex   = typeDefinition.getStringProperty(TypeDefinition.Key.validationExpression);
+					String regex   = typeDefinition.getProperty(TypeDefinition.validationExpression);
 					if (value != null && regex != null) {
 
 						Matcher matcher = getMatcher(regex, value.toString());
 						if (!matcher.matches()) {
 
-							final String errorMessage = typeDefinition.getStringProperty(TypeDefinition.Key.validationErrorMessage);
+							final String errorMessage = typeDefinition.getProperty(TypeDefinition.validationErrorMessage);
 							if (errorMessage != null) {
 								
 								Map<String, Object> attrs = new HashMap<String, Object>();
@@ -89,7 +90,7 @@ public class DynamicValidator extends PropertyValidator {
 								attrs.put("error", errorMessage);
 								attrs.put("value", value);
 
-								errorBuffer.add(errorKey, new DynamicValidationError(errorKey, attrs));
+								errorBuffer.add(errorKey.name(), new DynamicValidationError(errorKey, attrs));
 
 							}
 
@@ -100,12 +101,12 @@ public class DynamicValidator extends PropertyValidator {
 					
 				} else {
 					
-					logger.log(Level.WARNING, "No type definition for Content entity {0}", object.getStringProperty(AbstractNode.Key.uuid));
+					logger.log(Level.WARNING, "No type definition for Content entity {0}", object.getProperty(AbstractNode.uuid));
 				}
 				
 			} else {
 					
-				logger.log(Level.WARNING, "Trying to validate node of type {0} which is not Content", object.getStringProperty(AbstractNode.Key.type));
+				logger.log(Level.WARNING, "Trying to validate node of type {0} which is not Content", object.getProperty(AbstractNode.type));
 			}
 		}
 		

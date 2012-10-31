@@ -22,12 +22,6 @@
 package org.structr.core.module;
 
 import antlr.StringUtils;
-import org.structr.core.*;
-import org.structr.core.Command;
-import org.structr.core.Module;
-import org.structr.core.Service;
-import org.structr.core.Services;
-import org.structr.core.SingletonService;
 import org.structr.core.agent.Agent;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -37,6 +31,7 @@ import org.structr.core.entity.GenericNode;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 import java.lang.reflect.Modifier;
 
@@ -51,6 +46,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import org.structr.common.property.Property;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,14 +63,19 @@ import java.util.zip.ZipFile;
  */
 public class ModuleService implements SingletonService {
 
-	private static final Logger logger                             = Logger.getLogger(ModuleService.class.getName());
-	private static final Set<String> nodeEntityPackages            = new LinkedHashSet<String>();
-	private static final Set<String> relationshipPackages          = new LinkedHashSet<String>();
-	private static final Map<String, Class> relationshipClassCache = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Map<String, Class> nodeEntityClassCache   = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
-	private static final Map<String, Set<Class>> interfaceCache    = new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
-	private static final Set<String> agentPackages                 = new LinkedHashSet<String>();
-	private static final Map<String, Class> agentClassCache        = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
+	private static final Logger logger                                       = Logger.getLogger(ModuleService.class.getName());
+	private static final Map<String, Class<? extends Agent>> agentClassCache = new ConcurrentHashMap<String, Class<? extends Agent>>(10, 0.9f, 8);
+	private static final Set<String> nodeEntityPackages                      = new LinkedHashSet<String>();
+	private static final Set<String> relationshipPackages                    = new LinkedHashSet<String>();
+	private static final Map<String, Class> relationshipClassCache           = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
+	private static final Map<String, Class> nodeEntityClassCache             = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
+	private static final Map<String, Set<Class>> interfaceCache              = new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
+	private static final Set<String> agentPackages                           = new LinkedHashSet<String>();
+	private static final String fileSep                                      = System.getProperty("file.separator");
+	private static final String fileSepEscaped                               = fileSep.replaceAll("\\\\", "\\\\\\\\");	// ....
+	private static final String pathSep                                      = System.getProperty("path.separator");
+	private static final String testClassesDir                               = fileSep.concat("test-classes");
+	private static final String classesDir                                   = fileSep.concat("classes");
 
 	//~--- methods --------------------------------------------------------
 
@@ -104,7 +108,6 @@ public class ModuleService implements SingletonService {
 
 	}
 
-	// <editor-fold defaultstate="collapsed" desc="interface SingletonService">
 	@Override
 	public void injectArguments(Command command) {
 
@@ -174,6 +177,9 @@ public class ModuleService implements SingletonService {
 					if (AbstractNode.class.isAssignableFrom(clazz)) {
 
 						EntityContext.init(clazz);
+						
+						// try to instantiate class
+						try { EntityContext.scanEntity(clazz.newInstance()); } catch(Throwable t) {}
 
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();
@@ -203,12 +209,33 @@ public class ModuleService implements SingletonService {
 					// register entity classes
 					if (AbstractRelationship.class.isAssignableFrom(clazz)) {
 
+						EntityContext.init(clazz);
+
+						// try to instantiate class
+						try { EntityContext.scanEntity(clazz.newInstance()); } catch(Throwable t) {}
+
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();
 
 						relationshipClassCache.put(simpleName, clazz);
 						relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
+						for (Class interfaceClass : clazz.getInterfaces()) {
+
+							String interfaceName           = interfaceClass.getSimpleName();
+							Set<Class> classesForInterface = interfaceCache.get(interfaceName);
+
+							if (classesForInterface == null) {
+
+								classesForInterface = new LinkedHashSet<Class>();
+
+								interfaceCache.put(interfaceName, classesForInterface);
+
+							}
+
+							classesForInterface.add(clazz);
+
+						}
 					}
 
 					// register services
@@ -228,6 +255,7 @@ public class ModuleService implements SingletonService {
 
 					}
 				}
+				
 			} catch (Throwable t) {}
 
 		}
@@ -259,7 +287,7 @@ public class ModuleService implements SingletonService {
 
 				if (entryName.endsWith(".class")) {
 
-					String fileEntry = entry.getName().replaceAll("[/]+", ".");
+					String fileEntry = entry.getName().replaceAll("[".concat(fileSepEscaped).concat("]+"), ".");
 
 					// add class entry to Module
 					classes.add(fileEntry.substring(0, fileEntry.length() - 6));
@@ -270,13 +298,13 @@ public class ModuleService implements SingletonService {
 
 			zipFile.close();
 
-		} else if (resource.endsWith("/classes")) {
+		} else if (resource.endsWith(classesDir)) {
 
-			addClassesRecursively(new File(resource), "/classes", classes);
+			addClassesRecursively(new File(resource), classesDir, classes);
 
-		} else if (resource.endsWith("/test-classes")) {
+		} else if (resource.endsWith(testClassesDir)) {
 
-			addClassesRecursively(new File(resource), "/test-classes", classes);
+			addClassesRecursively(new File(resource), testClassesDir, classes);
 		}
 
 		return ret;
@@ -299,8 +327,8 @@ public class ModuleService implements SingletonService {
 
 					fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
 					fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
-					fileEntry = fileEntry.replaceAll("[/]+", ".");
-
+					fileEntry = fileEntry.replaceAll("[".concat(fileSepEscaped).concat("]+"), ".");
+					
 					if (fileEntry.startsWith(".")) {
 						fileEntry = fileEntry.substring(1);
 					}
@@ -356,7 +384,7 @@ public class ModuleService implements SingletonService {
 
 	}
 
-	public Map<String, Class> getCachedAgents() {
+	public Map<String, Class<? extends Agent>> getCachedAgents() {
 
 		return agentClassCache;
 
@@ -468,7 +496,7 @@ public class ModuleService implements SingletonService {
 
 	}
 
-	public Class getAgentClass(final String name) {
+	public Class<? extends Agent> getAgentClass(final String name) {
 
 		Class ret = null;
 
@@ -520,17 +548,17 @@ public class ModuleService implements SingletonService {
 		Pattern pattern  = Pattern.compile(".*(structr).*(war|jar)");
 		Matcher matcher  = pattern.matcher("");
 
-		for (String jarPath : classPath.split("[:]+")) {
+		for (String jarPath : classPath.split("[".concat(pathSep).concat("]+"))) {
 
 			String lowerPath = jarPath.toLowerCase();
 
-			if (lowerPath.endsWith("/classes") || lowerPath.endsWith("/test-classes")) {
+			if (lowerPath.endsWith(classesDir) || lowerPath.endsWith(testClassesDir)) {
 
 				ret.add(jarPath);
 				
 			} else {
 
-				String moduleName = lowerPath.substring(lowerPath.lastIndexOf("/") + 1);
+				String moduleName = lowerPath.substring(lowerPath.lastIndexOf(pathSep) + 1);
 
 				matcher.reset(moduleName);
 
@@ -547,7 +575,7 @@ public class ModuleService implements SingletonService {
 
 		if (resources != null) {
 
-			for (String resource : resources.split("[:]+")) {
+			for (String resource : resources.split("[".concat(pathSep).concat("]+"))) {
 
 				String lowerResource = resource.toLowerCase();
 
@@ -570,8 +598,6 @@ public class ModuleService implements SingletonService {
 		return (ModuleService.class.getSimpleName());
 
 	}
-
-	// </editor-fold>
 	
 	@Override
 	public boolean isRunning() {
@@ -579,5 +605,4 @@ public class ModuleService implements SingletonService {
 		// we're always running :)
 		return (true);
 	}
-
 }

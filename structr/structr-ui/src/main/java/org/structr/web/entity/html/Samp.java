@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Samp extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Samp.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Samp.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Samp.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Samp.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Samp.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Samp.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

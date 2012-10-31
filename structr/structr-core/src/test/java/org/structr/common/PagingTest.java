@@ -21,6 +21,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -74,7 +75,7 @@ public class PagingTest extends StructrTest {
 //
 //                      searchAttributes.add(Search.andType(type));
 //
-//                      Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+//                      Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 //
 //                      assertTrue(result.size() == number);
 //
@@ -131,12 +132,12 @@ public class PagingTest extends StructrTest {
 
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = AbstractNode.Key.name.name();
-			boolean sortDesc = false;
+			PropertyKey sortKey = AbstractNode.name;
+			boolean sortDesc    = false;
 			
 			
 			// test pages sizes from 0 to 10
@@ -160,14 +161,14 @@ public class PagingTest extends StructrTest {
 	}
 
 	protected void testPaging(final int pageSize, final int page, final int number, final int offset, final boolean includeDeletedAndHidden, final boolean publicOnly,
-				final List<SearchAttribute> searchAttributes, final String sortKey, final boolean sortDesc)
+				final List<SearchAttribute> searchAttributes, final PropertyKey sortKey, final boolean sortDesc)
 		throws FrameworkException {
 
-		Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+		Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 //              for (GraphObject obj : result.getResults()) {
 //                      
-//                      System.out.println(obj.getStringProperty(AbstractNode.Key.name));
+//                      System.out.println(obj.getProperty(AbstractNode.name));
 //                      
 //              }
 		logger.log(Level.INFO, "Raw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
@@ -186,7 +187,7 @@ public class PagingTest extends StructrTest {
 		for (int j = 0; j < expectedResultCount; j++) {
 
 			String expectedName = "TestOne-" + (offset + j + startIndex);
-			String gotName      = result.get(j).getStringProperty(AbstractNode.Key.name);
+			String gotName      = result.get(j).getProperty(AbstractNode.name);
 
 			System.out.println(expectedName + ", got: " + gotName);
 			assertEquals(expectedName, gotName);

@@ -19,9 +19,10 @@
 
 package org.structr.core.converter;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.Value;
+import org.structr.common.SecurityContext;
+import org.structr.common.property.PropertyKey;
+import org.structr.core.GraphObject;
 
 /**
  *
@@ -31,32 +32,22 @@ public class PropertyMapper extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(PropertyMapper.class.getName());
 
+	private PropertyKey mappedKey = null;
+	
+	public PropertyMapper(SecurityContext securityContext, GraphObject entity, PropertyKey key) {
+		
+		super(securityContext, entity);
+		
+		this.mappedKey = key;
+	}
+	
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convert(Object source) {
 		return source;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
-
-		if(value != null) {
-
-			Object valueObject = value.get(securityContext);
-			if(valueObject instanceof String) {
-
-				String mappedKey = (String)valueObject;
-				return currentObject.getProperty(mappedKey);
-
-			} else {
-
-				logger.log(Level.WARNING, "Value parameter is not a String!");
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "Required value parameter is missing!");
-		}
-
-		return source;
+	public Object revert(Object source) {
+		return currentObject.getProperty(mappedKey);
 	}
 }

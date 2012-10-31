@@ -19,7 +19,6 @@
 package org.structr.core.entity;
 
 import org.neo4j.graphdb.Direction;
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.EntityContext;
@@ -36,7 +35,7 @@ public class TestTwo extends AbstractNode {
 	
 	static {
 		
-		EntityContext.registerPropertySet(TestTwo.class, PropertyView.Public, Key.values());
+//		EntityContext.registerPropertySet(TestTwo.class, PropertyView.Public, Key.values());
 		EntityContext.registerEntityRelation(TestTwo.class, TestOne.class, RelType.UNDEFINED, Direction.INCOMING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	}
 	
@@ -46,7 +45,7 @@ public class TestTwo extends AbstractNode {
 	}
 	
 	private TestOne getTestOne() {
-		return (TestOne) getProperty(TestOne.class.getSimpleName());
+		return (TestOne) getRelatedNode(TestOne.class);
 	}
 	
 	

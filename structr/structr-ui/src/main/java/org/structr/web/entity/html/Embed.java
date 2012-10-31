@@ -30,14 +30,14 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Embed extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Embed.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Embed.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Embed.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Embed.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Embed.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Embed.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
 
 	//~--- get methods ----------------------------------------------------
 

@@ -36,6 +36,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -97,7 +98,7 @@ public class UpdateCommand extends AbstractCommand {
 
 		try {
 
-			obj.setProperty(key, value);
+			obj.setProperty(EntityContext.getPropertyKeyForName(obj.getClass(), key), value);
 
 			if (rec) {
 

@@ -30,7 +30,6 @@ import org.neo4j.kernel.Uniqueness;
 
 import org.structr.common.RelType;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -39,6 +38,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,17 +51,21 @@ public class PathsConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(PathsConverter.class.getName());
 
+	public PathsConverter(SecurityContext securityContext, GraphObject entity) {
+		super(securityContext, entity);
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convert(Object source) {
 
 		// read only
 		return null;
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Object revert(Object source) {
 
 		AbstractNode startNode         = (AbstractNode) currentObject;
 		TraversalDescription localDesc = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_PATH).relationships(RelType.CONTAINS, Direction.INCOMING);

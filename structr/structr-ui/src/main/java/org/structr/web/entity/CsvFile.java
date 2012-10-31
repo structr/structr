@@ -21,8 +21,6 @@
 
 package org.structr.web.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.File;
 
 //~--- classes ----------------------------------------------------------------
@@ -33,10 +31,10 @@ import org.structr.core.entity.File;
  *
  */
 public class CsvFile extends File {
-
-	static {
-
-		EntityContext.registerPropertySet(CsvFile.class, PropertyView.All, Key.values());
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(CsvFile.class, PropertyView.All, Key.values());
+//	}
+//
 }

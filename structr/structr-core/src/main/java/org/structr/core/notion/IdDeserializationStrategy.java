@@ -21,18 +21,16 @@
 
 package org.structr.core.notion;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
-import org.structr.core.Command;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertySet;
+import org.structr.core.JsonInput;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.*;
 import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.search.*;
 
@@ -40,9 +38,11 @@ import org.structr.core.node.search.*;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.Result;
+import org.structr.common.property.PropertyMap;
+import org.structr.core.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,20 +50,20 @@ import org.structr.core.Result;
  *
  * @author Christian Morgner
  */
-public class IdDeserializationStrategy implements DeserializationStrategy {
+public class IdDeserializationStrategy<S, T extends GraphObject> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(IdDeserializationStrategy.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
-	protected boolean createIfNotExisting = false;
-	protected PropertyKey propertyKey     = null;
+	protected boolean createIfNotExisting     = false;
+	protected PropertyKey<String> propertyKey = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public IdDeserializationStrategy() {}
 
-	public IdDeserializationStrategy(PropertyKey propertyKey, boolean createIfNotExisting) {
+	public IdDeserializationStrategy(PropertyKey<String> propertyKey, boolean createIfNotExisting) {
 
 		this.propertyKey         = propertyKey;
 		this.createIfNotExisting = createIfNotExisting;
@@ -72,46 +72,54 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public GraphObject deserialize(final SecurityContext securityContext, final Class type, Object source) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source) throws FrameworkException {
 
 		if (source != null) {
 
 			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 			// FIXME: use uuid only here?
-			if (source instanceof PropertySet) {
+			if (source instanceof JsonInput) {
 
-				PropertySet properties = (PropertySet) source;
+				JsonInput properties = (JsonInput) source;
+				PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, type, properties.getAttributes());
+				
+				for (Entry<PropertyKey, Object> entry : map.entrySet()) {
 
-				for (NodeAttribute attr : properties.getAttributes()) {
-
-					attrs.add(Search.andExactProperty(attr.getKey(), attr.getValue().toString()));
+					attrs.add(Search.andExactProperty(entry.getKey(), entry.getValue().toString()));
 
 				}
 
+			} else if (source instanceof GraphObject) {
+				
+				GraphObject obj = (GraphObject)source;
+				if (propertyKey != null) {
+					
+					attrs.add(Search.andExactProperty(propertyKey, obj.getProperty(propertyKey)));
+					
+				} else {
+					
+					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
+					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.name());
+					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
+					
+				}
+				
+				
 			} else {
 
 				attrs.add(Search.andExactUuid(source.toString()));
 
 			}
 
-			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
-			int size                   = results.size();
+			Result<T> results = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
+			int size       = results.size();
 
 			switch (size) {
 
 				case 0 :
-					GraphObject idResult = (GraphObject) Services.command(securityContext, FindNodeCommand.class).execute(source);
+					throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
 
-					if (idResult == null) {
-
-						throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
-
-					} else {
-
-						return idResult;
-
-					}
 				case 1 :
 					return results.get(0);
 
@@ -122,17 +130,13 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 		} else if (createIfNotExisting) {
 
-			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-
-			return (AbstractNode) transactionCommand.execute(new StructrTransaction() {
+			return (T)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public AbstractNode execute() throws FrameworkException {
 
 					// create node and return it
-					AbstractNode newNode = (AbstractNode) Services.command(securityContext,
-								       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), type.getSimpleName()));
-
+					AbstractNode newNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
 					if (newNode == null) {
 
 						logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.name() });

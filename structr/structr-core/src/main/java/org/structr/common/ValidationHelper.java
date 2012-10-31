@@ -19,12 +19,13 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.Property;
 import java.util.Arrays;
 import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
-import org.structr.core.IterableAdapter;
 
 /**
  *
@@ -32,10 +33,12 @@ import org.structr.core.IterableAdapter;
  */
 public class ValidationHelper {
 
+	private static final PropertyKey UnknownType = new Property("unknown type");
+	
 	// ----- public static methods -----
-	public static boolean checkStringMinLength(GraphObject node, PropertyKey key, int minLength, ErrorBuffer errorBuffer) {
+	public static boolean checkStringMinLength(GraphObject node, PropertyKey<String> key, int minLength, ErrorBuffer errorBuffer) {
 
-		String value = node.getStringProperty(key.name());
+		String value = node.getProperty(key);
 		String type  = node.getType();
 
 		if (StringUtils.isNotBlank(value)) {
@@ -46,28 +49,28 @@ public class ValidationHelper {
 
 			}
 
-			errorBuffer.add(type, new TooShortToken(key.name(), minLength));
+			errorBuffer.add(type, new TooShortToken(key, minLength));
 
 			return true;
 
 		}
 
-		errorBuffer.add(type, new EmptyPropertyToken(key.name()));
+		errorBuffer.add(type, new EmptyPropertyToken(key));
 
 		return true;
 	}
 
-	public static boolean checkStringNotBlank(GraphObject node, PropertyKey key, ErrorBuffer errorBuffer) {
+	public static boolean checkStringNotBlank(GraphObject node, PropertyKey<String> key, ErrorBuffer errorBuffer) {
 
 		String type  = node.getType();
 
-		if (StringUtils.isNotBlank((String)node.getProperty(key.name()))) {
+		if (StringUtils.isNotBlank(node.getProperty(key))) {
 
 			return false;
 
 		}
 
-		errorBuffer.add(type, new EmptyPropertyToken(key.name()));
+		errorBuffer.add(type, new EmptyPropertyToken(key));
 
 		return true;
 	}
@@ -77,17 +80,17 @@ public class ValidationHelper {
 		String type  = node.getType();
 
 		if (key == null) {
-			errorBuffer.add(type, new EmptyPropertyToken("unknown type"));
+			errorBuffer.add(type, new EmptyPropertyToken(UnknownType));
 			return true;
 		}
 
-		Object value = node.getProperty(key.name());
+		Object value = node.getProperty(key);
 
 		if (value != null) {
 
-			if (value instanceof IterableAdapter) {
+			if (value instanceof Iterable) {
 
-				if (((IterableAdapter) value).iterator().hasNext()) {
+				if (((Iterable) value).iterator().hasNext()) {
 
 					return false;
 
@@ -101,20 +104,20 @@ public class ValidationHelper {
 
 		}
 
-		errorBuffer.add(type, new EmptyPropertyToken(key.name()));
+		errorBuffer.add(type, new EmptyPropertyToken(key));
 
 		return true;
 	}
 
-	public static boolean checkDate(GraphObject node, PropertyKey key, ErrorBuffer errorBuffer) {
+	public static boolean checkDate(GraphObject node, PropertyKey<Date> key, ErrorBuffer errorBuffer) {
 
-		Date date     = node.getDateProperty(key.name());
+		Date date     = node.getDateProperty(key);
 		String type   = node.getType();
 		boolean error = false;
 
 		if ((date == null) || ((date != null) && (date.getTime() == 0))) {
 
-			errorBuffer.add(type, new EmptyPropertyToken(key.name()));
+			errorBuffer.add(type, new EmptyPropertyToken(key));
 			error = true;
 
 		}
@@ -122,10 +125,10 @@ public class ValidationHelper {
 		return error;
 	}
 
-	public static boolean checkDatesChronological(GraphObject node, PropertyKey key1, PropertyKey key2, ErrorBuffer errorBuffer) {
+	public static boolean checkDatesChronological(GraphObject node, PropertyKey<Date> key1, PropertyKey<Date> key2, ErrorBuffer errorBuffer) {
 
-		Date date1    = node.getDateProperty(key1.name());
-		Date date2    = node.getDateProperty(key2.name());
+		Date date1    = node.getDateProperty(key1);
+		Date date2    = node.getDateProperty(key2);
 		String type   = node.getType();
 		boolean error = false;
 
@@ -134,7 +137,7 @@ public class ValidationHelper {
 
 		if ((date1 != null) && (date2 != null) &&!date1.before(date2)) {
 
-			errorBuffer.add(type, new ChronologicalOrderToken(key1.name(), key2.name()));
+			errorBuffer.add(type, new ChronologicalOrderToken(key1, key2));
 
 			error = true;
 
@@ -143,13 +146,13 @@ public class ValidationHelper {
 		return error;
 	}
 
-	public static boolean checkStringInArray(GraphObject node, PropertyKey key, String[] values, ErrorBuffer errorBuffer) {
+	public static boolean checkStringInArray(GraphObject node, PropertyKey<String> key, String[] values, ErrorBuffer errorBuffer) {
 
 		String type  = node.getType();
 
-		if (StringUtils.isNotBlank(node.getStringProperty(key.name()))) {
+		if (StringUtils.isNotBlank(node.getProperty(key))) {
 
-			if (Arrays.asList(values).contains(node.getStringProperty(key.name()))) {
+			if (Arrays.asList(values).contains(node.getProperty(key))) {
 
 				return false;
 
@@ -157,51 +160,46 @@ public class ValidationHelper {
 
 		}
 
-		errorBuffer.add(type, new ValueToken(key.name(), values));
+		errorBuffer.add(type, new ValueToken(key, values));
 
 		return true;
 	}
 
-	public static boolean checkStringInEnum(GraphObject node, PropertyKey key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
+	public static boolean checkStringInEnum(GraphObject node, PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
 		
 		return checkStringInEnum(node.getType(), node, key, enumType, errorBuffer);
 	}
 	
-	public static boolean checkStringInEnum(String typeString, GraphObject node, PropertyKey key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
+	public static boolean checkStringInEnum(String typeString, GraphObject node, PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
 
-		String value = node.getStringProperty(key.name());
-		Object[] values = enumType.getEnumConstants();
+		Enum value = node.getProperty(key);
+		Enum[] values = enumType.getEnumConstants();
 
-		if (StringUtils.isNotBlank(value)) {
+		for (Enum v : values) {
 
-			for (Object v : values) {
-				
-				String enumValue = v.toString();
-				
-				if (enumValue.equals(value)) {
-					return false;
-				}
-				
+			if (v.equals(value)) {
+				return false;
 			}
+
 		}
 
-		errorBuffer.add(typeString, new ValueToken(key.name(), values));
+		errorBuffer.add(typeString, new ValueToken(key, values));
 
 		return true;
 	}
 
-	public static boolean checkNullOrStringInArray(GraphObject node, PropertyKey key, String[] values, ErrorBuffer errorBuffer) {
+	public static boolean checkNullOrStringInArray(GraphObject node, PropertyKey<String> key, String[] values, ErrorBuffer errorBuffer) {
 
-		String value = node.getStringProperty(key.name());
+		String value = node.getProperty(key);
 		String type  = node.getType();
 
 		if(value == null) {
 			return false;
 		}
 
-		if (StringUtils.isNotBlank(node.getStringProperty(key.name()))) {
+		if (StringUtils.isNotBlank(node.getProperty(key))) {
 
-			if (Arrays.asList(values).contains(node.getStringProperty(key.name()))) {
+			if (Arrays.asList(values).contains(node.getProperty(key))) {
 
 				return false;
 
@@ -209,7 +207,7 @@ public class ValidationHelper {
 
 		}
 
-		errorBuffer.add(type, new ValueToken(key.name(), values));
+		errorBuffer.add(type, new ValueToken(key, values));
 
 		return true;
 	}

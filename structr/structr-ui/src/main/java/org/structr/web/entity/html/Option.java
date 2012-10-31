@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Option extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Option.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Option.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Option.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Option.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Option.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Option.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

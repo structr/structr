@@ -72,12 +72,12 @@ public class LoginCommand extends AbstractCommand {
 					String token = StructrWebSocket.secureRandomString();
 
 					// store token in user
-					user.setProperty(Principal.Key.sessionId, token);
+					user.setProperty(Principal.sessionId, token);
 
 					// store token in response data
 					webSocketData.getNodeData().clear();
 					webSocketData.setToken(token);
-					webSocketData.getNodeData().put("username", user.getStringProperty(AbstractNode.Key.name));
+					webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
 
 					// authenticate socket
 					this.getWebSocket().setAuthenticated(token, user);

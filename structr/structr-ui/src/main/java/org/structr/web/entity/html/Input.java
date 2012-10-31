@@ -21,12 +21,16 @@
 
 package org.structr.web.entity.html;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
+import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -35,20 +39,53 @@ import org.structr.core.entity.RelationClass;
  */
 public class Input extends HtmlElement {
 
-	private static final String[] htmlAttributes = new String[] {
+	public static final Property<String> _accept         = new HtmlProperty("accept");
+	public static final Property<String> _alt            = new HtmlProperty("alt");
+	public static final Property<String> _autocomplete   = new HtmlProperty("autocomplete");
+	public static final Property<String> _autofocus      = new HtmlProperty("autofocus");
+	public static final Property<String> _checked        = new HtmlProperty("checked");
+	public static final Property<String> _dirname        = new HtmlProperty("dirname");
+	public static final Property<String> _disabled       = new HtmlProperty("disabled");
+	public static final Property<String> _form           = new HtmlProperty("form");
+	public static final Property<String> _formaction     = new HtmlProperty("formaction");
+	public static final Property<String> _formenctype    = new HtmlProperty("formenctype");
+	public static final Property<String> _formmethod     = new HtmlProperty("formmethod");
+	public static final Property<String> _formnovalidate = new HtmlProperty("formnovalidate");
+	public static final Property<String> _formtarget     = new HtmlProperty("formtarget");
+	public static final Property<String> _height         = new HtmlProperty("height");
+	public static final Property<String> _list           = new HtmlProperty("list");
 
-		"accept", "alt", "autocomplete", "autofocus", "checked", "dirname", "disabled", "form", "formaction", "formenctype", "formmethod", "formnovalidate", "formtarget", "height", "list",
-		"max", "maxlength", "min", "multiple", "name", "pattern", "placeholder", "readonly", "required", "size", "src", "step", "type", "value", "width"
-
-	};
+	public static final Property<String> _max            = new HtmlProperty("max");
+	public static final Property<String> _maxlength      = new HtmlProperty("maxlength");
+	public static final Property<String> _min            = new HtmlProperty("min");
+	public static final Property<String> _multiple       = new HtmlProperty("multiple");
+	public static final Property<String> _name           = new HtmlProperty("name");
+	public static final Property<String> _pattern        = new HtmlProperty("pattern");
+	public static final Property<String> _placeholder    = new HtmlProperty("placeholder");
+	public static final Property<String> _readonly       = new HtmlProperty("readonly");
+	public static final Property<String> _required       = new HtmlProperty("required");
+	public static final Property<String> _size           = new HtmlProperty("size");
+	public static final Property<String> _src            = new HtmlProperty("src");
+	public static final Property<String> _step           = new HtmlProperty("step");
+	public static final Property<String> _type           = new HtmlProperty("type");
+	public static final Property<String> _value          = new HtmlProperty("value");
+	public static final Property<String> _width          = new HtmlProperty("width");
+	
+	public static final View htmlView = new View(Input.class, PropertyView.Html,
+	    
+		_accept, _alt, _autocomplete, _autofocus, _checked, _dirname, _disabled, _form, _formaction, _formenctype, _formmethod,
+		_formnovalidate, _formtarget, _height, _list, _max, _maxlength, _min, _multiple, _name, _pattern, _placeholder,
+		_readonly, _required, _size, _src, _step, _type, _value, _width
+	 );
 
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertySet(Input.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Input.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Input.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Input.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Input.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Input.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Input.class, Form.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 
 	}
@@ -59,6 +96,13 @@ public class Input extends HtmlElement {
 	public boolean isVoidElement() {
 
 		return true;
+
+	}
+
+	@Override
+	public Property[] getHtmlAttributes() {
+
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
 

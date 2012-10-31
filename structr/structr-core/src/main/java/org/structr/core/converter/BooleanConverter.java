@@ -21,16 +21,11 @@
 
 package org.structr.core.converter;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.core.Value;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.ArrayUtils;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -38,62 +33,42 @@ import org.apache.commons.lang.ArrayUtils;
  *
  * @author Axel Morgner
  */
-public class BooleanConverter extends PropertyConverter {
+public class BooleanConverter extends PropertyConverter<Boolean, Object> {
 
 	private static final Logger logger = Logger.getLogger(BooleanConverter.class.getName());
 	private static final String[] TRUE_VALUES = { "true", "1", "on" };
 
-	//~--- methods --------------------------------------------------------
+	public BooleanConverter(SecurityContext securityContext) {
+		super(securityContext, null);
+	}
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public Object convert(Boolean source) {
 
-		if (source == null) {
+		if (source != null) {
 
-			return false;
+			return source.toString();
 		}
-
-		try {
-
-			if (source instanceof Boolean) {
-
-				return ((Boolean) source);
-			} else if (source instanceof String) {
-
-				if (StringUtils.isBlank((String) source)) {
-
-					return false;
-				}
-
-				return ArrayUtils.contains(TRUE_VALUES, (String) source);
-			} else if (source instanceof Integer) {
-
-				return ((Integer) source) == 1;
-
-			} else if (source instanceof Long) {
-
-				return ((Long) source) == 1L;
-
-
-			}
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Exception while parsing boolean", t);
-
-			return null;
-
-		}
-
-		return source;
+		
+		return null;
 
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public Boolean revert(Object source) {
+		
+		if (source != null) {
 
-		return convertForSetter(source, value);
+			String sourceString = source.toString();
+			if (StringUtils.isBlank(sourceString)) {
 
+				return false;
+			}
+
+			return ArrayUtils.contains(TRUE_VALUES, sourceString);
+		}
+		
+		return null;
 	}
 
 }

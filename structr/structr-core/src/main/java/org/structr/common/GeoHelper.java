@@ -19,6 +19,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyMap;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -71,19 +72,19 @@ public class GeoHelper {
 
 	public static Location createLocation(final GeoCodingResult coords) throws FrameworkException {
 
-		double latitude                 = coords.getLatitude();
-		double longitude                = coords.getLongitude();
-		String type                     = Location.class.getSimpleName();
-		final Map<String, Object> props = new HashMap<String, Object>();
+		final PropertyMap props = new PropertyMap();
+		double latitude         = coords.getLatitude();
+		double longitude        = coords.getLongitude();
+		String type             = Location.class.getSimpleName();
 
-		props.put(AbstractNode.Key.type.name(), type);
-		props.put(Location.Key.latitude.name(), latitude);
-		props.put(Location.Key.longitude.name(), longitude);
+		props.put(AbstractNode.type,  type);
+		props.put(Location.latitude,  latitude);
+		props.put(Location.longitude, longitude);
 
-		StructrTransaction transaction = new StructrTransaction() {
+		StructrTransaction transaction = new StructrTransaction<AbstractNode>() {
 
 			@Override
-			public Object execute() throws FrameworkException {
+			public AbstractNode execute() throws FrameworkException {
 				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
 			}
 		};

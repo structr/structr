@@ -25,11 +25,16 @@ import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.Direction;
 
+import org.structr.common.FileHelper;
 import org.structr.common.Path;
-import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.IntProperty;
+import org.structr.common.property.LongProperty;
+import org.structr.common.property.Property;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.RelationClass.Cardinality;
@@ -45,48 +50,39 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.converter.IntConverter;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  *
- * @author amorgner
+ * @author Axel Morgner
  *
  */
 public class File extends AbstractNode implements Linkable {
 
-	private static final Logger logger = Logger.getLogger(File.class.getName());
+	private static final Logger logger                    = Logger.getLogger(File.class.getName());
+	public static final Property<String> contentType      = new Property<String>("contentType");
+	public static final Property<String> relativeFilePath = new Property<String>("relativeFilePath");
+	public static final Property<Long> size               = new LongProperty("size");
+	public static final Property<String> url              = new Property<String>("url");
+	public static final Property<String> parentFolder     = new Property<String>("parentFolder");
+	public static final Property<Long> checksum           = new LongProperty("checksum").systemProperty();
+	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
+
+	public static final View uiView                       = new View(File.class, PropertyView.Ui, contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds);
 
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
-		EntityContext.registerPropertySet(File.class, PropertyView.All, Key.values());
-		EntityContext.registerPropertySet(File.class, PropertyView.Ui, Key.values());
-
-//              EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
-		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(), Key.values());
-		EntityContext.registerPropertyConverter(File.class, Key.cacheForSeconds, IntConverter.class);
-
-	}
-
-	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey {
-
-		contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds
+		EntityContext.registerPropertyRelation(File.class, parentFolder, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
+		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(), uiView.properties());
 
 	}
 
 	//~--- methods --------------------------------------------------------
 
-//      @Override
-//      public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-//              renderers.put(RenderMode.Direct, new FileStreamRenderer());
-//      }
 	@Override
 	public void onNodeDeletion() {
 
@@ -106,76 +102,62 @@ public class File extends AbstractNode implements Linkable {
 		}
 
 	}
+	
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+
+		try {
+
+			setProperty(checksum,	FileHelper.getChecksum(this));
+			setProperty(size,	FileHelper.getSize(this));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
+
+		}
+
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) {
+
+		try {
+
+			setProperty(checksum,	FileHelper.getChecksum(this));
+			setProperty(size,	FileHelper.getSize(this));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
+
+		}
+
+	}
 
 	//~--- get methods ----------------------------------------------------
 
 	public String getUrl() {
 
-		return getStringProperty(Key.url.name());
+		return getProperty(File.url);
 
 	}
 
 	public String getContentType() {
 
-		return getStringProperty(Key.contentType.name());
+		return getProperty(File.contentType);
 
 	}
 
 	public long getSize() {
 
-		String relativeFilePath = getRelativeFilePath();
-
-		if (relativeFilePath != null) {
-
-			String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
-			java.io.File fileOnDisk = new java.io.File(filePath);
-			long fileSize           = fileOnDisk.length();
-
-			logger.log(Level.FINE, "File size of node {0} ({1}): {2}", new Object[] { getId(), filePath, fileSize });
-
-			return fileSize;
-
-		}
-
-		return -1;
+		return getProperty(size);
 
 	}
 
 	public Long getChecksum() {
 
-		Long storedChecksum = getLongProperty(Key.checksum);
-
-		if (storedChecksum != null) {
-
-			return storedChecksum;
-		}
-
-		String relativeFilePath = getRelativeFilePath();
-
-		if (relativeFilePath != null) {
-
-			String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
-			java.io.File fileOnDisk = new java.io.File(filePath);
-			Long checksum;
-
-			try {
-
-				checksum = FileUtils.checksumCRC32(fileOnDisk);
-
-				logger.log(Level.FINE, "Checksum of file {0} ({1}): {2}", new Object[] { getId(), filePath, checksum });
-				setChecksum(checksum);
-
-				return checksum;
-
-			} catch (Exception ex) {
-
-				logger.log(Level.WARNING, "Could not calculate checksum of file " + filePath, ex);
-
-			}
-
-		}
-
-		return null;
+		return getProperty(checksum);
 
 	}
 
@@ -187,7 +169,7 @@ public class File extends AbstractNode implements Linkable {
 
 	public String getRelativeFilePath() {
 
-		return getStringProperty(Key.relativeFilePath.name());
+		return getProperty(File.relativeFilePath);
 
 	}
 
@@ -252,31 +234,31 @@ public class File extends AbstractNode implements Linkable {
 
 	public void setRelativeFilePath(final String filePath) throws FrameworkException {
 
-		setProperty(Key.relativeFilePath.name(), filePath);
+		setProperty(File.relativeFilePath, filePath);
 
 	}
 
 	public void setUrl(final String url) throws FrameworkException {
 
-		setProperty(Key.url.name(), url);
+		setProperty(File.url, url);
 
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
 
-		setProperty(Key.contentType.name(), contentType);
+		setProperty(File.contentType, contentType);
 
 	}
 
 	public void setSize(final long size) throws FrameworkException {
 
-		setProperty(Key.size.name(), size);
+		setProperty(File.size, size);
 
 	}
 
 	public void setChecksum(final long checksum) throws FrameworkException {
 
-		setProperty(Key.checksum.name(), checksum);
+		setProperty(File.checksum, checksum);
 
 	}
 

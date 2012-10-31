@@ -35,15 +35,15 @@ import org.structr.web.entity.Content;
  * @author Axel Morgner
  */
 public class Code extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Code.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Code.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Code.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		EntityContext.registerEntityRelation(Code.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Code.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Code.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Code.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerEntityRelation(Code.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+//
+//	}
 
 	//~--- methods --------------------------------------------------------
 

@@ -36,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.Command;
 import org.structr.core.agent.Task;
 import org.structr.core.node.BulkCopyRelationshipPropertyCommand;
@@ -86,7 +87,7 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		throw new NotAllowedException();
 	}
 

@@ -21,6 +21,9 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
@@ -41,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.ISO8601DateProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,20 +72,20 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			Map<String, Object> props = new HashMap<String, Object>();
-			String key                = "name";
-			String name               = "89w3hklsdfghsdkljth";
+			PropertyMap props = new PropertyMap();
+			PropertyKey key   = AbstractNode.name;
+			String name       = "89w3hklsdfghsdkljth";
 
 			props.put(key, name);
 
-			AbstractNode node                      = createTestNode("Something", props);
+			AbstractNode node                      = createTestNode(TestOne.class.getSimpleName(), props);
 			boolean includeDeletedAndHidden        = true;
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 			searchAttributes.add(new TextualSearchAttribute(key, name, SearchOperator.AND));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -93,7 +97,7 @@ public class SearchResultsTest extends StructrTest {
 			searchAttributes.clear();
 			searchAttributes.add(new TextualSearchAttribute(key, name, SearchOperator.AND));
 
-			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -111,10 +115,10 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			Map<String, Object> props = new HashMap<String, Object>();
-			String key                = "someDate";
-			Date date                 = new Date();
-			String type               = "Something";
+			PropertyMap props = new PropertyMap();
+			PropertyKey key   = TestOne.aDate;
+			Date date         = new Date();
+			String type       = TestOne.class.getSimpleName();
 
 			props.put(key, date);
 
@@ -123,12 +127,12 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), type, SearchOperator.AND));
-			searchAttributes.add(new FilterSearchAttribute(key, date.getTime(), SearchOperator.AND));
+			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
+			searchAttributes.add(new FilterSearchAttribute(key, date, SearchOperator.AND));
 
-			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
-			assertTrue(result.size() == 1);
+			assertEquals(1, result.size());
 			assertTrue(result.get(0).equals(node));
 
 		} catch (FrameworkException ex) {
@@ -145,11 +149,11 @@ public class SearchResultsTest extends StructrTest {
 		try {
 
 			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.UNDEFINED, 1)).get(0);
-			String key1              = "jghsdkhgshdhgsdjkfgh";
+			PropertyKey key1         = new Property("jghsdkhgshdhgsdjkfgh");
 			String val1              = "54354354546806849870";
 
 			rel.setProperty(key1, val1);
-			assertTrue(rel.getStringProperty(key1).equals(val1));
+			assertTrue(rel.getProperty(key1).equals(val1));
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 

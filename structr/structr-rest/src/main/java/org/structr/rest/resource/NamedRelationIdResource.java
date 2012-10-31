@@ -26,8 +26,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.NodeFactory;
@@ -59,7 +61,7 @@ public class NamedRelationIdResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		List<GraphObject> uuidResult = new LinkedList<GraphObject>();
 
@@ -80,16 +82,21 @@ public class NamedRelationIdResource extends WrappingResource {
 
 	}
 
+	/*
+	 * 
+	 * 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
 
 		List<? extends GraphObject> results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 		for(GraphObject o : results) {
 
+			final Class type = o.getClass();
+			
 			for(Entry<String, Object> entry : propertySet.entrySet()) {
 
-				String key = entry.getKey();
-				Object val = entry.getValue();
+				PropertyKey key = EntityContext.getPropertyKeyForName(type, entry.getKey());
+				Object val      = entry.getValue();
 
 				o.setProperty(key, val);
 			}
@@ -97,7 +104,8 @@ public class NamedRelationIdResource extends WrappingResource {
 
 		return new RestMethodResult(200);
 	}
-
+	*/
+	
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 		throw new IllegalMethodException();

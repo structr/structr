@@ -24,7 +24,7 @@ package org.structr.common;
  *
  * @author Christian Morgner
  */
-public enum Permission implements PropertyKey {
+public enum Permission {
 
 	backendAccess, frontendAccess,
 	

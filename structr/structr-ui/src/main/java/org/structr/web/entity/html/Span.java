@@ -38,9 +38,10 @@ public class Span extends HtmlElement {
 
 	static {
 
-		EntityContext.registerPropertySet(Span.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Span.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Span.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		EntityContext.registerPropertySet(Span.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Span.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Span.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+		
 		EntityContext.registerEntityRelation(Span.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Span.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Span.class, B.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);

@@ -21,6 +21,8 @@
 
 package org.structr.web;
 
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -67,8 +69,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.*;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -87,10 +91,10 @@ public class Importer {
 	};
 	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
-	private static Command createNode;
-	private static Command createRel;
-	private static Command indexNode;
-	private static Command searchNode;
+	private static CreateNodeCommand createNode;
+	private static CreateRelationshipCommand createRel;
+	private static IndexNodeCommand indexNode;
+	private static SearchNodeCommand searchNode;
 
 	//~--- static initializers --------------------------------------------
 
@@ -188,14 +192,14 @@ public class Importer {
 
 					List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
-					attrs.add(new NodeAttribute(AbstractNode.Key.type, Page.class.getSimpleName()));
-					attrs.add(new NodeAttribute(AbstractNode.Key.name, name));
-					attrs.add(new NodeAttribute(AbstractNode.Key.visibleToPublicUsers, publicVisible));
-					attrs.add(new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers, authVisible));
+					attrs.add(new NodeAttribute(AbstractNode.type, Page.class.getSimpleName()));
+					attrs.add(new NodeAttribute(AbstractNode.name, name));
+					attrs.add(new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible));
+					attrs.add(new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 					AbstractNode page = findOrCreateNode(attrs, "/");
 
-					createChildNodes(parsedDocument, page, page.getStringProperty(AbstractNode.Key.uuid), baseUrl);
+					createChildNodes(parsedDocument, page, page.getProperty(AbstractNode.uuid), baseUrl);
 
 					return page;
 
@@ -207,7 +211,7 @@ public class Importer {
 
 				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
-				return res.getStringProperty(AbstractNode.Key.uuid);
+				return res.getProperty(AbstractNode.uuid);
 
 			}
 
@@ -302,26 +306,26 @@ public class Importer {
 			// In case of a content node, put content into the "content" field
 			if (content != null) {
 
-				attrs.add(new NodeAttribute("content", content));
+				attrs.add(new NodeAttribute(Content.content, content));
 			}
 
 			// Type
-			attrs.add(new NodeAttribute(AbstractNode.Key.type.name(), type));
-			//attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type));
+			attrs.add(new NodeAttribute(AbstractNode.type, type));
+			//attrs.add(new NodeAttribute(AbstractNode.name.name(), "New " + type));
 
 			// Tag name
-			attrs.add(new NodeAttribute("tag", tag));
+			attrs.add(new NodeAttribute(HtmlElement.tag, tag));
 
 			// "id" attribute: Put it into the "_html_id" field
 			if (StringUtils.isNotBlank(id)) {
 
-				attrs.add(new NodeAttribute(PropertyView.Html + "id", id));
+				attrs.add(new NodeAttribute(HtmlElement._id, id));
 			}
 
 			// "class" attribute: Put it into the "_html_class" field
 			if (StringUtils.isNotBlank(classString.toString())) {
 
-				attrs.add(new NodeAttribute(PropertyView.Html + "class", StringUtils.trim(classString.toString())));
+				attrs.add(new NodeAttribute(HtmlElement._class, StringUtils.trim(classString.toString())));
 			}
 
 			// Other attributes: Put them into the respective fields with "_html_" prefix
@@ -332,7 +336,7 @@ public class Importer {
 				// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 				if (!key.equals("text")) {
 
-					attrs.add(new NodeAttribute(PropertyView.Html + nodeAttr.getKey(), nodeAttr.getValue()));
+					attrs.add(new NodeAttribute(new Property(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue()));
 				}
 
 			}
@@ -375,7 +379,7 @@ public class Importer {
 
 		for (NodeAttribute attr : attrs) {
 
-			String key = attr.getKey();
+			PropertyKey key = attr.getKey();
 
 //                      String value = Search.escapeForLucene(attr.getValue().toString());
 			String value = attr.getValue().toString();
@@ -388,14 +392,14 @@ public class Importer {
 //
 //                      }
 			// Exclude data attribute because it may contain code with special characters, too
-			if (!key.equals(PropertyView.Html.concat("data"))) {
+			if (!key.equals(HtmlElement._data)) {
 
 				searchAttrs.add(Search.andExactProperty(key, value));
 			}
 
 		}
 
-		Result result = (Result) searchNode.execute(null, false, false, searchAttrs);
+		Result<AbstractNode> result = searchNode.execute(searchAttrs);
 
 		if (result.size() > 1) {
 
@@ -407,11 +411,9 @@ public class Importer {
 			return null;
 		}
 
-		for (GraphObject obj : result.getResults()) {
+		for (AbstractNode foundNode : result.getResults()) {
 			
-			AbstractNode foundNode = (AbstractNode) obj;
-
-			String foundNodePath = foundNode.getStringProperty(HtmlElement.UiKey.path);
+			String foundNodePath = foundNode.getProperty(HtmlElement.path);
 
 			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
 
@@ -443,7 +445,7 @@ public class Importer {
 
 		node = (AbstractNode) createNode.execute(attributes);
 
-		node.setProperty(HtmlElement.UiKey.path, nodePath);
+		node.setProperty(HtmlElement.path, nodePath);
 
 		if (node != null) {
 
@@ -459,9 +461,10 @@ public class Importer {
 
 	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String pageId, int index) throws FrameworkException {
 
-		AbstractRelationship rel = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
+		AbstractRelationship rel   = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
+		PropertyKey pageIdProperty = new Property(pageId);
 
-		rel.setProperty(pageId, index);
+		rel.setProperty(pageIdProperty, index);
 
 		return rel;
 
@@ -474,11 +477,11 @@ public class Importer {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-		searchAttrs.add(Search.andExactProperty(AbstractNode.Key.name.name(), name));
-		searchAttrs.add(Search.andExactProperty(File.Key.checksum.name(), String.valueOf(checksum)));
+		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
+		searchAttrs.add(Search.andExactProperty(File.checksum, String.valueOf(checksum)));
 		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
 
-		Result files = (Result) searchNode.execute(null, false, false, searchAttrs);
+		Result files = searchNode.execute(searchAttrs);
 
 		return !files.isEmpty();
 
@@ -492,17 +495,17 @@ public class Importer {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-		searchAttrs.add(Search.andExactProperty(AbstractNode.Key.name.name(), name));
+		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
 		searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
 
-		Result folders = (Result) searchNode.execute(null, false, false, searchAttrs);
+		Result folders = searchNode.execute(searchAttrs);
 
 		if (!folders.isEmpty()) {
 
 			return (Folder) folders.get(0);
 		}
 
-		return (Folder) createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.Key.name.name(), name));
+		return (Folder) createNode.execute(new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.name, name));
 
 	}
 
@@ -642,12 +645,12 @@ public class Importer {
 	private File createFileNode(final String uuid, final String name, final String contentType) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
-					new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
-					new NodeAttribute(File.Key.contentType.name(), contentType), new NodeAttribute("visibleToPublicUsers", publicVisible),
-					new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
+		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
+					new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
+					new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+					new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
-		fileNode.getChecksum();    // calculates and stores checksum
+//		fileNode.getChecksum();
 		indexNode.execute(fileNode);
 
 		return fileNode;
@@ -657,12 +660,12 @@ public class Importer {
 	private Image createImageNode(final String uuid, final String name, final String contentType) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
-					  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
-					  new NodeAttribute(File.Key.contentType.name(), contentType), new NodeAttribute("visibleToPublicUsers", publicVisible),
-					  new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
+		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
+					  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
+					  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+					  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
-		imageNode.getChecksum();    // calculates and stores checksum
+//		imageNode.getChecksum();
 		indexNode.execute(imageNode);
 
 		return imageNode;

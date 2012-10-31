@@ -12,7 +12,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
-import org.structr.common.PropertyKey;
+import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
@@ -23,7 +23,6 @@ import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeFactory;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.RelationshipFactory;
-import org.structr.web.entity.html.HtmlElement.UiKey;
 
 /**
  *
@@ -32,19 +31,30 @@ import org.structr.web.entity.html.HtmlElement.UiKey;
 
 public class RemoteView extends View {
 
-	public enum Key implements PropertyKey {
-		repositoryUrl, remoteUser, remotePassword
-	};
+	public static final Property<String> repositoryUrl  = new Property<String>("repositoryUrl");
+	public static final Property<String> remoteUser     = new Property<String>("remoteUser");
+	public static final Property<String> remotePassword = new Property<String>("remotePassword");
 	
+	public static final org.structr.common.View uiView = new org.structr.common.View(RemoteView.class, PropertyView.Ui,
+		repositoryUrl, remoteUser, remotePassword
+	);
+		
+	public static final org.structr.common.View publicView = new org.structr.common.View(RemoteView.class, PropertyView.Public,
+		repositoryUrl, remoteUser, remotePassword
+	);
+		
+		
 	static {
 		
-		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Public, Key.values());
-		EntityContext.registerPropertySet(RemoteView.class, PropertyView.All,    Key.values());
-		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Ui,     Key.values());
+//		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Public, Key.values());
+//		EntityContext.registerPropertySet(RemoteView.class, PropertyView.All,    Key.values());
+//		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Ui,     Key.values());
+		
 		EntityContext.registerEntityRelation(RemoteView.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(RemoteView.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.keyword.name(), UiKey.values());
+		
+		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.keyword.name(),  uiView.properties());
 	}
 	
 	@Override
@@ -54,9 +64,9 @@ public class RemoteView extends View {
 
 			List<GraphObject> resultList = new LinkedList<GraphObject>();
 			String query                 = getQuery(request);
-			String repositoryUrl         = getStringProperty(Key.repositoryUrl);
-			String username              = getStringProperty(Key.remoteUser);
-			String password              = getStringProperty(Key.remotePassword);
+			String repositoryUrl         = getProperty(RemoteView.repositoryUrl);
+			String username              = getProperty(RemoteView.remoteUser);
+			String password              = getProperty(RemoteView.remotePassword);
 			
 			// fetch factories
 			RelationshipFactory relFactory  = new RelationshipFactory(securityContext);

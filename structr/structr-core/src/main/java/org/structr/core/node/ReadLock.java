@@ -26,13 +26,11 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.kernel.AbstractGraphDatabase;
 import org.neo4j.kernel.impl.transaction.LockType;
 
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 
@@ -56,57 +54,8 @@ public class ReadLock extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
-
-		AbstractNode node = null;
-		Command findNode  = Services.command(securityContext, FindNodeCommand.class);
-
-		switch (parameters.length) {
-
-			case 1 :
-				if (parameters[0] instanceof Long) {
-
-					long id = ((Long) parameters[0]).longValue();
-
-					node = (AbstractNode) findNode.execute(id);
-
-				} else if (parameters[0] instanceof AbstractNode) {
-
-					node = ((AbstractNode) parameters[0]);
-
-				} else if (parameters[0] instanceof String) {
-
-					long id = Long.parseLong((String) parameters[0]);
-
-					node = (AbstractNode) findNode.execute(id);
-
-				}
-
-				break;
-
-			default :
-				break;
-
-		}
-
-		if (node == null) {
-
-			logger.log(Level.WARNING, "Could not lock node null");
-
-			return null;
-
-		}
-
-		if (node.getId() == 0) {
-
-			logger.log(Level.WARNING, "Locking the root node is not allowed.");
-
-			return null;
-
-		}
-
-		return doLockNode(node);
+	public AbstractNode execute(final AbstractNode sourceNode) throws FrameworkException {
+		return doLockNode(sourceNode);
 	}
 
 	private AbstractNode doLockNode(final AbstractNode structrNode) throws FrameworkException {

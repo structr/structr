@@ -19,6 +19,7 @@
 
 package org.structr.common;
 
+import org.structr.common.property.PropertyKey;
 import java.util.Collections;
 import org.structr.core.GraphObject;
 import java.util.Comparator;
@@ -43,13 +44,13 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 
 	//~--- fields ---------------------------------------------------------
 
-	private String sortKey;
+	private PropertyKey sortKey;
 	private String sortOrder;
 
 	//~--- constructors ---------------------------------------------------
 
 	// public GraphObjectComparator() {};
-	public GraphObjectComparator(final String sortKey, final String sortOrder) {
+	public GraphObjectComparator(final PropertyKey sortKey, final String sortOrder) {
 
 		this.sortKey   = sortKey;
 		this.sortOrder = sortOrder;
@@ -77,10 +78,10 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 				try {
 					logger.log(Level.WARNING, "Cannot compare {0} of type {1} to {2} of type {3}, sort key {4} not found.",
 						new Object[] {
-							n1.getStringProperty(AbstractNode.Key.uuid.name()),
-							n1.getStringProperty(AbstractNode.Key.type.name()),
-							n2.getStringProperty(AbstractNode.Key.uuid.name()),
-							n2.getStringProperty(AbstractNode.Key.type.name()),
+							n1.getProperty(AbstractNode.uuid),
+							n1.getProperty(AbstractNode.type),
+							n2.getProperty(AbstractNode.uuid),
+							n2.getProperty(AbstractNode.type),
 							sortKey
 						});
 
@@ -103,12 +104,14 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 			
 		} catch(Throwable t) {
 			
+			t.printStackTrace();
+			
 			logger.log(Level.WARNING, "Cannot compare properties {0} of type {1} to {2} of type {3}, property {4} error.",
 				new Object[] {
-					n1.getStringProperty(AbstractNode.Key.uuid.name()),
-					n1.getStringProperty(AbstractNode.Key.type.name()),
-					n2.getStringProperty(AbstractNode.Key.uuid.name()),
-					n2.getStringProperty(AbstractNode.Key.type.name()),
+					n1.getProperty(AbstractNode.uuid),
+					n1.getProperty(AbstractNode.type),
+					n2.getProperty(AbstractNode.uuid),
+					n2.getProperty(AbstractNode.type),
 					sortKey
 				});
 		}

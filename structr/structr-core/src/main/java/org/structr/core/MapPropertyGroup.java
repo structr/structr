@@ -21,15 +21,17 @@
 
 package org.structr.core;
 
-import org.structr.common.PropertyKey;
-import org.structr.core.node.NodeAttribute;
+import org.structr.common.property.PropertyKey;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.PropertyMap;
+import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -38,9 +40,10 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class MapPropertyGroup implements PropertyGroup {
+public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 
-	private PropertyKey[] propertyKeys = null;
+	private static final Logger logger   = Logger.getLogger(MapPropertyGroup.class.getName());
+	protected PropertyKey[] propertyKeys = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -51,13 +54,34 @@ public class MapPropertyGroup implements PropertyGroup {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Object getGroupedProperties(GraphObject source) {
+	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
-		Map<String, Object> groupedProperties = new LinkedHashMap<String, Object>();
+		PropertyMap groupedProperties = new PropertyMap();
 
 		for (PropertyKey key : propertyKeys) {
 
-			groupedProperties.put(key.name(), source.getProperty(key.name()));
+			PropertyConverter converter = key.inputConverter(securityContext);
+			if (converter != null) {
+				
+				try {
+					Object convertedValue = converter.revert(source.getProperty(key));
+					groupedProperties.put(key, convertedValue);
+					
+				} catch(FrameworkException fex) {
+					
+					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
+						key.name(),
+						source.getClass().getSimpleName(),
+						fex.getMessage()
+						
+					});
+				}
+				
+				
+			} else {
+				
+				groupedProperties.put(key, source.getProperty(key));
+			}
 
 		}
 
@@ -67,54 +91,22 @@ public class MapPropertyGroup implements PropertyGroup {
 	//~--- set methods ----------------------------------------------------
 
 	@Override
-	public void setGroupedProperties(Object source, GraphObject destination) throws FrameworkException {
+	public void setGroupedProperties(SecurityContext securityContext, PropertyMap source, GraphObject destination) throws FrameworkException {
 
 		if (source == null) {
 
 			for (PropertyKey key : propertyKeys) {
 
-				destination.setProperty(key.name(), null);
+				destination.setProperty(key, null);
 
 			}
 
-		} else if (source instanceof Map) {
+			return;
+			
+		}
 
-			for (Entry<String, Object> attr : ((Map<String, Object>) source).entrySet()) {
-
-				String key   = attr.getKey();
-				Object value = attr.getValue();
-
-				if (value instanceof PropertySet) {
-
-					setGroupedProperties(value, destination);
-
-				} else {
-
-					destination.setProperty(key, value);
-
-				}
-
-			}
-
-		} else if (source instanceof PropertySet) {
-
-			for (NodeAttribute attr : ((PropertySet) source).getAttributes()) {
-
-				String key   = attr.getKey();
-				Object value = attr.getValue();
-
-				if (value instanceof PropertySet) {
-
-					// recursive put/post
-					setGroupedProperties(value, destination);
-				} else {
-
-					destination.setProperty(key, value);
-
-				}
-
-			}
-
+		for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+			destination.setProperty(entry.getKey(), entry.getValue());
 		}
 	}
 }

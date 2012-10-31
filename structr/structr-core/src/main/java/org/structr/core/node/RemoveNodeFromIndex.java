@@ -25,8 +25,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeService.NodeIndex;
 
@@ -43,7 +41,7 @@ import java.util.logging.Logger;
 /**
  * Command for removing nodes from the index
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class RemoveNodeFromIndex extends NodeServiceCommand {
 
@@ -55,67 +53,28 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public void execute(List<AbstractNode> nodes) throws FrameworkException {
+		
+		init();
+		removeNodesFromAllIndices(nodes);
+	}
+
+	public void execute(AbstractNode node) throws FrameworkException {
+		
+		init();
+		removeNodeFromAllIndices(node);
+	}
+
+	private void init() {
 
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
 			indices.put(indexName, (Index<Node>) arguments.get(indexName.name()));
 
 		}
-
-		long id           = 0;
-		AbstractNode node = null;
-
-		switch (parameters.length) {
-
-			case 1 :
-
-				// remove this node from index
-				if (parameters[0] instanceof Long) {
-
-					id = ((Long) parameters[0]).longValue();
-
-					Command findNode = Services.command(securityContext, FindNodeCommand.class);
-
-					node = (AbstractNode) findNode.execute(id);
-
-					removeNodeFromAllIndices(node);
-
-				} else if (parameters[0] instanceof String) {
-
-					id = Long.parseLong((String) parameters[0]);
-
-					Command findNode = Services.command(securityContext, FindNodeCommand.class);
-
-					node = (AbstractNode) findNode.execute(id);
-
-					removeNodeFromAllIndices(node);
-
-				} else if (parameters[0] instanceof AbstractNode) {
-
-					node = (AbstractNode) parameters[0];
-
-					removeNodeFromAllIndices(node);
-
-				} else if (parameters[0] instanceof List) {
-
-					removeNodesFromAllIndices((List<AbstractNode>) parameters[0]);
-
-				}
-
-				break;
-
-			default :
-				logger.log(Level.SEVERE, "Wrong number of parameters for the remove node from index command: {0}", parameters);
-
-				return null;
-
-		}
-
-		return null;
+		
 	}
-
+	
 	private void removeNodesFromAllIndices(final List<AbstractNode> nodes) {
 
 		for (AbstractNode node : nodes) {
@@ -127,7 +86,7 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 	private void removeNodeFromAllIndices(final AbstractNode node) {
 
-		if (node.getStringProperty(AbstractNode.Key.uuid) == null) {
+		if (node.getProperty(AbstractNode.uuid) == null) {
 
 			logger.log(Level.WARNING, "Will not remove node from indices which has no UUID");
 

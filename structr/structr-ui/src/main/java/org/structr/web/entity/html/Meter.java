@@ -30,13 +30,13 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  */
 public class Meter extends HtmlElement {
-
-	static {
-
-		EntityContext.registerPropertySet(Meter.class, PropertyView.All, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Meter.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Meter.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-	}
-
+//
+//	static {
+//
+//		EntityContext.registerPropertySet(Meter.class, PropertyView.All, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Meter.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		EntityContext.registerPropertySet(Meter.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//
+//	}
+//
 }

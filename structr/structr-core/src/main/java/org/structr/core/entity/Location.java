@@ -19,13 +19,13 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.PropertyKey;
+import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.property.DoubleProperty;
 import org.structr.core.EntityContext;
-import org.structr.core.converter.DoubleConverter;
 import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
@@ -37,25 +37,32 @@ import org.structr.core.node.NodeService.NodeIndex;
  */
 public class Location extends AbstractNode {
 
+	public static final Property<Double> latitude  = new DoubleProperty("latitude");
+	public static final Property<Double> longitude = new DoubleProperty("longitude");
+	public static final Property<Double> altitude  = new DoubleProperty("altitude");
+
+	public static final View publicView = new View(Location.class, PropertyView.Public,
+		latitude, longitude, altitude
+	);
+	
 	static {
 
 		// ----- initialize property sets -----
-		EntityContext.registerPropertySet(Location.class, PropertyView.All, Key.values());
+//		EntityContext.registerPropertySet(Location.class, PropertyView.All, Key.values());
 
 		// ----- initialize property converters -----
-		EntityContext.registerPropertyConverter(Location.class, Location.Key.latitude, DoubleConverter.class);
-		EntityContext.registerPropertyConverter(Location.class, Location.Key.longitude, DoubleConverter.class);
-		EntityContext.registerPropertyConverter(Location.class, Location.Key.altitude, DoubleConverter.class);
+//		EntityContext.registerPropertyConverter(Location.class, Location.latitude, DoubleConverter.class);
+//		EntityContext.registerPropertyConverter(Location.class, Location.longitude, DoubleConverter.class);
+//		EntityContext.registerPropertyConverter(Location.class, Location.altitude, DoubleConverter.class);
 
 		// ----- initialize validators -----
 		// ----- initialize searchable properties
-		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.fulltext.name(), latitude, longitude, altitude);
+		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.keyword.name(),  latitude, longitude, altitude);
 	}
 
 	//~--- constant enums -------------------------------------------------
-
-	public enum Key implements PropertyKey{ latitude, longitude, altitude; }
+	
 
 	//~--- get methods ----------------------------------------------------
 

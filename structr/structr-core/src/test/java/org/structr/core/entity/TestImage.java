@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -17,21 +17,22 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+
+
+package org.structr.core.entity;
+
+import org.structr.common.ThumbnailParameters;
+import org.structr.core.property.ThumbnailProperty;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
- * Convenience interface to enable the use of enum types as node property keys.
- * The signature of this interface matches the signature of the enum class, so
- * you can use the following code to define property keys for
- * {@see org.structr.core.entity.AbstractNode} and subclasses.
- *
- * <pre>
- * public enum Key { property1, property2, property3 }
- * </pre>
- *
- * @author Christian Morgner
+ * Image with a 200x100 thumbnail
+ * 
+ * @author Axel Morgner
  */
-public interface PropertyKey
-{
-	public String name();
+public class TestImage extends Image {
+
+	public static final ThumbnailProperty<Image> thumbnail = new ThumbnailProperty("thumbnail", new ThumbnailParameters(200, 100, false));
+	
 }

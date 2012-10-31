@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -38,35 +39,34 @@ public class GetNodeByIdCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(GetNodeByIdCommand.class.getName());
 	
-	@Override
-	public Object execute(Object... parameters) throws FrameworkException {
+	public AbstractNode execute(String uuid) throws FrameworkException {
 
-		if(parameters.length == 1 && parameters[0] instanceof String) {
-		
-			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-			String uuid = (String)parameters[0];
+		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		attrs.add(Search.andExactUuid(uuid));
 
-			attrs.add(Search.andExactUuid(uuid));
+		Result results = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
+		int size       = results.size();
 
-			Result results = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
-			int size                   = results.size();
-
-			switch (size) {
-
-				case 0 :
-					return null;
-
-				case 1 :
-					return results.get(0);
-
-				default :
-					logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
-
-					return results.get(0);
-
-			}
+		if (size == 0) {
+			return null;
 		}
 
-		throw new IllegalStateException("GetNodeByIdCommand takes exactly one String argument.");
+		if (size > 1) {
+		
+			logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
+		}
+
+		// finally return node
+		GraphObject result = results.get(0);
+		if (result instanceof AbstractNode) {
+				
+			return (AbstractNode)result;
+				
+		} else {
+		
+			logger.log(Level.WARNING, "Node with UUID {0} is not of type AbstractNode!", uuid);
+		}
+		
+		return null;
 	}
 }
