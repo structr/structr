@@ -85,8 +85,9 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			} catch (Throwable t) {
 
-				// CHM
-				t.printStackTrace();
+				if (debug) {
+					t.printStackTrace();
+				}
 
 				tx.failure();
 
@@ -107,8 +108,9 @@ public class TransactionCommand extends NodeServiceCommand {
 
 					} catch (Throwable t) {
 
-						// CHM
-						t.printStackTrace();
+						if (debug) {
+							t.printStackTrace();
+						}
 
 						// transaction failed, look for "real" cause..
 						exception = EntityContext.getFrameworkException(transactionKey);
@@ -118,9 +120,14 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			if(exception != null) {
 
-				exception.printStackTrace();
+				if (debug) {
+					exception.printStackTrace();
+				}
 
+				
 				if (exception instanceof FrameworkException) {
+					
+					logger.log(Level.WARNING, ((FrameworkException) exception).toString());
 					
 					EntityContext.clearTransactionData(transactionKey);
 					throw (FrameworkException)exception;
@@ -172,7 +179,12 @@ public class TransactionCommand extends NodeServiceCommand {
 
 						});
 
-					} catch(Throwable t) { t.printStackTrace(); }
+					} catch(Throwable t) {
+						
+						if (debug) {
+							t.printStackTrace();
+						}
+					}
 
 					depths.set(depth);
 					
@@ -239,8 +251,9 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			} catch (Throwable t) {
 
-				// CHM
-				t.printStackTrace();
+				if (debug) {
+					t.printStackTrace();
+				}
 
 				tx.failure();
 
@@ -261,8 +274,9 @@ public class TransactionCommand extends NodeServiceCommand {
 
 					} catch (Throwable t) {
 
-						// CHM
-						t.printStackTrace();
+						if (debug) {
+							t.printStackTrace();
+						}
 
 						// transaction failed, look for "real" cause..
 						exception = EntityContext.getFrameworkException(transactionKey);
@@ -271,10 +285,14 @@ public class TransactionCommand extends NodeServiceCommand {
 			}
 
 			if(exception != null) {
-
-				exception.printStackTrace();
-
+				
+				if (debug) {
+					exception.printStackTrace();
+				}
+				
 				if (exception instanceof FrameworkException) {
+	
+					logger.log(Level.WARNING, ((FrameworkException) exception).toString());
 					
 					EntityContext.clearTransactionData(transactionKey);
 					throw (FrameworkException)exception;
@@ -326,7 +344,15 @@ public class TransactionCommand extends NodeServiceCommand {
 
 						});
 
-					} catch(Throwable t) { t.printStackTrace(); }
+					} catch(Throwable t) {
+					
+						if (debug) {
+							t.printStackTrace();
+						}
+						
+						logger.log(Level.WARNING, "Exception in transaction", t);
+					
+					}
 
 					depths.set(depth);
 					
