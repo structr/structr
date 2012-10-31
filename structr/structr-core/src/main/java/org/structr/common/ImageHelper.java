@@ -113,6 +113,8 @@ public abstract class ImageHelper {
 		Image newImage = createNodeCommand.execute(props);
 
 		FileHelper.writeToFile(newImage, imageData);
+		newImage.setChecksum(FileHelper.getChecksum(newImage));
+		newImage.setSize(FileHelper.getSize(newImage));
 
 		return newImage;
 

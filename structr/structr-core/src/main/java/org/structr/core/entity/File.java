@@ -113,7 +113,7 @@ public class File extends AbstractNode implements Linkable {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, "Could not set checksum", ex);
+			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
 
 		}
 
@@ -129,7 +129,7 @@ public class File extends AbstractNode implements Linkable {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, "Could not set checksum", ex);
+			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
 
 		}
 
