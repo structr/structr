@@ -74,33 +74,41 @@ public class FrameworkException extends Exception {
 
 		StringBuilder out                                = new StringBuilder();
 		ErrorBuffer buf                                  = getErrorBuffer();
-		Map<String, Map<String, Set<ErrorToken>>> tokens = buf.getErrorTokens();
+		
+		if (buf != null) {
+			
+			Map<String, Map<String, Set<ErrorToken>>> tokens = buf.getErrorTokens();
 
-		for (Map.Entry<String, Map<String, Set<ErrorToken>>> token : tokens.entrySet()) {
+			for (Map.Entry<String, Map<String, Set<ErrorToken>>> token : tokens.entrySet()) {
 
-			String tokenKey = token.getKey();
+				String tokenKey = token.getKey();
 
-			out.append(tokenKey);
+				out.append(tokenKey);
 
-			Map<String, Set<ErrorToken>> errors = token.getValue();
+				Map<String, Set<ErrorToken>> errors = token.getValue();
 
-			for (Map.Entry<String, Set<ErrorToken>> error : errors.entrySet()) {
+				for (Map.Entry<String, Set<ErrorToken>> error : errors.entrySet()) {
 
-				String errorKey = error.getKey();
+					String errorKey = error.getKey();
 
-				out.append("\n").append(errorKey).append(" => ");
+					out.append("\n").append(errorKey).append(" => ");
 
-				Set<ErrorToken> singleErrors = error.getValue();
+					Set<ErrorToken> singleErrors = error.getValue();
 
-				for (ErrorToken et : singleErrors) {
+					for (ErrorToken et : singleErrors) {
 
-					out.append(et.getStatus()).append(": ").append(et.getKey()).append(" ").append(et.getErrorToken()).append(", ");
+						out.append(et.getStatus()).append(": ").append(et.getKey()).append(" ").append(et.getErrorToken()).append(", ");
+					}
+
+					out.delete(out.length()-2, out.length());
+
 				}
-				
-				out.delete(out.length()-2, out.length());
 
 			}
-
+			
+		} else {
+			
+			out.append("FrameworkException(").append(status).append("): ").append(message);
 		}
 
 		return out.toString();
