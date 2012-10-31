@@ -76,7 +76,7 @@ public class Image extends File {
 	//~--- fields ---------------------------------------------------------
 
 	// Cached list with relationships to thumbnails
-	private List<AbstractRelationship> thumbnailRelationships = null;
+//	private List<AbstractRelationship> thumbnailRelationships = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -111,7 +111,7 @@ public class Image extends File {
 		}
 
 		// Clear cache
-		thumbnailRelationships = null;
+//		thumbnailRelationships = null;
 
 	}
 
@@ -149,12 +149,7 @@ public class Image extends File {
 	 */
 	public List<AbstractRelationship> getThumbnailRelationships() {
 
-		if (thumbnailRelationships == null) {
-
-			thumbnailRelationships = getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
-		}
-
-		return thumbnailRelationships;
+		return getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
 
 	}
 
@@ -201,7 +196,7 @@ public class Image extends File {
 	 */
 	public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
-		thumbnailRelationships = getThumbnailRelationships();
+		List<AbstractRelationship> thumbnailRelationships = getThumbnailRelationships();
 
 		Image thumbnail           = null;
 		final Image originalImage = this;
@@ -235,38 +230,40 @@ public class Image extends File {
 							// Use thumbnail only if checksum of original image matches with stored checksum
 							Long storedChecksum  = r.getProperty(Image.checksum);
 							Long currentChecksum = originalImage.getProperty(Image.checksum);
+							
+//							System.out.println("Rel ID: " + r.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", stored checksum: " + storedChecksum + ", current checksum: " + currentChecksum);
 
 //                                                      if (!(originalImage.getLastModifiedDate().after(thumbnail.getLastModifiedDate()))) {
 							if (storedChecksum != null && storedChecksum.equals(currentChecksum)) {
 
 								return thumbnail;
-//							} else {
-//
-//								// Remove outdated thumbnail
-//								
-//								final Image thumbnailToDelete = thumbnail;
-//
-//								try {
-//
-////									Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-////
-////										@Override
-////										public Image execute() throws FrameworkException {
-//
-//											//Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(thumbnailToDelete);
-//
-////											return null;
-////
-////										}
-////
-////									});
-//
-//								} catch (FrameworkException fex) {
-//
-//									logger.log(Level.WARNING, "Unable to delete thumbnail", fex);
-//
-//								}
-//
+							} else {
+
+								// Remove outdated thumbnail
+								
+								final Image thumbnailToDelete = thumbnail;
+
+								try {
+
+									Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+										@Override
+										public Image execute() throws FrameworkException {
+
+											Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(thumbnailToDelete);
+
+											return null;
+
+										}
+
+									});
+
+								} catch (FrameworkException fex) {
+
+									logger.log(Level.WARNING, "Unable to delete thumbnail", fex);
+
+								}
+
 							}
 						}
 
@@ -317,7 +314,7 @@ public class Image extends File {
 							AbstractRelationship thumbnailRelationship = createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL);
 
 							// Add to cache list
-							thumbnailRelationships.add(thumbnailRelationship);
+							//thumbnailRelationships.add(thumbnailRelationship);
 
 							int size = data.length;
 
@@ -331,6 +328,8 @@ public class Image extends File {
 							thumbnailRelationship.setProperty(Image.width, tnWidth);
 							thumbnailRelationship.setProperty(Image.height, tnHeight);
 							thumbnailRelationship.setProperty(Image.checksum, originalImage.getProperty(checksum));
+							
+//							System.out.println("Thumbnail ID: " + thumbnail.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", orig. image checksum: " + originalImage.getProperty(checksum));
 						}
 
 						// Services.command(securityContext, IndexNodeCommand.class).execute(thumbnail);
