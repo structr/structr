@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.5.4-SNAPSHOT</version>
+        <version>0.6-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-websocket</artifactId>
     <packaging>jar</packaging>
-    <version>0.5.4-SNAPSHOT</version>
+    <version>0.6-SNAPSHOT</version>
     <name>structr-websocket</name>
     <url>http://structr.org</url>
     <build>

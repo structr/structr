@@ -107,7 +107,7 @@
 		<dependency>
 			<groupId>org.structr</groupId>
 			<artifactId>structr-server</artifactId>
-			<version>0.5.4-SNAPSHOT</version>
+			<version>0.6-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
