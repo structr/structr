@@ -88,6 +88,7 @@ import java.util.regex.Matcher;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.time.DateUtils;
 import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.web.common.PageHelper;
 
@@ -1202,8 +1203,13 @@ public class HtmlServlet extends HttpServlet {
 				try {
 
 					Date ifModSince = httpDateFormat.parse(ifModifiedSince);
+					
+					// Note that ifModSince has not ms resolution, so the last digits are always 000
+					// That requires the lastModified to be rounded to seconds
+					
+					Date rounded = DateUtils.round(lastModified, Calendar.SECOND);
 
-					if ((ifModSince != null) && (lastModified.equals(ifModSince) || lastModified.before(ifModSince))) {
+					if ((ifModSince != null) && (rounded.equals(ifModSince) || rounded.before(ifModSince))) {
 
 						notModified = true;
 
