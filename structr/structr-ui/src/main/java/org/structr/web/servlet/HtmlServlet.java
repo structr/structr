@@ -444,7 +444,7 @@ public class HtmlServlet extends HttpServlet {
 				}
 				
 				double setup     = System.nanoTime();
-				logger.log(Level.INFO, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
+				logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
 
 				if (!edit && !dontCache && setCachingHeader(request, response, node)) {
 
@@ -457,7 +457,7 @@ public class HtmlServlet extends HttpServlet {
 
 					String content = buffer.toString();
 					double end     = System.nanoTime();
-					logger.log(Level.INFO, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
+					logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
 
 					String contentType = page.getProperty(Page.contentType);
 
@@ -886,6 +886,8 @@ public class HtmlServlet extends HttpServlet {
 
 				if ((startNode instanceof Content) || (startNode instanceof HtmlElement)) {
 
+					double start     = System.nanoTime();
+					
 					buffer.append("<").append(tag);
 
 					if (edit && (id != null)) {
@@ -942,6 +944,9 @@ public class HtmlServlet extends HttpServlet {
 
 					}
 
+					double end     = System.nanoTime();
+					logger.log(Level.FINE, "Render node {0} in {1} seconds", new Object[] { startNode.getUuid(), decimalFormat.format((end - start) / 1000000000.0)});
+
 				}
 
 			}
@@ -953,6 +958,8 @@ public class HtmlServlet extends HttpServlet {
 			}
 
 			if (startNode instanceof SearchResultView) {
+
+				double startSearchResultView     = System.nanoTime();
 
 				String searchString = (String) request.getParameter("search");
 
@@ -982,6 +989,9 @@ public class HtmlServlet extends HttpServlet {
 					}
 
 				}
+				
+				double endSearchResultView     = System.nanoTime();
+				logger.log(Level.FINE, "Get graph objects for search {0} in {1} seconds", new Object[] { searchString, decimalFormat.format((endSearchResultView - startSearchResultView) / 1000000000.0)});
 
 			} else if (startNode instanceof View) {
 
@@ -991,7 +1001,7 @@ public class HtmlServlet extends HttpServlet {
 				List<GraphObject> results = ((View) startNode).getGraphObjects(request);
 				
 				double endView     = System.nanoTime();
-				logger.log(Level.INFO, "Get graph objects for {0} in {1} seconds", new Object[] { startNode.getUuid(), decimalFormat.format((endView - startView) / 1000000000.0)});
+				logger.log(Level.FINE, "Get graph objects for {0} in {1} seconds", new Object[] { startNode.getUuid(), decimalFormat.format((endView - startView) / 1000000000.0)});
 
 				for (GraphObject result : results) {
 

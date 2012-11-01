@@ -766,9 +766,9 @@ var _Pages = {
                     var self = $(this);
                     if (debug) console.log(getId(self), i);
                     data[getId(self)] = i;
-                    obj.data = data;
                     _Entities.resetMouseOverState(v);
                 });
+                obj.data = data;
                 sendObj(obj);
                 sorting = false;
                 _Pages.reloadPreviews();

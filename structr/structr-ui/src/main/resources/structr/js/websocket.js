@@ -548,7 +548,7 @@ function send(text) {
 
 function log(msg) {
     if (debug) console.log(msg);
-    $("#log").append("<br>" + msg);
+    $('#log').append('<br>' + msg);
 }
 
 

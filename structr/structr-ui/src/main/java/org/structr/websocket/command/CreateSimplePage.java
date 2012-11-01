@@ -61,11 +61,14 @@ public class CreateSimplePage extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
 	private static CreateNodeCommand createNode;
 	private static CreateRelationshipCommand createRel;
-
+	private static String pageName;
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
+
+		pageName = (String) webSocketData.getNodeData().get(Page.name.name());
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
@@ -77,7 +80,7 @@ public class CreateSimplePage extends AbstractCommand {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Page page = (Page) createElement(null, Page.class.getSimpleName(), 0, null);
+				Page page = (Page) createElement(null, Page.class.getSimpleName(), 0, null, pageName);
 
 				page.setProperty(Page.contentType, "text/html");
 
@@ -120,18 +123,22 @@ public class CreateSimplePage extends AbstractCommand {
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Could not create node.", fex);
-			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).build(), true);
 
 		}
 
 	}
 
 	private AbstractNode createElement(final AbstractNode page, final String type, final int position, final AbstractNode parentElement) throws FrameworkException {
+		return createElement(page, type, position, parentElement, null);
+	}
+	
+	private AbstractNode createElement(final AbstractNode page, final String type, final int position, final AbstractNode parentElement, final String name) throws FrameworkException {
 
 		PropertyMap nodeData = new PropertyMap();
 
+		nodeData.put(AbstractNode.name, name != null ? name : type.toLowerCase());
 		nodeData.put(AbstractNode.visibleToAuthenticatedUsers, true);
-		nodeData.put(AbstractNode.type,                        Page.class.getSimpleName());
 
 		PropertyMap relData = new PropertyMap();
 
@@ -144,7 +151,6 @@ public class CreateSimplePage extends AbstractCommand {
 		}
 
 		nodeData.put(AbstractNode.type, type);
-		nodeData.put(HtmlElement.name,  type.toLowerCase());
 
 		if (!Content.class.getSimpleName().equals(type)) {
 

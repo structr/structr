@@ -25,18 +25,21 @@ import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,12 +58,12 @@ public class UpdateCommand extends AbstractCommand {
 
 		GraphObject obj  = getNode(webSocketData.getId());
 		String recString = (String) webSocketData.getNodeData().get("recursive");
-		
+
 		webSocketData.getNodeData().remove("recursive");
-		
-		boolean rec      = StringUtils.isNotBlank(recString)
-				   ? Boolean.parseBoolean(recString)
-				   : false;
+
+		boolean rec = StringUtils.isNotBlank(recString)
+			      ? Boolean.parseBoolean(recString)
+			      : false;
 
 //              final Map<String, Object> relData = webSocketData.getRelData();
 		if (obj == null) {
@@ -71,9 +74,14 @@ public class UpdateCommand extends AbstractCommand {
 
 		if (obj != null) {
 
-			for (Entry<String, Object> entry : webSocketData.getNodeData().entrySet()) {
+			try {
 
-				setPropertyRecursively(obj, entry.getKey(), entry.getValue(), rec);
+				setProperties(obj, PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData()), rec);
+
+			} catch (FrameworkException ex) {
+
+				logger.log(Level.SEVERE, "Unable to set properties: {0}", ((FrameworkException) ex).toString());
+				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 
 			}
 
@@ -83,22 +91,28 @@ public class UpdateCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
+
 		return "UPDATE";
+
 	}
 
 	//~--- set methods ----------------------------------------------------
 
-	private void setPropertyRecursively(final GraphObject obj, final String key, final Object value, final boolean rec) {
+	private void setProperties(final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
-		try {
+		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-			obj.setProperty(EntityContext.getPropertyKeyForName(obj.getClass(), key), value);
+			PropertyKey key = entry.getKey();
+			Object value    = entry.getValue();
+
+			obj.setProperty(key, value);
 
 			if (rec) {
 
@@ -112,8 +126,7 @@ public class UpdateCommand extends AbstractCommand {
 
 						if (endNode != null) {
 
-							setPropertyRecursively(endNode, key, value, rec);
-
+							setProperties(endNode, properties, rec);
 						}
 
 					}
@@ -122,8 +135,8 @@ public class UpdateCommand extends AbstractCommand {
 
 			}
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
 		}
+
 	}
+
 }

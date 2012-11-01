@@ -219,7 +219,7 @@ var _Elements = {
         
         entity.pageId = pageId;
         
-        var displayName = entity.tag ? entity.tag : '[' + entity.type + ']';
+        var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
 
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
             + '<b class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'

@@ -24,7 +24,7 @@ var _Entities = {
     booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
     numberAttrs : ['position', 'size'],
     dateAttrs : ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
-    hiddenAttrs : ['deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'relativeFilePath', 'path', 'elements', 'linkingElements', 'components', 'paths', 'parents'],
+    hiddenAttrs : ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'relativeFilePath', 'path', 'elements', 'linkingElements', 'components', 'paths', 'parents'],
     readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version'],
     
     changeBooleanAttribute : function(attrElement, value) {
@@ -385,7 +385,7 @@ var _Entities = {
                                                                
                             } else {
                                 
-                                if (!isIn(key, _Entities.hiddenAttrs)) {
+                                if (!key.startsWith('_html_') && !isIn(key, _Entities.hiddenAttrs)) {
                                     
                                     if (isIn(key, _Entities.readOnlyAttrs)) {
                                         

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-STRUCTR_CONF=`find . -name structr.conf`
+STRUCTR_CONF=`find ../../../.. -name structr.conf`
 
 SUPERUSER_USERNAME=`grep superuser.username $STRUCTR_CONF | awk '{ print $3 }' | tr -d [:cntrl:]`
 SUPERUSER_PASSWORD=`grep superuser.password $STRUCTR_CONF | awk '{ print $3 }' | tr -d [:cntrl:]`
