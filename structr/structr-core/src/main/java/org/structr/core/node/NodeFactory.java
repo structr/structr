@@ -615,7 +615,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 	private class FactoryProfile {
 
-		private boolean includeDeletedAndHidden = false;
+		private boolean includeDeletedAndHidden = true;
 		private String offsetId                 = null;
 		private boolean publicOnly              = false;
 		private int pageSize                    = DEFAULT_PAGE_SIZE;
