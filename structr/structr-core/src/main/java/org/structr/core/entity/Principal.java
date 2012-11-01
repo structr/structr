@@ -41,7 +41,7 @@ import org.structr.common.property.Property;
 public interface Principal extends GraphObject {
 
 	public static final Property<String>  sessionId = new Property<String>("sessionId");
-	public static final Property<String>  groups    = new Property<String>("groups");
+	//public static final Property<String>  groups    = new Property<String>("groups");
 	public static final Property<Boolean> blocked   = new BooleanProperty("blocked");
 	public static final Property<String>  realName  = new Property<String>("realName");
 
