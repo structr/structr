@@ -50,9 +50,10 @@ import org.structr.core.entity.AbstractNode;
 public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                 = Logger.getLogger(TransactionCommand.class.getName());
+	private static final String debugProperty          = System.getProperty("DEBUG_TRANSACTIONS", "false");
 	private static final AtomicLong transactionCounter = new AtomicLong(0);
 	private static final int MAX_DEPTH                 = 16;
-	private static final boolean debug                 = false;
+	private static final boolean debug                 = "true".equals(debugProperty);
 
 	private static final ThreadLocal<Transaction> tramsactions = new ThreadLocal<Transaction>();
 	private static final ThreadLocal<Long> transactionKeys     = new ThreadLocal<Long>();

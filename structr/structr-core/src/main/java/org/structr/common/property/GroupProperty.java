@@ -32,7 +32,8 @@ import org.structr.core.converter.PropertyConverter;
 /**
  *
  * @author Christian Morgner
- */public class GroupProperty extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
+ */
+public class GroupProperty extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
 	
 	private static final Logger logger = Logger.getLogger(GroupProperty.class.getName());
 	
