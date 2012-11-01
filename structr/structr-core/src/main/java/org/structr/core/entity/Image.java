@@ -31,6 +31,7 @@ import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.property.IntProperty;
 import org.structr.common.property.Property;
+import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.RelationClass.Cardinality;
@@ -73,13 +74,10 @@ public class Image extends File {
 		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
 	}
 
-	//~--- fields ---------------------------------------------------------
-
-	// Cached list with relationships to thumbnails
-//	private List<AbstractRelationship> thumbnailRelationships = null;
-
 	//~--- methods --------------------------------------------------------
 
+	// Cached list with relationships to thumbnails
+//      private List<AbstractRelationship> thumbnailRelationships = null;
 	public void removeThumbnails() {
 
 		DeleteRelationshipCommand deleteRelationship = Services.command(securityContext, DeleteRelationshipCommand.class);
@@ -111,7 +109,7 @@ public class Image extends File {
 		}
 
 		// Clear cache
-//		thumbnailRelationships = null;
+//              thumbnailRelationships = null;
 
 	}
 
@@ -197,17 +195,27 @@ public class Image extends File {
 	public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
 		List<AbstractRelationship> thumbnailRelationships = getThumbnailRelationships();
+		final List<Image> oldThumbnails                   = new LinkedList();
+		Image thumbnail                                   = null;
+		final Image originalImage                         = this;
+		Integer origWidth                                 = originalImage.getWidth();
+		Integer origHeight                                = originalImage.getHeight();
+		Long currentChecksum                              = originalImage.getProperty(Image.checksum);
+		final Long newChecksum;
 
-		Image thumbnail           = null;
-		final Image originalImage = this;
-		Integer origWidth         = originalImage.getWidth();
-		Integer origHeight        = originalImage.getHeight();
+		if (currentChecksum == null || currentChecksum == 0) {
+
+			newChecksum = FileHelper.getChecksum(originalImage);
+		} else {
+
+			newChecksum = currentChecksum;
+		}
 
 		if ((origWidth != null) && (origHeight != null)) {
 
 			if ((thumbnailRelationships != null) && !(thumbnailRelationships.isEmpty())) {
 
-				for (AbstractRelationship r : thumbnailRelationships) {
+				for (final AbstractRelationship r : thumbnailRelationships) {
 
 					Integer w = (Integer) r.getProperty(Image.width);
 					Integer h = (Integer) r.getProperty(Image.height);
@@ -228,42 +236,16 @@ public class Image extends File {
 							thumbnail = (Image) r.getEndNode();
 
 							// Use thumbnail only if checksum of original image matches with stored checksum
-							Long storedChecksum  = r.getProperty(Image.checksum);
-							Long currentChecksum = originalImage.getProperty(Image.checksum);
-							
-//							System.out.println("Rel ID: " + r.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", stored checksum: " + storedChecksum + ", current checksum: " + currentChecksum);
+							Long storedChecksum = r.getProperty(Image.checksum);
 
+//                                                      System.out.println("Rel ID: " + r.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", stored checksum: " + storedChecksum + ", current checksum: " + currentChecksum);
 //                                                      if (!(originalImage.getLastModifiedDate().after(thumbnail.getLastModifiedDate()))) {
-							if (storedChecksum != null && storedChecksum.equals(currentChecksum)) {
+							if (storedChecksum != null && storedChecksum.equals(newChecksum)) {
 
 								return thumbnail;
 							} else {
 
-								// Remove outdated thumbnail
-								
-								final Image thumbnailToDelete = thumbnail;
-
-								try {
-
-									Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-										@Override
-										public Image execute() throws FrameworkException {
-
-											Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(thumbnailToDelete);
-
-											return null;
-
-										}
-
-									});
-
-								} catch (FrameworkException fex) {
-
-									logger.log(Level.WARNING, "Unable to delete thumbnail", fex);
-
-								}
-
+								oldThumbnails.add(thumbnail);
 							}
 						}
 
@@ -284,6 +266,16 @@ public class Image extends File {
 
 				@Override
 				public Image execute() throws FrameworkException {
+
+					try {
+
+						originalImage.setChecksum(newChecksum);
+
+					} catch (FrameworkException ex) {
+
+						logger.log(Level.SEVERE, "Could not store checksum for original image", ex);
+
+					}
 
 					CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 					Thumbnail thumbnailData             = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
@@ -314,8 +306,7 @@ public class Image extends File {
 							AbstractRelationship thumbnailRelationship = createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL);
 
 							// Add to cache list
-							//thumbnailRelationships.add(thumbnailRelationship);
-
+							// thumbnailRelationships.add(thumbnailRelationship);
 							int size = data.length;
 
 							thumbnail.setSize(size);
@@ -327,9 +318,14 @@ public class Image extends File {
 							thumbnail.setVisibleToAuthenticatedUsers(originalImage.getVisibleToAuthenticatedUsers());
 							thumbnailRelationship.setProperty(Image.width, tnWidth);
 							thumbnailRelationship.setProperty(Image.height, tnHeight);
-							thumbnailRelationship.setProperty(Image.checksum, originalImage.getProperty(checksum));
-							
-//							System.out.println("Thumbnail ID: " + thumbnail.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", orig. image checksum: " + originalImage.getProperty(checksum));
+							thumbnailRelationship.setProperty(Image.checksum, newChecksum);
+
+//                                                      System.out.println("Thumbnail ID: " + thumbnail.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", orig. image checksum: " + originalImage.getProperty(checksum));
+							// Soft-delete outdated thumbnails
+							for (Image tn : oldThumbnails) {
+
+								tn.setDeleted(true);
+							}
 						}
 
 						// Services.command(securityContext, IndexNodeCommand.class).execute(thumbnail);
