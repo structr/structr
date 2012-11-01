@@ -47,7 +47,9 @@ public class PasswordConverter extends PropertyConverter<String, String> {
 	@Override
 	public String convert(String clearTextPassword) throws FrameworkException {
 		
-		if (StringUtils.isBlank(clearTextPassword)) return null;
+		if (StringUtils.isBlank(clearTextPassword)) {
+			return null;
+		}
 
 		if (validationInfo != null) {
 			
