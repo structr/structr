@@ -51,6 +51,9 @@ public class EntityResolverResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 		
+		// TODO: fetch nodes with superuser security context, collect forbidden nodes and return 
+		//       in error response
+		
 		GetNodeByIdCommand searchCommand = Services.command(securityContext, GetNodeByIdCommand.class);
 		RestMethodResult result = new RestMethodResult(200);
 

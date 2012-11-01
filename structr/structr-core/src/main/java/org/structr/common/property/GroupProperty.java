@@ -32,8 +32,7 @@ import org.structr.core.converter.PropertyConverter;
 /**
  *
  * @author Christian Morgner
- */
-public class GroupProperty extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
+ */public class GroupProperty extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
 	
 	private static final Logger logger = Logger.getLogger(GroupProperty.class.getName());
 	
@@ -83,6 +82,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
 		PropertyMap groupedProperties = new PropertyMap();
+		boolean nullValuesOnly        = true;
 
 		for (PropertyKey key : propertyKeys) {
 
@@ -94,6 +94,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 				try {
 					Object convertedValue = converter.revert(value);
 					groupedProperties.put(key, convertedValue);
+
+					if (convertedValue != null) {
+						nullValuesOnly = false;
+					}
+					
 					
 				} catch(FrameworkException fex) {
 					
@@ -109,10 +114,18 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			} else {
 				
 				groupedProperties.put(key, value);
+
+				if (value != null) {
+					nullValuesOnly = false;
+				}
 			}
 
 		}
 
+		if (nullValuesOnly) {
+			return null;
+		}
+		
 		return groupedProperties;
 	}
 
