@@ -250,13 +250,13 @@ public class File extends AbstractNode implements Linkable {
 
 	}
 
-	public void setSize(final long size) throws FrameworkException {
+	public void setSize(final Long size) throws FrameworkException {
 
 		setProperty(File.size, size);
 
 	}
 
-	public void setChecksum(final long checksum) throws FrameworkException {
+	public void setChecksum(final Long checksum) throws FrameworkException {
 
 		setProperty(File.checksum, checksum);
 

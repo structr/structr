@@ -271,7 +271,7 @@ public class Image extends File {
 
 						originalImage.setChecksum(newChecksum);
 
-					} catch (FrameworkException ex) {
+					} catch (Exception ex) {
 
 						logger.log(Level.SEVERE, "Could not store checksum for original image", ex);
 
@@ -307,7 +307,7 @@ public class Image extends File {
 
 							// Add to cache list
 							// thumbnailRelationships.add(thumbnailRelationship);
-							int size = data.length;
+							long size = data.length;
 
 							thumbnail.setSize(size);
 							thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
