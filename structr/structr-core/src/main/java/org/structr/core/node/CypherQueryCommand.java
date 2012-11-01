@@ -21,17 +21,14 @@
 
 package org.structr.core.node;
 
-import java.util.Collections;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.collection.IteratorUtil;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -40,8 +37,9 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.core.Services;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,7 +50,9 @@ import java.util.logging.Logger;
 public class CypherQueryCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CypherQueryCommand.class.getName());
-
+	
+	protected static final ThreadLocalExecutionEngine engine = new ThreadLocalExecutionEngine();
+	
 	//~--- methods --------------------------------------------------------
 
 	public List<GraphObject> execute(String query) throws FrameworkException {
@@ -70,20 +70,19 @@ public class CypherQueryCommand extends NodeServiceCommand {
 	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
 		RelationshipFactory relFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
-		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
+		//GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
-		ExecutionEngine engine          = new ExecutionEngine(graphDb);
 
 		List<GraphObject> resultList = new LinkedList<GraphObject>();
 		ExecutionResult result       = null;
 
 		if (parameters != null) {
 
-			result = engine.execute(query, parameters);
+			result = engine.get().execute(query, parameters);
 			
 		} else {
 
-			result = engine.execute(query);
+			result = engine.get().execute(query);
 		}
 
 		for (Map<String, Object> row : result) {
@@ -116,4 +115,19 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		return resultList;
 	}
+	protected static class ThreadLocalExecutionEngine extends ThreadLocal<ExecutionEngine> {
+		
+		@Override
+		protected ExecutionEngine initialValue() {
+			
+			try {
+		
+				return new ExecutionEngine((GraphDatabaseService)Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class).execute());
+				
+			} catch (Throwable t) {}
+			
+			return null;
+		}
+	}	
+
 }
