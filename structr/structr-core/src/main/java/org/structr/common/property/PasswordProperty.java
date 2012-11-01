@@ -26,11 +26,11 @@ public class PasswordProperty extends Property<String> {
 	
 	@Override
 	public PropertyConverter<String, String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return null;
+		return new PasswordConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<String, String> inputConverter(SecurityContext securityContext) {
-		return new PasswordConverter(securityContext, info);
+		return null;
 	}
 }
