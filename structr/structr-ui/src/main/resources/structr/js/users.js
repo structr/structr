@@ -165,7 +165,7 @@ var _UsersAndGroups = {
     appendUserElement : function(user, groupId, removeExisting) {
         if (debug) console.log('appendUserElement', user, groupId, removeExisting);
 
-        if (!groupId && user.group.length) return false;
+        if (!groupId && user.groups.length) return false;
 
         removeExisting = true;
 
