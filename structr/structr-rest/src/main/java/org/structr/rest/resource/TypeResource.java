@@ -110,20 +110,6 @@ public class TypeResource extends SortableResource {
 
 		if (rawType != null) {
 
-//                      // test if resource class exists
-			// test moved to checkAndConfigure
-//                      Map cachedEntities = (Map<String, Class>) Services.command(securityContext, GetEntitiesCommand.class).execute();
-//
-//                      String normalizedEntityName = EntityContext.normalizeEntityName(rawType);
-//
-//                      if (!cachedEntities.containsKey(normalizedEntityName)) {
-//
-//                              throw new NotFoundException();
-//
-//                      }
-//
-//                      entityClass = (Class) cachedEntities.get(normalizedEntityName);
-//
 			if (entityClass == null) {
 
 				throw new NotFoundException();
@@ -142,7 +128,7 @@ public class TypeResource extends SortableResource {
 				searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 				// searchable attributes from EntityContext
-                                searchAttributes.addAll(extractSearchableAttributesFromRequest());
+                                searchAttributes.addAll(extractSearchableAttributesFromRequest(securityContext));
 
 			}
 			
@@ -328,8 +314,8 @@ public class TypeResource extends SortableResource {
 
 	}
 
-	protected List<SearchAttribute> extractSearchableAttributesFromRequest() throws FrameworkException {
-		return extractSearchableAttributesForNodes(rawType, request);
+	protected List<SearchAttribute> extractSearchableAttributesFromRequest(SecurityContext securityContext) throws FrameworkException {
+		return extractSearchableAttributesForNodes(securityContext, rawType, request);
 	}
 
 	@Override

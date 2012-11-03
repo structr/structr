@@ -118,7 +118,7 @@ public class DynamicTypeResource extends TypeResource {
 		// check for dynamic type, use super class otherwise
 		final List<SearchAttribute> searchAttributes = getSearchAttributes(rawType);
 
-		searchAttributes.addAll(extractSearchableAttributesFromRequest());
+		searchAttributes.addAll(extractSearchableAttributesFromRequest(securityContext));
 
 		// do search
 		List<Component> results = getComponents(securityContext, searchAttributes);

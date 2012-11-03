@@ -995,7 +995,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	public void propagatedModification(SecurityContext securityContext) {
 	}
 	
-	private boolean isValid(ErrorBuffer errorBuffer) {
+	public boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
 

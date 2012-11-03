@@ -115,4 +115,9 @@ public class GenericRelationship extends AbstractRelationship {
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return true;
+	}
 }

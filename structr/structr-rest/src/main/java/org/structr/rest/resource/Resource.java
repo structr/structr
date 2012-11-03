@@ -22,7 +22,6 @@ package org.structr.rest.resource;
 //~--- JDK imports ------------------------------------------------------------
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +30,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -50,6 +51,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
@@ -60,11 +62,7 @@ import org.structr.core.node.NodeFactory;
 import org.structr.core.node.NodeService;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.core.node.search.DistanceSearchAttribute;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.core.node.search.SearchOperator;
+import org.structr.core.node.search.*;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
@@ -85,6 +83,7 @@ public abstract class Resource {
 
 	private static final Logger logger                 = Logger.getLogger(Resource.class.getName());
 	private static final Set<String> NON_SEARCH_FIELDS = new LinkedHashSet<String>();
+	private static final Pattern rangeQueryPattern     = Pattern.compile("\\[(.+) TO (.+)\\]");
 
 	//~--- static initializers --------------------------------------------
 
@@ -459,27 +458,32 @@ public abstract class Resource {
 	}
 
 
-	protected List<SearchAttribute> extractSearchableAttributesForNodes(final String rawType,
+	protected List<SearchAttribute> extractSearchableAttributesForNodes(final SecurityContext securityContext,
+	                                                                    final String rawType,
 	                                                                    final HttpServletRequest request) throws FrameworkException {
-		return extractSearchableAttributes(rawType,
+		return extractSearchableAttributes(securityContext,
+		                                   rawType,
 		                                   request,
 		                                   NodeService.NodeIndex.fulltext.name(),
 		                                   NodeService.NodeIndex.keyword.name());
 	}
 
-	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final String rawType,
+	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final SecurityContext securityContext,
+	                                                                            final String rawType,
 	                                                                            final HttpServletRequest request)
 	                                                                            				throws FrameworkException {
-		return extractSearchableAttributes(rawType,
+		return extractSearchableAttributes(securityContext,
+		                                   rawType,
 		                                   request,
 		                                   NodeService.RelationshipIndex.rel_fulltext.name(),
 		                                   NodeService.RelationshipIndex.rel_keyword.name());
 	}
 
-	private static List<SearchAttribute> extractSearchableAttributes(final String rawType,
-	                                                          final HttpServletRequest request,
-	                                                          final String fulltextIndex,
-	                                                          final String keywordIndex) throws FrameworkException {
+	private static List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext,
+	                                                                 final String rawType,
+	                                                                 final HttpServletRequest request,
+	                                                                 final String fulltextIndex,
+	                                                                 final String keywordIndex) throws FrameworkException {
 		List<SearchAttribute> searchAttributes = Collections.emptyList();
 
 		// searchable attributes
@@ -493,7 +497,7 @@ public abstract class Resource {
 							                        fulltextIndex,
 							                        keywordIndex);
 
-			searchAttributes = checkAndAssembleSearchAttributes(request, looseSearch, searchableProperties);
+			searchAttributes = checkAndAssembleSearchAttributes(securityContext, request, looseSearch, searchableProperties);
 
 		}
 		return searchAttributes;
@@ -516,12 +520,54 @@ public abstract class Resource {
 	}
 
 
-	private static SearchAttribute determineSearchType(final PropertyKey key, final String searchValue) {
+	private static SearchAttribute determineSearchType(final SecurityContext securityContext, final PropertyKey key, final String searchValue) {
 
 		if (StringUtils.startsWith(searchValue, "[") && StringUtils.endsWith(searchValue, "]")) {
 
-			final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
-			return Search.andMatchExactValues(key, strippedValue, SearchOperator.OR);
+			// check for existance of range query string
+			Matcher matcher = rangeQueryPattern.matcher(searchValue);
+			if (matcher.matches()) {
+
+				if (matcher.groupCount() == 2) {
+					
+					String rangeStart = matcher.group(1);
+					String rangeEnd   = matcher.group(2);
+					
+					try {
+					
+						PropertyConverter inputConverter = key.inputConverter(securityContext);
+						PropertyConverter databaseConverter  = key.databaseConverter(securityContext, null);
+						Object rangeStartConverted       = rangeStart;
+						Object rangeEndConverted         = rangeEnd;
+						
+						if (inputConverter != null) {
+							
+							rangeStartConverted = inputConverter.convert(rangeStartConverted);
+							rangeEndConverted   = inputConverter.convert(rangeEndConverted);
+						}
+						
+						if (databaseConverter != null) {
+							
+							rangeStartConverted = databaseConverter.convert(rangeStartConverted);
+							rangeEndConverted   = databaseConverter.convert(rangeEndConverted);
+						}
+						
+						return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, SearchOperator.AND);
+						
+					} catch(Throwable t) {
+						
+						t.printStackTrace();
+					}
+				}
+				
+				return null;
+				
+			} else {
+
+				final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
+				return Search.andMatchExactValues(key, strippedValue, SearchOperator.OR);
+
+			}
 
 		} else if (StringUtils.startsWith(searchValue, "(") && StringUtils.endsWith(searchValue, ")")) {
 
@@ -551,7 +597,8 @@ public abstract class Resource {
 
 
 
-	private static List<SearchAttribute> checkAndAssembleSearchAttributes(final HttpServletRequest request,
+	private static List<SearchAttribute> checkAndAssembleSearchAttributes(final SecurityContext securityContext,
+	                                                                      final HttpServletRequest request,
 	                                                                      final boolean looseSearch,
 	                                                                      final Set<PropertyKey> searchableProperties)
 	                                                                    				  throws FrameworkException {
@@ -578,7 +625,7 @@ public abstract class Resource {
 						searchAttributes.add(Search.andProperty(key, searchValue));
 					} else {
 
-						searchAttributes.add(determineSearchType(key, searchValue));
+						searchAttributes.add(determineSearchType(securityContext, key, searchValue));
 
 					}
 

@@ -21,21 +21,22 @@
 
 package org.structr.core.agent;
 
+import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.*;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,7 +65,7 @@ public class RebuildIndexAgent extends Agent {
 
 			logger.log(Level.INFO, "Starting rebuilding index ...");
 
-			long nodes = rebuildIndex();
+			long nodes = rebuildNodeIndex();
 			long t1    = System.currentTimeMillis();
 
 			logger.log(Level.INFO, "Re-indexing nodes finished, {0} nodes processed in {1} s", new Object[] { nodes, (t1 - t0) / 1000 });
@@ -79,99 +80,110 @@ public class RebuildIndexAgent extends Agent {
 		return (ReturnValue.Success);
 	}
 
-	private long rebuildIndex() throws FrameworkException {
+	private long rebuildNodeIndex() throws FrameworkException {
 
-		// FIXME: superuser security context
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		final GraphDatabaseService graphDb    = Services.command(securityContext, GraphDatabaseCommand.class).execute();
-		Long noOfNodes                        = Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction<Long>() {
+		final NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
-			@Override
-			public Long execute(Transaction tx) throws FrameworkException {
+		final Iterable<Node> allNodes         = GlobalGraphOperations.at(graphDb).getAllNodes();
+		final IndexNodeCommand indexer        = Services.command(securityContext, IndexNodeCommand.class);
+		long nodeCount                        = 0L;
+	
+		logger.log(Level.INFO, "Start indexing of nodes.");
+		
+		final Iterator<Node> nodeIterator = allNodes.iterator();
+		while (nodeIterator.hasNext()) {
 
-				IndexNodeCommand indexer = Services.command(securityContext, IndexNodeCommand.class);
-				long nodes               = 0;
+			nodeCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
 
-				logger.log(Level.INFO, "Get all nodes ...");
+				@Override
+				public Integer execute() throws FrameworkException {
 
-				List<AbstractNode> allNodes = Services.command(securityContext, GetAllNodes.class).execute();
+					int count = 0;
 
-				logger.log(Level.INFO, "... done. Start indexing {0} nodes ...", allNodes.size());
-				
-				for (AbstractNode node : allNodes) {
+					while (nodeIterator.hasNext()) {
 
-					indexer.execute(node);
-					
-					nodes++;
+						try {
+							Node dbNode = nodeIterator.next();
 
-					if (nodes % 1000 == 0) {
+							if (dbNode.hasProperty(GraphObject.uuid.name())) {
 
-						logger.log(Level.INFO, "Indexed {0} nodes, committing results to database.", nodes);
-						tx.success();
-						tx.finish();
+								indexer.execute(nodeFactory.createNode(dbNode));
 
-						tx = graphDb.beginTx();
-
-						logger.log(Level.FINE, "######## committed ########", nodes);
-
+								// restart transaction after 1000 iterations
+								if (count++ == 100) {
+									break;
+								}
+							}
+							
+						} catch(Throwable t) {}
 					}
 
+					return count;
 				}
-                                logger.log(Level.INFO, "Finished indexing {0} nodes", nodes);
-                                
-				return nodes;
-			}
 
-		});
+			});
 
-		return noOfNodes;
+			logger.log(Level.INFO, "Indexed {0} nodes ...", nodeCount);
+		}
+
+		logger.log(Level.INFO, "Done");
+
+		return nodeCount;
 	}
 
 	private long rebuildRelationshipIndex() throws FrameworkException {
 
-		// FIXME: superuser security context
-		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		final GraphDatabaseService graphDb    = Services.command(securityContext, GraphDatabaseCommand.class).execute();
-		Long noOfRels                         = Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction<Long>() {
+		final SecurityContext securityContext         = SecurityContext.getSuperUserInstance();
+		final GraphDatabaseService graphDb            = Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		final RelationshipFactory relFactory          = new RelationshipFactory(securityContext);
 
-			@Override
-			public Long execute(Transaction tx) throws FrameworkException {
+		final Iterable<Relationship> allRelationships = GlobalGraphOperations.at(graphDb).getAllRelationships();
+		final IndexRelationshipCommand indexer        = Services.command(securityContext, IndexRelationshipCommand.class);
+		long relationshipCount                        = 0L;
+	
+		logger.log(Level.INFO, "Start indexing of relationships.");
+		
+		final Iterator<Relationship> relationshipIterator = allRelationships.iterator();
+		while (relationshipIterator.hasNext()) {
 
-				IndexRelationshipCommand indexer = Services.command(securityContext, IndexRelationshipCommand.class);
-				long rels                        = 0;
+			relationshipCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
 
-				logger.log(Level.INFO, "Get all relationships ...");
+				@Override
+				public Integer execute() throws FrameworkException {
 
-				List<AbstractRelationship> allRelationships = Services.command(securityContext, GetAllRelationships.class).execute();
+					int count = 0;
 
-				logger.log(Level.INFO, "... done. Got {0} relationships.", allRelationships.size());
+					while (relationshipIterator.hasNext()) {
 
-				for (AbstractRelationship s : allRelationships) {
+						try {
+							Relationship dbRelationship = relationshipIterator.next();
 
-					indexer.execute(s);
+							if (dbRelationship.hasProperty(GraphObject.uuid.name())) {
 
-					rels++;
+								indexer.execute(relFactory.createRelationship(securityContext, dbRelationship));
 
-					if (rels % 1000 == 0) {
-
-						logger.log(Level.INFO, "Indexed {0} relationships, committing results to database.", rels);
-						tx.success();
-						tx.finish();
-
-						tx = graphDb.beginTx();
-
-						logger.log(Level.FINE, "######## committed ########", rels);
-
+								// restart transaction after 1000 iterations
+								if (count++ == 100) {
+									break;
+								}
+							}
+							
+						} catch(Throwable t) {}
 					}
 
+					return count;
 				}
 
-				return rels;
-			}
+			});
 
-		});
+			logger.log(Level.INFO, "Indexed {0} relationships ...", relationshipCount);
+		}
 
-		return noOfRels;
+		logger.log(Level.INFO, "Done");
+
+		return relationshipCount;
 	}
 
 	//~--- get methods ----------------------------------------------------

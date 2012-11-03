@@ -106,7 +106,7 @@ public class StaticRelationshipResource extends SortableResource {
 					final List relatedNodes = staticRel.getRelatedNodes(securityContext, sourceNode);
 
 					// check for search keys in request first..
-					final List<SearchAttribute> dummyList = typeResource.extractSearchableAttributesFromRequest();
+					final List<SearchAttribute> dummyList = typeResource.extractSearchableAttributesFromRequest(securityContext);
 
 					if (!dummyList.isEmpty()) {
 

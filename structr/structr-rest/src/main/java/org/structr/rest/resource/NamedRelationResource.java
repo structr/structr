@@ -93,7 +93,7 @@ public class NamedRelationResource extends WrappingResource {
 			searchAttributes.add(Search.andExactRelType(namedRelation));
 
 			// add searchable attributes from EntityContext
-			searchAttributes.addAll(extractSearchableAttributesForRelationships(namedRelation.getEntityClass().getSimpleName(), request));
+			searchAttributes.addAll(extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass().getSimpleName(), request));
 
 			relationResults.addAll((List<AbstractRelationship>) Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
 
@@ -101,7 +101,7 @@ public class NamedRelationResource extends WrappingResource {
 
 		// filter by searchable properties
 		final List<SearchAttribute> filterAttributes =
-						extractSearchableAttributesForRelationships(namedRelation.getEntityClass().getSimpleName(), request);
+						extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass().getSimpleName(), request);
 
 		if(!filterAttributes.isEmpty()) {
 

@@ -23,6 +23,7 @@ package org.structr.core.entity;
 
 import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 
@@ -46,6 +47,11 @@ public class GenericNode extends AbstractNode {
 
 	@Override
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+		return true;
+	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
 		return true;
 	}
 }

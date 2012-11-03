@@ -1073,7 +1073,7 @@ public class EntityContext {
 				return GraphObject.uuid;
 			}
 
-			logger.log(Level.WARNING, "No property key instance found for type {0}, key {1}", new Object[] { type != null ? type.getName() : "null", name } );
+			// logger.log(Level.WARNING, "No property key instance found for type {0}, key {1}", new Object[] { type != null ? type.getName() : "null", name } );
 			
 			key = new Property(name);
 		}

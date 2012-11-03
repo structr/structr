@@ -175,7 +175,11 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 			for (SearchAttribute attr : searchAttrs) {
 
-				if (attr instanceof DistanceSearchAttribute) {
+				if (attr instanceof RangeSearchAttribute) {
+
+					handleRangeAttribute( (RangeSearchAttribute) attr, queryString);
+
+				} else if (attr instanceof DistanceSearchAttribute) {
 
 					distanceSearch = (DistanceSearchAttribute) attr;
 					coords         = GeoHelper.geocode(distanceSearch.getKey().name());
@@ -225,9 +229,14 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 				long t0 = System.nanoTime();
 
-				logger.log(Level.FINE, "Textual Query String: {0}", queryString);
+				logger.log(Level.INFO, "Textual Query String: {0}", queryString);
 
-				QueryContext queryContext = new QueryContext(queryString);
+				String query = queryString.toString();
+				
+				QueryContext numericContext = QueryContext.numericRange("created_at", 1323502905000L, 1383502905000L);
+				System.out.println(numericContext.getQueryOrQueryObject().toString());
+				
+				QueryContext queryContext = new QueryContext(query);
 				IndexHits hits            = null;
 
 				if (sortKey != null) {
@@ -269,6 +278,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 						hits = index.get(AbstractNode.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
 					}
+					
 				} else if ( /* (textualAttributes.size() > 1) && */allExactMatch) {
 
 //                                      } else if ((textualAttributes.size() > 1) && allExactMatch) {
@@ -523,6 +533,10 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 					allExactMatch &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
 
+				} else if (groupedAttr instanceof RangeSearchAttribute) {
+
+					handleRangeAttribute( (RangeSearchAttribute) groupedAttr, queryString);
+
 				} else if (groupedAttr instanceof SearchAttributeGroup) {
 
 					handleAttributeGroup((SearchAttributeGroup) groupedAttr, subQueryString, textualAttributes, allExactMatch);
@@ -539,6 +553,15 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 			}
 		}
 
+	}
+	
+	private void handleRangeAttribute(RangeSearchAttribute rangeSearchAttribute, StringBuilder queryString) {
+		
+		queryString.append(" ");
+		queryString.append(rangeSearchAttribute.getSearchOperator());
+		queryString.append(" ");
+		queryString.append(rangeSearchAttribute.getValue());
+		
 	}
 
 	//~--- get methods ----------------------------------------------------

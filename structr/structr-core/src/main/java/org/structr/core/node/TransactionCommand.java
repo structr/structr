@@ -55,7 +55,7 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final int MAX_DEPTH                 = 16;
 	private static final boolean debug                 = "true".equals(debugProperty);
 
-	private static final ThreadLocal<Transaction> tramsactions = new ThreadLocal<Transaction>();
+	private static final ThreadLocal<Transaction> transactions = new ThreadLocal<Transaction>();
 	private static final ThreadLocal<Long> transactionKeys     = new ThreadLocal<Long>();
 	private static final ThreadLocal<Long> depths              = new ThreadLocal<Long>();
 	
@@ -63,7 +63,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Long transactionKey          = transactionKeys.get();
-		Transaction tx               = tramsactions.get();
+		Transaction tx               = transactions.get();
 		Throwable exception          = null;
 		T ret                        = null;
 		
@@ -73,7 +73,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			transactionKey = nextLong();
 			
 			transactionKeys.set(transactionKey);
-			tramsactions.set(tx);
+			transactions.set(tx);
 			
 			EntityContext.setSecurityContext(securityContext);
 			EntityContext.setTransactionKey(transactionKey);
@@ -97,7 +97,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			} finally {
 
-				tramsactions.remove();
+				transactions.remove();
 				transactionKeys.remove();
 
 				synchronized(TransactionCommand.class) {
@@ -223,7 +223,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Long transactionKey          = transactionKeys.get();
-		Transaction tx               = tramsactions.get();
+		Transaction tx               = transactions.get();
 		Throwable exception          = null;
 		T ret                        = null;
 		
@@ -233,7 +233,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			transactionKey = nextLong();
 			
 			transactionKeys.set(transactionKey);
-			tramsactions.set(tx);
+			transactions.set(tx);
 			
 			EntityContext.setSecurityContext(securityContext);
 			EntityContext.setTransactionKey(transactionKey);
@@ -263,7 +263,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			} finally {
 
-				tramsactions.remove();
+				transactions.remove();
 				transactionKeys.remove();
 
 				synchronized(TransactionCommand.class) {
