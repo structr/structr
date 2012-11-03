@@ -56,7 +56,7 @@ public class User extends Person implements Principal {
 	public static final Property<List<Group>>   groups    = new Property("groups");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser//, groups
+		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
