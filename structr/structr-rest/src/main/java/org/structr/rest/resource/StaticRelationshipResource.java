@@ -492,6 +492,11 @@ public class StaticRelationshipResource extends SortableResource {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
+	public Class getEntityClass() {
+		return typeResource.getEntityClass();
+	}
+
+	@Override
 	public String getUriPart() {
 		return typedIdResource.getUriPart().concat("/").concat(typeResource.getUriPart());
 	}
