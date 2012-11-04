@@ -64,7 +64,7 @@ public class RangeSearchAttribute extends SearchAttribute {
 //		buf.append(rangeEnd.toString());
 //		buf.append("\"]");
 		
-		buf.append(searchKey.name());
+		buf.append(searchKey.dbName());
 		buf.append(":[");
 		buf.append(rangeStart.toString());
 		buf.append(" TO ");

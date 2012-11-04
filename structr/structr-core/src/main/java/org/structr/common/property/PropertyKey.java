@@ -30,7 +30,8 @@ import org.structr.core.converter.PropertyConverter;
  */
 public interface PropertyKey<JavaType> {
 	
-	public String name();
+	public String jsonName();
+	public String dbName();
 	
 	public JavaType defaultValue();
 	

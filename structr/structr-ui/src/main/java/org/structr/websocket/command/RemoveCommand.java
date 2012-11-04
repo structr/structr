@@ -198,12 +198,12 @@ public class RemoveCommand extends AbstractCommand {
 
 			// Object val = entry.getValue();
 			// Check if key is a node id (UUID format)
-			if (key.name().matches("[a-zA-Z0-9]{32}")) {
+			if (key.dbName().matches("[a-zA-Z0-9]{32}")) {
 
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 				attrs.add(Search.andExactType(Page.class.getSimpleName()));
-				attrs.add(Search.andExactUuid(key.name()));
+				attrs.add(Search.andExactUuid(key.dbName()));
 
 				Result results = searchNode.execute(attrs);
 

@@ -50,10 +50,10 @@ public class RawPropertyConverter extends PropertyConverter {
 
 		try {
 			if(currentObject instanceof AbstractNode) {
-				return ((AbstractNode)currentObject).getNode().getProperty(key.name());
+				return ((AbstractNode)currentObject).getNode().getProperty(key.dbName());
 			} else
 			if(currentObject instanceof AbstractRelationship) {
-				return ((AbstractRelationship)currentObject).getRelationship().getProperty(key.name());
+				return ((AbstractRelationship)currentObject).getRelationship().getProperty(key.dbName());
 			}
 
 		} catch(Throwable t) {

@@ -128,7 +128,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 			Node dbNode = node.getNode();
 
-			if ((dbNode.hasProperty(Location.latitude.name())) && (dbNode.hasProperty(Location.longitude.name()))) {
+			if ((dbNode.hasProperty(Location.latitude.dbName())) && (dbNode.hasProperty(Location.longitude.dbName()))) {
 
 				LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
 
@@ -204,12 +204,12 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		}
 
-		boolean emptyKey = StringUtils.isEmpty(key.name());
+		boolean emptyKey = StringUtils.isEmpty(key.dbName());
 
 		if (emptyKey) {
 
 			logger.log(Level.SEVERE, "Node {0} has empty, not-null key, removing property", new Object[] { id });
-			dbNode.removeProperty(key.name());
+			dbNode.removeProperty(key.dbName());
 
 			return;
 
@@ -250,7 +250,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 	private void removeNodePropertyFromIndex(final Node node, final PropertyKey key, final String indexName) {
 		Index<Node> index = indices.get(indexName);
 		synchronized(index) {
-			index.remove(node, key.name());
+			index.remove(node, key.dbName());
 		}
 	}
 
@@ -262,9 +262,9 @@ public class IndexNodeCommand extends NodeServiceCommand {
 		synchronized(index) {
 			
 			if (value instanceof Number) {
-				index.add(node, key.name(), ValueContext.numeric((Number) value));
+				index.add(node, key.dbName(), ValueContext.numeric((Number) value));
 			} else {
-				index.add(node, key.name(), value);
+				index.add(node, key.dbName(), value);
 			}
 		}
 	}

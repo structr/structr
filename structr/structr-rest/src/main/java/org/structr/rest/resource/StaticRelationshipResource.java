@@ -352,14 +352,14 @@ public class StaticRelationshipResource extends SortableResource {
 					final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
 					// apply notion if the property set contains the ID property as the only element
-					if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.name()) && propertySet.size() == 1) {
+					if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
 
 						// the notion that is defined for this relationship can deserialize
 						// objects with a single key (uuid for example), and the POSTed
 						// property set contains value(s) for this key, so we only need
 						// to create relationships
 						final Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
-						final Object keySource                                     = propertySet.get(primaryPropertyKey.name());
+						final Object keySource                                     = propertySet.get(primaryPropertyKey.jsonName());
 
 						if (keySource != null) {
 
@@ -404,7 +404,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 						} else {
 
-							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.name(), propertySet.toString() });
+							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
 
 						}
 

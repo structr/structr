@@ -164,10 +164,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				Node startNode = dbRelationship.getStartNode();
 				Node endNode   = dbRelationship.getEndNode();
 
-				if ((startNode != null) && (endNode != null) && startNode.hasProperty(AbstractNode.uuid.name()) && endNode.hasProperty(AbstractNode.uuid.name())) {
+				if ((startNode != null) && (endNode != null) && startNode.hasProperty(AbstractNode.uuid.dbName()) && endNode.hasProperty(AbstractNode.uuid.dbName())) {
 
-					cachedStartNodeId = (String) startNode.getProperty(AbstractNode.uuid.name());
-					cachedEndNodeId   = (String) endNode.getProperty(AbstractNode.uuid.name());
+					cachedStartNodeId = (String) startNode.getProperty(AbstractNode.uuid.dbName());
+					cachedEndNodeId   = (String) endNode.getProperty(AbstractNode.uuid.dbName());
 
 				}
 
@@ -188,9 +188,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		if (startNodeIdentifier != null) {
 
-			Object identifierValue = propertySet.get(startNodeIdentifier.name());
+			Object identifierValue = propertySet.get(startNodeIdentifier.jsonName());
 
-			propertySet.remove(startNodeIdentifier.name());
+			propertySet.remove(startNodeIdentifier.jsonName());
 
 			return (AbstractNode) startNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
 
@@ -210,9 +210,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		if (endNodeIdentifier != null) {
 
-			Object identifierValue = propertySet.get(endNodeIdentifier.name());
+			Object identifierValue = propertySet.get(endNodeIdentifier.jsonName());
 
-			propertySet.remove(endNodeIdentifier.name());
+			propertySet.remove(endNodeIdentifier.jsonName());
 
 			return (AbstractNode) endNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
 
@@ -260,7 +260,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 				try {
 					
-					dbRelationship.removeProperty(key.name());
+					dbRelationship.removeProperty(key.dbName());
 
 				} finally {}
 
@@ -431,7 +431,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
 
 		// early null check, this should not happen...
-		if (key == null || key.name() == null) {
+		if (key == null || key.dbName() == null) {
 			return null;
 		}
 		
@@ -489,16 +489,16 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				} catch(FrameworkException fex) {
 					
 					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-						key.name(),
+						key.dbName(),
 						entityType.getSimpleName(),
 						fex.getMessage()
 					});
 				}
 			}
 
-			if (dbRelationship.hasProperty(key.name())) {
+			if (dbRelationship.hasProperty(key.dbName())) {
 
-				value = dbRelationship.getProperty(key.name());
+				value = dbRelationship.getProperty(key.dbName());
 			}
 
 			// only apply converter if requested
@@ -518,7 +518,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 						t.printStackTrace();
 						
 						logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-							key.name(),
+							key.dbName(),
 							getClass().getSimpleName(),
 							t.getMessage()
 						});
@@ -745,7 +745,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 			} catch(FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-					key.name(),
+					key.dbName(),
 					getClass().getSimpleName(),
 					fex.getMessage()
 				});
@@ -835,10 +835,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public String[] getPermissions() {
 
-		if (dbRelationship.hasProperty(AbstractRelationship.allowed.name())) {
+		if (dbRelationship.hasProperty(AbstractRelationship.allowed.dbName())) {
 
 			// StringBuilder result             = new StringBuilder();
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.allowed.name());
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.allowed.dbName());
 
 			return allowedProperties;
 
@@ -1013,9 +1013,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public boolean isAllowed(final Permission permission) {
 
-		if (dbRelationship.hasProperty(allowed.name())) {
+		if (dbRelationship.hasProperty(allowed.dbName())) {
 
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(allowed.name());
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(allowed.dbName());
 
 			if (allowedProperties != null) {
 
@@ -1076,7 +1076,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		Class type = this.getClass();
 
 		// check for read-only properties
-		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
+		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
@@ -1136,11 +1136,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 					// save space
 					if (convertedValue == null) {
 
-						dbRelationship.removeProperty(key.name());
+						dbRelationship.removeProperty(key.dbName());
 						
 					} else {
 
-						dbRelationship.setProperty(key.name(), convertedValue);
+						dbRelationship.setProperty(key.dbName(), convertedValue);
 					}
 					
 				} finally {}
@@ -1340,7 +1340,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public void setAllowed(final String[] allowed) {
 
-		dbRelationship.setProperty(AbstractRelationship.allowed.name(), allowed);
+		dbRelationship.setProperty(AbstractRelationship.allowed.dbName(), allowed);
 
 	}
 }

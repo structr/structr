@@ -73,7 +73,7 @@ public class NodeAttribute {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append("NodeAttribute('");
-		buf.append(key.name());
+		buf.append(key.dbName());
 		buf.append("', '");
 		buf.append(value);
 		buf.append("')");

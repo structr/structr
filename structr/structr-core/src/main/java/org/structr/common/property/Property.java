@@ -30,17 +30,20 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 
 	protected String declaringClassName  = null;
 	protected JavaType defaultValue      = null;
-	protected String name                = null;
 	protected boolean isReadOnlyProperty = false;
 	protected boolean isSystemProperty   = false;
+	protected String dbName              = null;
+	protected String jsonName            = null;
 	
 	public Property(String name) {
-		this.name = name;
+		this.jsonName = name;
+		this.dbName = name;
 	}
 	
 	public Property(String name, JavaType defaultValue) {
-		this.name = name;
 		this.defaultValue = defaultValue;
+		this.jsonName = name;
+		this.dbName = name;
 	}
 	
 	public Property<JavaType> systemProperty() {
@@ -60,12 +63,17 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	
 	@Override
 	public String toString() {
-		return name;
+		return "(".concat(jsonName).concat("|").concat(dbName).concat(")");
 	}
 	
 	@Override
-	public String name() {
-		return name;
+	public String dbName() {
+		return dbName;
+	}
+	
+	@Override
+	public String jsonName() {
+		return jsonName;
 	}
 	
 	@Override
@@ -76,8 +84,16 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public int hashCode() {
 		
-		if (name != null) {
-			return name.hashCode();
+		if (dbName != null && jsonName != null) {
+			return (dbName.hashCode() * 31) + jsonName.hashCode();
+		}
+		
+		if (dbName != null) {
+			return dbName.hashCode();
+		}
+		
+		if (jsonName != null) {
+			return jsonName.hashCode();
 		}
 		
 		// TODO: check if it's ok if null key is not unique

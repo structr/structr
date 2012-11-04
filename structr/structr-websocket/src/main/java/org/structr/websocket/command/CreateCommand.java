@@ -62,7 +62,7 @@ public class CreateCommand extends AbstractCommand {
 
 				Map<String, Object> nodeData = webSocketData.getNodeData();
 
-				nodeData.put(AbstractNode.visibleToAuthenticatedUsers.name(), true);
+				nodeData.put(AbstractNode.visibleToAuthenticatedUsers.jsonName(), true);
 
 				// convertFromInput
 				PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, nodeData);

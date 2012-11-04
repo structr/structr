@@ -106,7 +106,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 					t.printStackTrace();
 					
 					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
-						key.name(),
+						key.dbName(),
 						source.getClass().getSimpleName(),
 						t.getMessage()
 						
@@ -163,7 +163,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 				} catch(FrameworkException fex) {
 					
 					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
-						key.name(),
+						key.dbName(),
 						source.getClass().getSimpleName(),
 						fex.getMessage()
 						

@@ -113,7 +113,7 @@ public class SchemaResource extends Resource {
 						
 						converterPlusValue.append(")");
 
-						propertyConverterMap.put(property.name(), converterPlusValue.toString());
+						propertyConverterMap.put(property.toString(), converterPlusValue.toString());
 					}
 					
 					views.put(view, propertyConverterMap);

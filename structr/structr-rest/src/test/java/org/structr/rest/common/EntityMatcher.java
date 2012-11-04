@@ -53,7 +53,7 @@ public class EntityMatcher extends BaseMatcher {
 		propertyView.add(new Property("id"));	// FIXME: this is due to the uuid/id mess in core!
 		
 		for (PropertyKey key : propertyView) {
-			entityValues.put(key.name(), values.get(key.name()));
+			entityValues.put(key.jsonName(), values.get(key.jsonName()));
 		}
 	}
 

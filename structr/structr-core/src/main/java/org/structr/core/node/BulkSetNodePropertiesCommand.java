@@ -80,15 +80,15 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 					Result<AbstractNode> result = null;
 					long n                      = 0L;
 
-					if (properties.containsKey(AbstractNode.type.name())) {
+					if (properties.containsKey(AbstractNode.type.dbName())) {
 
 						List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-						attrs.add(Search.andExactType((String) properties.get(AbstractNode.type.name())));
+						attrs.add(Search.andExactType((String) properties.get(AbstractNode.type.dbName())));
 
 						result = searchNode.execute(attrs);
 
-						properties.remove(AbstractNode.type.name());
+						properties.remove(AbstractNode.type.dbName());
 
 					} else {
 

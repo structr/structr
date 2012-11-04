@@ -321,8 +321,8 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (newComponent != null) {
 			
-			propertySet.remove(AbstractNode.createdDate.name());
-			propertySet.remove(AbstractNode.lastModifiedDate.name());
+			propertySet.remove(AbstractNode.createdDate.dbName());
+			propertySet.remove(AbstractNode.lastModifiedDate.dbName());
 
 			for (final String keyName : propertySet.keySet()) {
 

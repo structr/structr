@@ -380,7 +380,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		try {
 
 			// only continue if we are on the right track :)
-			if (idSet.contains(endNode.getProperty(AbstractNode.uuid.name()))) {
+			if (idSet.contains(endNode.getProperty(AbstractNode.uuid.dbName()))) {
 
 				if (path.length() == pathLength) {
 

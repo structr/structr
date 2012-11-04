@@ -827,9 +827,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		for (Relationship rel : rels) {
 
-			if (rel.hasProperty(NodeList.parent.name())) {
+			if (rel.hasProperty(NodeList.parent.dbName())) {
 
-				Object parent = rel.getProperty(NodeList.parent.name());
+				Object parent = rel.getProperty(NodeList.parent.dbName());
 
 				if ((parent instanceof Long) && ((Long) parent).equals(getNodeId())) {
 
@@ -853,7 +853,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 			Relationship rel = startNode.createRelationshipTo(endNode, relationshipType);
 
-			rel.setProperty(NodeList.parent.name(), Long.valueOf(getNodeId()));
+			rel.setProperty(NodeList.parent.dbName(), Long.valueOf(getNodeId()));
 
 			return (true);
 
@@ -1005,9 +1005,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 			for (Relationship rel : rels) {
 
-				if (rel.hasProperty(NodeList.parent.name())) {
+				if (rel.hasProperty(NodeList.parent.dbName())) {
 
-					Object parent = rel.getProperty(NodeList.parent.name());
+					Object parent = rel.getProperty(NodeList.parent.dbName());
 
 					if ((parent instanceof Long) && ((Long) parent).equals(getNodeId())) {
 
@@ -1143,9 +1143,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 				for (Relationship rel : rels) {
 
-					if ((rel != null) && rel.hasProperty(NodeList.parent.name())) {
+					if ((rel != null) && rel.hasProperty(NodeList.parent.dbName())) {
 
-						Object parent = rel.getProperty(NodeList.parent.name());
+						Object parent = rel.getProperty(NodeList.parent.dbName());
 
 						if ((parent instanceof Long) && ((Long) parent).equals(getNodeId())) {
 

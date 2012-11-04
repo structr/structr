@@ -74,7 +74,7 @@ public class ConverterProperty<T> extends Property<T> {
 			
 			logger.log(Level.SEVERE, "Unable to instantiate converter of type {0} for key {1}", new Object[] {
 				constructor.getClass().getName(),
-				name
+				dbName
 			});
 		}
 		

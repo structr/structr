@@ -97,7 +97,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 				// static mapping of IdProperty if present
 				if ((idProperty != null) && "id".equals(key)) {
 
-					key = idProperty.name();
+					key = idProperty.jsonName();
 
 				}
 

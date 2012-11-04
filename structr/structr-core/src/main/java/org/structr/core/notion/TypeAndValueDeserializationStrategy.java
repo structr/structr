@@ -80,7 +80,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 			// FIXME: use uuid only here?
 			if (source instanceof JsonInput) {
 
-				Object value = ((JsonInput)source).getAttributes().get(propertyKey.name());
+				Object value = ((JsonInput)source).getAttributes().get(propertyKey.jsonName());
 				if (value != null) {
 					
 					String stringValue = value.toString();
@@ -97,7 +97,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				} else {
 					
 					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.name());
+					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.dbName());
 					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
 					
 				}
@@ -135,7 +135,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 						logger.log(Level.WARNING,
 							   "Unable to create node of type {0} for property {1}",
 							   new Object[] { type.getSimpleName(),
-									  propertyKey.name() });
+									  propertyKey.jsonName() });
 					}
 				}
 

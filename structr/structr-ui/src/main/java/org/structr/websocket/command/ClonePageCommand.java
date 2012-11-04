@@ -72,9 +72,9 @@ public class ClonePageCommand extends AbstractCommand {
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String newName;
 
-		if (nodeData.containsKey(AbstractNode.name.name())) {
+		if (nodeData.containsKey(AbstractNode.name.dbName())) {
 
-			newName = (String) nodeData.get(AbstractNode.name.name());
+			newName = (String) nodeData.get(AbstractNode.name.dbName());
 		} else {
 
 			newName = "unknown";

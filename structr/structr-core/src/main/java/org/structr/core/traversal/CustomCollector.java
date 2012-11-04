@@ -111,9 +111,9 @@ public abstract class CustomCollector implements TraverserInterface, Value<Trave
 	// ----- protected methods -----
 	protected boolean hasPropertyValue(Relationship rel, PropertyKey propertyKey, Object propertyValue) {
 		
-		if(rel != null && rel.hasProperty(propertyKey.name())) {
+		if(rel != null && rel.hasProperty(propertyKey.dbName())) {
 			
-			Object value = rel.getProperty(propertyKey.name());
+			Object value = rel.getProperty(propertyKey.dbName());
 			return value.equals(propertyValue);
 		}
 		
@@ -122,9 +122,9 @@ public abstract class CustomCollector implements TraverserInterface, Value<Trave
 
 	protected boolean hasPropertyValue(Node node, PropertyKey propertyKey, Object propertyValue) {
 		
-		if(node != null && node.hasProperty(propertyKey.name())) {
+		if(node != null && node.hasProperty(propertyKey.dbName())) {
 			
-			Object value = node.getProperty(propertyKey.name());
+			Object value = node.getProperty(propertyKey.dbName());
 			return value.equals(propertyValue);
 		}
 		

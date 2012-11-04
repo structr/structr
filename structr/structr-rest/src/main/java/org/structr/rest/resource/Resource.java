@@ -613,7 +613,7 @@ public abstract class Resource {
 
 			for (final PropertyKey key : searchableProperties) {
 
-				String searchValue = request.getParameter(key.name());
+				String searchValue = request.getParameter(key.jsonName());
 
 				if (searchValue != null) {
 

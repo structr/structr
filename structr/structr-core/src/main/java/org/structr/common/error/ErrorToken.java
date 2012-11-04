@@ -40,7 +40,7 @@ public abstract class ErrorToken {
 	}
 
 	public String getKey() {
-		return key.name();
+		return key.jsonName();
 	}
 
 	public int getStatus() {

@@ -390,11 +390,11 @@ public class Person extends AbstractNode implements Principal {
 	@Override
 	public String getEncryptedPassword() {
 
-		boolean dbNodeHasProperty = dbNode.hasProperty(password.name());
+		boolean dbNodeHasProperty = dbNode.hasProperty(password.dbName());
 
 		if (dbNodeHasProperty) {
 
-			Object dbValue = dbNode.getProperty(password.name());
+			Object dbValue = dbNode.getProperty(password.dbName());
 
 			return (String) dbValue;
 

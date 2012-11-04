@@ -107,7 +107,7 @@ public class RebuildIndexAgent extends Agent {
 						try {
 							Node dbNode = nodeIterator.next();
 
-							if (dbNode.hasProperty(GraphObject.uuid.name())) {
+							if (dbNode.hasProperty(GraphObject.uuid.dbName())) {
 
 								indexer.execute(nodeFactory.createNode(dbNode));
 
@@ -160,7 +160,7 @@ public class RebuildIndexAgent extends Agent {
 						try {
 							Relationship dbRelationship = relationshipIterator.next();
 
-							if (dbRelationship.hasProperty(GraphObject.uuid.name())) {
+							if (dbRelationship.hasProperty(GraphObject.uuid.dbName())) {
 
 								indexer.execute(relFactory.createRelationship(securityContext, dbRelationship));
 

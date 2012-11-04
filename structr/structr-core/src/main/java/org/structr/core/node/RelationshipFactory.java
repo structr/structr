@@ -118,9 +118,9 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			} else {
 
-				if (relationship.hasProperty(AbstractRelationship.combinedType.name())) {
+				if (relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
 
-					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.name());
+					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
 
 					relClass = EntityContext.getNamedRelationClass(combinedRelType);
 
@@ -187,8 +187,8 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 	
 	private Class<T> findNamedRelation(Relationship relationship) {
 		
-		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.type.name());
-		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.type.name());
+		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.type.dbName());
+		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.type.dbName());
 
 		
 		Class sourceType = EntityContext.getEntityClassForRawType(sourceNodeType);

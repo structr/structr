@@ -219,8 +219,8 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				// CHM: remove debug code later
 				t.printStackTrace();
 
-				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}, {2}) of entity {3} (value {4}): {5}", new Object[] {
-					key.name(),
+				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}, {2}) of entity {3} (value {4}) : {5}", new Object[] {
+					key.jsonName(),
 					key.getClass(),
 					key.getClass().getDeclaringClass(),
 					value.getClass().getName(),
@@ -282,11 +282,11 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 					if (value != null) {
 
-						jsonObject.add(localKey.name(), serializeProperty(key, value, localPropertyView, depth));
+						jsonObject.add(localKey.jsonName(), serializeProperty(key, value, localPropertyView, depth));
 
 					} else {
 
-						jsonObject.add(localKey.name(), null);
+						jsonObject.add(localKey.jsonName(), null);
 
 					}
 
@@ -326,7 +326,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				Object value = entry.getValue();
 				
 				// id property mapping again..
-				if (idProperty.name().equals(key)) {
+				if (idProperty.jsonName().equals(key)) {
 					key = "id";
 				}
 				
@@ -356,7 +356,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				
 				Object value = entry.getValue();
 				
-				object.add(key.name(), serializeProperty(key, value, localPropertyView, depth));
+				object.add(key.jsonName(), serializeProperty(key, value, localPropertyView, depth));
 			}
 			
 			return object;

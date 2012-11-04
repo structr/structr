@@ -20,6 +20,7 @@ package org.structr.rest.test;
 
 import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
+import java.text.SimpleDateFormat;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
 
@@ -29,6 +30,14 @@ import org.structr.rest.entity.TestOne;
  */
 public class SortTest extends StructrRestTest {
 
+	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+	
+	private String aDate = dateFormat.format(System.currentTimeMillis());
+	private String aDate3 = dateFormat.format(System.currentTimeMillis() - 200000);	// 2012-09-18T03:33:12+0200
+	private String aDate2 = dateFormat.format(System.currentTimeMillis() - 400000);	// 2012-09-18T01:33:12+0200
+	private String aDate4 = dateFormat.format(System.currentTimeMillis() - 100000);	// 2012-09-18T04:33:12+0200
+	private String aDate1 = dateFormat.format(System.currentTimeMillis() - 300000);	// 2012-09-18T02:33:12+0200
+	
 	/**
 	 * Test a more complex object
 	 */
@@ -39,7 +48,7 @@ public class SortTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.body(" { 'name' : 'a TestOne object', 'anInt' : 123, 'aLong' : 234, 'aDate' : '2012-09-18T06:33:12+0200' } ")
+				.body(" { 'name' : 'a TestOne object', 'anInt' : 123, 'aLong' : 234, 'aDate' : '" + aDate + "' } ")
 			.expect()
 				.statusCode(201)
 			.when()
@@ -83,19 +92,19 @@ public class SortTest extends StructrRestTest {
 		String resource = "/test_one";
 		
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.body(" { 'name' : 'TestOne-3', 'anInt' : 3, 'aLong' : 30, 'aDate' : '2012-09-18T03:33:12+0200' } ")
+			.body(" { 'name' : 'TestOne-3', 'anInt' : 3, 'aLong' : 30, 'aDate' : '" + aDate3 + "' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.body(" { 'name' : 'TestOne-1', 'anInt' : 2, 'aLong' : 10, 'aDate' : '2012-09-18T01:33:12+0200' } ")
+			.body(" { 'name' : 'TestOne-1', 'anInt' : 2, 'aLong' : 10, 'aDate' : '" + aDate2 + "' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
 		
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.body(" { 'name' : 'TestOne-4', 'anInt' : 4, 'aLong' : 40, 'aDate' : '2012-09-18T04:33:12+0200' } ")
+			.body(" { 'name' : 'TestOne-4', 'anInt' : 4, 'aLong' : 40, 'aDate' : '" + aDate4 + "' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.body(" { 'name' : 'TestOne-2', 'anInt' : 1, 'aLong' : 20, 'aDate' : '2012-09-18T02:33:12+0200' } ")
+			.body(" { 'name' : 'TestOne-2', 'anInt' : 1, 'aLong' : 20, 'aDate' : '" + aDate1 + "' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
 		
 		// sort by name
@@ -111,19 +120,19 @@ public class SortTest extends StructrRestTest {
 
 				.body("result[0]",          isEntity(TestOne.class))
 				.body("result[0].aLong",    equalTo(10))
-				.body("result[0].aDate",    equalTo("2012-09-18T01:33:12+0200"))
+				.body("result[0].aDate",    equalTo(aDate2))
 
 				.body("result[1]",          isEntity(TestOne.class))
 				.body("result[1].aLong",    equalTo(20))
-				.body("result[1].aDate",    equalTo("2012-09-18T02:33:12+0200"))
+				.body("result[1].aDate",    equalTo(aDate1))
 
 				.body("result[2]",          isEntity(TestOne.class))
 				.body("result[2].aLong",    equalTo(30))
-				.body("result[2].aDate",    equalTo("2012-09-18T03:33:12+0200"))
+				.body("result[2].aDate",    equalTo(aDate3))
 
 				.body("result[3]",          isEntity(TestOne.class))
 				.body("result[3].aLong",    equalTo(40))
-				.body("result[3].aDate",    equalTo("2012-09-18T04:33:12+0200"))
+				.body("result[3].aDate",    equalTo(aDate4))
 
 			.when()
 				.get(resource + "?sort=name&pageSize=10&page=1");
@@ -142,19 +151,19 @@ public class SortTest extends StructrRestTest {
 
 				.body("result[0]",          isEntity(TestOne.class))
 				.body("result[0].aLong",    equalTo(40))
-				.body("result[0].aDate",    equalTo("2012-09-18T04:33:12+0200"))
+				.body("result[0].aDate",    equalTo(aDate4))
 
 				.body("result[1]",          isEntity(TestOne.class))
 				.body("result[1].aLong",    equalTo(30))
-				.body("result[1].aDate",    equalTo("2012-09-18T03:33:12+0200"))
+				.body("result[1].aDate",    equalTo(aDate3))
 
 				.body("result[2]",          isEntity(TestOne.class))
 				.body("result[2].aLong",    equalTo(20))
-				.body("result[2].aDate",    equalTo("2012-09-18T02:33:12+0200"))
+				.body("result[2].aDate",    equalTo(aDate1))
 
 				.body("result[3]",          isEntity(TestOne.class))
 				.body("result[3].aLong",    equalTo(10))
-				.body("result[3].aDate",    equalTo("2012-09-18T01:33:12+0200"))
+				.body("result[3].aDate",    equalTo(aDate2))
 
 			.when()
 				.get(resource + "?sort=aDate&order=desc&pageSize=10&page=1");

@@ -148,12 +148,12 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		}
 
-		boolean emptyKey = StringUtils.isEmpty(key.name());
+		boolean emptyKey = StringUtils.isEmpty(key.dbName());
 
 		if (emptyKey) {
 
 			logger.log(Level.SEVERE, "Relationship {0} has empty, not-null key, removing property", new Object[] { id });
-			dbRel.removeProperty(key.name());
+			dbRel.removeProperty(key.dbName());
 
 			return;
 
@@ -183,13 +183,13 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		if (value == null) {
 
 			logger.log(Level.FINE, "Node {0} has null value for key {1}, removing property", new Object[] { id, key });
-			dbRel.removeProperty(key.name());
+			dbRel.removeProperty(key.dbName());
 			removeRelationshipPropertyFromAllIndices(dbRel, key);
 
 		} else if (emptyValue) {
 
 			logger.log(Level.FINE, "Node {0} has empty, non-null value for key {1}, removing property", new Object[] { id, key });
-			dbRel.removeProperty(key.name());
+			dbRel.removeProperty(key.dbName());
 			removeRelationshipPropertyFromAllIndices(dbRel, key);
 
 		} else {
@@ -214,7 +214,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		for (Enum indexName : (RelationshipIndex[]) arguments.get("relationshipIndices")) {
 
-			indices.get(indexName.name()).remove(rel, key.name());
+			indices.get(indexName.name()).remove(rel, key.dbName());
 
 		}
 	}
@@ -222,21 +222,21 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 	private void addRelationshipPropertyToFulltextIndex(final Relationship rel, final PropertyKey key, final Object value) {
 		Index<Relationship> index = indices.get(RelationshipIndex.rel_fulltext.name());
 		synchronized(index) {
-			index.add(rel, key.name(), value);
+			index.add(rel, key.dbName(), value);
 		}
 	}
 
 	private void addRelationshipPropertyToUuidIndex(final Relationship rel, final PropertyKey key, final Object value) {
 		Index<Relationship> index = indices.get(RelationshipIndex.rel_uuid.name());
 		synchronized(index) {
-			index.add(rel, key.name(), value);
+			index.add(rel, key.dbName(), value);
 		}
 	}
 
 	private void addRelationshipPropertyToKeywordIndex(final Relationship rel, final PropertyKey key, final Object value) {
 		Index<Relationship> index = indices.get(RelationshipIndex.rel_keyword.name());
 		synchronized(index) {
-			index.add(rel, key.name(), value);
+			index.add(rel, key.dbName(), value);
 		}
 	}
 }

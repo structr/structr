@@ -248,9 +248,9 @@ public class Component extends AbstractNode implements Element {
 	public <T> T getProperty(PropertyKey<T> key) {
 
 		// try local properties first
-		if (contentNodes.containsKey(key.name())) {
+		if (contentNodes.containsKey(key.dbName())) {
 
-			AbstractNode node = contentNodes.get(key.name());
+			AbstractNode node = contentNodes.get(key.dbName());
 
 			if ((node != null) && (node != this)) {
 
@@ -258,7 +258,7 @@ public class Component extends AbstractNode implements Element {
 
 			}
 
-		} else if (subTypes.contains(EntityContext.normalizeEntityName(key.name()))) {
+		} else if (subTypes.contains(EntityContext.normalizeEntityName(key.dbName()))) {
 
 			String componentId      = getProperty(AbstractNode.uuid);
 			List<Component> results = new LinkedList<Component>();
@@ -520,9 +520,9 @@ public class Component extends AbstractNode implements Element {
 	@Override
 	public <T> void setProperty(PropertyKey<T> key, T value) throws FrameworkException {
 
-		if (contentNodes.containsKey(key.name())) {
+		if (contentNodes.containsKey(key.dbName())) {
 
-			AbstractNode node = contentNodes.get(key.name());
+			AbstractNode node = contentNodes.get(key.dbName());
 
 			if (node != null) {
 

@@ -83,7 +83,7 @@ public class PageHelper {
 
 			for (PropertyKey key : rel.getProperties().keySet()) {
 
-				pageNode = getNodeById(securityContext, key.name());
+				pageNode = getNodeById(securityContext, key.dbName());
 
 				if (pageNode != null && pageNode instanceof Page) {
 

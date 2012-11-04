@@ -201,7 +201,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 		if (source != null) {
 
-			Object typeName = source.get(AbstractNode.type.name());
+			Object typeName = source.get(AbstractNode.type.jsonName());
 			if (typeName != null) {
 
 				Class<? extends GraphObject> type = EntityContext.getEntityClassForRawType(typeName.toString());
@@ -276,7 +276,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				try {
 					Object propertyValue = converter.revert(entry.getValue());
-					inputTypedProperties.put(propertyKey.name(), propertyValue);
+					inputTypedProperties.put(propertyKey.jsonName(), propertyValue);
 					
 				} catch(ClassCastException cce) {
 
@@ -287,7 +287,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 			} else {
 
-				inputTypedProperties.put(propertyKey.name(), entry.getValue());
+				inputTypedProperties.put(propertyKey.jsonName(), entry.getValue());
 			}
 		}
 		

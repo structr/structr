@@ -111,7 +111,7 @@ public class CypherQuery {
 	
 	public CypherQuery search(PropertyKey key, Object value) {
 		
-		this.indexQuery = key.name().concat(":").concat(value.toString());
+		this.indexQuery = key.dbName().concat(":").concat(value.toString());
 		
 		return this;
 	}

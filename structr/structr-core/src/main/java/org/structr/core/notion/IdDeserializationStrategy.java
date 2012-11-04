@@ -100,7 +100,7 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 				} else {
 					
 					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.name());
+					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.dbName());
 					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
 					
 				}
@@ -139,7 +139,7 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 					AbstractNode newNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
 					if (newNode == null) {
 
-						logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.name() });
+						logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.dbName() });
 
 					}
 

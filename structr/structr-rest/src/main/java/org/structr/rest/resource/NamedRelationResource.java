@@ -176,7 +176,7 @@ public class NamedRelationResource extends WrappingResource {
 			final Class sourceType = namedRelation.getSourceType();
 			final Class destType = namedRelation.getDestType();
 
-			propertySet.put(AbstractRelationship.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
+			propertySet.put(AbstractRelationship.combinedType.dbName(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
 
 			// convertFromInput properties
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, relationshipEntity.getClass(), propertySet);

@@ -200,7 +200,7 @@ public class EntityContext {
 	
 	private static void registerProperty(Class type, PropertyKey propertyKey) {
 		
-		getClassPropertyMapForType(type).put(propertyKey.name(), propertyKey);
+		getClassPropertyMapForType(type).put(propertyKey.dbName(), propertyKey);
 		registerPropertySet(type, PropertyView.All, propertyKey);
 	}
 	
@@ -249,7 +249,7 @@ public class EntityContext {
 	 * @param propertyGroup the property group
 	 */
 	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
-		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
+		getPropertyGroupMapForType(type).put(key.dbName(), propertyGroup);
 	}
 
 	// ----- named relations -----
@@ -881,7 +881,7 @@ public class EntityContext {
 
 	// ----- property notions -----
 	public static PropertyGroup getPropertyGroup(Class type, PropertyKey key) {
-		return getPropertyGroup(type, key.name());
+		return getPropertyGroup(type, key.dbName());
 	}
 
 	public static PropertyGroup getPropertyGroup(Class type, String key) {
@@ -974,7 +974,7 @@ public class EntityContext {
 
 	public static RelationClass getRelationClass(Class sourceType, PropertyKey key) {
 
-		Class destType = getEntityClassForRawType(key.name());
+		Class destType = getEntityClassForRawType(key.dbName());
 
 		if (destType != null) {
 
@@ -1069,7 +1069,7 @@ public class EntityContext {
 		if (key == null) {
 			
 			// first try: uuid
-			if (GraphObject.uuid.name().equals(name)) {
+			if (GraphObject.uuid.dbName().equals(name)) {
 				return GraphObject.uuid;
 			}
 
@@ -1480,7 +1480,7 @@ public class EntityContext {
 	}
 
 	public static boolean isSearchableProperty(Class type, String index, PropertyKey key) {
-		return isSearchableProperty(type, index, key.name());
+		return isSearchableProperty(type, index, key.dbName());
 	}
 
 	public static boolean isSearchableProperty(Class type, String index, String key) {
@@ -1774,7 +1774,7 @@ public class EntityContext {
 					
 					logger.log(Level.FINEST, "Node deleted: {0}", node.getId());
 
-					String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.name());
+					String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
 					AbstractNode entity = nodeFactory.createDummyNode(type);
 					
 					if (entity != null) {

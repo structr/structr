@@ -52,7 +52,7 @@ public class GetCommand extends AbstractCommand {
 
 			for (PropertyKey key : node.getPropertyKeys(view)) {
 
-				webSocketData.setNodeData(key.name(), node.getProperty(key));
+				webSocketData.setNodeData(key.jsonName(), node.getProperty(key));
 
 			}
 

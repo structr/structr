@@ -923,7 +923,7 @@ public class HtmlServlet extends HttpServlet {
 
 								if ((value != null) && StringUtils.isNotBlank(value)) {
 
-									String key = attribute.name().substring(PropertyView.Html.length());
+									String key = attribute.jsonName().substring(PropertyView.Html.length());
 
 									buffer.append(" ").append(key).append("=\"").append(value).append("\"");
 

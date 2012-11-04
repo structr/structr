@@ -90,7 +90,7 @@ public class DynamicValidator extends PropertyValidator {
 								attrs.put("error", errorMessage);
 								attrs.put("value", value);
 
-								errorBuffer.add(errorKey.name(), new DynamicValidationError(errorKey, attrs));
+								errorBuffer.add(errorKey.jsonName(), new DynamicValidationError(errorKey, attrs));
 
 							}
 

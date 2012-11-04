@@ -70,7 +70,7 @@ public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 				} catch(FrameworkException fex) {
 					
 					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
-						key.name(),
+						key.dbName(),
 						source.getClass().getSimpleName(),
 						fex.getMessage()
 						

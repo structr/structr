@@ -46,9 +46,9 @@ public class TypePredicate implements Predicate<Node> {
 
 			Node node = nodes[0];
 			
-			if(node.hasProperty(AbstractNode.type.name())) {
+			if(node.hasProperty(AbstractNode.type.dbName())) {
 
-				String value = (String)node.getProperty(AbstractNode.type.name());
+				String value = (String)node.getProperty(AbstractNode.type.dbName());
 
 				logger.log(Level.FINEST, "Type property: {0}, expected {1}", new Object[] { value, type } );
 

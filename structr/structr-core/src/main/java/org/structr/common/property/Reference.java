@@ -73,8 +73,13 @@ public class Reference<T> implements PropertyKey<T> {
 	
 	// interface PropertyKey
 	@Override
-	public String name() {
-		return propertyKey.name();
+	public String dbName() {
+		return propertyKey.dbName();
+	}
+
+	@Override
+	public String jsonName() {
+		return propertyKey.jsonName();
 	}
 
 	@Override

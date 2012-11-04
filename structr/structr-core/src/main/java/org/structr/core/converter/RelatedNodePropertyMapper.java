@@ -65,7 +65,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 				relatedNode.setProperty(targetKey, source);
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.name(),
+				logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.dbName(),
 					targetType });
 			}
 		}

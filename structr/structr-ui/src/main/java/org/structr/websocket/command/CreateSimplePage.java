@@ -68,7 +68,7 @@ public class CreateSimplePage extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		pageName = (String) webSocketData.getNodeData().get(Page.name.name());
+		pageName = (String) webSocketData.getNodeData().get(Page.name.dbName());
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
