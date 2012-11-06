@@ -21,10 +21,18 @@
 
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.PropertyKey;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -32,18 +40,11 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchRelationshipCommand;
-import org.structr.rest.exception.NotFoundException;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import org.structr.common.property.PropertyKey;
 import org.structr.rest.exception.NotAllowedException;
+import org.structr.rest.exception.NotFoundException;
+//~--- JDK imports ------------------------------------------------------------
+import org.structr.rest.resource.visitor.ResourceVisitor;
+import org.structr.rest.resource.visitor.Visitable;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,7 +53,7 @@ import org.structr.rest.exception.NotAllowedException;
  *
  * @author Christian Morgner
  */
-public class UuidResource extends FilterableResource {
+public class UuidResource extends FilterableResource implements Visitable<ResourceVisitor> {
 
 	private static final Logger logger = Logger.getLogger(UuidResource.class.getName());
 
@@ -63,7 +64,7 @@ public class UuidResource extends FilterableResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		GraphObject obj = null;
 
@@ -72,19 +73,19 @@ public class UuidResource extends FilterableResource {
 
 			obj = getNode();
 
-		} catch (NotFoundException nfex1) {
+		} catch (final NotFoundException nfex1) {
 
 			try {
 
 				obj = getRelationship();
 
-			} catch (NotFoundException nfex2) {}
+			} catch (final NotFoundException nfex2) {}
 
 		}
 
 		if (obj != null) {
 
-			List<GraphObject> results = new LinkedList<GraphObject>();
+			final List<GraphObject> results = new LinkedList<GraphObject>();
 
 			results.add(obj);
 
@@ -97,7 +98,7 @@ public class UuidResource extends FilterableResource {
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) {
 
 		this.securityContext = securityContext;
 
@@ -111,12 +112,12 @@ public class UuidResource extends FilterableResource {
 
 	public AbstractNode getNode() throws FrameworkException {
 
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		final List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		Result results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
-		int size       = results.size();
+		final Result results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
+		final int size       = results.size();
 
 		switch (size) {
 
@@ -124,13 +125,13 @@ public class UuidResource extends FilterableResource {
 				throw new NotFoundException();
 
 			case 1 :
-				
-				AbstractNode node = (AbstractNode) results.get(0);
-				
+
+				final AbstractNode node = (AbstractNode) results.get(0);
+
 				if (!securityContext.isReadable(node, true, false)) {
 					throw new NotAllowedException();
 				}
-				
+
 				return node;
 
 			default :
@@ -144,12 +145,12 @@ public class UuidResource extends FilterableResource {
 
 	public AbstractRelationship getRelationship() throws FrameworkException {
 
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		final List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		List<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs);
-		int size                           = results.size();
+		final List<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs);
+		final int size                           = results.size();
 
 		switch (size) {
 
@@ -197,10 +198,14 @@ public class UuidResource extends FilterableResource {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setUuid(String uuid) {
+	public void setUuid(final String uuid) {
 
 		this.uuid = uuid;
 
 	}
 
+	@Override
+	public void accept(final ResourceVisitor visitor) throws FrameworkException {
+		visitor.visit(this);
+	}
 }

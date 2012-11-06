@@ -1,56 +1,59 @@
 /*
  *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
-import org.structr.core.node.search.*;
-import org.structr.core.node.search.DistanceSearchAttribute;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotFoundException;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.DistanceSearchAttribute;
+import org.structr.core.node.search.FilterSearchAttribute;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchOperator;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotFoundException;
+//~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,7 +79,7 @@ public class TypeResource extends SortableResource {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) throws FrameworkException {
 
 		this.securityContext = securityContext;
 		this.request         = request;
@@ -88,7 +91,7 @@ public class TypeResource extends SortableResource {
 			entityClass = EntityContext.getEntityClassForRawType(rawType);
 
 			if (entityClass == null) {
-				
+
 				// test if key is a known property
 				if (!EntityContext.isKnownProperty(new Property(part))) {
 
@@ -102,11 +105,11 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		boolean includeDeletedAndHidden        = false;
-		boolean publicOnly                     = false;
+		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		final boolean includeDeletedAndHidden        = false;
+		final boolean publicOnly                     = false;
 
 		if (rawType != null) {
 
@@ -116,7 +119,7 @@ public class TypeResource extends SortableResource {
 			}
 
 			// distance search?
-			DistanceSearchAttribute distanceSearch = getDistanceSearch(request);
+			final DistanceSearchAttribute distanceSearch = getDistanceSearch(request);
 
 			if (distanceSearch != null) {
 
@@ -131,37 +134,37 @@ public class TypeResource extends SortableResource {
                                 searchAttributes.addAll(extractSearchableAttributesFromRequest(securityContext));
 
 			}
-			
+
 			// default sort key & order
 			if (sortKey == null) {
-				
+
 				try {
-					
-					GraphObject templateEntity  = ((GraphObject)entityClass.newInstance());
-					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
+
+					final GraphObject templateEntity  = (GraphObject)entityClass.newInstance();
+					final PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
 					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
-					
+
 					if (sortKeyProperty != null) {
 						sortKey = sortKeyProperty;
 					}
-					
-				} catch(Throwable t) {
-					
+
+				} catch(final Throwable t) {
+
 					// fallback to name
 					sortKey = AbstractNode.name;
 				}
 			}
-			
+
 			Integer sortType = null;
 			boolean sortFinalResults = false;
-			
+
 //			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
-			
+
 			if (sortKey != null) {
-				
-				PropertyConverter converter = sortKey.inputConverter(securityContext);
+
+				final PropertyConverter converter = sortKey.inputConverter(securityContext);
 				if (converter != null) {
-					
+
 					sortType = converter.getSortType();
 					sortFinalResults = converter.sortFinalResults();
 
@@ -177,9 +180,9 @@ public class TypeResource extends SortableResource {
 
 				}
 			}
-			
+
 			// do search
-			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
+			final Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
 				includeDeletedAndHidden,
 				publicOnly,
 				searchAttributes,
@@ -190,22 +193,22 @@ public class TypeResource extends SortableResource {
 				offsetId,
 				sortType
 			);
-			
+
 			if (sortFinalResults) {
 				// sort by result count
 				Collections.sort(results.getResults(), new GraphObjectComparator(sortKey, sortDescending ? GraphObjectComparator.DESCENDING : GraphObjectComparator.ASCENDING));
 			}
-			
-			
-			
+
+
+
 			return results;
-			
+
 		} else {
 
 			logger.log(Level.WARNING, "type was null");
 		}
 
-		List emptyList = Collections.emptyList();
+		final List emptyList = Collections.emptyList();
 		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
 	}
 
@@ -213,7 +216,7 @@ public class TypeResource extends SortableResource {
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		// create transaction closure
-		StructrTransaction transaction = new StructrTransaction() {
+		final StructrTransaction transaction = new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
@@ -225,8 +228,8 @@ public class TypeResource extends SortableResource {
 		};
 
 		// execute transaction: create new node
-		AbstractNode newNode    = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
-		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+		final AbstractNode newNode    = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+		final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 
 		if (newNode != null) {
 
@@ -260,18 +263,18 @@ public class TypeResource extends SortableResource {
 
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
-		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 		properties.put(AbstractNode.type, entityClass.getSimpleName());
-		
-		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+
+		return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
 	}
 
 	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
+	public Resource tryCombineWith(final Resource next) throws FrameworkException {
 
 		if (next instanceof UuidResource) {
 
-			TypedIdResource constraint = new TypedIdResource(securityContext, (UuidResource) next, this);
+			final TypedIdResource constraint = new TypedIdResource(securityContext, (UuidResource) next, this);
 
 			constraint.configureIdProperty(idProperty);
 
@@ -301,6 +304,15 @@ public class TypeResource extends SortableResource {
 
 	}
 
+	public SecurityContext getSecurityContext() {
+		return securityContext;
+	}
+
+	public PropertyKey getIdProperty() {
+		return idProperty;
+	}
+
+	@Override
 	public Class getEntityClass() {
 
 		return entityClass;
@@ -314,7 +326,7 @@ public class TypeResource extends SortableResource {
 
 	}
 
-	protected List<SearchAttribute> extractSearchableAttributesFromRequest(SecurityContext securityContext) throws FrameworkException {
+	protected List<SearchAttribute> extractSearchableAttributesFromRequest(final SecurityContext securityContext) throws FrameworkException {
 		return extractSearchableAttributesForNodes(securityContext, rawType, request);
 	}
 
