@@ -30,7 +30,7 @@ import org.structr.rest.resource.UuidResource;
  */
 public class TypeResourceVisitorImpl implements ResourceVisitor {
 
-	protected final TypeResource resource;
+	private final TypeResource resource;
 	protected Resource result;
 
 	/**
