@@ -26,15 +26,16 @@ package org.structr.core.entity;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+
 import org.neo4j.graphdb.Relationship;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
-import org.structr.common.property.PropertyMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.Property;
+import org.structr.common.property.PropertyKey;
+import org.structr.common.property.PropertyMap;
 import org.structr.core.EntityContext;
 import org.structr.core.node.NodeService.RelationshipIndex;
 
@@ -53,23 +54,23 @@ public class GenericRelationship extends AbstractRelationship {
 	public static final View uiView = new View(GenericRelationship.class, PropertyView.Ui,
 		startNodeId, endNodeId
 	);
-	
+
 	static {
 
 //		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All, Key.values());
 
 		EntityContext.registerSearchableProperty(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), AbstractRelationship.uuid);
-		
+
 		// register start and end node for ui view
 //		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.Ui, UiKey.values());
-		
+
 	}
-	
+
 	//~--- constructors ---------------------------------------------------
 
 	public GenericRelationship() {}
 
-	public GenericRelationship(SecurityContext securityContext, Relationship dbRelationship) {
+	public GenericRelationship(final SecurityContext securityContext, final Relationship dbRelationship) {
 		init(securityContext, dbRelationship);
 	}
 
@@ -82,42 +83,41 @@ public class GenericRelationship extends AbstractRelationship {
 	public PropertyKey getEndNodeIdKey() {
 		return endNodeId;
 	}
-		
+
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
-		
-		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
-		
+	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
+
+		final Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
+
 		keys.add(startNodeId);
 		keys.add(endNodeId);
-		
+
 		if(dbRelationship != null) {
-			
-			for(String key : dbRelationship.getPropertyKeys()) {
+
+			for(final String key : dbRelationship.getPropertyKeys()) {
 				keys.add(EntityContext.getPropertyKeyForName(entityType, key));
 			}
 		}
-		
+
 		return keys;
 	}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean beforeCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean beforeModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public boolean beforeDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+	private boolean isValid(final ErrorBuffer errorBuffer) {
 		return true;
 	}
 }
