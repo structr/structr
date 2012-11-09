@@ -601,9 +601,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					// CHM: remove debugging code later
 					t.printStackTrace();
 					
-					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+					logger.log(Level.WARNING, "Unable to convert property {0} of {1} {2}: {3}", new Object[] {
 						key.name(),
 						entityType.getSimpleName(),
+						getUuid(),
 						t.getMessage()
 					});
 				}
@@ -671,10 +672,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 						
 						// CHM: remove debugging code later
 						t.printStackTrace();
-						
-						logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+					
+						logger.log(Level.WARNING, "Unable to convert property {0} of {1} {2}: {3}", new Object[] {
 							key.name(),
-							getClass().getSimpleName(),
+							entityType.getSimpleName(),
+							getUuid(),
 							t.getMessage()
 						});
 					}
