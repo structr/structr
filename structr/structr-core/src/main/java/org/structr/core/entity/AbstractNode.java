@@ -596,12 +596,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				try {
 					return propertyGroup.getGroupedProperties(securityContext, this);
 					
-				} catch(FrameworkException fex) {
+				} catch(Throwable t) {
+						
+					// CHM: remove debugging code later
+					t.printStackTrace();
 					
 					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
 						key.name(),
 						entityType.getSimpleName(),
-						fex.getMessage()
+						t.getMessage()
 					});
 				}
 			}
