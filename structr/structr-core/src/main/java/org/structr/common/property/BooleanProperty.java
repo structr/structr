@@ -68,7 +68,12 @@ public class BooleanProperty extends Property<Boolean> {
 		
 		@Override
 		public Boolean revert(Boolean source) throws FrameworkException {
-			return source;
+			
+			if (source != null) {
+				return source;
+			}
+			
+			return false;
 		}
 
 		@Override

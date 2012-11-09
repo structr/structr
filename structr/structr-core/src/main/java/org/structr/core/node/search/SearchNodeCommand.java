@@ -76,6 +76,11 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 	//~--- methods --------------------------------------------------------
 
+	public Result<T> execute(final SearchAttribute... attributes) throws FrameworkException {
+		
+		return execute(false, false, Arrays.asList(attributes));
+	}
+
 	public Result<T> execute(final List<SearchAttribute> searchAttrs) throws FrameworkException {
 		
 		return execute(false, false, searchAttrs);

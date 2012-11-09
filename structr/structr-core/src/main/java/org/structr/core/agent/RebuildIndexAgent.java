@@ -112,7 +112,7 @@ public class RebuildIndexAgent extends Agent {
 								indexer.execute(nodeFactory.createNode(dbNode));
 
 								// restart transaction after 1000 iterations
-								if (count++ == 100) {
+								if (++count == 100) {
 									break;
 								}
 							}
@@ -165,7 +165,7 @@ public class RebuildIndexAgent extends Agent {
 								indexer.execute(relFactory.createRelationship(securityContext, dbRelationship));
 
 								// restart transaction after 1000 iterations
-								if (count++ == 100) {
+								if (++count == 100) {
 									break;
 								}
 							}
