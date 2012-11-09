@@ -964,11 +964,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			try {
 				return converter.convertForSorting(propertyValue);
 
-			} catch(FrameworkException fex) {
+			} catch(Throwable t) {
+				
+				t.printStackTrace();
+				
 				logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
 					key.name(),
 					getClass().getSimpleName(),
-					fex.getMessage()
+					t.getMessage()
 				});
 			}
 		}
