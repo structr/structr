@@ -18,10 +18,13 @@
  */
 package org.structr.common.property;
 
+import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchOperator;
 
 /**
  * 
@@ -109,5 +112,15 @@ public class Reference<T> implements PropertyKey<T> {
 
 	@Override
 	public void setDeclaringClassName(String declaringClassName) {
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
+		return propertyKey.getSearchAttribute(op, searchValue, exactMatch);
+	}
+
+	@Override
+	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
+		propertyKey.registerSearchableProperties(searchableProperties);
 	}
 }

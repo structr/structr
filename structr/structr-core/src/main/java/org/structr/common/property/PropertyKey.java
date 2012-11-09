@@ -19,9 +19,12 @@
 
 package org.structr.common.property;
 
+import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchOperator;
 
 /**
  * Interface for typed node property keys.
@@ -39,6 +42,10 @@ public interface PropertyKey<JavaType> {
 	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
 
 	public void setDeclaringClassName(String declaringClassName);
+
+	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch);
+	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
+	
 	
 	/**
 	 * Indicates whether this property is a system property or not. If a transaction

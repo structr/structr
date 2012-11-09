@@ -60,6 +60,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.common.*;
+import org.structr.common.property.GroupProperty;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyMap;
 import org.structr.core.module.ModuleService;
@@ -81,7 +82,7 @@ public class EntityContext {
 	private static final Logger logger                                                            = Logger.getLogger(EntityContext.class.getName());
 	private static final Map<Class, Set<PropertyKey>> globalWriteOncePropertyMap                  = new LinkedHashMap<Class, Set<PropertyKey>>();
 	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<Class, Map<PropertyKey, Set<PropertyValidator>>>();
-	private static final Map<String, Map<String, Set<PropertyKey>>> globalSearchablePropertyMap   = new LinkedHashMap<String, Map<String, Set<PropertyKey>>>();
+	private static final Map<Class, Map<String, Set<PropertyKey>>> globalSearchablePropertyMap    = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
 
 	// This map contains a mapping from (sourceType, destType) -> RelationClass
 	private static final Map<Class, Map<Class, RelationClass>> globalRelationClassMap    = new LinkedHashMap<Class, Map<Class, RelationClass>>();
@@ -133,7 +134,7 @@ public class EntityContext {
 		for (Enum index : NodeService.NodeIndex.values()) {
 
 			String indexName                                           = index.name();
-			Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
+			Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
 			Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(indexName);
 
 			if (searchablePropertySet == null) {
@@ -551,7 +552,7 @@ public class EntityContext {
 	 */
 	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
 
-		Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
+		Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
 		Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(index);
 
 		if (searchablePropertySet == null) {
@@ -562,7 +563,7 @@ public class EntityContext {
 
 		}
 
-		searchablePropertySet.add(key);
+		key.registerSearchableProperties(searchablePropertySet);
 	}
 
 	// ----- write-once property map -----
@@ -1193,17 +1194,11 @@ public class EntityContext {
 //	}
 
 	public static Set<PropertyKey> getSearchableProperties(Class type, String index) {
-		return getSearchableProperties(type.getSimpleName(), index);
-	}
-
-	public static Set<PropertyKey> getSearchableProperties(String type, String index) {
 
 		Set<PropertyKey> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
-
 		if (searchablePropertyMap == null) {
 
 			searchablePropertyMap = new HashSet<PropertyKey>();
-
 		}
 
 		return searchablePropertyMap;
@@ -1359,15 +1354,15 @@ public class EntityContext {
 		return writeOncePropertySet;
 	}
 
-	private static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(String sourceType) {
+	private static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(Class type) {
 
-		Map<String, Set<PropertyKey>> searchablePropertyMap = globalSearchablePropertyMap.get(normalizeEntityName(sourceType));
+		Map<String, Set<PropertyKey>> searchablePropertyMap = globalSearchablePropertyMap.get(type);
 
 		if (searchablePropertyMap == null) {
 
 			searchablePropertyMap = new LinkedHashMap<String, Set<PropertyKey>>();
 
-			globalSearchablePropertyMap.put(normalizeEntityName(sourceType), searchablePropertyMap);
+			globalSearchablePropertyMap.put(type, searchablePropertyMap);
 
 		}
 
@@ -1480,15 +1475,10 @@ public class EntityContext {
 	}
 
 	public static boolean isSearchableProperty(Class type, String index, PropertyKey key) {
-		return isSearchableProperty(type, index, key.dbName());
-	}
-
-	public static boolean isSearchableProperty(Class type, String index, String key) {
-		return isSearchableProperty(type.getSimpleName(), index, key);
-	}
-
-	public static boolean isSearchableProperty(String type, String index, String key) {
-		return getSearchablePropertyMapForType(normalizeEntityName(type)).containsKey(key);
+		
+		boolean isSearchable = getSearchableProperties(type, index).contains(key);
+		
+		return isSearchable;
 	}
 
 	public static boolean isWriteOnceProperty(Class type, PropertyKey key) {

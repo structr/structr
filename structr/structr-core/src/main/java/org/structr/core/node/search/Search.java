@@ -266,12 +266,8 @@ public abstract class Search {
 
 	}
 
-	public static SearchAttribute andProperty(final PropertyKey key, final String searchString) {
-
-		SearchAttribute attr = new TextualSearchAttribute(key, searchString, SearchOperator.AND);
-
-		return attr;
-
+	public static <T> SearchAttribute andProperty(final PropertyKey<T> key, final T searchValue) {
+		return key.getSearchAttribute(SearchOperator.OR, searchValue, false);
 	}
 
 	public static SearchAttribute orExactType(final String searchString) {
@@ -375,6 +371,9 @@ public abstract class Search {
 
 	}
 
+	FIXME: search doesnt work
+	
+	
 	public static SearchAttribute andNotHidden() {
 
 		SearchAttribute attr = new FilterSearchAttribute(AbstractNode.hidden, true, SearchOperator.NOT);
@@ -383,20 +382,12 @@ public abstract class Search {
 
 	}
 
-	public static SearchAttribute andExactProperty(final PropertyKey propertyKey, final String searchString) {
-
-		SearchAttribute attr = new TextualSearchAttribute(propertyKey, exactMatch(searchString), SearchOperator.AND);
-
-		return attr;
-
+	public static <T> SearchAttribute andExactProperty(final PropertyKey<T> propertyKey, final T searchValue) {
+		return propertyKey.getSearchAttribute(SearchOperator.AND, searchValue, true);
 	}
 
-	public static SearchAttribute orExactProperty(final PropertyKey propertyKey, final String searchString) {
-
-		SearchAttribute attr = new TextualSearchAttribute(propertyKey, exactMatch(searchString), SearchOperator.OR);
-
-		return attr;
-
+	public static <T> SearchAttribute orExactProperty(final PropertyKey<T> propertyKey, final T searchValue) {
+		return propertyKey.getSearchAttribute(SearchOperator.OR, searchValue, true);
 	}
 
 	public static String exactMatch(final String searchString) {

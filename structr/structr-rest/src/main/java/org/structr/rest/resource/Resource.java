@@ -459,40 +459,40 @@ public abstract class Resource {
 
 
 	protected List<SearchAttribute> extractSearchableAttributesForNodes(final SecurityContext securityContext,
-	                                                                    final String rawType,
+	                                                                    final Class type,
 	                                                                    final HttpServletRequest request) throws FrameworkException {
 		return extractSearchableAttributes(securityContext,
-		                                   rawType,
+		                                   type,
 		                                   request,
 		                                   NodeService.NodeIndex.fulltext.name(),
 		                                   NodeService.NodeIndex.keyword.name());
 	}
 
 	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final SecurityContext securityContext,
-	                                                                            final String rawType,
+	                                                                            final Class type,
 	                                                                            final HttpServletRequest request)
 	                                                                            				throws FrameworkException {
 		return extractSearchableAttributes(securityContext,
-		                                   rawType,
+		                                   type,
 		                                   request,
 		                                   NodeService.RelationshipIndex.rel_fulltext.name(),
 		                                   NodeService.RelationshipIndex.rel_keyword.name());
 	}
 
 	private static List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext,
-	                                                                 final String rawType,
+	                                                                 final Class type,
 	                                                                 final HttpServletRequest request,
 	                                                                 final String fulltextIndex,
 	                                                                 final String keywordIndex) throws FrameworkException {
 		List<SearchAttribute> searchAttributes = Collections.emptyList();
 
 		// searchable attributes
-		if (rawType != null && request != null &&!request.getParameterMap().isEmpty()) {
+		if (type != null && request != null &&!request.getParameterMap().isEmpty()) {
 
 			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
 			final Set<PropertyKey> searchableProperties =
-							getSearchableProperties(rawType,
+							getSearchableProperties(type,
 							                        looseSearch,
 							                        fulltextIndex,
 							                        keywordIndex);
@@ -579,17 +579,17 @@ public abstract class Resource {
 		}
 	}
 
-	private static Set<PropertyKey> getSearchableProperties(final String rawType, final boolean loose,
+	private static Set<PropertyKey> getSearchableProperties(final Class type, final boolean loose,
 	                                                        final String looseIndexName, final String exactIndexName) {
 		Set<PropertyKey> searchableProperties;
 
 		if (loose) {
 
-			searchableProperties = EntityContext.getSearchableProperties(rawType, looseIndexName);
+			searchableProperties = EntityContext.getSearchableProperties(type, looseIndexName);
 
 		} else {
 
-			searchableProperties = EntityContext.getSearchableProperties(rawType, exactIndexName);
+			searchableProperties = EntityContext.getSearchableProperties(type, exactIndexName);
 
 		}
 		return searchableProperties;

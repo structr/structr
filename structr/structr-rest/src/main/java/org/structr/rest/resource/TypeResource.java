@@ -315,7 +315,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	protected List<SearchAttribute> extractSearchableAttributesFromRequest(SecurityContext securityContext) throws FrameworkException {
-		return extractSearchableAttributesForNodes(securityContext, rawType, request);
+		return extractSearchableAttributesForNodes(securityContext, entityClass, request);
 	}
 
 	@Override

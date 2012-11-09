@@ -18,9 +18,14 @@
  */
 package org.structr.common.property;
 
+import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchOperator;
+import org.structr.core.node.search.TextualSearchAttribute;
 
 /**
  *
@@ -36,14 +41,21 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	protected String jsonName            = null;
 	
 	public Property(String name) {
-		this.jsonName = name;
-		this.dbName = name;
+		this(name, name);
+	}
+	
+	public Property(String jsonName, String dbName) {
+		this(jsonName, dbName, null);
 	}
 	
 	public Property(String name, JavaType defaultValue) {
+		this(name, name, defaultValue);
+	}
+	
+	public Property(String jsonName, String dbName, JavaType defaultValue) {
 		this.defaultValue = defaultValue;
-		this.jsonName = name;
-		this.dbName = name;
+		this.jsonName = jsonName;
+		this.dbName = dbName;
 	}
 	
 	public Property<JavaType> systemProperty() {
@@ -63,7 +75,7 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	
 	@Override
 	public String toString() {
-		return "(".concat(jsonName).concat("|").concat(dbName).concat(")");
+		return "(".concat(jsonName()).concat("|").concat(dbName()).concat(")");
 	}
 	
 	@Override
@@ -84,16 +96,17 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public int hashCode() {
 		
-		if (dbName != null && jsonName != null) {
-			return (dbName.hashCode() * 31) + jsonName.hashCode();
+		// make hashCode funtion work for subtypes that override jsonName() etc. as well
+		if (dbName() != null && jsonName() != null) {
+			return (dbName().hashCode() * 31) + jsonName().hashCode();
 		}
 		
-		if (dbName != null) {
-			return dbName.hashCode();
+		if (dbName() != null) {
+			return dbName().hashCode();
 		}
 		
-		if (jsonName != null) {
-			return jsonName.hashCode();
+		if (jsonName() != null) {
+			return jsonName().hashCode();
 		}
 		
 		// TODO: check if it's ok if null key is not unique
@@ -103,7 +116,7 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public boolean equals(Object o) {
 		
-		if (o instanceof Property) {
+		if (o instanceof PropertyKey) {
 		
 			return o.hashCode() == hashCode();
 		}
@@ -129,5 +142,20 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public boolean isReadOnlyProperty() {
 		return isReadOnlyProperty;
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch) {
+		
+		// return empty string on null value here to enable searching for empty values
+		String searchString = searchValue != null ? searchValue.toString() : "";
+		String search       = exactMatch ? Search.exactMatch(searchString) : searchString;
+		
+		return new TextualSearchAttribute(this, search, op);
+	}
+
+	@Override
+	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
+		searchableProperties.add(this);
 	}
 }

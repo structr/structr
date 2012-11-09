@@ -478,7 +478,7 @@ public class Importer {
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
 		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
-		searchAttrs.add(Search.andExactProperty(File.checksum, String.valueOf(checksum)));
+		searchAttrs.add(Search.andExactProperty(File.checksum, checksum));
 		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
 
 		Result files = searchNode.execute(searchAttrs);

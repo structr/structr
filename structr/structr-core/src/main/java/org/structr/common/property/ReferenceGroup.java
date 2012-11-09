@@ -18,6 +18,7 @@
  */
 package org.structr.common.property;
 
+import java.util.Collection;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -45,7 +46,9 @@ public class ReferenceGroup extends GroupProperty {
 			AbstractRelationship rel = (AbstractRelationship)source;
 			PropertyMap properties   = new PropertyMap();
 
-			for (Reference reference : (Reference[])propertyKeys) {
+			for (PropertyKey key : propertyKeys.values()) {
+
+				Reference reference = (Reference)key;
 
 				GraphObject referencedEntity = reference.getReferencedEntity(rel);
 				PropertyKey referenceKey     = reference.getReferenceKey();
@@ -70,8 +73,10 @@ public class ReferenceGroup extends GroupProperty {
 
 			AbstractRelationship rel = (AbstractRelationship)destination;
 
-			for (Reference reference : (Reference[])propertyKeys) {
+			for (PropertyKey key : propertyKeys.values()) {
 
+				Reference reference = (Reference)key;
+				
 				GraphObject referencedEntity = reference.getReferencedEntity(rel);
 				PropertyKey referenceKey     = reference.getReferenceKey();
 				PropertyKey propertyKey      = reference.getPropertyKey();
