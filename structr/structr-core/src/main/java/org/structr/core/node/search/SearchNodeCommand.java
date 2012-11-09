@@ -229,12 +229,9 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 				long t0 = System.nanoTime();
 
-				logger.log(Level.INFO, "Textual Query String: {0}", queryString);
+				logger.log(Level.FINEST, "Textual Query String: {0}", queryString);
 
 				String query = queryString.toString();
-				
-				QueryContext numericContext = QueryContext.numericRange("created_at", 1323502905000L, 1383502905000L);
-				System.out.println(numericContext.getQueryOrQueryObject().toString());
 				
 				QueryContext queryContext = new QueryContext(query);
 				IndexHits hits            = null;
