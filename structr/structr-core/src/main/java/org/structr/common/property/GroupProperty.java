@@ -123,9 +123,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 
 		}
 
-		if (nullValuesOnly) {
-			return null;
-		}
+		// FIXME: this is not working as expected, there needs to be an additional flag that
+		// indicates whether the group was explicitly to "null" or if all the values are null only
+//		if (nullValuesOnly) {
+//			return null;
+//		}
 		
 		return groupedProperties;
 	}
