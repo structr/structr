@@ -21,6 +21,7 @@
         <module>structr-rest</module>
         <module>structr-websocket</module>
         <module>structr-ui</module>
+        <module>structr-crud</module>
         <module>structr-server</module>
     </modules>
 
