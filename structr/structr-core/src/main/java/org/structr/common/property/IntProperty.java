@@ -35,7 +35,11 @@ public class IntProperty extends Property<Integer> {
 	}
 	
 	public IntProperty(String name, Integer defaultValue) {
-		super(name, defaultValue);
+		this(name, name, defaultValue);
+	}
+	
+	public IntProperty(String jsonName, String dbName, Integer defaultValue) {
+		super(jsonName, dbName, defaultValue);
 	}
 	
 	@Override

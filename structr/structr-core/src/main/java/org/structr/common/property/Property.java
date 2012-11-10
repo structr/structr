@@ -48,10 +48,6 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 		this(jsonName, dbName, null);
 	}
 	
-	public Property(String name, JavaType defaultValue) {
-		this(name, name, defaultValue);
-	}
-	
 	public Property(String jsonName, String dbName, JavaType defaultValue) {
 		this.defaultValue = defaultValue;
 		this.jsonName = jsonName;
