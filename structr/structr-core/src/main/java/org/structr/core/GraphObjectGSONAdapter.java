@@ -219,7 +219,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				// CHM: remove debug code later
 				t.printStackTrace();
 
-				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}, {2}) of entity {3} (value {4}) : {5}", new Object[] {
+				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}, {2}) of entity {3} (value {4}): {5}", new Object[] {
 					key.name(),
 					key.getClass(),
 					key.getClass().getDeclaringClass(),
