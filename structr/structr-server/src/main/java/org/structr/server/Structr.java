@@ -61,7 +61,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.log.LogService;
 import org.structr.core.module.ModuleService;
 import org.structr.core.node.NodeService;
-import org.structr.crud.servlet.StructrCrudServlet;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
@@ -107,9 +106,6 @@ public class Structr {
 	private boolean quiet                                      = false;
 	private boolean enableHttps                                = false;
 	private boolean enableGzipCompression                      = true;
-	
-	private boolean enableCrudServlet                          = true;
-	private String crudUrl                                     = "/structr/crud";
 	
 	private Class<? extends StructrServer> app                 = null;
 	private Class<? extends ResourceProvider> resourceProvider = null;
@@ -473,14 +469,6 @@ public class Structr {
 		// add to servlets
 		servlets.put(restUrl + "/*", structrRestServletHolder);
 
-		// add CRUD servlet
-		if (enableCrudServlet) {
-			
-			StructrCrudServlet crudServlet     = new StructrCrudServlet();
-			ServletHolder crudServletHolder = new ServletHolder(crudServlet);
-			servlets.put(crudUrl + "/*", crudServletHolder);
-		}
-		
 		// add servlet elements
 		int position = 1;
 		for (Entry<String, ServletHolder> servlet : servlets.entrySet()) {
