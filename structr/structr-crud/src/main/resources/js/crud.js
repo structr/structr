@@ -178,42 +178,52 @@ function crudCreate(type, url) {
 
 function crudRefresh(id, key) {
     $.ajax({
-        url: restUrl + '/' + id,
+        url: restUrl + '/' + id + '/' + view,
         type: 'GET',
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
         async: false,
         success: function(data) {
-            refreshCell(data.result, key);
+            console.log('crudRefresh', data);
+            refreshCell(id, key, data.result[key]);
+        }
+    });
+}
+
+function crudReset(id, key) {
+    $.ajax({
+        url: restUrl + '/' + id + '/' + view,
+        type: 'GET',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        async: false,
+        success: function(data) {
+            console.log('crudReset', data);
+            resetCell(id, key, data.result[key]);
         }
     });
 }
 
 function crudUpdate(id, key, newValue) {
     $.ajax({
-        url: restUrl + '/' + id,
+        url: restUrl + '/' + id + '/' + view,
         data: '{"' + key + '":"' + newValue + '"}',
         type: 'PUT',
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
         async: false,
         success: function() {
-            
-            cell(id, key).animate({
-                color: '#81ce25'
-            }, 100, function() {
-                $(this).animate({
-                    color: '#333333'
-                }, 200);
-            });
             crudRefresh(id, key);
+        },
+        error: function() {
+            crudReset(id, key);
         }
     });
 }
 
 function crudDelete(id) {
     $.ajax({
-        url: restUrl + '/' + id,
+        url: restUrl + '/' + id + '/' + view,
         type: 'DELETE',
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
@@ -234,8 +244,43 @@ function cell(id, key) {
     return cell;
 }
 
-function refreshCell(item, key) {
-    cell(item.id, key).text(item[key]);
+function resetCell(id, key, oldValue) {
+    console.log('resetCell', id, key, oldValue);
+    var c = cell(id, key);
+    c.empty();
+    c.text(oldValue);
+    var oldFg = c.css('color');
+    var oldBg = c.css('backgroundColor');
+    //console.log('old colors' , oldFg, oldBg);
+    c.animate({
+        color: '#f00',
+        backgroundColor: '#fbb'
+    }, 100, function() {
+        $(this).animate({
+            color: oldFg,
+            backgroundColor: oldBg
+        }, 500);
+    });
+}
+
+
+function refreshCell(id, key, newValue) {
+    console.log('refreshCell', id, key, newValue);
+    var c = cell(id, key);
+    c.empty();
+    c.text(newValue);
+    var oldFg = c.css('color');
+    var oldBg = c.css('backgroundColor');
+    //console.log('old colors' , oldFg, oldBg);
+    c.animate({
+        color: '#81ce25',
+        backgroundColor: '#efe'
+    }, 100, function() {
+        $(this).animate({
+            color: oldFg,
+            backgroundColor: oldBg
+        }, 500);
+    });
 }
 
 function appendRow(type, item) {
@@ -262,8 +307,8 @@ function appendRow(type, item) {
                     var newValue = input.val();
                     //console.log((input.val()));
                     crudUpdate(id, key, newValue);
-                    self.empty();
-                    self.text(newValue);
+                //self.empty();
+                //self.text(newValue);
                 });
             });
         });
