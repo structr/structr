@@ -75,9 +75,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		attrs.add(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
-		FIXME: check why this doesn't work for setProperty with plain uuid..
-		
-		
+		// TODO: check why this doesn't work for setProperty with plain uuid..
 		
 		if (source != null) {
 

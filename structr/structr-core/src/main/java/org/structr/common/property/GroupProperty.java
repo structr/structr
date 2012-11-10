@@ -94,7 +94,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 	
 	public <T> PropertyKey<T> getGroupProperty(String name, Class<T> type) {
-		return propertyKeys.get(name);
+		return new GroupPropertyWrapper((propertyKeys.get(name)));
 	}
 	
 	private class InputConverter extends PropertyConverter<Map<String, Object>, PropertyMap> {
@@ -230,7 +230,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		
 		@Override
 		public String toString() {
-			return wrappedKey.toString();
+			return "(".concat(jsonName()).concat("|").concat(dbName()).concat(")");
 		}
 	
 		@Override
@@ -296,7 +296,12 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 
 		@Override
 		public SearchAttribute getSearchAttribute(SearchOperator op, Object searchValue, boolean exactMatch) {
-			return wrappedKey.getSearchAttribute(op, searchValue, exactMatch);
+		
+			// return empty string on null value here to enable searching for empty values
+			String searchString = searchValue != null ? searchValue.toString() : "";
+			String search       = exactMatch ? Search.exactMatch(searchString) : searchString;
+
+			return new TextualSearchAttribute(this, search, op);
 		}
 
 		@Override

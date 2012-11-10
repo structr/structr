@@ -267,7 +267,7 @@ public abstract class Search {
 	}
 
 	public static <T> SearchAttribute andProperty(final PropertyKey<T> key, final T searchValue) {
-		return key.getSearchAttribute(SearchOperator.OR, searchValue, false);
+		return key.getSearchAttribute(SearchOperator.AND, searchValue, false);
 	}
 
 	public static SearchAttribute orExactType(final String searchString) {
@@ -370,9 +370,6 @@ public abstract class Search {
 		return attr;
 
 	}
-
-	FIXME: search doesnt work
-	
 	
 	public static SearchAttribute andNotHidden() {
 
