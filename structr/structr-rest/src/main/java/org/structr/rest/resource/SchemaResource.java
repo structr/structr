@@ -89,7 +89,8 @@ public class SchemaResource extends Resource {
 				Set<PropertyKey> properties              = EntityContext.getPropertySet(type, view);
 				
 				// ignore "all" and empty views
-				if (!"all".equals(view) && !properties.isEmpty()) {
+//				if (!"all".equals(view) && !properties.isEmpty()) {
+				if (!properties.isEmpty()) {
 					
 					for (PropertyKey property : properties) {
 

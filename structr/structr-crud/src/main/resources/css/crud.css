@@ -1,0 +1,64 @@
+@charset "UTF-8";
+
+#resourceTabs {
+    margin: 12px;
+}
+
+.resourceBox {
+    /*height: 600px;*/
+    overflow: auto;
+}
+
+.resourceBox table {
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.resourceBox td, .resourceBox th {
+    padding: 0.5em;
+    border: 1px solid #e5e5e5;
+    text-align: left;
+    vertical-align: top;
+    height: 1em;
+}
+
+.resourceBox tr:nth-child(odd) {
+    background: #f7f7f7 ! important;
+}
+
+.resourceBox tr:nth-child(even) {
+    background: #fff ! important;
+}
+
+.resourceBox th {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.resourceBox td.value {
+    padding: 0;
+}
+
+.resourceBox td.save {
+    color: #aaa;
+}
+
+.resourceBox td.save.active:hover, .resourceBox td.delete:hover, .resourceBox td.add:hover {
+    cursor: pointer;
+}
+
+.resourceBox td.save.active {
+    font-weight: bold;
+    color: #f33;
+}
+
+.resourceBox td input[type=text] {
+    margin: 0;
+    /*border: none;*/
+}
+
+.resourceBox button {
+    margin: 12px 0 0 0;
+}
+
+
