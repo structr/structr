@@ -99,7 +99,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				} else {
 					
 					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.dbName());
+					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.uuid.dbName());
 					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
 					
 				}

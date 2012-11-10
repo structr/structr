@@ -142,7 +142,7 @@ public class StaticRelationshipResource extends SortableResource {
 				// as the property key for getProperty
 				// look for a property converter for the given type and key
 				final Class type      = sourceNode.getClass();
-				final PropertyKey key = EntityContext.getPropertyKeyForName(type, typeResource.getRawType());
+				final PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type, typeResource.getRawType());
 
 				// use database converter here, because results will be converted for output during serialization!
 				final PropertyConverter converter = key.databaseConverter(securityContext, sourceNode);
@@ -235,7 +235,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 					Class startNodeType = startNode.getClass();
 					
-					if (EntityContext.isReadOnlyProperty(startNodeType, EntityContext.getPropertyKeyForName(startNodeType, typeResource.getRawType()))) {
+					if (EntityContext.isReadOnlyProperty(startNodeType, EntityContext.getPropertyKeyForDatabaseName(startNodeType, typeResource.getRawType()))) {
 
 						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
 
@@ -339,7 +339,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 					Class sourceNodeType = sourceNode.getClass();
 					
-					if (EntityContext.isReadOnlyProperty(sourceNodeType, EntityContext.getPropertyKeyForName(sourceNodeType, typeResource.getRawType()))) {
+					if (EntityContext.isReadOnlyProperty(sourceNodeType, EntityContext.getPropertyKeyForDatabaseName(sourceNodeType, typeResource.getRawType()))) {
 
 						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 

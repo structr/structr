@@ -129,7 +129,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForName(entity.getClass(), key);
+					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entity.getClass(), key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -170,7 +170,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForName(entityType, key);
+					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entityType, key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -236,7 +236,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForName(entity, key);
+					PropertyKey propertyKey     = EntityContext.getPropertyKeyForJSONName(entity, key);
 					PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
 					if (converter != null) {

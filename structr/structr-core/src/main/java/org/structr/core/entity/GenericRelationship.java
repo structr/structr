@@ -94,7 +94,7 @@ public class GenericRelationship extends AbstractRelationship {
 		if(dbRelationship != null) {
 			
 			for(String key : dbRelationship.getPropertyKeys()) {
-				keys.add(EntityContext.getPropertyKeyForName(entityType, key));
+				keys.add(EntityContext.getPropertyKeyForDatabaseName(entityType, key));
 			}
 		}
 		

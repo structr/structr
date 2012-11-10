@@ -66,7 +66,7 @@ public class ReferenceRelationship extends AbstractRelationship {
 
 			for (String key : dbRelationship.getPropertyKeys()) {
 
-				keys.add(EntityContext.getPropertyKeyForName(entityType, key));
+				keys.add(EntityContext.getPropertyKeyForDatabaseName(entityType, key));
 			}
 
 		}

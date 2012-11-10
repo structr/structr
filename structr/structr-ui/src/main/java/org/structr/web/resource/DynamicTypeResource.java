@@ -326,7 +326,7 @@ public class DynamicTypeResource extends TypeResource {
 
 			for (final String keyName : propertySet.keySet()) {
 
-				PropertyKey key = EntityContext.getPropertyKeyForName(Component.class, keyName);
+				PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(Component.class, keyName);
 				newComponent.setProperty(key, propertySet.get(keyName));
 			}
 

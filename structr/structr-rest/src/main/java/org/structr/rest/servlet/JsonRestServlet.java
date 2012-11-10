@@ -259,7 +259,7 @@ public class JsonRestServlet extends HttpServlet {
 			if (sortKeyName != null) {
 				
 				Class<? extends GraphObject> type = resource.getEntityClass();
-				sortKey = EntityContext.getPropertyKeyForName(type, sortKeyName);
+				sortKey = EntityContext.getPropertyKeyForDatabaseName(type, sortKeyName);
 			}
 			
 			// do action

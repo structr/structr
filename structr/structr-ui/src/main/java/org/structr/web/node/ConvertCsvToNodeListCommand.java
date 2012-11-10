@@ -209,7 +209,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
 						String csvValue = line[i];
 						String keyName  = fieldIndex.get(i);
-						PropertyKey key = EntityContext.getPropertyKeyForName(targetClass, keyName);
+						PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(targetClass, keyName);
 
 						nodeAttributes.add(new NodeAttribute(key, csvValue));
 

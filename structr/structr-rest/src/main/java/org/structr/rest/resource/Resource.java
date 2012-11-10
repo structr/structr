@@ -269,7 +269,7 @@ public abstract class Resource {
 
 		if (type1 != null) {
 
-			PropertyKey key = EntityContext.getPropertyKeyForName(type1, typeResource2.getRawType());
+			PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type1, typeResource2.getRawType());
 			return EntityContext.getRelationClassForProperty(type1, key);
 
 		}
