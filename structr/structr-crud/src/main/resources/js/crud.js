@@ -161,7 +161,7 @@ function crudRefresh(id, key) {
         contentType: 'application/json; charset=utf-8',
         async: false,
         success: function(data) {
-            console.log('crudRefresh', data);
+//            console.log('crudRefresh', data);
             refreshCell(id, key, data.result[key]);
         }
     });
