@@ -175,7 +175,7 @@ function crudReset(id, key) {
         contentType: 'application/json; charset=utf-8',
         async: false,
         success: function(data) {
-            console.log('crudReset', data);
+//            console.log('crudReset', data);
             resetCell(id, key, data.result[key]);
         }
     });
@@ -215,9 +215,7 @@ function crudDelete(id) {
 }
 
 function nvl(value, defaultValue) {
-    
     var returnValue;
-    
     if (value === undefined) {
         returnValue = defaultValue;
     } else if (value === false) {
@@ -240,7 +238,7 @@ function resetCell(id, key, oldValue) {
 //    console.log('resetCell', id, key, oldValue);
     var c = cell(id, key);
     c.empty();
-    c.text(oldValue);
+    c.text(nvl(oldValue, ''));
     var oldFg = c.css('color');
     var oldBg = c.css('backgroundColor');
     //console.log('old colors' , oldFg, oldBg);
