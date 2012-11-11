@@ -35,14 +35,9 @@ var keys = [];
 var typeFromHash;
 
 $(document).ready(function() {
-    
     main = $('#main');
-    
     var url = restUrl + '/_schema';
-    
     var hash = document.location.hash;
-
-    
     $.ajax({
         url: url,
         dataType: 'json',
@@ -51,51 +46,35 @@ $(document).ready(function() {
         success: function(data) {
             $.each(data.result, function(i, res) {
                 //console.log(res.type, res.views);
-
                 var type = res.type;
-               
                 $('#resourceTabsMenu').append('<li><a href="#' + type + '"><span>' + type + '</span></a></li>');
                 $('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + res.url + '"></div>');
-                
-                
                 var typeNode = $('#' + type);
                 typeNode.append('<table></table>');
                 var table = $('table', typeNode);
                 table.append('<tr></tr>');
                 var tableHeader = $('tr:first-child', table);
-                
                 if (res.views[view]) {
-                    
                     var k = Object.keys(res.views[view]);
                     if (k && k.length) {
                         keys[type] = k;
                         $.each(keys[type], function(k, key) {
                             tableHeader.append('<th>' + key + '</th>');
                         });
-
                     }
                 }
-                
                 typeNode.append('<button id="create' + type + '"><img src="icon/add.png"> Create new ' + type + '</button>');
                 $('#create' + type, typeNode).on('click', function() {
                     crudCreate(type, res.url);
                 });
-                
                 typeFromHash = hash.substring(1);
                 if (typeFromHash && typeFromHash == type) {
-        
-                    console.log('activate list', typeFromHash, type);
+//                    console.log('activate list', typeFromHash, type);
                     activateList(typeFromHash);
-
                 }
-                
-                
-               
             });
-            
         }
     });
-    
     $('#resourceTabs').tabs({
         //        active: 7,
         activate: function(event, ui) {
@@ -112,21 +91,19 @@ function activateList(type) {
 }
 
 function clearList(type) {
-    console.log('clearList');
+//    console.log('clearList');
     var table = getTable(type);
     var headerRow = '<tr>' + $($('tr:first-child', table)[0]).html() + '</tr>';
-    console.log(headerRow);
+//    console.log(headerRow);
     table.empty();
     table.append(headerRow);
 }
 
 function list(type, url) {
-    console.log('list', type, url);
+//    console.log('list', type, url);
     var table = getTable(type);
     table.append('<tr></tr>');
-    
     clearList(type);
-    
     $.ajax({
         url: url,
         dataType: 'json',
@@ -216,7 +193,7 @@ function crudUpdate(id, key, newValue) {
             crudRefresh(id, key);
         },
         error: function(data, status, xhr) {
-            console.log(data, status, xhr);
+//            console.log(data, status, xhr);
             crudReset(id, key);
         //alert(data.responseText);
         // TODO: Overlay with error info
@@ -260,7 +237,7 @@ function cell(id, key) {
 }
 
 function resetCell(id, key, oldValue) {
-    console.log('resetCell', id, key, oldValue);
+//    console.log('resetCell', id, key, oldValue);
     var c = cell(id, key);
     c.empty();
     c.text(oldValue);
@@ -282,19 +259,14 @@ function resetCell(id, key, oldValue) {
         var oldValue = self.text();
         self.off('mouseup');
         self.html('<input type="text" value="' + oldValue + '">');
-        $('input', self).focus();
-        $('input', self).on('blur', function() {
-            var input = $(this);
-            var newValue = input.val();
-            crudUpdate(id, key, newValue);
-        });
+        activateTextInputField($('input', self), id, key);
     });
     
 }
 
 
 function refreshCell(id, key, newValue) {
-    console.log('refreshCell', id, key, newValue);
+//    console.log('refreshCell', id, key, newValue);
     var c = cell(id, key);
     c.empty();
     c.text(newValue);
@@ -316,14 +288,23 @@ function refreshCell(id, key, newValue) {
         var oldValue = self.text();
         self.off('mouseup');
         self.html('<input type="text" value="' + oldValue + '">');
-        $('input', self).focus();
-        $('input', self).on('blur', function() {
-            var input = $(this);
+        activateTextInputField($('input', self), id, key);
+    });
+    
+}
+
+function activateTextInputField(input, id, key) {
+        input.focus();
+        input.on('blur', function() {
             var newValue = input.val();
             crudUpdate(id, key, newValue);
         });
-    });
-    
+        input.keypress(function(e) {
+            if (e.keyCode == 13) {
+                var newValue = input.val();
+                crudUpdate(id, key, newValue);
+            }
+        });
 }
 
 function appendRow(type, item) {
@@ -344,16 +325,10 @@ function appendRow(type, item) {
                 var oldValue = self.text();
                 self.off('mouseup');
                 self.html('<input type="text" value="' + oldValue + '">');
-                $('input', self).focus();
-                $('input', self).on('blur', function() {
-                    var input = $(this);
-                    var newValue = input.val();
-                    crudUpdate(id, key, newValue);
-                });
+                activateTextInputField($('input', self), id, key);
             });
         });
     }
-    
 }
 
 function urlParam(name) {
