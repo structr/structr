@@ -215,8 +215,11 @@ function crudUpdate(id, key, newValue) {
         success: function() {
             crudRefresh(id, key);
         },
-        error: function() {
+        error: function(data, status, xhr) {
+            console.log(data, status, xhr);
             crudReset(id, key);
+        //alert(data.responseText);
+        // TODO: Overlay with error info
         }
     });
 }
@@ -235,7 +238,19 @@ function crudDelete(id) {
 }
 
 function nvl(value, defaultValue) {
-    return value?value:defaultValue;
+    
+    var returnValue;
+    
+    if (value === undefined) {
+        returnValue = defaultValue;
+    } else if (value === false) {
+        returnValue = 'false';
+    } else if (!value) {
+        returnValue = '';
+    } else {
+        returnValue = value;
+    }
+    return returnValue;
 }
 
 function cell(id, key) {
@@ -255,12 +270,26 @@ function resetCell(id, key, oldValue) {
     c.animate({
         color: '#f00',
         backgroundColor: '#fbb'
-    }, 100, function() {
+    }, 250, function() {
         $(this).animate({
             color: oldFg,
             backgroundColor: oldBg
         }, 500);
     });
+    c.on('mouseup', function(event) {
+        event.preventDefault();
+        var self = $(this);
+        var oldValue = self.text();
+        self.off('mouseup');
+        self.html('<input type="text" value="' + oldValue + '">');
+        $('input', self).focus();
+        $('input', self).on('blur', function() {
+            var input = $(this);
+            var newValue = input.val();
+            crudUpdate(id, key, newValue);
+        });
+    });
+    
 }
 
 
@@ -281,6 +310,20 @@ function refreshCell(id, key, newValue) {
             backgroundColor: oldBg
         }, 500);
     });
+    c.on('mouseup', function(event) {
+        event.preventDefault();
+        var self = $(this);
+        var oldValue = self.text();
+        self.off('mouseup');
+        self.html('<input type="text" value="' + oldValue + '">');
+        $('input', self).focus();
+        $('input', self).on('blur', function() {
+            var input = $(this);
+            var newValue = input.val();
+            crudUpdate(id, key, newValue);
+        });
+    });
+    
 }
 
 function appendRow(type, item) {
@@ -295,20 +338,17 @@ function appendRow(type, item) {
         $.each(keys[type], function(k, key) {
                     
             row.append('<td class="' + key + '">' + nvl(item[key],'') + '</td>');
-            $('.' + key, row).on('mouseup', function() {
+            $('.' + key, row).on('mouseup', function(event) {
+                event.preventDefault();
                 var self = $(this);
                 var oldValue = self.text();
-                self.empty();
-                self.off('click');
-                self.append('<input type="text" value="' + oldValue + '">');
+                self.off('mouseup');
+                self.html('<input type="text" value="' + oldValue + '">');
                 $('input', self).focus();
                 $('input', self).on('blur', function() {
                     var input = $(this);
                     var newValue = input.val();
-                    //console.log((input.val()));
                     crudUpdate(id, key, newValue);
-                //self.empty();
-                //self.text(newValue);
                 });
             });
         });
