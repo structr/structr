@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,22 +16,23 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.structr.common.error;
-
-import org.structr.common.property.PropertyKey;
-import org.structr.common.property.StringProperty;
+package org.structr.common.property;
 
 /**
  *
  * @author Christian Morgner
  */
-public class IdNotFoundToken extends PropertyNotFoundToken {
-
-	// FIXME: this needs to me modified when the uuid/id mess is resolved
-	private static final PropertyKey<String> id = new StringProperty("id");
+public class StringProperty extends Property<String> {
 	
-	public IdNotFoundToken(Object value) {
-		super(id, value);
+	public StringProperty(String name) {
+		this(name, name);
+	}
+	
+	public StringProperty(String jsonName, String dbName) {
+		super(jsonName, dbName);
+	}
+	
+	public StringProperty(String jsonName, String dbName, String defaultValue) {
+		super(jsonName, dbName, defaultValue);
 	}
 }

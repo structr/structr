@@ -46,7 +46,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
+import org.structr.common.property.LongProperty;
 import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -146,7 +146,7 @@ public class CreateSimplePage extends AbstractCommand {
 
 			String pageId = page.getUuid();
 
-			relData.put(new Property(pageId), position);
+			relData.put(new LongProperty(pageId), position);
 
 		}
 

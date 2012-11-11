@@ -36,9 +36,7 @@ import org.structr.common.property.Property;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
-import org.structr.common.property.BooleanProperty;
-import org.structr.common.property.ISO8601DateProperty;
-import org.structr.common.property.PasswordProperty;
+import org.structr.common.property.*;
 import org.structr.core.Services;
 import org.structr.core.node.CreateRelationshipCommand;
 
@@ -51,24 +49,24 @@ import org.structr.core.node.CreateRelationshipCommand;
  */
 public class Person extends AbstractNode implements Principal {
 
-	public static final Property<String>  salutation          = new Property<String>("salutation");
-	public static final Property<String>  firstName           = new Property<String>("firstName");
-	public static final Property<String>  middleNameOrInitial = new Property<String>("middleNameOrInitial");
-	public static final Property<String>  lastName            = new Property<String>("lastName");
-	public static final Property<String>  email               = new Property<String>("email");
-	public static final Property<String>  email2              = new Property<String>("email2");
+	public static final Property<String>  salutation          = new StringProperty("salutation");
+	public static final Property<String>  firstName           = new StringProperty("firstName");
+	public static final Property<String>  middleNameOrInitial = new StringProperty("middleNameOrInitial");
+	public static final Property<String>  lastName            = new StringProperty("lastName");
+	public static final Property<String>  email               = new StringProperty("email");
+	public static final Property<String>  email2              = new StringProperty("email2");
 	public static final Property<String>  password            = new PasswordProperty("password");
-	public static final Property<String>  phoneNumber1        = new Property<String>("phoneNumber1");
-	public static final Property<String>  phoneNumber2        = new Property<String>("phoneNumber2");
-	public static final Property<String>  faxNumber1          = new Property<String>("faxNumber1");
-	public static final Property<String>  faxNumber2          = new Property<String>("faxNumber2");
-	public static final Property<String>  street              = new Property<String>("street");
-	public static final Property<String>  zipCode             = new Property<String>("zipCode");
-	public static final Property<String>  city                = new Property<String>("city");
-	public static final Property<String>  state               = new Property<String>("state");
-	public static final Property<String>  country             = new Property<String>("country");
+	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1");
+	public static final Property<String>  phoneNumber2        = new StringProperty("phoneNumber2");
+	public static final Property<String>  faxNumber1          = new StringProperty("faxNumber1");
+	public static final Property<String>  faxNumber2          = new StringProperty("faxNumber2");
+	public static final Property<String>  street              = new StringProperty("street");
+	public static final Property<String>  zipCode             = new StringProperty("zipCode");
+	public static final Property<String>  city                = new StringProperty("city");
+	public static final Property<String>  state               = new StringProperty("state");
+	public static final Property<String>  country             = new StringProperty("country");
 	public static final Property<Date>    birthday            = new ISO8601DateProperty("birthday");
-	public static final Property<String>  gender              = new Property<String>("gender");
+	public static final Property<String>  gender              = new StringProperty("gender");
 	public static final Property<Boolean> newsletter          = new BooleanProperty("newsletter");
 	
 	public static final View publicView = new View(Person.class, PropertyView.Public,

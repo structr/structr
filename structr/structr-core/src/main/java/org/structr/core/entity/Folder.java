@@ -28,6 +28,7 @@ import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
+import org.structr.common.property.GenericProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass.Cardinality;
 
@@ -40,10 +41,10 @@ import org.structr.core.entity.RelationClass.Cardinality;
  */
 public class Folder extends AbstractNode {
 
-	public static final Property<Folder>       parentFolder = new Property<Folder>("parentFolder");
-	public static final Property<List<Folder>> folders      = new Property<List<Folder>>("folders");
-	public static final Property<List<File>>   files        = new Property<List<File>>("files");
-	public static final Property<List<Image>>  images       = new Property<List<Image>>("images");
+	public static final Property<Folder>       parentFolder = new GenericProperty<Folder>("parentFolder");
+	public static final Property<List<Folder>> folders      = new GenericProperty<List<Folder>>("folders");
+	public static final Property<List<File>>   files        = new GenericProperty<List<File>>("files");
+	public static final Property<List<Image>>  images       = new GenericProperty<List<Image>>("images");
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parentFolder, folders, files, images

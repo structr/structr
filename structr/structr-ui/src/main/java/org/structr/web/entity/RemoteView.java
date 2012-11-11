@@ -15,6 +15,7 @@ import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -31,9 +32,9 @@ import org.structr.core.node.RelationshipFactory;
 
 public class RemoteView extends View {
 
-	public static final Property<String> repositoryUrl  = new Property<String>("repositoryUrl");
-	public static final Property<String> remoteUser     = new Property<String>("remoteUser");
-	public static final Property<String> remotePassword = new Property<String>("remotePassword");
+	public static final Property<String> repositoryUrl  = new StringProperty("repositoryUrl");
+	public static final Property<String> remoteUser     = new StringProperty("remoteUser");
+	public static final Property<String> remotePassword = new StringProperty("remotePassword");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(RemoteView.class, PropertyView.Ui,
 		repositoryUrl, remoteUser, remotePassword

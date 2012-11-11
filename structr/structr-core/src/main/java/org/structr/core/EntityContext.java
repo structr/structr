@@ -60,8 +60,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.common.*;
-import org.structr.common.property.GroupProperty;
-import org.structr.common.property.Property;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.PropertyMap;
 import org.structr.core.module.ModuleService;
 import org.structr.core.node.NodeService.NodeIndex;
@@ -1077,7 +1076,7 @@ public class EntityContext {
 				return GraphObject.uuid;
 			}
 			
-			key = new Property(dbName);
+			key = new GenericProperty(dbName);
 		}
 		
 		return key;
@@ -1095,7 +1094,7 @@ public class EntityContext {
 				return GraphObject.uuid;
 			}
 
-			key = new Property(jsonName);
+			key = new GenericProperty(jsonName);
 		}
 		
 		return key;

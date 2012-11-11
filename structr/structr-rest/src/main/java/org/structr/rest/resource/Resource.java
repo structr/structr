@@ -39,13 +39,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
-import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSearchField;
 import org.structr.common.property.PropertyMap;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -388,7 +388,7 @@ public abstract class Resource {
 		for (final Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
 
 			final String requestParameterName  = e.nextElement();
-			final PropertyKey requestParameter = new Property(requestParameterName);
+			final PropertyKey requestParameter = new StringProperty(requestParameterName);
 
 			if (!searchableProperties.contains(requestParameter) && !NON_SEARCH_FIELDS.contains(requestParameterName)) {
 

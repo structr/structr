@@ -27,7 +27,6 @@ import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -43,8 +42,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.common.property.GenericProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -108,7 +106,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 								node.unlockReadOnlyPropertiesOnce();
 								
 								// FIXME: synthetic Property generation
-								node.setProperty(new Property(key), val);
+								node.setProperty(new GenericProperty(key), val);
 
 							}
 

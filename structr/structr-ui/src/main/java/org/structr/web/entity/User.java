@@ -38,8 +38,7 @@ import org.structr.core.node.NodeService.NodeIndex;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
-import org.structr.common.property.BooleanProperty;
-import org.structr.common.property.Property;
+import org.structr.common.property.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,10 +49,10 @@ import org.structr.common.property.Property;
  */
 public class User extends Person implements Principal {
 
-	public static final Property<String>  confirmationKey = new Property("confirmationKey");
+	public static final Property<String>  confirmationKey = new StringProperty("confirmationKey");
 	public static final Property<Boolean> backendUser     = new BooleanProperty("backendUser");
 	public static final Property<Boolean> frontendUser    = new BooleanProperty("frontendUser");
-	public static final Property<List<Group>>   groups    = new Property("groups");
+	public static final Property<List<Group>>   groups    = new GenericProperty("groups");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups

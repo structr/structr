@@ -28,9 +28,10 @@ import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.IntProperty;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
-import org.structr.core.converter.IntConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
 import org.structr.core.entity.Principal;
@@ -51,10 +52,10 @@ public class Page extends AbstractNode implements Linkable {
 
 //	
 
-	public static final Property<List<Component>> components      = new Property<List<Component>>("components");
-	public static final Property<List<Element>>   elements        = new Property<List<Element>>("elements");
-	public static final Property<String>          tag             = new Property<String>("tag");
-	public static final Property<String>          contentType     = new Property<String>("contentType");
+	public static final Property<List<Component>> components      = new GenericProperty<List<Component>>("components");
+	public static final Property<List<Element>>   elements        = new GenericProperty<List<Element>>("elements");
+	public static final Property<String>          tag             = new StringProperty("tag");
+	public static final Property<String>          contentType     = new StringProperty("contentType");
 	public static final Property<Integer>         position        = new IntProperty("position");
 	public static final Property<Integer>         cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<Integer>         version         = new IntProperty("version");

@@ -36,8 +36,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
 import org.structr.common.SecurityContext;
+import org.structr.common.property.GenericProperty;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -100,7 +100,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
                                                                 Object val = entry.getValue();
                                                                 
 								// FIXME: synthetic Property generation
-                                                                rel.setProperty(new Property(key), val);
+                                                                rel.setProperty(new GenericProperty(key), val);
                                                                 
                                                         }
 

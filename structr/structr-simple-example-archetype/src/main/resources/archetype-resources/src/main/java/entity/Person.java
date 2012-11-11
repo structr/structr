@@ -19,8 +19,8 @@ import org.structr.core.validator.TypeUniquenessValidator;
 
 public class Person extends AbstractNode {
 
-	public static final Property<City>         city    = new Property<City>("city");
-	public static final Property<List<Person>> friends = new Property<List<Person>>("friends");
+	public static final Property<City>         city    = new GenericProperty<City>("city");
+	public static final Property<List<Person>> friends = new GenericProperty<List<Person>>("friends");
 	
 	public static final View publicView = new View(Person.class, PropertyView.Public,
 		name, city, friends

@@ -30,6 +30,7 @@ import org.structr.core.GraphObject;
 import java.util.List;
 import org.structr.common.property.BooleanProperty;
 import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -40,10 +41,10 @@ import org.structr.common.property.Property;
  */
 public interface Principal extends GraphObject {
 
-	public static final Property<String>  sessionId = new Property<String>("sessionId");
-	//public static final Property<String>  groups    = new Property<String>("groups");
+	public static final Property<String>  sessionId = new StringProperty("sessionId");
+	//public static final Property<String>  groups    = new StringProperty("groups");
 	public static final Property<Boolean> blocked   = new BooleanProperty("blocked");
-	public static final Property<String>  realName  = new Property<String>("realName");
+	public static final Property<String>  realName  = new StringProperty("realName");
 
 	
 	//~--- methods --------------------------------------------------------

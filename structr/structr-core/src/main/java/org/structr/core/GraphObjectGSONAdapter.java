@@ -38,6 +38,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
+import org.structr.common.property.StringProperty;
 import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
@@ -56,7 +57,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<Class, Serializer>();
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<Class, Serializer>();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<Class>();
-	private final Property<String> id                    = new Property<String>("id");
+	private final Property<String> id                    = new StringProperty("id");
 	private final int outputNestingDepth                 = Services.getOutputNestingDepth();
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private PropertyKey idProperty                       = null;

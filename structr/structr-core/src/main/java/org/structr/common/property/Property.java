@@ -31,7 +31,7 @@ import org.structr.core.node.search.TextualSearchAttribute;
  *
  * @author Christian Morgner
  */
-public class Property<JavaType> implements PropertyKey<JavaType> {
+public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 
 	protected String declaringClassName  = null;
 	protected JavaType defaultValue      = null;
@@ -40,15 +40,15 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	protected String dbName              = null;
 	protected String jsonName            = null;
 	
-	public Property(String name) {
+	protected Property(String name) {
 		this(name, name);
 	}
 	
-	public Property(String jsonName, String dbName) {
+	protected Property(String jsonName, String dbName) {
 		this(jsonName, dbName, null);
 	}
 	
-	public Property(String jsonName, String dbName, JavaType defaultValue) {
+	protected Property(String jsonName, String dbName, JavaType defaultValue) {
 		this.defaultValue = defaultValue;
 		this.jsonName = jsonName;
 		this.dbName = dbName;

@@ -40,9 +40,9 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.Property;
 import org.structr.common.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
+import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -214,8 +214,8 @@ public class SynchronizationController implements StructrTransactionListener {
 			try {
 				PropertyMap relProperties         = relationship.getProperties();
 
-				relProperties.put(new Property("startNodeId"), startNode.getUuid());
-				relProperties.put(new Property("endNodeId"), endNode.getUuid());
+				relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
+				relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
 
 				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
 				message.setRelData(properties);
@@ -256,8 +256,8 @@ public class SynchronizationController implements StructrTransactionListener {
 			try {
 				PropertyMap relProperties         = relationship.getProperties();
 
-				relProperties.put(new Property("startNodeId"), startNode.getUuid());
-				relProperties.put(new Property("endNodeId"), endNode.getUuid());
+				relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
+				relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
 
 				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
 				message.setRelData(properties);
@@ -300,7 +300,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				message.setId(startNode.getProperty(AbstractNode.uuid));
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
 
-				String pageId = relationship.getProperty(new Property<String>("pageId"));
+				String pageId = relationship.getProperty(new StringProperty("pageId"));
 
 				if (pageId != null) {
 
@@ -369,7 +369,7 @@ public class SynchronizationController implements StructrTransactionListener {
 			WebSocketMessage message = new WebSocketMessage();
 			String startNodeId       = relationship.getCachedStartNodeId();
 			String endNodeId         = relationship.getCachedEndNodeId();
-			String pageId	         = (String) properties.get(new Property("pageId"));
+			String pageId	         = properties.get(new StringProperty("pageId"));
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 

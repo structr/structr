@@ -25,6 +25,7 @@ import org.structr.common.property.Property;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.*;
+import org.structr.common.property.GenericProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.notion.PropertyNotion;
@@ -37,7 +38,7 @@ import org.structr.core.notion.PropertyNotion;
  */
 public interface Linkable extends GraphObject {
 
-	public static final Property<List<AbstractNode>> linkingElements = new Property<List<AbstractNode>>("linkingElements");
+	public static final Property<List<AbstractNode>> linkingElements = new GenericProperty<List<AbstractNode>>("linkingElements");
 
 	public static final View uiView = new View(Linkable.class, PropertyView.Ui, linkingElements);
 	

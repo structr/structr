@@ -32,6 +32,7 @@ import org.structr.web.entity.Component;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,9 +42,9 @@ import org.structr.common.property.Property;
  */
 public class ComponentComponentRelationship extends AbstractRelationship {
 
-	public static final Property<String> parentId    = new Property<String>("parentId");
-	public static final Property<String> componentId = new Property<String>("componentId");
-	public static final Property<String> pageId      = new Property<String>("pageId");
+	public static final Property<String> parentId    = new StringProperty("parentId");
+	public static final Property<String> componentId = new StringProperty("componentId");
+	public static final Property<String> pageId      = new StringProperty("pageId");
 
 	static {
 

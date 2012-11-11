@@ -32,14 +32,10 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.kernel.Traversal;
 
-import org.structr.common.property.PropertyKey;
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
 import org.structr.core.node.NodeFactory;
@@ -50,6 +46,7 @@ import org.structr.core.node.TransactionCommand;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.Property;
 import org.structr.core.Result;
 
@@ -77,7 +74,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 	private static final Logger logger = Logger.getLogger(NodeList.class.getName());
 
-	public static final Property<AbstractNode> parent = new Property<AbstractNode>("parent");
+	public static final Property<AbstractNode> parent = new GenericProperty<AbstractNode>("parent");
 	
 	//~--- static initializers --------------------------------------------
 

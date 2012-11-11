@@ -311,7 +311,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null && value != null) {
 
-					map.put(new Property(key), value);
+					map.put(new GenericProperty(key), value);
 				}
 			}
 		}

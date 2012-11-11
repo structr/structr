@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
@@ -44,6 +43,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
@@ -54,7 +54,7 @@ import org.structr.core.node.NodeService.NodeIndex;
  */
 public class View extends AbstractNode implements Element {
 
-	public static final Property<String> query = new Property<String>("query");
+	public static final Property<String> query = new StringProperty("query");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(View.class, PropertyView.Ui,
 		type, name, query, paths

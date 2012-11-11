@@ -32,7 +32,9 @@ import org.structr.web.entity.Component;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -42,9 +44,9 @@ import org.structr.common.property.Property;
  */
 public class ReferenceRelationship extends AbstractRelationship {
 
-	public static final Property<String>       sourceId = new Property<String>("sourceId");
-	public static final Property<String>       targetId = new Property<String>("targetId");
-	public static final Property<List<String>> names    = new Property<List<String>>("names");
+	public static final Property<String>       sourceId = new StringProperty("sourceId");
+	public static final Property<String>       targetId = new StringProperty("targetId");
+	public static final Property<List<String>> names    = new GenericProperty<List<String>>("names");
 	
 	static {
 

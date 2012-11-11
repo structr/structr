@@ -35,6 +35,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.node.NodeService.RelationshipIndex;
 
@@ -47,8 +48,8 @@ import org.structr.core.node.NodeService.RelationshipIndex;
  */
 public class GenericRelationship extends AbstractRelationship {
 
-	public static final Property<String> startNodeId = new Property<String>("startNodeId");
-	public static final Property<String> endNodeId   = new Property<String>("endNodeId");
+	public static final Property<String> startNodeId = new StringProperty("startNodeId");
+	public static final Property<String> endNodeId   = new StringProperty("endNodeId");
 
 	public static final View uiView = new View(GenericRelationship.class, PropertyView.Ui,
 		startNodeId, endNodeId
