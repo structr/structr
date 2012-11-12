@@ -79,7 +79,7 @@ public class SchemaResource extends Resource {
 			schema.setProperty(new Property("flags"), SecurityContext.getResourceFlags(rawType));
 			
 			// list property sets for all views
-			Map<String, Map<String, Object>> views = new TreeMap<String, Map<String, Object>>();
+			Map<String, Map<String, Object>> views = new TreeMap();
 			Set<String> propertyViews              = EntityContext.getPropertyViews();
 			schema.setProperty(new Property("views"), views);
 			
@@ -94,27 +94,28 @@ public class SchemaResource extends Resource {
 					
 					for (PropertyKey property : properties) {
 
-						StringBuilder converterPlusValue    = new StringBuilder();
+						Map<String, Object> propProperties    = new TreeMap();
+						
+						propProperties.put("name", property.name());
+						propProperties.put("className", property.getClass().getName());
+						propProperties.put("defaultValue", property.defaultValue());
+						
+						propProperties.put("readOnly", property.isReadOnlyProperty());
+						propProperties.put("system", property.isSystemProperty());
+						
 						PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
 						PropertyConverter inputConverter    = property.inputConverter(securityContext);
-						
-						converterPlusValue.append("(");
 
 						if (databaseConverter != null) {
-							converterPlusValue.append(" databaseConverter: ");
-							converterPlusValue.append(databaseConverter.getClass().getName());
-							converterPlusValue.append(" ");
+							propProperties.put("databaseConverter", databaseConverter.getClass().getName());
 						}
 
 						if (inputConverter != null) {
-							converterPlusValue.append(" inputConverter: ");
-							converterPlusValue.append(inputConverter.getClass().getName());
-							converterPlusValue.append(" ");
+							propProperties.put("inputConverter", inputConverter.getClass().getName());
 						}
 						
-						converterPlusValue.append(")");
 
-						propertyConverterMap.put(property.name(), converterPlusValue.toString());
+						propertyConverterMap.put(property.name(), propProperties);
 					}
 					
 					views.put(view, propertyConverterMap);
