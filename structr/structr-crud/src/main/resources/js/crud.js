@@ -401,10 +401,28 @@ function displayForm(type, el) {
     var typeDef = schema[type];
     console.log(typeDef);
     console.log(typeDef.views[view]);
-    $(el).append('<table></table>');
+    $(el).append('<table class="props"><tr><th>Name</th><th>Value</th><th>Type</th><th>Read Only</th></table>');
     var table = $('table', $(el));
-    $.each(Object.keys(typeDef.views[view]), function(i, property) {
-        console.log(property, el);
-        table.append('<tr><td><label for="' + property + '">' + property + '</label></td><td><input type="text" name="' + property + '" value=""></td></tr>');
+    $.each(typeDef.views[view], function(i, property) {
+        console.log(property);
+        var type = property.className.substring(property.className.lastIndexOf('.') + 1);
+        table.append('<tr><td><label for="' + property.name + '">' + formatKey(property.name) + '</label></td><td><input type="text" name="' + property.name + '" value=""></td><td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
     });
+    $(el).append('<button id="saveProperties">Save</button>');
+    $('#saveProperties', $(el)).on('click', function() {
+        
+    });
+}
+
+function formatKey(text) {
+    var result = '';
+    for (var i=0; i<text.length; i++) {
+        var c = text.charAt(i);
+        if (c == c.toUpperCase()) {
+            result += ' ' + c;
+        } else {
+            result += (i==0 ? c.toUpperCase() : c);
+        }
+    }
+    return result;
 }
