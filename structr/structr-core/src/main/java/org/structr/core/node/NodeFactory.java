@@ -159,7 +159,9 @@ public class NodeFactory<T extends AbstractNode> {
 		newNode.setType(nodeType);
 
 		// check access
-		if (factoryProfile.getSecurityContext().isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
+		SecurityContext securityContext = factoryProfile.getSecurityContext();
+		
+		if (securityContext.isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
 
 			return newNode;
 		}

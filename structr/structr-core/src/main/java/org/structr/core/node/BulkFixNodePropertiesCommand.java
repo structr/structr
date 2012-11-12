@@ -55,7 +55,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 			if (type != null) {
 				
 				final PropertyKey propertyToFix   = EntityContext.getPropertyKeyForName(type, propertyName);
-				final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(Search.andExactType(type.getSimpleName()));
+				final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 				final List<AbstractNode> nodes    = result.getResults();
 
 				if (propertyToFix != null && type != null) {
@@ -91,38 +91,46 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 											correctedValue = dbConverter.convert(rawValue);
 
 										} catch(Throwable t0) {
-											
+
 											try {
 												// conversion did not work, try input converter
 												correctedValue = inConverter.convert(rawValue);
-											
+
 											} catch (Throwable t1) {
-												
+
 												logger.log(Level.WARNING, "Unable to fix property type for {0} on {1}, please specify conversionType!", new Object[] {
-													    propertyToFix.name(),
-													    type.getSimpleName()
-												    }
+													propertyToFix.name(),
+													type.getSimpleName()
+												}
 												);
 											}
 										}
-										
+
 										if (correctedValue != null) {
-											
+
 											try {
-												
+
+//												logger.log(Level.INFO, "Setting {0} of {1} {2} to {3} {4}", new Object[] {
+//													propertyToFix.name(),
+//													abstractNode.getType(),
+//													abstractNode.getUuid(),
+//													correctedValue.getClass(),
+//													correctedValue
+//												});
+
 												abstractNode.setProperty(propertyToFix, correctedValue);
-												
-												
+
+
 											} catch(Throwable t) {
-												
-												
+
+
 												logger.log(Level.WARNING, "Unable to set property {0} on {1}: {2}", new Object[] {
-													    propertyToFix.name(),
-													    type.getSimpleName(),
-													    t.getMessage()
-												    }
+													propertyToFix.name(),
+													type.getSimpleName(),
+													t.getMessage()
+												}
 												);
-												
+
 											}
 										}
 									}

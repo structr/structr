@@ -101,12 +101,14 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 					}
 					
 					
-				} catch(FrameworkException fex) {
+				} catch(Throwable t) {
+					
+					t.printStackTrace();
 					
 					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
 						key.name(),
 						source.getClass().getSimpleName(),
-						fex.getMessage()
+						t.getMessage()
 						
 					});
 				}
