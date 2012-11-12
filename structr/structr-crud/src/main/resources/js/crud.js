@@ -24,15 +24,12 @@ var viewRootUrl = '/';
 
 var header, main;
 var debug = false;
-//var onload = [];
-var lastMenuEntry, activeTab;
-var dmp;
-var editorCursor;
-var dialog;
 
 var view = urlParam('view')?urlParam('view'):'all';
 var keys = [];
 var typeFromHash;
+
+var schema = [];
 
 $(document).ready(function() {
     main = $('#main');
@@ -47,6 +44,7 @@ $(document).ready(function() {
             $.each(data.result, function(i, res) {
                 //console.log(res.type, res.views);
                 var type = res.type;
+                schema[type] = res;
                 $('#resourceTabsMenu').append('<li><a href="#' + type + '"><span>' + type + '</span></a></li>');
                 $('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + res.url + '"></div>');
                 var typeNode = $('#' + type);
@@ -69,7 +67,7 @@ $(document).ready(function() {
                 });
                 typeFromHash = hash.substring(1);
                 if (typeFromHash && typeFromHash == type) {
-//                    console.log('activate list', typeFromHash, type);
+                    //                    console.log('activate list', typeFromHash, type);
                     activateList(typeFromHash);
                 }
             });
@@ -82,6 +80,11 @@ $(document).ready(function() {
             activateList(type);
         }
     });
+    $(document).keyup(function(e) {
+        if (e.keyCode == 27) {
+            $('#dialogBox .dialogCancelButton').click();
+        }
+    });         
 });
 
 function activateList(type) {
@@ -91,16 +94,16 @@ function activateList(type) {
 }
 
 function clearList(type) {
-//    console.log('clearList');
+    //    console.log('clearList');
     var table = getTable(type);
     var headerRow = '<tr>' + $($('tr:first-child', table)[0]).html() + '</tr>';
-//    console.log(headerRow);
+    //    console.log(headerRow);
     table.empty();
     table.append(headerRow);
 }
 
 function list(type, url) {
-//    console.log('list', type, url);
+    //    console.log('list', type, url);
     var table = getTable(type);
     table.append('<tr></tr>');
     clearList(type);
@@ -149,6 +152,15 @@ function crudCreate(type, url) {
             var location = xhr.getResponseHeader('location');
             var id = location.substring(location.lastIndexOf('/') + 1);
             crudRead(type, id);
+        },
+        error: function(data, status, xhr) {
+            console.log(data, status, xhr);
+            displayForm(type, $('#dialogBox .dialogText'));
+            dialog('Create new ' + type, function() {
+                console.log('ok')
+            }, function() {
+                console.log('cancel')
+            });
         }
     });
 }
@@ -161,7 +173,7 @@ function crudRefresh(id, key) {
         contentType: 'application/json; charset=utf-8',
         async: false,
         success: function(data) {
-//            console.log('crudRefresh', data);
+            //            console.log('crudRefresh', data);
             refreshCell(id, key, data.result[key]);
         }
     });
@@ -175,7 +187,7 @@ function crudReset(id, key) {
         contentType: 'application/json; charset=utf-8',
         async: false,
         success: function(data) {
-//            console.log('crudReset', data);
+            //            console.log('crudReset', data);
             resetCell(id, key, data.result[key]);
         }
     });
@@ -193,7 +205,7 @@ function crudUpdate(id, key, newValue) {
             crudRefresh(id, key);
         },
         error: function(data, status, xhr) {
-//            console.log(data, status, xhr);
+            //            console.log(data, status, xhr);
             crudReset(id, key);
         //alert(data.responseText);
         // TODO: Overlay with error info
@@ -235,7 +247,7 @@ function cell(id, key) {
 }
 
 function resetCell(id, key, oldValue) {
-//    console.log('resetCell', id, key, oldValue);
+    //    console.log('resetCell', id, key, oldValue);
     var c = cell(id, key);
     c.empty();
     c.text(nvl(oldValue, ''));
@@ -259,12 +271,11 @@ function resetCell(id, key, oldValue) {
         self.html('<input type="text" value="' + oldValue + '">');
         activateTextInputField($('input', self), id, key);
     });
-    
 }
 
 
 function refreshCell(id, key, newValue) {
-//    console.log('refreshCell', id, key, newValue);
+    //    console.log('refreshCell', id, key, newValue);
     var c = cell(id, key);
     c.empty();
     c.text(newValue);
@@ -288,25 +299,23 @@ function refreshCell(id, key, newValue) {
         self.html('<input type="text" value="' + oldValue + '">');
         activateTextInputField($('input', self), id, key);
     });
-    
 }
 
 function activateTextInputField(input, id, key) {
-        input.focus();
-        input.on('blur', function() {
+    input.focus();
+    input.on('blur', function() {
+        var newValue = input.val();
+        crudUpdate(id, key, newValue);
+    });
+    input.keypress(function(e) {
+        if (e.keyCode == 13) {
             var newValue = input.val();
             crudUpdate(id, key, newValue);
-        });
-        input.keypress(function(e) {
-            if (e.keyCode == 13) {
-                var newValue = input.val();
-                crudUpdate(id, key, newValue);
-            }
-        });
+        }
+    });
 }
 
 function appendRow(type, item) {
-    
     var id = item['id'];
     var table = getTable(type);
     table.append('<tr id="' + id + '"></tr>');
@@ -335,4 +344,67 @@ function urlParam(name) {
     var regex = new RegExp(regexS);
     var results = regex.exec(window.location.href);
     return (results&&results.length?results[1]:'');
+}
+
+function dialog(text, callbackOk, callbackCancel) {
+
+    $('#dialogBox .dialogMsg').empty();
+    $('#dialogBox .dialogMeta').empty();
+    $('#dialogBox .dialogBtn').empty();
+            
+    if (text) $('#dialogBox .dialogTitle').html(text);
+    if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function(e) {
+        e.stopPropagation();
+        callbackCancel();
+        $('#dialogBox .dialogText').empty();
+        $.unblockUI({
+            fadeOut: 25
+        });            
+    });
+    $.blockUI.defaults.overlayCSS.opacity = .6;
+    $.blockUI.defaults.applyPlatformOpacityRules = false;
+    $.blockUI({
+        fadeIn: 25,
+        fadeOut: 25,
+        message: $('#dialogBox'),
+        css: {
+            border: 'none',
+            backgroundColor: 'transparent'
+        }
+    });
+}
+
+function error(text, callback) {
+    if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
+    console.log(callback);
+    if (callback) $('#errorBox .okButton').on('click', function(e) {
+        e.stopPropagation();
+        //callback();
+        console.log(callback);
+			
+        $.unblockUI({
+            fadeOut: 25
+        });
+    });
+    $.blockUI.defaults.overlayCSS.opacity = .6;
+    $.blockUI.defaults.applyPlatformOpacityRules = false;
+    $.blockUI({
+        message: $('#errorBox'),
+        css: {
+            border: 'none',
+            backgroundColor: 'transparent'
+        }
+    });
+}
+
+function displayForm(type, el) {
+    var typeDef = schema[type];
+    console.log(typeDef);
+    console.log(typeDef.views[view]);
+    $(el).append('<table></table>');
+    var table = $('table', $(el));
+    $.each(Object.keys(typeDef.views[view]), function(i, property) {
+        console.log(property, el);
+        table.append('<tr><td><label for="' + property + '">' + property + '</label></td><td><input type="text" name="' + property + '" value=""></td></tr>');
+    });
 }
