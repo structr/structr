@@ -741,7 +741,7 @@ public class JsonRestServlet extends HttpServlet {
 				}
 
 				if (!found) {
-
+					
 					throw new NotFoundException();
 
 				}
