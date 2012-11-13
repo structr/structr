@@ -318,7 +318,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			}
 
 			// check for read-only properties
-			if (EntityContext.isReadOnlyProperty(this.getClass(), key)) {
+			if (key.isReadOnlyProperty()) {
 
 				if (readOnlyPropertiesUnlocked) {
 
@@ -1701,7 +1701,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 		
 		// check for read-only properties
-		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key.name()))) {
+		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key.name()))) {
+		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbNode != null) && dbNode.hasProperty(key.name()))) {
 
 			if (readOnlyPropertiesUnlocked) {
 

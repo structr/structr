@@ -103,6 +103,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isWriteOnceProperty() {
+		return propertyKey.isWriteOnceProperty();
+	}
+
+	@Override
 	public void setDeclaringClassName(String declaringClassName) {
 	}
 }

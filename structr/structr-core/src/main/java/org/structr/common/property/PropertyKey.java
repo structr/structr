@@ -49,5 +49,7 @@ public interface PropertyKey<JavaType> {
 	public boolean isSystemProperty();
 	
 	public boolean isReadOnlyProperty();
+
+	public boolean isWriteOnceProperty();
 	
 }
