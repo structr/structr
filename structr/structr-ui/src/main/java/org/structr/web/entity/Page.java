@@ -57,7 +57,7 @@ public class Page extends AbstractNode implements Linkable {
 	public static final Property<String>          contentType     = new Property<String>("contentType");
 	public static final Property<Integer>         position        = new IntProperty("position");
 	public static final Property<Integer>         cacheForSeconds = new IntProperty("cacheForSeconds");
-	public static final Property<Integer>         version         = new IntProperty("version");
+	public static final Property<Integer>         version         = new IntProperty("version").systemProperty().readOnly();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
 		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
@@ -84,7 +84,7 @@ public class Page extends AbstractNode implements Linkable {
 		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
 		
-		EntityContext.registerReadOnlyProperty(Page.class, version);
+//		EntityContext.registerReadOnlyProperty(Page.class, version);
 
 	}
 

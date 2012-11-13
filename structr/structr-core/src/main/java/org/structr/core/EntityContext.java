@@ -79,7 +79,7 @@ public class EntityContext {
 
 	private static final String COMBINED_RELATIONSHIP_KEY_SEP                                     = " ";
 	private static final Logger logger                                                            = Logger.getLogger(EntityContext.class.getName());
-	private static final Map<Class, Set<PropertyKey>> globalWriteOncePropertyMap                  = new LinkedHashMap<Class, Set<PropertyKey>>();
+//	private static final Map<Class, Set<PropertyKey>> globalWriteOncePropertyMap                  = new LinkedHashMap<Class, Set<PropertyKey>>();
 	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<Class, Map<PropertyKey, Set<PropertyValidator>>>();
 	private static final Map<String, Map<String, Set<PropertyKey>>> globalSearchablePropertyMap   = new LinkedHashMap<String, Map<String, Set<PropertyKey>>>();
 
@@ -519,9 +519,9 @@ public class EntityContext {
 	 * @param type the type of the entities
 	 * @param key the key that should be set scanEntity-only
 	 */
-	public static void registerReadOnlyProperty(Class type, PropertyKey key) {
-		getReadOnlyPropertySetForType(type).add(key);
-	}
+//	public static void registerReadOnlyProperty(Class type, PropertyKey key) {
+//		getReadOnlyPropertySetForType(type).add(key);
+//	}
 
 	// ----- searchable property map -----
 	/**
@@ -573,9 +573,9 @@ public class EntityContext {
 	 * @param type the entity type
 	 * @param key the key to be set to write-once
 	 */
-	public static void registerWriteOnceProperty(Class type, PropertyKey key) {
-		getWriteOncePropertySetForType(type).add(key);
-	}
+//	public static void registerWriteOnceProperty(Class type, PropertyKey key) {
+//		getWriteOncePropertySetForType(type).add(key);
+//	}
 
 	// ----- private methods -----
 	/**
@@ -1329,35 +1329,35 @@ public class EntityContext {
 		return conversionParameterMap;
 	}
 
-	private static Set<PropertyKey> getReadOnlyPropertySetForType(Class type) {
+//	private static Set<PropertyKey> getReadOnlyPropertySetForType(Class type) {
+//
+//		Set<PropertyKey> readOnlyPropertySet = globalReadOnlyPropertyMap.get(type);
+//
+//		if (readOnlyPropertySet == null) {
+//
+//			readOnlyPropertySet = new LinkedHashSet<PropertyKey>();
+//
+//			globalReadOnlyPropertyMap.put(type, readOnlyPropertySet);
+//
+//		}
+//
+//		return readOnlyPropertySet;
+//	}
 
-		Set<PropertyKey> readOnlyPropertySet = globalReadOnlyPropertyMap.get(type);
-
-		if (readOnlyPropertySet == null) {
-
-			readOnlyPropertySet = new LinkedHashSet<PropertyKey>();
-
-			globalReadOnlyPropertyMap.put(type, readOnlyPropertySet);
-
-		}
-
-		return readOnlyPropertySet;
-	}
-
-	private static Set<PropertyKey> getWriteOncePropertySetForType(Class type) {
-
-		Set<PropertyKey> writeOncePropertySet = globalWriteOncePropertyMap.get(type);
-
-		if (writeOncePropertySet == null) {
-
-			writeOncePropertySet = new LinkedHashSet<PropertyKey>();
-
-			globalWriteOncePropertyMap.put(type, writeOncePropertySet);
-
-		}
-
-		return writeOncePropertySet;
-	}
+//	private static Set<PropertyKey> getWriteOncePropertySetForType(Class type) {
+//
+//		Set<PropertyKey> writeOncePropertySet = globalWriteOncePropertyMap.get(type);
+//
+//		if (writeOncePropertySet == null) {
+//
+//			writeOncePropertySet = new LinkedHashSet<PropertyKey>();
+//
+//			globalWriteOncePropertyMap.put(type, writeOncePropertySet);
+//
+//		}
+//
+//		return writeOncePropertySet;
+//	}
 
 	private static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(String sourceType) {
 
@@ -1449,35 +1449,35 @@ public class EntityContext {
 		return globalKnownPropertyKeys.contains(key);
 	}
 
-	public static boolean isReadOnlyProperty(Class type, PropertyKey key) {
-
-		boolean isReadOnly = getReadOnlyPropertySetForType(type).contains(key);
-		Class localType    = type;
-
-		// try all superclasses
-		while (!isReadOnly && localType != null && !localType.equals(Object.class)) {
-
-			isReadOnly = getReadOnlyPropertySetForType(localType).contains(key);
-
-			// one level up :)
-			localType = localType.getSuperclass();
-
-		}
-		
-		if(!isReadOnly) {
-			
-			for(Class interfaceClass : getInterfacesForType(type)) {
-
-				if (getReadOnlyPropertySetForType(interfaceClass).contains(key)) {
-					return true;
-				}
-				
-				
-			}
-		}
-
-		return isReadOnly;
-	}
+//	public static boolean isReadOnlyProperty(Class type, PropertyKey key) {
+//
+//		boolean isReadOnly = getReadOnlyPropertySetForType(type).contains(key);
+//		Class localType    = type;
+//
+//		// try all superclasses
+//		while (!isReadOnly && localType != null && !localType.equals(Object.class)) {
+//
+//			isReadOnly = getReadOnlyPropertySetForType(localType).contains(key);
+//
+//			// one level up :)
+//			localType = localType.getSuperclass();
+//
+//		}
+//		
+//		if(!isReadOnly) {
+//			
+//			for(Class interfaceClass : getInterfacesForType(type)) {
+//
+//				if (getReadOnlyPropertySetForType(interfaceClass).contains(key)) {
+//					return true;
+//				}
+//				
+//				
+//			}
+//		}
+//
+//		return isReadOnly;
+//	}
 
 	public static boolean isSearchableProperty(Class type, String index, PropertyKey key) {
 		return isSearchableProperty(type, index, key.name());
@@ -1491,35 +1491,35 @@ public class EntityContext {
 		return getSearchablePropertyMapForType(normalizeEntityName(type)).containsKey(key);
 	}
 
-	public static boolean isWriteOnceProperty(Class type, PropertyKey key) {
-
-		boolean isWriteOnce = getWriteOncePropertySetForType(type).contains(key);
-		Class localType     = type;
-
-		// try all superclasses
-		while (!isWriteOnce && localType != null && !localType.equals(Object.class)) {
-
-			isWriteOnce = getWriteOncePropertySetForType(localType).contains(key);
-
-			// one level up :)
-			localType = localType.getSuperclass();
-
-		}
-		
-		if(!isWriteOnce) {
-			
-			for(Class interfaceClass : getInterfacesForType(type)) {
-
-				if (getWriteOncePropertySetForType(interfaceClass).contains(key)) {
-					return true;
-				}
-				
-				
-			}
-		}
-
-		return isWriteOnce;
-	}
+//	public static boolean isWriteOnceProperty(Class type, PropertyKey key) {
+//
+//		boolean isWriteOnce = getWriteOncePropertySetForType(type).contains(key);
+//		Class localType     = type;
+//
+//		// try all superclasses
+//		while (!isWriteOnce && localType != null && !localType.equals(Object.class)) {
+//
+//			isWriteOnce = getWriteOncePropertySetForType(localType).contains(key);
+//
+//			// one level up :)
+//			localType = localType.getSuperclass();
+//
+//		}
+//		
+//		if(!isWriteOnce) {
+//			
+//			for(Class interfaceClass : getInterfacesForType(type)) {
+//
+//				if (getWriteOncePropertySetForType(interfaceClass).contains(key)) {
+//					return true;
+//				}
+//				
+//				
+//			}
+//		}
+//
+//		return isWriteOnce;
+//	}
 	
 	public static GenericFactory getGenericFactory() {
 		return genericFactory;

@@ -32,6 +32,7 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	protected JavaType defaultValue      = null;
 	protected String name                = null;
 	protected boolean isReadOnlyProperty = false;
+	protected boolean isWriteOnceProperty   = false;
 	protected boolean isSystemProperty   = false;
 	
 	public Property(String name) {
@@ -53,6 +54,11 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 		return this;
 	}
 	
+	public Property<JavaType> writeOnce() {
+		this.isWriteOnceProperty = true;
+		return this;
+	}
+
 	@Override
 	public void setDeclaringClassName(String name) {
 		this.declaringClassName = name;
@@ -113,5 +119,10 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public boolean isReadOnlyProperty() {
 		return isReadOnlyProperty;
+	}
+	
+	@Override
+	public boolean isWriteOnceProperty() {
+		return isWriteOnceProperty;
 	}
 }
