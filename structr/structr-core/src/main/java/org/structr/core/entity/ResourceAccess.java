@@ -55,8 +55,8 @@ public class ResourceAccess extends AbstractNode {
 	private String cachedResourceSignature = null;
 	private Long cachedFlags     = null;
 
-	public static final Property<String> signature = new Property<String>("signature").systemProperty().readOnly();
-	public static final Property<Long>   flags     = new LongProperty("flags").systemProperty().readOnly();
+	public static final Property<String> signature = new Property<String>("signature");
+	public static final Property<Long>   flags     = new LongProperty("flags");
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags
