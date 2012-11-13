@@ -84,11 +84,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	// properties
 	public static final Property<String>        base                        = new Property<String>("base");
 	public static final Property<String>        name                        = new Property<String>("name");
-	public static final Property<String>        createdBy                   = new Property<String>("createdBy").systemProperty();
+	public static final Property<String>        createdBy                   = new Property<String>("createdBy").systemProperty().writeOnce();
 	public static final Property<Boolean>       deleted                     = new BooleanProperty("deleted");
 	public static final Property<Boolean>       hidden                      = new BooleanProperty("hidden");
-	public static final Property<Date>          createdDate                 = new ISO8601DateProperty("createdDate").systemProperty();
-	public static final Property<Date>          lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemProperty();
+	public static final Property<Date>          createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().writeOnce();
+	public static final Property<Date>          lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemProperty().readOnly();
 	public static final Property<Boolean>       visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
 	public static final Property<Boolean>       visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
 	public static final Property<Date>	    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
