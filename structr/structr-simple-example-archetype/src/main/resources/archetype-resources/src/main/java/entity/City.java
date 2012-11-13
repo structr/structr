@@ -12,6 +12,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.Property;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
