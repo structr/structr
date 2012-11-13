@@ -31,4 +31,9 @@ public class GenericProperty<T> extends Property<T> {
 	public GenericProperty(String jsonName, String dbName) {
 		super(jsonName, dbName);
 	}
+	
+	@Override
+	public String typeName() {
+		return "FIXME: GenericProperty.java:37";
+	}
 }

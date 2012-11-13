@@ -23,7 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Date;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 /**
  *

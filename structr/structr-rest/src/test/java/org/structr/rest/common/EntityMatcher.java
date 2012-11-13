@@ -26,7 +26,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;

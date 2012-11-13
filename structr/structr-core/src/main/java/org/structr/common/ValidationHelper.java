@@ -19,7 +19,7 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import java.util.Arrays;
 import java.util.Date;
 import org.apache.commons.lang.StringUtils;

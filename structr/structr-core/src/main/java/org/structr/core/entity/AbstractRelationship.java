@@ -29,7 +29,7 @@ import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.*;
 
 import org.structr.common.*;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;

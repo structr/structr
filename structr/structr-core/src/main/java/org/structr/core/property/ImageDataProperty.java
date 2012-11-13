@@ -40,6 +40,11 @@ public class ImageDataProperty<T> extends Property<String> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "String";
+	}
+	
+	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new ImageConverter(securityContext, entity, keyAndClass);
 	}

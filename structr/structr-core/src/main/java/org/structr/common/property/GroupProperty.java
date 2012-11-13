@@ -18,6 +18,7 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
@@ -39,19 +41,30 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	
 	private static final Logger logger = Logger.getLogger(GroupProperty.class.getName());
 	
+	// indicates whether this group property is 
 	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<String, PropertyKey>();
 	protected Class<? extends GraphObject> entityClass = null;
+	protected Property<Boolean> nullValuesOnlyProperty = null;
 	
 	public GroupProperty(String name, Class<? extends GraphObject> entityClass, PropertyKey... properties) {
+		
 		super(name);
 		
 		for (PropertyKey key : properties) {
 			propertyKeys.put(key.jsonName(), key);
 		}
-		this.entityClass  = entityClass;
+		
+		this.nullValuesOnlyProperty = new BooleanProperty(name.concat(".").concat("nullValuesOnly"));
+		this.entityClass            = entityClass;
 
+		
 		// this looks strange
 		EntityContext.registerPropertyGroup(entityClass, this, this);	
+	}
+	
+	@Override
+	public String typeName() {
+		return "Object";
 	}
 	
 	@Override
@@ -119,7 +132,12 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
 		PropertyMap groupedProperties = new PropertyMap();
-		boolean nullValuesOnly        = true;
+		Boolean nullValuesOnly        = source.getProperty(nullValuesOnlyProperty);
+		
+		// return immediately, as there are no properties in this group
+		if (nullValuesOnly != null && nullValuesOnly.booleanValue()) {
+			return null;
+		}
 
 		for (PropertyKey key : propertyKeys.values()) {
 
@@ -160,12 +178,6 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			}
 
 		}
-
-		// FIXME: this is not working as expected, there needs to be an additional flag that
-		// indicates whether the group was explicitly to "null" or if all the values are null only
-//		if (nullValuesOnly) {
-//			return null;
-//		}
 		
 		return groupedProperties;
 	}
@@ -173,18 +185,22 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	@Override
 	public void setGroupedProperties(SecurityContext securityContext, PropertyMap source, GraphObject destination) throws FrameworkException {
 
-		if (source == null) {
+		if (source.containsKey(nullValuesOnlyProperty)) {
+			throw new FrameworkException("base", new ReadOnlyPropertyToken(nullValuesOnlyProperty));
+		}
+		
+		if (source.isEmpty()) {
 
-			for (PropertyKey key : propertyKeys.values()) {
-
-				destination.setProperty(key, null);
-
-			}
-
+			destination.setProperty(nullValuesOnlyProperty, true);
+			
 			return;
 			
 		}
 		
+		// indicate that this group actually contains values
+		destination.setProperty(nullValuesOnlyProperty, false);
+		
+		// set properties
 		for (PropertyKey key : propertyKeys.values()) {
 			
 			PropertyKey groupPropertyKey = new GroupPropertyWrapper(key);
@@ -272,6 +288,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		@Override
 		public String dbName() {
 			return GroupProperty.this.dbName.concat(".").concat(wrappedKey.dbName());
+		}
+		
+		@Override
+		public String typeName() {
+			return wrappedKey.typeName();
 		}
 
 		@Override

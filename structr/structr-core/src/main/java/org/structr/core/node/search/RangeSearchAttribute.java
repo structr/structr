@@ -18,7 +18,7 @@
  */
 package org.structr.core.node.search;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 /**
  *

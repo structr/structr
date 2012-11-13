@@ -28,7 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;

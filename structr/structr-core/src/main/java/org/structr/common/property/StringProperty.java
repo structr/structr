@@ -35,4 +35,9 @@ public class StringProperty extends Property<String> {
 	public StringProperty(String jsonName, String dbName, String defaultValue) {
 		super(jsonName, dbName, defaultValue);
 	}
+	
+	@Override
+	public String typeName() {
+		return "String";
+	}
 }

@@ -21,7 +21,7 @@
 
 package org.structr.core;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 //~--- JDK imports ------------------------------------------------------------
 

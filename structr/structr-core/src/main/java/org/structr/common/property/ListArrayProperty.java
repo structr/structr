@@ -37,6 +37,11 @@ public class ListArrayProperty extends Property<String> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "String";
+	}
+	
+	@Override
 	public PropertyConverter<String, String[]> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new ListArrayConverter(securityContext);
 	}

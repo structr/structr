@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.LongProperty;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------

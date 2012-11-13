@@ -21,7 +21,7 @@
 
 package org.structr.web;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;

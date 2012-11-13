@@ -34,7 +34,7 @@ import org.neo4j.index.lucene.QueryContext;
 
 import org.structr.common.GeoHelper;
 import org.structr.common.GeoHelper.GeoCodingResult;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;

@@ -18,7 +18,7 @@
  */
 package org.structr.core.node;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 /**
  * A parameterized node attribute to identify a node attribute

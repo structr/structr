@@ -20,7 +20,7 @@
 package org.structr.core.converter;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;

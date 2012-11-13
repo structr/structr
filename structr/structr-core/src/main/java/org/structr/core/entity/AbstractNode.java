@@ -34,7 +34,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.*;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -1689,8 +1689,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
-		final Class type = this.getClass();
-
+		Class type = this.getClass();
+		
 		if (key == null) {
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");

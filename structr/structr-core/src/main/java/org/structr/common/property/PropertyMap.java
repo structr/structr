@@ -18,6 +18,7 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -142,7 +143,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 							cce.printStackTrace();
 
-							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, "XXX"));
+							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
 						}
 
 					} else {
@@ -183,7 +184,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 							cce.printStackTrace();
 
-							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, "XXX"));
+							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
 						}
 
 					} else {
@@ -249,7 +250,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 							cce.printStackTrace();
 
-							throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, "XXX"));
+							throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
 						}
 
 					} else {
@@ -282,7 +283,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 					cce.printStackTrace();
 					
-					throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, "XXX"));
+					throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
 				}
 
 			} else {

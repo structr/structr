@@ -48,6 +48,11 @@ public class EnumProperty<T extends Enum> extends Property<T> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "String";
+	}
+	
+	@Override
 	public PropertyConverter<T, String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new DatabaseConverter(securityContext, entity);
 	}

@@ -47,7 +47,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.property.GenericProperty;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;

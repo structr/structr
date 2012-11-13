@@ -25,7 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Node;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;

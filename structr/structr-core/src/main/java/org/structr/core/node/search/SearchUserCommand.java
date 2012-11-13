@@ -26,7 +26,7 @@ import java.util.Map;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;

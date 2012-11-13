@@ -36,7 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.Command;
 import org.structr.core.agent.Task;
 import org.structr.core.node.*;

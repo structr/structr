@@ -18,6 +18,7 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
 import java.util.Collection;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -44,6 +45,11 @@ public class NotionProperty<T extends Collection<?>> extends Property<T> {
 		
 		// make us known to the entity context
 		EntityContext.registerConvertedProperty(this);
+	}
+	
+	@Override
+	public String typeName() {
+		return propertyKey.typeName();
 	}
 	
 	@Override

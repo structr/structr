@@ -43,6 +43,11 @@ public class IntProperty extends Property<Integer> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "Integer";
+	}
+	
+	@Override
 	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}

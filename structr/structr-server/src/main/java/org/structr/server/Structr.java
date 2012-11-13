@@ -330,7 +330,12 @@ public class Structr {
 			sourceJarName = jarFile;
 		}
 
+		// get current base path
 		basePath = System.getProperty("home", basePath);
+		if (basePath.isEmpty()) {
+			// use cwd and, if that fails, /tmp as a fallback
+			basePath = System.getProperty("user.dir", "/tmp");
+		}
 		
 		// create base directory if it does not exist
 		File baseDir = new File(basePath);

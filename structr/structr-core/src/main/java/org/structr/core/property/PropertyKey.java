@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common.property;
+package org.structr.core.property;
 
 import java.util.Set;
 import org.structr.common.SecurityContext;
@@ -35,6 +35,12 @@ public interface PropertyKey<JavaType> {
 	
 	public String jsonName();
 	public String dbName();
+	
+	/**
+	 * Returns the desired type name that will be used in the error message if a
+	 * wrong type was provided.
+	 */
+	public String typeName();
 	
 	public JavaType defaultValue();
 	

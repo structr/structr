@@ -21,7 +21,7 @@ package org.structr.core.cypher;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;

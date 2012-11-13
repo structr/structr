@@ -20,7 +20,7 @@
 package org.structr.common.error;
 
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 /**
  *

@@ -18,6 +18,7 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
 import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -83,6 +84,11 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public String jsonName() {
 		return propertyKey.jsonName();
+	}
+	
+	@Override
+	public String typeName() {
+		return propertyKey.typeName();
 	}
 
 	@Override

@@ -18,7 +18,7 @@
  */
 package org.structr.core.converter;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 /**
  *

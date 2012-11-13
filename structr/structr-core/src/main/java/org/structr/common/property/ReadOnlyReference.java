@@ -18,6 +18,8 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
+
 /**
  *
  * @author Christian Morgner

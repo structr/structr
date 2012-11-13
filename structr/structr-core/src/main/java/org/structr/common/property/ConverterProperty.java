@@ -55,6 +55,11 @@ public class ConverterProperty<T> extends Property<T> {
 	}
 	
 	@Override
+	public String typeName() {
+		return ""; // read-only
+	}
+	
+	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return createConverter(securityContext, entity);
 	}

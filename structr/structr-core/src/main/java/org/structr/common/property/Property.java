@@ -18,6 +18,7 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
 import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
