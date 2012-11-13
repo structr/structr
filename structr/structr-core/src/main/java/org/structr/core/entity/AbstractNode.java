@@ -82,9 +82,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	private static final boolean updateIndexDefault = true;
 
 	// properties
-	public static final Property<String>        base                        = new Property<String>("base");
-	public static final Property<String>        name                        = new Property<String>("name");
-	public static final Property<String>        createdBy                   = new Property<String>("createdBy").systemProperty().writeOnce();
+	public static final Property<String>        base                        = new StringProperty("base");
+	public static final Property<String>        name                        = new StringProperty("name");
+	public static final Property<String>        createdBy                   = new StringProperty("createdBy").systemProperty().writeOnce();
 	public static final Property<Boolean>       deleted                     = new BooleanProperty("deleted");
 	public static final Property<Boolean>       hidden                      = new BooleanProperty("hidden");
 	public static final Property<Date>          createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().writeOnce();
