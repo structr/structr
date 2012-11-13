@@ -339,6 +339,10 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		public boolean isReadOnlyProperty() {
 			return wrappedKey.isReadOnlyProperty();
 		}
-		
+
+		@Override
+		public boolean isWriteOnceProperty() {
+			return wrappedKey.isWriteOnceProperty();
+		}
 	}
 }

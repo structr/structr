@@ -1077,7 +1077,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		// check for read-only properties
 		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
-		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
+		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
