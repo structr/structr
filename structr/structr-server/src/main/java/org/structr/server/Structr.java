@@ -86,7 +86,7 @@ public class Structr {
 	private int restPort                                       = 8082;
 	private int httpsPort                                      = 8083;
 	
-	private int jsonDepth                                      = 2;
+	private int jsonDepth                                      = 4;
 	private boolean logRequests                                = false;
 	private String logPrefix                                   = "structr";
 	
