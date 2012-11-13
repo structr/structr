@@ -21,8 +21,7 @@
 
 package org.structr.web.servlet;
 
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
@@ -89,6 +88,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.time.DateUtils;
+import org.structr.common.property.GenericProperty;
 import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.web.common.PageHelper;
 
@@ -667,7 +667,7 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			PropertyKey key = new Property(param.getKey());
+			PropertyKey key = new GenericProperty(param.getKey());
 			NodeAttribute attr = new NodeAttribute(key, val);
 
 			attrs.add(attr);
@@ -923,7 +923,7 @@ public class HtmlServlet extends HttpServlet {
 
 								if ((value != null) && StringUtils.isNotBlank(value)) {
 
-									String key = attribute.name().substring(PropertyView.Html.length());
+									String key = attribute.jsonName().substring(PropertyView.Html.length());
 
 									buffer.append(" ").append(key).append("=\"").append(value).append("\"");
 

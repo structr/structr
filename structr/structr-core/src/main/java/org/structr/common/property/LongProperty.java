@@ -35,6 +35,11 @@ public class LongProperty extends Property<Long> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "Long";
+	}
+	
+	@Override
 	public PropertyConverter<Long, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}

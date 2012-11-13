@@ -19,7 +19,7 @@
 package org.structr.rest.entity;
 
 import java.util.Date;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.property.ISO8601DateProperty;
 import org.structr.common.property.IntProperty;

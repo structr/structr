@@ -36,8 +36,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
+import org.structr.common.property.StringProperty;
 import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
@@ -56,7 +57,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<Class, Serializer>();
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<Class, Serializer>();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<Class>();
-	private final Property<String> id                    = new Property<String>("id");
+	private final Property<String> id                    = new StringProperty("id");
 	private final int outputNestingDepth                 = Services.getOutputNestingDepth();
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private PropertyKey idProperty                       = null;
@@ -219,8 +220,8 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				// CHM: remove debug code later
 				t.printStackTrace();
 
-				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}, {2}) of entity {3} (value {4}): {5}", new Object[] {
-					key.name(),
+				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}, {2}) of entity {3} (value {4}) : {5}", new Object[] {
+					key.jsonName(),
 					key.getClass(),
 					key.getClass().getDeclaringClass(),
 					value.getClass().getName(),
@@ -282,11 +283,11 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 					if (value != null) {
 
-						jsonObject.add(localKey.name(), serializeProperty(key, value, localPropertyView, depth));
+						jsonObject.add(localKey.jsonName(), serializeProperty(key, value, localPropertyView, depth));
 
 					} else {
 
-						jsonObject.add(localKey.name(), null);
+						jsonObject.add(localKey.jsonName(), null);
 
 					}
 
@@ -326,7 +327,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				Object value = entry.getValue();
 				
 				// id property mapping again..
-				if (idProperty.name().equals(key)) {
+				if (idProperty.jsonName().equals(key)) {
 					key = "id";
 				}
 				
@@ -356,7 +357,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				
 				Object value = entry.getValue();
 				
-				object.add(key.name(), serializeProperty(key, value, localPropertyView, depth));
+				object.add(key.jsonName(), serializeProperty(key, value, localPropertyView, depth));
 			}
 			
 			return object;

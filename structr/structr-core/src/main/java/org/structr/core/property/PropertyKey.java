@@ -17,11 +17,14 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common.property;
+package org.structr.core.property;
 
+import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchOperator;
 
 /**
  * Interface for typed node property keys.
@@ -30,7 +33,14 @@ import org.structr.core.converter.PropertyConverter;
  */
 public interface PropertyKey<JavaType> {
 	
-	public String name();
+	public String jsonName();
+	public String dbName();
+	
+	/**
+	 * Returns the desired type name that will be used in the error message if a
+	 * wrong type was provided.
+	 */
+	public String typeName();
 	
 	public JavaType defaultValue();
 	
@@ -38,6 +48,10 @@ public interface PropertyKey<JavaType> {
 	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
 
 	public void setDeclaringClassName(String declaringClassName);
+
+	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch);
+	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
+	
 	
 	/**
 	 * Indicates whether this property is a system property or not. If a transaction

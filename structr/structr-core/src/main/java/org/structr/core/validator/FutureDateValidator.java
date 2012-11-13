@@ -21,7 +21,7 @@ package org.structr.core.validator;
 
 import java.util.Date;
 import java.util.logging.Logger;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FutureDateToken;

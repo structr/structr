@@ -51,7 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -168,12 +168,12 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 				QueryContext queryContext = new QueryContext(textualQueryString);
 				IndexHits hits;
 
-				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractRelationship.uuid.name())) {
+				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractRelationship.uuid.dbName())) {
 
 					// Search for uuid only: Use UUID index
 					index = (Index<Relationship>) arguments.get(RelationshipIndex.rel_uuid.name());
 					synchronized(index) {
-						hits  = index.get(AbstractNode.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+						hits  = index.get(AbstractNode.uuid.dbName(), decodeExactMatch(textualAttributes.get(0).getValue()));
 					}
 				} else if ((textualAttributes.size() > 1) && allExactMatch) {
 
@@ -304,7 +304,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 		// NOT operator should always be applied
 		return ((isFirst &&!(op.equals(SearchOperator.NOT)))
 			? ""
-			: " " + op + " ") + expand(key.name(), value);
+			: " " + op + " ") + expand(key.dbName(), value);
 	}
 
 	private Query toQuery(final TextualSearchAttribute singleAttribute) {
@@ -319,9 +319,9 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 		}
 
-		if (StringUtils.isNotBlank(key.name()) && StringUtils.isNotBlank(value)) {
+		if (StringUtils.isNotBlank(key.dbName()) && StringUtils.isNotBlank(value)) {
 
-			return new TermQuery(new Term(key.name(), value));
+			return new TermQuery(new Term(key.dbName(), value));
 
 		}
 

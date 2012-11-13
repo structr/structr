@@ -39,6 +39,11 @@ public class AggregatorProperty<JavaType> extends Property<JavaType> {
 	}
 	
 	@Override
+	public String typeName() {
+		return ""; // read-only
+	}
+	
+	@Override
 	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new AggregatingConverter(securityContext, entity, aggregation);
 	}

@@ -20,7 +20,7 @@
 package org.structr.core.validator;
 
 import java.util.regex.Pattern;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.MatchToken;
 import org.structr.core.GraphObject;

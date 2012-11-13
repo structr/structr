@@ -26,10 +26,11 @@ import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.property.Property;
 
-import org.structr.common.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
+import org.structr.common.property.GenericProperty;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
@@ -54,8 +55,8 @@ public class A extends HtmlElement {
 	public static final Property<String> _hreflang = new HtmlProperty("hreflang");
 	public static final Property<String> _type     = new HtmlProperty("type");
 
-	public static final Property<String>         linkableId = new Property<String>("linkable_id");
-	public static final Property<List<Linkable>> linkable   = new Property<List<Linkable>>("linkable");
+	public static final Property<String>         linkableId = new StringProperty("linkable_id");
+	public static final Property<List<Linkable>> linkable   = new GenericProperty<List<Linkable>>("linkable");
 
 	public static final View uiView = new View(A.class, PropertyView.Ui,
 		linkableId, linkable

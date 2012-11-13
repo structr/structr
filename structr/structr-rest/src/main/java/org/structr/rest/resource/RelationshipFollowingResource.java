@@ -52,7 +52,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.RelationClass;
 
@@ -380,7 +380,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		try {
 
 			// only continue if we are on the right track :)
-			if (idSet.contains(endNode.getProperty(AbstractNode.uuid.name()))) {
+			if (idSet.contains(endNode.getProperty(AbstractNode.uuid.dbName()))) {
 
 				if (path.length() == pathLength) {
 

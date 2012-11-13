@@ -19,7 +19,7 @@
 
 package org.structr.core.converter;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
@@ -65,7 +65,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 				relatedNode.setProperty(targetKey, source);
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.name(),
+				logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.dbName(),
 					targetType });
 			}
 		}

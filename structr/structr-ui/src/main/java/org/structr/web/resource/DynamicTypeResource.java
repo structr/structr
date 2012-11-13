@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -321,12 +321,12 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (newComponent != null) {
 			
-			propertySet.remove(AbstractNode.createdDate.name());
-			propertySet.remove(AbstractNode.lastModifiedDate.name());
+			propertySet.remove(AbstractNode.createdDate.dbName());
+			propertySet.remove(AbstractNode.lastModifiedDate.dbName());
 
 			for (final String keyName : propertySet.keySet()) {
 
-				PropertyKey key = EntityContext.getPropertyKeyForName(Component.class, keyName);
+				PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(Component.class, keyName);
 				newComponent.setProperty(key, propertySet.get(keyName));
 			}
 

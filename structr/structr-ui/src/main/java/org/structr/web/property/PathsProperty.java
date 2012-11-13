@@ -18,6 +18,11 @@ public class PathsProperty extends Property<Set<String>> {
 	}
 	
 	@Override
+	public String typeName() {
+		return ""; // read-only
+	}
+	
+	@Override
 	public PropertyConverter<Set<String>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new PathsConverter(securityContext, entity);
 	}

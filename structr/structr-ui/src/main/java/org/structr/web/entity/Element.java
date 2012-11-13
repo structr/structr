@@ -27,6 +27,7 @@ import org.structr.common.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -43,7 +44,7 @@ import org.structr.web.property.PathsProperty;
  */
 public interface Element extends GraphObject {
 
-	public static final Property<String>      tag   = new Property<String>("tag");
+	public static final Property<String>      tag   = new StringProperty("tag");
 	public static final Property<Set<String>> paths = new PathsProperty("paths");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Element.class, PropertyView.Ui,

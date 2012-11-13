@@ -18,6 +18,7 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -41,6 +42,11 @@ public class RelatedNodeProperty<T> extends Property<T> {
 		
 		// make us known to the entity context
 		EntityContext.registerConvertedProperty(this);
+	}
+	
+	@Override
+	public String typeName() {
+		return "FIXME: RelatedNodeProperty.java:49";
 	}
 	
 	@Override

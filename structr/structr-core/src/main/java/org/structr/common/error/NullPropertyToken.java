@@ -21,7 +21,7 @@ package org.structr.common.error;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 /**
  *

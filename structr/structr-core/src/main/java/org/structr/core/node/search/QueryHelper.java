@@ -24,7 +24,7 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -34,11 +34,11 @@ import org.structr.core.entity.AbstractNode;
 public class QueryHelper {
 
 	public static Query exactType(Class type) {
-		return new TermQuery(new Term(AbstractNode.type.name(), Search.exactMatch(type.getSimpleName())));
+		return new TermQuery(new Term(AbstractNode.type.dbName(), Search.exactMatch(type.getSimpleName())));
 	}
 
 	public static Query exactPropertyValue(PropertyKey propertyKey, String value) {
-		return new TermQuery(new Term(propertyKey.name(), Search.exactMatch(value)));
+		return new TermQuery(new Term(propertyKey.dbName(), Search.exactMatch(value)));
 	}
 
 	public static Query and(Query query1, Query query2) {

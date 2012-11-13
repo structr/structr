@@ -17,6 +17,11 @@ public class DynamicContentProperty extends Property<String> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "String";
+	}
+	
+	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new DynamicConverter(securityContext, entity);
 	}

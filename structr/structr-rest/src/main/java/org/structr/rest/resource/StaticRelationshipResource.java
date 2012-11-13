@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections.ListUtils;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
@@ -142,7 +142,7 @@ public class StaticRelationshipResource extends SortableResource {
 				// as the property key for getProperty
 				// look for a property converter for the given type and key
 				final Class type      = sourceNode.getClass();
-				final PropertyKey key = EntityContext.getPropertyKeyForName(type, typeResource.getRawType());
+				final PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type, typeResource.getRawType());
 
 				// use database converter here, because results will be converted for output during serialization!
 				final PropertyConverter converter = key.databaseConverter(securityContext, sourceNode);
@@ -340,8 +340,12 @@ public class StaticRelationshipResource extends SortableResource {
 
 					Class sourceNodeType = sourceNode.getClass();
 					
+<<<<<<< HEAD
 					//if (EntityContext.isReadOnlyProperty(sourceNodeType, EntityContext.getPropertyKeyForName(sourceNodeType, typeResource.getRawType()))) {
 					if (EntityContext.getPropertyKeyForName(sourceNodeType, typeResource.getRawType()).isReadOnlyProperty()) {
+=======
+					if (EntityContext.isReadOnlyProperty(sourceNodeType, EntityContext.getPropertyKeyForDatabaseName(sourceNodeType, typeResource.getRawType()))) {
+>>>>>>> feature/json_database_name
 
 						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 
@@ -354,14 +358,14 @@ public class StaticRelationshipResource extends SortableResource {
 					final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
 					// apply notion if the property set contains the ID property as the only element
-					if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.name()) && propertySet.size() == 1) {
+					if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
 
 						// the notion that is defined for this relationship can deserialize
 						// objects with a single key (uuid for example), and the POSTed
 						// property set contains value(s) for this key, so we only need
 						// to create relationships
 						final Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
-						final Object keySource                                     = propertySet.get(primaryPropertyKey.name());
+						final Object keySource                                     = propertySet.get(primaryPropertyKey.jsonName());
 
 						if (keySource != null) {
 
@@ -406,7 +410,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 						} else {
 
-							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.name(), propertySet.toString() });
+							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
 
 						}
 

@@ -34,7 +34,7 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 
 import org.structr.common.CaseHelper;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -60,7 +60,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.common.*;
-import org.structr.common.property.Property;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.PropertyMap;
 import org.structr.core.module.ModuleService;
 import org.structr.core.node.NodeService.NodeIndex;
@@ -81,13 +81,14 @@ public class EntityContext {
 	private static final Logger logger                                                            = Logger.getLogger(EntityContext.class.getName());
 //	private static final Map<Class, Set<PropertyKey>> globalWriteOncePropertyMap                  = new LinkedHashMap<Class, Set<PropertyKey>>();
 	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<Class, Map<PropertyKey, Set<PropertyValidator>>>();
-	private static final Map<String, Map<String, Set<PropertyKey>>> globalSearchablePropertyMap   = new LinkedHashMap<String, Map<String, Set<PropertyKey>>>();
+	private static final Map<Class, Map<String, Set<PropertyKey>>> globalSearchablePropertyMap    = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
 
 	// This map contains a mapping from (sourceType, destType) -> RelationClass
-	private static final Map<Class, Map<Class, RelationClass>> globalRelationClassMap    = new LinkedHashMap<Class, Map<Class, RelationClass>>();
-	private static final Map<Class, Set<PropertyKey>> globalReadOnlyPropertyMap          = new LinkedHashMap<Class, Set<PropertyKey>>();
-	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
-	private static final Map<Class, Map<String, PropertyKey>> globalClassPropertyMap     = new LinkedHashMap<Class, Map<String, PropertyKey>>();
+	private static final Map<Class, Map<Class, RelationClass>> globalRelationClassMap      = new LinkedHashMap<Class, Map<Class, RelationClass>>();
+	private static final Map<Class, Set<PropertyKey>> globalReadOnlyPropertyMap            = new LinkedHashMap<Class, Set<PropertyKey>>();
+	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap   = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
+	private static final Map<Class, Map<String, PropertyKey>> globalClassDBNamePropertyMap = new LinkedHashMap<Class, Map<String, PropertyKey>>();
+	private static final Map<Class, Map<String, PropertyKey>> globalClassJSNamePropertyMap = new LinkedHashMap<Class, Map<String, PropertyKey>>();
 
 	// This map contains a mapping from (sourceType, propertyKey) -> RelationClass
 	private static final Map<Class, Map<PropertyKey, Class<? extends PropertyConverter>>> globalAggregatedPropertyConverterMap = new LinkedHashMap<Class, Map<PropertyKey, Class<? extends PropertyConverter>>>();
@@ -133,7 +134,7 @@ public class EntityContext {
 		for (Enum index : NodeService.NodeIndex.values()) {
 
 			String indexName                                           = index.name();
-			Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
+			Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
 			Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(indexName);
 
 			if (searchablePropertySet == null) {
@@ -200,7 +201,9 @@ public class EntityContext {
 	
 	private static void registerProperty(Class type, PropertyKey propertyKey) {
 		
-		getClassPropertyMapForType(type).put(propertyKey.name(), propertyKey);
+		getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(),   propertyKey);
+		getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), propertyKey);
+		
 		registerPropertySet(type, PropertyView.All, propertyKey);
 	}
 	
@@ -249,7 +252,7 @@ public class EntityContext {
 	 * @param propertyGroup the property group
 	 */
 	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
-		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
+		getPropertyGroupMapForType(type).put(key.dbName(), propertyGroup);
 	}
 
 	// ----- named relations -----
@@ -551,7 +554,7 @@ public class EntityContext {
 	 */
 	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
 
-		Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
+		Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
 		Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(index);
 
 		if (searchablePropertySet == null) {
@@ -562,7 +565,7 @@ public class EntityContext {
 
 		}
 
-		searchablePropertySet.add(key);
+		key.registerSearchableProperties(searchablePropertySet);
 	}
 
 	// ----- write-once property map -----
@@ -881,7 +884,7 @@ public class EntityContext {
 
 	// ----- property notions -----
 	public static PropertyGroup getPropertyGroup(Class type, PropertyKey key) {
-		return getPropertyGroup(type, key.name());
+		return getPropertyGroup(type, key.dbName());
 	}
 
 	public static PropertyGroup getPropertyGroup(Class type, String key) {
@@ -974,7 +977,7 @@ public class EntityContext {
 
 	public static RelationClass getRelationClass(Class sourceType, PropertyKey key) {
 
-		Class destType = getEntityClassForRawType(key.name());
+		Class destType = getEntityClassForRawType(key.dbName());
 
 		if (destType != null) {
 
@@ -1061,21 +1064,37 @@ public class EntityContext {
 		return Collections.unmodifiableSet(properties);
 	}
 	
-	public static PropertyKey getPropertyKeyForName(Class type, String name) {
+	public static PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName) {
 
-		Map<String, PropertyKey> classPropertyMap = getClassPropertyMapForType(type);
-		PropertyKey key                           = classPropertyMap.get(name);
+		Map<String, PropertyKey> classDBNamePropertyMap = getClassDBNamePropertyMapForType(type);
+		PropertyKey key                                 = classDBNamePropertyMap.get(dbName);
 		
 		if (key == null) {
 			
 			// first try: uuid
-			if (GraphObject.uuid.name().equals(name)) {
+			if (GraphObject.uuid.dbName().equals(dbName)) {
+				return GraphObject.uuid;
+			}
+			
+			key = new GenericProperty(dbName);
+		}
+		
+		return key;
+	}
+	
+	public static PropertyKey getPropertyKeyForJSONName(Class type, String jsonName) {
+
+		Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
+		PropertyKey key                                 = classJSNamePropertyMap.get(jsonName);
+		
+		if (key == null) {
+			
+			// first try: uuid
+			if (GraphObject.uuid.dbName().equals(jsonName)) {
 				return GraphObject.uuid;
 			}
 
-			// logger.log(Level.WARNING, "No property key instance found for type {0}, key {1}", new Object[] { type != null ? type.getName() : "null", name } );
-			
-			key = new Property(name);
+			key = new GenericProperty(jsonName);
 		}
 		
 		return key;
@@ -1193,17 +1212,11 @@ public class EntityContext {
 //	}
 
 	public static Set<PropertyKey> getSearchableProperties(Class type, String index) {
-		return getSearchableProperties(type.getSimpleName(), index);
-	}
-
-	public static Set<PropertyKey> getSearchableProperties(String type, String index) {
 
 		Set<PropertyKey> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
-
 		if (searchablePropertyMap == null) {
 
 			searchablePropertyMap = new HashSet<PropertyKey>();
-
 		}
 
 		return searchablePropertyMap;
@@ -1254,19 +1267,34 @@ public class EntityContext {
 		return propertyViewMap;
 	}
 
-	private static Map<String, PropertyKey> getClassPropertyMapForType(Class type) {
+	private static Map<String, PropertyKey> getClassDBNamePropertyMapForType(Class type) {
 
-		Map<String, PropertyKey> classPropertyMap = globalClassPropertyMap.get(type);
+		Map<String, PropertyKey> classDBNamePropertyMap = globalClassDBNamePropertyMap.get(type);
 
-		if (classPropertyMap == null) {
+		if (classDBNamePropertyMap == null) {
 
-			classPropertyMap = new LinkedHashMap<String, PropertyKey>();
+			classDBNamePropertyMap = new LinkedHashMap<String, PropertyKey>();
 
-			globalClassPropertyMap.put(type, classPropertyMap);
+			globalClassDBNamePropertyMap.put(type, classDBNamePropertyMap);
 
 		}
 
-		return classPropertyMap;
+		return classDBNamePropertyMap;
+	}
+
+	private static Map<String, PropertyKey> getClassJSNamePropertyMapForType(Class type) {
+
+		Map<String, PropertyKey> classJSNamePropertyMap = globalClassJSNamePropertyMap.get(type);
+
+		if (classJSNamePropertyMap == null) {
+
+			classJSNamePropertyMap = new LinkedHashMap<String, PropertyKey>();
+
+			globalClassJSNamePropertyMap.put(type, classJSNamePropertyMap);
+
+		}
+
+		return classJSNamePropertyMap;
 	}
 
 	private static Map<PropertyKey, Set<PropertyValidator>> getPropertyValidatorMapForType(Class type) {
@@ -1359,15 +1387,15 @@ public class EntityContext {
 //		return writeOncePropertySet;
 //	}
 
-	private static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(String sourceType) {
+	private static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(Class type) {
 
-		Map<String, Set<PropertyKey>> searchablePropertyMap = globalSearchablePropertyMap.get(normalizeEntityName(sourceType));
+		Map<String, Set<PropertyKey>> searchablePropertyMap = globalSearchablePropertyMap.get(type);
 
 		if (searchablePropertyMap == null) {
 
 			searchablePropertyMap = new LinkedHashMap<String, Set<PropertyKey>>();
 
-			globalSearchablePropertyMap.put(normalizeEntityName(sourceType), searchablePropertyMap);
+			globalSearchablePropertyMap.put(type, searchablePropertyMap);
 
 		}
 
@@ -1480,15 +1508,10 @@ public class EntityContext {
 //	}
 
 	public static boolean isSearchableProperty(Class type, String index, PropertyKey key) {
-		return isSearchableProperty(type, index, key.name());
-	}
-
-	public static boolean isSearchableProperty(Class type, String index, String key) {
-		return isSearchableProperty(type.getSimpleName(), index, key);
-	}
-
-	public static boolean isSearchableProperty(String type, String index, String key) {
-		return getSearchablePropertyMapForType(normalizeEntityName(type)).containsKey(key);
+		
+		boolean isSearchable = getSearchableProperties(type, index).contains(key);
+		
+		return isSearchable;
 	}
 
 //	public static boolean isWriteOnceProperty(Class type, PropertyKey key) {
@@ -1618,7 +1641,7 @@ public class EntityContext {
 						AbstractNode modifiedNode = nodeFactory.createNode(node, true, false);
 						if (modifiedNode != null) {
 
-							PropertyKey key = getPropertyKeyForName(modifiedNode.getClass(), entry.key());
+							PropertyKey key = getPropertyKeyForDatabaseName(modifiedNode.getClass(), entry.key());
 							
 							// only send modification events for non-system properties
 							if (!key.isSystemProperty()) {
@@ -1657,7 +1680,7 @@ public class EntityContext {
 						AbstractRelationship modifiedRel = relFactory.createRelationship(securityContext, rel);
 						if (modifiedRel != null) {
 							
-							PropertyKey key = getPropertyKeyForName(modifiedRel.getClass(), entry.key());
+							PropertyKey key = getPropertyKeyForDatabaseName(modifiedRel.getClass(), entry.key());
 							
 							// only send modification events for non-system properties
 							if (!key.isSystemProperty()) {
@@ -1774,7 +1797,7 @@ public class EntityContext {
 					
 					logger.log(Level.FINEST, "Node deleted: {0}", node.getId());
 
-					String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.name());
+					String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
 					AbstractNode entity = nodeFactory.createDummyNode(type);
 					
 					if (entity != null) {
@@ -1810,7 +1833,7 @@ public class EntityContext {
 					
 					if (nodeEntity != null) {
 						
-						PropertyKey key  = getPropertyKeyForName(nodeEntity.getClass(), entry.key());
+						PropertyKey key  = getPropertyKeyForDatabaseName(nodeEntity.getClass(), entry.key());
 						Object value     = entry.value();
 						
 						// only send modification events for non-system properties
@@ -1863,7 +1886,7 @@ public class EntityContext {
 					
 					if (relEntity != null) {
 						
-						PropertyKey key = getPropertyKeyForName(relEntity.getClass(), entry.key());
+						PropertyKey key = getPropertyKeyForDatabaseName(relEntity.getClass(), entry.key());
 						Object value    = entry.value();
 
 						// only send modification events for non-system properties

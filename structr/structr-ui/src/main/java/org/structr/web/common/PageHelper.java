@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.Page;
 
 //~--- classes ----------------------------------------------------------------
@@ -83,7 +83,7 @@ public class PageHelper {
 
 			for (PropertyKey key : rel.getProperties().keySet()) {
 
-				pageNode = getNodeById(securityContext, key.name());
+				pageNode = getNodeById(securityContext, key.dbName());
 
 				if (pageNode != null && pageNode instanceof Page) {
 

@@ -25,10 +25,11 @@ import java.util.Set;
 import java.util.TreeMap;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.CaseHelper;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.LongProperty;
+import org.structr.common.property.StringProperty;
 import org.structr.core.*;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.module.ModuleService;
@@ -74,14 +75,14 @@ public class SchemaResource extends Resource {
 			
 			String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
 			
-			schema.setProperty(new Property("url"),   url);
-			schema.setProperty(new Property("type"),  rawType);
-			schema.setProperty(new Property("flags"), SecurityContext.getResourceFlags(rawType));
+			schema.setProperty(new StringProperty("url"),   url);
+			schema.setProperty(new StringProperty("type"),  rawType);
+			schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 			
 			// list property sets for all views
 			Map<String, Map<String, Object>> views = new TreeMap<String, Map<String, Object>>();
 			Set<String> propertyViews              = EntityContext.getPropertyViews();
-			schema.setProperty(new Property("views"), views);
+			schema.setProperty(new StringProperty("views"), views);
 			
 			for (String view : propertyViews) {
 				
@@ -113,7 +114,7 @@ public class SchemaResource extends Resource {
 						
 						converterPlusValue.append(")");
 
-						propertyConverterMap.put(property.name(), converterPlusValue.toString());
+						propertyConverterMap.put(property.toString(), converterPlusValue.toString());
 					}
 					
 					views.put(view, propertyConverterMap);

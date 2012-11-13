@@ -26,9 +26,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 
 /**
@@ -50,10 +50,10 @@ public class EntityMatcher extends BaseMatcher {
 	public EntityMatcher(Class type, String view, Map<String, Object> values) {
 
 		Set<PropertyKey> propertyView = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
-		propertyView.add(new Property("id"));	// FIXME: this is due to the uuid/id mess in core!
+		propertyView.add(new StringProperty("id"));	// FIXME: this is due to the uuid/id mess in core!
 		
 		for (PropertyKey key : propertyView) {
-			entityValues.put(key.name(), values.get(key.name()));
+			entityValues.put(key.jsonName(), values.get(key.jsonName()));
 		}
 	}
 

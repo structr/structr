@@ -22,7 +22,7 @@
 package org.structr.web.entity;
 
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
@@ -50,6 +50,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.property.IntProperty;
+import org.structr.common.property.StringProperty;
 import org.structr.web.property.DynamicContentProperty;
 import org.structr.web.property.PathsProperty;
 
@@ -64,13 +65,13 @@ public class Content extends AbstractNode {
 
 	private static final Logger logger         = Logger.getLogger(Content.class.getName());
 
-	public static final Property<String>      tag              = new Property<String>("tag");
+	public static final Property<String>      tag              = new StringProperty("tag");
 	public static final Property<String>      content          = new DynamicContentProperty("content");
-	public static final Property<String>      contentType      = new Property<String>("contentType");
+	public static final Property<String>      contentType      = new StringProperty("contentType");
 	public static final Property<Integer>     size             = new IntProperty("size");
 	public static final Property<Set<String>> paths            = new PathsProperty(("paths"));
-	public static final Property<String>      dataKey          = new Property<String>("data-key");
-	public static final Property<String>      typeDefinitionId = new Property<String>("typeDefinitionId");
+	public static final Property<String>      dataKey          = new StringProperty("data-key");
+	public static final Property<String>      typeDefinitionId = new StringProperty("typeDefinitionId");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Content.class, PropertyView.Ui,
 		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId

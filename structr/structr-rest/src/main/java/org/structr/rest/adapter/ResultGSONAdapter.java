@@ -34,7 +34,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.Result;

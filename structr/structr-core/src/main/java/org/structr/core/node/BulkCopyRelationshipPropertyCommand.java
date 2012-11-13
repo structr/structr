@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
+import org.structr.common.property.GenericProperty;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
@@ -79,7 +79,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 							// copy properties
 							// FIXME: synthetic Property generation
-							rel.setProperty(new Property(destKey), rel.getProperty(new Property(sourceKey)));
+							rel.setProperty(new GenericProperty(destKey), rel.getProperty(new GenericProperty(sourceKey)));
 							
 							if(n > 1000 && n % 1000 == 0) {
 

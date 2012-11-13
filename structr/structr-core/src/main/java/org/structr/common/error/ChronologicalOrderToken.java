@@ -23,7 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Date;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 /**
  *
@@ -43,7 +43,7 @@ public class ChronologicalOrderToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-		obj.add(getErrorToken(), new JsonPrimitive(propertyKey2.name()));
+		obj.add(getErrorToken(), new JsonPrimitive(propertyKey2.jsonName()));
 
 		return obj;
 	}

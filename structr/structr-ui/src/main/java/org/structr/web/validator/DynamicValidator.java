@@ -26,7 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
@@ -90,7 +90,7 @@ public class DynamicValidator extends PropertyValidator {
 								attrs.put("error", errorMessage);
 								attrs.put("value", value);
 
-								errorBuffer.add(errorKey.name(), new DynamicValidationError(errorKey, attrs));
+								errorBuffer.add(errorKey.jsonName(), new DynamicValidationError(errorKey, attrs));
 
 							}
 

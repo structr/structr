@@ -26,7 +26,6 @@ import org.apache.commons.io.FileUtils;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.FileHelper;
-import org.structr.common.Path;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -50,6 +49,7 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,11 +61,11 @@ import java.util.logging.Logger;
 public class File extends AbstractNode implements Linkable {
 
 	private static final Logger logger                    = Logger.getLogger(File.class.getName());
-	public static final Property<String> contentType      = new Property<String>("contentType");
-	public static final Property<String> relativeFilePath = new Property<String>("relativeFilePath");
+	public static final Property<String> contentType      = new StringProperty("contentType");
+	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath");
 	public static final Property<Long> size               = new LongProperty("size");
-	public static final Property<String> url              = new Property<String>("url");
-	public static final Property<String> parentFolder     = new Property<String>("parentFolder");
+	public static final Property<String> url              = new StringProperty("url");
+	public static final Property<String> parentFolder     = new StringProperty("parentFolder");
 	public static final Property<Long> checksum           = new LongProperty("checksum").systemProperty();
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 

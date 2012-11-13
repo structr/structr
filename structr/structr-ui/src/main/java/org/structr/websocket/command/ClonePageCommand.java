@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
+import org.structr.common.property.LongProperty;
 import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -72,9 +72,9 @@ public class ClonePageCommand extends AbstractCommand {
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String newName;
 
-		if (nodeData.containsKey(AbstractNode.name.name())) {
+		if (nodeData.containsKey(AbstractNode.name.dbName())) {
 
-			newName = (String) nodeData.get(AbstractNode.name.name());
+			newName = (String) nodeData.get(AbstractNode.name.dbName());
 		} else {
 
 			newName = "unknown";
@@ -120,7 +120,7 @@ public class ClonePageCommand extends AbstractCommand {
 							if (rel != null) {
 
 								PropertyMap relProps = new PropertyMap();
-								relProps.put(new Property(pageId), 0);
+								relProps.put(new LongProperty(pageId), 0);
 
 								try {
 

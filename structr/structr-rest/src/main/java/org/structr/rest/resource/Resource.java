@@ -39,13 +39,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSearchField;
 import org.structr.common.property.PropertyMap;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -269,7 +269,7 @@ public abstract class Resource {
 
 		if (type1 != null) {
 
-			PropertyKey key = EntityContext.getPropertyKeyForName(type1, typeResource2.getRawType());
+			PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type1, typeResource2.getRawType());
 			return EntityContext.getRelationClassForProperty(type1, key);
 
 		}
@@ -388,7 +388,7 @@ public abstract class Resource {
 		for (final Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
 
 			final String requestParameterName  = e.nextElement();
-			final PropertyKey requestParameter = new Property(requestParameterName);
+			final PropertyKey requestParameter = new StringProperty(requestParameterName);
 
 			if (!searchableProperties.contains(requestParameter) && !NON_SEARCH_FIELDS.contains(requestParameterName)) {
 
@@ -459,40 +459,40 @@ public abstract class Resource {
 
 
 	protected List<SearchAttribute> extractSearchableAttributesForNodes(final SecurityContext securityContext,
-	                                                                    final String rawType,
+	                                                                    final Class type,
 	                                                                    final HttpServletRequest request) throws FrameworkException {
 		return extractSearchableAttributes(securityContext,
-		                                   rawType,
+		                                   type,
 		                                   request,
 		                                   NodeService.NodeIndex.fulltext.name(),
 		                                   NodeService.NodeIndex.keyword.name());
 	}
 
 	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final SecurityContext securityContext,
-	                                                                            final String rawType,
+	                                                                            final Class type,
 	                                                                            final HttpServletRequest request)
 	                                                                            				throws FrameworkException {
 		return extractSearchableAttributes(securityContext,
-		                                   rawType,
+		                                   type,
 		                                   request,
 		                                   NodeService.RelationshipIndex.rel_fulltext.name(),
 		                                   NodeService.RelationshipIndex.rel_keyword.name());
 	}
 
 	private static List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext,
-	                                                                 final String rawType,
+	                                                                 final Class type,
 	                                                                 final HttpServletRequest request,
 	                                                                 final String fulltextIndex,
 	                                                                 final String keywordIndex) throws FrameworkException {
 		List<SearchAttribute> searchAttributes = Collections.emptyList();
 
 		// searchable attributes
-		if (rawType != null && request != null &&!request.getParameterMap().isEmpty()) {
+		if (type != null && request != null &&!request.getParameterMap().isEmpty()) {
 
 			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
 			final Set<PropertyKey> searchableProperties =
-							getSearchableProperties(rawType,
+							getSearchableProperties(type,
 							                        looseSearch,
 							                        fulltextIndex,
 							                        keywordIndex);
@@ -579,17 +579,17 @@ public abstract class Resource {
 		}
 	}
 
-	private static Set<PropertyKey> getSearchableProperties(final String rawType, final boolean loose,
+	private static Set<PropertyKey> getSearchableProperties(final Class type, final boolean loose,
 	                                                        final String looseIndexName, final String exactIndexName) {
 		Set<PropertyKey> searchableProperties;
 
 		if (loose) {
 
-			searchableProperties = EntityContext.getSearchableProperties(rawType, looseIndexName);
+			searchableProperties = EntityContext.getSearchableProperties(type, looseIndexName);
 
 		} else {
 
-			searchableProperties = EntityContext.getSearchableProperties(rawType, exactIndexName);
+			searchableProperties = EntityContext.getSearchableProperties(type, exactIndexName);
 
 		}
 		return searchableProperties;
@@ -613,7 +613,7 @@ public abstract class Resource {
 
 			for (final PropertyKey key : searchableProperties) {
 
-				String searchValue = request.getParameter(key.name());
+				String searchValue = request.getParameter(key.jsonName());
 
 				if (searchValue != null) {
 

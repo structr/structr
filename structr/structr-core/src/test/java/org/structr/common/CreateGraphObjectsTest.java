@@ -21,7 +21,6 @@
 
 package org.structr.common;
 
-import org.structr.common.property.Property;
 import org.structr.common.property.PropertyMap;
 import org.neo4j.graphdb.RelationshipType;
 
@@ -46,11 +45,11 @@ import org.structr.core.node.StructrTransaction;
 
 import java.io.IOException;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.IntProperty;
+import org.structr.common.property.StringProperty;
 import org.structr.core.entity.TestTwo;
 
 //~--- classes ----------------------------------------------------------------
@@ -348,8 +347,8 @@ public class CreateGraphObjectsTest extends StructrTest {
 			final RelationshipType relType = RelType.UNDEFINED;
 			final PropertyMap props        = new PropertyMap();
 
-			props.put(new Property("foo"), "bar");
-			props.put(new Property("bar"), 123);
+			props.put(new StringProperty("foo"), "bar");
+			props.put(new IntProperty("bar"), 123);
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override

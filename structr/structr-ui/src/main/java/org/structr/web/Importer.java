@@ -21,8 +21,7 @@
 
 package org.structr.web;
 
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -39,7 +38,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -69,8 +67,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.*;
-import org.structr.core.GraphObject;
+import org.structr.common.property.GenericProperty;
 import org.structr.core.Result;
 import org.structr.web.entity.Content;
 
@@ -336,7 +333,7 @@ public class Importer {
 				// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 				if (!key.equals("text")) {
 
-					attrs.add(new NodeAttribute(new Property(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue()));
+					attrs.add(new NodeAttribute(new GenericProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue()));
 				}
 
 			}
@@ -462,7 +459,7 @@ public class Importer {
 	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String pageId, int index) throws FrameworkException {
 
 		AbstractRelationship rel   = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
-		PropertyKey pageIdProperty = new Property(pageId);
+		PropertyKey pageIdProperty = new GenericProperty(pageId);
 
 		rel.setProperty(pageIdProperty, index);
 
@@ -478,7 +475,7 @@ public class Importer {
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
 		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
-		searchAttrs.add(Search.andExactProperty(File.checksum, String.valueOf(checksum)));
+		searchAttrs.add(Search.andExactProperty(File.checksum, checksum));
 		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
 
 		Result files = searchNode.execute(searchAttrs);

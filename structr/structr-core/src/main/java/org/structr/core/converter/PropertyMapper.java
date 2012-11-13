@@ -21,7 +21,7 @@ package org.structr.core.converter;
 
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
 
 /**

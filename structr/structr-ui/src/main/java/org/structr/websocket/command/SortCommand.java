@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.common.property.LongProperty;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,7 +65,7 @@ public class SortCommand extends AbstractCommand {
 				AbstractNode nodeToSort          = getNode(id);
 				Long pos                         = Long.parseLong((String) nodeData.get(id));
 				List<AbstractRelationship> rels  = nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING);
-				PropertyKey<Long> pageIdProperty = new Property<Long>(pageId);
+				PropertyKey<Long> pageIdProperty = new LongProperty(pageId);
 
 				for (AbstractRelationship rel : rels) {
 

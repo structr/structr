@@ -21,8 +21,7 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertyKey;
-import org.structr.common.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -38,13 +37,11 @@ import org.structr.core.node.search.TextualSearchAttribute;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.ISO8601DateProperty;
+import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -149,7 +146,7 @@ public class SearchResultsTest extends StructrTest {
 		try {
 
 			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.UNDEFINED, 1)).get(0);
-			PropertyKey key1         = new Property("jghsdkhgshdhgsdjkfgh");
+			PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
 			String val1              = "54354354546806849870";
 
 			rel.setProperty(key1, val1);

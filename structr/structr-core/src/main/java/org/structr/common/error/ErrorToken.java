@@ -20,7 +20,7 @@
 package org.structr.common.error;
 
 import com.google.gson.JsonElement;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 /**
  *
@@ -40,7 +40,7 @@ public abstract class ErrorToken {
 	}
 
 	public String getKey() {
-		return key.name();
+		return key.jsonName();
 	}
 
 	public int getStatus() {

@@ -12,4 +12,9 @@ public class HtmlProperty extends Property<String> {
 	public HtmlProperty(String name) {
 		super(PropertyView.Html.concat(name));
 	}
+	
+	@Override
+	public String typeName() {
+		return "String";
+	}
 }

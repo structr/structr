@@ -39,6 +39,11 @@ public class BooleanProperty extends Property<Boolean> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "Boolean";
+	}
+	
+	@Override
 	public PropertyConverter<Boolean, Boolean> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new DatabaseConverter(securityContext);
 	}

@@ -22,10 +22,11 @@
 package org.structr.web.entity.relation;
 
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.Element;
@@ -38,8 +39,8 @@ import org.structr.web.entity.Element;
  */
 public class ChildrenRelationship extends AbstractRelationship {
 
-	public static final Property<String> parentId = new Property<String>("parentId");
-	public static final Property<String> childId  = new Property<String>("childId");
+	public static final Property<String> parentId = new StringProperty("parentId");
+	public static final Property<String> childId  = new StringProperty("childId");
 
 	public static final View uiView = new View(ChildrenRelationship.class, PropertyView.Ui,
 		parentId, childId

@@ -42,6 +42,11 @@ public class DateProperty extends Property<Date> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "String";
+	}
+	
+	@Override
 	public PropertyConverter<Date, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new DatabaseConverter(securityContext, entity);
 	}

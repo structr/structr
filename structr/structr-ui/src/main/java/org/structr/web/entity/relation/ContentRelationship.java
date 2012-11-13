@@ -21,8 +21,7 @@
 
 package org.structr.web.entity.relation;
 
-import com.vividsolutions.jts.index.bintree.Key;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
@@ -34,6 +33,7 @@ import org.structr.web.entity.html.HtmlElement;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -43,11 +43,11 @@ import org.structr.common.property.Property;
  */
 public class ContentRelationship extends AbstractRelationship {
 
-	public static final Property<String> parentId    = new Property<String>("parentId");
-	public static final Property<String> contentId   = new Property<String>("contentId");
-	public static final Property<String> componentId = new Property<String>("componentId");
-	public static final Property<String> pageId      = new Property<String>("pageId");
-	public static final Property<String> foo         = new Property<String>("foo");
+	public static final Property<String> parentId    = new StringProperty("parentId");
+	public static final Property<String> contentId   = new StringProperty("contentId");
+	public static final Property<String> componentId = new StringProperty("componentId");
+	public static final Property<String> pageId      = new StringProperty("pageId");
+	public static final Property<String> foo         = new StringProperty("foo");
 
 	static {
 
@@ -85,7 +85,7 @@ public class ContentRelationship extends AbstractRelationship {
 
 			for (String key : dbRelationship.getPropertyKeys()) {
 
-				keys.add(EntityContext.getPropertyKeyForName(entityType, key));
+				keys.add(EntityContext.getPropertyKeyForDatabaseName(entityType, key));
 			}
 
 		}

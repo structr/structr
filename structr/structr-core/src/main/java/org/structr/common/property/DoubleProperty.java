@@ -35,6 +35,11 @@ public class DoubleProperty extends Property<Double> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "Double";
+	}
+	
+	@Override
 	public PropertyConverter<Double, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}

@@ -19,12 +19,12 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertyKey;
-import org.structr.common.property.Property;
+import org.structr.core.property.PropertyKey;
 import java.util.Arrays;
 import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.*;
+import org.structr.common.property.GenericProperty;
 import org.structr.core.GraphObject;
 
 /**
@@ -33,7 +33,7 @@ import org.structr.core.GraphObject;
  */
 public class ValidationHelper {
 
-	private static final PropertyKey UnknownType = new Property("unknown type");
+	private static final PropertyKey UnknownType = new GenericProperty("unknown type");
 	
 	// ----- public static methods -----
 	public static boolean checkStringMinLength(GraphObject node, PropertyKey<String> key, int minLength, ErrorBuffer errorBuffer) {

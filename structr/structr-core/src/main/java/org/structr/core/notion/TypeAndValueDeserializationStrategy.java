@@ -22,7 +22,7 @@
 package org.structr.core.notion;
 
 import java.util.*;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
@@ -75,12 +75,14 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		attrs.add(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
+		// TODO: check why this doesn't work for setProperty with plain uuid..
+		
 		if (source != null) {
 
 			// FIXME: use uuid only here?
 			if (source instanceof JsonInput) {
 
-				Object value = ((JsonInput)source).getAttributes().get(propertyKey.name());
+				Object value = ((JsonInput)source).getAttributes().get(propertyKey.jsonName());
 				if (value != null) {
 					
 					String stringValue = value.toString();
@@ -97,7 +99,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				} else {
 					
 					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForName(obj.getClass(), AbstractNode.uuid.name());
+					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.uuid.dbName());
 					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
 					
 				}
@@ -135,7 +137,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 						logger.log(Level.WARNING,
 							   "Unable to create node of type {0} for property {1}",
 							   new Object[] { type.getSimpleName(),
-									  propertyKey.name() });
+									  propertyKey.jsonName() });
 					}
 				}
 

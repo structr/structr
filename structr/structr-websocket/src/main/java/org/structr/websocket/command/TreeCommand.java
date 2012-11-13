@@ -71,7 +71,7 @@ public class TreeCommand extends AbstractCommand {
 
 				Node node = path.endNode();
 
-				if (node.hasProperty(AbstractNode.type.name())) {
+				if (node.hasProperty(AbstractNode.type.dbName())) {
 
 					try {
 						TreeNode newTreeNode = new TreeNode(factory.createNode(node));
