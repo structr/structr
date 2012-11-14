@@ -129,85 +129,6 @@ img.disabled {
     cursor: default ! important;
 }
 
-#pages,
-#types,
-#previews,
-#elements,
-#components,
-#contents,
-#folders,
-#files,
-#groups,
-#images,
-#users,
-#palette {
-    float: left;
-    border: none;
-    width: 400px;
-    padding: 6px;
-    margin: 3px 3px 6px 9px;
-/*    overflow: auto ! important;*/
-/*    height: 1000px ! important;*/
-}
-
-#pages, #palette {
-    overflow: auto;
-}
-
-#images > div:first-child {
-    margin-top: 0px ! important;
-}
-
-#palette {
-    font-size: 1.25em;
-    line-height: 2em;
-    padding: 0;
-    margin: 16px 0 0 0;
-}
-
-#palette .elementGroup {
-    float: left;
-    padding: 0;
-    margin: 0;
-}
-
-#palette h2 {
-    font-size: 10pt;
-    padding: 0;
-    margin: 0;
-    color: #333;
-}
-
-#palette h3 {
-    font-size: 9pt;
-    color: #333;
-    padding: 2px 0 0 0;
-    margin: 0 0 0 2px;
-}
-
-#palette .draggable {
-    float: left;
-    color: #333;
-    border-radius: 5px;
-    border: 1px solid #a5a5a5;
-    padding: 0px 4px;
-    margin: 2px 2px;
-    background-color: #e3e3e3;
-    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
-    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
-}
-
-#palette .draggable:hover {
-    cursor: move;
-    color: #000;
-    border: 1px solid #bbb;
-    background-color: #f5f5f5;
-    background: -webkit-gradient(linear, left bottom, left top, from(#f3f3f3), to(#f7f7f7)) no-repeat;
-    background: -moz-linear-gradient(90deg, #f3f3f3, #f7f7f7) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#f3f3f3', GradientType=0);
-}
-
 .sep {
     clear: both;
     height: 4px;
@@ -222,10 +143,6 @@ img.disabled {
     border-collapse: collapse;
     margin-bottom: 12px;
     border: 1px solid #b5b5b5;
-}
-
-#users .props {
-    width: 776px ! important;
 }
 
 tr:nth-child(odd) {
@@ -410,60 +327,6 @@ ul#previewTabs {
     display: inline;
 }
 
-.node .id,
-.group .id,
-.types .id,
-.user    .id,
-.page .id,
-.element .id,
-.component .id,
-.file .id,
-.folder .id,
-.image .id {
-    display: none;
-}
-
-.content .content_ {
-    display: inline-block;
-    width: 40%;
-    font-weight: normal;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-.content .content_:hover {
-    cursor: text ! important;    
-}
-
-span.id {
-    color: #999;
-}
-
-.node,
-.page,
-.type,
-.component,
-.element,
-.content,
-.user,
-.group,
-.folder,
-.file,
-.image {
-    color: #333;
-    line-height: 1.7em;
-    border-radius: 5px;
-    border: 1px solid #a5a5a5;
-    padding: 2px 6px;
-    margin: 4px 0 4px 0;
-    background-color: #eee;
-    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
-    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
-    /*    min-width: 200px;*/
-}
-
 .readonly {
     color: #666;
 }
@@ -603,7 +466,7 @@ button img {
 }
 
 .dialogText {
-    height: 600px;
+    /*height: 600px;*/
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {

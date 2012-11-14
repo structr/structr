@@ -31,6 +31,14 @@ var typeFromHash;
 
 var schema = [];
 
+var sort = urlParam('sort');
+var order = urlParam('order');
+var pageSize = urlParam('pageSize');
+if (!pageSize) pageSize = 10;
+var page = urlParam('page');
+if (!page) page = 1;
+var pageCount;
+
 $(document).ready(function() {
     main = $('#main');
     var url = restUrl + '/_schema';
@@ -48,6 +56,9 @@ $(document).ready(function() {
                 $('#resourceTabsMenu').append('<li><a href="#' + type + '"><span>' + type + '</span></a></li>');
                 $('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + res.url + '"></div>');
                 var typeNode = $('#' + type);
+                typeNode.append('<div style="clear: both"><button id="pageLeft">&lt; Prev</button>'
+                    + ' Page <input id="page" type="text" size="3" value="' + page + '"><button id="pageRight">Next &gt;</button> of <input class="readonly" readonly="readonly" id="pageCount" size="3" value="' + pageCount + '">'
+                    + ' Page Size: <input id="pageSize" type="text" size="3" value="' + pageSize + '"></div>');
                 typeNode.append('<table></table>');
                 var table = $('table', typeNode);
                 table.append('<tr></tr>');
@@ -57,18 +68,27 @@ $(document).ready(function() {
                     if (k && k.length) {
                         keys[type] = k;
                         $.each(keys[type], function(k, key) {
+//                            var newSort = key;
+//                            var newOrder = (order && order == 'desc' ? 'asc' : 'desc');
                             tableHeader.append('<th>' + key + '</th>');
                         });
                     }
                 }
+                typeNode.append('<div class="infoFooter">Query: <span id="queryTime"></span> s &nbsp; Serialization: <span id="serTime"></span> s</div>');                   
                 typeNode.append('<button id="create' + type + '"><img src="icon/add.png"> Create new ' + type + '</button>');
+                typeNode.append('<button id="export' + type + '"><img src="icon/database_table.png"> Export as CSV</button>');
                 $('#create' + type, typeNode).on('click', function() {
                     crudCreate(type, res.url);
+                });
+                $('#export' + type, typeNode).on('click', function() {
+                    crudExport(type);
                 });
                 typeFromHash = hash.substring(1);
                 if (typeFromHash && typeFromHash == type) {
                     //                    console.log('activate list', typeFromHash, type);
-                    activateList(typeFromHash);
+                    activateList(type);
+                    activatePagerElements(type);
+
                 }
             });
         }
@@ -84,12 +104,47 @@ $(document).ready(function() {
         if (e.keyCode == 27) {
             $('#dialogBox .dialogCancelButton').click();
         }
-    });         
+    });
+    
 });
 
+function replaceSortHeader(type) {
+    var table = getTable(type);
+    var newOrder = (order && order == 'desc' ? 'asc' : 'desc');
+    $('th', table).each(function(i, t) {
+        var th = $(t);
+        var key = th.text();
+        $('a', th).off('click');
+        th.empty();
+        th.append('<a href="' + sortAndPagingParameters(key, newOrder, pageSize, page) + '#' + type + '">' + key + '</a>');
+        $('a', th).on('click', function(event) {
+            event.preventDefault();
+            sort = $(this).text();
+            order = (order && order == 'desc' ? 'asc' : 'desc');
+            activateList(type);
+            return false;
+        });
+    });
+}
+
+function sortAndPagingParameters(s,o,ps,p) {
+    var sortParam = (s ? 'sort=' + s : '');
+    var orderParam = (o ? 'order=' + o : '');
+    var pageSizeParam = (ps ? 'pageSize=' + ps : '');
+    var pageParam = (p ? 'page=' + p : '');
+    
+    var params = (sortParam ? '?' + sortParam : '');
+    params = params + (orderParam ? (params.length?'&':'?') + orderParam : '');
+    params = params + (pageSizeParam ? (params.length?'&':'?') + pageSizeParam : '');
+    params = params + (pageParam ? (params.length?'&':'?') + pageParam : '');
+    
+    return params;
+}
+
 function activateList(type) {
+    //console.log('activateList', type);
     var url  = $('#' + type).attr('data-url');
-    list(type, restUrl + url + '/' + view);
+    list(type, restUrl + url + '/' + view + sortAndPagingParameters(sort, order, pageSize, page));
     document.location.hash = type;
 }
 
@@ -113,13 +168,107 @@ function list(type, url) {
         contentType: 'application/json; charset=utf-8',
         async: false,
         success: function(data) {
-            //            console.log('list', data);
             $.each(data.result, function(i, item) {
-                //                console.log(i, item, type);
                 appendRow(type, item);
+            });
+            updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
+            replaceSortHeader(type);
+        }
+    });
+}
+
+function crudExport(type) {
+    var url  = restUrl + '/' + $('#' + type).attr('data-url') + '/' + view + sortAndPagingParameters(sort, order, pageSize, page);
+    var d = $('.dialogText', $('#dialogBox'));
+    d.append('<textarea class="exportArea"></textarea>');
+    var exportArea = $('.exportArea', d);
+    var b = $('.dialogBtn', $('#dialogBox'));
+    console.log(b);
+    dialog('Export ' + type + ' list as CSV', function() {
+    }, function() {
+    });
+
+    b.append('<button id="copyToClipboard">Copy to Clipboard</button>');
+    
+    $('#copyToClipboard', b).on('click', function() {
+        exportArea.focus();
+        exportArea.select();
+    });
+    
+    if (keys[type]) {
+        //        console.log(type);
+        $.each(keys[type], function(k, key) {
+            exportArea.append('"' + key + '"');
+            if (k < keys[type].length-1) {
+                exportArea.append(',');
+            }
+        });
+        exportArea.append('\n');
+    }
+    
+    $.ajax({
+        url: url,
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        async: false,
+        success: function(data) {
+            $.each(data.result, function(i, item) {
+                appendRowAsCSV(type, item, exportArea);
             });
         }
     });
+}
+
+function updatePager(type, qt, st, ps, p, pc) {
+    var typeNode = $('#' + type);
+    $('#queryTime', typeNode).text(qt);
+    $('#serTime', typeNode).text(st);
+    $('#pageSize', typeNode).val(ps);
+    
+    page = p;
+    $('#page', typeNode).val(page);
+    
+    pageCount = pc;
+    $('#pageCount', typeNode).val(pageCount);
+    
+//    var documentUrl = document.location.toString().replace(/&page=\d*/, '') + '&page=' + page;
+//    documentUrl = documentUrl.replace(/&pageSize=\d*/, '') + '&pageSize=' + pageSize;
+//    documentUrl = documentUrl.replace(/&sort=\d*/, '') + '&sort=' + sort;
+//    documentUrl = documentUrl.replace(/&order=\d*/, '') + '&order=' + order;
+    
+    window.history.pushState('object or string', 'Title', sortAndPagingParameters(sort, order, pageSize, page) + '#' + type);
+}
+
+function activatePagerElements(type) {
+    var typeNode = $('#' + type);
+    $('#page', typeNode).keypress(function(e) {
+        if (e.keyCode == 13) {
+            page = $(this).val();
+            activateList(type);
+        }
+    });
+                
+    $('#pageSize', typeNode).keypress(function(e) {
+        if (e.keyCode == 13) {
+            pageSize = $(this).val();
+            activateList(type);
+        }
+    });
+
+    $('#pageLeft', typeNode).on('click', function() {
+        if (page > 1) {
+            page--;
+            activateList(type);
+        }
+    });
+                
+    $('#pageRight', typeNode).on('click', function() {
+        if (page < pageCount) {
+            page++;
+            activateList(type);
+        }
+    });
+    
 }
 
 function crudRead(type, id) {
@@ -173,7 +322,6 @@ function crudRefresh(id, key) {
         contentType: 'application/json; charset=utf-8',
         async: false,
         success: function(data) {
-            //            console.log('crudRefresh', data);
             refreshCell(id, key, data.result[key]);
         }
     });
@@ -187,7 +335,6 @@ function crudReset(id, key) {
         contentType: 'application/json; charset=utf-8',
         async: false,
         success: function(data) {
-            //            console.log('crudReset', data);
             resetCell(id, key, data.result[key]);
         }
     });
@@ -205,7 +352,6 @@ function crudUpdate(id, key, newValue) {
             crudRefresh(id, key);
         },
         error: function(data, status, xhr) {
-            //            console.log(data, status, xhr);
             crudReset(id, key);
         //alert(data.responseText);
         // TODO: Overlay with error info
@@ -338,6 +484,19 @@ function appendRow(type, item) {
     }
 }
 
+function appendRowAsCSV(type, item, textArea) {
+    if (keys[type]) {
+        //        console.log(type);
+        $.each(keys[type], function(k, key) {
+            textArea.append('"' + nvl(item[key],'') + '"');
+            if (k < keys[type].length-1) {
+                textArea.append(',');
+            }
+        });
+        textArea.append('\n');
+    }
+}
+
 function urlParam(name) {
     name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
     var regexS = "[\\?&]"+name+"=([^&#]*)";
@@ -411,7 +570,7 @@ function displayForm(type, el) {
     $(el).append('<button id="saveProperties">Save</button>');
     $('#saveProperties', $(el)).on('click', function() {
         
-    });
+        });
 }
 
 function formatKey(text) {
