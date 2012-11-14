@@ -145,32 +145,6 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		return newRel;
 	}
 
-	public T instantiateDeletedRelationship(final SecurityContext securityContext, final Relationship relationship, String combinedRelType) throws FrameworkException {
-
-		Class<T> relClass = null;
-		T newRel          = null;
-
-		try {
-
-			relClass = EntityContext.getNamedRelationClass(combinedRelType);
-			if (relClass != null) {
-
-				newRel = instantiateRelationship(securityContext, combinedRelType);
-
-			}
-
-		} catch (Throwable t) {}
-
-		if (newRel == null) {
-			newRel = (T)EntityContext.getGenericFactory().createGenericRelationship();
-		}
-
-		newRel.init(securityContext, relationship);
-		newRel.onRelationshipInstantiation();
-			
-		return newRel;
-	}
-
 	@Override
 	public T adapt(Relationship s) {
 
