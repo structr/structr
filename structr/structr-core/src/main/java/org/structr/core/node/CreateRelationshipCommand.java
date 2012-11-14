@@ -147,7 +147,7 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 				Node startNode                             = fromNode.getNode();
 				Node endNode                               = toNode.getNode();
 				Relationship rel                           = startNode.createRelationshipTo(endNode, relType);
-				T newRel                                   = relationshipFactory.createRelationship(securityContext, rel);
+				T newRel                                   = relationshipFactory.instantiateRelationship(securityContext, rel);
 
 				newRel.setProperty(AbstractRelationship.createdDate, new Date());
 

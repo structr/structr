@@ -162,7 +162,7 @@ public class RebuildIndexAgent extends Agent {
 
 							if (dbRelationship.hasProperty(GraphObject.uuid.dbName())) {
 
-								indexer.execute(relFactory.createRelationship(securityContext, dbRelationship));
+								indexer.execute(relFactory.instantiateRelationship(securityContext, dbRelationship));
 
 								// restart transaction after 1000 iterations
 								if (++count == 1000) {

@@ -66,7 +66,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 	//~--- methods --------------------------------------------------------
 
-	public T createRelationship(final SecurityContext securityContext, final String combinedRelType) throws FrameworkException {
+	public T instantiateRelationship(final SecurityContext securityContext, final String combinedRelType) throws FrameworkException {
 
 		Class<T> relClass = EntityContext.getNamedRelationClass(combinedRelType);
 		T newRel          = null;
@@ -89,17 +89,17 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		return newRel;
 	}
 
-	public T createRelationship(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+	public T instantiateRelationship(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
 		String combinedRelType = (String) properties.get(AbstractRelationship.combinedType);
-		T newRel               = createRelationship(securityContext, combinedRelType);
+		T newRel               = instantiateRelationship(securityContext, combinedRelType);
 
 		newRel.setProperties(properties);
 
 		return newRel;
 	}
 
-	public T createRelationship(final SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
+	public T instantiateRelationship(final SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
 
 		Class<T> relClass = null;
 		T newRel          = null;
@@ -120,7 +120,15 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 				if (relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
 
 					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
-					newRel = createRelationship(securityContext, relationship, combinedRelType);
+
+					relClass = EntityContext.getNamedRelationClass(combinedRelType);
+
+					if (relClass != null) {
+
+						newRel = instantiateRelationship(securityContext, combinedRelType);
+
+					}
+
 				}
 
 			}
@@ -137,23 +145,37 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		return newRel;
 	}
 
-	public T createRelationship(final SecurityContext securityContext, final Relationship relationship, String combinedRelType) throws FrameworkException {
-		
-		Class relClass = EntityContext.getNamedRelationClass(combinedRelType);
-		if (relClass != null) {
+	public T instantiateDeletedRelationship(final SecurityContext securityContext, final Relationship relationship, String combinedRelType) throws FrameworkException {
 
-			return createRelationship(securityContext, combinedRelType);
+		Class<T> relClass = null;
+		T newRel          = null;
+
+		try {
+
+			relClass = EntityContext.getNamedRelationClass(combinedRelType);
+			if (relClass != null) {
+
+				newRel = instantiateRelationship(securityContext, combinedRelType);
+
+			}
+
+		} catch (Throwable t) {}
+
+		if (newRel == null) {
+			newRel = (T)EntityContext.getGenericFactory().createGenericRelationship();
 		}
-		
-		return null;
+
+		newRel.init(securityContext, relationship);
+		newRel.onRelationshipInstantiation();
+			
+		return newRel;
 	}
-	
-	
+
 	@Override
 	public T adapt(Relationship s) {
 
 		try {
-			return createRelationship(securityContext, s);
+			return instantiateRelationship(securityContext, s);
 			
 		} catch (FrameworkException fex) {
 			
@@ -169,7 +191,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 	 * @param input
 	 * @return
 	 */
-	public List<T> createRelationships(final SecurityContext securityContext, final Iterable<Relationship> input) throws FrameworkException {
+	public List<T> instantiateRelationships(final SecurityContext securityContext, final Iterable<Relationship> input) throws FrameworkException {
 
 		List<T> rels = new LinkedList<T>();
 
@@ -177,7 +199,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			for (Relationship rel : input) {
 
-				T n = createRelationship(securityContext, rel);
+				T n = instantiateRelationship(securityContext, rel);
 
 				rels.add(n);
 

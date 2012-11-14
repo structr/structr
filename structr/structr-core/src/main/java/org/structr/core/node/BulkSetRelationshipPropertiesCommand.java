@@ -86,7 +86,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
                                                 
                                         } else {
                                         
-                                                rels = (List<AbstractRelationship>) relationshipFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+                                                rels = (List<AbstractRelationship>) relationshipFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
                                         }
 
 					for (AbstractRelationship rel : rels) {

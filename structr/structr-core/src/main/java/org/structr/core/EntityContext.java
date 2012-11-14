@@ -1677,7 +1677,7 @@ public class EntityContext {
 
 					if (!data.isDeleted(rel)) {
 
-						AbstractRelationship modifiedRel = relFactory.createRelationship(securityContext, rel);
+						AbstractRelationship modifiedRel = relFactory.instantiateRelationship(securityContext, rel);
 						if (modifiedRel != null) {
 							
 							PropertyKey key = getPropertyKeyForDatabaseName(modifiedRel.getClass(), entry.key());
@@ -1719,7 +1719,7 @@ public class EntityContext {
 				// 3: notify listeners of relationship creation
 				for (Relationship rel : sortRelationships(data.createdRelationships())) {
 
-					AbstractRelationship entity = relFactory.createRelationship(securityContext, rel);
+					AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
 					if (entity != null) {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
@@ -1761,15 +1761,19 @@ public class EntityContext {
 					// properties
 					Map<String, Object> removedProperties = removedRelProperties.get(rel);
 					AbstractRelationship entity           = null;
-					
+
+					// 1st try, extract combinedType from removed node properties and try to
+					// instantiate entity with correct runtime type
 					if (removedProperties.containsKey(AbstractRelationship.combinedType.dbName())) {
 						
 						String combinedType = (String)removedProperties.get(AbstractRelationship.combinedType.dbName());
-						entity              = relFactory.createRelationship(securityContext, rel, combinedType);
+						entity              = relFactory.instantiateDeletedRelationship(securityContext, rel, combinedType);
+					}
+					
+					// 2nd try, fallback
+					if (entity == null) {
 						
-					} else {
-						
-						entity = relFactory.createRelationship(securityContext, rel);
+						entity = relFactory.instantiateRelationship(securityContext, rel);
 					}
 					
 					if (entity != null) {
@@ -1895,7 +1899,7 @@ public class EntityContext {
 					Relationship relFromPropertyEntry = entry.entity();
 					
 					if (!(relFromPropertyEntry.equals(r))) {
-						relEntity = relFactory.createRelationship(securityContext, relFromPropertyEntry);
+						relEntity = relFactory.instantiateRelationship(securityContext, relFromPropertyEntry);
 						r = relFromPropertyEntry;
 					}
 					

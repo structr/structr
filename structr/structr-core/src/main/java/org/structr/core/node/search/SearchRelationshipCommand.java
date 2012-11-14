@@ -196,7 +196,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 				logger.log(Level.FINE, "Querying index took {0} ms, size() says {1} results.", new Object[] { t1 - t0, hits.size() });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-				intermediateResult = relationshipFactory.createRelationships(securityContext, hits);
+				intermediateResult = relationshipFactory.instantiateRelationships(securityContext, hits);
 
 				hits.close();
 				long t2 = System.currentTimeMillis();

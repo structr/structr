@@ -69,7 +69,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				@Override
 				public Object execute(Transaction tx) throws FrameworkException {
 
-					List<AbstractRelationship> rels = relFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+					List<AbstractRelationship> rels = relFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
 					long n = 0;
 					
 					for(AbstractRelationship rel : rels) {

@@ -84,7 +84,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 
 			for (Relationship r : rels) {
 				
-				result.add(factory.createRelationship(securityContext, r));
+				result.add(factory.instantiateRelationship(securityContext, r));
 			}
 
 		} catch (RuntimeException e) {
