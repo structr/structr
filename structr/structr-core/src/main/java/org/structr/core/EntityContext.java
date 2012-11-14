@@ -1756,11 +1756,26 @@ public class EntityContext {
 				// 4: notify listeners of relationship deletion
 				for (Relationship rel : data.deletedRelationships()) {
 
-					AbstractRelationship entity = relFactory.createRelationship(securityContext, rel);
+					// try to instantiate entity to correct type using the
+					// combinedType property from the removed relationship
+					// properties
+					Map<String, Object> removedProperties = removedRelProperties.get(rel);
+					AbstractRelationship entity           = null;
+					
+					if (removedProperties.containsKey(AbstractRelationship.combinedType.dbName())) {
+						
+						String combinedType = (String)removedProperties.get(AbstractRelationship.combinedType.dbName());
+						entity              = relFactory.createRelationship(securityContext, rel, combinedType);
+						
+					} else {
+						
+						entity = relFactory.createRelationship(securityContext, rel);
+					}
+					
 					if (entity != null) {
 						
 						// convertFromInput properties
-						PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedRelProperties.get(rel));
+						PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedProperties);
 						
 						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
 						

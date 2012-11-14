@@ -29,7 +29,6 @@ import org.structr.core.Adapter;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -121,15 +120,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 				if (relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
 
 					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
-
-					relClass = EntityContext.getNamedRelationClass(combinedRelType);
-
-					if (relClass != null) {
-
-						newRel = createRelationship(securityContext, combinedRelType);
-
-					}
-
+					newRel = createRelationship(securityContext, relationship, combinedRelType);
 				}
 
 			}
@@ -146,6 +137,18 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		return newRel;
 	}
 
+	public T createRelationship(final SecurityContext securityContext, final Relationship relationship, String combinedRelType) throws FrameworkException {
+		
+		Class relClass = EntityContext.getNamedRelationClass(combinedRelType);
+		if (relClass != null) {
+
+			return createRelationship(securityContext, combinedRelType);
+		}
+		
+		return null;
+	}
+	
+	
 	@Override
 	public T adapt(Relationship s) {
 
