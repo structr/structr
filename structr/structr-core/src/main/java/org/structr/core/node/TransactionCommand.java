@@ -168,17 +168,22 @@ public class TransactionCommand extends NodeServiceCommand {
 					depths.set(depth + 1);
 
 					try {
-						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+						
+						// synchronize changeset notification
+						synchronized (TransactionCommand.class) {
+							
+							Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-							@Override
-							public Object execute() throws FrameworkException {
+								@Override
+								public Object execute() throws FrameworkException {
 
-								notifyChangeSet(changeSet);
+									notifyChangeSet(changeSet);
 
-								return null;
-							}
+									return null;
+								}
 
-						});
+							});
+						}
 
 					} catch(Throwable t) {
 						
@@ -333,17 +338,21 @@ public class TransactionCommand extends NodeServiceCommand {
 					depths.set(depth + 1);
 					
 					try {
-						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+						// synchronize changeset notification
+						synchronized (TransactionCommand.class) {
+							
+							Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-							@Override
-							public Object execute() throws FrameworkException {
+								@Override
+								public Object execute() throws FrameworkException {
 
-								notifyChangeSet(changeSet);
+									notifyChangeSet(changeSet);
 
-								return null;
-							}
+									return null;
+								}
 
-						});
+							});
+						}
 
 					} catch(Throwable t) {
 					
