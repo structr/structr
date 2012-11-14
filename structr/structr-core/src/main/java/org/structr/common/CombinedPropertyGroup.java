@@ -19,7 +19,7 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
 

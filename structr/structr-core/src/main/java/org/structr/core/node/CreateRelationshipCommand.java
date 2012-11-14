@@ -43,7 +43,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -147,7 +147,7 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 				Node startNode                             = fromNode.getNode();
 				Node endNode                               = toNode.getNode();
 				Relationship rel                           = startNode.createRelationshipTo(endNode, relType);
-				T newRel                                   = relationshipFactory.createRelationship(securityContext, rel);
+				T newRel                                   = relationshipFactory.instantiateRelationship(securityContext, rel);
 
 				newRel.setProperty(AbstractRelationship.createdDate, new Date());
 

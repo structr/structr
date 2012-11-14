@@ -35,6 +35,7 @@ import org.structr.core.node.NodeService;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -44,7 +45,7 @@ import org.structr.common.property.Property;
  */
 public class Condition extends AbstractNode {
 
-	public static final Property<String> query = new Property<String>("query");
+	public static final Property<String> query = new StringProperty("query");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Condition.class, PropertyView.Ui,
 		type, name, query

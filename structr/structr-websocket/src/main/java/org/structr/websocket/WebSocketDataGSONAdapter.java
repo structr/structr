@@ -40,7 +40,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
@@ -173,10 +173,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 						if (graphObject instanceof AbstractNode) {
 
-							src.getNodeData().put(modifiedKey.name(), newValue);
+							src.getNodeData().put(modifiedKey.jsonName(), newValue);
 						} else {
 
-							src.getRelData().put(modifiedKey.name(), newValue);
+							src.getRelData().put(modifiedKey.jsonName(), newValue);
 						}
 
 					}
@@ -293,7 +293,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		if (value instanceof PropertyKey) {
 
-			jp = new JsonPrimitive(((PropertyKey)value).name());
+			jp = new JsonPrimitive(((PropertyKey)value).jsonName());
 		} else if (value instanceof String) {
 
 			jp = new JsonPrimitive((String) value);

@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
+import org.structr.common.property.GenericProperty;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
@@ -69,7 +69,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				@Override
 				public Object execute(Transaction tx) throws FrameworkException {
 
-					List<AbstractRelationship> rels = relFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+					List<AbstractRelationship> rels = relFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
 					long n = 0;
 					
 					for(AbstractRelationship rel : rels) {
@@ -79,7 +79,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 							// copy properties
 							// FIXME: synthetic Property generation
-							rel.setProperty(new Property(destKey), rel.getProperty(new Property(sourceKey)));
+							rel.setProperty(new GenericProperty(destKey), rel.getProperty(new GenericProperty(sourceKey)));
 							
 							if(n > 1000 && n % 1000 == 0) {
 

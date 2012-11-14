@@ -22,10 +22,11 @@
 package org.structr.web.entity.relation;
 
 import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Linkable;
@@ -40,9 +41,9 @@ import org.structr.web.entity.html.Link;
  */
 public class LinkRelationship extends AbstractRelationship {
 
-	public static final Property<String> sourceId = new Property<String>("sourceId");
-	public static final Property<String> targetId = new Property<String>("targetId");
-	public static final Property<String> type     = new Property<String>("type");
+	public static final Property<String> sourceId = new StringProperty("sourceId");
+	public static final Property<String> targetId = new StringProperty("targetId");
+	public static final Property<String> type     = new StringProperty("type");
 
 	public static final View uiView = new View(LinkRelationship.class, PropertyView.Ui,
 		sourceId, targetId, type	

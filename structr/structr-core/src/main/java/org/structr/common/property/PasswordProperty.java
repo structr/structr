@@ -25,8 +25,13 @@ public class PasswordProperty extends Property<String> {
 	}
 	
 	@Override
+	public String typeName() {
+		return "String";
+	}
+	
+	@Override
 	public PropertyConverter<String, String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new PasswordConverter(securityContext);
+		return new PasswordConverter(securityContext, info);
 	}
 
 	@Override

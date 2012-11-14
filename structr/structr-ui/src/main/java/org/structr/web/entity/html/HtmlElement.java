@@ -26,7 +26,7 @@ import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -53,7 +53,9 @@ import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.PageHelper;
@@ -72,8 +74,8 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 	private static final Logger logger                                             = Logger.getLogger(HtmlElement.class.getName());
 
-	public static final Property<List<HtmlElement>> parents  = new Property<List<HtmlElement>>("parents");
-	public static final Property<String>            path     = new Property<String>("path");
+	public static final Property<List<HtmlElement>> parents  = new GenericProperty<List<HtmlElement>>("parents");
+	public static final Property<String>            path     = new StringProperty("path");
 	
 	// Core attributes
 	public static final Property<String> _accesskey          = new HtmlProperty("accesskey");
@@ -587,8 +589,8 @@ public abstract class HtmlElement extends PageElement implements Element {
 		AbstractNode node                = startNode;
 		String[] parts                   = refKey.split("[\\.]+");
 		String referenceKey              = parts[parts.length - 1];
-		PropertyKey pageIdProperty       = new Property(pageId);
-		PropertyKey referenceKeyProperty = new Property(referenceKey);
+		PropertyKey pageIdProperty       = new GenericProperty(pageId);
+		PropertyKey referenceKeyProperty = new GenericProperty(referenceKey);
 
 		// walk through template parts
 		for (int i = 0; (i < parts.length) && (node != null); i++) {

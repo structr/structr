@@ -20,7 +20,7 @@
 package org.structr.core.converter;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -50,10 +50,10 @@ public class RawPropertyConverter extends PropertyConverter {
 
 		try {
 			if(currentObject instanceof AbstractNode) {
-				return ((AbstractNode)currentObject).getNode().getProperty(key.name());
+				return ((AbstractNode)currentObject).getNode().getProperty(key.dbName());
 			} else
 			if(currentObject instanceof AbstractRelationship) {
-				return ((AbstractRelationship)currentObject).getRelationship().getProperty(key.name());
+				return ((AbstractRelationship)currentObject).getRelationship().getProperty(key.dbName());
 			}
 
 		} catch(Throwable t) {

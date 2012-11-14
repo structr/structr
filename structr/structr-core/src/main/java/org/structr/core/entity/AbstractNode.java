@@ -34,7 +34,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.*;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -82,9 +82,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	private static final boolean updateIndexDefault = true;
 
 	// properties
-	public static final Property<String>        base                        = new Property<String>("base");
-	public static final Property<String>        name                        = new Property<String>("name");
-	public static final Property<String>        createdBy                   = new Property<String>("createdBy").systemProperty().writeOnce();
+	public static final Property<String>        base                        = new StringProperty("base");
+	public static final Property<String>        name                        = new StringProperty("name");
+	public static final Property<String>        createdBy                   = new StringProperty("createdBy").systemProperty().writeOnce();
 	public static final Property<Boolean>       deleted                     = new BooleanProperty("deleted");
 	public static final Property<Boolean>       hidden                      = new BooleanProperty("hidden");
 	public static final Property<Date>          createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().writeOnce();
@@ -93,7 +93,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final Property<Boolean>       visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
 	public static final Property<Date>	    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
 	public static final Property<Date>	    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
-	public static final Property<String>        ownerId                     = new Property<String>("ownerId");
+	public static final Property<String>        ownerId                     = new StringProperty("ownerId");
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
 		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, ownerId
@@ -247,14 +247,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		try {
 
-			String name = dbNode.hasProperty(AbstractNode.name.name())
-				      ? (String) dbNode.getProperty(AbstractNode.name.name())
+			String name = dbNode.hasProperty(AbstractNode.name.dbName())
+				      ? (String) dbNode.getProperty(AbstractNode.name.dbName())
 				      : "<null name>";
-			String type = dbNode.hasProperty(AbstractNode.type.name())
-				      ? (String) dbNode.getProperty(AbstractNode.type.name())
+			String type = dbNode.hasProperty(AbstractNode.type.dbName())
+				      ? (String) dbNode.getProperty(AbstractNode.type.dbName())
 				      : "<AbstractNode>";
-			String id   = dbNode.hasProperty(AbstractNode.uuid.name())
-				      ? (String) dbNode.getProperty(AbstractNode.uuid.name())
+			String id   = dbNode.hasProperty(AbstractNode.uuid.dbName())
+				      ? (String) dbNode.getProperty(AbstractNode.uuid.dbName())
 				      : Long.toString(dbNode.getId());
 
 			return type + " (" + name + "," + type + "," + id + ")";
@@ -336,7 +336,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				@Override
 				public Object execute() throws FrameworkException {
 
-					dbNode.removeProperty(key.name());
+					dbNode.removeProperty(key.dbName());
 
 					return null;
 
@@ -564,7 +564,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
 
 		// early null check, this should not happen...
-		if (key == null || key.name() == null) {
+		if (key == null || key.dbName() == null) {
 			return null;
 		}
 		
@@ -600,8 +600,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					// CHM: remove debugging code later
 					t.printStackTrace();
 					
-					logger.log(Level.WARNING, "Unable to convert property {0} of {1} {2}: {3}", new Object[] {
-						key.name(),
+					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+						key.dbName(),
 						entityType.getSimpleName(),
 						getUuid(),
 						t.getMessage()
@@ -609,11 +609,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				}
 			}
 
-			if (dbNode.hasProperty(key.name())) {
+			if (dbNode.hasProperty(key.dbName())) {
 
 				if ((key != null) && (dbNode != null)) {
 
-					value = dbNode.getProperty(key.name());
+					value = dbNode.getProperty(key.dbName());
 				}
 
 			} else {
@@ -671,11 +671,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 						
 						// CHM: remove debugging code later
 						t.printStackTrace();
-					
-						logger.log(Level.WARNING, "Unable to convert property {0} of {1} {2}: {3}", new Object[] {
-							key.name(),
-							entityType.getSimpleName(),
-							getUuid(),
+						
+						logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+							key.dbName(),
+							getClass().getSimpleName(),
 							t.getMessage()
 						});
 					}
@@ -709,7 +708,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return (T)value;
 			
 		} catch(Throwable t) {
-			throw new IllegalStateException("Value for key " + key.name() + " has incorrect type, maybe you forgot to register a PropertyConverter?");
+			throw new IllegalStateException("Value for key " + key.dbName() + " has incorrect type, maybe you forgot to register a PropertyConverter?");
 		}
 	}
 
@@ -970,7 +969,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				t.printStackTrace();
 				
 				logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-					key.name(),
+					key.dbName(),
 					getClass().getSimpleName(),
 					t.getMessage()
 				});
@@ -1689,8 +1688,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
-		final Class type = this.getClass();
-
+		Class type = this.getClass();
+		
 		if (key == null) {
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
@@ -1701,7 +1700,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		
 		// check for read-only properties
 		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key.name()))) {
-		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbNode != null) && dbNode.hasProperty(key.name()))) {
+		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
@@ -1832,17 +1831,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 							// save space
 							if (convertedValue == null) {
 
-								dbNode.removeProperty(key.name());
+								dbNode.removeProperty(key.dbName());
 								
 							} else {
 
 								// Setting last modified date explicetely is not allowed
 								if (!key.equals(AbstractNode.lastModifiedDate)) {
 
-									dbNode.setProperty(key.name(), convertedValue);
+									dbNode.setProperty(key.dbName(), convertedValue);
 
 									// set last modified date if not already happened
-									dbNode.setProperty(AbstractNode.lastModifiedDate.name(), System.currentTimeMillis());
+									dbNode.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
 
 
 								} else {

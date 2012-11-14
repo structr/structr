@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
@@ -93,7 +93,7 @@ public class NamedRelationResource extends WrappingResource {
 			searchAttributes.add(Search.andExactRelType(namedRelation));
 
 			// add searchable attributes from EntityContext
-			searchAttributes.addAll(extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass().getSimpleName(), request));
+			searchAttributes.addAll(extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass(), request));
 
 			relationResults.addAll((List<AbstractRelationship>) Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
 
@@ -101,7 +101,7 @@ public class NamedRelationResource extends WrappingResource {
 
 		// filter by searchable properties
 		final List<SearchAttribute> filterAttributes =
-						extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass().getSimpleName(), request);
+						extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass(), request);
 
 		if(!filterAttributes.isEmpty()) {
 
@@ -176,7 +176,7 @@ public class NamedRelationResource extends WrappingResource {
 			final Class sourceType = namedRelation.getSourceType();
 			final Class destType = namedRelation.getDestType();
 
-			propertySet.put(AbstractRelationship.combinedType.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
+			propertySet.put(AbstractRelationship.combinedType.dbName(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
 
 			// convertFromInput properties
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, relationshipEntity.getClass(), propertySet);

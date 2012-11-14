@@ -43,10 +43,10 @@ import org.structr.web.entity.Group;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.*;
+import org.structr.common.property.LongProperty;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -127,7 +127,7 @@ public class RelationshipHelper {
 					position++;
 				}
 				
-				rel.setProperty(new Property(pageId), position);
+				rel.setProperty(new LongProperty(pageId), position);
 				
 			}
 		
@@ -243,11 +243,11 @@ public class RelationshipHelper {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
-			Long position = rel.getLongProperty(new Property(originalPageId));
+			Long position = rel.getLongProperty(new LongProperty(originalPageId));
 
 			if (position != null) {
 
-				rel.setProperty(new Property(pageId), position);
+				rel.setProperty(new LongProperty(pageId), position);
 
 			}
 
@@ -260,11 +260,11 @@ public class RelationshipHelper {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
-			Long position = rel.getLongProperty(new Property(startPageId));
+			Long position = rel.getLongProperty(new LongProperty(startPageId));
 
 			if (position != null) {
 
-				rel.removeProperty(new Property(pageId));
+				rel.removeProperty(new LongProperty(pageId));
 
 			}
 
@@ -279,7 +279,7 @@ public class RelationshipHelper {
 
 			if (!(startNode.equals(node))) {
 
-				rel.setProperty(new Property("componentId"), componentId);
+				rel.setProperty(new StringProperty("componentId"), componentId);
 
 				if (node.getType().equals(Component.class.getSimpleName())) {
 
@@ -302,7 +302,7 @@ public class RelationshipHelper {
 
 		}
 
-		Property pageIdProperty = new Property(pageId);
+		Property pageIdProperty = new StringProperty(pageId);
 		long i = 0;
 
 		Collections.sort(rels, new GraphObjectComparator(pageIdProperty, GraphObjectComparator.ASCENDING));
@@ -342,7 +342,7 @@ public class RelationshipHelper {
 
 			}
 
-			Property pageIdProperty = new Property(pageId);
+			Property pageIdProperty = new LongProperty(pageId);
 			Long childPos = null;
 
 			if (childRel.getLongProperty(pageIdProperty) != null) {
@@ -352,7 +352,7 @@ public class RelationshipHelper {
 			} else {
 
 				// Try "*"
-				childPos = childRel.getLongProperty(new Property("*"));
+				childPos = childRel.getLongProperty(new LongProperty("*"));
 			}
 
 			if (childPos != null) {
@@ -369,7 +369,7 @@ public class RelationshipHelper {
 	public static boolean hasChildren(final AbstractNode node, final String pageId) {
 
 		List<AbstractRelationship> childRels = node.getOutgoingRelationships(RelType.CONTAINS);
-		Property pageIdProperty              = new Property(pageId);
+		Property pageIdProperty              = new LongProperty(pageId);
 
 		if ((node instanceof Group) || (node instanceof Folder)) {
 
@@ -388,7 +388,7 @@ public class RelationshipHelper {
 			} else {
 
 				// Try "*"
-				childPos = childRel.getLongProperty(new Property("*"));
+				childPos = childRel.getLongProperty(new LongProperty("*"));
 			}
 
 			if (childPos != null) {

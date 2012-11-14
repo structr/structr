@@ -46,8 +46,8 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.common.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -90,7 +90,7 @@ public class TypeResource extends SortableResource {
 			if (entityClass == null) {
 				
 				// test if key is a known property
-				if (!EntityContext.isKnownProperty(new Property(part))) {
+				if (!EntityContext.isKnownProperty(new GenericProperty(part))) {
 
 					return false;
 				}
@@ -315,7 +315,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	protected List<SearchAttribute> extractSearchableAttributesFromRequest(SecurityContext securityContext) throws FrameworkException {
-		return extractSearchableAttributesForNodes(securityContext, rawType, request);
+		return extractSearchableAttributesForNodes(securityContext, entityClass, request);
 	}
 
 	@Override

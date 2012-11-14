@@ -46,7 +46,7 @@ import org.structr.common.property.Property;
  */
 public class Group extends AbstractNode implements Principal {
 
-//	public static final Property<List<User>>   users    = new Property("users");
+//	public static final Property<List<User>>   users    = new GenericProperty("users");
 //	
 //	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 //		users

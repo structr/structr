@@ -20,12 +20,13 @@
 package org.structr.core;
 
 import java.util.Date;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -36,8 +37,8 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public interface GraphObject {
 
-	public static final Property<String>  uuid = new Property<String>("uuid").systemProperty().writeOnce();
-	public static final Property<String>  type = new Property<String>("type");
+	public static final Property<String>  uuid = new StringProperty("uuid").systemProperty().writeOnce();
+	public static final Property<String>  type = new StringProperty("type");
 	
 	// ----- methods common to both types -----
 	/**

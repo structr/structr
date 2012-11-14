@@ -89,7 +89,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 			long id = ((Long) argument).longValue();
 
 			try {
-				rel = relationshipFactory.createRelationship(securityContext, (Relationship) graphDb.getRelationshipById(id));
+				rel = relationshipFactory.instantiateRelationship(securityContext, (Relationship) graphDb.getRelationshipById(id));
 			} catch (NotFoundException nfe) {
 				logger.log(Level.SEVERE, "Relationship {0} not found, cannot delete.", id);
 			}
@@ -99,7 +99,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 		} else if (argument instanceof Relationship) {
 
-			rel = relationshipFactory.createRelationship(securityContext, (Relationship) argument);
+			rel = relationshipFactory.instantiateRelationship(securityContext, (Relationship) argument);
 
 		}
 

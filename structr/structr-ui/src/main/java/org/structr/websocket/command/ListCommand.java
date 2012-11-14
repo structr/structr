@@ -84,8 +84,8 @@ public class ListCommand extends AbstractCommand {
 								Class t1 = n1.getClass();
 								Class t2 = n2.getClass();
 								
-								Comparable c1 = (Comparable) n1.getProperty(EntityContext.getPropertyKeyForName(t1, sortKey));
-								Comparable c2 = (Comparable) n2.getProperty(EntityContext.getPropertyKeyForName(t2, sortKey));
+								Comparable c1 = (Comparable) n1.getProperty(EntityContext.getPropertyKeyForDatabaseName(t1, sortKey));
+								Comparable c2 = (Comparable) n2.getProperty(EntityContext.getPropertyKeyForDatabaseName(t2, sortKey));
 
 								return (c2.compareTo(c1));
 
@@ -103,8 +103,8 @@ public class ListCommand extends AbstractCommand {
 								Class t1 = n1.getClass();
 								Class t2 = n2.getClass();
 								
-								Comparable c1 = (Comparable) n1.getProperty(EntityContext.getPropertyKeyForName(t1, sortKey));
-								Comparable c2 = (Comparable) n2.getProperty(EntityContext.getPropertyKeyForName(t2, sortKey));
+								Comparable c1 = (Comparable) n1.getProperty(EntityContext.getPropertyKeyForDatabaseName(t1, sortKey));
+								Comparable c2 = (Comparable) n2.getProperty(EntityContext.getPropertyKeyForDatabaseName(t2, sortKey));
 
 								return (c1.compareTo(c2));
 

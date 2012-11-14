@@ -27,8 +27,8 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.property.LongProperty;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
-import org.structr.core.converter.IntConverter;
 import org.structr.core.node.NodeService;
 
 /**
@@ -55,7 +55,7 @@ public class ResourceAccess extends AbstractNode {
 	private String cachedResourceSignature = null;
 	private Long cachedFlags     = null;
 
-	public static final Property<String> signature = new Property<String>("signature");
+	public static final Property<String> signature = new StringProperty("signature");
 	public static final Property<Long>   flags     = new LongProperty("flags");
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,

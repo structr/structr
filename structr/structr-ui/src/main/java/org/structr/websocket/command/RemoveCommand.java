@@ -26,7 +26,6 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -48,8 +47,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.common.property.LongProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -100,7 +99,7 @@ public class RemoveCommand extends AbstractCommand {
 
 						DeleteRelationshipCommand deleteRel      = Services.command(securityContext, DeleteRelationshipCommand.class);
 						List<AbstractRelationship> relsToReorder = new ArrayList<AbstractRelationship>();
-						PropertyKey<Long> pageIdProperty         = new Property<Long>(pageId);
+						PropertyKey<Long> pageIdProperty         = new LongProperty(pageId);
 						boolean hasPageId;
 						
 						for (AbstractRelationship rel : rels) {
@@ -198,12 +197,12 @@ public class RemoveCommand extends AbstractCommand {
 
 			// Object val = entry.getValue();
 			// Check if key is a node id (UUID format)
-			if (key.name().matches("[a-zA-Z0-9]{32}")) {
+			if (key.dbName().matches("[a-zA-Z0-9]{32}")) {
 
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 				attrs.add(Search.andExactType(Page.class.getSimpleName()));
-				attrs.add(Search.andExactUuid(key.name()));
+				attrs.add(Search.andExactUuid(key.dbName()));
 
 				Result results = searchNode.execute(attrs);
 

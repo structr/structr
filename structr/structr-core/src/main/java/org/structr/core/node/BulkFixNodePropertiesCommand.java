@@ -25,7 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Node;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
@@ -54,13 +54,13 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 			final Class type = EntityContext.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
 				
-				final PropertyKey propertyToFix   = EntityContext.getPropertyKeyForName(type, propertyName);
+				final PropertyKey propertyToFix   = EntityContext.getPropertyKeyForDatabaseName(type, propertyName);
 				final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 				final List<AbstractNode> nodes    = result.getResults();
 
 				if (propertyToFix != null && type != null) {
 
-					logger.log(Level.INFO, "Start fixing {0} properties of type {1}", new Object[] { propertyToFix.name(), type.getSimpleName() } );
+					logger.log(Level.INFO, "Start fixing {0} properties of type {1}", new Object[] { propertyToFix.dbName(), type.getSimpleName() } );
 
 					final Iterator<AbstractNode> nodeIterator = nodes.iterator();
 					while (nodeIterator.hasNext()) {
@@ -77,12 +77,11 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 									AbstractNode abstractNode = nodeIterator.next();
 									Node databaseNode         = abstractNode.getNode();
 
-									// TODO: use dbName here when refactoring for property names
-									if (databaseNode.hasProperty(propertyToFix.name())) {
+									if (databaseNode.hasProperty(propertyToFix.dbName())) {
 
 										PropertyConverter dbConverter = propertyToFix.databaseConverter(securityContext, abstractNode);
 										PropertyConverter inConverter = propertyToFix.inputConverter(securityContext);
-										Object rawValue               = databaseNode.getProperty(propertyToFix.name());
+										Object rawValue               = databaseNode.getProperty(propertyToFix.dbName());
 										Object correctedValue         = null;
 
 										try {
@@ -99,7 +98,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 											} catch (Throwable t1) {
 
 												logger.log(Level.WARNING, "Unable to fix property type for {0} on {1}, please specify conversionType!", new Object[] {
-													propertyToFix.name(),
+													propertyToFix.dbName(),
 													type.getSimpleName()
 												}
 												);
@@ -125,7 +124,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 
 												logger.log(Level.WARNING, "Unable to set property {0} on {1}: {2}", new Object[] {
-													propertyToFix.name(),
+													propertyToFix.dbName(),
 													type.getSimpleName(),
 													t.getMessage()
 												}

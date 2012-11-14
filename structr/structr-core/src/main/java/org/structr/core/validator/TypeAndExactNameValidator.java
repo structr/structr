@@ -22,7 +22,7 @@ package org.structr.core.validator;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;

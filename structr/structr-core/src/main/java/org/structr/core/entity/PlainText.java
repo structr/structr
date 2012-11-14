@@ -23,6 +23,7 @@ package org.structr.core.entity;
 
 import org.structr.common.property.Property;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -33,9 +34,9 @@ import org.structr.common.error.FrameworkException;
  */
 public class PlainText extends AbstractNode {
 
-	public static final Property<String> content     = new Property<String>("content");
-	public static final Property<String> contentType = new Property<String>("contentType");
-	public static final Property<String> size        = new Property<String>("size");
+	public static final Property<String> content     = new StringProperty("content");
+	public static final Property<String> contentType = new StringProperty("contentType");
+	public static final Property<String> size        = new StringProperty("size");
 
 	static {
 

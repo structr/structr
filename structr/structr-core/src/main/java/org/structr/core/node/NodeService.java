@@ -194,8 +194,8 @@ public class NodeService implements SingletonService {
 
 		final Map<String, String> config = new HashMap<String, String>();
 
-		config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.name());
-		config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.name());
+		config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.dbName());
+		config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.dbName());
 		config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
 
 		layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);

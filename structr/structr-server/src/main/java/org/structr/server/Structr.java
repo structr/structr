@@ -317,8 +317,9 @@ public class Structr {
 	 */
 	public Server start(boolean waitForExit, boolean isTest) throws IOException, InterruptedException, Exception {
 		
-		String sourceJarName                 = app.getProtectionDomain().getCodeSource().getLocation().toString();
-		if (!isTest && StringUtils.stripEnd(sourceJarName, "/").endsWith("classes")) {
+		String sourceJarName = app.getProtectionDomain().getCodeSource().getLocation().toString();
+		
+		if (!isTest && StringUtils.stripEnd(sourceJarName, System.getProperty("file.separator")).endsWith("classes")) {
 			
 			String jarFile = System.getProperty("jarFile");
 			if (StringUtils.isEmpty(jarFile)) {
@@ -329,10 +330,15 @@ public class Structr {
 			sourceJarName = jarFile;
 		}
 
-		File baseDir                         = new File(System.getProperty("home", basePath));
-		String basePath                      = baseDir.getAbsolutePath();
+		// get current base path
+		basePath = System.getProperty("home", basePath);
+		if (basePath.isEmpty()) {
+			// use cwd and, if that fails, /tmp as a fallback
+			basePath = System.getProperty("user.dir", "/tmp");
+		}
 		
 		// create base directory if it does not exist
+		File baseDir = new File(basePath);
 		if (!baseDir.exists()) {
 			baseDir.mkdirs();
 		}

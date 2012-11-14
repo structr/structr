@@ -16,29 +16,24 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.converter;
-
-import org.structr.core.property.PropertyKey;
+package org.structr.common.property;
 
 /**
  *
  * @author Christian Morgner
  */
-public class ParameterHolder<T> {
+public class GenericProperty<T> extends Property<T> {
 
-	private PropertyKey<T> targetKey = null;
-	private Class targetType = null;
-
-	public ParameterHolder(PropertyKey<T> targetKey, Class targetType) {
-		this.targetKey = targetKey;
-		this.targetType = targetType;
+	public GenericProperty(String name) {
+		this(name, name);
 	}
 
-	public PropertyKey<T> getTargetKey() {
-		return targetKey;
+	public GenericProperty(String jsonName, String dbName) {
+		super(jsonName, dbName);
 	}
-
-	public Class getTargetType() {
-		return targetType;
+	
+	@Override
+	public String typeName() {
+		return "FIXME: GenericProperty.java:37";
 	}
 }

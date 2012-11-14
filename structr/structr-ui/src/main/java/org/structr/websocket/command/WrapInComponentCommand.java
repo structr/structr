@@ -41,8 +41,9 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.PropertyMap;
+import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -92,10 +93,10 @@ public class WrapInComponentCommand extends AbstractCommand {
 							// First element in new component, so set position to 0
 							PropertyMap relProps = new PropertyMap();
 
-							relProps.put(new Property(pageId), 0);
+							relProps.put(new GenericProperty(pageId), 0);
 
 							// relProps.put("pageId", pageId);
-							relProps.put(new Property("componentId"), componentId);
+							relProps.put(new StringProperty("componentId"), componentId);
 
 							try {
 								rel.createRelationship(securityContext, newComponent, nodeToWrap, relProps);

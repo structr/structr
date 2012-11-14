@@ -21,7 +21,7 @@
 
 package org.structr.websocket.command;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.message.MessageBuilder;
@@ -52,7 +52,7 @@ public class GetCommand extends AbstractCommand {
 
 			for (PropertyKey key : node.getPropertyKeys(view)) {
 
-				webSocketData.setNodeData(key.name(), node.getProperty(key));
+				webSocketData.setNodeData(key.jsonName(), node.getProperty(key));
 
 			}
 

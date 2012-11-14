@@ -41,7 +41,7 @@ public class GetAllRelationships extends NodeServiceCommand {
 
 		if(graphDb != null) {
 			
-			return relationshipFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+			return relationshipFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
 		}
 
 		return Collections.emptyList();

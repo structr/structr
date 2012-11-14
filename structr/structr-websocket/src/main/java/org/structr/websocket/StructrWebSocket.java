@@ -59,7 +59,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.node.GetNodeByIdCommand;
 
 //~--- classes ----------------------------------------------------------------

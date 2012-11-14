@@ -18,6 +18,7 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -39,6 +40,11 @@ public class MappedProperty<T> extends Property<T> {
 	
 	public PropertyKey<T> mappedKey() {
 		return mappedKey;
+	}
+	
+	@Override
+	public String typeName() {
+		return mappedKey.typeName();
 	}
 	
 	@Override

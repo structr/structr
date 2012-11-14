@@ -37,10 +37,19 @@ public class EnumProperty<T extends Enum> extends Property<T> {
 	}
 	
 	public EnumProperty(String name, Class<T> enumType, T defaultValue) {
+		this(name, name, enumType, defaultValue);
+	}
+	
+	public EnumProperty(String jsonName, String dbName, Class<T> enumType, T defaultValue) {
 		
-		super(name, defaultValue);
+		super(jsonName, dbName, defaultValue);
 		
 		this.enumType = enumType;
+	}
+	
+	@Override
+	public String typeName() {
+		return "String";
 	}
 	
 	@Override

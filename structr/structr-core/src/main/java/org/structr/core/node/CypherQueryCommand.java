@@ -100,7 +100,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 				} else if (o instanceof Relationship) {
 
-					AbstractRelationship rel = relFactory.createRelationship(securityContext, (Relationship) o);
+					AbstractRelationship rel = relFactory.instantiateRelationship(securityContext, (Relationship) o);
 
 					if (rel != null) {
 

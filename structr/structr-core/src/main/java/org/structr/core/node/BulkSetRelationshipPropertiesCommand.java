@@ -36,8 +36,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
 import org.structr.common.SecurityContext;
+import org.structr.common.property.GenericProperty;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -76,17 +76,17 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 					long n                  = 0L;
                                         List<AbstractRelationship> rels = null;
                                         
-                                        if (properties.containsKey(AbstractRelationship.combinedType.name())) {
+                                        if (properties.containsKey(AbstractRelationship.combinedType.dbName())) {
                                                 
                                                 List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.combinedType.name())));
+                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.combinedType.dbName())));
                                                 
                                                 rels = (List<AbstractRelationship>) searchRel.execute(attrs);
-                                                properties.remove(AbstractRelationship.combinedType.name());
+                                                properties.remove(AbstractRelationship.combinedType.dbName());
                                                 
                                         } else {
                                         
-                                                rels = (List<AbstractRelationship>) relationshipFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+                                                rels = (List<AbstractRelationship>) relationshipFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
                                         }
 
 					for (AbstractRelationship rel : rels) {
@@ -100,7 +100,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
                                                                 Object val = entry.getValue();
                                                                 
 								// FIXME: synthetic Property generation
-                                                                rel.setProperty(new Property(key), val);
+                                                                rel.setProperty(new GenericProperty(key), val);
                                                                 
                                                         }
 

@@ -168,6 +168,7 @@ public class TransactionCommand extends NodeServiceCommand {
 					depths.set(depth + 1);
 
 					try {
+						
 						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 							@Override

@@ -26,7 +26,7 @@ import java.util.Map;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
@@ -57,7 +57,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 					final String userName = (String) parameters[0];
 
-					for (final Node n : index.get(AbstractNode.name.name(), userName)) {
+					for (final Node n : index.get(AbstractNode.name.dbName(), userName)) {
 
 						final AbstractNode s = nodeFactory.createNode(n);
 
@@ -80,7 +80,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 				final Index<Node> index = getIndexFromArguments(idx, arguments);
 
 				// see: http://docs.neo4j.org/chunked/milestone/indexing-create-advanced.html
-				final IndexHits<Node> indexHits = index.query( key.name(), "\"" + userNickName + "\"" );
+				final IndexHits<Node> indexHits = index.query( key.dbName(), "\"" + userNickName + "\"" );
 				try {
 					for (final Node n : indexHits) {
 						final Object u = nodeFactory.createNode(n);

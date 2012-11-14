@@ -65,7 +65,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
@@ -259,7 +259,7 @@ public class JsonRestServlet extends HttpServlet {
 			if (sortKeyName != null) {
 				
 				Class<? extends GraphObject> type = resource.getEntityClass();
-				sortKey = EntityContext.getPropertyKeyForName(type, sortKeyName);
+				sortKey = EntityContext.getPropertyKeyForDatabaseName(type, sortKeyName);
 			}
 			
 			// do action
@@ -741,7 +741,7 @@ public class JsonRestServlet extends HttpServlet {
 				}
 
 				if (!found) {
-
+					
 					throw new NotFoundException();
 
 				}

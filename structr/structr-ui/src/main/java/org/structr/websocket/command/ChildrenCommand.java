@@ -36,8 +36,8 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.common.property.LongProperty;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,7 +65,7 @@ public class ChildrenCommand extends AbstractCommand {
 		Map<Long, GraphObject> sortMap   = new TreeMap<Long, GraphObject>();
 		Set<String> nodesWithChildren    = new HashSet<String>();
 		List<GraphObject> result         = new LinkedList<GraphObject>();
-		PropertyKey<Long> pageIdProperty = new Property<Long>(pageId);
+		PropertyKey<Long> pageIdProperty = new LongProperty(pageId);
 
 		for (AbstractRelationship rel : rels) {
 
@@ -99,7 +99,7 @@ public class ChildrenCommand extends AbstractCommand {
 			} else {
 
 				// Try "*"
-				pos = rel.getLongProperty(new Property("*"));
+				pos = rel.getLongProperty(new LongProperty("*"));
 			}
 
 			String relCompId             = rel.getProperty(Component.componentId);

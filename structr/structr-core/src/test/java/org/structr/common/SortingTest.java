@@ -21,7 +21,7 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.apache.lucene.search.SortField;
 
 import org.structr.common.error.FrameworkException;

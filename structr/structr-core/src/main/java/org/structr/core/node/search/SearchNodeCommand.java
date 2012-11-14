@@ -34,7 +34,7 @@ import org.neo4j.index.lucene.QueryContext;
 
 import org.structr.common.GeoHelper;
 import org.structr.common.GeoHelper.GeoCodingResult;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -192,7 +192,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 				} else if (attr instanceof DistanceSearchAttribute) {
 
 					distanceSearch = (DistanceSearchAttribute) attr;
-					coords         = GeoHelper.geocode(distanceSearch.getKey().name());
+					coords         = GeoHelper.geocode(distanceSearch.getKey().dbName());
 					dist           = distanceSearch.getValue();
 
 				} else if (attr instanceof SearchAttributeGroup) {
@@ -250,10 +250,10 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 					if (sortType != null) {
 
-						queryContext.sort(new Sort(new SortField(sortKey.name(), sortType, sortDescending)));
+						queryContext.sort(new Sort(new SortField(sortKey.dbName(), sortType, sortDescending)));
 					} else {
 
-						queryContext.sort(new Sort(new SortField(sortKey.name(), Locale.getDefault(), sortDescending)));
+						queryContext.sort(new Sort(new SortField(sortKey.dbName(), Locale.getDefault(), sortDescending)));
 					}
 
 				}
@@ -276,14 +276,14 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 					}
 
-				} else if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.uuid.name())) {
+				} else if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.uuid.dbName())) {
 
 					// Search for uuid only: Use UUID index
 					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
 
 					synchronized (index) {
 
-						hits = index.get(AbstractNode.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+						hits = index.get(AbstractNode.uuid.dbName(), decodeExactMatch(textualAttributes.get(0).getValue()));
 					}
 					
 				} else if ( /* (textualAttributes.size() > 1) && */allExactMatch) {
@@ -434,14 +434,14 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 			queryString = ((isFirst && !(op.equals(SearchOperator.NOT)))
 				       ? ""
-				       : " " + op + " ") + key + ":\"" + IMPROBABLE_SEARCH_VALUE + "\"";
+				       : " " + op + " ") + key.dbName() + ":\"" + IMPROBABLE_SEARCH_VALUE + "\"";
 
 		} else {
 
 			// NOT operator should always be applied
 			queryString = ((isFirst && !(op.equals(SearchOperator.NOT)))
 				       ? ""
-				       : " " + op + " ") + expand(key.name(), value);
+				       : " " + op + " ") + expand(key.dbName(), value);
 		}
 
 		return queryString;

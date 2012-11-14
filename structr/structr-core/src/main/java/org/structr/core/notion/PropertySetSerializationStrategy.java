@@ -21,7 +21,7 @@ package org.structr.core.notion;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -44,7 +44,7 @@ public class PropertySetSerializationStrategy implements SerializationStrategy {
 		if(source != null) {
 			Map<String, Object> propertySet = new LinkedHashMap<String, Object>();
 			for(PropertyKey key : propertyKeys) {
-				propertySet.put(key.name(), source.getProperty(key));
+				propertySet.put(key.jsonName(), source.getProperty(key));
 			}
 			return propertySet;
 		}

@@ -29,7 +29,6 @@ import org.structr.core.Adapter;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -67,7 +66,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 	//~--- methods --------------------------------------------------------
 
-	public T createRelationship(final SecurityContext securityContext, final String combinedRelType) throws FrameworkException {
+	public T instantiateRelationship(final SecurityContext securityContext, final String combinedRelType) throws FrameworkException {
 
 		Class<T> relClass = EntityContext.getNamedRelationClass(combinedRelType);
 		T newRel          = null;
@@ -90,17 +89,17 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		return newRel;
 	}
 
-	public T createRelationship(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+	public T instantiateRelationship(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
 		String combinedRelType = (String) properties.get(AbstractRelationship.combinedType);
-		T newRel               = createRelationship(securityContext, combinedRelType);
+		T newRel               = instantiateRelationship(securityContext, combinedRelType);
 
 		newRel.setProperties(properties);
 
 		return newRel;
 	}
 
-	public T createRelationship(final SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
+	public T instantiateRelationship(final SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
 
 		Class<T> relClass = null;
 		T newRel          = null;
@@ -118,15 +117,15 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			} else {
 
-				if (relationship.hasProperty(AbstractRelationship.combinedType.name())) {
+				if (relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
 
-					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.name());
+					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
 
 					relClass = EntityContext.getNamedRelationClass(combinedRelType);
 
 					if (relClass != null) {
 
-						newRel = createRelationship(securityContext, combinedRelType);
+						newRel = instantiateRelationship(securityContext, combinedRelType);
 
 					}
 
@@ -150,7 +149,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 	public T adapt(Relationship s) {
 
 		try {
-			return createRelationship(securityContext, s);
+			return instantiateRelationship(securityContext, s);
 			
 		} catch (FrameworkException fex) {
 			
@@ -166,7 +165,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 	 * @param input
 	 * @return
 	 */
-	public List<T> createRelationships(final SecurityContext securityContext, final Iterable<Relationship> input) throws FrameworkException {
+	public List<T> instantiateRelationships(final SecurityContext securityContext, final Iterable<Relationship> input) throws FrameworkException {
 
 		List<T> rels = new LinkedList<T>();
 
@@ -174,7 +173,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			for (Relationship rel : input) {
 
-				T n = createRelationship(securityContext, rel);
+				T n = instantiateRelationship(securityContext, rel);
 
 				rels.add(n);
 
@@ -187,8 +186,8 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 	
 	private Class<T> findNamedRelation(Relationship relationship) {
 		
-		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.type.name());
-		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.type.name());
+		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.type.dbName());
+		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.type.dbName());
 
 		
 		Class sourceType = EntityContext.getEntityClassForRawType(sourceNodeType);

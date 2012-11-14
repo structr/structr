@@ -18,30 +18,42 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
+import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchOperator;
+import org.structr.core.node.search.TextualSearchAttribute;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Property<JavaType> implements PropertyKey<JavaType> {
+public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 
 	protected String declaringClassName  = null;
 	protected JavaType defaultValue      = null;
-	protected String name                = null;
 	protected boolean isReadOnlyProperty = false;
 	protected boolean isWriteOnceProperty   = false;
 	protected boolean isSystemProperty   = false;
+	protected String dbName              = null;
+	protected String jsonName            = null;
 	
-	public Property(String name) {
-		this.name = name;
+	protected Property(String name) {
+		this(name, name);
 	}
 	
-	public Property(String name, JavaType defaultValue) {
-		this.name = name;
+	protected Property(String jsonName, String dbName) {
+		this(jsonName, dbName, null);
+	}
+	
+	protected Property(String jsonName, String dbName, JavaType defaultValue) {
 		this.defaultValue = defaultValue;
+		this.jsonName = jsonName;
+		this.dbName = dbName;
 	}
 	
 	public Property<JavaType> systemProperty() {
@@ -66,12 +78,17 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	
 	@Override
 	public String toString() {
-		return name;
+		return "(".concat(jsonName()).concat("|").concat(dbName()).concat(")");
 	}
 	
 	@Override
-	public String name() {
-		return name;
+	public String dbName() {
+		return dbName;
+	}
+	
+	@Override
+	public String jsonName() {
+		return jsonName;
 	}
 	
 	@Override
@@ -82,8 +99,17 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public int hashCode() {
 		
-		if (name != null) {
-			return name.hashCode();
+		// make hashCode funtion work for subtypes that override jsonName() etc. as well
+		if (dbName() != null && jsonName() != null) {
+			return (dbName().hashCode() * 31) + jsonName().hashCode();
+		}
+		
+		if (dbName() != null) {
+			return dbName().hashCode();
+		}
+		
+		if (jsonName() != null) {
+			return jsonName().hashCode();
 		}
 		
 		// TODO: check if it's ok if null key is not unique
@@ -93,7 +119,7 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public boolean equals(Object o) {
 		
-		if (o instanceof Property) {
+		if (o instanceof PropertyKey) {
 		
 			return o.hashCode() == hashCode();
 		}
@@ -124,5 +150,20 @@ public class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public boolean isWriteOnceProperty() {
 		return isWriteOnceProperty;
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch) {
+		
+		// return empty string on null value here to enable searching for empty values
+		String searchString = searchValue != null ? searchValue.toString() : "";
+		String search       = exactMatch ? Search.exactMatch(searchString) : searchString;
+		
+		return new TextualSearchAttribute(this, search, op);
+	}
+
+	@Override
+	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
+		searchableProperties.add(this);
 	}
 }

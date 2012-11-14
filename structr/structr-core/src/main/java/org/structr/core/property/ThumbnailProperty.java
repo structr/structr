@@ -50,7 +50,10 @@ public class ThumbnailProperty<T> extends Property<Image> {
 
 	}
 
-	//~--- methods --------------------------------------------------------
+	@Override
+	public String typeName() {
+		return ""; // read-only
+	}
 
 	@Override
 	public PropertyConverter<Image, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {

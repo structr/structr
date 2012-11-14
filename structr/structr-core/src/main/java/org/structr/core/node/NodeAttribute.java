@@ -18,7 +18,7 @@
  */
 package org.structr.core.node;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 
 /**
  * A parameterized node attribute to identify a node attribute
@@ -73,7 +73,7 @@ public class NodeAttribute {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append("NodeAttribute('");
-		buf.append(key.name());
+		buf.append(key.dbName());
 		buf.append("', '");
 		buf.append(value);
 		buf.append("')");

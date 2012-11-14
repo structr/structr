@@ -47,8 +47,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyKey;
+import org.structr.common.property.LongProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -122,11 +122,11 @@ public class AddCommand extends AbstractCommand {
 				PropertyKey<Long> newPageIdProperty      = null;
 				
 				if(originalPageId != null) {
-					originalPageIdProperty = new Property<Long>(originalPageId);
+					originalPageIdProperty = new LongProperty(originalPageId);
 				}
 				
 				if (newPageId != null) {
-					newPageIdProperty      = new Property<Long>(newPageId);
+					newPageIdProperty      = new LongProperty(newPageId);
 				}
 
 				if (rel != null) {

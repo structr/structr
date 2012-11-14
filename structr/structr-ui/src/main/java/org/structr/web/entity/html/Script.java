@@ -27,6 +27,8 @@ import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
 import org.structr.common.*;
+import org.structr.common.property.GenericProperty;
+import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
@@ -48,8 +50,8 @@ public class Script extends HtmlElement {
 	public static final Property<String> _type    = new HtmlProperty("type");
 	public static final Property<String> _charset = new HtmlProperty("charset");
 
-	public static final Property<String>         linkableId = new Property<String>("linkable_id");
-	public static final Property<List<Linkable>> linkable   = new Property<List<Linkable>>("linkable");
+	public static final Property<String>         linkableId = new StringProperty("linkable_id");
+	public static final Property<List<Linkable>> linkable   = new GenericProperty<List<Linkable>>("linkable");
 
 	public static final View uiView = new View(Script.class, PropertyView.Ui,
 		linkableId, linkable

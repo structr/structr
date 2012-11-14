@@ -12,6 +12,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.Property;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
@@ -20,7 +21,7 @@ import org.structr.core.validator.TypeUniquenessValidator;
 
 public class City extends AbstractNode {
 
-	public static final Property<List<Person>> persons = new Property<List<Person>>("persons");
+	public static final Property<List<Person>> persons = new GenericProperty<List<Person>>("persons");
 	
 	public static final View publicView = new View(Person.class, PropertyView.Public,
 		name, persons

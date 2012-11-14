@@ -18,6 +18,7 @@
  */
 package org.structr.common.property;
 
+import org.structr.core.property.PropertyKey;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -129,7 +130,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForName(entity.getClass(), key);
+					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entity.getClass(), key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -142,7 +143,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 							cce.printStackTrace();
 
-							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, "XXX"));
+							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
 						}
 
 					} else {
@@ -170,7 +171,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForName(entityType, key);
+					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entityType, key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -183,7 +184,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 							cce.printStackTrace();
 
-							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, "XXX"));
+							throw new FrameworkException(entityType.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
 						}
 
 					} else {
@@ -201,7 +202,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 		if (source != null) {
 
-			Object typeName = source.get(AbstractNode.type.name());
+			Object typeName = source.get(AbstractNode.type.jsonName());
 			if (typeName != null) {
 
 				Class<? extends GraphObject> type = EntityContext.getEntityClassForRawType(typeName.toString());
@@ -236,7 +237,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForName(entity, key);
+					PropertyKey propertyKey     = EntityContext.getPropertyKeyForJSONName(entity, key);
 					PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
 					if (converter != null) {
@@ -249,7 +250,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 							cce.printStackTrace();
 
-							throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, "XXX"));
+							throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
 						}
 
 					} else {
@@ -276,18 +277,18 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				try {
 					Object propertyValue = converter.revert(entry.getValue());
-					inputTypedProperties.put(propertyKey.name(), propertyValue);
+					inputTypedProperties.put(propertyKey.jsonName(), propertyValue);
 					
 				} catch(ClassCastException cce) {
 
 					cce.printStackTrace();
 					
-					throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, "XXX"));
+					throw new FrameworkException(entity.getSimpleName(), new TypeToken(propertyKey, propertyKey.typeName()));
 				}
 
 			} else {
 
-				inputTypedProperties.put(propertyKey.name(), entry.getValue());
+				inputTypedProperties.put(propertyKey.jsonName(), entry.getValue());
 			}
 		}
 		
@@ -311,7 +312,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null && value != null) {
 
-					map.put(new Property(key), value);
+					map.put(new GenericProperty(key), value);
 				}
 			}
 		}

@@ -24,7 +24,7 @@ package org.structr.web.entity;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 
-import org.structr.common.property.PropertyKey;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
@@ -43,8 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.property.LongProperty;
-import org.structr.common.property.Property;
+import org.structr.common.property.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,9 +58,9 @@ public class Component extends AbstractNode implements Element {
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	private static final Logger logger                          = Logger.getLogger(Component.class.getName());
 
-	public static final Property<String> componentId = new Property<String>("componentId");
-	public static final Property<String> pageId      = new Property<String>("pageId");
-	public static final Property<String> kind        = new Property<String>("kind");
+	public static final Property<String> componentId = new StringProperty("componentId");
+	public static final Property<String> pageId      = new StringProperty("pageId");
+	public static final Property<String> kind        = new StringProperty("kind");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Component.class, PropertyView.Ui,
 		type, name, kind, paths
@@ -232,12 +231,12 @@ public class Component extends AbstractNode implements Element {
 
 		// FIXME: use getPropertyKeyForName() of specific node type
 		for (String key : contentNodes.keySet()) {
-			augmentedPropertyKeys.add(new Property(key));
+			augmentedPropertyKeys.add(new GenericProperty(key));
 		}
 
 		for (String subType : subTypes) {
 
-			augmentedPropertyKeys.add(new Property(subType.toLowerCase().concat("s")));
+			augmentedPropertyKeys.add(new GenericProperty(subType.toLowerCase().concat("s")));
 
 		}
 
@@ -248,9 +247,9 @@ public class Component extends AbstractNode implements Element {
 	public <T> T getProperty(PropertyKey<T> key) {
 
 		// try local properties first
-		if (contentNodes.containsKey(key.name())) {
+		if (contentNodes.containsKey(key.dbName())) {
 
-			AbstractNode node = contentNodes.get(key.name());
+			AbstractNode node = contentNodes.get(key.dbName());
 
 			if ((node != null) && (node != this)) {
 
@@ -258,7 +257,7 @@ public class Component extends AbstractNode implements Element {
 
 			}
 
-		} else if (subTypes.contains(EntityContext.normalizeEntityName(key.name()))) {
+		} else if (subTypes.contains(EntityContext.normalizeEntityName(key.dbName()))) {
 
 			String componentId      = getProperty(AbstractNode.uuid);
 			List<Component> results = new LinkedList<Component>();
@@ -380,7 +379,7 @@ public class Component extends AbstractNode implements Element {
 
 //                      Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
 			PropertyKey<Long> pageIdProperty = new LongProperty(pageId);
-			PropertyKey wildcardProperty     = new Property("*");
+			PropertyKey wildcardProperty     = new LongProperty("*");
 			Object prop = null;
 			final String key;
 
@@ -520,9 +519,9 @@ public class Component extends AbstractNode implements Element {
 	@Override
 	public <T> void setProperty(PropertyKey<T> key, T value) throws FrameworkException {
 
-		if (contentNodes.containsKey(key.name())) {
+		if (contentNodes.containsKey(key.dbName())) {
 
-			AbstractNode node = contentNodes.get(key.name());
+			AbstractNode node = contentNodes.get(key.dbName());
 
 			if (node != null) {
 
