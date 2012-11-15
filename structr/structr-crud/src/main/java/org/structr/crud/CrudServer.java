@@ -18,14 +18,25 @@
  */
 
 
+
 package org.structr.crud;
+
+import org.eclipse.jetty.servlet.ServletHolder;
+
+import org.structr.common.PropertyView;
+import org.structr.core.entity.AbstractNode;
+import org.structr.rest.servlet.CsvServlet;
+import org.structr.server.DefaultResourceProvider;
+import org.structr.server.Structr;
+import org.structr.server.StructrServer;
+
+//~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashMap;
 import java.util.Map;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.structr.crud.servlet.StructrCrudServlet;
-import org.structr.server.Structr;
-import org.structr.server.StructrServer;
+import org.structr.server.DefaultAuthenticator;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  *
@@ -37,28 +48,26 @@ public class CrudServer implements StructrServer {
 
 		try {
 
-			// CRUD Servlet
-			StructrCrudServlet crudServlet = new StructrCrudServlet();
-			ServletHolder crudServletHolder = new ServletHolder(crudServlet);
-			Map<String, String> htmlInitParams = new HashMap<String, String>();
+			CsvServlet structrRestServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
+			ServletHolder csvServletHolder    = new ServletHolder(structrRestServlet);
+			Map<String, String> servletParams = new HashMap<String, String>();
 
-			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
-			crudServletHolder.setInitParameters(htmlInitParams);
-
-
+			servletParams.put("PropertyFormat", "FlatNameValue");
+			servletParams.put("Authenticator", DefaultAuthenticator.class.getName());
+			csvServletHolder.setInitParameters(servletParams);
+			csvServletHolder.setInitOrder(0);
+			
 			Structr.createServer(CrudServer.class, "structr CRUD", 8182)
-				
-				.addServlet("/structr/crud/*", crudServletHolder)
-			    
-				.addResourceHandler("/structr", "src/main/resources/", false, new String[] { "index.html"})
-			    
-				.enableRewriteFilter()
-				
-				.start(true);
+				.addServlet("/structr/csv/*", csvServletHolder)
+				.addResourceHandler("/structr", "src/main/resources/", false, new String[] { "index.html" })
+				.enableRewriteFilter().start(true);
 
-		} catch(Throwable t) {
+		} catch (Throwable t) {
 
 			t.printStackTrace();
+
 		}
+
 	}
+
 }
