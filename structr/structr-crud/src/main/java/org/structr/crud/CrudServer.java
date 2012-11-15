@@ -48,8 +48,9 @@ public class CrudServer implements StructrServer {
 
 		try {
 
-			CsvServlet structrRestServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
-			ServletHolder csvServletHolder    = new ServletHolder(structrRestServlet);
+			// CSV servlet
+			CsvServlet csvServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
+			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
 			Map<String, String> servletParams = new HashMap<String, String>();
 
 			servletParams.put("PropertyFormat", "FlatNameValue");
