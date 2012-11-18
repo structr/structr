@@ -1604,19 +1604,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Set a property in database backend without updating index
-	 *
-	 * Set property only if value has changed
-	 *
-	 * @param key
-	 * @param convertedValue
-	 */
-	@Override
-	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
-		setProperty(key, value, updateIndexDefault);
-	}
-
-	/**
 	 * Split String value and set as String[] property in database backend
 	 *
 	 * @param key
@@ -1648,6 +1635,19 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public Object getTemporaryProperty(final PropertyKey key) {
 		return cachedConvertedProperties.get(key);
 	}
+
+	/**
+	 * Set a property in database backend without updating index
+	 *
+	 * Set property only if value has changed
+	 *
+	 * @param key
+	 * @param convertedValue
+	 */
+	@Override
+	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
+		setProperty(key, value, updateIndexDefault);
+	}
 	
 	/**
 	 * Set a property in database backend
@@ -1673,7 +1673,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// no old value exists, set property
 		if ((oldValue == null) && (value != null)) {
 
-			setPropertyInternal(key, value);
+			setPropertyInternal(key, value, updateIndex);
 
 			return;
 
@@ -1682,12 +1682,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// old value exists and is NOT equal
 		if ((oldValue != null) && !oldValue.equals(value)) {
 
-			setPropertyInternal(key, value);
+			setPropertyInternal(key, value, updateIndex);
 		}
 
 	}
 
-	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
+	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value, final boolean updateIndex) throws FrameworkException {
 
 		Class type = this.getClass();
 		

@@ -1571,6 +1571,108 @@ public class EntityContext {
 		transactionKeyMap.set(transactionKey);
 	}
 	
+	private static ArrayList<Node> sortNodes(final Iterable<Node> it) {
+		
+		ArrayList<Node> list = new ArrayList<Node>();
+		
+		for (Node p : it) {
+			
+			list.add(p);
+			
+		}
+		
+		
+		Collections.sort(list, new Comparator<Node>() {
+
+			@Override
+			public int compare(Node o1, Node o2) {
+				Long id1 = o1.getId();
+				Long id2 = o2.getId();
+				return id1.compareTo(id2);
+			}
+		});
+		
+		return list;
+		
+	}
+	
+	private static ArrayList<Relationship> sortRelationships(final Iterable<Relationship> it) {
+		
+		ArrayList<Relationship> list = new ArrayList<Relationship>();
+		
+		for (Relationship p : it) {
+			
+			list.add(p);
+			
+		}
+		
+		
+		Collections.sort(list, new Comparator<Relationship>() {
+
+			@Override
+			public int compare(Relationship o1, Relationship o2) {
+				Long id1 = o1.getId();
+				Long id2 = o2.getId();
+				return id1.compareTo(id2);
+			}
+		});
+		
+		return list;
+		
+	}
+	
+	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> entityType, Object entity) {
+		
+		Map<Field, T> fields   = new LinkedHashMap<Field, T>();
+		Set<Class<?>> allTypes = getAllTypes(entity.getClass());
+		
+		for (Class<?> type : allTypes) {
+			
+			for (Field field : type.getDeclaredFields()) {
+
+				if (entityType.isAssignableFrom(field.getType())) {
+
+					try {
+						fields.put(field, (T)field.get(entity));
+
+					} catch(Throwable t) { }
+				}
+			}
+		}
+		
+		return fields;
+	}
+	
+	private static Set<Class<?>> getAllTypes(Class<?> type) {
+
+		Set<Class<?>> types = new LinkedHashSet<Class<?>>();
+		Class localType     = type;
+			
+		do {
+			
+			collectAllInterfaces(localType, types);
+			types.add(localType);
+			
+			localType = localType.getSuperclass();
+
+		} while (!localType.equals(Object.class));
+		
+		return types;
+	}
+	
+	private static void collectAllInterfaces(Class<?> type, Set<Class<?>> interfaces) {
+
+		if (interfaces.contains(type)) {
+			return;
+		}
+		
+		for (Class iface : type.getInterfaces()) {
+			
+			collectAllInterfaces(iface, interfaces);
+			interfaces.add(iface);
+		}
+	}
+	
 	//~--- inner classes --------------------------------------------------
 
 	// <editor-fold defaultstate="collapsed" desc="EntityContextModificationListener">
@@ -1731,8 +1833,6 @@ public class EntityContext {
 							hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 						}
 						
-// ****************************************************** TEST
-						
 						try {
 							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
 							RelationshipType relationshipType = entity.getRelType();
@@ -1771,7 +1871,6 @@ public class EntityContext {
 
 						changeSet.delete(entity);
 
-// ****************************************************** TEST
 						try {
 							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
 							RelationshipType relationshipType = entity.getRelType();
@@ -2010,113 +2109,4 @@ public class EntityContext {
 		}
 	}
 	// </editor-fold>
-	
-	private static ArrayList<Node> sortNodes(final Iterable<Node> it) {
-		
-		ArrayList<Node> list = new ArrayList<Node>();
-		
-		for (Node p : it) {
-			
-			list.add(p);
-			
-		}
-		
-		
-		Collections.sort(list, new Comparator<Node>() {
-
-			@Override
-			public int compare(Node o1, Node o2) {
-				Long id1 = o1.getId();
-				Long id2 = o2.getId();
-				return id1.compareTo(id2);
-			}
-		});
-		
-		return list;
-		
-	}
-	
-	private static ArrayList<Relationship> sortRelationships(final Iterable<Relationship> it) {
-		
-		ArrayList<Relationship> list = new ArrayList<Relationship>();
-		
-		for (Relationship p : it) {
-			
-			list.add(p);
-			
-		}
-		
-		
-		Collections.sort(list, new Comparator<Relationship>() {
-
-			@Override
-			public int compare(Relationship o1, Relationship o2) {
-				Long id1 = o1.getId();
-				Long id2 = o2.getId();
-				return id1.compareTo(id2);
-			}
-		});
-		
-		return list;
-		
-	}
-	
-	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> entityType, Object entity) {
-		
-		Map<Field, T> fields   = new LinkedHashMap<Field, T>();
-		Set<Class<?>> allTypes = getAllTypes(entity.getClass());
-		
-		for (Class<?> type : allTypes) {
-			
-			for (Field field : type.getDeclaredFields()) {
-
-				if (entityType.isAssignableFrom(field.getType())) {
-
-					try {
-						fields.put(field, (T)field.get(entity));
-
-					} catch(Throwable t) { }
-				}
-			}
-		}
-		
-		return fields;
-	}
-	
-	private static Set<Class<?>> getAllTypes(Class<?> type) {
-
-		Set<Class<?>> types = new LinkedHashSet<Class<?>>();
-		Class localType     = type;
-			
-		do {
-			
-			collectAllInterfaces(localType, types);
-			types.add(localType);
-			
-			localType = localType.getSuperclass();
-
-		} while (!localType.equals(Object.class));
-		
-		return types;
-	}
-	
-	private static void collectAllInterfaces(Class<?> type, Set<Class<?>> interfaces) {
-
-		if (interfaces.contains(type)) {
-			return;
-		}
-		
-		for (Class iface : type.getInterfaces()) {
-			
-			collectAllInterfaces(iface, interfaces);
-			interfaces.add(iface);
-		}
-	}
-	
-	private static class ThreadLocalChangeSet extends ThreadLocal<TransactionChangeSet> {
-		@Override
-		protected TransactionChangeSet initialValue() {
-			return new TransactionChangeSet();
-		}
-	}
 }
