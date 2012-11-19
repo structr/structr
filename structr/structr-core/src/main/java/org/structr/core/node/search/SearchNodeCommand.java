@@ -73,6 +73,9 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 	public static String IMPROBABLE_SEARCH_VALUE = "×¦÷þ·";
 	private static final Logger logger           = Logger.getLogger(SearchNodeCommand.class.getName());
+	
+	private static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
+	private static final boolean PUBLIC_ONLY		= false;
 
 	//~--- methods --------------------------------------------------------
 
@@ -83,12 +86,12 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 	public Result<T> execute(final SearchAttribute... attributes) throws FrameworkException {
 		
-		return execute(false, false, Arrays.asList(attributes));
+		return execute(INCLUDE_DELETED_AND_HIDDEN, PUBLIC_ONLY, Arrays.asList(attributes));
 	}
 
 	public Result<T> execute(final List<SearchAttribute> searchAttrs) throws FrameworkException {
 		
-		return execute(false, false, searchAttrs);
+		return execute(INCLUDE_DELETED_AND_HIDDEN, PUBLIC_ONLY, searchAttrs);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final List<SearchAttribute> searchAttrs) throws FrameworkException {
