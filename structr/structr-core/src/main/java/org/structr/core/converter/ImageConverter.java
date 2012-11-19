@@ -100,7 +100,7 @@ public class ImageConverter extends PropertyConverter {
 			if (img != null) {
 				
 				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
-				Services.command(securityContext, IndexNodeCommand.class).execute(img, AbstractNode.uuid);
+				Services.command(securityContext, IndexNodeCommand.class).update(img, AbstractNode.uuid);
 				
 				currentObject.setProperty(keyAndClass.getPropertyKey(), img.getUuid());
 			}

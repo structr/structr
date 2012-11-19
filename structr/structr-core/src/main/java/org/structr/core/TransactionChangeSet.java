@@ -164,7 +164,7 @@ public class TransactionChangeSet {
 
 	public void modify(AbstractNode modified) {
 		
-		if (!deletedNodes.contains(modified)) {
+		if (!isNewOrDeleted(modified)) {
 			modifiedNodes.add(modified);
 			propagationQueue.add(modified);
 		}
@@ -192,7 +192,7 @@ public class TransactionChangeSet {
 
 	public void modify(AbstractRelationship modified) {
 		
-		if (!deletedRels.contains(modified)) {
+		if (!isNewOrDeleted(modified)) {
 			modifiedRels.add(modified);
 		}
 	}
@@ -231,6 +231,7 @@ public class TransactionChangeSet {
 			}
 			
 		} else {
+			
 			modify(node);
 			
 		}
@@ -238,7 +239,7 @@ public class TransactionChangeSet {
 	
 	public void modifyOwner(AbstractNode ownerModified) {
 		
-		if (!deletedNodes.contains(ownerModified)) {
+		if (!isNewOrDeleted(ownerModified)) {
 			
 			ownerModifiedNodes.add(ownerModified);
 			propagationQueue.add(ownerModified);
@@ -247,7 +248,7 @@ public class TransactionChangeSet {
 	
 	public void modifySecurity(AbstractNode securityModified) {
 		
-		if (!deletedNodes.contains(securityModified)) {
+		if (!isNewOrDeleted(securityModified)) {
 			
 			securityModifiedNodes.add(securityModified);
 			propagationQueue.add(securityModified);
@@ -256,7 +257,7 @@ public class TransactionChangeSet {
 	
 	public void modifyLocation(AbstractNode locationModified) {
 		
-		if (!deletedNodes.contains(locationModified)) {
+		if (!isNewOrDeleted(locationModified)) {
 			
 			locationModifiedNodes.add(locationModified);
 			propagationQueue.add(locationModified);

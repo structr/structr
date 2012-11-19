@@ -32,15 +32,12 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,6 +45,7 @@ import org.structr.common.Permission;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -91,13 +89,12 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 		if (graphDb != null) {
 
 			CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-			String genericNodeType              = EntityContext.getGenericFactory().createGenericNode().getClass().getSimpleName();
 			Date now                            = new Date();
 
 			// Determine node type
 			PropertyMap properties = new PropertyMap(attributes);
 			Object typeObject      = properties.get(AbstractNode.type);
-			String nodeType        = (typeObject != null) ? typeObject.toString() : genericNodeType;
+			String nodeType        = (typeObject != null) ? typeObject.toString() : EntityContext.getGenericFactory().createGenericNode().getClass().getSimpleName();
 
 			NodeFactory<T> nodeFactory = new NodeFactory<T>(SecurityContext.getSuperUserInstance());
 
@@ -108,32 +105,30 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 				
 				if ((user != null) && user instanceof AbstractNode) {
 
+					// Create new relationship to user and grant permissions to user or group
 					AbstractNode owner = (AbstractNode)user;
-					node.setOwner(owner);
-	//
-					AbstractRelationship securityRel = createRel.execute(owner, node, RelType.SECURITY, true);    // avoid duplicates
-
+					createRel.execute(owner, node, RelType.OWNS, false);
+					
+					AbstractRelationship securityRel = createRel.execute(owner, node, RelType.SECURITY, false);
 					securityRel.setAllowed(Permission.values());
-					logger.log(Level.FINEST, "All permissions given to user {0}", user.getProperty(AbstractNode.name));
+
 					node.unlockReadOnlyPropertiesOnce();
 					node.setProperty(AbstractNode.createdBy, user.getProperty(AbstractNode.uuid), false);
-
 				}
-
+				
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.createdDate, now, false);
+
+				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.lastModifiedDate, now, false);
 				logger.log(Level.FINE, "Node {0} created", node.getId());
 
-				// set type first!!
-				node.setProperty(AbstractNode.type, nodeType);
 				properties.remove(AbstractNode.type);
 
 				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
 					Object value = attr.getValue();
 					
-					// FIXME: synthetic Property generation
 					node.setProperty(attr.getKey(), value);
 
 				}

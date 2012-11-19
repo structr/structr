@@ -44,8 +44,6 @@ import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.node.*;
-import org.structr.core.node.IndexNodeCommand;
-import org.structr.core.node.IndexRelationshipCommand;
 import org.structr.core.node.NodeFactory;
 import org.structr.core.node.RelationshipFactory;
 import org.structr.core.notion.Notion;
@@ -1357,37 +1355,7 @@ public class EntityContext {
 		return conversionParameterMap;
 	}
 
-//	private static Set<PropertyKey> getReadOnlyPropertySetForType(Class type) {
-//
-//		Set<PropertyKey> readOnlyPropertySet = globalReadOnlyPropertyMap.get(type);
-//
-//		if (readOnlyPropertySet == null) {
-//
-//			readOnlyPropertySet = new LinkedHashSet<PropertyKey>();
-//
-//			globalReadOnlyPropertyMap.put(type, readOnlyPropertySet);
-//
-//		}
-//
-//		return readOnlyPropertySet;
-//	}
-
-//	private static Set<PropertyKey> getWriteOncePropertySetForType(Class type) {
-//
-//		Set<PropertyKey> writeOncePropertySet = globalWriteOncePropertyMap.get(type);
-//
-//		if (writeOncePropertySet == null) {
-//
-//			writeOncePropertySet = new LinkedHashSet<PropertyKey>();
-//
-//			globalWriteOncePropertyMap.put(type, writeOncePropertySet);
-//
-//		}
-//
-//		return writeOncePropertySet;
-//	}
-
-	private static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(Class type) {
+	public static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(Class type) {
 
 		Map<String, Set<PropertyKey>> searchablePropertyMap = globalSearchablePropertyMap.get(type);
 
@@ -1699,9 +1667,9 @@ public class EntityContext {
 
 			}
 
-			SecurityContext securityContext                   = securityContextMap.get();
-			SecurityContext superUserContext                  = SecurityContext.getSuperUserInstance();
-			IndexNodeCommand indexNodeCommand                 = Services.command(superUserContext, IndexNodeCommand.class);
+			SecurityContext securityContext                      = securityContextMap.get();
+			SecurityContext superUserContext                     = SecurityContext.getSuperUserInstance();
+			NewIndexNodeCommand indexNodeCommand                 = Services.command(superUserContext, NewIndexNodeCommand.class);
 			IndexRelationshipCommand indexRelationshipCommand = Services.command(superUserContext, IndexRelationshipCommand.class);
 
 			try {
@@ -1837,13 +1805,13 @@ public class EntityContext {
 							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
 							RelationshipType relationshipType = entity.getRelType();
 							
-							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
+							if (startNode != null) {
 								
 								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 							}
 							
 							AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
-							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
+							if (endNode != null) {
 								
 								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
 							}
@@ -1875,13 +1843,13 @@ public class EntityContext {
 							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
 							RelationshipType relationshipType = entity.getRelType();
 
-							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
+							if (startNode != null) {
 
 								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 							}
 							
 							AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
-							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
+							if (endNode != null) {
 								
 								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
 							}
@@ -1962,8 +1930,6 @@ public class EntityContext {
 						// after successful validation, add node to index to make uniqueness constraints work
 						
 						if (!changeSet.isNewOrDeleted(nodeEntity)) {
-							
-							indexNodeCommand.execute(nodeEntity, key);
 							changeSet.modify(nodeEntity);
 						}
 
@@ -2012,11 +1978,6 @@ public class EntityContext {
 							hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, relEntity, key, entry.previouslyCommitedValue(), value);
 						}
 						
-						// after successful validation, add relationship to index to make uniqueness constraints work
-						//if (!createdRels.contains(entity) && !deletedRels.contains(entity)) {
-							indexRelationshipCommand.execute(relEntity, key);
-						//}
-						
 						changeSet.modify(relEntity);
 					}
 				}
@@ -2034,7 +1995,7 @@ public class EntityContext {
 							hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, node);
 						}
 						
-						indexNodeCommand.execute(node);
+						indexNodeCommand.updateNode(node);
 					}
 				}
 				
@@ -2050,7 +2011,8 @@ public class EntityContext {
 							hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
 						}
 						
-						indexRelationshipCommand.execute(rel);
+						indexRelationshipCommand.execute(relEntity);
+						//indexRelationshipCommand.updateRelationship(relEntity);
 						
 					}
 					
@@ -2058,7 +2020,7 @@ public class EntityContext {
 
 				for (AbstractNode node : changeSet.getCreatedNodes()) {
 
-					indexNodeCommand.execute(node);
+					indexNodeCommand.addNode(node);
 
 				}
 

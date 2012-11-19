@@ -33,6 +33,7 @@ import java.util.logging.Level;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import javax.sound.midi.SysexMessage;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;

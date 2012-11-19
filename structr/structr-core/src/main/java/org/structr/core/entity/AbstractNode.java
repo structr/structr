@@ -97,7 +97,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final Property<String>        ownerId                     = new StringProperty("ownerId");
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, categories, ownerId
+		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, categories
 	);
 	
 	//~--- static initializers --------------------------------------------
