@@ -516,8 +516,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			response.getWriter().flush();
-			response.getWriter().close();
+
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in POST", jsex);
@@ -553,6 +552,17 @@ public class JsonRestServlet extends HttpServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+			
+		} finally {
+
+			try {
+				response.getWriter().flush();
+				response.getWriter().close();
+				
+				response.flushBuffer();
+
+			} catch (Throwable t) {
+			}
 		}
 	}
 
