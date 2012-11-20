@@ -20,7 +20,7 @@
 package org.structr.common;
 
 import java.util.UUID;
-import org.apache.commons.lang.StringUtils;
+import java.util.regex.Pattern;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -31,14 +31,21 @@ import org.structr.core.entity.AbstractNode;
  */
 public class UuidCreationTransformation extends GraphObjectTransformation {
 
+	private static final ThreadLocalPattern pattern = new ThreadLocalPattern();
+	
 	@Override
 	public void apply(SecurityContext securityContext, GraphObject obj) throws FrameworkException {
 
 		// create uuid if not set
-		String uuid = (String)obj.getProperty(AbstractNode.uuid);
-		if(StringUtils.isBlank(uuid)) {
+		String uuid = obj.getProperty(AbstractNode.uuid);
+		if(uuid == null || (uuid != null && uuid.isEmpty())) {
+			
 			synchronized(obj) {
-				obj.setProperty(AbstractNode.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
+				
+				String nextUuid = UUID.randomUUID().toString();
+				nextUuid = pattern.get().matcher(nextUuid).replaceAll("");
+				
+				obj.setProperty(AbstractNode.uuid, nextUuid);
 			}
 		}
 	}
@@ -48,5 +55,13 @@ public class UuidCreationTransformation extends GraphObjectTransformation {
 		
 		// first
 		return 0;
+	}
+	
+	private static class ThreadLocalPattern extends ThreadLocal<Pattern> {
+		
+		@Override
+		protected Pattern initialValue() {
+			return Pattern.compile("[\\-]+");
+		}
 	}
 }

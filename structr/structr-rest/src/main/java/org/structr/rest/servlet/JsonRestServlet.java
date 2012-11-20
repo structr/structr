@@ -501,6 +501,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				// commit response
 				result.commitResponse(gson, response);
+				
 			} else {
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);

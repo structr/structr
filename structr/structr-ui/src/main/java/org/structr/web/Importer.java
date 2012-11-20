@@ -631,7 +631,7 @@ public class Importer {
 				createRel.execute(parent, folder, RelType.CONTAINS);
 			}
 
-			indexNode.execute(folder);
+			indexNode.update(folder);
 
 		}
 
@@ -648,7 +648,7 @@ public class Importer {
 					new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 //		fileNode.getChecksum();
-		indexNode.execute(fileNode);
+		indexNode.add(fileNode);
 
 		return fileNode;
 
@@ -663,7 +663,7 @@ public class Importer {
 					  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 //		imageNode.getChecksum();
-		indexNode.execute(imageNode);
+		indexNode.add(imageNode);
 
 		return imageNode;
 

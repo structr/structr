@@ -232,7 +232,7 @@ public class TypeResource extends SortableResource {
 
 			result.addHeader("Location", buildLocationHeader(newNode));
 		}
-
+		
 		// finally: return 201 Created
 		return result;
 	}

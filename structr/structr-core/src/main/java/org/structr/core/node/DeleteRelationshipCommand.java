@@ -26,7 +26,6 @@ import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractRelationship;
@@ -35,6 +34,7 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -113,8 +113,9 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			}
 
-			final Relationship relToDelete      = rel.getRelationship();
-			final AbstractRelationship finalRel = rel;
+			final RemoveRelationshipFromIndex removeRel = Services.command(SecurityContext.getSuperUserInstance(), RemoveRelationshipFromIndex.class);
+			final Relationship relToDelete              = rel.getRelationship();
+			final AbstractRelationship finalRel         = rel;
 
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -124,7 +125,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 					try {
 
 						// remove object from index
-						Services.command(securityContext, RemoveRelationshipFromIndex.class).execute(finalRel);
+						removeRel.execute(finalRel);
 
 						// delete node in database
 						relToDelete.delete();

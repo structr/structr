@@ -31,6 +31,7 @@ import org.structr.core.entity.AbstractRelationship;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 
@@ -69,6 +70,24 @@ public class SetOwnerCommand extends NodeServiceCommand {
 
 	//~--- set methods ----------------------------------------------------
 
+	private void setOwner(final List<AbstractNode> nodeList, final AbstractNode user) throws FrameworkException {
+
+		// Create outer transaction to bundle inner transactions
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				for (AbstractNode node : nodeList) {
+					setOwner(node, user);
+				}
+
+				return null;
+			}
+
+		});
+	}
+
 	private void setOwner(final AbstractNode node, final AbstractNode user) throws FrameworkException {
 
 		// Create outer transaction to bundle inner transactions
@@ -84,28 +103,10 @@ public class SetOwnerCommand extends NodeServiceCommand {
 
 					delRel.execute(s);
 				}
-
+				
 				// Create new relationship to user and grant permissions to user or group
 				Services.command(securityContext, CreateRelationshipCommand.class).execute(user, node, RelType.OWNS);
 				
-				return null;
-			}
-
-		});
-	}
-
-	private void setOwner(final List<AbstractNode> nodeList, final AbstractNode user) throws FrameworkException {
-
-		// Create outer transaction to bundle inner transactions
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				for (AbstractNode node : nodeList) {
-					setOwner(node, user);
-				}
-
 				return null;
 			}
 
