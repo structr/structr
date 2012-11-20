@@ -177,6 +177,9 @@ public class Services {
 			}
 
 		} catch (Throwable t) {
+			
+			t.printStackTrace();
+			
 			logger.log(Level.SEVERE, "Exception while creating command " + commandType.getName(), t);
 		}
 
