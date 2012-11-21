@@ -1667,9 +1667,9 @@ public class EntityContext {
 
 			}
 
-			SecurityContext securityContext                      = securityContextMap.get();
-			SecurityContext superUserContext                     = SecurityContext.getSuperUserInstance();
-			NewIndexNodeCommand indexNodeCommand                 = Services.command(superUserContext, NewIndexNodeCommand.class);
+			SecurityContext securityContext                   = securityContextMap.get();
+			SecurityContext superUserContext                  = SecurityContext.getSuperUserInstance();
+			NewIndexNodeCommand indexNodeCommand              = Services.command(superUserContext, NewIndexNodeCommand.class);
 			IndexRelationshipCommand indexRelationshipCommand = Services.command(superUserContext, IndexRelationshipCommand.class);
 
 			try {
