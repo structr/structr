@@ -428,6 +428,8 @@ public class TransactionCommand extends NodeServiceCommand {
 		// after transaction callbacks
 		afterCreation(securityContext, changeSet.getCreatedNodes());
 		afterCreation(securityContext, changeSet.getCreatedRelationships());
+		
+		changeSet.clear();
 	}
 	
 	private void afterCreation(SecurityContext securityContext, Set<? extends GraphObject> data) {

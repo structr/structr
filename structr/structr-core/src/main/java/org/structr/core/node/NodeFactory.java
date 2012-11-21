@@ -119,9 +119,9 @@ public class NodeFactory<T extends AbstractNode> {
 	public T createNodeWithType(final Node node, final String nodeType) throws FrameworkException {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		T newNode = null; // (T)securityContext.lookup(node);
+		T newNode = (T)securityContext.lookup(node);
 		
-//		if (newNode == null) {
+		if (newNode == null) {
 
 			Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(nodeType);
 			if (nodeClass != null) {
@@ -160,8 +160,8 @@ public class NodeFactory<T extends AbstractNode> {
 			newNode.setType(nodeType);
 			
 			// cache node for this request
-//			securityContext.store(newNode);
-//		}
+			securityContext.store(newNode);
+		}
 		
 		// check access
 		if (securityContext.isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {

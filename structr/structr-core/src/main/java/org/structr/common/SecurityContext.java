@@ -62,7 +62,7 @@ public class SecurityContext {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Node, AbstractNode> cache = new ConcurrentHashMap<Node, AbstractNode>();
+	private Map<Long, AbstractNode> cache = new ConcurrentHashMap<Long, AbstractNode>();
 	private AccessMode accessMode         = AccessMode.Frontend;
 	private Map<String, Object> attrs     = null;
 	private Authenticator authenticator   = null;
@@ -116,7 +116,7 @@ public class SecurityContext {
 	}
 	
 	public AbstractNode lookup(Node node) {
-		return cache.get(node);
+		return cache.get(node.getId());
 	}
 	
 	public void store(AbstractNode node) {
@@ -124,7 +124,7 @@ public class SecurityContext {
 		Node dbNode = node.getNode();
 		if (dbNode != null) {
 			
-			cache.put(dbNode, node);
+			cache.put(dbNode.getId(), node);
 		}
 	}
 	
@@ -667,6 +667,15 @@ public class SecurityContext {
 
 			return true;
 
+		}
+	
+		@Override
+		public AbstractNode lookup(Node node) {
+			return null;
+		}
+		
+		@Override
+		public void store(AbstractNode node) {
 		}
 
 	}
