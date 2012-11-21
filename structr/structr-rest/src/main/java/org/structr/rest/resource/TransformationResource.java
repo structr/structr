@@ -28,7 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.ViewTransformation;
-import org.structr.core.node.NodeFactory;
+import org.structr.core.graph.NodeFactory;
 
 /**
  *

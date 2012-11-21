@@ -37,7 +37,7 @@ import org.structr.common.property.Property;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 

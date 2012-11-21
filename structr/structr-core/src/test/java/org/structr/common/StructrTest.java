@@ -35,15 +35,15 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.DeleteNodeCommand;
-import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.GraphDatabaseCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
-import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.core.node.search.SearchRelationshipCommand;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteNodeCommand;
+import org.structr.core.graph.FindNodeCommand;
+import org.structr.core.graph.GraphDatabaseCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SearchRelationshipCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 

@@ -21,12 +21,15 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.graph.BulkCopyRelationshipPropertyCommand;
+import org.structr.core.graph.BulkSetRelationshipPropertiesCommand;
+import org.structr.core.graph.BulkFixNodePropertiesCommand;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.agent.RebuildIndexTask;
-import org.structr.core.node.BulkSetNodePropertiesCommand;
-import org.structr.core.node.ClearDatabase;
+import org.structr.core.graph.BulkSetNodePropertiesCommand;
+import org.structr.core.graph.ClearDatabase;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 
@@ -39,7 +42,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Command;
 import org.structr.core.agent.Task;
-import org.structr.core.node.*;
 
 //~--- classes ----------------------------------------------------------------
 

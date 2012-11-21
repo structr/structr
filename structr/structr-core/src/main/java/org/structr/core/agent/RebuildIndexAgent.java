@@ -21,13 +21,19 @@
 
 package org.structr.core.agent;
 
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.IndexNodeCommand;
+import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.IndexRelationshipCommand;
+import org.structr.core.graph.GraphDatabaseCommand;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.TransactionCommand;
 import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.node.*;
 
 //~--- JDK imports ------------------------------------------------------------
 

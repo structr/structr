@@ -26,7 +26,7 @@ import org.structr.common.property.PropertyMap;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.TestImage;
-import org.structr.core.node.StructrTransaction;
+import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 

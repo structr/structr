@@ -29,7 +29,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
-import org.structr.core.node.NodeService;
+import org.structr.core.graph.NodeService;
 
 //~--- JDK imports ------------------------------------------------------------
 

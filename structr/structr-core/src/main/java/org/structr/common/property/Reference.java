@@ -24,8 +24,8 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchOperator;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchOperator;
 
 /**
  * 

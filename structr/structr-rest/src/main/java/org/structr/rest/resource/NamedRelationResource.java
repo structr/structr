@@ -43,11 +43,11 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchRelationshipCommand;
-import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchRelationshipCommand;
+import org.structr.core.graph.search.TextualSearchAttribute;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 

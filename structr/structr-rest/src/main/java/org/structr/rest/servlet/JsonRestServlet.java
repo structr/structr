@@ -69,7 +69,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.node.NodeFactory;
+import org.structr.core.graph.NodeFactory;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.*;
 

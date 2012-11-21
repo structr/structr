@@ -21,6 +21,9 @@
 
 package org.structr.core;
 
+import org.structr.core.graph.NewIndexNodeCommand;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.IndexRelationshipCommand;
 import java.lang.reflect.Field;
 import org.structr.core.converter.PropertyConverter;
 import org.apache.commons.lang.StringUtils;
@@ -43,9 +46,8 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.node.*;
-import org.structr.core.node.NodeFactory;
-import org.structr.core.node.RelationshipFactory;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
@@ -61,8 +63,8 @@ import org.structr.common.*;
 import org.structr.common.property.GenericProperty;
 import org.structr.common.property.PropertyMap;
 import org.structr.core.module.ModuleService;
-import org.structr.core.node.NodeService.NodeIndex;
-import org.structr.core.node.NodeService.RelationshipIndex;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.NodeService.RelationshipIndex;
 
 //~--- classes ----------------------------------------------------------------
 

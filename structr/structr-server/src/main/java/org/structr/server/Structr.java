@@ -60,7 +60,7 @@ import org.structr.core.cron.CronService;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.log.LogService;
 import org.structr.core.module.ModuleService;
-import org.structr.core.node.NodeService;
+import org.structr.core.graph.NodeService;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;

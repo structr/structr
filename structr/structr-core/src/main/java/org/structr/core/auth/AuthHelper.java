@@ -31,9 +31,9 @@ import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 

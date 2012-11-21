@@ -27,7 +27,7 @@ import org.structr.common.property.ISO8601DateProperty;
 import org.structr.common.property.IntProperty;
 import org.structr.common.property.LongProperty;
 import org.structr.core.EntityContext;
-import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.core.graph.NodeService.NodeIndex;
 
 /**
  * A simple entity for the most basic tests.

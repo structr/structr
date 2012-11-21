@@ -28,7 +28,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.node.FindNodeCommand;
+import org.structr.core.graph.FindNodeCommand;
 import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- JDK imports ------------------------------------------------------------

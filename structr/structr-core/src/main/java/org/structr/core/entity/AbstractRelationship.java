@@ -21,6 +21,12 @@
 
 package org.structr.core.entity;
 
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.GetNodeByIdCommand;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyMap;
 import org.apache.commons.lang.ArrayUtils;
@@ -44,8 +50,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
-import org.structr.core.node.*;
-import org.structr.core.node.NodeService.RelationshipIndex;
+import org.structr.core.graph.NodeService.RelationshipIndex;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 import org.structr.core.validator.SimpleRegexValidator;

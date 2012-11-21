@@ -35,11 +35,11 @@ import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.DeleteNodeCommand;
-import org.structr.core.node.DeleteRelationshipCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteNodeCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 

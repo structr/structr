@@ -26,8 +26,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.GraphDatabaseCommand;
-import org.structr.core.node.NodeFactory;
+import org.structr.core.graph.GraphDatabaseCommand;
+import org.structr.core.graph.NodeFactory;
 
 /**
  * Converts between nodeId and node

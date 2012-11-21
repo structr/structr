@@ -19,20 +19,21 @@
 
 package org.structr.rest.resource;
 
+import org.structr.core.graph.search.SearchOperator;
+import org.structr.core.graph.search.FilterSearchAttribute;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
-import org.structr.core.node.search.*;
-import org.structr.core.node.search.DistanceSearchAttribute;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.DistanceSearchAttribute;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
