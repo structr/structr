@@ -33,8 +33,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.module.GetEntitiesCommand;
-import org.structr.core.module.GetModuleServiceCommand;
 import org.structr.core.module.ModuleService;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -48,7 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -101,15 +98,14 @@ public abstract class Search {
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 		// attrs.add(Search.orExactType(searchString));
-		SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		Map<String, Class> entities      = Services.command(superUserContext, GetEntitiesCommand.class).execute();
+		ModuleService moduleService      = Services.getService(ModuleService.class);
+		Map<String, Class> entities      = moduleService.getCachedNodeEntities();
 		Class parentClass                = entities.get(searchString);
 
 		if (parentClass == null) {
 
 			// no entity class for the given type found,
 			// examine interface types and subclasses
-			ModuleService moduleService    = (ModuleService) Services.command(superUserContext, GetModuleServiceCommand.class).execute();
 			Set<Class> classesForInterface = moduleService.getClassesForInterface(EntityContext.normalizeEntityName(searchString));
 
 			if (classesForInterface != null) {

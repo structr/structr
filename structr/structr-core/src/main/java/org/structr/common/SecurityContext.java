@@ -35,6 +35,7 @@ import org.structr.core.entity.SuperUser;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,6 +43,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.neo4j.graphdb.Node;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,12 +62,13 @@ public class SecurityContext {
 
 	//~--- fields ---------------------------------------------------------
 
-	private AccessMode accessMode        = AccessMode.Frontend;
-	private Map<String, Object> attrs    = null;
-	private Authenticator authenticator  = null;
-	private Principal cachedUser         = null;
-	private HttpServletRequest request   = null;
-	private HttpServletResponse response = null;
+	private Map<Node, AbstractNode> cache = new ConcurrentHashMap<Node, AbstractNode>();
+	private AccessMode accessMode         = AccessMode.Frontend;
+	private Map<String, Object> attrs     = null;
+	private Authenticator authenticator   = null;
+	private Principal cachedUser          = null;
+	private HttpServletRequest request    = null;
+	private HttpServletResponse response  = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -76,7 +79,6 @@ public class SecurityContext {
 
 		this.cachedUser = user;
 		this.accessMode = accessMode;
-
 	}
 
 	private SecurityContext(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
@@ -96,11 +98,36 @@ public class SecurityContext {
 			logger.log(Level.SEVERE, "Could not instantiate security context!");
 
 		}
+			
+//		logger.log(Level.INFO, "######################################## Creating new security context WITH request and response: {0}", this.hashCode());
+		
+//		Thread.dumpStack();
 
 	}
 
 	//~--- methods --------------------------------------------------------
 
+	/**
+	 * Call this method after the request this context was
+	 * created for is finished and the resources can be freed.
+	 */
+	public void cleanUp() {
+		cache.clear();
+	}
+	
+	public AbstractNode lookup(Node node) {
+		return cache.get(node);
+	}
+	
+	public void store(AbstractNode node) {
+		
+		Node dbNode = node.getNode();
+		if (dbNode != null) {
+			
+			cache.put(dbNode, node);
+		}
+	}
+	
 	public void initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
 		this.authenticator.initializeAndExamineRequest(this, request, response);
@@ -175,7 +202,7 @@ public class SecurityContext {
 
 	}
 
-	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) throws FrameworkException {
+	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
 
 		return new SecurityContext(config, request, response, accessMode);
 
@@ -596,7 +623,6 @@ public class SecurityContext {
 		public SuperUserSecurityContext() {
 
 			super(null, null, null, null);
-
 		}
 
 		//~--- get methods --------------------------------------------

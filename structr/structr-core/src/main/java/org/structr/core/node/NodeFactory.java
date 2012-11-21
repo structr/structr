@@ -30,14 +30,12 @@ import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
-import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.module.GetEntityClassCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -48,6 +46,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.EntityContext;
+import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,8 +66,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 	//~--- fields ---------------------------------------------------------
 
-	private ThreadLocalCommand<GetEntityClassCommand> getEntityClassCommand = new ThreadLocalCommand(GetEntityClassCommand.class);
-	private Map<Class, Constructor<T>> constructors                         = new LinkedHashMap<Class, Constructor<T>>();
+	private Map<Class, Constructor<T>> constructors = new LinkedHashMap<Class, Constructor<T>>();
 
 	// encapsulates all criteria for node creation
 	private FactoryProfile factoryProfile;
@@ -120,52 +118,57 @@ public class NodeFactory<T extends AbstractNode> {
 
 	public T createNodeWithType(final Node node, final String nodeType) throws FrameworkException {
 
-		Class<T> nodeClass = (Class) getEntityClassCommand.get().execute(nodeType);
-		T newNode          = null;
+		SecurityContext securityContext = factoryProfile.getSecurityContext();
+		T newNode = null; // (T)securityContext.lookup(node);
+		
+//		if (newNode == null) {
 
-		if (nodeClass != null) {
+			Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(nodeType);
+			if (nodeClass != null) {
 
-			try {
+				try {
 
-				Constructor<T> constructor = constructors.get(nodeClass);
-				if (constructor == null) {
+					Constructor<T> constructor = constructors.get(nodeClass);
+					if (constructor == null) {
 
-					constructor = nodeClass.getConstructor();
+						constructor = nodeClass.getConstructor();
 
-					constructors.put(nodeClass, constructor);
+						constructors.put(nodeClass, constructor);
+
+					}
+
+					// newNode = (AbstractNode) nodeClass.newInstance();
+					newNode = constructor.newInstance();
+
+				} catch (Throwable t) {
+
+					newNode = null;
 
 				}
 
-				// newNode = (AbstractNode) nodeClass.newInstance();
-				newNode = constructor.newInstance();
-
-			} catch (Throwable t) {
-
-				newNode = null;
-
 			}
 
-		}
+			if (newNode == null) {
+				// FIXME
+				newNode = (T)EntityContext.getGenericFactory().createGenericNode();
+			}
 
-		if (newNode == null) {
-			// FIXME
-			newNode = (T)EntityContext.getGenericFactory().createGenericNode();
-		}
+
+			newNode.init(factoryProfile.getSecurityContext(), node);
+			newNode.onNodeInstantiation();
+
+			newNode.setType(nodeType);
+			
+			// cache node for this request
+//			securityContext.store(newNode);
+//		}
 		
-
-		newNode.init(factoryProfile.getSecurityContext(), node);
-		newNode.onNodeInstantiation();
-		
-		newNode.setType(nodeType);
-
 		// check access
-		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		
 		if (securityContext.isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
 
 			return newNode;
 		}
-
+		
 		return null;
 	}
 
@@ -285,7 +288,7 @@ public class NodeFactory<T extends AbstractNode> {
 	 */
 	public T createDummyNode(final String nodeType) throws FrameworkException {
 
-		Class<T> nodeClass = (Class) getEntityClassCommand.get().execute(nodeType);
+		Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(nodeType);
 		T newNode          = null;
 
 		if (nodeClass != null) {
