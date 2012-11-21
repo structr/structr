@@ -92,7 +92,7 @@ public class PagingHelper {
 
 		toIndex     = fromIndex + pageSize;
 		
-		return list.subList(Math.max(0, fromIndex), Math.min(size, toIndex));
+		return list.subList(Math.max(0, fromIndex), Math.min(size, Math.max(0, toIndex)));
 
 	}
 

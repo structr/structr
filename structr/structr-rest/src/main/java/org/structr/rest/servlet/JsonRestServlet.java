@@ -157,13 +157,14 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		SecurityContext securityContext = getSecurityContext(request, response);
+		
 		try {
 
 //			logRequest("DELETE", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			SecurityContext securityContext = getSecurityContext(request, response);
 			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 
@@ -182,8 +183,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			response.getWriter().flush();
-			response.getWriter().close();
+
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in DELETE", jsex);
@@ -210,6 +210,19 @@ public class JsonRestServlet extends HttpServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(jsonError(code, "JsonSyntaxException in DELETE: " + t.getMessage()));
+			
+		} finally {
+
+			try {
+				response.getWriter().flush();
+				response.getWriter().close();
+				
+			} catch (Throwable t) {
+				
+				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+			}
+		
+			securityContext.cleanUp();
 		}
 	}
 
@@ -219,6 +232,8 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		SecurityContext securityContext = getSecurityContext(request, response);
+
 		try {
 
 //			logRequest("GET", request);
@@ -226,7 +241,8 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			SecurityContext securityContext = getSecurityContext(request, response);
+			// let module-specific authenticator examine the request first
+			securityContext.initializeAndExamineRequest(request, response);
 
 			// set default value for property view
 			propertyView.set(securityContext, defaultPropertyView);
@@ -287,8 +303,6 @@ public class JsonRestServlet extends HttpServlet {
 				gson.toJson(result, writer);
 				response.setStatus(HttpServletResponse.SC_OK);
 				writer.append("\n");    // useful newline
-				writer.flush();
-				writer.close();
 
 			} else {
 
@@ -299,8 +313,6 @@ public class JsonRestServlet extends HttpServlet {
 				response.setStatus(code);
 				Writer writer = response.getWriter();
 				writer.append(jsonError(code, "Result was null!"));
-				writer.flush();
-				writer.close();
 
 			}
 
@@ -310,8 +322,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			response.getWriter().flush();
-			response.getWriter().close();
+
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in GET", jsex);
@@ -338,6 +349,19 @@ public class JsonRestServlet extends HttpServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + t.getMessage()));
+			
+		} finally {
+
+			try {
+				response.getWriter().flush();
+				response.getWriter().close();
+				
+			} catch (Throwable t) {
+				
+				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+			}
+			
+			securityContext.cleanUp();
 		}
 	}
 
@@ -347,6 +371,8 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+		SecurityContext securityContext = getSecurityContext(request, response);
+		
 		try {
 
 //			logRequest("HEAD", request);
@@ -354,7 +380,6 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			SecurityContext securityContext = getSecurityContext(request, response);
 			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 			
@@ -373,8 +398,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			response.getWriter().flush();
-			response.getWriter().close();
+
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in HEAD", jsex);
@@ -401,6 +425,19 @@ public class JsonRestServlet extends HttpServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(jsonError(code, "JsonSyntaxException in HEAD: " + t.getMessage()));
+			
+		} finally {
+
+			try {
+				response.getWriter().flush();
+				response.getWriter().close();
+				
+			} catch (Throwable t) {
+				
+				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+			}
+
+			securityContext.cleanUp();
 		}
 	}
 
@@ -410,6 +447,8 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+		SecurityContext securityContext = getSecurityContext(request, response);
+		
 		try {
 
 //			logRequest("OPTIONS", request);
@@ -417,7 +456,6 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			SecurityContext securityContext = getSecurityContext(request, response);
 			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 			
@@ -436,8 +474,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			response.getWriter().flush();
-			response.getWriter().close();
+			
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in OPTIONS", jsex);
@@ -464,6 +501,19 @@ public class JsonRestServlet extends HttpServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(jsonError(code, "JsonSyntaxException in OPTIONS: " + t.getMessage()));
+			
+		} finally {
+
+			try {
+				response.getWriter().flush();
+				response.getWriter().close();
+				
+			} catch (Throwable t) {
+				
+				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+			}
+
+			securityContext.cleanUp();
 		}
 	}
 
@@ -473,6 +523,8 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+		SecurityContext securityContext = getSecurityContext(request, response);
+		
 		try {
 
 //			logRequest("POST", request);
@@ -481,7 +533,9 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			final JsonInput propertySet   = gson.fromJson(request.getReader(), JsonInput.class);
-			SecurityContext securityContext = getSecurityContext(request, response);
+
+			// let module-specific authenticator examine the request first
+			securityContext.initializeAndExamineRequest(request, response);
 
 			if (securityContext != null) {
 
@@ -516,8 +570,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			response.getWriter().flush();
-			response.getWriter().close();
+			
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in POST", jsex);
@@ -553,6 +606,19 @@ public class JsonRestServlet extends HttpServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+			
+		} finally {
+
+			try {
+				response.getWriter().flush();
+				response.getWriter().close();
+				
+			} catch (Throwable t) {
+				
+				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+			}
+
+			securityContext.cleanUp();
 		}
 	}
 
@@ -562,6 +628,8 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		SecurityContext securityContext = getSecurityContext(request, response);
+		
 		try {
 
 //			logRequest("PUT", request);
@@ -570,7 +638,9 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			final JsonInput propertySet   = gson.fromJson(request.getReader(), JsonInput.class);
-			SecurityContext securityContext = getSecurityContext(request, response);
+
+			// let module-specific authenticator examine the request first
+			securityContext.initializeAndExamineRequest(request, response);
 
 			if (securityContext != null) {
 
@@ -597,8 +667,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			response.getWriter().flush();
-			response.getWriter().close();
+			
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in PUT", jsex);
@@ -625,6 +694,19 @@ public class JsonRestServlet extends HttpServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(jsonError(code, "JsonSyntaxException in PUT: " + t.getMessage()));
+			
+		} finally {
+
+			try {
+				response.getWriter().flush();
+				response.getWriter().close();
+				
+			} catch (Throwable t) {
+				
+				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+			}
+
+			securityContext.cleanUp();
 		}
 	}
 
@@ -746,14 +828,9 @@ public class JsonRestServlet extends HttpServlet {
 		return new LinkedHashMap<String, Object>();
 	}
 
-	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) {
 
-		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Backend);
-		
-		// let module-specific authenticator examine the request first
-		securityContext.initializeAndExamineRequest(request, response);
-		
-		return securityContext;
+		return SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Backend);
 	}
 	// </editor-fold>
 

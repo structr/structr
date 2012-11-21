@@ -287,8 +287,8 @@ public class ModuleService implements SingletonService {
 
 				if (entryName.endsWith(".class")) {
 
-					String fileEntry = entry.getName().replaceAll("[".concat(fileSepEscaped).concat("]+"), ".");
-
+					String fileEntry = entry.getName().replaceAll("[/]+", ".");
+					
 					// add class entry to Module
 					classes.add(fileEntry.substring(0, fileEntry.length() - 6));
 
@@ -319,6 +319,7 @@ public class ModuleService implements SingletonService {
 			if (file.isDirectory()) {
 
 				addClassesRecursively(file, prefix, classes);
+				
 			} else {
 
 				try {
@@ -338,6 +339,7 @@ public class ModuleService implements SingletonService {
 				} catch (Throwable t) {
 
 					// ignore
+					t.printStackTrace();
 				}
 
 			}
@@ -587,6 +589,8 @@ public class ModuleService implements SingletonService {
 			}
 
 		}
+		
+		// logger.log(Level.INFO, "resources: {0}", ret);
 
 		return (ret);
 
