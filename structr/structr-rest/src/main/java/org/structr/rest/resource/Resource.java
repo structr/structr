@@ -20,6 +20,12 @@
 package org.structr.rest.resource;
 
 //~--- JDK imports ------------------------------------------------------------
+import org.structr.core.graph.search.SearchOperator;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.RangeSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.DistanceSearchAttribute;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -56,13 +62,12 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.node.DeleteNodeCommand;
-import org.structr.core.node.DeleteRelationshipCommand;
-import org.structr.core.node.NodeFactory;
-import org.structr.core.node.NodeService;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
-import org.structr.core.node.search.*;
+import org.structr.core.graph.DeleteNodeCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;

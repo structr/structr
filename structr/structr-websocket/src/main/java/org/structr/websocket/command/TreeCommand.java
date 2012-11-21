@@ -33,7 +33,7 @@ import org.neo4j.kernel.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.common.TreeNode;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.NodeFactory;
+import org.structr.core.graph.NodeFactory;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------

@@ -37,7 +37,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
-import org.structr.core.node.NodeService.RelationshipIndex;
+import org.structr.core.graph.NodeService.RelationshipIndex;
 
 //~--- classes ----------------------------------------------------------------
 

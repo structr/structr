@@ -26,7 +26,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.StructrTransaction;
+import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 

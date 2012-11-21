@@ -38,7 +38,7 @@ import org.structr.core.entity.NodeList;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.node.StructrTransaction;
+import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 

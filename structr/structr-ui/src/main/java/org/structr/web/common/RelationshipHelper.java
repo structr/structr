@@ -21,6 +21,10 @@
 
 package org.structr.web.common;
 
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyMap;
 import org.neo4j.graphdb.Direction;
@@ -34,7 +38,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Folder;
-import org.structr.core.node.*;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Group;
 

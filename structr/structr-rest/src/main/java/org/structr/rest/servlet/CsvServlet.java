@@ -40,7 +40,7 @@ import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.node.NodeFactory;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;

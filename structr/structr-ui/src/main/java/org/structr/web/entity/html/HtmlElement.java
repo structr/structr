@@ -33,7 +33,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.web.common.Function;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Element;

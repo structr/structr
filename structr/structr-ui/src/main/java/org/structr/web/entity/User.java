@@ -33,7 +33,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 

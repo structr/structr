@@ -31,7 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.NodeFactory;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.notion.Notion;
 import org.structr.core.traversal.TraverserInterface;
 

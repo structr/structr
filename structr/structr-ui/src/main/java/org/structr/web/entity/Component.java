@@ -33,8 +33,8 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.DeleteNodeCommand;
-import org.structr.core.node.NodeService;
+import org.structr.core.graph.DeleteNodeCommand;
+import org.structr.core.graph.NodeService;
 
 //~--- JDK imports ------------------------------------------------------------
 

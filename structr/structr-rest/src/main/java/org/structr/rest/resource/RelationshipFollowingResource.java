@@ -33,7 +33,7 @@ import org.neo4j.kernel.Uniqueness;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.NodeFactory;
+import org.structr.core.graph.NodeFactory;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;

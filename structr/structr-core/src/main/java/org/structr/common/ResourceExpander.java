@@ -28,9 +28,9 @@ import org.neo4j.graphdb.RelationshipExpander;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 

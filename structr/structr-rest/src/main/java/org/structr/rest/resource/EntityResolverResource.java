@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.GetNodeByIdCommand;
+import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 

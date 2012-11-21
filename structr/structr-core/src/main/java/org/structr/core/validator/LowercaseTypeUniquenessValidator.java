@@ -9,8 +9,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.NodeService.NodeIndex;
-import org.structr.core.node.search.SearchUserCommand;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.search.SearchUserCommand;
 
 
 /**

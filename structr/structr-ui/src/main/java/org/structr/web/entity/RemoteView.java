@@ -21,9 +21,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.NodeFactory;
-import org.structr.core.node.NodeService.NodeIndex;
-import org.structr.core.node.RelationshipFactory;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.RelationshipFactory;
 
 /**
  *

@@ -30,7 +30,7 @@ import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
-import org.structr.core.node.StructrTransaction;
+import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -41,8 +41,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.Result;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
