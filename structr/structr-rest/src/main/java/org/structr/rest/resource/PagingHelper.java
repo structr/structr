@@ -28,6 +28,7 @@ import org.structr.core.Result;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 
@@ -92,7 +93,28 @@ public class PagingHelper {
 
 		toIndex     = fromIndex + pageSize;
 		
-		return list.subList(Math.max(0, fromIndex), Math.min(size, Math.max(0, toIndex)));
+		int finalFromIndex = Math.max(0, fromIndex);
+		int finalToIndex   =  Math.min(size, Math.max(0, toIndex));
+
+		// prevent fromIndex to be greater than toIndex
+		if (finalFromIndex > finalToIndex) {
+			finalFromIndex = finalToIndex;
+		}
+
+		try {
+			return list.subList(finalFromIndex, finalToIndex);
+			
+		} catch (Throwable t) {
+			
+			logger.log(Level.WARNING, "Invalid range for sublist in paging, pageSize {0}, page {1}, offsetId {2}: {3}", new Object[] {
+				pageSize,
+				page,
+				offsetId,
+				t.getMessage()
+			});
+		}
+		
+		return Collections.EMPTY_LIST;
 
 	}
 
