@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
@@ -130,32 +131,8 @@ public class TransactionChangeSet {
 		return systemOnly;
 	}
 	
-	public boolean isNew(AbstractNode node) {
-		return createdNodes.contains(node);
-	}
-	
-	public boolean isNew(AbstractRelationship relationship) {
-		return createdRels.contains(relationship);
-	}
-	
-	public boolean isDeleted(AbstractNode node) {
-		return deletedNodes.contains(node);
-	}
-	
-	public boolean isDeleted(AbstractRelationship relationship) {
-		return deletedRels.contains(relationship);
-	}
-	
-	public boolean isNewOrDeleted(AbstractNode node) {
-		return isNew(node) || isDeleted(node);
-	}
-	
-	public boolean isNewOrDeleted(AbstractRelationship relationship) {
-		return isNew(relationship) || isDeleted(relationship);
-	}
-	
 	public void create(AbstractNode created) {
-		
+
 		createdNodes.add(created);
 		propagationQueue.add(created);
 		
@@ -165,6 +142,7 @@ public class TransactionChangeSet {
 	public void modify(AbstractNode modified) {
 		
 		if (!isNewOrDeleted(modified)) {
+			
 			modifiedNodes.add(modified);
 			propagationQueue.add(modified);
 		}
@@ -185,14 +163,15 @@ public class TransactionChangeSet {
 	}
 	
 	public void create(AbstractRelationship created) {
+			
 		createdRels.add(created);
-		
 		systemOnly = false;
 	}
 
 	public void modify(AbstractRelationship modified) {
 		
 		if (!isNewOrDeleted(modified)) {
+			
 			modifiedRels.add(modified);
 		}
 	}
@@ -302,5 +281,30 @@ public class TransactionChangeSet {
 	
 	public Queue<AbstractNode> getPropagationQueue() {
 		return propagationQueue;
+	}
+
+	// ----- private methods -----
+	private boolean isNew(AbstractNode node) {
+		return createdNodes.contains(node);
+	}
+	
+	private boolean isNew(AbstractRelationship relationship) {
+		return createdRels.contains(relationship);
+	}
+	
+	private boolean isDeleted(AbstractNode node) {
+		return deletedNodes.contains(node);
+	}
+	
+	private boolean isDeleted(AbstractRelationship relationship) {
+		return deletedRels.contains(relationship);
+	}
+	
+	private boolean isNewOrDeleted(AbstractNode node) {
+		return isNew(node) || isDeleted(node);
+	}
+	
+	private boolean isNewOrDeleted(AbstractRelationship relationship) {
+		return isNew(relationship) || isDeleted(relationship);
 	}
 }
