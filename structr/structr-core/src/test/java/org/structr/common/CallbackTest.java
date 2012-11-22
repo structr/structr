@@ -24,9 +24,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.TestFive;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  *
