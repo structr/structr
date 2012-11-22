@@ -38,7 +38,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.property.*;
 import org.structr.core.Services;
-import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.graph.CreateRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 

@@ -30,9 +30,9 @@ import org.structr.core.agent.ReturnValue;
 import org.structr.core.agent.Task;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Image;
-import org.structr.core.node.GetAllNodes;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.graph.GetAllNodes;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.node.ExtractAndSetImageDimensionsAndFormat;
 
 //~--- JDK imports ------------------------------------------------------------

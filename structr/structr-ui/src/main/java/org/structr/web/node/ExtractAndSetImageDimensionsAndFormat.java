@@ -28,7 +28,7 @@ import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.Image;
-import org.structr.core.node.NodeServiceCommand;
+import org.structr.core.graph.NodeServiceCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 

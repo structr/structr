@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import org.structr.core.graph.SetOwnerCommand;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.property.Property;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -48,11 +49,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
-import org.structr.core.node.NodeRelationshipStatisticsCommand;
-import org.structr.core.node.NodeRelationshipsCommand;
-import org.structr.core.node.NodeService.NodeIndex;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.graph.NodeRelationshipStatisticsCommand;
+import org.structr.core.graph.NodeRelationshipsCommand;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.validator.SimpleRegexValidator;
 
@@ -65,7 +66,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.*;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.*;
 import org.structr.core.notion.PropertyNotion;
 
 //~--- classes ----------------------------------------------------------------
@@ -96,7 +96,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final Property<String>        ownerId                     = new StringProperty("ownerId");
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, ownerId
+		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate
 	);
 	
 	//~--- static initializers --------------------------------------------

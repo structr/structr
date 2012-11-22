@@ -31,7 +31,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.cypher.CypherQueryHandler;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.GraphDatabaseCommand;
+import org.structr.core.graph.GraphDatabaseCommand;
 
 /**
  *

@@ -27,8 +27,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 

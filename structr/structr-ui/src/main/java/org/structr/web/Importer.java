@@ -21,6 +21,9 @@
 
 package org.structr.web;
 
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.IndexNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -44,13 +47,12 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.File;
 import org.structr.core.entity.Folder;
 import org.structr.core.entity.Image;
-import org.structr.core.node.*;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.entity.Page;
 import org.structr.web.entity.html.HtmlElement;
 

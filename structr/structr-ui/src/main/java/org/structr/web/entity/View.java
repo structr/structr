@@ -32,7 +32,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
-import org.structr.core.node.CypherQueryCommand;
+import org.structr.core.graph.CypherQueryCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.property.Property;
 import org.structr.common.property.StringProperty;
-import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 

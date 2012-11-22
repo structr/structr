@@ -37,7 +37,7 @@ import org.structr.core.entity.Linkable;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.NodeService;
+import org.structr.core.graph.NodeService;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.web.entity.html.Html;
 

@@ -21,15 +21,15 @@
 
 package org.structr.websocket.command;
 
+import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.*;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.Page;
 import org.structr.web.entity.html.Body;

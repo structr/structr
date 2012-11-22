@@ -38,7 +38,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.IndexNodeCommand;
+import org.structr.core.graph.IndexNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
 

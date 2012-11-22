@@ -57,12 +57,12 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchAttributeGroup;
-import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.core.node.search.SearchOperator;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.*;
@@ -89,7 +89,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.time.DateUtils;
 import org.structr.common.property.GenericProperty;
-import org.structr.core.node.GetNodeByIdCommand;
+import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.web.common.PageHelper;
 
 //~--- classes ----------------------------------------------------------------

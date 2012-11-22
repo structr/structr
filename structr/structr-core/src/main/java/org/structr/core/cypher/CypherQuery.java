@@ -26,7 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.node.CypherQueryCommand;
+import org.structr.core.graph.CypherQueryCommand;
 
 /**
  *

@@ -40,9 +40,9 @@ import org.structr.core.converter.DateConverter;
 import org.structr.core.converter.IntConverter;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.rest.exception.IllegalPathException;
 //~--- JDK imports ------------------------------------------------------------
 

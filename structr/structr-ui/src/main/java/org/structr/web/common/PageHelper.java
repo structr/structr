@@ -21,12 +21,12 @@
 
 package org.structr.web.common;
 
+import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;

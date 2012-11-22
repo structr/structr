@@ -30,13 +30,13 @@ import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.Principal;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.NodeServiceCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.FindNodeCommand;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.CsvFile;
 
 //~--- JDK imports ------------------------------------------------------------

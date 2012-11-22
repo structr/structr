@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.MaintenanceCommand;
+import org.structr.core.graph.MaintenanceCommand;
 
 //~--- classes ----------------------------------------------------------------
 

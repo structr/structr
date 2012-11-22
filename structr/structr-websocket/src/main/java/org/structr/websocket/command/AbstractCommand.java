@@ -28,12 +28,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.FindRelationshipCommand;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.core.node.search.SearchRelationshipCommand;
+import org.structr.core.graph.FindNodeCommand;
+import org.structr.core.graph.FindRelationshipCommand;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 

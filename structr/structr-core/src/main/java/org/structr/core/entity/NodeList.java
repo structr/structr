@@ -37,10 +37,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
 import org.structr.core.Services;
-import org.structr.core.node.Evaluable;
-import org.structr.core.node.NodeFactory;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.graph.Evaluable;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 

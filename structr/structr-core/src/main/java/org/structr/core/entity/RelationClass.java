@@ -21,6 +21,9 @@
 
 package org.structr.core.entity;
 
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.DeleteRelationshipCommand;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -34,11 +37,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Services;
-import org.structr.core.node.*;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.NodeFactory;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.Notion;
 
 //~--- JDK imports ------------------------------------------------------------

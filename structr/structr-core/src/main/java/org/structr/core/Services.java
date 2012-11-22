@@ -177,6 +177,9 @@ public class Services {
 			}
 
 		} catch (Throwable t) {
+			
+			t.printStackTrace();
+			
 			logger.log(Level.SEVERE, "Exception while creating command " + commandType.getName(), t);
 		}
 
@@ -563,16 +566,7 @@ public class Services {
 	}
 	
 	public static <T extends Service> T getService(Class<T> type) {
-		
-		for (Service service : serviceCache.values()) {
-			
-			if (type.equals(service.getClass())) {
-				
-				return (T)service;
-			}
-		}
-		
-		return null;
+		return (T)serviceCache.get(type);
 	}
 
 	public static Map<String, String> getContext() {

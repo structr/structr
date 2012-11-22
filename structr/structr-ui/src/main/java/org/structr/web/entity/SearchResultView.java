@@ -27,7 +27,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
-import org.structr.core.node.NodeService;
+import org.structr.core.graph.NodeService;
 
 //~--- classes ----------------------------------------------------------------
 

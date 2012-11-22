@@ -34,7 +34,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.Principal;
-import org.structr.core.node.NodeServiceCommand;
+import org.structr.core.graph.NodeServiceCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 

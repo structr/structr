@@ -60,7 +60,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.node.GetNodeByIdCommand;
+import org.structr.core.graph.GetNodeByIdCommand;
 
 //~--- classes ----------------------------------------------------------------
 

@@ -21,6 +21,11 @@
 
 package org.structr.core.notion;
 
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -29,10 +34,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.*;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.search.*;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 

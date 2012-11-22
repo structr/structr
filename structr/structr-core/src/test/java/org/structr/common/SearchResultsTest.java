@@ -28,11 +28,11 @@ import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.TestOne;
-import org.structr.core.node.search.FilterSearchAttribute;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchOperator;
-import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.core.graph.search.FilterSearchAttribute;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchOperator;
+import org.structr.core.graph.search.TextualSearchAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
