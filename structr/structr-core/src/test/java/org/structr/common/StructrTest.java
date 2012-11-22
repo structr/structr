@@ -184,6 +184,10 @@ public class StructrTest extends TestCase {
 
 	}
 
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type) throws FrameworkException {
+		return (T)createTestNode(type.getSimpleName(), new PropertyMap());
+	}
+
 	protected AbstractNode createTestNode(final String type) throws FrameworkException {
 		return createTestNode(type, new PropertyMap());
 	}

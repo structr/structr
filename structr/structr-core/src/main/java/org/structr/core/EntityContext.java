@@ -1689,345 +1689,35 @@ public class EntityContext {
 				for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
 					listener.begin(securityContext, transactionKey);
 				}
-
-				// 1.1: collect properties of deleted nodes
-				for (PropertyEntry<Node> entry : data.removedNodeProperties()) {
-
-					Node node                       = entry.entity();
-					Map<String, Object> propertyMap = removedNodeProperties.get(node);
-
-					if (propertyMap == null) {
-
-						propertyMap = new LinkedHashMap<String, Object>();
-
-						removedNodeProperties.put(node, propertyMap);
-
-					}
-
-					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
-
-					if (!data.isDeleted(node)) {
-
-						AbstractNode modifiedNode = nodeFactory.createNode(node, true, false);
-						if (modifiedNode != null) {
-
-							PropertyKey key = getPropertyKeyForDatabaseName(modifiedNode.getClass(), entry.key());
-							
-							// only send modification events for non-system properties
-							if (!key.isSystemProperty()) {
-								changeSet.nonSystemProperty();
-							}
-							
-							changeSet.modify(modifiedNode);
-
-							// notify registered listeners
-							for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedNode, key, entry.previouslyCommitedValue());
-							}
-						}
-
-					}
-				}
-
-				// 1.2: collect properties of deleted relationships
-				for (PropertyEntry<Relationship> entry : data.removedRelationshipProperties()) {
-
-					Relationship rel                = entry.entity();
-					Map<String, Object> propertyMap = removedRelProperties.get(rel);
-
-					if (propertyMap == null) {
-
-						propertyMap = new LinkedHashMap<String, Object>();
-
-						removedRelProperties.put(rel, propertyMap);
-
-					}
-
-					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
-
-					if (!data.isDeleted(rel)) {
-
-						AbstractRelationship modifiedRel = relFactory.instantiateRelationship(securityContext, rel);
-						if (modifiedRel != null) {
-							
-							PropertyKey key = getPropertyKeyForDatabaseName(modifiedRel.getClass(), entry.key());
-							
-							// only send modification events for non-system properties
-							if (!key.isSystemProperty()) {
-								changeSet.nonSystemProperty();
-							}
-							
-							changeSet.modify(modifiedRel);
-
-							// notify registered listeners
-							for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-								hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedRel, key, entry.previouslyCommitedValue());
-							}
-						}
-					}
-
-				}
-						
-				// 2: notify listeners of node creation (so the modifications can later be tracked)
-				for (Node node : sortNodes(data.createdNodes())) {
-
-					AbstractNode entity = nodeFactory.createNode(node, true, false);
-					if (entity != null) {
-						
-						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
-						
-						changeSet.create(entity);
-						
-						// notify registered listeners
-						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
-						}
-					}
-
-				}
-
-				// 3: notify listeners of relationship creation
-				for (Relationship rel : sortRelationships(data.createdRelationships())) {
-
-					AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
-					if (entity != null) {
-						
-						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
-						
-						changeSet.create(entity);
-						
-						// notify registered listeners
-						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
-						}
-						
-						try {
-							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
-							RelationshipType relationshipType = entity.getRelType();
-							
-							if (startNode != null) {
-								
-								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
-							}
-							
-							AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
-							if (endNode != null) {
-								
-								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
-							}
-							
-						} catch(Throwable t) {}
-					}
-
-				}
-
-				// 4: notify listeners of relationship deletion
-				for (Relationship rel : data.deletedRelationships()) {
-
-					AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
-					if (entity != null) {
-						
-						// convertFromInput properties
-						PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedRelProperties.get(rel));
-						
-						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
-						
-						// notify registered listeners
-						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
-						}
-
-						changeSet.delete(entity);
-
-						try {
-							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
-							RelationshipType relationshipType = entity.getRelType();
-
-							if (startNode != null) {
-
-								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
-							}
-							
-							AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
-							if (endNode != null) {
-								
-								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
-							}
-							
-						} catch(Throwable ignore) {}
-					}
-
-				}
-
-				// 5: notify listeners of node and relationship deletion
-				for (Node node : data.deletedNodes()) {
-					
-					logger.log(Level.FINEST, "Node deleted: {0}", node.getId());
-
-					String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
-					AbstractNode entity = nodeFactory.createDummyNode(type);
-					
-					if (entity != null) {
-						
-						PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedNodeProperties.get(node));
-						
-						hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
-						
-						// notify registered listeners
-						for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
-						}
-
-						changeSet.delete(entity);
-					}
-				}
-
-				Node n = null;
-				AbstractNode nodeEntity = null;
 				
-				// 6: validate property modifications and
-				// notify listeners of property removal and modifications
-				for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
-					
-					// performance optimization: don't instantiate new AbstractRelationship on each property but only if entity has changed
-					Node nodeFromPropertyEntry = entry.entity();
-					
-					if (!(nodeFromPropertyEntry.equals(n))) {
-						nodeEntity = nodeFactory.createNode(nodeFromPropertyEntry, true, false);
-						n = nodeFromPropertyEntry;
-					}
-
-					
-					if (nodeEntity != null) {
-						
-						PropertyKey key  = getPropertyKeyForDatabaseName(nodeEntity.getClass(), entry.key());
-						Object value     = entry.value();
-						
-						// only send modification events for non-system properties
-						if (!key.isSystemProperty()) {
-							changeSet.nonSystemProperty();
-						}
-
-						// iterate over validators
-						// FIXME: synthetic property key
-						Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, nodeEntity.getClass(), key);
-
-						if (validators != null) {
-
-							for (PropertyValidator validator : validators) {
-
-								hasError |= !(validator.isValid(nodeEntity, key, value, errorBuffer));
-
-							}
-
-						}
-						
-						// notify registered listeners
-						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, nodeEntity, key, entry.previouslyCommitedValue(), value);
-						}
-
-						// after successful validation, add node to index to make uniqueness constraints work
-						
-						if (!changeSet.isNewOrDeleted(nodeEntity)) {
-							changeSet.modify(nodeEntity);
-						}
-
-					}
-				}
-
-				Relationship r = null;
-				AbstractRelationship relEntity = null;
+				// collect properties
+				hasError |= collectRemovedNodeProperties(securityContext, transactionKey, errorBuffer, data, changeSet, nodeFactory, removedNodeProperties);
+				hasError |= collectRemovedRelationshipProperties(securityContext, transactionKey, errorBuffer, data, changeSet, relFactory, removedRelProperties);
 				
-				for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
-					
-					// performance optimization: don't instantiate new AbstractRelationship on each property but only if entity has changed
-					Relationship relFromPropertyEntry = entry.entity();
-					
-					if (!(relFromPropertyEntry.equals(r))) {
-						relEntity = relFactory.instantiateRelationship(securityContext, relFromPropertyEntry);
-						r = relFromPropertyEntry;
-					}
-					
-					if (relEntity != null) {
-						
-						PropertyKey key = getPropertyKeyForDatabaseName(relEntity.getClass(), entry.key());
-						Object value    = entry.value();
-
-						// only send modification events for non-system properties
-						if (!key.isSystemProperty()) {
-							changeSet.nonSystemProperty();
-						}
-
-						// iterate over validators
-						// FIXME: synthetic property key
-						Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, relEntity.getClass(), key);
-
-						if (validators != null) {
-
-							for (PropertyValidator validator : validators) {
-
-								hasError |= !(validator.isValid(relEntity, key, value, errorBuffer));
-
-							}
-
-						}
-						
-						// notify registered listeners
-						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, relEntity, key, entry.previouslyCommitedValue(), value);
-						}
-						
-						changeSet.modify(relEntity);
-					}
-				}
-
-				// 7: notify listeners of modified nodes (to check for non-existing properties etc)
-				for (AbstractNode node : changeSet.getModifiedNodes()) {
-
-					// only send UPDATE and index if node was not created or deleted in this transaction
-					if (!changeSet.isNewOrDeleted(node)) {
-
-						hasError |= !node.beforeModification(securityContext, errorBuffer);
-						
-						// notify registered listeners
-						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, node);
-						}
-						
-						indexNodeCommand.updateNode(node);
-					}
-				}
+				// call onCreation
+				hasError |= callOnNodeCreation(securityContext, transactionKey, errorBuffer, data, changeSet, nodeFactory);
+				hasError |= callOnRelationshipCreation(securityContext, transactionKey, errorBuffer, data, changeSet, relFactory, nodeFactory);
 				
-				for (AbstractRelationship rel : changeSet.getModifiedRelationships()) {
-
-					// only send UPDATE if relationship was not created or deleted in this transaction
-					if (!changeSet.isNewOrDeleted(relEntity)) {
-
-						hasError |= !rel.beforeModification(securityContext, errorBuffer);
-						
-						// notify registered listeners
-						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
-						}
-						
-						indexRelationshipCommand.execute(relEntity);
-						//indexRelationshipCommand.updateRelationship(relEntity);
-						
-					}
-					
-				}
-
+				// call onDeletion
+				hasError |= callOnRelationshipDeletion(securityContext, transactionKey, errorBuffer, data, changeSet, relFactory, nodeFactory, removedRelProperties);
+				hasError |= callOnNodeDeletion(securityContext, transactionKey, errorBuffer, data, changeSet, nodeFactory, removedNodeProperties);
+				
+				// call validators
+				hasError |= callNodeValidators(securityContext, transactionKey, errorBuffer, data, changeSet, nodeFactory);
+				hasError |= callRelationshipValidators(securityContext, transactionKey, errorBuffer, data, changeSet, relFactory);
+				
+				// call onModification
+				hasError |= callOnNodeModification(securityContext, transactionKey, errorBuffer, changeSet, indexNodeCommand);
+				hasError |= callOnRelationshipModification(securityContext, transactionKey, errorBuffer, changeSet, indexRelationshipCommand);
+				
+				// add created nodes to index
 				for (AbstractNode node : changeSet.getCreatedNodes()) {
-
 					indexNodeCommand.addNode(node);
-
 				}
 
+				// add created relationships to index
 				for (AbstractRelationship rel : changeSet.getCreatedRelationships()) {
-
 					indexRelationshipCommand.execute(rel);
-
 				}
 
 				if (hasError) {
@@ -2068,6 +1758,367 @@ public class EntityContext {
 				// thow
 				throw new IllegalArgumentException(t);
 			}
+		}
+			
+		private boolean collectRemovedNodeProperties(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionData data, TransactionChangeSet changeSet,
+		                                   NodeFactory nodeFactory, Map<Node, Map<String, Object>> removedNodeProperties) throws FrameworkException {
+			
+			boolean hasError = false;
+
+			for (PropertyEntry<Node> entry : data.removedNodeProperties()) {
+
+				Node node                       = entry.entity();
+				Map<String, Object> propertyMap = removedNodeProperties.get(node);
+
+				if (propertyMap == null) {
+
+					propertyMap = new LinkedHashMap<String, Object>();
+
+					removedNodeProperties.put(node, propertyMap);
+
+				}
+
+				propertyMap.put(entry.key(), entry.previouslyCommitedValue());
+
+				if (!data.isDeleted(node)) {
+
+					AbstractNode modifiedNode = nodeFactory.createNode(node, true, false);
+					if (modifiedNode != null) {
+
+						PropertyKey key = getPropertyKeyForDatabaseName(modifiedNode.getClass(), entry.key());
+
+						// only send modification events for non-system properties
+						if (!key.isSystemProperty()) {
+							changeSet.nonSystemProperty();
+						}
+
+						changeSet.modify(modifiedNode);
+
+						// notify registered listeners
+						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedNode, key, entry.previouslyCommitedValue());
+						}
+					}
+
+				}
+			}
+			
+			return hasError;
+		}
+			
+		private boolean collectRemovedRelationshipProperties(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionData data, TransactionChangeSet changeSet,
+		                                   RelationshipFactory relFactory, Map<Relationship, Map<String, Object>> removedRelProperties) throws FrameworkException {
+			
+			boolean hasError = false;
+
+			for (PropertyEntry<Relationship> entry : data.removedRelationshipProperties()) {
+
+				Relationship rel                = entry.entity();
+				Map<String, Object> propertyMap = removedRelProperties.get(rel);
+
+				if (propertyMap == null) {
+
+					propertyMap = new LinkedHashMap<String, Object>();
+
+					removedRelProperties.put(rel, propertyMap);
+
+				}
+
+				propertyMap.put(entry.key(), entry.previouslyCommitedValue());
+
+				if (!data.isDeleted(rel)) {
+
+					AbstractRelationship modifiedRel = relFactory.instantiateRelationship(securityContext, rel);
+					if (modifiedRel != null) {
+
+						PropertyKey key = getPropertyKeyForDatabaseName(modifiedRel.getClass(), entry.key());
+
+						// only send modification events for non-system properties
+						if (!key.isSystemProperty()) {
+							changeSet.nonSystemProperty();
+						}
+
+						changeSet.modify(modifiedRel);
+
+						// notify registered listeners
+						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+							hasError |= !listener.propertyRemoved(securityContext, transactionKey, errorBuffer, modifiedRel, key, entry.previouslyCommitedValue());
+						}
+					}
+				}
+
+			}
+			
+			return hasError;
+		}
+		
+		private boolean callOnNodeCreation(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionData data, TransactionChangeSet changeSet,
+		                                   NodeFactory nodeFactory) throws FrameworkException {
+			
+			boolean hasError = false;
+						
+			for (Node node : sortNodes(data.createdNodes())) {
+
+				AbstractNode entity = nodeFactory.createNode(node, true, false);
+				if (entity != null) {
+
+					hasError |= !entity.beforeCreation(securityContext, errorBuffer);
+
+					changeSet.create(entity);
+
+					// notify registered listeners
+					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
+					}
+				}
+
+			}
+			
+			return hasError;
+		}
+		
+		private boolean callOnRelationshipCreation(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionData data, TransactionChangeSet changeSet,
+		                                   RelationshipFactory relFactory, NodeFactory nodeFactory) throws FrameworkException {
+			
+			boolean hasError = false;
+			
+			for (Relationship rel : sortRelationships(data.createdRelationships())) {
+
+				AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
+				if (entity != null) {
+
+					hasError |= !entity.beforeCreation(securityContext, errorBuffer);
+
+					changeSet.create(entity);
+
+					// notify registered listeners
+					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						hasError |= !listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
+					}
+
+					try {
+						AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
+						RelationshipType relationshipType = entity.getRelType();
+
+						if (startNode != null) {
+
+							changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
+						}
+
+						AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
+						if (endNode != null) {
+
+							changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
+						}
+
+					} catch(Throwable t) {}
+				}
+
+			}
+
+			return hasError;
+		}
+			
+		private boolean callOnRelationshipDeletion(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionData data, TransactionChangeSet changeSet,
+		                                   RelationshipFactory relFactory, NodeFactory nodeFactory, Map<Relationship, Map<String, Object>> removedRelProperties) throws FrameworkException {
+			
+			boolean hasError = false;
+			
+			for (Relationship rel : data.deletedRelationships()) {
+
+				AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
+				if (entity != null) {
+
+					// convertFromInput properties
+					PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedRelProperties.get(rel));
+
+					hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
+
+					// notify registered listeners
+					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
+					}
+
+					changeSet.delete(entity);
+
+					try {
+						AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
+						RelationshipType relationshipType = entity.getRelType();
+
+						if (startNode != null) {
+
+							changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
+						}
+
+						AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
+						if (endNode != null) {
+
+							changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
+						}
+
+					} catch(Throwable ignore) {}
+				}
+
+			}
+			
+			return hasError;
+		}
+		
+		private boolean callOnNodeDeletion(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionData data, TransactionChangeSet changeSet,
+		                                   NodeFactory nodeFactory, Map<Node, Map<String, Object>> removedNodeProperties) throws FrameworkException {
+			
+			boolean hasError = false;
+
+			for (Node node : data.deletedNodes()) {
+
+				String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
+				AbstractNode entity = nodeFactory.createDummyNode(type);
+
+				if (entity != null) {
+
+					PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedNodeProperties.get(node));
+
+					hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
+
+					// notify registered listeners
+					for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
+					}
+
+					changeSet.delete(entity);
+				}
+			}
+
+			return hasError;	
+		}
+		
+		private boolean callNodeValidators(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionData data, TransactionChangeSet changeSet,
+		                                   NodeFactory nodeFactory) throws FrameworkException {
+			
+			boolean hasError = false;
+
+			for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
+
+				AbstractNode nodeEntity = nodeFactory.createNode(entry.entity(), true, false);
+				if (nodeEntity != null) {
+
+					PropertyKey key  = getPropertyKeyForDatabaseName(nodeEntity.getClass(), entry.key());
+					Object value     = entry.value();
+
+					// only send modification events for non-system properties
+					if (!key.isSystemProperty()) {
+
+						changeSet.nonSystemProperty();
+						changeSet.modify(nodeEntity);
+					}
+
+					// iterate over validators
+					// FIXME: synthetic property key
+					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, nodeEntity.getClass(), key);
+
+					if (validators != null) {
+
+						for (PropertyValidator validator : validators) {
+
+							hasError |= !(validator.isValid(nodeEntity, key, value, errorBuffer));
+
+						}
+
+					}
+
+					// notify registered listeners
+					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, nodeEntity, key, entry.previouslyCommitedValue(), value);
+					}
+				}
+			}
+
+			return hasError;
+			
+		}
+		
+		private boolean callRelationshipValidators(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionData data, TransactionChangeSet changeSet,
+		                                           RelationshipFactory relFactory) throws FrameworkException {
+
+			boolean hasError = false;
+			
+			for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
+
+				AbstractRelationship relEntity    = relFactory.instantiateRelationship(securityContext, entry.entity());
+				if (relEntity != null) {
+
+					PropertyKey key = getPropertyKeyForDatabaseName(relEntity.getClass(), entry.key());
+					Object value    = entry.value();
+
+					// only send modification events for non-system properties
+					if (!key.isSystemProperty()) {
+						changeSet.nonSystemProperty();
+						changeSet.modify(relEntity);
+					}
+
+					// iterate over validators
+					// FIXME: synthetic property key
+					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, relEntity.getClass(), key);
+
+					if (validators != null) {
+
+						for (PropertyValidator validator : validators) {
+
+							hasError |= !(validator.isValid(relEntity, key, value, errorBuffer));
+
+						}
+
+					}
+
+					// notify registered listeners
+					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						hasError |= !listener.propertyModified(securityContext, transactionKey, errorBuffer, relEntity, key, entry.previouslyCommitedValue(), value);
+					}
+				}
+			}
+
+			return hasError;
+		}
+		
+		private boolean callOnNodeModification(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionChangeSet changeSet,
+		                                       NewIndexNodeCommand indexNodeCommand) throws FrameworkException {
+			
+			boolean hasError = false;
+			
+			for (AbstractNode node : changeSet.getModifiedNodes()) {
+
+				hasError |= !node.beforeModification(securityContext, errorBuffer);
+
+				// notify registered listeners
+				for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+					hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, node);
+				}
+
+				indexNodeCommand.updateNode(node);
+			}
+
+			return hasError;
+		}
+	
+		
+		private boolean callOnRelationshipModification(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionChangeSet changeSet,
+		                                               IndexRelationshipCommand indexRelationshipCommand) throws FrameworkException {
+				
+			boolean hasError = false;
+			
+			for (AbstractRelationship rel : changeSet.getModifiedRelationships()) {
+
+				hasError |= !rel.beforeModification(securityContext, errorBuffer);
+
+				// notify registered listeners
+				for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+					hasError |= !listener.graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
+				}
+
+				indexRelationshipCommand.execute(rel);
+			}
+
+			return hasError;
 		}
 	}
 	// </editor-fold>
