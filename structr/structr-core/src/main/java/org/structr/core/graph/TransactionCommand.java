@@ -187,6 +187,15 @@ public class TransactionCommand extends NodeServiceCommand {
 						if (debug) {
 							t.printStackTrace();
 						}
+						
+						if (t instanceof FrameworkException) {
+
+							logger.log(Level.WARNING, ((FrameworkException) t).toString());
+
+							EntityContext.clearTransactionData(transactionKey);
+							throw (FrameworkException)t;
+						}
+						
 					}
 
 					depths.set(depth);
