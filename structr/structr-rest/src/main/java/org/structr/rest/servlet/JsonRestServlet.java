@@ -166,6 +166,9 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
+			// let module-specific authenticator examine the request first
+			securityContext.initializeAndExamineRequest(request, response);
+
 			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 
