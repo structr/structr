@@ -44,6 +44,8 @@ var _Pages = {
     init : function() {
         //console.log('_Pages.init()');
         _Pages.resize();
+        _Pages.makeMenuDroppable();
+
     },
 
     resize : function() {

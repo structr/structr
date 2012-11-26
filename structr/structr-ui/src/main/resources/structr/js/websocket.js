@@ -219,7 +219,7 @@ function connect() {
                     if (entity.type != 'Folder' || !entity.parentFolder) {
                         _Entities.appendObj(entity, null, null, null, false, isIn(entity.id, data.nodesWithChildren), treeAddress);
                     } else {
-                        console.log(entity);
+                        if (debug) console.log(entity);
                     }
                     
                 });
