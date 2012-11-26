@@ -3,7 +3,9 @@
 .project
 .classpath
 .checkstyle
-target
+**/target
+**/modules
+**/structr.conf
 */structr-ui/webapps
 */structr-ui/db
 */structr-ui/files
