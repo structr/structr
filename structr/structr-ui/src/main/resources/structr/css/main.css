@@ -440,17 +440,17 @@ span.id {
     color: #999;
 }
 
-.node,
-.page,
-.type,
-.component,
-.element,
-.content,
-.user,
-.group,
-.folder,
-.file,
-.image {
+#pages .node, #files .node, #users .node,  #groups .node, #types .node,
+#pages .page, #files .page, #users .page,  #groups .page, #types .page,
+#pages .type, #files .type, #users .type,  #groups .type, #types .type,
+#pages .component, #files .component, #users .component,  #groups .component, #types .component,
+#pages .element, #files .element, #users .element,  #groups .element, #types .element,
+#pages .content, #files .content, #users .content,  #groups .content, #types .content,
+#pages .user, #files .user, #users .user,  #groups .user, #types .user,
+#pages .group, #files .group, #users .group,  #groups .group, #types .group,
+#pages .folder, #files .folder, #users .folder,  #groups .folder, #types .folder,
+#pages .file, #files .file, #users .file,  #groups .file, #types .file,
+#pages .image, #files .image, #users .image,  #groups .image, #types .image {
     color: #333;
     line-height: 1.7em;
     border-radius: 5px;

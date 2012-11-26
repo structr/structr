@@ -5,6 +5,8 @@
     overflow: auto;
     border: 1px solid #999 ! important;
     background: #fff ! important;
+    font-family: Arial, Helvetica, Sans-serif ! important;
+    font-size: 8pt;
 }
 
 .resourceBox table {
@@ -42,8 +44,9 @@
     color: #aaa;
 }
 
-.resourceBox td.save.active:hover, .resourceBox td.delete:hover, .resourceBox td.add:hover {
+.resourceBox td.save.active:hover, .resourceBox td.delete:hover, .resourceBox td.add:hover, .resourceBox td.actions:hover {
     cursor: pointer;
+    text-decoration: underline;
 }
 
 .resourceBox td.save.active {
@@ -65,6 +68,7 @@
     border: none;
     background: none;
     padding: 0;
+    font-family: Arial, Helvetica, Sans-serif;
 }
 
 #resourceTabs li.ui-corner-top {
@@ -117,4 +121,8 @@ input.readonly {
     width: 770px;
     height: 590px;
     overflow: auto;
+}
+
+button {
+    font-family: Arial, Helvetica, Sans-serif ! important;
 }

@@ -504,7 +504,7 @@ function connect() {
             //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.reconnect);
             //Structr.error('Connection lost or timed out. Trying automatic reconnect');
             log('Connection was lost or timed out. Trying automatic reconnect');
-            Structr.reconnect();
+            //Structr.reconnect();
         }
 
     } catch (exception) {

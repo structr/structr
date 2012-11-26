@@ -17,42 +17,38 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
+
 $(document).ready(function() {
+  
+    defaultView     = urlParam('view') ? urlParam('view') : 'all';
+    defaultSort     = urlParam('sort') ? urlParam('sort') : '';
+    defaultOrder    = urlParam('order') ? urlParam('order') : '';
+    defaultPage     = urlParam('page') ? urlParam('page') : 1;
+    defaultPageSize = urlParam('pageSize') ? urlParam('pageSize') : 10;
+ 
     Structr.registerModule('crud', _Crud);
     Structr.classes.push('crud');
 });
 
 var _Crud = {
 
-    view : null,
+    schema : [],
     keys : [],
 
-    schema : [],
-
-    sort : null,
-    order : null,
-    page : null,
-    pageSize : null,
-    pageCount : null,
     type : null,
+    pageCount : null,
 
+    view : [],
+    sort : [],
+    order : [],
+    page : [],
+    pageSize : [],
     
     init : function() {
-        
-        _Crud.view      = urlParam('view');
-        _Crud.type      = urlParam('type');
-        _Crud.sort      = urlParam('sort');
-        _Crud.order     = urlParam('order');
-        _Crud.pageSize  = urlParam('pageSize');
-        _Crud.page      = urlParam('page');
 
+        _Crud.type             = urlParam('type');
         if (!_Crud.type)        _Crud.type = document.location.hash.substring(1);
-
-        if (!_Crud.view)        _Crud.view = 'all';
-        if (!_Crud.pageSize)    _Crud.pageSize = 10;
-        if (!_Crud.page)        _Crud.page = 1;
-        
-        
 
     },
     
@@ -67,7 +63,9 @@ var _Crud = {
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
         var url = rootUrl + '_schema';
         var hash = document.location.hash;
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
             url: url,
             headers: headers,
@@ -75,22 +73,38 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             async: false,
             success: function(data) {
-                $.each(data.result, function(i, res) {
+                
+                console.log(data.result);
+                
+                var sortedResult = data.result.sort(function(a,b) {
+                    if(a.type<b.type) return -1;
+                    if(a.type>b.type) return 1;
+                    return 0;
+                });
+                
+                $.each(sortedResult, function(i, res) {
                     //console.log(res.type, res.views);
                     var type = res.type;
+                    
+                    _Crud.view[type]        = defaultView;
+                    _Crud.sort[type]        = defaultSort;
+                    _Crud.order[type]       = defaultOrder;
+                    _Crud.pageSize[type]    = defaultPageSize;
+                    _Crud.page[type]        = defaultPage;
+                    
                     _Crud.schema[type] = res;
                     $('#resourceTabsMenu').append('<li><a href="#' +  type + '"><span>' + type + '</span></a></li>');
                     $('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + res.url + '"></div>');
                     var typeNode = $('#' + type);
                     typeNode.append('<div style="clear: both"><button id="pageLeft">&lt; Prev</button>'
-                        + ' Page <input id="page" type="text" size="3" value="' + _Crud.page + '"><button id="pageRight">Next &gt;</button> of <input class="readonly" readonly="readonly" id="pageCount" size="3" value="' + _Crud.pageCount + '">'
-                        + ' Page Size: <input id="pageSize" type="text" size="3" value="' + _Crud.pageSize + '"></div>');
+                        + ' Page <input id="page" type="text" size="3" value="' + _Crud.page[type] + '"><button id="pageRight">Next &gt;</button> of <input class="readonly" readonly="readonly" id="pageCount" size="3" value="' + _Crud.pageCount + '">'
+                        + ' Page Size: <input id="pageSize" type="text" size="3" value="' + _Crud.pageSize[type] + '"></div>');
                     typeNode.append('<table></table>');
                     var table = $('table', typeNode);
                     table.append('<tr></tr>');
                     var tableHeader = $('tr:first-child', table);
-                    if (res.views[_Crud.view]) {
-                        var k = Object.keys(res.views[_Crud.view]);
+                    if (res.views[_Crud.view[type]]) {
+                        var k = Object.keys(res.views[_Crud.view[type]]);
                         if (k && k.length) {
                             _Crud.keys[type] = k;
                             $.each(_Crud.keys[type], function(k, key) {
@@ -98,6 +112,7 @@ var _Crud = {
                                 //                            var newOrder = (order && order == 'desc' ? 'asc' : 'desc');
                                 tableHeader.append('<th>' + key + '</th>');
                             });
+                            tableHeader.append('<th>Actions</th>');
                         }
                     }
                     typeNode.append('<div class="infoFooter">Query: <span id="queryTime"></span> s &nbsp; Serialization: <span id="serTime"></span> s</div>');                   
@@ -115,9 +130,17 @@ var _Crud = {
                         _Crud.activatePagerElements(type);
 
                     }
+                    
+                    
+                //console.log(type, _Crud.view[type], _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+
                 });
+                
+                
             }
         });
+        
+        
         $('#resourceTabs').tabs({
             //        active: 7,
             activate: function(event, ui) {
@@ -126,6 +149,7 @@ var _Crud = {
                 _Crud.deActivatePagerElements(_Crud.type);
                 _Crud.activateList(newType);
                 _Crud.activatePagerElements(newType);
+                _Crud.type = newType;
             }
         });
         $(document).keyup(function(e) {
@@ -138,20 +162,22 @@ var _Crud = {
 
     replaceSortHeader : function(type) {
         var table = _Crud.getTable(type);
-        var newOrder = (_Crud.order && _Crud.order == 'desc' ? 'asc' : 'desc');
+        var newOrder = (_Crud.order[type] && _Crud.order[type] == 'desc' ? 'asc' : 'desc');
         $('th', table).each(function(i, t) {
             var th = $(t);
             var key = th.text();
-            $('a', th).off('click');
-            th.empty();
-            th.append('<a href="' + _Crud.sortAndPagingParameters(key, newOrder, _Crud.pageSize, _Crud.page) + '#' + type + '">' + key + '</a>');
-            $('a', th).on('click', function(event) {
-                event.preventDefault();
-                _Crud.sort = $(this).text();
-                _Crud.order = (_Crud.order && _Crud.order == 'desc' ? 'asc' : 'desc');
-                _Crud.activateList(type);
-                return false;
-            });
+            if (key != 'Actions') {
+                $('a', th).off('click');
+                th.empty();
+                th.append('<a href="' + _Crud.sortAndPagingParameters(key, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + key + '</a>');
+                $('a', th).on('click', function(event) {
+                    event.preventDefault();
+                    _Crud.sort[type] = $(this).text();
+                    _Crud.order[type] = (_Crud.order[type] && _Crud.order[type] == 'desc' ? 'asc' : 'desc');
+                    _Crud.activateList(type);
+                    return false;
+                });
+            }
         });
     },
 
@@ -170,9 +196,10 @@ var _Crud = {
     },
 
     activateList : function(type) {
+        console.log(type, _Crud.view[type], _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
         var url  = $('#' + type).attr('data-url').substring(1);
-        url = rootUrl + url + '/' + _Crud.view + _Crud.sortAndPagingParameters(_Crud.sort, _Crud.order, _Crud.pageSize, _Crud.page);
-        //console.log('activateList', type, url, _Crud.view);
+        url = rootUrl + url + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+        //console.log('activateList', url);
         _Crud.list(type, url);
         document.location.hash = type;
     },
@@ -187,11 +214,13 @@ var _Crud = {
     },
 
     list : function(type, url) {
-        //    console.log('list', type, url);
+        //console.log('list', type, url, table);
         var table = _Crud.getTable(type);
         table.append('<tr></tr>');
         _Crud.clearList(type);
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
             url: url,
             headers: headers,
@@ -209,13 +238,13 @@ var _Crud = {
     },
 
     crudExport : function(type) {
-        var url  = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + view + _Crud.sortAndPagingParameters(_Crud.sort, _Crud.order, _Crud.pageSize, _Crud.page);
+        var url  = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
         var d = $('.dialogText', $('#dialogBox'));
         d.append('<textarea class="exportArea"></textarea>');
         var exportArea = $('.exportArea', d);
         var b = $('.dialogBtn', $('#dialogBox'));
-        console.log(b);
-        dialog('Export ' + type + ' list as CSV', function() {
+        //console.log(b);
+        _Crud.dialog('Export ' + type + ' list as CSV', function() {
             }, function() {
             });
 
@@ -236,7 +265,9 @@ var _Crud = {
             });
             exportArea.append('\n');
         }
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
             url: url,
             headers: headers,
@@ -257,8 +288,8 @@ var _Crud = {
         $('#serTime', typeNode).text(st);
         $('#pageSize', typeNode).val(ps);
     
-        _Crud.page = p;
-        $('#page', typeNode).val(_Crud.page);
+        _Crud.page[type] = p;
+        $('#page', typeNode).val(_Crud.page[type]);
     
         _Crud.pageCount = pc;
         $('#pageCount', typeNode).val(_Crud.pageCount);
@@ -268,36 +299,36 @@ var _Crud = {
         //    documentUrl = documentUrl.replace(/&sort=\d*/, '') + '&sort=' + sort;
         //    documentUrl = documentUrl.replace(/&order=\d*/, '') + '&order=' + order;
     
-        window.history.pushState('object or string', 'Title', _Crud.sortAndPagingParameters(_Crud.sort, _Crud.order, _Crud.pageSize, _Crud.page) + '&type=' + type + '#crud');
+        window.history.pushState('object or string', 'Title', _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]) + '&type=' + type + '#crud');
     },
 
     activatePagerElements : function(type) {
         console.log('activatePagerElements', type);
         var typeNode = $('#' + type);
-        $('#page', typeNode).keypress(function(e) {
+        $('#page', typeNode).on('keypress', function(e) {
             if (e.keyCode == 13) {
-                _Crud.page = $(this).val();
+                _Crud.page[type] = $(this).val();
                 _Crud.activateList(type);
             }
         });
                 
-        $('#pageSize', typeNode).keypress(function(e) {
+        $('#pageSize', typeNode).on('keypress', function(e) {
             if (e.keyCode == 13) {
-                _Crud.pageSize = $(this).val();
+                _Crud.pageSize[type] = $(this).val();
                 _Crud.activateList(type);
             }
         });
 
         $('#pageLeft', typeNode).on('click', function() {
-            if (_Crud.page > 1) {
-                _Crud.page--;
+            if (_Crud.page[type] > 1) {
+                _Crud.page[type]--;
                 _Crud.activateList(type);
             }
         });
                 
         $('#pageRight', typeNode).on('click', function() {
-            if (_Crud.page < _Crud.pageCount) {
-                _Crud.page++;
+            if (_Crud.page[type] < _Crud.pageCount) {
+                _Crud.page[type]++;
                 _Crud.activateList(type);
             }
         });
@@ -308,16 +339,18 @@ var _Crud = {
         console.log('deActivatePagerElements', type);
         var typeNode = $('#' + type);
         
-        $('#page', typeNode).keypress();
-        $('#pageSize', typeNode).keypress();
+        $('#page', typeNode).off('keypress');
+        $('#pageSize', typeNode).off('keypress');
         $('#pageLeft', typeNode).off('click');
         $('#pageRight', typeNode).off('click');
     },
 
     crudRead : function(type, id) {
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
-            url: rootUrl + '/' + id + '/' + _Crud.view,
+            url: rootUrl + '/' + id + '/' + _Crud.view[type],
             headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -335,24 +368,30 @@ var _Crud = {
         return table;
     },
 
-    crudCreate : function(type, url) {
-        var headers = {'X-StructrSessionToken' : token };
+    crudCreate : function(type, url, json) {
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
             url: rootUrl + url,
             headers: headers,
             type: 'POST',
             dataType: 'json',
+            data: json,
             contentType: 'application/json; charset=utf-8',
             async: false,
             success: function(data, status, xhr) {
                 var location = xhr.getResponseHeader('location');
                 var id = location.substring(location.lastIndexOf('/') + 1);
                 _Crud.crudRead(type, id);
+                $.unblockUI({
+                    fadeOut: 25
+                });            
             },
             error: function(data, status, xhr) {
-                console.log(data, status, xhr);
-                displayForm(type, $('#dialogBox .dialogText'));
-                dialog('Create new ' + type, function() {
+                //console.log(data, status, xhr);
+                _Crud.displayForm(type, $('#dialogBox .dialogText'));
+                _Crud.dialog('Create new ' + type, function() {
                     console.log('ok')
                 }, function() {
                     console.log('cancel')
@@ -362,9 +401,11 @@ var _Crud = {
     },
 
     crudRefresh : function(id, key) {
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
-            url: rootUrl + '/' + id + '/' + _Crud.view,
+            url: rootUrl + '/' + id + '/' + _Crud.view[_Crud.type],
             headers: headers,
             type: 'GET',
             dataType: 'json',
@@ -377,9 +418,11 @@ var _Crud = {
     },
 
     crudReset : function(id, key) {
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
-            url: rootUrl + '/' + id + '/' + _Crud.view,
+            url: rootUrl + '/' + id + '/' + _Crud.view[_Crud.type],
             headers: headers,
             type: 'GET',
             dataType: 'json',
@@ -392,9 +435,11 @@ var _Crud = {
     },
 
     crudUpdate : function(id, key, newValue) {
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
-            url: rootUrl + '/' + id + '/' + _Crud.view,
+            url: rootUrl + '/' + id,
             headers: headers,
             data: '{"' + key + '":"' + newValue + '"}',
             type: 'PUT',
@@ -413,16 +458,20 @@ var _Crud = {
     },
 
     crudDelete : function(id) {
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
-            url: rootUrl + '/' + id + '/' + _Crud.view,
+            url: rootUrl + '/' + id,
             headers: headers,
             type: 'DELETE',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             async: false,
             success: function() {
-                alert(id + ' deleted!');
+                //alert(id + ' deleted!');
+                var row = $('#' + id);
+                row.remove();
             }
         });
     },
@@ -504,6 +553,7 @@ var _Crud = {
     appendRow : function(type, item) {
         var id = item['id'];
         var table = _Crud.getTable(type);
+        //console.log(id, item, table, _Crud.keys[type]);
         table.append('<tr id="' + id + '"></tr>');
         var row = $('#' + id);
     
@@ -521,6 +571,15 @@ var _Crud = {
                     _Crud.activateTextInputField($('input', self), id, key);
                 });
             });
+            row.append('<td class="actions">Delete</td>');
+            $('.actions', row).on('mouseup', function(event) {
+                event.preventDefault();
+                var c = confirm('Are you sure to delete ' + type + ' ' + id + ' ?');
+                if (c == true) {
+                    _Crud.crudDelete(id);
+                }
+            });
+            
         }
     },
 
@@ -587,22 +646,24 @@ var _Crud = {
             }
         });
     },
-
+    
     displayForm : function(type, el) {
-        var typeDef = _Crud.schema[type];
-        console.log(typeDef);
-        console.log(typeDef.views[view]);
-        $(el).append('<table class="props"><tr><th>Name</th><th>Value</th><th>Type</th><th>Read Only</th></table>');
+        var typeDef = _Crud.schema[_Crud.type];
+        $(el).append('<form id="createEntityForm"><table class="props"><tr><th>Name</th><th>Value</th><th>Type</th><th>Read Only</th></table></form>');
         var table = $('table', $(el));
-        $.each(typeDef.views[_Crud.view], function(i, property) {
-            console.log(property);
+        $.each(typeDef.views[_Crud.view[type]], function(i, property) {
+            //console.log(property);
             var type = property.className.substring(property.className.lastIndexOf('.') + 1);
-            table.append('<tr><td><label for="' + property.name + '">' + formatKey(property.name) + '</label></td><td><input type="text" name="' + property.name + '" value=""></td><td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+            table.append('<tr><td><label for="' + property.dbName + '">' + _Crud.formatKey(property.dbName) + '</label></td><td><input type="text" name="' + property.dbName + '" value=""></td><td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
         });
-        $(el).append('<button id="saveProperties">Save</button>');
-        $('#saveProperties', $(el)).on('click', function() {
-        
-            });
+        $('button.save', $('#dialogBox')).remove();
+        $('#dialogBox').append('<button class="save" id="saveProperties">Save</button>');
+        $('.save', $('#dialogBox')).on('click', function() {
+            var json = $.toJSON($('#createEntityForm').serializeObject());
+            console.log(json);
+            $('.dialogText', $('#dialogBox')).empty();
+            _Crud.crudCreate(type, typeDef.url, json);
+        });
     },
 
     formatKey : function(text) {
@@ -617,4 +678,30 @@ var _Crud = {
         }
         return result;
     }
+    
+    
+}
+
+$.fn.serializeObject = function() {
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+        if (this.value && this.value != '') {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        }
+    });
+    return o;
+};
+
+function displayError(errorText) {
+    var msgEl = $('.dialogMsg', $('#dialogBox'));
+    msgEl.empty();
+    msgEl.text(errorText);
 }
