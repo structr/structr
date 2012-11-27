@@ -93,11 +93,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final Property<Boolean>       visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
 	public static final Property<Date>	    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
 	public static final Property<Date>	    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
-	public static final Property<String>        categories                  = new StringProperty("categories");
 	public static final Property<String>        ownerId                     = new StringProperty("ownerId");
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate, categories
+		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate
 	);
 	
 	//~--- static initializers --------------------------------------------

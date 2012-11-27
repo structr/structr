@@ -42,6 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Command;
 import org.structr.core.agent.Task;
+import org.structr.core.graph.BulkSetUuidCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,6 +64,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("setNodeProperties", BulkSetNodePropertiesCommand.class);
 		maintenanceCommandMap.put("setRelationshipProperties", BulkSetRelationshipPropertiesCommand.class);
 		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
+		maintenanceCommandMap.put("setUuid", BulkSetUuidCommand.class);
 
 	}
 

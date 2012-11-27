@@ -76,8 +76,6 @@ $(document).ready(function() {
         _Pages.resize();
     });
 
-    _Pages.makeMenuDroppable();
-
     $('#components_').on('click', function(e) {
         e.stopPropagation();
         main.empty();
@@ -104,6 +102,13 @@ $(document).ready(function() {
         main.empty();
         Structr.activateMenuEntry('contents');
         Structr.modules['contents'].onload();
+    });
+
+    $('#crud_').on('click', function(e) {
+        e.stopPropagation();
+        main.empty();
+        Structr.activateMenuEntry('crud');
+        Structr.modules['crud'].onload();
     });
 
     $('#files_').on('click', function(e) {
@@ -136,7 +141,7 @@ $(document).ready(function() {
     });
 	
     Structr.init();
-
+    
     $(document).keyup(function(e) {
         if (e.keyCode == 27) {
             $('#dialogBox .dialogCancelButton').click();
@@ -895,4 +900,26 @@ function cleanText(input) {
 
 function shorten(uuid) {
     return uuid.substring(0,8);
+}
+
+function urlParam(name) {
+    name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+    var regexS = "[\\?&]"+name+"=([^&#]*)";
+    var regex = new RegExp(regexS);
+    var results = regex.exec(window.location.href);
+    return (results&&results.length?results[1]:'');
+}
+
+function nvl(value, defaultValue) {
+    var returnValue;
+    if (value === undefined) {
+        returnValue = defaultValue;
+    } else if (value === false) {
+        returnValue = 'false';
+    } else if (!value) {
+        returnValue = '';
+    } else {
+        returnValue = value;
+    }
+    return returnValue;
 }

@@ -254,6 +254,6 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/structr/structr/tree/master/structr/structr-web-test</url>
+        <url>https://github.com/structr/structr/tree/master/structr/structr-ui</url>
     </scm>
 </project>

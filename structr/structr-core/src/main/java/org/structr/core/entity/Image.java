@@ -258,7 +258,7 @@ public class Image extends File {
 		}
 
 		// No thumbnail exists, or thumbnail was too old, so let's create a new one
-		logger.log(Level.INFO, "Creating thumbnail for {0}", getName());
+		logger.log(Level.FINE, "Creating thumbnail for {0}", getName());
 
 		try {
 

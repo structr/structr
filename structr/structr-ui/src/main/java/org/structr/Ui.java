@@ -23,7 +23,11 @@ package org.structr;
 import java.util.HashMap;
 import java.util.Map;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
+import org.structr.rest.servlet.CsvServlet;
+import org.structr.server.DefaultAuthenticator;
+import org.structr.server.DefaultResourceProvider;
 import org.structr.server.Structr;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.UiResourceProvider;
@@ -47,6 +51,14 @@ public class Ui implements org.structr.server.StructrServer {
 
 			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
 			htmlServletHolder.setInitParameters(htmlInitParams);
+			
+			// CSV Servlet
+			CsvServlet csvServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
+			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
+			Map<String, String> servletParams = new HashMap<String, String>();
+
+			servletParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+			csvServletHolder.setInitParameters(servletParams);
 
 			// WebSocket Servlet
 			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
@@ -61,6 +73,7 @@ public class Ui implements org.structr.server.StructrServer {
 				
 				.addServlet("/structr/html/*", htmlServletHolder)
 				.addServlet("/structr/ws/*", wsServletHolder)
+				.addServlet("/structr/csv/*", csvServletHolder)
 			    
 				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
 			    

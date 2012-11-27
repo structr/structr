@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Cache;
-import org.structr.core.entity.Category;
 import org.structr.core.entity.File;
 import org.structr.core.entity.Folder;
 import org.structr.core.entity.GenericNode;
@@ -187,7 +186,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 					assertTrue(entityList.contains(AbstractNode.class));
 					assertTrue(entityList.contains(Cache.class));
-					assertTrue(entityList.contains(Category.class));
 					assertTrue(entityList.contains(File.class));
 					assertTrue(entityList.contains(GenericNode.class));
 					assertTrue(entityList.contains(Image.class));
