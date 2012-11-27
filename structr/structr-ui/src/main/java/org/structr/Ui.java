@@ -51,6 +51,7 @@ public class Ui implements org.structr.server.StructrServer {
 
 			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
 			htmlServletHolder.setInitParameters(htmlInitParams);
+			htmlServletHolder.setInitOrder(1);
 			
 			// CSV Servlet
 			CsvServlet csvServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
@@ -59,6 +60,7 @@ public class Ui implements org.structr.server.StructrServer {
 
 			servletParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
 			csvServletHolder.setInitParameters(servletParams);
+			csvServletHolder.setInitOrder(2);
 
 			// WebSocket Servlet
 			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
@@ -68,6 +70,7 @@ public class Ui implements org.structr.server.StructrServer {
 			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
 			wsInitParams.put("IdProperty", "uuid");
 			wsServletHolder.setInitParameters(wsInitParams);
+			wsServletHolder.setInitOrder(3);
 
 			Structr.createServer(Ui.class, "structr UI", 8082)
 				
@@ -78,6 +81,7 @@ public class Ui implements org.structr.server.StructrServer {
 				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
 			    
 				.enableRewriteFilter()
+				//.logRequests(true)
 				
 				.resourceProvider(UiResourceProvider.class)
 				.authenticator(UiAuthenticator.class)

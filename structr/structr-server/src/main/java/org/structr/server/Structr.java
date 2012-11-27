@@ -42,6 +42,7 @@ import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -50,7 +51,6 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.structr.common.PropertyView;
 import org.structr.context.ApplicationContextListener;
 import org.structr.core.Service;
@@ -361,23 +361,28 @@ public class Structr {
 		
 		List<Connector> connectors           = new LinkedList<Connector>();
 
-		ServletContextHandler servletContext        = new WebAppContext(server, basePath, contextPath);
+		ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
 
 		// create resource collection from base path & source JAR
 		servletContext.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
 		servletContext.setInitParameter("configfile.path", confFile.getAbsolutePath());
+		
+		// this is needed for the filters to work on the root context "/"
+		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
 
 		if (enableGzipCompression) {
 
-			FilterHolder gzipFilter = servletContext.addFilter(GzipFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			FilterHolder gzipFilter = new FilterHolder(GzipFilter.class);
 			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript");
+			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 
 		}
 		
 		if (enableRewriteFilter) {
 			
-			FilterHolder rewriteFilter = servletContext.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
 			rewriteFilter.setInitParameter("confPath", "/urlrewrite.xml");
+			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 		}
 
 		contexts.addHandler(servletContext);
@@ -419,7 +424,8 @@ public class Structr {
 				FileUtils.writeLines(logbackConfFile, "UTF-8", config);
 			}
 
-			FilterHolder loggingFilter = servletContext.addFilter(TeeFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
+			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 			loggingFilter.setInitParameter("includes", "");
 			
 			RequestLogHandler requestLogHandler = new RequestLogHandler();
