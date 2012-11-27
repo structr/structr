@@ -169,7 +169,18 @@ public class TransactionCommand extends NodeServiceCommand {
 					depths.set(depth + 1);
 
 					try {
-						notifyChangeSet(changeSet);
+						
+						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+							@Override
+							public Object execute() throws FrameworkException {
+
+								notifyChangeSet(changeSet);
+
+								return null;
+							}
+
+						});
 
 					} catch(Throwable t) {
 						
