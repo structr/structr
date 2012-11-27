@@ -509,12 +509,30 @@ public class HtmlServlet extends HttpServlet {
 						response.setContentType("application/octet-stream");
 					}
 
-					IOUtils.copy(in, out);
+					try {
 
-					// 3: output content
-					out.flush();
-					out.close();
-					response.setStatus(HttpServletResponse.SC_OK);
+						IOUtils.copy(in, out);
+						
+					} catch (Throwable t) {
+						
+					} finally {
+
+						if (out != null) {
+							
+							try {
+								// 3: output content
+								out.flush();
+								out.close();
+								
+							} catch(Throwable t) {}
+						}
+
+						if (in != null) {
+							in.close();
+						}
+
+						response.setStatus(HttpServletResponse.SC_OK);
+					}
 				}
 
 			} else {

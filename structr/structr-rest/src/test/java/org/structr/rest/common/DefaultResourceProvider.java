@@ -22,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.structr.rest.ResourceProvider;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.*;
 
 /**
@@ -50,6 +49,7 @@ public class DefaultResourceProvider implements ResourceProvider {
 
 		resourceMap.put(Pattern.compile("public"),		ViewFilterResource.class);		// public view (default)
 		resourceMap.put(Pattern.compile("all"),			ViewFilterResource.class);		// all view
+		resourceMap.put(Pattern.compile("ui"),			ViewFilterResource.class);		// ui view
 
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterResource.class);	// maintenance parameter
 

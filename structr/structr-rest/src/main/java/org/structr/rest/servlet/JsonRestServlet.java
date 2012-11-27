@@ -40,11 +40,8 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.PagingHelper;
-import org.structr.rest.resource.RelationshipFollowingResource;
 import org.structr.rest.resource.Resource;
 import org.structr.core.Result;
-import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NoResultsException;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -55,10 +52,8 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
@@ -106,7 +101,7 @@ public class JsonRestServlet extends HttpServlet {
 	private ResultGSONAdapter resultGsonAdapter                 = null;
 	private ResourceProvider resourceProvider                   = null;
 
-	public JsonRestServlet(ResourceProvider resourceProvider, String defaultPropertyView, PropertyKey<String> idProperty) {
+	public JsonRestServlet(final ResourceProvider resourceProvider, final String defaultPropertyView, final PropertyKey<String> idProperty) {
 		
 		this.resourceProvider    = resourceProvider;
 		this.defaultPropertyView = defaultPropertyView;
@@ -174,8 +169,8 @@ public class JsonRestServlet extends HttpServlet {
 			// let module-specific authenticator examine the request first
 			securityContext.initializeAndExamineRequest(request, response);
 
-			List<Resource> chain            = parsePath(securityContext, request);
-			Resource resourceConstraint     = optimizeConstraintChain(chain);
+			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
+			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 
 			// let authenticator examine request again
 			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
@@ -258,7 +253,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
-			Resource resource     = applyViewTransformation(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
+			Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
 			
 			// let authenticator examine request again
 			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(), propertyView.get(securityContext));
@@ -389,11 +384,8 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			// let module-specific authenticator examine the request first
-			securityContext.initializeAndExamineRequest(request, response);
-
-			List<Resource> chain            = parsePath(securityContext, request);
-			Resource resourceConstraint     = optimizeConstraintChain(chain);
+			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
+			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 			
 			// let authenticator examine request again
 			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
@@ -468,11 +460,8 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			// let module-specific authenticator examine the request first
-			securityContext.initializeAndExamineRequest(request, response);
-
-			List<Resource> chain            = parsePath(securityContext, request);
-			Resource resourceConstraint     = optimizeConstraintChain(chain);
+			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
+			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 			
 			// let authenticator examine request again
 			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
@@ -555,8 +544,8 @@ public class JsonRestServlet extends HttpServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<Resource> chain           = parsePath(securityContext, request);
-				Resource resourceConstraint    = optimizeConstraintChain(chain);
+				List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
+				Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// let authenticator examine request again
@@ -585,7 +574,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			
+
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in POST", jsex);
@@ -660,8 +649,8 @@ public class JsonRestServlet extends HttpServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<Resource> chain           = parsePath(securityContext, request);
-				Resource resourceConstraint    = optimizeConstraintChain(chain);
+				List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
+				Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// do action
@@ -744,220 +733,6 @@ public class JsonRestServlet extends HttpServlet {
 	// </editor-fold>
 	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private List<Resource> parsePath(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-
-		String path = request.getPathInfo();
-
-		// intercept empty path and send 204 No Content
-		if (!StringUtils.isNotBlank(path)) {
-
-			throw new NoResultsException();
-
-		}
-
-		// 1.: split request path into URI parts
-		String[] pathParts = path.split("[/]+");
-
-		// 2.: create container for resource constraints
-		List<Resource> constraintChain = new ArrayList<Resource>(pathParts.length);
-
-		// 3.: try to assign resource constraints for each URI part
-		for (int i = 0; i < pathParts.length; i++) {
-
-			// eliminate empty strings
-			String part = pathParts[i].trim();
-
-			if (part.length() > 0) {
-
-				boolean found = false;
-
-				// TEST: schema information
-				if ("_schema".equals(part)) {
-					
-					SchemaResource resource = new SchemaResource();
-					resource.checkAndConfigure("_schema", securityContext, request);
-					constraintChain.add(resource);
-					
-					found = true;
-					break;
-					
-				}
-				
-				// look for matching pattern
-				for (Entry<Pattern, Class<? extends Resource>> entry : resourceMap.entrySet()) {
-
-					Pattern pattern = entry.getKey();
-					Matcher matcher = pattern.matcher(pathParts[i]);
-
-					if (matcher.matches()) {
-
-						Class<? extends Resource> type = entry.getValue();
-						Resource resource              = null;
-						
-						try {
-
-							// instantiate resource constraint
-							resource = type.newInstance();
-
-						} catch (Throwable t) {
-							logger.log(Level.WARNING, "Error instantiating constraint class", t);
-						}
-
-						if(resource != null) {
-							
-							// set security context
-							resource.setSecurityContext(securityContext);
-
-							if (resource.checkAndConfigure(part, securityContext, request)) {
-
-								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}", new Object[] { matcher.pattern(), type.getName(),
-									part });
-
-								// allow constraint to modify context
-								resource.configurePropertyView(propertyView);
-								resource.configureIdProperty(defaultIdProperty);
-
-								// add constraint and go on
-								constraintChain.add(resource);
-
-								found = true;
-
-								// first match wins, so choose priority wisely ;)
-								break;
-
-							}
-						}
-
-					}
-
-				}
-
-				if (!found) {
-					
-					throw new NotFoundException();
-
-				}
-
-			}
-		}
-
-		return constraintChain;
-	}
-
-	private Resource optimizeConstraintChain(List<Resource> constraintChain) throws FrameworkException {
-
-		ViewFilterResource view = null;
-		int num                 = constraintChain.size();
-		boolean found           = false;
-		int iterations          = 0;
-
-		do {
-
-			StringBuilder chain = new StringBuilder();
-
-			for(Iterator<Resource> it = constraintChain.iterator(); it.hasNext();) {
-				
-				Resource constr = it.next();
-
-				chain.append(constr.getClass().getSimpleName());
-				chain.append(", ");
-				
-				if(constr instanceof ViewFilterResource) {
-					view = (ViewFilterResource)constr;
-					it.remove();
-				}
-
-			}
-
-			logger.log(Level.FINE, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() });
-
-			found = false;
-
-			try {
-				
-				for(int i=0; i<num; i++) {
-					Resource firstElement       = constraintChain.get(i);
-					Resource secondElement      = constraintChain.get(i + 1);
-					Resource combinedConstraint = firstElement.tryCombineWith(secondElement);
-
-					if (combinedConstraint != null) {
-
-						logger.log(Level.FINE, "Combined constraint {0} and {1} to {2}", new Object[] { 
-							firstElement.getClass().getSimpleName(), 
-							secondElement.getClass().getSimpleName(),
-							combinedConstraint.getClass().getSimpleName()
-						} );
-
-						// remove source constraints
-						constraintChain.remove(firstElement);
-						constraintChain.remove(secondElement);
-
-						// add combined constraint
-						constraintChain.add(i, combinedConstraint);
-
-						// signal success
-						found = true;
-
-						if (combinedConstraint instanceof RelationshipFollowingResource) {
-
-							break;
-
-						}
-					}
-				}
-
-			} catch(Throwable t) {
-				// ignore exceptions thrown here
-			}
-
-			iterations++;
-
-		} while (found);
-
-		StringBuilder chain = new StringBuilder();
-
-		for (Resource constr : constraintChain) {
-
-			chain.append(constr.getClass().getSimpleName());
-			chain.append(", ");
-
-		}
-
-		logger.log(Level.FINE, "Final constraint chain {0}", chain.toString());
-
-		if (constraintChain.size() == 1) {
-
-			Resource finalConstraint = constraintChain.get(0);
-			if(view != null) {
-				finalConstraint = finalConstraint.tryCombineWith(view);
-			}
-			
-			// inform final constraint about the configured ID property
-			finalConstraint.configureIdProperty(defaultIdProperty);
-			
-			return finalConstraint;
-
-		}
-
-		throw new IllegalPathException();
-	}
-
-	private Resource applyViewTransformation(HttpServletRequest request, SecurityContext securityContext, Resource finalResource) throws FrameworkException {
-
-		Resource transformedResource = finalResource;
-
-		// add view transformation
-		Class type = finalResource.getEntityClass();
-		if(type != null) {
-			
-			ViewTransformation transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
-			if(transformation != null) {
-				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
-			}
-		}
-
-		return transformedResource;
-	}
 
 	/**
 	 * Tries to parse the given String to an int value, returning
