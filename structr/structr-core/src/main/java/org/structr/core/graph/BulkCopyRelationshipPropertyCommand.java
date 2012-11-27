@@ -19,11 +19,9 @@
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -32,8 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.common.property.GenericProperty;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -64,45 +65,43 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 		
 		if(graphDb != null) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction() {
+			List<AbstractRelationship> rels = relFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+
+			long count = bulkGraphOperation(securityContext, rels, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
-				public Object execute(Transaction tx) throws FrameworkException {
+				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
-					List<AbstractRelationship> rels = relFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
-					long n = 0;
-					
-					for(AbstractRelationship rel : rels) {
+					// Treat only "our" rels
+					if(rel.getProperty(AbstractNode.uuid) != null) {
 
-						// Treat only "our" rels
-						if(rel.getProperty(AbstractNode.uuid) != null) {
-
+						Class type = rel.getClass();
+						PropertyKey destPropertyKey   = EntityContext.getPropertyKeyForDatabaseName(type, destKey);
+						PropertyKey sourcePropertyKey = EntityContext.getPropertyKeyForDatabaseName(type, sourceKey);
+						
+						try {
 							// copy properties
-							// FIXME: synthetic Property generation
-							rel.setProperty(new GenericProperty(destKey), rel.getProperty(new GenericProperty(sourceKey)));
+							rel.setProperty(destPropertyKey, rel.getProperty(sourcePropertyKey));
 							
-							if(n > 1000 && n % 1000 == 0) {
-
-								logger.log(Level.INFO, "Set properties on {0} rels, committing results to database.", n);
-								tx.success();
-								tx.finish();
-
-								tx = graphDb.beginTx();
-
-								logger.log(Level.FINE, "######## committed ########", n);
-
-							}
-
-							n++;
-
+						} catch (FrameworkException fex) {
+							
+							logger.log(Level.WARNING, "Unable to copy relationship property {0} of relationship {1} to {2}: {3}", new Object[] { sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage() } );
 						}
 					}
+				}
 
-					logger.log(Level.INFO, "Finished setting properties on {0} nodes", n);
+				@Override
+				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
+					logger.log(Level.WARNING, "Unable to copy relationship properties of relationship {0}: {1}", new Object[] { rel.getUuid(), t.getMessage() } );
+				}
 
-					return null;
+				@Override
+				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+					logger.log(Level.WARNING, "Unable to copy relationship properties: {0}", t.getMessage() );
 				}
 			});
+
+			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count);
 
 		}
 	}

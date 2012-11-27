@@ -101,4 +101,30 @@ public class IntProperty extends Property<Integer> {
 			return null;
 		}
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		
+		if (value != null) {
+			
+			if (value instanceof Integer) {
+				return value;
+			}
+			
+			if (value instanceof Number) {
+				return ((Number)value).intValue();
+			}
+			
+			try {
+				
+				return Integer.parseInt(value.toString());
+				
+			} catch (Throwable t) {
+				
+				// no chance, give up..
+			}
+		}
+		
+		return null;
+	}
 }

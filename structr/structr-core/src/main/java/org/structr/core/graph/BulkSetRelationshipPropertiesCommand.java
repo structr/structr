@@ -23,7 +23,6 @@ package org.structr.core.graph;
 
 import java.util.LinkedList;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
@@ -37,11 +36,12 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.common.property.GenericProperty;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchRelationshipCommand;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,66 +68,63 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
                 
 		if (graphDb != null) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction() {
+			List<AbstractRelationship> rels = null;
+
+			if (properties.containsKey(AbstractRelationship.combinedType.dbName())) {
+
+				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+				attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.combinedType.dbName())));
+
+				rels = (List<AbstractRelationship>) searchRel.execute(attrs);
+				properties.remove(AbstractRelationship.combinedType.dbName());
+
+			} else {
+
+				rels = (List<AbstractRelationship>) relationshipFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+			}
+
+			long count = NodeServiceCommand.bulkGraphOperation(securityContext, rels, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
-				public Object execute(Transaction tx) throws FrameworkException {
+				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
-					long n                  = 0L;
-                                        List<AbstractRelationship> rels = null;
-                                        
-                                        if (properties.containsKey(AbstractRelationship.combinedType.dbName())) {
-                                                
-                                                List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.combinedType.dbName())));
-                                                
-                                                rels = (List<AbstractRelationship>) searchRel.execute(attrs);
-                                                properties.remove(AbstractRelationship.combinedType.dbName());
-                                                
-                                        } else {
-                                        
-                                                rels = (List<AbstractRelationship>) relationshipFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
-                                        }
+					// Treat only "our" nodes
+					if (rel.getProperty(AbstractRelationship.uuid) != null) {
 
-					for (AbstractRelationship rel : rels) {
+						for (Entry entry : properties.entrySet()) {
 
-						// Treat only "our" nodes
-						if (rel.getProperty(AbstractRelationship.uuid) != null) {
+							String key = (String) entry.getKey();
+							Object val = entry.getValue();
 
-							for (Entry entry : properties.entrySet()) {
-                                                                
-                                                                String key = (String) entry.getKey();
-                                                                Object val = entry.getValue();
-                                                                
-								// FIXME: synthetic Property generation
-                                                                rel.setProperty(new GenericProperty(key), val);
-                                                                
-                                                        }
+							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(rel.getClass(), key);
+							if (propertyKey != null) {
 
-							if (n > 1000 && n % 1000 == 0) {
+								try {
+									rel.setProperty(propertyKey, val);
+									
+							
+								} catch (FrameworkException fex) {
 
-								logger.log(Level.INFO, "Set properties on {0} relationships, committing results to database.", n);
-								tx.success();
-								tx.finish();
-
-								tx = graphDb.beginTx();
-
-								logger.log(Level.FINE, "######## committed ########", n);
-
+									logger.log(Level.WARNING, "Unable to set relationship property {0} of relationship {1} to {2}: {3}", new Object[] { propertyKey, rel.getUuid(), val, fex.getMessage() } );
+								}
 							}
-
-							n++;
-
 						}
 					}
-                                        
-                                        logger.log(Level.INFO, "Finished setting properties on {0} relationships", n);
+				}
 
-					return null;
+				@Override
+				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
+					logger.log(Level.WARNING, "Unable to set properties of relationship {0}: {1}", new Object[] { rel.getUuid(), t.getMessage() } );
+				}
+
+				@Override
+				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+					logger.log(Level.WARNING, "Unable to set relationship properties: {0}", t.getMessage() );
 				}
 
 			});
 
+			logger.log(Level.INFO, "Finished setting properties on {0} relationships", count);
 		}
 	}
 }

@@ -56,5 +56,9 @@ public class HyperRelationProperty<T> extends Property<T> {
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
-	
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

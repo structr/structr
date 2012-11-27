@@ -53,4 +53,9 @@ public class ImageDataProperty<T> extends Property<String> {
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

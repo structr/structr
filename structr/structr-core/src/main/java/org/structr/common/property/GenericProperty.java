@@ -36,4 +36,9 @@ public class GenericProperty<T> extends Property<T> {
 	public String typeName() {
 		return "FIXME: GenericProperty.java:37";
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

@@ -52,4 +52,9 @@ public class StartNodeGroup extends GroupProperty {
 	public String typeName() {
 		return ""; // read-only
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

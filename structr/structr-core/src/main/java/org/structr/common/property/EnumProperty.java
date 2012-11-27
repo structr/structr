@@ -62,6 +62,19 @@ public class EnumProperty<T extends Enum> extends Property<T> {
 		return new InputConverter(securityContext);
 	}
 	
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		
+		if (value != null) {
+			
+			if (value instanceof String) {
+				return value;
+			}
+		}
+		
+		return null;
+	}
+
 	protected class DatabaseConverter extends PropertyConverter<T, String> {
 
 		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {

@@ -93,4 +93,30 @@ public class LongProperty extends Property<Long> {
 			return null;
 		}
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		
+		if (value != null) {
+			
+			if (value instanceof Long) {
+				return value;
+			}
+			
+			if (value instanceof Number) {
+				return ((Number)value).longValue();
+			}
+			
+			try {
+				
+				return Long.parseLong(value.toString());
+				
+			} catch (Throwable t) {
+				
+				// no chance, give up..
+			}
+		}
+		
+		return null;
+	}
 }

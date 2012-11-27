@@ -21,8 +21,8 @@
 
 package org.structr.core.graph;
 
+import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
@@ -42,7 +42,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.GenericProperty;
+import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,74 +72,72 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 		if (graphDb != null) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction() {
+			Result<AbstractNode> nodes = null;
+
+			if (properties.containsKey(AbstractNode.type.dbName())) {
+
+				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+
+				attrs.add(Search.andExactType((String) properties.get(AbstractNode.type.dbName())));
+
+				nodes = searchNode.execute(attrs);
+
+				properties.remove(AbstractNode.type.dbName());
+
+			} else {
+
+				nodes = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+			}
+
+
+			long nodeCount = NodeServiceCommand.bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
-				public Object execute(Transaction tx) throws FrameworkException {
+				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-					Result<AbstractNode> result = null;
-					long n                      = 0L;
+					// Treat only "our" nodes
+					if (node.getProperty(AbstractNode.uuid) != null) {
 
-					if (properties.containsKey(AbstractNode.type.dbName())) {
+						for (Entry entry : properties.entrySet()) {
 
-						List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+							String key = (String) entry.getKey();
+							Object val = entry.getValue();
 
-						attrs.add(Search.andExactType((String) properties.get(AbstractNode.type.dbName())));
+							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(node.getClass(), key);
+							if (propertyKey != null) {
 
-						result = searchNode.execute(attrs);
+								try {
+									node.unlockReadOnlyPropertiesOnce();
+									node.setProperty(propertyKey, val);
+									
+								} catch (FrameworkException fex) {
 
-						properties.remove(AbstractNode.type.dbName());
-
-					} else {
-
-						result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
-					}
-
-					for (AbstractNode node : result.getResults()) {
-
-						// Treat only "our" nodes
-						if (node.getProperty(AbstractNode.uuid) != null) {
-
-							for (Entry entry : properties.entrySet()) {
-
-								String key = (String) entry.getKey();
-								Object val = entry.getValue();
-
-								node.unlockReadOnlyPropertiesOnce();
-								
-								// FIXME: synthetic Property generation
-								node.setProperty(new GenericProperty(key), val);
-
+									logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, node.getUuid(), val, fex.getMessage() } );
+									
+								}
 							}
-
-							if (n > 1000 && n % 1000 == 0) {
-
-								logger.log(Level.INFO, "Set properties on {0} nodes, committing results to database.", n);
-								tx.success();
-								tx.finish();
-
-								tx = graphDb.beginTx();
-
-								logger.log(Level.FINE, "######## committed ########", n);
-
-							}
-
-							n++;
 
 						}
 
 					}
-
-					logger.log(Level.INFO, "Finished setting properties on {0} nodes", n);
-
-					return null;
-
 				}
 
+				@Override
+				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+					logger.log(Level.WARNING, "Unable to set properties of node {0}: {1}", new Object[] { node.getUuid(), t.getMessage() } );
+				}
+
+				@Override
+				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+					logger.log(Level.WARNING, "Unable to set node properties: {0}", t.getMessage() );
+				}
 			});
 
+
+			logger.log(Level.INFO, "Fixed {0} nodes ...", nodeCount);
 		}
 
+		logger.log(Level.INFO, "Done");
 	}
 
 }

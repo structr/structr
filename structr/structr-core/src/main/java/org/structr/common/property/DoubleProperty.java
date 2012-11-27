@@ -93,4 +93,30 @@ public class DoubleProperty extends Property<Double> {
 			return null;
 		}
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		
+		if (value != null) {
+			
+			if (value instanceof Double) {
+				return value;
+			}
+			
+			if (value instanceof Number) {
+				return ((Number)value).intValue();
+			}
+			
+			try {
+				
+				return Double.parseDouble(value.toString());
+				
+			} catch (Throwable t) {
+				
+				// no chance, give up..
+			}
+		}
+		
+		return null;
+	}
 }

@@ -42,6 +42,11 @@ public class AggregatorProperty<JavaType> extends Property<JavaType> {
 	public String typeName() {
 		return ""; // read-only
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 	
 	@Override
 	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {

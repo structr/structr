@@ -22,11 +22,9 @@
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 
@@ -34,7 +32,7 @@ import org.structr.core.entity.AbstractNode;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.GraphObject;
+import org.structr.common.SecurityContext;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -59,46 +57,38 @@ public class ClearDatabase extends NodeServiceCommand {
 
 		if (graphDb != null) {
 
-			final DeleteNodeCommand delNode = Services.command(securityContext, DeleteNodeCommand.class);
-
-			Services.command(securityContext, TransactionCommand.class).execute(new BatchTransaction() {
+			final DeleteNodeCommand delNode   = Services.command(securityContext, DeleteNodeCommand.class);
+			final Result<AbstractNode> result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+			
+			long deletedNodes = bulkGraphOperation(securityContext, result.getResults(), 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
-				public Object execute(Transaction tx) throws FrameworkException {
+				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-					Result<AbstractNode> result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
-					long nodes    = 0L;
+					// Delete only "our" nodes
+					if (node.getProperty(AbstractNode.uuid) != null) {
 
-					for (AbstractNode node : result.getResults()) {
-
-						// Delete only "our" nodes
-						if (node.getProperty(AbstractNode.uuid) != null) {
-
+						try {
 							delNode.execute(node);
-
-							if (nodes > 1000 && nodes % 1000 == 0) {
-
-								logger.log(Level.INFO, "Deleted {0} nodes, committing results to database.", nodes);
-								tx.success();
-								tx.finish();
-
-								tx = graphDb.beginTx();
-
-								logger.log(Level.FINE, "######## committed ########", nodes);
-
-							}
-
-							nodes++;
-
+							
+						} catch (FrameworkException fex) {
+							logger.log(Level.WARNING, "Unable to delete node {0}: {1}", new Object[] { node.getUuid(), fex.getMessage() } );
 						}
 					}
-                                        
-                                        logger.log(Level.INFO, "Finished deleting {0} nodes", nodes);
-
-					return null;
 				}
 
+				@Override
+				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+					logger.log(Level.WARNING, "Unable to delete node {0}: {1}", new Object[] { node.getUuid(), t.getMessage() } );
+				}
+
+				@Override
+				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+					logger.log(Level.WARNING, "Unable to clear database: {0}", t.getMessage() );
+				}
 			});
+
+			logger.log(Level.INFO, "Finished deleting {0} nodes", deletedNodes);
 
 		}
 	}

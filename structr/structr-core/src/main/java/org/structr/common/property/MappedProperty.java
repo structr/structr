@@ -57,4 +57,9 @@ public class MappedProperty<T> extends Property<T> {
 		return mappedKey.inputConverter(securityContext);
 	}
 	
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

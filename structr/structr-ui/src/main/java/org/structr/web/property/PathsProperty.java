@@ -31,4 +31,9 @@ public class PathsProperty extends Property<Set<String>> {
 	public PropertyConverter<?, Set<String>> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

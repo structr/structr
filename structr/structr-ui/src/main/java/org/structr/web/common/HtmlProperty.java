@@ -17,4 +17,9 @@ public class HtmlProperty extends Property<String> {
 	public String typeName() {
 		return "String";
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

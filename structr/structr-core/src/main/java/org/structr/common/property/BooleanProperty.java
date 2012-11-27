@@ -52,6 +52,24 @@ public class BooleanProperty extends Property<Boolean> {
 	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		
+		if (value != null) {
+			
+			if (value instanceof Boolean) {
+				return value;
+			}
+			
+			if (value instanceof String) {
+				
+				return TRUE_VALUES.contains(value.toString().toLowerCase());
+			}
+		}
+		
+		return false;
+	}
 	
 	protected class DatabaseConverter extends PropertyConverter<Boolean, Boolean> {
 

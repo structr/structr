@@ -78,4 +78,9 @@ public class NotionProperty<T extends Collection<?>> extends Property<T> {
 			return null;
 		}
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

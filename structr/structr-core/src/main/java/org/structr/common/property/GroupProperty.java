@@ -110,7 +110,40 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 	}
 	
-	public <T> PropertyKey<T> getGroupProperty(String name, Class<T> type) {
+	/**
+	 * Returns the nested group property for the given name. The PropertyKey returned by
+	 * this method can be used to get and/or set the property value in a PropertyMap that
+	 * is obtained or stored in the group property.
+	 * 
+	 * @param <T>
+	 * @param name
+	 * @param type
+	 * @return 
+	 */
+	public <T> PropertyKey<T> getNestedProperty(String name, Class<T> type) {
+		
+		if (!propertyKeys.containsKey(name)) {
+			throw new IllegalArgumentException("GroupProperty " + dbName + " does not contain grouped property " + name + "!");
+		}
+		
+		return propertyKeys.get(name);
+	}
+	
+	/**
+	 * Returns a wrapped group property that can be used to access a nested group
+	 * property directly, i.e. without having to fetch the group first.
+	 * 
+	 * @param <T>
+	 * @param name
+	 * @param type
+	 * @return 
+	 */
+	public <T> PropertyKey<T> getDirectAccessGroupProperty(String name, Class<T> type) {
+		
+		if (!propertyKeys.containsKey(name)) {
+			throw new IllegalArgumentException("GroupProperty " + dbName + " does not contain grouped property " + name + "!");
+		}
+		
 		return new GroupPropertyWrapper((propertyKeys.get(name)));
 	}
 	
@@ -234,6 +267,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			}
 			
 		}
+	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
 	}
 	
 	/**

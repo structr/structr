@@ -18,13 +18,15 @@
  */
 package org.structr.core.graph;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Node;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.EntityContext;
 import org.structr.core.Result;
@@ -47,109 +49,108 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 		final String propertyName      = (String)attributes.get("name");
 		final String entityTypeName    = (String)attributes.get("type");
-		long nodeCount                 = 0L;
 
-		if (propertyName != null && entityTypeName != null) {
+		if (entityTypeName != null) {
 
 			final Class type = EntityContext.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
 				
-				final PropertyKey propertyToFix   = EntityContext.getPropertyKeyForDatabaseName(type, propertyName);
 				final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 				final List<AbstractNode> nodes    = result.getResults();
 
-				if (propertyToFix != null && type != null) {
+				if (type != null) {
 
-					logger.log(Level.INFO, "Start fixing {0} properties of type {1}", new Object[] { propertyToFix.dbName(), type.getSimpleName() } );
+					logger.log(Level.INFO, "Trying to fix properties of {0} {1} nodes", new Object[] { nodes.size(), type.getSimpleName() } );
 
-					final Iterator<AbstractNode> nodeIterator = nodes.iterator();
-					while (nodeIterator.hasNext()) {
+					long nodeCount = bulkGraphOperation(securityContext, nodes, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
-						nodeCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
+						private void fixProperty(AbstractNode node, Property propertyToFix) {
+							
+							Node databaseNode = node.getNode();
 
-							@Override
-							public Integer execute() throws FrameworkException {
+							if (databaseNode.hasProperty(propertyToFix.dbName())) {
 
-								int count = 0;
+								// check value with property converter
+								PropertyConverter converter = propertyToFix.databaseConverter(securityContext, node);
+								if (converter != null) {
 
-								while (nodeIterator.hasNext()) {
+									try {
+										Object value = databaseNode.getProperty(propertyToFix.dbName());
+										converter.revert(value);
 
-									AbstractNode abstractNode = nodeIterator.next();
-									Node databaseNode         = abstractNode.getNode();
+									} catch (ClassCastException cce) {
 
-									if (databaseNode.hasProperty(propertyToFix.dbName())) {
+										// exception, needs fix
+										String databaseName   = propertyToFix.dbName();
+										Object databaseValue  = databaseNode.getProperty(databaseName);
+										Object correctedValue = propertyToFix.fixDatabaseProperty(databaseValue);
 
-										PropertyConverter dbConverter = propertyToFix.databaseConverter(securityContext, abstractNode);
-										PropertyConverter inConverter = propertyToFix.inputConverter(securityContext);
-										Object rawValue               = databaseNode.getProperty(propertyToFix.dbName());
-										Object correctedValue         = null;
-
-										try {
-
-											// try to use converter first
-											correctedValue = dbConverter.convert(rawValue);
-
-										} catch(Throwable t0) {
+										if (databaseValue != null && correctedValue != null) {
 
 											try {
-												// conversion did not work, try input converter
-												correctedValue = inConverter.convert(rawValue);
+												// try to set database value to corrected value
+												databaseNode.setProperty(databaseName, correctedValue);
 
-											} catch (Throwable t1) {
+											} catch (Throwable t) {
 
-												logger.log(Level.WARNING, "Unable to fix property type for {0} on {1}, please specify conversionType!", new Object[] {
-													propertyToFix.dbName(),
-													type.getSimpleName()
-												}
-												);
-											}
-										}
-
-										if (correctedValue != null) {
-
-											try {
-
-//												logger.log(Level.INFO, "Setting {0} of {1} {2} to {3} {4}", new Object[] {
-//													propertyToFix.name(),
-//													abstractNode.getType(),
-//													abstractNode.getUuid(),
-//													correctedValue.getClass(),
-//													correctedValue
-//												});
-
-												abstractNode.setProperty(propertyToFix, correctedValue);
-
-
-											} catch(Throwable t) {
-
-
-												logger.log(Level.WARNING, "Unable to set property {0} on {1}: {2}", new Object[] {
+												logger.log(Level.WARNING, "Unable to fix property {0} of {1} with UUID {2} which is of type {3}", new Object[] {
 													propertyToFix.dbName(),
 													type.getSimpleName(),
-													t.getMessage()
-												}
-												);
+													node.getUuid(),
+													databaseValue != null ? databaseValue.getClass() : "null"
+												});
 
 											}
 										}
-									}
 
-									// restart transaction after 1000 iterations
-									if (++count == 100) {
-										break;
+									} catch (Throwable t) {
+
+										// log exceptions of other types
+										t.printStackTrace();
 									}
 								}
-
-								return count;
 							}
+						}
+						
+						@Override
+						public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-						});
+							if (propertyName != null) {
+								
+								PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type, propertyName);
+								if (key != null) {
+									
+									// needs type cast to Property to use fixDatabaseProperty method
+									if (key instanceof Property) {
+										fixProperty(node, (Property)key);
+									}
+								}
+								
+							} else {
+								
+								for(PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
+									
+									// needs type cast to Property to use fixDatabaseProperty method
+									if (key instanceof Property) {
+										fixProperty(node, (Property)key);
+									}
+								}
+							}
+						}
 
-						logger.log(Level.INFO, "Fixed {0} nodes ...", nodeCount);
-					}
+						@Override
+						public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode currentObject) {
+							t.printStackTrace();
+						}
 
-					logger.log(Level.INFO, "Done");
-
+						@Override
+						public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+							t.printStackTrace();
+						}
+					});
+					
+					logger.log(Level.INFO, "Fixed {0} nodes", nodeCount);
+					
 					return;
 				}
 			}

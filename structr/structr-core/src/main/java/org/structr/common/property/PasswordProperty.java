@@ -10,7 +10,7 @@ import org.structr.core.converter.ValidationInfo;
  *
  * @author Christian Morgner
  */
-public class PasswordProperty extends Property<String> {
+public class PasswordProperty extends StringProperty {
 
 	private ValidationInfo info = null;
 	

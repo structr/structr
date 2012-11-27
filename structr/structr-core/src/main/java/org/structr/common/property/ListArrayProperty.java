@@ -84,4 +84,9 @@ public class ListArrayProperty extends Property<String> {
 			return StringUtils.join((String[]) source, SEP);
 		}
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

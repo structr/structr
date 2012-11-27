@@ -16,43 +16,18 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.property;
+package org.structr.core.graph;
+
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 
 /**
  *
  * @author Christian Morgner
  */
-public class StringProperty extends Property<String> {
+public interface BulkGraphOperation<T extends GraphObject> {
 	
-	public StringProperty(String name) {
-		this(name, name);
-	}
-	
-	public StringProperty(String jsonName, String dbName) {
-		super(jsonName, dbName);
-	}
-	
-	public StringProperty(String jsonName, String dbName, String defaultValue) {
-		super(jsonName, dbName, defaultValue);
-	}
-	
-	@Override
-	public String typeName() {
-		return "String";
-	}
-
-	@Override
-	public Object fixDatabaseProperty(Object value) {
-		
-		if (value != null) {
-			
-			if (value instanceof String) {
-				return value;
-			}
-			
-			return value.toString();
-		}
-		
-		return null;
-	}
+	public void handleGraphObject(SecurityContext securityContext, T obj);
+	public void handleThrowable(SecurityContext securityContext, Throwable t, T currentObject);
+	public void handleTransactionFailure(SecurityContext securityContext, Throwable t);
 }

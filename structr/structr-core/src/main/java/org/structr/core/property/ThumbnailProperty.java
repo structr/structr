@@ -69,4 +69,8 @@ public class ThumbnailProperty<T> extends Property<Image> {
 
 	}
 
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

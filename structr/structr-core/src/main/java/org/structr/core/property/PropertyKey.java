@@ -46,7 +46,7 @@ public interface PropertyKey<JavaType> {
 	
 	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy);
 	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
-
+	
 	public void setDeclaringClassName(String declaringClassName);
 
 	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch);

@@ -47,4 +47,9 @@ public class EndNodeGroup extends GroupProperty {
 
 		return null;
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
 }

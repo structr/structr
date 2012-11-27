@@ -55,6 +55,37 @@ public class DateProperty extends Property<Date> {
 	public PropertyConverter<String, Date> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
+
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		
+		if (value != null) {
+			
+			if (value instanceof Long) {
+				return value;
+			}
+			
+			if (value instanceof Number) {
+				return ((Number)value).longValue();
+			}
+			
+			try {
+				
+				return Long.parseLong(value.toString());
+				
+			} catch (Throwable t) {
+			}
+			
+			try {
+				
+				return dateFormat.parse(value.toString()).getTime();
+				
+			} catch (Throwable t) {
+			}
+		}
+		
+		return null;
+	}
 	
 	private class DatabaseConverter extends PropertyConverter<Date, Long> {
 

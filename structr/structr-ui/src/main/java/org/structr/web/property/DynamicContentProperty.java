@@ -1,7 +1,7 @@
 package org.structr.web.property;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.web.converter.DynamicConverter;
@@ -10,7 +10,7 @@ import org.structr.web.converter.DynamicConverter;
  *
  * @author Christian Morgner
  */
-public class DynamicContentProperty extends Property<String> {
+public class DynamicContentProperty extends StringProperty {
 	
 	public DynamicContentProperty(String name) {
 		super(name);

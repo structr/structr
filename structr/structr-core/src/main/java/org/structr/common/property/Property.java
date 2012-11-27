@@ -56,6 +56,8 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 		this.dbName = dbName;
 	}
 	
+	public abstract Object fixDatabaseProperty(Object value);
+	
 	public Property<JavaType> systemProperty() {
 		this.isSystemProperty = true;
 		return this;
