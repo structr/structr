@@ -369,6 +369,7 @@ public class Structr {
 		
 		// this is needed for the filters to work on the root context "/"
 		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
+		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
 		if (enableGzipCompression) {
 
