@@ -302,6 +302,7 @@ public class TypeResource extends SortableResource {
 
 	}
 
+	@Override
 	public Class getEntityClass() {
 
 		return entityClass;

@@ -103,19 +103,19 @@ public class ResourceHelper {
 
 				boolean found = false;
 
-				// Special resource: _schema contains schema information
-				if ("_schema".equals(part)) {
-
-					SchemaResource resource = new SchemaResource();
-
-					resource.checkAndConfigure("_schema", securityContext, request);
-					constraintChain.add(resource);
-
-					found = true;
-
-					break;
-
-				}
+//				// Special resource: _schema contains schema information
+//				if ("_schema".equals(part)) {
+//
+//					SchemaResource resource = new SchemaResource();
+//
+//					resource.checkAndConfigure("_schema", securityContext, request);
+//					constraintChain.add(resource);
+//
+//					found = true;
+//
+//					break;
+//
+//				}
 
 				// look for matching pattern
 				for (Map.Entry<Pattern, Class<? extends Resource>> entry : resourceMap.entrySet()) {

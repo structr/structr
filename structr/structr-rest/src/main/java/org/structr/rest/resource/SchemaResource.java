@@ -35,6 +35,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.module.ModuleService;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
+import org.structr.rest.exception.IllegalPathException;
 
 /**
  *
@@ -147,7 +148,16 @@ public class SchemaResource extends Resource {
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
-		return null;
+
+		if (next instanceof TypeResource) {
+
+			SchemaTypeResource schemaTypeResource = new SchemaTypeResource(securityContext, (TypeResource) next);
+
+			return schemaTypeResource;
+
+		}
+
+		throw new IllegalPathException();
 	}
 
 	@Override
