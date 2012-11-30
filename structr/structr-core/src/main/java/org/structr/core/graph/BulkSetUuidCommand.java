@@ -21,12 +21,16 @@
 
 package org.structr.core.graph;
 
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.tooling.GlobalGraphOperations;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -36,15 +40,15 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
-import org.structr.common.SecurityContext;
+import org.neo4j.graphdb.DynamicRelationshipType;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Set a new UUID on each node of the given type
- * 
+ * Set a new UUID on each graph object of the given type.
+ *
+ * For nodes, set type, for relationships relType
+ *
  * @author Axel Morgner
  */
 public class BulkSetUuidCommand extends NodeServiceCommand implements MaintenanceCommand {
@@ -56,19 +60,22 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
-		final String entityTypeName = (String) attributes.get("type");
+		final String entityType                = (String) attributes.get("type");
+		final String relType                   = (String) attributes.get("relType");
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		long nodeCount              = 0L;
+		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
+		long nodeCount                         = 0L;
+		long relCount                          = 0L;
 
-		if (entityTypeName != null) {
+		if (entityType != null) {
 
-			final Class type = EntityContext.getEntityClassForRawType(entityTypeName);
+			final Class type = EntityContext.getEntityClassForRawType(entityType);
 
 			if (type != null) {
 
-				//final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
+				// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 				final Result<AbstractNode> result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 				final List<AbstractNode> nodes    = result.getResults();
 
@@ -77,7 +84,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				final Iterator<AbstractNode> nodeIterator = nodes.iterator();
 
 				while (nodeIterator.hasNext()) {
-					
+
 					nodeCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
 
 						@Override
@@ -88,8 +95,9 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 							while (nodeIterator.hasNext()) {
 
 								AbstractNode abstractNode = nodeIterator.next();
-								
+
 								if (!abstractNode.getClass().equals(type)) {
+
 									continue;
 								}
 
@@ -124,9 +132,66 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				logger.log(Level.INFO, "Done");
 
 				return;
+			}
+
+		} else if (relType != null) {
+
+			// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
+			final List<AbstractRelationship> rels = relFactory.instantiateRelationships(superUserContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+
+			logger.log(Level.INFO, "Start setting UUID on all rels of type {1}", new Object[] { AbstractRelationship.uuid, relType });
+
+			final Iterator<AbstractRelationship> nodeIterator = rels.iterator();
+
+			while (nodeIterator.hasNext()) {
+
+				relCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
+
+					@Override
+					public Integer execute() throws FrameworkException {
+
+						int count = 0;
+
+						while (nodeIterator.hasNext()) {
+
+							AbstractRelationship abstractRel = nodeIterator.next();
+
+							if (!abstractRel.getType().equals(relType)) {
+
+								continue;
+							}
+
+							try {
+
+								abstractRel.setProperty(AbstractRelationship.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
+
+							} catch (Throwable t) {
+
+								logger.log(Level.WARNING, "Unable to set UUID on {0}: {1}", new Object[] { relType, t.getMessage() });
+
+							}
+
+							// restart transaction after 1000 iterations
+							if (++count == 1000) {
+
+								break;
+							}
+
+						}
+
+						return count;
+
+					}
+
+				});
+
+				logger.log(Level.INFO, "Set UUID on {0} rels ...", relCount);
 
 			}
 
+			logger.log(Level.INFO, "Done");
+
+			return;
 		}
 
 		logger.log(Level.INFO, "Unable to determine entity type to set UUID.");
