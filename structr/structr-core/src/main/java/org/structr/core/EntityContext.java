@@ -85,7 +85,6 @@ public class EntityContext {
 
 	// This map contains a mapping from (sourceType, destType) -> RelationClass
 	private static final Map<Class, Map<Class, RelationClass>> globalRelationClassMap      = new LinkedHashMap<Class, Map<Class, RelationClass>>();
-	private static final Map<Class, Set<PropertyKey>> globalReadOnlyPropertyMap            = new LinkedHashMap<Class, Set<PropertyKey>>();
 	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap   = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
 	private static final Map<Class, Map<String, PropertyKey>> globalClassDBNamePropertyMap = new LinkedHashMap<Class, Map<String, PropertyKey>>();
 	private static final Map<Class, Map<String, PropertyKey>> globalClassJSNamePropertyMap = new LinkedHashMap<Class, Map<String, PropertyKey>>();

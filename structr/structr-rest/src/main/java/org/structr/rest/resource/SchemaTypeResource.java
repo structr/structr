@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -117,6 +116,7 @@ public class SchemaTypeResource extends Resource {
 					propProperties.put("readOnly", property.isReadOnlyProperty());
 					propProperties.put("system", property.isSystemProperty());
 					
+					/*
 					if (property instanceof RelationProperty) {
 						
 						RelationProperty relProp = (RelationProperty) property;
@@ -124,7 +124,8 @@ public class SchemaTypeResource extends Resource {
 						propProperties.put("isCollection", relProp.isCollection());
 						propProperties.put("notion", relProp.getNotion());
 					}
-
+					*/
+					
 					PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
 					PropertyConverter inputConverter    = property.inputConverter(securityContext);
 

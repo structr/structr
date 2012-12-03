@@ -274,62 +274,37 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		return null;
 	}
 	
+	@Override
+	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getGroupedProperties(securityContext, obj);
+	}
+	
+	@Override
+	public void setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
+		setGroupedProperties(securityContext, value, obj);
+	}
+	
 	/**
 	 * Acts as a wrapper for property keys to prefix their name with
 	 * the name of the surrounding property group.
 	 */
-	private class GroupPropertyWrapper implements PropertyKey {
+	private class GroupPropertyWrapper extends Property {
 
 		private PropertyKey wrappedKey = null;
 		
 		public GroupPropertyWrapper(PropertyKey keyToWrap) {
+			
+			super(GroupProperty.this.jsonName.concat(".").concat(keyToWrap.jsonName()),
+			      GroupProperty.this.dbName.concat(".").concat(keyToWrap.jsonName()),
+			      keyToWrap.defaultValue()
+			);
+			
 			this.wrappedKey = keyToWrap;
 		}
 		
 		@Override
 		public String toString() {
 			return "(".concat(jsonName()).concat("|").concat(dbName()).concat(")");
-		}
-	
-		@Override
-		public int hashCode() {
-
-			// make hashCode funtion work for subtypes that override jsonName() etc. as well
-			if (dbName() != null && jsonName() != null) {
-				return (dbName().hashCode() * 31) + jsonName().hashCode();
-			}
-
-			if (dbName() != null) {
-				return dbName().hashCode();
-			}
-
-			if (jsonName() != null) {
-				return jsonName().hashCode();
-			}
-
-			// TODO: check if it's ok if null key is not unique
-			return super.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object o) {
-
-			if (o instanceof PropertyKey) {
-
-				return o.hashCode() == hashCode();
-			}
-
-			return false;
-		}
-		
-		@Override
-		public String jsonName() {
-			return GroupProperty.this.jsonName.concat(".").concat(wrappedKey.jsonName());
-		}
-
-		@Override
-		public String dbName() {
-			return GroupProperty.this.dbName.concat(".").concat(wrappedKey.dbName());
 		}
 		
 		@Override
@@ -392,5 +367,18 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			return wrappedKey.isWriteOnceProperty();
 		}
 
+		@Override
+		public void registrationCallback(Class entityType) {
+		}
+
+		@Override
+		public Object fixDatabaseProperty(Object value) {
+			
+			if (wrappedKey instanceof Property) {
+				return ((Property)wrappedKey).fixDatabaseProperty(value);
+			}
+			
+			return null;
+		}
 	}
 }

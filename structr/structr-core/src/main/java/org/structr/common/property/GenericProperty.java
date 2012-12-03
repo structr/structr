@@ -19,6 +19,9 @@
 package org.structr.common.property;
 
 import java.lang.reflect.ParameterizedType;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 
 /**
  *
@@ -42,6 +45,16 @@ public class GenericProperty<T> extends Property<T> {
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
 }

@@ -57,6 +57,11 @@ public class NotionProperty<T extends Collection<?>> extends Property<T> {
 		return new NotionConverter(securityContext, currentObject);
 	}
 
+	@Override
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return null;
+	}
+
 	private class NotionConverter extends PropertyConverter<T, Object> {
 
 		public NotionConverter(SecurityContext securityContext, GraphObject entity) {

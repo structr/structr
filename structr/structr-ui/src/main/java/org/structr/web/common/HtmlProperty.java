@@ -1,13 +1,16 @@
 package org.structr.web.common;
 
-import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.property.StringProperty;
+import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class HtmlProperty extends Property<String> {
+public class HtmlProperty extends StringProperty {
 	
 	public HtmlProperty(String name) {
 		super(PropertyView.Html.concat(name));

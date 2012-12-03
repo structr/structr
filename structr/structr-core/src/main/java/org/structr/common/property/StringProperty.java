@@ -18,11 +18,16 @@
  */
 package org.structr.common.property;
 
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PrimitiveProperty;
+
 /**
  *
  * @author Christian Morgner
  */
-public class StringProperty extends Property<String> {
+public class StringProperty extends PrimitiveProperty<String> {
 	
 	public StringProperty(String name) {
 		this(name, name);
@@ -53,6 +58,16 @@ public class StringProperty extends Property<String> {
 			return value.toString();
 		}
 		
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
 }

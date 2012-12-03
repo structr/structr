@@ -20,6 +20,7 @@
 package org.structr.core;
 
 import java.util.Date;
+import org.neo4j.graphdb.PropertyContainer;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
@@ -62,6 +63,13 @@ public interface GraphObject {
 	 */
 	public String getType();
 
+	/**
+	 * Returns the underlying property container for this graph object.
+	 * 
+	 * @return 
+	 */
+	public PropertyContainer getPropertyContainer();
+	
 	/**
 	 * Returns the property set for the given view as an Iterable.
 	 *

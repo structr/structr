@@ -21,8 +21,10 @@ package org.structr.common.property;
 import org.structr.core.property.PropertyKey;
 import java.util.Set;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
@@ -130,6 +132,15 @@ public class Reference<T> implements PropertyKey<T> {
 		return propertyKey.getDeclaringClassName();
 	}
 
+	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return propertyKey.getProperty(securityContext, obj, applyConverter);
+	}
+
+	@Override
+	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+		propertyKey.setProperty(securityContext, obj, value);
+	}
 
 	@Override
 	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
@@ -139,5 +150,10 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
 		propertyKey.registerSearchableProperties(searchableProperties);
+	}
+
+	@Override
+	public void registrationCallback(Class<? extends AbstractNode> entityType) {
+		propertyKey.registrationCallback(entityType);
 	}
 }

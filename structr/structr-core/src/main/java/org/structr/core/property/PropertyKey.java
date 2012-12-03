@@ -21,8 +21,10 @@ package org.structr.core.property;
 
 import java.util.Set;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
 
@@ -53,6 +55,8 @@ public interface PropertyKey<JavaType> {
 	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch);
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
 	
+	public JavaType getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
+	public void setProperty(SecurityContext securityContext, GraphObject obj, JavaType value) throws FrameworkException;
 	
 	/**
 	 * Indicates whether this property is a system property or not. If a transaction

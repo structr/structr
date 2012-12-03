@@ -23,12 +23,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class LongProperty extends Property<Long> {
+public class LongProperty extends PrimitiveProperty<Long> {
 	
 	public LongProperty(String name) {
 		super(name);

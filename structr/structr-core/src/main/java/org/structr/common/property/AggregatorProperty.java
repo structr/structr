@@ -18,17 +18,22 @@
  */
 package org.structr.common.property;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.AggregatingConverter;
 import org.structr.core.converter.Aggregation;
-import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.notion.Notion;
+import org.structr.core.property.AbstractReadOnlyCollectionProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class AggregatorProperty<JavaType> extends Property<JavaType> {
+public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T> {
 	
 	private Aggregation aggregation = null;
 	
@@ -39,22 +44,48 @@ public class AggregatorProperty<JavaType> extends Property<JavaType> {
 	}
 	
 	@Override
-	public String typeName() {
-		return ""; // read-only
-	}
+	public List<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter) {
+		
+		if(currentObject != null && currentObject instanceof AbstractNode) {
+			
+			AbstractNode sourceNode  = (AbstractNode)currentObject;
+			List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-	@Override
-	public Object fixDatabaseProperty(Object value) {
-		return null;
-	}
-	
-	@Override
-	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new AggregatingConverter(securityContext, entity, aggregation);
-	}
+			// 1. step: add all nodes
+			for(Class type : aggregation.getAggregationTypes()) {
+				nodes.addAll(sourceNode.getRelatedNodes(type));
+			}
 
-	@Override
-	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext) {
-		return null;
+			// 2. step: sort nodes according to comparator
+			Comparator<AbstractNode> comparator = aggregation.getComparator();
+			if(nodes.isEmpty() && comparator != null) {
+				Collections.sort(nodes, comparator);
+			}
+
+			// 3. step: apply notions depending on type
+			List results = new LinkedList();
+
+			try {
+				for(AbstractNode node : nodes) {
+
+					Notion notion = aggregation.getNotionForType(node.getClass());
+					if(notion != null) {
+
+						results.add(notion.getAdapterForGetter(securityContext).adapt(node));
+
+					} else {
+
+						results.add(node);
+					}
+				}
+
+			} catch(Throwable t) {
+				t.printStackTrace();
+			}
+
+			return results;
+		}
+		
+		return Collections.emptyList();
 	}
 }

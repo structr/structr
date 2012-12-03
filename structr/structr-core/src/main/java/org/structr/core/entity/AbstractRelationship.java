@@ -917,6 +917,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return getRelType().name();
 
 	}
+	
+	@Override
+	public PropertyContainer getPropertyContainer() {
+		return dbRelationship;
+	}
 
 	public String getStartNodeId() {
 

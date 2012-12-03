@@ -47,14 +47,12 @@ import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeRelationshipsCommand;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.notion.Notion;
 import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -64,6 +62,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.property.*;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.notion.PropertyNotion;
@@ -368,6 +367,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public String getType() {
 		return getProperty(AbstractNode.type);
 	}
+	
+	@Override
+	public PropertyContainer getPropertyContainer() {
+		return dbNode;
+	}
 
 	/**
 	 * Get name from underlying db node
@@ -568,6 +572,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return null;
 		}
 		
+		return key.getProperty(securityContext, this, applyConverter);
+		
+		/*
 		Object value;
 		
 		if (isDirty) {
@@ -710,6 +717,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		} catch(Throwable t) {
 			throw new IllegalStateException("Value for key " + key.dbName() + " has incorrect type, maybe you forgot to register a PropertyConverter?");
 		}
+		*/
 	}
 
 	public String getPropertyMD5(final PropertyKey key) {
@@ -1613,7 +1621,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		String[] values = StringUtils.split(((String) value), "\r\n");
 
-		setProperty(key, values, updateIndexDefault);
+		setProperty(key, values);
 
 	}
 
@@ -1636,19 +1644,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Set a property in database backend without updating index
-	 *
-	 * Set property only if value has changed
-	 *
-	 * @param key
-	 * @param convertedValue
-	 */
-	@Override
-	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
-		setProperty(key, value, updateIndexDefault);
-	}
-	
-	/**
 	 * Set a property in database backend
 	 *
 	 * Set property only if value has changed
@@ -1659,7 +1654,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param convertedValue
 	 * @param updateIndex
 	 */
-	public <T> void setProperty(final PropertyKey<T> key, final T value, final boolean updateIndex) throws FrameworkException {
+	@Override
+	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		T oldValue = getProperty(key);
 
@@ -1672,7 +1668,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// no old value exists, set property
 		if ((oldValue == null) && (value != null)) {
 
-			setPropertyInternal(key, value, updateIndex);
+			setPropertyInternal(key, value);
 
 			return;
 
@@ -1681,39 +1677,40 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// old value exists and is NOT equal
 		if ((oldValue != null) && !oldValue.equals(value)) {
 
-			setPropertyInternal(key, value, updateIndex);
+			setPropertyInternal(key, value);
 		}
 
 	}
 
-	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value, final boolean updateIndex) throws FrameworkException {
+	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
-		Class type = this.getClass();
-		
 		if (key == null) {
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
 
-			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken(base));
+			throw new FrameworkException(getClass().getSimpleName(), new NullArgumentToken(base));
 
 		}
 		
 		// check for read-only properties
-		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key.name()))) {
 		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
 				// permit write operation once and
-				// lock scanEntity-only properties again
+				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
+				
 			} else {
 
-				throw new FrameworkException(type.getSimpleName(), new ReadOnlyPropertyToken(key));
+				throw new FrameworkException(getClass().getSimpleName(), new ReadOnlyPropertyToken(key));
 			}
 
 		}
 
+		key.setProperty(securityContext, this, value);
+		
+		/*
 		// ----- BEGIN property group resolution -----
 		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
 
@@ -1789,83 +1786,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		} else {
 
-//			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-			PropertyConverter converter = key.databaseConverter(securityContext, this);
-			final Object convertedValue;
-
-			if (converter != null) {
-
-				convertedValue = converter.convert(value);
-
-			} else {
-
-				convertedValue = value;
-			}
-
-			final Object oldValue = getProperty(key);
-
-			// don't make any changes if
-			// - old and new value both are null
-			// - old and new value are not null but equal
-			if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
-
-				return;
-			}
-
-			if (isDirty) {
-
-				// Don't write directly to database, but store property values
-				// in a map for later use
-				properties.put(key, convertedValue);
-				
-			} else {
-
-				// Commit value directly to database
-				StructrTransaction transaction = new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						try {
-
-							// save space
-							if (convertedValue == null) {
-
-								dbNode.removeProperty(key.dbName());
-								
-							} else {
-
-								// Setting last modified date explicetely is not allowed
-								if (!key.equals(AbstractNode.lastModifiedDate)) {
-
-									dbNode.setProperty(key.dbName(), convertedValue);
-
-									// set last modified date if not already happened
-									dbNode.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
-
-
-								} else {
-
-									logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
-								}
-							}
-						} finally {}
-
-						return null;
-
-					}
-
-				};
-
-				// execute transaction
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
-			}
-
 		}
 
 		// remove property from cached properties
 		cachedConvertedProperties.remove(key);
 		cachedRawProperties.remove(key);
+		*/
+
 	}
 
 	public void setOwner(final AbstractNode owner) {
