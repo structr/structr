@@ -21,6 +21,9 @@ package org.structr.common.property;
 import org.structr.core.property.PropertyKey;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -34,14 +37,14 @@ import org.structr.core.graph.search.TextualSearchAttribute;
 public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 
 	private static final Logger logger = Logger.getLogger(Property.class.getName());
-	
-	protected String declaringClassName   = null;
-	protected JavaType defaultValue       = null;
-	protected boolean isReadOnlyProperty  = false;
-	protected boolean isWriteOnceProperty = false;
-	protected boolean isSystemProperty    = false;
-	protected String dbName               = null;
-	protected String jsonName             = null;
+
+	protected Class<? extends GraphObject> declaringClass  = null;
+	protected JavaType defaultValue                        = null;
+	protected boolean isReadOnlyProperty                   = false;
+	protected boolean isWriteOnceProperty                  = false;
+	protected boolean isSystemProperty                     = false;
+	protected String dbName                                = null;
+	protected String jsonName                              = null;
 	
 	protected Property(String name) {
 		this(name, name);
@@ -75,13 +78,13 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 
 	@Override
-	public void setDeclaringClassName(String name) {
-		this.declaringClassName = name;
+	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
+		this.declaringClass = declaringClass;
 	}
 	
 	@Override
-	public String getDeclaringClassName() {
-		return declaringClassName;
+	public Class<? extends GraphObject> getDeclaringClass() {
+		return declaringClass;
 	}
 
 	
@@ -137,6 +140,11 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 	
 	@Override
+	public Class<? extends GraphObject> relatedType() {
+		return null;
+	}
+	
+	@Override
 	public boolean isSystemProperty() {
 		return isSystemProperty;
 	}
@@ -152,6 +160,11 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 
 	@Override
+	public boolean isCollection() {
+		return false;
+	}
+	
+	@Override
 	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch) {
 		
 		// return empty string on null value here to enable searching for empty values
@@ -164,9 +177,5 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
 		searchableProperties.add(this);
-	}
-	
-	@Override
-	public void registrationCallback(Class<? extends AbstractNode> entityType) {
 	}
 }

@@ -177,7 +177,7 @@ public class EntityContext {
 
 			if (declaringClass != null) {
 				
-				propertyKey.setDeclaringClassName(declaringClass.getSimpleName());
+				propertyKey.setDeclaringClass(declaringClass);
 				registerProperty(declaringClass, propertyKey);
 			}
 			

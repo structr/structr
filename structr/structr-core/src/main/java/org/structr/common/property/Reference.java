@@ -34,7 +34,7 @@ import org.structr.core.graph.search.SearchOperator;
  * @author Christian Morgner
  */
 public class Reference<T> implements PropertyKey<T> {
-	
+
 	public enum Key {
 		StartNode, Relationship, EndNode
 	}
@@ -109,6 +109,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Class<? extends GraphObject> relatedType() {
+		return propertyKey.relatedType();
+	}
+
+	@Override
 	public boolean isSystemProperty() {
 		return propertyKey.isSystemProperty();
 	}
@@ -124,12 +129,17 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void setDeclaringClassName(String declaringClassName) {
+	public boolean isCollection() {
+		return propertyKey.isCollection();
+	}
+
+	@Override
+	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
 	}
 	
 	@Override
-	public String getDeclaringClassName() {
-		return propertyKey.getDeclaringClassName();
+	public Class<? extends GraphObject> getDeclaringClass() {
+		return propertyKey.getDeclaringClass();
 	}
 
 	@Override

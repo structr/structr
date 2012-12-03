@@ -134,7 +134,7 @@ public class DateProperty extends PrimitiveProperty<Date> {
 
 				} catch(Throwable t) {
 
-					throw new FrameworkException(declaringClassName, new DateFormatToken(DateProperty.this));
+					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(DateProperty.this));
 				}
 
 			}

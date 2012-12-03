@@ -43,14 +43,15 @@ public interface PropertyKey<JavaType> {
 	 * wrong type was provided.
 	 */
 	public String typeName();
+	public Class<? extends GraphObject> relatedType();
 	
 	public JavaType defaultValue();
 	
 	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy);
 	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
 	
-	public void setDeclaringClassName(String declaringClassName);
-	public String getDeclaringClassName();
+	public void setDeclaringClass(Class<? extends GraphObject> declaringClass);
+	public Class<? extends GraphObject> getDeclaringClass();
 
 	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch);
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
@@ -70,5 +71,7 @@ public interface PropertyKey<JavaType> {
 	public boolean isReadOnlyProperty();
 
 	public boolean isWriteOnceProperty();
-	
+
+	public boolean isCollection();
+
 }

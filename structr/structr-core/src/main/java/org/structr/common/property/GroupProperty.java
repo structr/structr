@@ -36,6 +36,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
@@ -288,7 +289,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	 * Acts as a wrapper for property keys to prefix their name with
 	 * the name of the surrounding property group.
 	 */
-	private class GroupPropertyWrapper extends Property {
+	private class GroupPropertyWrapper extends PrimitiveProperty {
 
 		private PropertyKey wrappedKey = null;
 		
@@ -311,6 +312,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		public String typeName() {
 			return wrappedKey.typeName();
 		}
+		
+		@Override
+		public Class relatedType() {
+			return wrappedKey.relatedType();
+		}
 
 		@Override
 		public Object defaultValue() {
@@ -328,13 +334,13 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		@Override
-		public void setDeclaringClassName(String declaringClassName) {
-			wrappedKey.setDeclaringClassName(declaringClassName);
+		public void setDeclaringClass(Class declaringClass) {
+			wrappedKey.setDeclaringClass(declaringClass);
 		}
 		
 		@Override
-		public String getDeclaringClassName() {
-			return wrappedKey.getDeclaringClassName();
+		public Class<? extends GraphObject> getDeclaringClass() {
+			return wrappedKey.getDeclaringClass();
 		}
 
 		@Override
@@ -368,10 +374,6 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		@Override
-		public void registrationCallback(Class entityType) {
-		}
-
-		@Override
 		public Object fixDatabaseProperty(Object value) {
 			
 			if (wrappedKey instanceof Property) {
@@ -379,6 +381,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			}
 			
 			return null;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
 		}
 	}
 }
