@@ -124,6 +124,12 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public void setDeclaringClassName(String declaringClassName) {
 	}
+	
+	@Override
+	public String getDeclaringClassName() {
+		return propertyKey.getDeclaringClassName();
+	}
+
 
 	@Override
 	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {

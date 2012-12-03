@@ -18,6 +18,8 @@
  */
 package org.structr.common.property;
 
+import java.lang.reflect.ParameterizedType;
+
 /**
  *
  * @author Christian Morgner
@@ -34,7 +36,8 @@ public class GenericProperty<T> extends Property<T> {
 	
 	@Override
 	public String typeName() {
-		return "FIXME: GenericProperty.java:37";
+		ParameterizedType pType = (ParameterizedType) getClass().getGenericSuperclass();
+		return pType.getRawType().toString();
 	}
 
 	@Override

@@ -356,6 +356,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		public void setDeclaringClassName(String declaringClassName) {
 			wrappedKey.setDeclaringClassName(declaringClassName);
 		}
+		
+		@Override
+		public String getDeclaringClassName() {
+			return wrappedKey.getDeclaringClassName();
+		}
 
 		@Override
 		public SearchAttribute getSearchAttribute(SearchOperator op, Object searchValue, boolean exactMatch) {
@@ -386,5 +391,6 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		public boolean isWriteOnceProperty() {
 			return wrappedKey.isWriteOnceProperty();
 		}
+
 	}
 }

@@ -43,7 +43,7 @@ public class DateProperty extends Property<Date> {
 	
 	@Override
 	public String typeName() {
-		return "String";
+		return "Date";
 	}
 	
 	@Override

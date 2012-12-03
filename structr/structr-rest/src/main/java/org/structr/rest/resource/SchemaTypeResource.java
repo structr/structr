@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -112,6 +114,8 @@ public class SchemaTypeResource extends Resource {
 					propProperties.put("dbName", property.dbName());
 					propProperties.put("jsonName", property.jsonName());
 					propProperties.put("className", property.getClass().getName());
+					propProperties.put("type", property.typeName());
+					propProperties.put("declaringClass", property.getDeclaringClassName());
 					propProperties.put("defaultValue", property.defaultValue());
 					propProperties.put("readOnly", property.isReadOnlyProperty());
 					propProperties.put("system", property.isSystemProperty());

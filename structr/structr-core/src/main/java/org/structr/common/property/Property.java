@@ -79,6 +79,12 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 	
 	@Override
+	public String getDeclaringClassName() {
+		return declaringClassName;
+	}
+
+	
+	@Override
 	public String toString() {
 		return "(".concat(jsonName()).concat("|").concat(dbName()).concat(")");
 	}

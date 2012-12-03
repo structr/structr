@@ -48,6 +48,7 @@ public interface PropertyKey<JavaType> {
 	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
 	
 	public void setDeclaringClassName(String declaringClassName);
+	public String getDeclaringClassName();
 
 	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch);
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);

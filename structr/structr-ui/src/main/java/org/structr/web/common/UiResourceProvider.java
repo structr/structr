@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * The default constraint provider for structr.
+ * The default constraint provider for structr-ui
  *
  * @author Christian Morgner
  */
@@ -65,12 +65,11 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile(PropertyView.Ui), ViewFilterResource.class);          // ui view
 		resourceMap.put(Pattern.compile(PropertyView.Html), ViewFilterResource.class);        // html attributes view
 
-		resourceMap.put(Pattern.compile("users"), TypeResource.class);                        // users, for testing
-		
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"), MaintenanceParameterResource.class);    // maintenance parameter
-		resourceMap.put(Pattern.compile("[a-z_]+"), DynamicTypeResource.class);               // any type match
 		resourceMap.put(Pattern.compile("[0-9]+"), UuidResource.class);                       // this matches the ID resource
 		
+		resourceMap.put(Pattern.compile("_schema"),		SchemaResource.class);			// special resource for schema information
+		resourceMap.put(Pattern.compile("[a-z_]+"), DynamicTypeResource.class);               // any type match
 
 		return resourceMap;
 
