@@ -112,18 +112,19 @@ public class SchemaTypeResource extends Resource {
 					propProperties.put("jsonName", property.jsonName());
 					propProperties.put("className", property.getClass().getName());
 					propProperties.put("type", property.typeName());
-					propProperties.put("declaringClass", property.getDeclaringClassName());
+					propProperties.put("declaringClass", property.getDeclaringClass());
 					propProperties.put("defaultValue", property.defaultValue());
 					propProperties.put("readOnly", property.isReadOnlyProperty());
 					propProperties.put("system", property.isSystemProperty());
 					
-					if (property instanceof RelationProperty) {
+					Class<? extends GraphObject> relatedType = property.relatedType();
+					
+					if (relatedType != null) {
 						
-						RelationProperty relProp = (RelationProperty) property;
-						propProperties.put("remoteClassName", relProp.getRemoteClass().getName());
-						propProperties.put("isCollection", relProp.isCollection());
-						propProperties.put("notion", relProp.getNotion());
+						propProperties.put("relatedType", relatedType.getName());
 					}
+					
+					propProperties.put("isCollection", property.isCollection());
 
 					PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
 					PropertyConverter inputConverter    = property.inputConverter(securityContext);

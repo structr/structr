@@ -133,7 +133,7 @@ public class DateProperty extends Property<Date> {
 
 				} catch(Throwable t) {
 
-					throw new FrameworkException(declaringClassName, new DateFormatToken(DateProperty.this));
+					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(DateProperty.this));
 				}
 
 			}

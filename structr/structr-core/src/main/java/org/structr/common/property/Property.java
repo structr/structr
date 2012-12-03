@@ -34,7 +34,7 @@ import org.structr.core.graph.search.TextualSearchAttribute;
  */
 public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 
-	protected String declaringClassName  = null;
+	protected Class<? extends GraphObject> declaringClass  = null;
 	protected JavaType defaultValue      = null;
 	protected boolean isReadOnlyProperty = false;
 	protected boolean isWriteOnceProperty   = false;
@@ -74,13 +74,13 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 
 	@Override
-	public void setDeclaringClassName(String name) {
-		this.declaringClassName = name;
+	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
+		this.declaringClass = declaringClass;
 	}
 	
 	@Override
-	public String getDeclaringClassName() {
-		return declaringClassName;
+	public Class<? extends GraphObject> getDeclaringClass() {
+		return declaringClass;
 	}
 
 	
@@ -146,6 +146,11 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 
 	@Override
+	public Class<? extends GraphObject> relatedType() {
+		return null;
+	}
+	
+	@Override
 	public boolean isSystemProperty() {
 		return isSystemProperty;
 	}
@@ -160,6 +165,11 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 		return isWriteOnceProperty;
 	}
 
+	@Override
+	public boolean isCollection() {
+		return false;
+	}
+	
 	@Override
 	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch) {
 		
