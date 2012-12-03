@@ -111,7 +111,7 @@ public class SchemaTypeResource extends Resource {
 					propProperties.put("dbName", property.dbName());
 					propProperties.put("jsonName", property.jsonName());
 					propProperties.put("className", property.getClass().getName());
-					propProperties.put("type", property.typeName());
+					
 					propProperties.put("declaringClass", property.getDeclaringClass());
 					propProperties.put("defaultValue", property.defaultValue());
 					propProperties.put("readOnly", property.isReadOnlyProperty());
@@ -122,6 +122,9 @@ public class SchemaTypeResource extends Resource {
 					if (relatedType != null) {
 						
 						propProperties.put("relatedType", relatedType.getName());
+						propProperties.put("type", relatedType.getSimpleName());
+					} else {
+						propProperties.put("type", property.typeName());
 					}
 					
 					propProperties.put("isCollection", property.isCollection());
