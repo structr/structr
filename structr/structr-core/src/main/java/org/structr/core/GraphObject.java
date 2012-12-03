@@ -38,7 +38,7 @@ import org.structr.core.entity.AbstractRelationship;
 public interface GraphObject {
 
 	public static final Property<String>  uuid = new StringProperty("uuid").systemProperty().writeOnce();
-	public static final Property<String>  type = new StringProperty("type");
+	public static final Property<String>  type = new StringProperty("type").writeOnce();
 	
 	// ----- methods common to both types -----
 	/**
