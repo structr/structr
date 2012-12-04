@@ -23,14 +23,19 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.PropertyMapper;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class MappedProperty<T> extends Property<T> {
+public class MappedProperty<T> extends PrimitiveProperty<T> {
 	
 	private PropertyKey<T> mappedKey = null;
+	
+	public MappedProperty(PropertyKey<T> mappedKey) {
+		this(null, mappedKey);
+	}
 	
 	public MappedProperty(String name, PropertyKey<T> mappedKey) {
 		super(name);

@@ -32,13 +32,13 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
 import org.structr.common.property.*;
+import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,10 +49,10 @@ import org.structr.common.property.*;
  */
 public class User extends Person implements Principal {
 
-	public static final Property<String>  confirmationKey = new StringProperty("confirmationKey");
-	public static final Property<Boolean> backendUser     = new BooleanProperty("backendUser");
-	public static final Property<Boolean> frontendUser    = new BooleanProperty("frontendUser");
-	public static final Property<List<Group>>   groups    = new GenericProperty("groups");
+	public static final Property<String>          confirmationKey = new StringProperty("confirmationKey");
+	public static final Property<Boolean>         backendUser     = new BooleanProperty("backendUser");
+	public static final Property<Boolean>         frontendUser    = new BooleanProperty("frontendUser");
+	public static final CollectionProperty<Group> groups          = new CollectionProperty<Group>(Group.class, RelType.CONTAINS, Direction.INCOMING);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups
@@ -63,12 +63,6 @@ public class User extends Person implements Principal {
 	);
 	
 	static {
-
-//		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
-//		EntityContext.registerPropertySet(User.class, PropertyView.Ui, Key.values());
-//		EntityContext.registerPropertySet(User.class, PropertyView.Public, realName);
-		
-		EntityContext.registerEntityRelation(User.class, Group.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(),     name, email);
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), uiView.properties());

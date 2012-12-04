@@ -26,7 +26,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.Relation;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -102,12 +102,12 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 							int cascadeDelete    = rel.cascadeDelete();
 							AbstractNode endNode = rel.getEndNode();
 
-							if ((cascadeDelete & RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) == RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) {
+							if ((cascadeDelete & Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) == Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) {
 
 								nodesToCheckAfterDeletion.add(endNode);
 							}
 
-							if (!deletedNodes.contains(endNode) && ((cascadeDelete & RelationClass.DELETE_OUTGOING) == RelationClass.DELETE_OUTGOING)) {
+							if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.DELETE_OUTGOING) == Relation.DELETE_OUTGOING)) {
 
 								// remove end node from index
 								removeNodeFromIndex.execute(endNode);
@@ -125,12 +125,12 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 							int cascadeDelete      = rel.cascadeDelete();
 							AbstractNode startNode = rel.getStartNode();
 
-							if ((cascadeDelete & RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) == RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) {
+							if ((cascadeDelete & Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) == Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) {
 
 								nodesToCheckAfterDeletion.add(startNode);
 							}
 
-							if (!deletedNodes.contains(startNode) && ((cascadeDelete & RelationClass.DELETE_INCOMING) == RelationClass.DELETE_INCOMING)) {
+							if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.DELETE_INCOMING) == Relation.DELETE_INCOMING)) {
 
 								// remove start node from index
 								removeNodeFromIndex.execute(startNode);

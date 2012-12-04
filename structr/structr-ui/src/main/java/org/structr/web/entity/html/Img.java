@@ -28,8 +28,7 @@ import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -47,23 +46,13 @@ public class Img extends HtmlElement {
 	public static final Property<String> _width       = new HtmlProperty("width");
 	public static final Property<String> _height      = new HtmlProperty("height");
 	
+	public static final CollectionProperty<Div> divs = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<P>   ps   = new CollectionProperty<P>(P.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<A>   as   = new CollectionProperty<A>(A.class, RelType.CONTAINS, Direction.INCOMING);
+	
 	public static final View htmlView = new View(Img.class, PropertyView.Html,
 	    _alt, _src, _crossorigin, _usemap, _ismap, _width, _height
 	);
-	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-//		EntityContext.registerPropertySet(Img.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Img.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Img.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		
-		EntityContext.registerEntityRelation(Img.class, Div.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Img.class, P.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Img.class, A.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-
-	}
 
 	//~--- methods --------------------------------------------------------
 

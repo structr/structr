@@ -23,13 +23,14 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.TraversingConverter;
+import org.structr.core.property.PrimitiveProperty;
 import org.structr.core.traversal.TraverserInterface;
 
 /**
  *
  * @author Christian Morgner
  */
-public class TraverserProperty<T> extends Property<T> {
+public class TraverserProperty<T> extends PrimitiveProperty<T> {
 
 	private TraverserInterface traverserInterface = null;
 	

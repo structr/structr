@@ -23,10 +23,8 @@ package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -39,6 +37,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.PropertyMap;
+import org.structr.web.entity.Element;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -93,20 +92,14 @@ public class InsertCommand extends AbstractCommand {
 
 			if ((nodeToInsert != null) && (parentNode != null)) {
 
-				RelationClass rel = EntityContext.getRelationClass(parentNode.getClass(), nodeToInsert.getClass());
+				try {
 
-				if (rel != null) {
+					PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
+					Element.elements.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
 
-					try {
+				} catch (Throwable t) {
 
-						PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
-						rel.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
-
-					} catch (Throwable t) {
-
-						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
-					}
+					getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
 				}
 

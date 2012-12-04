@@ -64,8 +64,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.property.*;
-import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.EntityProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,22 +79,23 @@ import org.structr.core.notion.PropertyNotion;
  */
 public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, AccessControllable {
 
-	private static final Logger logger              = Logger.getLogger(AbstractNode.class.getName());
-	private static final boolean updateIndexDefault = true;
+	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	// properties
-	public static final Property<String>        base                        = new StringProperty("base");
-	public static final Property<String>        name                        = new StringProperty("name");
-	public static final Property<String>        createdBy                   = new StringProperty("createdBy").systemProperty().writeOnce();
-	public static final Property<Boolean>       deleted                     = new BooleanProperty("deleted");
-	public static final Property<Boolean>       hidden                      = new BooleanProperty("hidden");
-	public static final Property<Date>          createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().writeOnce();
-	public static final Property<Date>          lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemProperty().readOnly();
-	public static final Property<Boolean>       visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
-	public static final Property<Boolean>       visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
-	public static final Property<Date>	    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
-	public static final Property<Date>	    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
-	public static final Property<String>        ownerId                     = new StringProperty("ownerId");
+	public static final Property<String>          base                        = new StringProperty("base");
+	public static final Property<String>          name                        = new StringProperty("name");
+	public static final Property<String>          createdBy                   = new StringProperty("createdBy").systemProperty().writeOnce();
+	public static final Property<Boolean>         deleted                     = new BooleanProperty("deleted");
+	public static final Property<Boolean>         hidden                      = new BooleanProperty("hidden");
+	public static final Property<Date>            createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().writeOnce();
+	public static final Property<Date>            lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemProperty().readOnly();
+	public static final Property<Boolean>         visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
+	public static final Property<Boolean>         visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
+	public static final Property<Date>	      visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
+	public static final Property<Date>	      visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
+
+	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>(Principal.class, RelType.OWNS, Direction.INCOMING);
+	public static final Property<String>          ownerId                     = new EntityIdProperty(owner);
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
 		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate
@@ -106,10 +109,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), uuid);
 
-		EntityContext.registerPropertyRelation(AbstractNode.class, ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, Cardinality.ManyToOne, new PropertyNotion(uuid));
-
-		
-		
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 
@@ -626,7 +625,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			} else {
 
 				// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-				RelationClass rel = EntityContext.getRelationClass(type, key);
+				Relation rel = EntityContext.getRelationClass(type, key);
 
 				if (rel != null) {
 
@@ -1005,90 +1004,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public Iterable getIterableProperty(final PropertyKey<? extends Iterable> propertyKey) {
 		return (Iterable)getProperty(propertyKey);
-	}
-
-	/**
-	 * Returns a single related node of the given type, following the relationship(s) defined in
-	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
-	 * relationship is not set to OneToMany or ManyToMany.
-	 * 
-	 * @param type the type of the related node to fetch
-	 * @return a single related node of the given type
-	 */
-	public <T extends AbstractNode> T getRelatedNode(Class<T> type) {
-
-		RelationClass<T> rc = EntityContext.getRelationClass(this.getClass(), type);
-
-		if (rc != null) {
-
-			return rc.getRelatedNode(securityContext, this);
-		}
-
-		return null;
-
-	}
-
-	/**
-	 * Returns a single related node of the given type, following the relationship(s) defined in
-	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
-	 * relationship is not set to OneToOne or ManyToOne.
-	 * 
-	 * @param type the type of the related node to fetch
-	 * @return a single related node of the given type
-	 */
-	public AbstractNode getRelatedNode(PropertyKey<? extends AbstractNode> propertyKey) {
-
-		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey);
-
-		if (rc != null) {
-
-			return rc.getRelatedNode(securityContext, this);
-		}
-
-		return null;
-
-	}
-
-	/**
-	 * Returns a list of related nodes of the given type, following the relationship(s) defined in
-	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
-	 * relationship is not set to OneToMany or ManyToMany.
-	 * 
-	 * @param type the type of the related node to fetch
-	 * @return a single related node of the given type
-	 */
-	public <T extends AbstractNode> List<T> getRelatedNodes(Class<T> type) {
-
-		RelationClass<T> rc = EntityContext.getRelationClass(this.getClass(), type);
-
-		if (rc != null) {
-
-			return rc.getRelatedNodes(securityContext, (T)this);
-		}
-
-		return Collections.emptyList();
-
-	}
-
-	/**
-	 * Returns a list of related nodes of the given type, following the relationship(s) defined in
-	 * {@see EntityContext}. This method will throw an Exception if the cardinality of the
-	 * relationship is not set to OneToMany or ManyToMany.
-	 * 
-	 * @param type the type of the related node to fetch
-	 * @return a single related node of the given type
-	 */
-	public <T extends AbstractNode> List<T> getRelatedNodes(PropertyKey<List<T>> propertyKey) {
-
-		RelationClass<T> rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey);
-
-		if (rc != null) {
-
-			return rc.getRelatedNodes(securityContext, (T)this);
-		}
-
-		return Collections.emptyList();
-
 	}
 
 	/**
@@ -1723,7 +1638,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		// static relationship detected, create or remove relationship
-		RelationClass rel = EntityContext.getRelationClass(type, key);
+		Relation rel = EntityContext.getRelationClass(type, key);
 
 		if (rel != null) {
 

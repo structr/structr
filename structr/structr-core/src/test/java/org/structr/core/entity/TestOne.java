@@ -19,15 +19,16 @@
 package org.structr.core.entity;
 
 import java.util.Date;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.View;
 import org.structr.common.property.ISO8601DateProperty;
 import org.structr.common.property.IntProperty;
 import org.structr.common.property.LongProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.property.EntityProperty;
 
 /**
  * A simple entity for the most basic tests.
@@ -41,30 +42,17 @@ public class TestOne extends AbstractNode {
 	public static final Property<Long> aLong    = new LongProperty("aLong");
 	public static final Property<Date> aDate    = new ISO8601DateProperty("aDate");
 	
+	public static final EntityProperty<TestTwo>   testTwo   = new EntityProperty<TestTwo>(TestTwo.class, RelType.UNDEFINED, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final EntityProperty<TestThree> testThree = new EntityProperty<TestThree>(TestThree.class, RelType.LINK, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final EntityProperty<TestFour>  testFour  = new EntityProperty<TestFour>(TestFour.class, RelType.DATA, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+
+	public static final View publicView = new View(TestOne.class, PropertyView.Public,
+		anInt, aLong, aDate
+	);
+	
 	static {
-		
-		EntityContext.registerPropertySet(TestOne.class, PropertyView.Public, anInt, aLong, aDate);
-		EntityContext.registerEntityRelation(TestOne.class, TestTwo.class, RelType.UNDEFINED, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
-		EntityContext.registerEntityRelation(TestOne.class, TestThree.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
-		EntityContext.registerEntityRelation(TestOne.class, TestFour.class, RelType.DATA, Direction.OUTGOING, RelationClass.Cardinality.OneToOne, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 		
 		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), anInt, aLong, aDate);
 		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), anInt, aLong, aDate);
 	}
-	
-//	@Override
-//	public Object getPropertyForIndexing(final String key) {
-//		
-//		Object rawValue = super.getPropertyForIndexing(key);
-//		
-//		if (key.equals(Key.anInt.name())) {
-//			
-//			return rawValue.toString();
-//			
-//		} else {
-//			return rawValue;
-//		}
-//		
-//	}
-	
 }

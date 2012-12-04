@@ -25,7 +25,7 @@ import org.structr.common.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestThree;
@@ -139,7 +139,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 		try {
 
 			// Create a relationship with DELETE_NONE
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_NONE);
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_NONE);
 			AbstractNode startNode   = rel.getStartNode();
 			AbstractNode endNode     = rel.getEndNode();
 			final String startNodeId = startNode.getUuid();
@@ -150,7 +150,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			assertNodeExists(endNodeId);
 
 			// Create another relationship with DELETE_NONE
-			rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_NONE);
+			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_NONE);
 
 			final String startNodeId2 = rel.getStartNode().getUuid();
 			final String endNodeId2   = rel.getEndNode().getUuid();
@@ -176,7 +176,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 		try {
 
 			// Create a relationship with DELETE_INCOMING
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_INCOMING);
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_INCOMING);
 			final String startNodeId = rel.getStartNode().getUuid();
 			final String endNodeId   = rel.getEndNode().getUuid();
 
@@ -189,7 +189,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			assertNodeExists(endNodeId);
 
 			// Create another relationship with DELETE_INCOMING
-			rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_INCOMING);
+			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_INCOMING);
 
 			final String startNodeId2 = rel.getStartNode().getUuid();
 			final String endNodeId2   = rel.getEndNode().getUuid();
@@ -219,7 +219,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 		try {
 
 			// Create a relationship with DELETE_OUTGOING
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_OUTGOING);
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_OUTGOING);
 			final String startNodeId = rel.getStartNode().getUuid();
 			final String endNodeId   = rel.getEndNode().getUuid();
 
@@ -232,7 +232,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			assertNodeNotFound(endNodeId);
 
 			// Create another relationship with DELETE_OUTGOING
-			rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_OUTGOING);
+			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_OUTGOING);
 
 			final String startNodeId2 = rel.getStartNode().getUuid();
 			final String endNodeId2   = rel.getEndNode().getUuid();
@@ -262,7 +262,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 		try {
 
 			// Create a relationship with DELETE_INCOMING
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_INCOMING | RelationClass.DELETE_OUTGOING);
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_INCOMING | Relation.DELETE_OUTGOING);
 			final String startNodeId = rel.getStartNode().getUuid();
 			final String endNodeId   = rel.getEndNode().getUuid();
 
@@ -275,7 +275,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			assertNodeNotFound(endNodeId);
 
 			// Create a relationship with DELETE_INCOMING
-			rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_INCOMING | RelationClass.DELETE_OUTGOING);
+			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_INCOMING | Relation.DELETE_OUTGOING);
 
 			final String startNodeId2 = rel.getStartNode().getUuid();
 			final String endNodeId2   = rel.getEndNode().getUuid();
@@ -305,7 +305,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		try {
 
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 			final String startNodeId = rel.getStartNode().getUuid();
 			final String endNodeId   = rel.getEndNode().getUuid();
 
@@ -317,7 +317,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			// End node should be deleted
 			assertNodeNotFound(endNodeId);
 
-			rel = cascadeRel(TestOne.class, TestThree.class, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+			rel = cascadeRel(TestOne.class, TestThree.class, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 
 			final String startNodeId2 = rel.getStartNode().getUuid();
 			final String endNodeId2   = rel.getEndNode().getUuid();
@@ -330,7 +330,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			// End node should still be there
 			assertNodeExists(endNodeId2);
 
-			rel = cascadeRel(TestOne.class, TestFour.class, RelationClass.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+			rel = cascadeRel(TestOne.class, TestFour.class, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 
 			final String startNodeId3 = rel.getStartNode().getUuid();
 			final String endNodeId3   = rel.getEndNode().getUuid();

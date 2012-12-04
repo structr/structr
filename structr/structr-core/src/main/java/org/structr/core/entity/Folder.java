@@ -21,16 +21,13 @@
 
 package org.structr.core.entity;
 
-import java.util.List;
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.common.property.GenericProperty;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EntityProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,28 +38,13 @@ import org.structr.core.entity.RelationClass.Cardinality;
  */
 public class Folder extends AbstractNode {
 
-	public static final Property<Folder>       parentFolder = new GenericProperty<Folder>("parentFolder");
-	public static final Property<List<Folder>> folders      = new GenericProperty<List<Folder>>("folders");
-	public static final Property<List<File>>   files        = new GenericProperty<List<File>>("files");
-	public static final Property<List<Image>>  images       = new GenericProperty<List<Image>>("images");
+	public static final EntityProperty<Folder>     parentFolder = new EntityProperty<Folder>("parentFolder", Folder.class, RelType.CONTAINS, Direction.INCOMING);
+
+	public static final CollectionProperty<Folder> folders      = new CollectionProperty<Folder>(Folder.class, RelType.CONTAINS);
+	public static final CollectionProperty<File>   files        = new CollectionProperty<File>(File.class, RelType.CONTAINS);
+	public static final CollectionProperty<Image>  images       = new CollectionProperty<Image>(Image.class, RelType.CONTAINS);
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parentFolder, folders, files, images
 	);
-	
-	static {
-
-//		EntityContext.registerPropertySet(Folder.class, PropertyView.All, Key.values());
-//		EntityContext.registerPropertySet(Folder.class, PropertyView.Ui, Key.values());
-		
-		EntityContext.registerPropertyRelation(Folder.class, parentFolder, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
-
-		EntityContext.registerEntityRelation(Folder.class, Folder.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Folder.class, File.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Folder.class, Image.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.OneToMany);
-		
-
-	}
-
-	//~--- constant enums -------------------------------------------------
 }

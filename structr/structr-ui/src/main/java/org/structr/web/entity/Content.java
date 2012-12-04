@@ -32,11 +32,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.Search;
-import org.structr.core.notion.PropertyNotion;
 import org.structr.web.common.PageHelper;
 import org.structr.web.entity.html.*;
 import org.structr.web.validator.DynamicValidator;
@@ -51,6 +48,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.property.IntProperty;
 import org.structr.common.property.StringProperty;
+import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.EntityProperty;
 import org.structr.web.property.DynamicContentProperty;
 import org.structr.web.property.PathsProperty;
 
@@ -65,13 +65,55 @@ public class Content extends AbstractNode {
 
 	private static final Logger logger         = Logger.getLogger(Content.class.getName());
 
-	public static final Property<String>      tag              = new StringProperty("tag");
-	public static final Property<String>      content          = new DynamicContentProperty("content");
-	public static final Property<String>      contentType      = new StringProperty("contentType");
-	public static final Property<Integer>     size             = new IntProperty("size");
-	public static final Property<Set<String>> paths            = new PathsProperty(("paths"));
-	public static final Property<String>      dataKey          = new StringProperty("data-key");
-	public static final Property<String>      typeDefinitionId = new StringProperty("typeDefinitionId");
+	public static final Property<String>               tag              = new StringProperty("tag");
+	public static final Property<String>               content          = new DynamicContentProperty("content");
+	public static final Property<String>               contentType      = new StringProperty("contentType");
+	public static final Property<Integer>              size             = new IntProperty("size");
+	public static final Property<Set<String>>          paths            = new PathsProperty(("paths"));
+	public static final Property<String>               dataKey          = new StringProperty("data-key");
+		
+	public static final EntityProperty<TypeDefinition> typeDefinition   = new EntityProperty<TypeDefinition>(TypeDefinition.class, RelType.IS_A);
+	public static final Property<String>               typeDefinitionId = new EntityIdProperty(typeDefinition);
+	
+	public static final CollectionProperty<Element>    elements         = new CollectionProperty<Element>(Element.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Title>      titles           = new CollectionProperty<Title>(Title.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Body>       bodys            = new CollectionProperty<Body>(Body.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Style>      styles           = new CollectionProperty<Style>(Style.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Script>     scripts          = new CollectionProperty<Script>(Script.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<P>          ps               = new CollectionProperty<P>(P.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Div>        divs             = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<H1>         h1s              = new CollectionProperty<H1>(H1.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<H2>         h2s              = new CollectionProperty<H2>(H2.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<H3>         h3s              = new CollectionProperty<H3>(H3.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<H4>         h4s              = new CollectionProperty<H4>(H4.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<H5>         h5s              = new CollectionProperty<H5>(H5.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<H6>         h6s              = new CollectionProperty<H6>(H6.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<A>          as               = new CollectionProperty<A>(A.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Em>         ems              = new CollectionProperty<Em>(Em.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Strong>     strongs          = new CollectionProperty<Strong>(Strong.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Small>      smalls           = new CollectionProperty<Small>(Small.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<S>          ss               = new CollectionProperty<S>(S.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Cite>       cites            = new CollectionProperty<Cite>(Cite.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<G>          gs               = new CollectionProperty<G>(G.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Dfn>        dfns             = new CollectionProperty<Dfn>(Dfn.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Abbr>       abbrs            = new CollectionProperty<Abbr>(Abbr.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Time>       times            = new CollectionProperty<Time>(Time.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Code>       codes            = new CollectionProperty<Code>(Code.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Var>        vars             = new CollectionProperty<Var>(Var.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Samp>       samps            = new CollectionProperty<Samp>(Samp.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Kbd>        kbds             = new CollectionProperty<Kbd>(Kbd.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Sub>        subs             = new CollectionProperty<Sub>(Sub.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Sup>        sups             = new CollectionProperty<Sup>(Sup.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<I>          is               = new CollectionProperty<I>(I.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<B>          bs               = new CollectionProperty<B>(B.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<U>          us               = new CollectionProperty<U>(U.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Mark>       marks            = new CollectionProperty<Mark>(Mark.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Ruby>       rubys            = new CollectionProperty<Ruby>(Ruby.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Rt>         rts              = new CollectionProperty<Rt>(Rt.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Rp>         rps              = new CollectionProperty<Rp>(Rp.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Bdi>        bdis             = new CollectionProperty<Bdi>(Bdi.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Bdo>        bdos             = new CollectionProperty<Bdo>(Bdo.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Span>       spans            = new CollectionProperty<Span>(Span.class, RelType.CONTAINS, Direction.INCOMING);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Content.class, PropertyView.Ui,
 		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
@@ -84,53 +126,6 @@ public class Content extends AbstractNode {
 	//~--- static initializers --------------------------------------------
 
 	static {
-
-//		EntityContext.registerPropertySet(Content.class, PropertyView.All, attributes);
-//		EntityContext.registerPropertySet(Content.class, PropertyView.Public, attributes);
-//		EntityContext.registerPropertySet(Content.class, PropertyView.Ui, attributes);
-		
-		EntityContext.registerPropertyRelation(Content.class, typeDefinitionId, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid));
-		
-		EntityContext.registerEntityRelation(Content.class, TypeDefinition.class, RelType.IS_A, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid));
-		EntityContext.registerEntityRelation(Content.class, Element.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Title.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Body.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Style.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Script.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, P.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Div.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, H1.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, H2.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, H3.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, H4.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, H5.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, H6.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, A.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Em.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Strong.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Small.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, S.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Cite.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, G.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Dfn.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Abbr.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Time.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Code.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Var.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Samp.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Kbd.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Sub.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Sup.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, I.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, B.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, U.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Mark.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Ruby.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Rt.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Rp.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Bdi.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Bdo.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class, Span.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
@@ -247,9 +242,7 @@ public class Content extends AbstractNode {
 	}
 
 	public TypeDefinition getTypeDefinition() {
-
-		return (TypeDefinition) getRelatedNode(TypeDefinition.class);
-
+		return getProperty(Content.typeDefinition);
 	}
 
 }

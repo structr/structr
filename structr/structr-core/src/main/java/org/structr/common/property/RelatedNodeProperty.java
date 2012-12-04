@@ -24,20 +24,23 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelatedNodePropertyMapper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.EntityProperty;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RelatedNodeProperty<T> extends Property<T> {
+public class RelatedNodeProperty<T> extends PrimitiveProperty<T> {
 	
-	private PropertyKey targetKey = null;
-	private Class targetType = null;
+	private EntityProperty<? extends AbstractNode> sourceKey = null;
+	private PropertyKey targetKey                            = null;
 	
-	public RelatedNodeProperty(String name, Class targetType, PropertyKey<T> targetKey) {
+	public RelatedNodeProperty(String name, EntityProperty<? extends AbstractNode> sourceKey, PropertyKey<T> targetKey) {
 		super(name);
 		
-		this.targetType = targetType;
+		this.sourceKey  = sourceKey;
 		this.targetKey  = targetKey;
 		
 		// make us known to the entity context
@@ -51,7 +54,7 @@ public class RelatedNodeProperty<T> extends Property<T> {
 	
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject currentObject) {
-		return new RelatedNodePropertyMapper(securityContext, currentObject, targetType, targetKey);
+		return new RelatedNodePropertyMapper(securityContext, currentObject, sourceKey, targetKey);
 	}
 
 	@Override

@@ -94,6 +94,16 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public void setNames(String name) {
+		propertyKey.setNames(name);
+	}
+
+	@Override
+	public void setNames(String jsonName, String dbName) {
+		propertyKey.setNames(jsonName, dbName);
+	}
+
+	@Override
 	public T defaultValue() {
 		return propertyKey.defaultValue();
 	}
@@ -163,7 +173,6 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void registrationCallback(Class<? extends AbstractNode> entityType) {
-		propertyKey.registrationCallback(entityType);
+	public void registrationCallback(Class entityType) {
 	}
 }

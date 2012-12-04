@@ -25,17 +25,15 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.property.Property;
+import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,20 +44,7 @@ import org.structr.common.property.Property;
  */
 public class Group extends AbstractNode implements Principal {
 
-//	public static final Property<List<User>>   users    = new GenericProperty("users");
-//	
-//	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-//		users
-//	);
-	static {
-
-//		EntityContext.registerPropertySet(Group.class, PropertyView.All, Key.values());
-//		EntityContext.registerPropertySet(Group.class, PropertyView.Ui, Key.values());
-
-		// EntityContext.registerPropertyRelation(Group.class, Key.users,        Principal.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Group.class, User.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-
-	}
+	public static final CollectionProperty<User> users = new CollectionProperty<User>(User.class, RelType.CONTAINS, Direction.OUTGOING);
 
 	//~--- methods --------------------------------------------------------
 

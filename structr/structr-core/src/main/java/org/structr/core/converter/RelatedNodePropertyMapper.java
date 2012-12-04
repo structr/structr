@@ -21,9 +21,7 @@ package org.structr.core.converter;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationClass;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -31,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.property.EntityProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -42,14 +41,14 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(RelatedNodePropertyMapper.class.getName());
 
-	private PropertyKey targetKey = null;
-	private Class targetType = null;
+	private EntityProperty<? extends AbstractNode> sourceKey = null;
+	private PropertyKey targetKey         = null;
 	
-	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, Class targetType, PropertyKey targetKey) {
+	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, EntityProperty<? extends AbstractNode> sourceKey, PropertyKey targetKey) {
 		
 		super(securityContext, currentObject);
 		
-		this.targetType = targetType;
+		this.sourceKey = sourceKey;
 		this.targetKey = targetKey;
 	}
 	
@@ -58,15 +57,16 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 	@Override
 	public Object convert(Object source) {
 
-		AbstractNode relatedNode = getRelatedNode(targetType, true);
+		AbstractNode relatedNode = getRelatedNode(true);
 		if (relatedNode != null) {
 
 			try {
+				
 				relatedNode.setProperty(targetKey, source);
+				
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.dbName(),
-					targetType });
+				logger.log(Level.WARNING, "Unable to set remote node property {0}", targetKey);
 			}
 		}
 		
@@ -76,12 +76,10 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		AbstractNode relatedNode = getRelatedNode(targetType, false);
-
+		AbstractNode relatedNode = getRelatedNode(false);
 		if (relatedNode != null) {
 
 			return relatedNode.getProperty(targetKey);
-
 		}
 
 		return null;
@@ -89,31 +87,25 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	//~--- get methods ----------------------------------------------------
 
-	private AbstractNode getRelatedNode(Class targetType, boolean add) {
+	private AbstractNode getRelatedNode(boolean add) {
 
 		AbstractNode relatedNode = null;
 
 		if ((currentObject != null) && (currentObject instanceof AbstractNode)) {
 
 			AbstractNode localNode = (AbstractNode) currentObject;
-			RelationClass rel   = EntityContext.getRelationClass(localNode.getClass(), targetType);
-
-			if (rel != null) {
-
-				relatedNode = rel.getRelatedNode(securityContext, localNode);
-
-				if (relatedNode == null && add) {
-
-					try {
-						relatedNode = rel.addRelatedNode(securityContext, localNode);
-					} catch (FrameworkException ex) {
-						logger.log(Level.WARNING, "Could not add related node", ex);
-					}
-
+			relatedNode = localNode.getProperty(sourceKey);
+			
+			if (relatedNode == null && add) {
+				
+				try {
+					relatedNode = sourceKey.createRelatedNode(securityContext, localNode);
+					
+				} catch (FrameworkException fex) {
+					
+					logger.log(Level.WARNING, "Unable to create related node from property {0}", sourceKey);
 				}
-
 			}
-
 		}
 
 		return relatedNode;

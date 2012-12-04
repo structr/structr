@@ -20,11 +20,7 @@ package org.structr.common.property;
 
 import org.structr.core.property.PropertyKey;
 import java.util.Set;
-import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
@@ -35,8 +31,6 @@ import org.structr.core.graph.search.TextualSearchAttribute;
  * @author Christian Morgner
  */
 public abstract class Property<JavaType> implements PropertyKey<JavaType> {
-
-	private static final Logger logger = Logger.getLogger(Property.class.getName());
 
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected JavaType defaultValue                        = null;
@@ -83,6 +77,10 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 	
 	@Override
+	public void registrationCallback(Class type) {
+	}
+	
+	@Override
 	public Class<? extends GraphObject> getDeclaringClass() {
 		return declaringClass;
 	}
@@ -91,6 +89,17 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public String toString() {
 		return "(".concat(jsonName()).concat("|").concat(dbName()).concat(")");
+	}
+	
+	@Override
+	public void setNames(String name) {
+		setNames(name, name);
+	}
+	
+	@Override
+	public void setNames(String jsonName, String dbName) {
+		this.jsonName = jsonName;
+		this.dbName = dbName;
 	}
 	
 	@Override
@@ -140,11 +149,6 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 	
 	@Override
-	public Class<? extends GraphObject> relatedType() {
-		return null;
-	}
-	
-	@Override
 	public boolean isSystemProperty() {
 		return isSystemProperty;
 	}
@@ -157,6 +161,11 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public boolean isWriteOnceProperty() {
 		return isWriteOnceProperty;
+	}
+	
+	@Override
+	public Class<? extends GraphObject> relatedType() {
+		return null;
 	}
 
 	@Override

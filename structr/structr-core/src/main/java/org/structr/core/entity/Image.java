@@ -31,10 +31,7 @@ import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.property.IntProperty;
 import org.structr.common.property.Property;
-import org.structr.core.Command;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
@@ -50,6 +47,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.property.EntityProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,16 +61,11 @@ public class Image extends File {
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
 	// public static final Property<String> imageData = new ImageDataProperty("imageData", new KeyAndClass(null, null));     // FIXME!!?
-	public static final Property<Integer> height = new IntProperty("height");
-	public static final Property<Integer> width  = new IntProperty("width");
+	public static final EntityProperty<Folder> folder = new EntityProperty<Folder>(Folder.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final Property<Integer>      height = new IntProperty("height");
+	public static final Property<Integer>      width  = new IntProperty("width");
+	
 	public static final View uiView              = new View(Image.class, PropertyView.Ui, width, height);
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
-	}
 
 	//~--- methods --------------------------------------------------------
 

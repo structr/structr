@@ -24,8 +24,7 @@ package org.structr.web.entity.html;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -34,15 +33,6 @@ import org.structr.core.entity.RelationClass;
  */
 public class Tr extends HtmlElement {
 
-	static {
-
-//		EntityContext.registerPropertySet(Tr.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Tr.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Tr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		
-		EntityContext.registerEntityRelation(Tr.class, Td.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Tr.class, Th.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
-
+	public static final CollectionProperty<Td> tds = new CollectionProperty<Td>(Td.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Th> ths = new CollectionProperty<Th>(Th.class, RelType.CONTAINS, Direction.OUTGOING);
 }

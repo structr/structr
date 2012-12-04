@@ -24,7 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
 
@@ -34,6 +33,9 @@ import org.structr.core.graph.search.SearchOperator;
  * @author Christian Morgner
  */
 public interface PropertyKey<JavaType> {
+	
+	public void setNames(String name);
+	public void setNames(String jsonName, String dbName);
 	
 	public String jsonName();
 	public String dbName();
@@ -58,6 +60,8 @@ public interface PropertyKey<JavaType> {
 	
 	public JavaType getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
 	public void setProperty(SecurityContext securityContext, GraphObject obj, JavaType value) throws FrameworkException;
+
+	public void registrationCallback(Class entityType);
 	
 	/**
 	 * Indicates whether this property is a system property or not. If a transaction

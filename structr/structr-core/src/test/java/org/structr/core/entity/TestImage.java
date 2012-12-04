@@ -33,6 +33,6 @@ import org.structr.core.property.ThumbnailProperty;
  */
 public class TestImage extends Image {
 
-	public static final ThumbnailProperty<Image> thumbnail = new ThumbnailProperty("thumbnail", new ThumbnailParameters(200, 100, false));
+	public static final ThumbnailProperty thumbnail = new ThumbnailProperty("thumbnail", new ThumbnailParameters(200, 100, false));
 	
 }

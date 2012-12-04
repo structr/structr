@@ -23,15 +23,12 @@ package org.structr.web.entity;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.graph.CypherQueryCommand;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -65,14 +62,7 @@ public class View extends AbstractNode implements Element {
 	);
 	
 	static {
-
-//		EntityContext.registerPropertySet(View.class, PropertyView.All, Key.values());
-//		EntityContext.registerPropertySet(View.class, PropertyView.Public, Key.values());
-//		EntityContext.registerPropertySet(View.class, PropertyView.Ui, Key.values());
-		
-		EntityContext.registerEntityRelation(View.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(View.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		
+			
 		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.fulltext.name(), publicView.properties());
 		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(),  publicView.properties());
 

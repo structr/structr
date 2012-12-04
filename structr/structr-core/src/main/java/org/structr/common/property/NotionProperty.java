@@ -27,12 +27,13 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.notion.Notion;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class NotionProperty<T extends Collection<?>> extends Property<T> {
+public class NotionProperty<T extends Collection<?>> extends PrimitiveProperty<T> {
 	
 	private PropertyKey propertyKey = null;
 	private Notion notion           = null;

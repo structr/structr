@@ -29,6 +29,10 @@ import org.structr.core.property.PrimitiveProperty;
  */
 public class StringProperty extends PrimitiveProperty<String> {
 	
+	public StringProperty() {
+		this(null);
+	}
+	
 	public StringProperty(String name) {
 		this(name, name);
 	}

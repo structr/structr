@@ -23,10 +23,8 @@ package org.structr.web.entity.html;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -36,38 +34,29 @@ import org.structr.web.entity.Content;
  */
 public class Td extends HtmlElement {
 
-	static {
-
-//		EntityContext.registerPropertySet(Td.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Td.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Td.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-		EntityContext.registerEntityRelation(Td.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Div.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, B.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, P.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Label.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Textarea.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Input.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Address.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Footer.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Br.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Hr.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, A.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, H1.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, H2.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, H3.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, H4.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, H5.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, H6.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Img.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Ul.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Ol.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Form.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Script.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Td.class, Pre.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
-
+	public static final CollectionProperty<Content>  Contents  = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Div>      Divs      = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Span>     Spans     = new CollectionProperty<Span>(Span.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<B>        Bs        = new CollectionProperty<B>(B.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<P>        Ps        = new CollectionProperty<P>(P.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Label>    Labels    = new CollectionProperty<Label>(Label.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Textarea> Textareas = new CollectionProperty<Textarea>(Textarea.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Input>    Inputs    = new CollectionProperty<Input>(Input.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Address>  Addresss  = new CollectionProperty<Address>(Address.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Footer>   Footers   = new CollectionProperty<Footer>(Footer.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Br>       Brs       = new CollectionProperty<Br>(Br.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Hr>       Hrs       = new CollectionProperty<Hr>(Hr.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<A>        As        = new CollectionProperty<A>(A.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<H1>       H1s       = new CollectionProperty<H1>(H1.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<H2>       H2s       = new CollectionProperty<H2>(H2.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<H3>       H3s       = new CollectionProperty<H3>(H3.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<H4>       H4s       = new CollectionProperty<H4>(H4.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<H5>       H5s       = new CollectionProperty<H5>(H5.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<H6>       H6s       = new CollectionProperty<H6>(H6.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Img>      Imgs      = new CollectionProperty<Img>(Img.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Ul>       Uls       = new CollectionProperty<Ul>(Ul.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Ol>       Ols       = new CollectionProperty<Ol>(Ol.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Form>     Forms     = new CollectionProperty<Form>(Form.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Script>   Scripts   = new CollectionProperty<Script>(Script.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Pre>      Pres      = new CollectionProperty<Pre>(Pre.class, RelType.CONTAINS, Direction.OUTGOING);
 }

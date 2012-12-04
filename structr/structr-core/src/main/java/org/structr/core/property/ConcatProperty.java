@@ -18,44 +18,40 @@
  */
 package org.structr.core.property;
 
-import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
-import org.structr.common.property.StringProperty;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.ImageConverter;
-import org.structr.core.converter.PropertyConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class ImageDataProperty<T> extends StringProperty {
-	
-	private KeyAndClass keyAndClass = null;
-	
-	public ImageDataProperty(String name, KeyAndClass keyAndClass) {
+public class ConcatProperty extends AbstractReadOnlyProperty<String> {
+
+	private PropertyKey<String>[] propertyKeys = null;
+	private String separator = null;
+
+	public ConcatProperty(String name, String separator, PropertyKey<String>... propertyKeys) {
+		
 		super(name);
-		this.isSystemProperty = true;
-		this.keyAndClass = keyAndClass;
+		
+		this.propertyKeys = propertyKeys;
+		this.separator = separator;
 	}
 	
 	@Override
-	public String typeName() {
-		return "String";
-	}
-	
-	@Override
-	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new ImageConverter(securityContext, entity, keyAndClass);
-	}
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		
+		StringBuilder combinedPropertyValue = new StringBuilder();
+		int len = propertyKeys.length;
 
-	@Override
-	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
-		return null;
-	}
+		for(int i=0; i<len; i++) {
+			
+			combinedPropertyValue.append(obj.getProperty(propertyKeys[i]));
+			if(i < len-1) {
+				combinedPropertyValue.append(separator);
+			}
+		}
 
-	@Override
-	public Object fixDatabaseProperty(Object value) {
-		return null;
+		return combinedPropertyValue.toString();
 	}
 }

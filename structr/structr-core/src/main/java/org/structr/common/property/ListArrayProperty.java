@@ -28,7 +28,7 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @author Christian Morgner
  */
-public class ListArrayProperty extends Property<String> {
+public class ListArrayProperty extends StringProperty {
 
 	public static final String SEP = ",";
 	

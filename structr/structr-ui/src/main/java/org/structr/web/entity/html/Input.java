@@ -28,8 +28,7 @@ import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -70,6 +69,8 @@ public class Input extends HtmlElement {
 	public static final Property<String> _type           = new HtmlProperty("type");
 	public static final Property<String> _value          = new HtmlProperty("value");
 	public static final Property<String> _width          = new HtmlProperty("width");
+
+	public static final CollectionProperty<Form> forms   = new CollectionProperty<Form>(Form.class, RelType.CONTAINS, Direction.INCOMING);
 	
 	public static final View htmlView = new View(Input.class, PropertyView.Html,
 	    
@@ -77,18 +78,6 @@ public class Input extends HtmlElement {
 		_formnovalidate, _formtarget, _height, _list, _max, _maxlength, _min, _multiple, _name, _pattern, _placeholder,
 		_readonly, _required, _size, _src, _step, _type, _value, _width
 	 );
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-//		EntityContext.registerPropertySet(Input.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Input.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Input.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		
-		EntityContext.registerEntityRelation(Input.class, Form.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-
-	}
 
 	//~--- get methods ----------------------------------------------------
 

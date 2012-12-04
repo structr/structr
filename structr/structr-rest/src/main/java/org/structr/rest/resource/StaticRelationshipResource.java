@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.ListUtils;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -41,10 +40,8 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.StructrTransaction;
@@ -53,6 +50,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
+import org.structr.core.property.AbstractRelationProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -95,87 +93,22 @@ public class StaticRelationshipResource extends SortableResource {
 
 			// ok, source node exists, fetch it
 			final AbstractNode sourceNode = typedIdResource.getTypesafeNode();
-
 			if (sourceNode != null) {
 
-				// fetch static relationship definition
-				final RelationClass staticRel = findRelationClass(typedIdResource, typeResource);
+				final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
+				if (key != null) {
 
-				if (staticRel != null) {
-
-					final List relatedNodes = staticRel.getRelatedNodes(securityContext, sourceNode);
-
-					// check for search keys in request first..
-					final List<SearchAttribute> dummyList = typeResource.extractSearchableAttributesFromRequest(securityContext);
-
-					if (!dummyList.isEmpty()) {
-
-						// use result list of doGet from typeResource and intersect with relatedNodes list.
-						final List<? extends GraphObject> typeNodes = typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
-						final List intersection           = ListUtils.intersection(relatedNodes, typeNodes);
-
-
-
-						// Caution: intersection may not be empty
-						// if (!intersection.isEmpty()) {
-
-						applyDefaultSorting(intersection, sortKey, sortDescending);
-
-						return new Result(PagingHelper.subList(intersection, pageSize, page, offsetId), intersection.size(), isCollectionResource(), isPrimitiveArray());
-					}
-
-					// return non-empty list
-					if (!relatedNodes.isEmpty()) {
-
-						applyDefaultSorting(relatedNodes, sortKey, sortDescending);
-
-						return new Result(PagingHelper.subList(relatedNodes, pageSize, page, offsetId), relatedNodes.size(), isCollectionResource(), isPrimitiveArray());
-					}
-
-					// do not return empty collection here, try getProperty
-					// return Collections.emptyList();
-
-				}
-
-				// URL: /type1/uuid/type2
-				// we need to use the raw type of the second type constraint
-				// as the property key for getProperty
-				// look for a property converter for the given type and key
-				final Class type      = sourceNode.getClass();
-				final PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type, typeResource.getRawType());
-
-				// use database converter here, because results will be converted for output during serialization!
-				final PropertyConverter converter = key.databaseConverter(securityContext, sourceNode);
-
-				if (converter != null) {
-
-					converter.setRawMode(true);    // disable notion
-
-					final Object value = converter.revert(null);
-
-					// create error message in advance to avoid having to construct it twice in different locations
-					final StringBuilder msgBuilder = new StringBuilder();
-
-					msgBuilder.append("Property result on type ");
-					msgBuilder.append(sourceNode.getClass().getSimpleName());
-					msgBuilder.append(", key ");
-					msgBuilder.append(key);
-					msgBuilder.append(" is not an Iterable<GraphObject>!");
-
-					final String msg = msgBuilder.toString();
-
+					final Object value = sourceNode.getProperty(key);
 					if (value != null) {
 
-						// check for non-empty list of GraphObjects
-						if (value instanceof List &&!((List) value).isEmpty() && ((List) value).get(0) instanceof GraphObject) {
-
-							final List<GraphObject> list = (List<GraphObject>) value;
-
+						if (value instanceof List) {
+						
+							final List<GraphObject> list = (List<GraphObject>)value;
 							applyDefaultSorting(list, sortKey, sortDescending);
 
 							//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
 							return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
-
+							
 						} else if (value instanceof Iterable) {
 
 							// check type of value (must be an Iterable of GraphObjects in order to proceed here)
@@ -187,26 +120,15 @@ public class StaticRelationshipResource extends SortableResource {
 								if (o instanceof GraphObject) {
 
 									propertyListResult.add((GraphObject) o);
-
-								} else {
-
-									throw new SystemException(msg);
-
 								}
-
 							}
 
 							applyDefaultSorting(propertyListResult, sortKey, sortDescending);
 
 							//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
 							return new Result(PagingHelper.subList(propertyListResult, pageSize, page, offsetId), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
+							
 						}
-					} else {
-
-						logger.log(Level.SEVERE, msg);
-
-						throw new SystemException(msg);
-
 					}
 
 				}
@@ -225,11 +147,11 @@ public class StaticRelationshipResource extends SortableResource {
 		if (results != null) {
 
 			// fetch static relationship definition
-			final RelationClass staticRel = findRelationClass(typedIdResource, typeResource);
+			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
+			if (key != null && key instanceof AbstractRelationProperty) {
 
-			if (staticRel != null) {
-
-				final AbstractNode startNode = typedIdResource.getTypesafeNode();
+				final AbstractRelationProperty staticRel = (AbstractRelationProperty)key;
+				final AbstractNode startNode             = typedIdResource.getTypesafeNode();
 
 				if (startNode != null) {
 
@@ -334,9 +256,12 @@ public class StaticRelationshipResource extends SortableResource {
 			public Object execute() throws FrameworkException {
 
 				final AbstractNode sourceNode = typedIdResource.getIdResource().getNode();
-				final RelationClass rel    = EntityContext.getRelationClass(sourceNode.getClass(), typeResource.getEntityClass());
+				final PropertyKey propertyKey = findPropertyKey(typedIdResource, typeResource);
+				
+				if (sourceNode != null && propertyKey != null) {
 
-				if (sourceNode != null && rel != null) {
+					final AbstractRelationProperty rel = (AbstractRelationProperty)propertyKey;
+
 
 					Class sourceNodeType = sourceNode.getClass();
 					

@@ -28,8 +28,7 @@ import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.Content;
 
@@ -48,30 +47,20 @@ public class Form extends HtmlElement {
 	public static final Property<String> _name          = new HtmlProperty("name");
 	public static final Property<String> _novalidate    = new HtmlProperty("novalidate");
 	public static final Property<String> _target        = new HtmlProperty("target");
+	
+	public static final CollectionProperty<Div>      divParents = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<P>        pParents   = new CollectionProperty<P>(P.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Content>  contents   = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Div>      divs       = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Input>    inputs     = new CollectionProperty<Input>(Input.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Button>   buttons    = new CollectionProperty<Button>(Button.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Select>   selects    = new CollectionProperty<Select>(Select.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Label>    labels     = new CollectionProperty<Label>(Label.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Textarea> textareas  = new CollectionProperty<Textarea>(Textarea.class, RelType.CONTAINS, Direction.OUTGOING);
 
 	public static final View htmlView = new View(Form.class, PropertyView.Html,
 	    _acceptCharset, _action, _autocomplete, _enctype, _method, _name, _novalidate, _target
 	);
-	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-//		EntityContext.registerPropertySet(Form.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Form.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Form.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		
-		EntityContext.registerEntityRelation(Form.class, Div.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, P.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Div.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Input.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Button.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Select.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Label.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Textarea.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
 
 	@Override
 	public Property[] getHtmlAttributes() {

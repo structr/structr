@@ -60,7 +60,6 @@ import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
@@ -250,36 +249,11 @@ public abstract class Resource {
 	public void postProcessResultSet(final Result result) {}
 
 	// ----- protected methods -----
-	protected RelationClass findRelationClass(final TypedIdResource typedIdResource, final TypeResource typeResource) {
-		return findRelationClass(typedIdResource.getTypeResource(), typeResource);
-	}
+	protected PropertyKey findPropertyKey(final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
-	protected RelationClass findRelationClass(final TypeResource typeResource, final TypedIdResource typedIdResource) {
-		return findRelationClass(typeResource, typedIdResource.getTypeResource());
-	}
-
-	protected RelationClass findRelationClass(final TypedIdResource typedIdResource1, final TypedIdResource typedIdResource2) {
-		return findRelationClass(typedIdResource1.getTypeResource(), typedIdResource2.getTypeResource());
-	}
-
-	protected RelationClass findRelationClass(final TypeResource typeResource1, final TypeResource typeResource2) {
-
-		final Class<? extends GraphObject> type1 = typeResource1.getEntityClass();
-		final Class<? extends GraphObject> type2 = typeResource2.getEntityClass();
-
-		if (type1 != null && type2 != null) {
-
-			return EntityContext.getRelationClass(type1, type2);
-		}
-
-		if (type1 != null) {
-
-			PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type1, typeResource2.getRawType());
-			return EntityContext.getRelationClassForProperty(type1, key);
-
-		}
-
-		return null;
+		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
+		
+		return EntityContext.getPropertyKeyForJSONName(sourceNodeType, typeResource.getRawType());
 	}
 
 	protected String buildLocationHeader(final GraphObject newObject) {

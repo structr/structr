@@ -18,47 +18,50 @@
  */
 package org.structr.common.property;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.HyperRelation;
-import org.structr.core.converter.HyperRelationConverter;
-import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.AbstractReadOnlyProperty;
+import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EntityProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class HyperRelationProperty<T> extends Property<T> {
+public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNode> extends AbstractReadOnlyProperty<List<T>> {
 	
-	private HyperRelation hyperRelation = null;
+	CollectionProperty<S> step1 = null;
+	EntityProperty<T> step2     = null;
 	
-	public HyperRelationProperty(String name, HyperRelation hyperRelation) {
+	public HyperRelationProperty(String name, CollectionProperty<S> step1, EntityProperty<T> step2) {
+		
 		super(name);
 		
-		this.hyperRelation = hyperRelation;
+		this.step1 = step1;
+		this.step2 = step2;
 		
-		// make us known to the entity context
+		// make us known to the Collection context
 		EntityContext.registerConvertedProperty(this);
 	}
 	
 	@Override
-	public String typeName() {
-		return ""; // read-only
-	}
-	
-	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new HyperRelationConverter(securityContext, entity, hyperRelation);
-	}
+	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 
-	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return null;
-	}
+		List<S> connectors = obj.getProperty(step1);
+		List<T> endNodes   = new LinkedList<T>();
+		
+		if (connectors != null) {
 
-	@Override
-	public Object fixDatabaseProperty(Object value) {
-		return null;
+			for (AbstractNode node : connectors) {
+				
+				endNodes.add(node.getProperty(step2));
+			}
+		}
+		
+		return endNodes;
 	}
 }

@@ -28,8 +28,7 @@ import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.Content;
 
@@ -41,28 +40,18 @@ import org.structr.web.entity.Content;
 public class Li extends HtmlElement {
 
 	public static final Property<String> _value = new HtmlProperty("value");
+
+	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<A>       as       = new CollectionProperty<A>(A.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Span>    spans    = new CollectionProperty<Span>(Span.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Div>     divs     = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Img>     imgs     = new CollectionProperty<Img>(Img.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Ul>      uls      = new CollectionProperty<Ul>(Ul.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Ol>      ols      = new CollectionProperty<Ol>(Ol.class, RelType.CONTAINS, Direction.OUTGOING);
 	
 	public static final View htmlView = new View(Li.class, PropertyView.Html,
 		_value
 	);
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-//		EntityContext.registerPropertySet(Li.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Li.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Li.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		
-		EntityContext.registerEntityRelation(Li.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Li.class, A.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Li.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Li.class, Div.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Li.class, Img.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Li.class, Ul.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Li.class, Ol.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
 
 	@Override
 	public Property[] getHtmlAttributes() {

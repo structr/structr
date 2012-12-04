@@ -23,10 +23,8 @@ package org.structr.web.entity.html;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -36,16 +34,7 @@ import org.structr.web.entity.Content;
  */
 public class H1 extends HtmlElement {
 
-	static {
-
-//		EntityContext.registerPropertySet(H1.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(H1.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(H1.class, PropertyView.Html, PropertyView.Html, HtmlElement.htmlAttributes);
-
-		EntityContext.registerEntityRelation(H1.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(H1.class, B.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(H1.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
-
+	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<B>       bs       = new CollectionProperty<B>(B.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Span>    spans    = new CollectionProperty<Span>(Span.class, RelType.CONTAINS, Direction.OUTGOING);
 }

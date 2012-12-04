@@ -28,6 +28,7 @@ import org.structr.core.converter.Aggregation;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.AbstractReadOnlyCollectionProperty;
+import org.structr.core.property.CollectionProperty;
 
 /**
  *
@@ -52,8 +53,9 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
 			// 1. step: add all nodes
-			for(Class type : aggregation.getAggregationTypes()) {
-				nodes.addAll(sourceNode.getRelatedNodes(type));
+			for(CollectionProperty<? extends AbstractNode> property : aggregation.getAggregationProperties()) {
+				
+				nodes.addAll(sourceNode.getProperty(property));
 			}
 
 			// 2. step: sort nodes according to comparator

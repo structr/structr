@@ -16,28 +16,21 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.core.property;
 
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.EntityProperty;
+import java.util.List;
+import org.structr.common.property.NotionProperty;
+import org.structr.common.property.Property;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.notion.PropertyNotion;
 
 /**
- * A simple entity for the most basic tests.
- * 
- * The isValid method does always return true for testing purposes only.
- * 
- * 
- * @author Axel Morgner
+ *
+ * @author Christian Morgner
  */
-public class TestFour extends AbstractNode {
+public class IdNotionProperty extends NotionProperty<List<String>> {
 	
-	public static final EntityProperty<TestOne> testOne = new EntityProperty<TestOne>(TestOne.class, RelType.DATA, Direction.INCOMING, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
-	
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-		return true;
+	public IdNotionProperty(String name, Property base) {
+		super(name, base, new PropertyNotion(AbstractNode.uuid));
 	}
-	
 }

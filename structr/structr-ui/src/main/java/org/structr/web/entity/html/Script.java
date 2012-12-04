@@ -22,18 +22,16 @@
 package org.structr.web.entity.html;
 
 import org.structr.common.property.Property;
-import java.util.List;
 import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
 import org.structr.common.*;
-import org.structr.common.property.GenericProperty;
-import org.structr.common.property.StringProperty;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.EntityProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.Content;
 
@@ -49,9 +47,13 @@ public class Script extends HtmlElement {
 	public static final Property<String> _defer   = new HtmlProperty("defer");
 	public static final Property<String> _type    = new HtmlProperty("type");
 	public static final Property<String> _charset = new HtmlProperty("charset");
-
-	public static final Property<String>         linkableId = new StringProperty("linkable_id");
-	public static final Property<List<Linkable>> linkable   = new GenericProperty<List<Linkable>>("linkable");
+		
+	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>(Head.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Div>     divs     = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.INCOMING);
+ 
+	public static final EntityProperty<Linkable>    linkable    = new EntityProperty<Linkable>(Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name));
+	public static final Property<String>            linkableId  = new EntityIdProperty(linkable);
 
 	public static final View uiView = new View(Script.class, PropertyView.Ui,
 		linkableId, linkable
@@ -60,25 +62,6 @@ public class Script extends HtmlElement {
 	public static final View htmlView = new View(Script.class, PropertyView.Html,
 		_src, _async, _defer, _type, _charset
 	);
-
-	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-//		EntityContext.registerPropertySet(Script.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Script.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Script.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		
-		EntityContext.registerEntityRelation(Script.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Script.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Script.class, Div.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Script.class, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name),
-			RelationClass.DELETE_NONE);
-		EntityContext.registerPropertyRelation(Script.class, Script.linkableId, Linkable.class, RelType.LINK, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne,
-			new PropertyNotion(AbstractNode.uuid), RelationClass.DELETE_NONE);
-
-	}
 
 	//~--- get methods ----------------------------------------------------
 

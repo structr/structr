@@ -43,13 +43,12 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
-import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.notion.Notion;
-import org.structr.core.notion.ObjectNotion;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -83,16 +82,12 @@ public class EntityContext {
 	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<Class, Map<PropertyKey, Set<PropertyValidator>>>();
 	private static final Map<Class, Map<String, Set<PropertyKey>>> globalSearchablePropertyMap    = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
 
-	// This map contains a mapping from (sourceType, destType) -> RelationClass
-	private static final Map<Class, Map<Class, RelationClass>> globalRelationClassMap      = new LinkedHashMap<Class, Map<Class, RelationClass>>();
+	// This map contains a mapping from (sourceType, destType) -> Relation
 	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap   = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
 	private static final Map<Class, Map<String, PropertyKey>> globalClassDBNamePropertyMap = new LinkedHashMap<Class, Map<String, PropertyKey>>();
 	private static final Map<Class, Map<String, PropertyKey>> globalClassJSNamePropertyMap = new LinkedHashMap<Class, Map<String, PropertyKey>>();
 
-	// This map contains a mapping from (sourceType, propertyKey) -> RelationClass
-	private static final Map<Class, Map<PropertyKey, Class<? extends PropertyConverter>>> globalAggregatedPropertyConverterMap = new LinkedHashMap<Class, Map<PropertyKey, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Map<PropertyKey, Class<? extends PropertyConverter>>> globalPropertyConverterMap           = new LinkedHashMap<Class, Map<PropertyKey, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Map<PropertyKey, RelationClass>> globalPropertyRelationClassMap                            = new LinkedHashMap<Class, Map<PropertyKey, RelationClass>>();
+	// This map contains a mapping from (sourceType, propertyKey) -> Relation
 	private static final Map<Class, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap                               = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                         = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 
@@ -102,7 +97,6 @@ public class EntityContext {
 	// This set contains all known properties
 	private static final Set<PropertyKey> globalKnownPropertyKeys                                           = new LinkedHashSet<PropertyKey>();
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
-	private static final Map<Class, Map<PropertyKey, Value>> globalConversionParameterMap                   = new LinkedHashMap<Class, Map<PropertyKey, Value>>();
 	private static final Map<String, String> normalizedEntityNameCache                                      = new LinkedHashMap<String, String>();
 	private static final Set<StructrTransactionListener> transactionListeners                               = new LinkedHashSet<StructrTransactionListener>();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap                         = new LinkedHashMap<String, RelationshipMapping>();
@@ -179,6 +173,12 @@ public class EntityContext {
 				
 				propertyKey.setDeclaringClass(declaringClass);
 				registerProperty(declaringClass, propertyKey);
+				
+			}
+			
+			// set name if not set
+			if (propertyKey.dbName() == null && propertyKey.jsonName() == null) {
+				propertyKey.setNames(field.getName());
 			}
 			
 			registerProperty(entityType, propertyKey);
@@ -204,6 +204,9 @@ public class EntityContext {
 		getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), propertyKey);
 		
 		registerPropertySet(type, PropertyView.All, propertyKey);
+		
+		// inform property key of its registration
+		propertyKey.registrationCallback(type);
 	}
 	
 	/**
@@ -271,153 +274,6 @@ public class EntityContext {
 
 		globalRelationshipNameMap.put(relationName, new RelationshipMapping(relationName, sourceType, destType, relType));
 		globalRelationshipClassMap.put(createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName()), relationshipEntityType);
-	}
-
-	// ----- property and entity relationships -----
-	/**
-	 * Defines a non-cascading property relationship with the given property key, relationship type,
-	 * direction and cardinality to exist between the source type and the destination type.
-	 * 
-	 * @param sourceType the source type
-	 * @param propertyKey the property key
-	 * @param destType the destination type
-	 * @param relType the relationship type
-	 * @param direction the direction of the relationship
-	 * @param cardinality the cardinality of the relationship
-	 */
-	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
-		registerPropertyRelation(sourceType, propertyKey, destType, relType, direction, cardinality, RelationClass.DELETE_NONE);
-	}
-
-	/**
-	 * Defines a property relationship with the given property key, relationship type, direction,
-	 * cardinality and cascading delete behaviour to exist between the source type and the destination
-	 * type.
-	 * 
-	 * @param sourceType the source type
-	 * @param propertyKey the property key
-	 * @param destType the destination type
-	 * @param relType the relationship type
-	 * @param direction the direction of the relationship
-	 * @param cardinality the cardinality of the relationship
-	 * @param cascadeDelete the cascading delete behaviour
-	 */
-	public static void registerPropertyRelation(Class sourceType, PropertyKey property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, int cascadeDelete) {
-
-		// need to set type here
-		Notion objectNotion = new ObjectNotion();
-
-		objectNotion.setType(destType);
-		registerPropertyRelationInternal(sourceType, property, destType, relType, direction, cardinality, objectNotion, cascadeDelete);
-	}
-
-	/**
-	 * Defines a non-cascading property relationship with the given property key, relationship
-	 * type, direction and cardinality to exist between the source type and the destination type,
-	 * using the given notion.
-	 * 
-	 * @param sourceType the source type
-	 * @param propertyKey the property key
-	 * @param destType the destination type
-	 * @param relType the relationship type
-	 * @param direction the direction of the relationship
-	 * @param cardinality the cardinality of the relationship
-	 * @param notion the notion 
-	 */
-	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
-		registerPropertyRelation(sourceType, propertyKey, destType, relType, direction, cardinality, notion, RelationClass.DELETE_NONE);
-	}
-
-	/**
-	 * Defines a relationship with the given property key, relationship type, direction,
-	 * cardinality and cascading delete behaviour to exist between the source type
-	 * and the destination type, using the given notion.
-	 * 
-	 * @param sourceType
-	 * @param property
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param cardinality
-	 * @param notion
-	 * @param cascadeDelete 
-	 */
-	public static void registerPropertyRelation(Class sourceType, PropertyKey property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
-		int cascadeDelete) {
-
-		notion.setType(destType);
-		registerPropertyRelationInternal(sourceType, property, destType, relType, direction, cardinality, notion, cascadeDelete);
-	}
-
-	/**
-	 * Defines a non-cascading relationship of the given relationship type, direction and
-	 * cardinality between entites of type <code>sourceType</code> and entities of type
-	 * <code>destType</code>.
-	 * 
-	 * @param sourceType the type of the source entities
-	 * @param destType the type of the destination entities
-	 * @param relType the relationship type
-	 * @param direction the direction
-	 * @param cardinality the cardinality
-	 */
-	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
-		registerEntityRelation(sourceType, destType, relType, direction, cardinality, RelationClass.DELETE_NONE);
-	}
-
-	/**
-	 * Defines a relationship of the given relationship type, direction, cardinality and
-	 * cascading delete behaviour between entites of type <code>sourceType</code> and
-	 * entities of type <code>destType</code>.
-	 * 
-	 * @param sourceType the type of the source entities
-	 * @param destType the type of the destination entities
-	 * @param relType the relationship type
-	 * @param direction the direction
-	 * @param cardinality the cardinality
-	 * @param cascadeDelete the cascading delete behaviour
-	 */
-	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, int cascadeDelete) {
-
-		// need to set type here
-		Notion objectNotion = new ObjectNotion();
-
-		objectNotion.setType(destType);
-		registerEntityRelationInternal(sourceType, destType, relType, direction, cardinality, objectNotion, cascadeDelete);
-	}
-
-	/**
-	 * Defines a non-cascading relationship of the given relationship type, direction and
-	 * cardinality between entites of type <code>sourceType</code> and entities of type
-	 * <code>destType</code> using the given notion.
-	 * 
-	 * @param sourceType
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param cardinality
-	 * @param notion 
-	 */
-	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
-		registerEntityRelation(sourceType, destType, relType, direction, cardinality, notion, RelationClass.DELETE_NONE);
-	}
-
-	/**
-	 * Defines a relationship of the given relationship type, direction, cardinality and
-	 * cascading delete behaviour between entites of type <code>sourceType</code> and entities
-	 * of type <code>destType</code> using the given notion.
-	 * 
-	 * @param sourceType
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param cardinality
-	 * @param notion
-	 * @param cascadeDelete 
-	 */
-	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, int cascadeDelete) {
-
-		notion.setType(destType);
-		registerEntityRelationInternal(sourceType, destType, relType, direction, cardinality, notion, cascadeDelete);
 	}
 
 	// ----- property set methods -----
@@ -695,23 +551,6 @@ public class EntityContext {
 		return buf.toString();
 	}
 
-	private static void registerPropertyRelationInternal(Class sourceType, PropertyKey property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
-		int cascadeDelete) {
-
-		Map<PropertyKey, RelationClass> typeMap = getPropertyRelationshipMapForType(sourceType);
-
-		typeMap.put(property, new RelationClass(destType, relType, direction, cardinality, notion, cascadeDelete));
-		globalKnownPropertyKeys.add(property);
-	}
-
-	private static void registerEntityRelationInternal(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, int cascadeDelete) {
-
-		Map<Class, RelationClass> typeMap = getRelationClassMapForType(sourceType);
-		RelationClass directedRelation    = new RelationClass(destType, relType, direction, cardinality, notion, cascadeDelete);
-
-		typeMap.put(destType, directedRelation);
-	}
-	
 	public static String createCombinedRelationshipType(String oldCombinedRelationshipType, Class newDestType) {
 
 		String[] parts = getPartsOfCombinedRelationshipType(oldCombinedRelationshipType);
@@ -918,104 +757,6 @@ public class EntityContext {
 		return group;
 	}
 
-	// ----- static relationship methods -----
-	public static RelationClass getRelationClass(Class sourceType, Class destType) {
-
-		RelationClass relation = null;
-		Class localType        = sourceType;
-
-		while ((relation == null) && localType != null && !localType.equals(Object.class)) {
-
-			relation  = getRelationClassMapForType(localType).get(destType);
-
-			// check source type interfaces after source supertypes!
-			if(relation == null) {
-
-				// try interfaces as well
-				for(Class interfaceClass : getInterfacesForType(localType)) {
-
-					relation = getRelationClassMapForType(interfaceClass).get(destType);
-					if(relation != null) {
-						break;
-					}
-				}
-			}
-
-			localType = localType.getSuperclass();
-		}
-
-		// Check dest type superclasses
-		if (relation == null) {
-
-			localType = destType;
-
-			while ((relation == null) && localType != null && !localType.equals(Object.class)) {
-
-				relation  = getRelationClassMapForType(sourceType).get(localType);
-
-				// check dest type interfaces after dest type
-				if(relation == null) {
-
-					// try interfaces as well
-					for(Class interfaceClass : getInterfacesForType(localType)) {
-
-						relation = getRelationClassMapForType(sourceType).get(interfaceClass);
-						if(relation != null) {
-							break;
-						}
-					}
-				}
-
-				localType = localType.getSuperclass();
-			}
-		}
-			
-
-		return relation;
-	}
-
-	public static RelationClass getRelationClass(Class sourceType, PropertyKey key) {
-
-		Class destType = getEntityClassForRawType(key.dbName());
-
-		if (destType != null) {
-
-			return getRelationClass(sourceType, destType);
-
-		}
-
-		return getRelationClassForProperty(sourceType, key);
-	}
-
-	public static RelationClass getRelationClassForProperty(Class sourceType, PropertyKey propertyKey) {
-
-		RelationClass relation = null;
-		Class localType        = sourceType;
-
-		while ((relation == null) && localType != null && !localType.equals(Object.class)) {
-
-			relation  = getPropertyRelationshipMapForType(localType).get(propertyKey);
-
-			// try interfaces classes
-			if (relation == null) {
-
-				for(Class interfaceClass : getInterfacesForType(localType)) {
-
-					relation  = getPropertyRelationshipMapForType(interfaceClass).get(propertyKey);
-
-					if(relation != null) {
-
-						return relation;
-					}
-				}
-			}
-
-			localType = localType.getSuperclass();
-		}
-
-		return relation;
-	}
-	
 	// ----- view transformations -----
 	public static void registerViewTransformation(Class type, String view, ViewTransformation transformation) {
 		getViewTransformationMapForType(type).put(view, transformation);
@@ -1132,84 +873,6 @@ public class EntityContext {
 		return validators;
 	}
 
-//	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
-//
-//		Class clazz = getAggregatedPropertyConverterMapForType(type).get(propertyKey);
-//		if(clazz == null) {
-//			
-//			Map<PropertyKey, Class<? extends PropertyConverter>> converterMap = null;
-//			Class localType                                                   = type;
-//
-//			while ((clazz == null) && localType != null && !localType.equals(Object.class)) {
-//
-//				converterMap = getPropertyConverterMapForType(localType);
-//				clazz        = converterMap.get(propertyKey);
-//
-//				// try converters from interfaces as well
-//				if(clazz == null) {
-//
-//					for(Class interfaceClass : getInterfacesForType(localType)) {
-//						clazz = getPropertyConverterMapForType(interfaceClass).get(propertyKey);
-//						if(clazz != null) {
-//							break;
-//						}
-//					}
-//				}
-//
-//				localType = localType.getSuperclass();
-//			}
-//			
-//			getAggregatedPropertyConverterMapForType(type).put(propertyKey, clazz);
-//		}
-//
-//		PropertyConverter propertyConverter = null;
-//		if (clazz != null) {
-//
-//			try {
-//
-//				propertyConverter = (PropertyConverter) clazz.newInstance();
-//
-//				propertyConverter.setSecurityContext(securityContext);
-//
-//			} catch (Throwable t) {
-//				logger.log(Level.WARNING, "Unable to instantiate property PropertyConverter {0}: {1}", new Object[] { clazz.getName(), t.getMessage() });
-//			}
-//
-//		}
-//
-//		return propertyConverter;
-//	}
-//
-//	public static Value getPropertyConversionParameter(Class type, PropertyKey propertyKey) {
-//
-//		Map<PropertyKey, Value> conversionParameterMap = null;
-//		Class localType                                = type;
-//		Value value                                    = null;
-//
-//		while ((value == null) && localType != null && !localType.equals(Object.class)) {
-//
-//			conversionParameterMap = getPropertyConversionParameterMapForType(localType);
-//			value                  = conversionParameterMap.get(propertyKey);
-//
-//			// try parameters from interfaces as well
-//			if(value == null) {
-//
-//				for(Class interfaceClass : getInterfacesForType(localType)) {
-//					value = getPropertyConversionParameterMapForType(interfaceClass).get(propertyKey);
-//					if(value != null) {
-//						break;
-//					}
-//				}
-//			}
-//			
-////                      logger.log(Level.INFO, "Conversion parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
-//			localType = localType.getSuperclass();
-//
-//		}
-//
-//		return value;
-//	}
-
 	public static Set<PropertyKey> getSearchableProperties(Class type, String index) {
 
 		Set<PropertyKey> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
@@ -1219,36 +882,6 @@ public class EntityContext {
 		}
 
 		return searchablePropertyMap;
-	}
-
-	private static Map<PropertyKey, RelationClass> getPropertyRelationshipMapForType(Class sourceType) {
-
-		Map<PropertyKey, RelationClass> typeMap = globalPropertyRelationClassMap.get(sourceType);
-
-		if (typeMap == null) {
-
-			typeMap = new LinkedHashMap<PropertyKey, RelationClass>();
-
-			globalPropertyRelationClassMap.put(sourceType, typeMap);
-
-		}
-
-		return (typeMap);
-	}
-
-	private static Map<Class, RelationClass> getRelationClassMapForType(Class sourceType) {
-
-		Map<Class, RelationClass> typeMap = globalRelationClassMap.get(sourceType);
-
-		if (typeMap == null) {
-
-			typeMap = new LinkedHashMap<Class, RelationClass>();
-
-			globalRelationClassMap.put(sourceType, typeMap);
-
-		}
-
-		return (typeMap);
 	}
 
 	private static Map<String, Set<PropertyKey>> getPropertyViewMapForType(Class type) {
@@ -1309,51 +942,6 @@ public class EntityContext {
 		}
 
 		return validatorMap;
-	}
-
-	private static Map<PropertyKey, Class<? extends PropertyConverter>> getAggregatedPropertyConverterMapForType(Class type) {
-
-		Map<PropertyKey, Class<? extends PropertyConverter>> PropertyConverterMap = globalAggregatedPropertyConverterMap.get(type);
-
-		if (PropertyConverterMap == null) {
-
-			PropertyConverterMap = new LinkedHashMap<PropertyKey, Class<? extends PropertyConverter>>();
-
-			globalAggregatedPropertyConverterMap.put(type, PropertyConverterMap);
-
-		}
-
-		return PropertyConverterMap;
-	}
-
-	private static Map<PropertyKey, Class<? extends PropertyConverter>> getPropertyConverterMapForType(Class type) {
-
-		Map<PropertyKey, Class<? extends PropertyConverter>> PropertyConverterMap = globalPropertyConverterMap.get(type);
-
-		if (PropertyConverterMap == null) {
-
-			PropertyConverterMap = new LinkedHashMap<PropertyKey, Class<? extends PropertyConverter>>();
-
-			globalPropertyConverterMap.put(type, PropertyConverterMap);
-
-		}
-
-		return PropertyConverterMap;
-	}
-
-	private static Map<PropertyKey, Value> getPropertyConversionParameterMapForType(Class type) {
-
-		Map<PropertyKey, Value> conversionParameterMap = globalConversionParameterMap.get(type);
-
-		if (conversionParameterMap == null) {
-
-			conversionParameterMap = new LinkedHashMap<PropertyKey, Value>();
-
-			globalConversionParameterMap.put(type, conversionParameterMap);
-
-		}
-
-		return conversionParameterMap;
 	}
 
 	public static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(Class type) {
@@ -1446,36 +1034,6 @@ public class EntityContext {
 		return globalKnownPropertyKeys.contains(key);
 	}
 
-//	public static boolean isReadOnlyProperty(Class type, PropertyKey key) {
-//
-//		boolean isReadOnly = getReadOnlyPropertySetForType(type).contains(key);
-//		Class localType    = type;
-//
-//		// try all superclasses
-//		while (!isReadOnly && localType != null && !localType.equals(Object.class)) {
-//
-//			isReadOnly = getReadOnlyPropertySetForType(localType).contains(key);
-//
-//			// one level up :)
-//			localType = localType.getSuperclass();
-//
-//		}
-//		
-//		if(!isReadOnly) {
-//			
-//			for(Class interfaceClass : getInterfacesForType(type)) {
-//
-//				if (getReadOnlyPropertySetForType(interfaceClass).contains(key)) {
-//					return true;
-//				}
-//				
-//				
-//			}
-//		}
-//
-//		return isReadOnly;
-//	}
-
 	public static boolean isSearchableProperty(Class type, String index, PropertyKey key) {
 		
 		boolean isSearchable = getSearchableProperties(type, index).contains(key);
@@ -1483,36 +1041,6 @@ public class EntityContext {
 		return isSearchable;
 	}
 
-//	public static boolean isWriteOnceProperty(Class type, PropertyKey key) {
-//
-//		boolean isWriteOnce = getWriteOncePropertySetForType(type).contains(key);
-//		Class localType     = type;
-//
-//		// try all superclasses
-//		while (!isWriteOnce && localType != null && !localType.equals(Object.class)) {
-//
-//			isWriteOnce = getWriteOncePropertySetForType(localType).contains(key);
-//
-//			// one level up :)
-//			localType = localType.getSuperclass();
-//
-//		}
-//		
-//		if(!isWriteOnce) {
-//			
-//			for(Class interfaceClass : getInterfacesForType(type)) {
-//
-//				if (getWriteOncePropertySetForType(interfaceClass).contains(key)) {
-//					return true;
-//				}
-//				
-//				
-//			}
-//		}
-//
-//		return isWriteOnce;
-//	}
-	
 	public static GenericFactory getGenericFactory() {
 		return genericFactory;
 	}

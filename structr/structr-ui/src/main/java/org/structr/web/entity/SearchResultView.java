@@ -21,12 +21,9 @@
 
 package org.structr.web.entity;
 
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.graph.NodeService;
 
 //~--- classes ----------------------------------------------------------------
@@ -37,7 +34,6 @@ import org.structr.core.graph.NodeService;
  */
 public class SearchResultView extends View {
 
-	
 	public static final org.structr.common.View uiView = new org.structr.common.View(SearchResultView.class, PropertyView.Ui,
 		type, name, query
 	);
@@ -46,15 +42,7 @@ public class SearchResultView extends View {
 		type, name, query
 	);
 	
-	
 	static {
-
-//		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.All, Key.values());
-//		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.Public, Key.values());
-//		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.Ui, Key.values());
-		
-		EntityContext.registerEntityRelation(SearchResultView.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(SearchResultView.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		
 		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());

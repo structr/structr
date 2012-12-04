@@ -6,7 +6,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -14,13 +13,11 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.RelationshipFactory;
@@ -32,10 +29,10 @@ import org.structr.core.graph.RelationshipFactory;
 
 public class RemoteView extends View {
 
-	public static final Property<String> repositoryUrl  = new StringProperty("repositoryUrl");
-	public static final Property<String> remoteUser     = new StringProperty("remoteUser");
-	public static final Property<String> remotePassword = new StringProperty("remotePassword");
-	
+	public static final Property<String>            repositoryUrl  = new StringProperty("repositoryUrl");
+	public static final Property<String>            remoteUser     = new StringProperty("remoteUser");
+	public static final Property<String>            remotePassword = new StringProperty("remotePassword");
+
 	public static final org.structr.common.View uiView = new org.structr.common.View(RemoteView.class, PropertyView.Ui,
 		repositoryUrl, remoteUser, remotePassword
 	);
@@ -46,13 +43,6 @@ public class RemoteView extends View {
 		
 		
 	static {
-		
-//		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Public, Key.values());
-//		EntityContext.registerPropertySet(RemoteView.class, PropertyView.All,    Key.values());
-//		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Ui,     Key.values());
-		
-		EntityContext.registerEntityRelation(RemoteView.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(RemoteView.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		
 		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.keyword.name(),  uiView.properties());

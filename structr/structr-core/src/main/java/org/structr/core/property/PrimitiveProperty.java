@@ -91,7 +91,11 @@ public abstract class PrimitiveProperty<T> extends Property<T> {
 				}
 			}
 		}
-		
+
+		// no value found, use schema default
+		if (value == null) {
+			value = defaultValue();
+		}
 		
 		return (T)value;
 	}
