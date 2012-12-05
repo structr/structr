@@ -260,110 +260,109 @@ public class StaticRelationshipResource extends SortableResource {
 				
 				if (sourceNode != null && propertyKey != null) {
 
-					final AbstractRelationProperty rel = (AbstractRelationProperty)propertyKey;
+					if (propertyKey instanceof AbstractRelationProperty) {
+						
+						final AbstractRelationProperty relationshipProperty = (AbstractRelationProperty)propertyKey;
+						final Class sourceNodeType                          = sourceNode.getClass();
 
+						if (relationshipProperty.isReadOnlyProperty()) {
 
-					Class sourceNodeType = sourceNode.getClass();
-					
-					//if (EntityContext.isReadOnlyProperty(sourceNodeType, EntityContext.getPropertyKeyForName(sourceNodeType, typeResource.getRawType()))) {
-					if (EntityContext.getPropertyKeyForJSONName(sourceNodeType, typeResource.getRawType()).isReadOnlyProperty()) {
+							logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 
-						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
+							return null;
+						}
 
-						return null;
+						// fetch notion
+						final Notion notion                  = relationshipProperty.getNotion();
+						final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
-					}
+						// apply notion if the property set contains the ID property as the only element
+						if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
 
-					// fetch notion
-					final Notion notion                  = rel.getNotion();
-					final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
+							// the notion that is defined for this relationship can deserialize
+							// objects with a single key (uuid for example), and the POSTed
+							// property set contains value(s) for this key, so we only need
+							// to create relationships
+							final Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
+							final Object keySource                                     = propertySet.get(primaryPropertyKey.jsonName());
 
-					// apply notion if the property set contains the ID property as the only element
-					if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
+							if (keySource != null) {
 
-						// the notion that is defined for this relationship can deserialize
-						// objects with a single key (uuid for example), and the POSTed
-						// property set contains value(s) for this key, so we only need
-						// to create relationships
-						final Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
-						final Object keySource                                     = propertySet.get(primaryPropertyKey.jsonName());
+								GraphObject otherNode = null;
 
-						if (keySource != null) {
+								if (keySource instanceof Collection) {
 
-							GraphObject otherNode = null;
+									final Collection collection = (Collection) keySource;
 
-							if (keySource instanceof Collection) {
+									for (final Object key : collection) {
 
-								final Collection collection = (Collection) keySource;
+										otherNode = deserializationStrategy.adapt(key);
 
-								for (final Object key : collection) {
+										if (otherNode != null && otherNode instanceof AbstractNode) {
 
-									otherNode = deserializationStrategy.adapt(key);
+											relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
 
-									if (otherNode != null && otherNode instanceof AbstractNode) {
+										} else {
 
-										rel.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
+											logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
+										}
 
-									} else {
-										
-										logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
 									}
-
-								}
-
-							} else {
-
-								// create a single relationship
-								otherNode = deserializationStrategy.adapt(keySource);
-
-								if (otherNode != null && otherNode instanceof AbstractNode) {
-
-									rel.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
 
 								} else {
 
-									logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
+									// create a single relationship
+									otherNode = deserializationStrategy.adapt(keySource);
 
+									if (otherNode != null && otherNode instanceof AbstractNode) {
+
+										relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
+
+									} else {
+
+										logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
+
+									}
 								}
+
+								return otherNode;
+
+							} else {
+
+								logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
+
 							}
 
-							return otherNode;
+							return null;
 
 						} else {
 
-							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
+							// the notion can not deserialize objects with a single key, or
+							// the POSTed propertySet did not contain a key to deserialize,
+							// so we create a new node from the POSTed properties and link
+							// the source node to it. (this is the "old" implementation)
+							final AbstractNode otherNode = typeResource.createNode(propertySet);
 
-						}
+							// FIXME: this prevents post creation transformations from working
+							// properly if they rely on an already existing relationship when
+							// the transformation runs.
 
-						return null;
-					} else {
+							// TODO: we need to find a way to notify the listener at the end of the
+							// transaction, when all entities and relationships are created!
+							if (otherNode != null) {
 
-						// the notion can not deserialize objects with a single key, or
-						// the POSTed propertySet did not contain a key to deserialize,
-						// so we create a new node from the POSTed properties and link
-						// the source node to it. (this is the "old" implementation)
-						final AbstractNode otherNode = typeResource.createNode(propertySet);
-
-						// FIXME: this prevents post creation transformations from working
-						// properly if they rely on an already existing relationship when
-						// the transformation runs.
-
-						// TODO: we need to find a way to notify the listener at the end of the
-						// transaction, when all entities and relationships are created!
-						if (otherNode != null) {
-
-							// FIXME: this creates duplicate relationships when the related
-							//        node ID is already present in the property set..
+								// FIXME: this creates duplicate relationships when the related
+								//        node ID is already present in the property set..
 
 
 
-							rel.createRelationship(securityContext, sourceNode, otherNode);
+								relationshipProperty.createRelationship(securityContext, sourceNode, otherNode);
 
-							return otherNode;
+								return otherNode;
 
+							}
 						}
 					}
-
 				}
 
 				throw new IllegalPathException();

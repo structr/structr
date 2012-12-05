@@ -21,14 +21,25 @@ package org.structr.core.property;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.property.PropertyMap;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
@@ -36,7 +47,7 @@ import org.structr.core.notion.ObjectNotion;
  *
  * @author Christian Morgner
  */
-public class EntityProperty<T> extends AbstractRelationProperty<T> {
+public class EntityProperty<T extends GraphObject> extends AbstractRelationProperty<T> {
 
 	private static final Logger logger = Logger.getLogger(EntityProperty.class.getName());
 
@@ -240,43 +251,56 @@ public class EntityProperty<T> extends AbstractRelationProperty<T> {
 	}
 
 	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 
-		Object value = null;
-		
-		try {
-			value = notion.getAdapterForGetter(securityContext).adapt(getRelatedNode(securityContext, (AbstractNode)obj));
-			
-		} catch (FrameworkException fex) {
-			
-			fex.printStackTrace();
-		}
-		
-		if(applyConverter) {
+		if (obj instanceof AbstractNode) {
 
-			// apply property converters
-			PropertyConverter converter = databaseConverter(securityContext, obj);
-			if (converter != null) {
+			AbstractNode node = (AbstractNode)obj;
+
+			if (cardinality.equals(Relation.Cardinality.OneToOne) || cardinality.equals(Relation.Cardinality.ManyToOne)) {
+
+				NodeFactory nodeFactory = new NodeFactory(securityContext);
+				Node dbNode             = node.getNode();
+				AbstractNode value      = null;
 
 				try {
-					value = converter.revert(value);
 
-				} catch(Throwable t) {
+					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
 
-					// CHM: remove debugging code later
-					t.printStackTrace();
+						value = nodeFactory.createNode(rel.getOtherNode(dbNode));
 
-					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-						dbName(),
-						getClass().getSimpleName(),
-						t.getMessage()
-					});
+						// break on first hit of desired type
+						if (value != null && getDestType().isInstance(value)) {
+							return (T)value;
+						}
+					}
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
 				}
+
+			} else {
+
+				logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
 			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
 		}
-		
-		
-		return (T)value;
+
+		return null;
 	}
 
 	@Override
@@ -284,16 +308,12 @@ public class EntityProperty<T> extends AbstractRelationProperty<T> {
 		
 		if (value != null) {
 
-			GraphObject graphObject = (GraphObject)notion.getAdapterForSetter(securityContext).adapt(value);
-			if (graphObject instanceof AbstractNode) {
-
-				createRelationship(securityContext, (AbstractNode)obj, (AbstractNode)graphObject);
-			}
+			createRelationship(securityContext, (AbstractNode)obj, (AbstractNode)value);
 
 		} else {
 
 			// new value is null
-			Object existingValue = getProperty(securityContext, obj, true);
+			T existingValue = getProperty(securityContext, obj, true);
 
 			// do nothing if value is already null
 			if (existingValue == null) {
@@ -301,11 +321,7 @@ public class EntityProperty<T> extends AbstractRelationProperty<T> {
 				return;
 			}
 
-			GraphObject graphObject = (GraphObject)notion.getAdapterForSetter(securityContext).adapt(existingValue);
-			if (graphObject instanceof AbstractNode) {
-
-				removeRelationship(securityContext, (AbstractNode)obj, (AbstractNode)graphObject);
-			}
+			removeRelationship(securityContext, (AbstractNode)obj, (AbstractNode)existingValue);
 		}
 	}
 	
@@ -322,5 +338,30 @@ public class EntityProperty<T> extends AbstractRelationProperty<T> {
 	@Override
 	public Notion getNotion() {
 		return notion;
+	}
+	
+	public AbstractNode createRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
+
+		return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
+
+			@Override
+			public AbstractNode execute() throws FrameworkException {
+
+				AbstractNode relatedNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, getDestType().getSimpleName()));
+                                PropertyMap props        = new PropertyMap();
+
+                                if (cascadeDelete > 0) {
+
+					props.put(AbstractRelationship.cascadeDelete, new Integer(cascadeDelete));
+
+				}
+                                
+				// create relationship
+				Services.command(securityContext, CreateRelationshipCommand.class).execute(node, relatedNode, getRelType(), props, false);
+
+				return relatedNode;
+			}
+
+		});
 	}
 }

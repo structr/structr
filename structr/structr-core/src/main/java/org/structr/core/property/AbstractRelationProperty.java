@@ -18,10 +18,7 @@
  */
 package org.structr.core.property;
 
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.*;
 import org.structr.common.GenericFactory;
@@ -31,12 +28,9 @@ import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.property.Property;
 import org.structr.common.property.PropertyMap;
 import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.*;
 import org.structr.core.notion.Notion;
@@ -49,12 +43,11 @@ import org.structr.core.notion.Notion;
 public abstract class AbstractRelationProperty<T> extends Property<T> {
 	
 	private static final Logger logger = Logger.getLogger(AbstractRelationProperty.class.getName());
-	
-	private Class destType           = null;
-	private RelationshipType relType = null;
-	private Direction direction      = null;
-	private Cardinality cardinality  = null;
-	private int cascadeDelete        = 0;
+	protected Class destType           = null;
+	protected RelationshipType relType = null;
+	protected Direction direction      = null;
+	protected Cardinality cardinality  = null;
+	protected int cascadeDelete        = 0;
 	
 	public abstract Notion getNotion();
 	
@@ -74,16 +67,6 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 		return null;
 	}
 
-	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
-		return null;
-	}
-
-	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return null;
-	}
-
 	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
 		createRelationship(securityContext, sourceNode, targetNode, new PropertyMap());
 	}
@@ -92,7 +75,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 		// create relationship if it does not already exist
 		final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-		final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+		final DeleteRelationshipCommand deleteRel    = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
@@ -313,103 +296,6 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			throw new FrameworkException(type, new IdNotFoundToken(targetNode));
 
 		}
-	}
-
-
-	public AbstractNode createRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
-
-		return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
-
-			@Override
-			public AbstractNode execute() throws FrameworkException {
-
-				AbstractNode relatedNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, getDestType().getSimpleName()));
-                                PropertyMap props        = new PropertyMap();
-
-                                if (cascadeDelete > 0) {
-
-					props.put(AbstractRelationship.cascadeDelete, new Integer(cascadeDelete));
-
-				}
-                                
-				// create relationship
-				Services.command(securityContext, CreateRelationshipCommand.class).execute(node, relatedNode, getRelType(), props, false);
-
-				return relatedNode;
-			}
-
-		});
-	}
-
-	protected List<T> getRelatedNodes(final SecurityContext securityContext, final AbstractNode node) {
-
-		
-		if (getCardinality().equals(Relation.Cardinality.OneToMany) || getCardinality().equals(Relation.Cardinality.ManyToMany)) {
-
-			NodeFactory nodeFactory = new NodeFactory(securityContext);
-			List<T> nodes           = new LinkedList<T>();
-			Node dbNode             = node.getNode();
-			AbstractNode value      = null;
-	
-			try {
-
-				for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
-
-					value = nodeFactory.createNode(rel.getOtherNode(dbNode));
-					if (value != null && getDestType().isInstance(value)) {
-						
-						nodes.add((T)value);
-					}
-				}
-
-				return nodes;
-				
-			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
-			}
-			
-		} else {
-
-			logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
-
-		}
-
-		return Collections.emptyList();
-	}
-
-	protected T getRelatedNode(final SecurityContext securityContext, final AbstractNode node) {
-
-		if (getCardinality().equals(Relation.Cardinality.OneToOne) || getCardinality().equals(Relation.Cardinality.ManyToOne)) {
-
-			NodeFactory nodeFactory = new NodeFactory(securityContext);
-			Node dbNode             = node.getNode();
-			AbstractNode value      = null;
-
-			try {
-
-				for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
-
-					value = nodeFactory.createNode(rel.getOtherNode(dbNode));
-
-					// break on first hit of desired type
-					if (value != null && getDestType().isInstance(value)) {
-						return (T)value;
-					}
-				}
-
-			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
-
-		}
-
-		return null;
 	}
 
 	public Class getDestType() {

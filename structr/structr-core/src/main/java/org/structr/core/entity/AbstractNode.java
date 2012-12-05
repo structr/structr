@@ -22,8 +22,6 @@
 package org.structr.core.entity;
 
 import org.structr.core.graph.SetOwnerCommand;
-import org.structr.common.property.PropertyMap;
-import org.structr.common.property.Property;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -64,8 +62,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.property.*;
-import org.structr.core.entity.Relation.Cardinality;
-import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 
@@ -94,7 +90,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final Property<Date>	      visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
 	public static final Property<Date>	      visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
 
-	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>(Principal.class, RelType.OWNS, Direction.INCOMING);
+	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>(AbstractNode.class, RelType.OWNS, Direction.INCOMING);
 	public static final Property<String>          ownerId                     = new EntityIdProperty(owner);
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,

@@ -18,14 +18,14 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.core.notion.PropertyNotion;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CollectionIdProperty extends CollectionProperty<String> {
+public class CollectionIdProperty extends CollectionNotionProperty<String> {
 	
 	public CollectionIdProperty(CollectionProperty base) {
 		this(null, base);
@@ -40,7 +40,7 @@ public class CollectionIdProperty extends CollectionProperty<String> {
 	}
 	
 	public CollectionIdProperty(String name, CollectionProperty base, boolean createIfNotExisting) {
-		super(name, base, new PropertyNotion(AbstractNode.uuid, createIfNotExisting));
+		
+		super(name, base, new PropertyNotion(GraphObject.uuid, createIfNotExisting));
 	}
-	
 }

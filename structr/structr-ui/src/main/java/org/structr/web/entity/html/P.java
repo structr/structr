@@ -63,7 +63,7 @@ public class P extends HtmlElement {
 	public static final CollectionProperty<Label>    labels    = new CollectionProperty<Label>(Label.class, RelType.CONTAINS, Direction.OUTGOING);
 	public static final CollectionProperty<Map>      maps      = new CollectionProperty<Map>(Map.class, RelType.CONTAINS, Direction.OUTGOING);
 	public static final CollectionProperty<Mark>     marks     = new CollectionProperty<Mark>(Mark.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Math>     maths     = new CollectionProperty<Math>(Math.class, RelType.CONTAINS, Direction.OUTGOING);
+// ???	public static final CollectionProperty<Math>     maths     = new CollectionProperty<Math>(Math.class, RelType.CONTAINS, Direction.OUTGOING);
 	public static final CollectionProperty<Meter>    meters    = new CollectionProperty<Meter>(Meter.class, RelType.CONTAINS, Direction.OUTGOING);
 	public static final CollectionProperty<Noscript> noscripts = new CollectionProperty<Noscript>(Noscript.class, RelType.CONTAINS, Direction.OUTGOING);
 	public static final CollectionProperty<Object>   objects   = new CollectionProperty<Object>(Object.class, RelType.CONTAINS, Direction.OUTGOING);

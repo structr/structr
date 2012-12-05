@@ -18,14 +18,14 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.core.notion.PropertyNotion;
 
 /**
  *
  * @author Christian Morgner
  */
-public class EntityIdProperty extends EntityProperty<String> {
+public class EntityIdProperty extends EntityNotionProperty<String> {
 	
 	public EntityIdProperty(EntityProperty base) {
 		this(null, base);
@@ -40,6 +40,7 @@ public class EntityIdProperty extends EntityProperty<String> {
 	}
 	
 	public EntityIdProperty(String name, EntityProperty base, boolean createIfNotExisting) {
-		super(name, base, new PropertyNotion(AbstractNode.uuid, createIfNotExisting));
+		
+		super(name, base, new PropertyNotion(GraphObject.uuid, createIfNotExisting));
 	}
 }

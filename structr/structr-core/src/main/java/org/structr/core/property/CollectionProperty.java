@@ -18,11 +18,14 @@
  */
 package org.structr.core.property;
 
-import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,6 +34,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
@@ -38,7 +42,7 @@ import org.structr.core.notion.ObjectNotion;
  *
  * @author Christian Morgner
  */
-public class CollectionProperty<T> extends AbstractRelationProperty<List<T>> {
+public class CollectionProperty<T extends GraphObject> extends AbstractRelationProperty<List<T>> {
 
 	private static final Logger logger = Logger.getLogger(CollectionProperty.class.getName());
 
@@ -210,72 +214,96 @@ public class CollectionProperty<T> extends AbstractRelationProperty<List<T>> {
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-
-		Object value = Notion.convertList(getRelatedNodes(securityContext, (AbstractNode)obj), notion.getAdapterForGetter(securityContext));
-		
-		if(applyConverter) {
-
-			// apply property converters
-			PropertyConverter converter = databaseConverter(securityContext, obj);
-			if (converter != null) {
-
-				try {
-					value = converter.revert(value);
-
-				} catch(Throwable t) {
-
-					// CHM: remove debugging code later
-					t.printStackTrace();
-
-					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-						dbName(),
-						getClass().getSimpleName(),
-						t.getMessage()
-					});
-				}
-			}
-		}
-		
-		
-		return (List<T>)value;
+	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
+		return null;
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, List<T> value) throws FrameworkException {
-		
-		if (value != null) {
+	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
+		return null;
+	}
 
-			Collection<GraphObject> collection = (Collection)notion.getCollectionAdapterForSetter(securityContext).adapt(value);
-			for (GraphObject graphObject : collection) {
+	@Override
+	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 
-				if (graphObject instanceof AbstractNode) {
+		if (obj instanceof AbstractNode) {
 
-					createRelationship(securityContext, (AbstractNode)obj, (AbstractNode)graphObject);
+			AbstractNode node = (AbstractNode)obj;
+
+			// TODO: maybe this check can be removed to improve performance
+			if (cardinality.equals(Relation.Cardinality.OneToMany) || cardinality.equals(Relation.Cardinality.ManyToMany)) {
+
+				NodeFactory nodeFactory = new NodeFactory(securityContext);
+				List<T> nodes           = new LinkedList<T>();
+				Node dbNode             = node.getNode();
+				AbstractNode value      = null;
+
+				try {
+
+					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
+
+						value = nodeFactory.createNode(rel.getOtherNode(dbNode));
+						if (value != null && getDestType().isInstance(value)) {
+
+							nodes.add((T)value);
+						}
+					}
+
+					return nodes;
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
 				}
+
+			} else {
+
+				logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
 			}
 
 		} else {
 
-			// new value is null
-			Object existingValue = getProperty(securityContext, obj, true);
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+		}
 
-			// do nothing if value is already null
-			if (existingValue == null) {
+		return Collections.emptyList();
+	}
 
-				return;
-			}
+	@Override
+	public void setProperty(SecurityContext securityContext, GraphObject obj, List<T> collection) throws FrameworkException {
+
+		if (obj instanceof AbstractNode) {
 			
-			for (Object val : ((Iterable) existingValue)) {
+			AbstractNode sourceNode = (AbstractNode)obj;
 
-				GraphObject graphObject = (GraphObject)notion.getAdapterForSetter(securityContext).adapt(val);
-				if (graphObject instanceof AbstractNode) {
+			if (collection != null) {
 
-					removeRelationship(securityContext, (AbstractNode)obj, (AbstractNode)graphObject);
+				// FIXME: how are existing relationships handled if they need to be removed??
+				
+				for (GraphObject targetNode : collection) {
+
+					createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
 				}
 
-			}
+			} else {
 
+				// new value is null
+				List<T> existingCollection = getProperty(securityContext, obj, true);
+
+				// do nothing if value is already null
+				if (existingCollection == null || (existingCollection != null && existingCollection.isEmpty())) {
+					return;
+				}
+
+				for (GraphObject targetNode : existingCollection) {
+
+					removeRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
+				}
+			}
+			
+		} else {
+
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
 		}
 	}
 	

@@ -103,12 +103,12 @@ public abstract class Notion<T> {
 		};
 	}
 
-	public Adapter<Collection<GraphObject>, Collection<T>> getCollectionAdapterForGetter(final SecurityContext securityContext) {
+	public Adapter<List<GraphObject>, List<T>> getCollectionAdapterForGetter(final SecurityContext securityContext) {
 
-		return new Adapter<Collection<GraphObject>, Collection<T>>() {
+		return new Adapter<List<GraphObject>, List<T>>() {
 
 			@Override
-			public Collection<T> adapt(Collection<GraphObject> s) throws FrameworkException {
+			public List<T> adapt(List<GraphObject> s) throws FrameworkException {
 
 				List<T> list = new LinkedList<T>();
 
@@ -123,12 +123,12 @@ public abstract class Notion<T> {
 		};
 	}
 
-	public Adapter<Collection<T>, Collection<GraphObject>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
+	public Adapter<List<T>, List<GraphObject>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
 
-		return new Adapter<Collection<T>, Collection<GraphObject>>() {
+		return new Adapter<List<T>, List<GraphObject>>() {
 
 			@Override
-			public Collection<GraphObject> adapt(Collection<T> s) throws FrameworkException {
+			public List<GraphObject> adapt(List<T> s) throws FrameworkException {
 
 				List<GraphObject> list = new LinkedList<GraphObject>();
 				for (T t : s) {
