@@ -65,7 +65,8 @@ public class Image extends File {
 	// public static final Property<String> imageData = new ImageDataProperty("imageData", new KeyAndClass(null, null));     // FIXME!!?
 	public static final Property<Integer> height = new IntProperty("height");
 	public static final Property<Integer> width  = new IntProperty("width");
-	public static final View uiView              = new View(Image.class, PropertyView.Ui, width, height);
+	public static final View uiView              = new View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height);
+	public static final View publicView              = new View(Image.class, PropertyView.Public, type, name, width, height);
 
 	//~--- static initializers --------------------------------------------
 
