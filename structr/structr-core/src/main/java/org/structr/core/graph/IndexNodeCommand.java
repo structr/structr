@@ -205,9 +205,9 @@ public class IndexNodeCommand extends NodeServiceCommand {
 					
 					logger.log(Level.SEVERE, "Could not add node to layer index because the db could not find the node", nfe);
 					
-				} catch (Exception e) {
+				} catch (Throwable t) {
 					
-					logger.log(Level.SEVERE, "Could add node to layer index", e);
+					logger.log(Level.SEVERE, "Could add node to layer index", t);
 
 //					final Map<String, String> config = new HashMap<String, String>();
 //
