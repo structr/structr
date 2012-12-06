@@ -271,6 +271,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			}
 
 			root.add("result", result);
+			root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
 
 		}
 
