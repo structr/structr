@@ -52,11 +52,11 @@ public class Page extends AbstractNode implements Linkable {
 	public static final Property<Integer>             cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<Integer>             version         = new IntProperty("version").systemProperty().readOnly();
 
-	public static final EntityProperty<Html>          html            = new EntityProperty<Html>(Html.class, RelType.CONTAINS);
+	public static final EntityProperty<Html>          html            = new EntityProperty<Html>("html", Html.class, RelType.CONTAINS, true);
 	
-	public static final CollectionProperty<Component> components      = new CollectionProperty<Component>(Component.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Element>   elements        = new CollectionProperty<Element>(Element.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Content>   contents        = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Component> components      = new CollectionProperty<Component>("components", Component.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Element>   elements        = new CollectionProperty<Element>("elements", Element.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Content>   contents        = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
 		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version

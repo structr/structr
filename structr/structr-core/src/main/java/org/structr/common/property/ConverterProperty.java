@@ -36,10 +36,6 @@ public class ConverterProperty<T> extends PrimitiveProperty<T> {
 	private static final Logger logger = Logger.getLogger(ConverterProperty.class.getName());
 	private Constructor constructor    = null;
 	
-	public ConverterProperty(Class<? extends PropertyConverter<?, T>> converterClass) {
-		this(null, converterClass);
-	}
-	
 	public ConverterProperty(String name, Class<? extends PropertyConverter<?, T>> converterClass) {
 		
 		super(name);

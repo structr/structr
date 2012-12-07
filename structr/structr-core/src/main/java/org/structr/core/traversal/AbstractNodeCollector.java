@@ -19,8 +19,6 @@
 
 package org.structr.core.traversal;
 
-import org.structr.core.traversal.TraverserInterface;
-import org.structr.core.converter.TraversingConverter;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,16 +49,16 @@ import org.structr.core.notion.Notion;
  *
  * @author Christian Morgner
  */
-public abstract class AbstractNodeCollector implements TraverserInterface, Value<TraverserInterface> {
+public abstract class AbstractNodeCollector<T extends AbstractNode> implements TraverserInterface<T>, Value<TraverserInterface<T>> {
 
 	private static final Logger logger = Logger.getLogger(AbstractNodeCollector.class.getName());
 
 	private List<Predicate<Node>> predicates = new LinkedList<Predicate<Node>>();
-	private List<RelationshipType> relTypes = new LinkedList<RelationshipType>();
-	private List<Direction> directions = new LinkedList<Direction>();
-	private Comparator<AbstractNode> comparator = null;
-	private Notion notion = null;
-	private int maxDepth = 1;
+	private List<RelationshipType> relTypes  = new LinkedList<RelationshipType>();
+	private List<Direction> directions       = new LinkedList<Direction>();
+	private Comparator<T> comparator         = null;
+	private Notion notion                    = null;
+	private int maxDepth                     = 1;
 
 	public AbstractNodeCollector(RelationshipType relType, Direction direction, int maxDepth) {
 		this.directions.add(direction);
@@ -69,7 +67,7 @@ public abstract class AbstractNodeCollector implements TraverserInterface, Value
 	}
 
 	@Override
-	public TraversalDescription getTraversalDescription(final SecurityContext securityContext, Object sourceProperty) {
+	public TraversalDescription getTraversalDescription(final SecurityContext securityContext) {
 
 		TraversalDescription description = Traversal
 			.description()
@@ -140,7 +138,7 @@ public abstract class AbstractNodeCollector implements TraverserInterface, Value
 	}
 
 	@Override
-	public Comparator<AbstractNode> getComparator() {
+	public Comparator<T> getComparator() {
 		return comparator;
 	}
 
@@ -173,17 +171,17 @@ public abstract class AbstractNodeCollector implements TraverserInterface, Value
 		this.notion = notion;
 	}
 
-	protected void setComparator(Comparator<AbstractNode> comparator) {
+	protected void setComparator(Comparator<T> comparator) {
 		this.comparator = comparator;
 	}
 
 	// ----- interface Value<TraverserInterface> ----
 	@Override
-	public void set(SecurityContext securityContext, TraverserInterface value) {
+	public void set(SecurityContext securityContext, TraverserInterface<T> value) {
 	}
 
 	@Override
-	public TraverserInterface get(SecurityContext securityContext) {
+	public TraverserInterface<T> get(SecurityContext securityContext) {
 		return this;
 	}
 	

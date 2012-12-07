@@ -67,4 +67,14 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 		
 		return null;
 	}
+	
+	@Override
+	public Class relatedType() {
+		return Image.class;
+	}
+	
+	@Override
+	public boolean isCollection() {
+		return false;
+	}
 }

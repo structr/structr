@@ -73,41 +73,36 @@ public class TreeCommand extends AbstractCommand {
 
 				if (node.hasProperty(AbstractNode.type.dbName())) {
 
-					try {
-						TreeNode newTreeNode = new TreeNode(factory.createNode(node));
-						Relationship rel     = path.lastRelationship();
+					TreeNode newTreeNode = new TreeNode(factory.createNode(node));
+					Relationship rel     = path.lastRelationship();
 
-						if (rel != null) {
+					if (rel != null) {
 
-							Node parentNode         = rel.getStartNode();
-							TreeNode parentTreeNode = root.getNode((String) parentNode.getProperty("uuid"));
+						Node parentNode         = rel.getStartNode();
+						TreeNode parentTreeNode = root.getNode((String) parentNode.getProperty("uuid"));
 
-							if (parentTreeNode == null) {
+						if (parentTreeNode == null) {
 
-								root.addChild(newTreeNode);
-								logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, root });
-								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), "root" });
-
-							} else {
-
-								parentTreeNode.addChild(newTreeNode);
-								logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, parentTreeNode });
-								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), parentTreeNode.getData().getName() });
-
-							}
+							root.addChild(newTreeNode);
+							logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, root });
+							logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), "root" });
 
 						} else {
 
-							root.addChild(newTreeNode);
-							logger.log(Level.FINE, "Added {0} to root", newTreeNode);
+							parentTreeNode.addChild(newTreeNode);
+							logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, parentTreeNode });
+							logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), parentTreeNode.getData().getName() });
 
 						}
 
-						return Evaluation.INCLUDE_AND_CONTINUE;
+					} else {
 
-					} catch(FrameworkException fex) {
-						logger.log(Level.WARNING, "Unable to instantiate node", fex);
+						root.addChild(newTreeNode);
+						logger.log(Level.FINE, "Added {0} to root", newTreeNode);
+
 					}
+
+					return Evaluation.INCLUDE_AND_CONTINUE;
 				}
 
 				return Evaluation.EXCLUDE_AND_CONTINUE;

@@ -83,15 +83,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final Property<String>          createdBy                   = new StringProperty("createdBy").systemProperty().writeOnce();
 	public static final Property<Boolean>         deleted                     = new BooleanProperty("deleted");
 	public static final Property<Boolean>         hidden                      = new BooleanProperty("hidden");
-	public static final Property<Date>            createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().writeOnce();
-	public static final Property<Date>            lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemProperty().readOnly();
-	public static final Property<Boolean>         visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
-	public static final Property<Boolean>         visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
-	public static final Property<Date>	      visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
-	public static final Property<Date>	      visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
 
-	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>(AbstractNode.class, RelType.OWNS, Direction.INCOMING);
-	public static final Property<String>          ownerId                     = new EntityIdProperty(owner);
+	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>("owner", Principal.class, RelType.OWNS, Direction.INCOMING, true);
+	public static final Property<String>          ownerId                     = new EntityIdProperty("ownerId", owner);
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
 		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate
@@ -175,6 +169,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		this.securityContext = securityContext;
 	}
 
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
+	
 	@Override
 	public boolean equals(final Object o) {
 
@@ -562,6 +560,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	
 	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
 
+		if (isDirty) {
+
+			return (T)properties.get(key);
+		}
+
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
 			return null;
@@ -572,11 +575,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		/*
 		Object value;
 		
-		if (isDirty) {
-
-			return (T)properties.get(key);
-		}
-
 		if (dbNode == null) {
 
 			return null;

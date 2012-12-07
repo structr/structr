@@ -299,7 +299,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 		PropertyMap map = new PropertyMap();
 
-		logger.log(Level.WARNING, "Using fallback property set conversion without type safety!");
+		logger.log(Level.SEVERE, "Using fallback property set conversion without type safety!");
 		Thread.dumpStack();
 
 		if (source != null) {

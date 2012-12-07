@@ -18,28 +18,23 @@
  */
 package org.structr.core.property;
 
+import java.util.List;
+import org.structr.common.property.Property;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CollectionIdProperty extends CollectionNotionProperty<String> {
+public class CollectionIdProperty<T extends AbstractNode> extends CollectionNotionProperty<T, String> {
 	
-	public CollectionIdProperty(CollectionProperty base) {
-		this(null, base);
-	}
-	
-	public CollectionIdProperty(CollectionProperty base, boolean createIfNotExisting) {
-		this(null, base, createIfNotExisting);
-	}
-	
-	public CollectionIdProperty(String name, CollectionProperty base) {
+	public CollectionIdProperty(String name, Property<List<T>> base) {
 		this(name, base, false);
 	}
 	
-	public CollectionIdProperty(String name, CollectionProperty base, boolean createIfNotExisting) {
+	public CollectionIdProperty(String name, Property<List<T>> base, boolean createIfNotExisting) {
 		
 		super(name, base, new PropertyNotion(GraphObject.uuid, createIfNotExisting));
 	}

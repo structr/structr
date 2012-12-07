@@ -18,28 +18,22 @@
  */
 package org.structr.core.property;
 
+import org.structr.common.property.Property;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 
 /**
  *
  * @author Christian Morgner
  */
-public class EntityIdProperty extends EntityNotionProperty<String> {
+public class EntityIdProperty<S extends AbstractNode> extends EntityNotionProperty<S, String> {
 	
-	public EntityIdProperty(EntityProperty base) {
-		this(null, base);
-	}	
-	
-	public EntityIdProperty(EntityProperty base, boolean createIfNotExisting) {
-		this(null, base, createIfNotExisting);
-	}	
-	
-	public EntityIdProperty(String name, EntityProperty base) {
+	public EntityIdProperty(String name, Property<S> base) {
 		this(name, base, false);
 	}
 	
-	public EntityIdProperty(String name, EntityProperty base, boolean createIfNotExisting) {
+	public EntityIdProperty(String name, Property<S> base, boolean createIfNotExisting) {
 		
 		super(name, base, new PropertyNotion(GraphObject.uuid, createIfNotExisting));
 	}

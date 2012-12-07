@@ -34,7 +34,7 @@ import org.structr.web.entity.Content;
  */
 public class H2 extends HtmlElement {
 
-	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<B>       bs       = new CollectionProperty<B>(B.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Span>    spans    = new CollectionProperty<Span>(Span.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<B>       bs       = new CollectionProperty<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Span>    spans    = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

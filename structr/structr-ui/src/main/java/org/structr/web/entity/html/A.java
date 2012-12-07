@@ -58,25 +58,25 @@ public class A extends HtmlElement {
 	public static final Property<String>            _hreflang   = new HtmlProperty("hreflang");
 	public static final Property<String>            _type       = new HtmlProperty("type");
   
-	public static final CollectionProperty<Content> contents    = new CollectionProperty<Content>(Content.class, RelType.CONTAINS);
-	public static final CollectionProperty<Span>    spans       = new CollectionProperty<Span>(Span.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Img>     imgs        = new CollectionProperty<Img>(Img.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Div>     div         = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Section> sections    = new CollectionProperty<Section>(Section.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<P>       ps          = new CollectionProperty<P>(P.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H1>      h1s         = new CollectionProperty<H1>(H1.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H2>      h2s         = new CollectionProperty<H2>(H2.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H3>      h3s         = new CollectionProperty<H3>(H3.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H4>      h4s         = new CollectionProperty<H4>(H4.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H5>      h5s         = new CollectionProperty<H5>(H5.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H6>      h6s         = new CollectionProperty<H6>(H6.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Li>      lis         = new CollectionProperty<Li>(Li.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Content> contents    = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, false);
+	public static final CollectionProperty<Span>    spans       = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Img>     imgs        = new CollectionProperty<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Div>     div         = new CollectionProperty<Div>("div", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Section> sections    = new CollectionProperty<Section>("sections", Section.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<P>       ps          = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H1>      h1s         = new CollectionProperty<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H2>      h2s         = new CollectionProperty<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H3>      h3s         = new CollectionProperty<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H4>      h4s         = new CollectionProperty<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H5>      h5s         = new CollectionProperty<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H6>      h6s         = new CollectionProperty<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Li>      lis         = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, Direction.INCOMING, false);
  
-	public static final CollectionProperty<Div>     divParents  = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<P>       pParents    = new CollectionProperty<P>(P.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Div>     divParents  = new CollectionProperty<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<P>       pParents    = new CollectionProperty<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
  
-	public static final EntityProperty<Linkable>    linkable    = new EntityProperty<Linkable>(Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name));
-	public static final Property<String>            linkableId  = new EntityIdProperty(linkable);
+	public static final EntityProperty<Linkable>    linkable    = new EntityProperty<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
+	public static final Property<String>            linkableId  = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(A.class, PropertyView.Ui,
 		linkableId, linkable

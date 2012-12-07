@@ -41,13 +41,13 @@ public class Li extends HtmlElement {
 
 	public static final Property<String> _value = new HtmlProperty("value");
 
-	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<A>       as       = new CollectionProperty<A>(A.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Span>    spans    = new CollectionProperty<Span>(Span.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Div>     divs     = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Img>     imgs     = new CollectionProperty<Img>(Img.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Ul>      uls      = new CollectionProperty<Ul>(Ul.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Ol>      ols      = new CollectionProperty<Ol>(Ol.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<A>       as       = new CollectionProperty<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Span>    spans    = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Div>     divs     = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Img>     imgs     = new CollectionProperty<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Ul>      uls      = new CollectionProperty<Ul>("uls", Ul.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Ol>      ols      = new CollectionProperty<Ol>("ols", Ol.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final View htmlView = new View(Li.class, PropertyView.Html,
 		_value

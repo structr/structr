@@ -22,7 +22,7 @@ public class TypeDefinition extends AbstractNode {
 	public static final Property<String>            converter              = new StringProperty("converter");
 	public static final Property<String>            converterDefaultValue  = new StringProperty("converterDefaultValue");
 
-	public static final CollectionProperty<Content> contents               = new CollectionProperty<Content>(Content.class, RelType.IS_A, Direction.INCOMING);
+	public static final CollectionProperty<Content> contents               = new CollectionProperty<Content>("contents", Content.class, RelType.IS_A, Direction.INCOMING, false);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(TypeDefinition.class, PropertyView.Public,
 	    validationExpression, validationErrorMessage, converter, converterDefaultValue

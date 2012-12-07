@@ -42,9 +42,9 @@ public class Html extends HtmlElement {
 
 	public static final Property<String> _manifest = new HtmlProperty("manifest");
 	
-	public static final CollectionProperty<Page> pages = new CollectionProperty<Page>(Page.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<Head> heads = new CollectionProperty<Head>(Head.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Body> bodys = new CollectionProperty<Body>(Body.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Page> pages = new CollectionProperty<Page>("pages", Page.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Head> heads = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Body> bodys = new CollectionProperty<Body>("bodys", Body.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final View htmlView = new View(Html.class, PropertyView.Html,
 		_manifest

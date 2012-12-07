@@ -35,7 +35,7 @@ import org.structr.core.property.CollectionProperty;
  */
 public interface Linkable extends GraphObject {
 
-	public static final CollectionProperty<AbstractNode> linkingElements = new CollectionProperty<AbstractNode>(AbstractNode.class, RelType.LINK, Direction.INCOMING, new PropertyNotion(AbstractNode.uuid));
+	public static final CollectionProperty<AbstractNode> linkingElements = new CollectionProperty<AbstractNode>("linkingElements", AbstractNode.class, RelType.LINK, Direction.INCOMING, new PropertyNotion(AbstractNode.uuid), true);
 
 	public static final View uiView = new View(Linkable.class, PropertyView.Ui, linkingElements);
 }

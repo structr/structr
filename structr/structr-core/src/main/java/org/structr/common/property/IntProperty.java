@@ -30,9 +30,9 @@ import org.structr.core.property.PrimitiveProperty;
  * @author Christian Morgner
  */
 public class IntProperty extends PrimitiveProperty<Integer> {
-	
+
 	public IntProperty(String name) {
-		this(name, null);
+		this(name, name, null);
 	}
 	
 	public IntProperty(String name, Integer defaultValue) {

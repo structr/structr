@@ -33,12 +33,12 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Article extends HtmlElement {
 
-	public static final CollectionProperty<H1>  h1s  = new CollectionProperty<H1>(H1.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H2>  h2s  = new CollectionProperty<H2>(H2.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H3>  h3s  = new CollectionProperty<H3>(H3.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H4>  h4s  = new CollectionProperty<H4>(H4.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H5>  h5s  = new CollectionProperty<H5>(H5.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<H6>  h6s  = new CollectionProperty<H6>(H6.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<P>   ps   = new CollectionProperty<P>(P.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Div> divs = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<H1>  h1s  = new CollectionProperty<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H2>  h2s  = new CollectionProperty<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H3>  h3s  = new CollectionProperty<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H4>  h4s  = new CollectionProperty<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H5>  h5s  = new CollectionProperty<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H6>  h6s  = new CollectionProperty<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<P>   ps   = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Div> divs = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

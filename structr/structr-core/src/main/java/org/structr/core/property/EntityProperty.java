@@ -27,6 +27,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.property.PropertyMap;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
@@ -51,7 +52,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 
 	private static final Logger logger = Logger.getLogger(EntityProperty.class.getName());
 
-	private Notion notion              = null;
+	private boolean manyToOne = false;
+	private Notion notion     = null;
 	
 	/**
 	 * Constructs an entity property with the given name, based on the given property,
@@ -62,7 +64,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param notion 
 	 */
 	public EntityProperty(String name, EntityProperty base, Notion notion) {
-		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.getCascadeDelete());
+		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isManyToOne(), base.getCascadeDelete());
 	}
 	
 	
@@ -75,18 +77,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param notion 
 	 */
 	public EntityProperty(String name, EntityProperty base, Notion notion, int deleteCascade) {
-		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, deleteCascade);
-	}
-	
-	/**
-	 * Constructs an entity property with the name of the declaring field, the given
-	 * destination type and the given relationship type.
-	 * 
-	 * @param destType
-	 * @param relType 
-	 */
-	public EntityProperty(Class destType, RelationshipType relType) {
-		this(null, destType, relType);
+		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isManyToOne(), deleteCascade);
 	}
 	
 	/**
@@ -97,22 +88,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param destType
 	 * @param relType 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType) {
-		this(name, destType, relType, Direction.OUTGOING);
-	}
-
-	/**
-	 * Constructs an entity property with the name of the declaring field, the
-	 * given destination type, the given relationship type, the given direction and
-	 * the given cascade delete flag.
-	 * 
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param cascadeDelete 
-	 */
-	public EntityProperty(Class destType, RelationshipType relType, Direction direction, int cascadeDelete) {
-		this(null, destType, relType, direction, cascadeDelete);
+	public EntityProperty(String name, Class destType, RelationshipType relType, boolean manyToOne) {
+		this(name, destType, relType, Direction.OUTGOING, manyToOne);
 	}
 
 	/**
@@ -126,47 +103,25 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param direction
 	 * @param cascadeDelete 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, int cascadeDelete) {
-		this(name, destType, relType, direction, new ObjectNotion(), cascadeDelete);
+	public EntityProperty(String name, Class destType, RelationshipType relType, boolean manyToOne, int cascadeDelete) {
+		this(name, destType, relType, Direction.OUTGOING, new ObjectNotion(), manyToOne, cascadeDelete);
 	}
 
 	/**
-	 * Constructs an entity property with the name of the declaring field, the
-	 * given destination type, the given relationship type and the given direction.
+	 * Constructs an entity property with the given name, the given destination type,
+	 * the given relationship type, the given direction and the given cascade delete
+	 * flag.
 	 * 
+	 * @param name
 	 * @param destType
 	 * @param relType
-	 * @param direction 
+	 * @param direction
+	 * @param cascadeDelete 
 	 */
-	public EntityProperty(Class destType, RelationshipType relType, Direction direction) {
-		this(null, destType, relType, direction);
+	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean manyToOne, int cascadeDelete) {
+		this(name, destType, relType, direction, new ObjectNotion(), manyToOne, cascadeDelete);
 	}
 
-	/**
-	 * Constructs an entity property with the name of the declaring field, the
-	 * given destination type, the given relationship type and the given notion.
-	 * 
-	 * @param destType
-	 * @param relType
-	 * @param notion
-	 */
-	public EntityProperty(Class destType, RelationshipType relType, Notion notion) {
-		this(null, destType, relType, Direction.OUTGOING, notion);
-	}
-
-	/**
-	 * Constructs an entity property with the name of the declaring field, the
-	 * given destination type, the given relationship type and the given cascade
-	 * delete flag.
-	 * 
-	 * @param destType
-	 * @param relType
-	 * @param cascadeDelete
-	 */
-	public EntityProperty(Class destType, RelationshipType relType, int cascadeDelete) {
-		this(null, destType, relType, Direction.OUTGOING);
-	}
-	
 	/**
 	 * Constructs an entity property with the given name, the given destination type,
 	 * the given relationship type and the given direction.
@@ -176,22 +131,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param relType
 	 * @param direction 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction) {
-		this(name, destType, relType, direction, new ObjectNotion());
-	}
-	
-	/**
-	 * Constructs an entity property with the name of the declaring field, the
-	 * given destination type, the given relationship type, the given direction and
-	 * the given notion.
-	 * 
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param notion 
-	 */
-	public EntityProperty(Class destType, RelationshipType relType, Direction direction, Notion notion) {
-		this(null, destType, relType, direction, notion);
+	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean manyToOne) {
+		this(name, destType, relType, direction, new ObjectNotion(), manyToOne);
 	}
 	
 	/**
@@ -204,23 +145,22 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param direction
 	 * @param notion 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion) {
-		this(name, destType, relType, direction, notion, Relation.DELETE_NONE);
+	public EntityProperty(String name, Class destType, RelationshipType relType, Notion notion, boolean manyToOne) {
+		this(name, destType, relType, Direction.OUTGOING, notion, manyToOne, Relation.DELETE_NONE);
 	}
 	
 	/**
-	 * Constructs an entity property with the name of the declaring field, the
-	 * given destination type, the given relationship type, the given direction,
-	 * the given notion and the given cascade delete flag.
+	 * Constructs an entity property with the given name, the given destination type,
+	 * the given relationship type, the given direction and the given notion.
 	 * 
+	 * @param name
 	 * @param destType
 	 * @param relType
 	 * @param direction
-	 * @param notion
-	 * @param cascadeDelete 
+	 * @param notion 
 	 */
-	public EntityProperty(Class destType, RelationshipType relType, Direction direction, Notion notion, int cascadeDelete) {
-		this(null, destType, relType, direction, notion, cascadeDelete);
+	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean manyToOne) {
+		this(name, destType, relType, direction, notion, manyToOne, Relation.DELETE_NONE);
 	}
 	
 	/**
@@ -236,13 +176,14 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param notion
 	 * @param cascadeDelete 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, int cascadeDelete) {
+	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean manyToOne, int cascadeDelete) {
 		
-		super(name, destType, relType, direction, Cardinality.OneToOne, cascadeDelete);
+		super(name, destType, relType, direction, manyToOne ? Cardinality.ManyToOne : Cardinality.OneToOne, cascadeDelete);
 
 		this.notion = notion;
 		this.notion.setType(destType);
 		
+		EntityContext.registerConvertedProperty(this);		
 	}
 	
 	@Override
@@ -257,7 +198,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return null;
+		return notion.getEntityConverter(securityContext);
 	}
 
 	@Override
@@ -338,6 +279,10 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	@Override
 	public Notion getNotion() {
 		return notion;
+	}
+	
+	public boolean isManyToOne() {
+		return manyToOne;
 	}
 	
 	public AbstractNode createRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {

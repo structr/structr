@@ -20,13 +20,14 @@
 package org.structr.core.notion;
 
 import java.util.Map;
+import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
 /**
  *
  * @author Christian Morgner
  */
-public class PropertySetNotion extends Notion<Map<String, Object>> {
+public class PropertySetNotion<S extends GraphObject> extends Notion<S, Map<String, Object>> {
 
 	public PropertySetNotion(PropertyKey... propertyKeys) {
 		this(

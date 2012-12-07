@@ -64,4 +64,14 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 		
 		return endNodes;
 	}
+	
+	@Override
+	public Class relatedType() {
+		return step2.relatedType();
+	}
+	
+	@Override
+	public boolean isCollection() {
+		return true;
+	}
 }

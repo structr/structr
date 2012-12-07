@@ -70,7 +70,7 @@ public class Input extends HtmlElement {
 	public static final Property<String> _value          = new HtmlProperty("value");
 	public static final Property<String> _width          = new HtmlProperty("width");
 
-	public static final CollectionProperty<Form> forms   = new CollectionProperty<Form>(Form.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Form> forms   = new CollectionProperty<Form>("forms", Form.class, RelType.CONTAINS, Direction.INCOMING, false);
 	
 	public static final View htmlView = new View(Input.class, PropertyView.Html,
 	    

@@ -48,12 +48,12 @@ public class Script extends HtmlElement {
 	public static final Property<String> _type    = new HtmlProperty("type");
 	public static final Property<String> _charset = new HtmlProperty("charset");
 		
-	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>(Head.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<Div>     divs     = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Div>     divs     = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
  
-	public static final EntityProperty<Linkable>    linkable    = new EntityProperty<Linkable>(Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name));
-	public static final Property<String>            linkableId  = new EntityIdProperty(linkable);
+	public static final EntityProperty<Linkable>    linkable    = new EntityProperty<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
+	public static final Property<String>            linkableId  = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(Script.class, PropertyView.Ui,
 		linkableId, linkable

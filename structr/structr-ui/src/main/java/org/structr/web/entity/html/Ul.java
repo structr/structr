@@ -33,5 +33,5 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Ul extends HtmlElement {
 
-	public static final CollectionProperty<Li> lis = new CollectionProperty<Li>(Li.class, RelType.CONTAINS);
+	public static final CollectionProperty<Li> lis = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, false);
 }

@@ -30,10 +30,10 @@ import org.structr.core.graph.search.TextualSearchAttribute;
  *
  * @author Christian Morgner
  */
-public abstract class Property<JavaType> implements PropertyKey<JavaType> {
+public abstract class Property<T> implements PropertyKey<T> {
 
 	protected Class<? extends GraphObject> declaringClass  = null;
-	protected JavaType defaultValue                        = null;
+	protected T defaultValue                        = null;
 	protected boolean isReadOnlyProperty                   = false;
 	protected boolean isWriteOnceProperty                  = false;
 	protected boolean isSystemProperty                     = false;
@@ -48,25 +48,25 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 		this(jsonName, dbName, null);
 	}
 	
-	protected Property(String jsonName, String dbName, JavaType defaultValue) {
+	protected Property(String jsonName, String dbName, T defaultValue) {
 		this.defaultValue = defaultValue;
 		this.jsonName = jsonName;
 		this.dbName = dbName;
 	}
 	
 	public abstract Object fixDatabaseProperty(Object value);
-	
-	public Property<JavaType> systemProperty() {
+
+	public Property<T> systemProperty() {
 		this.isSystemProperty = true;
 		return this;
 	}
 	
-	public Property<JavaType> readOnly() {
+	public Property<T> readOnly() {
 		this.isReadOnlyProperty = true;
 		return this;
 	}
 	
-	public Property<JavaType> writeOnce() {
+	public Property<T> writeOnce() {
 		this.isWriteOnceProperty = true;
 		return this;
 	}
@@ -92,17 +92,6 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 	
 	@Override
-	public void setNames(String name) {
-		setNames(name, name);
-	}
-	
-	@Override
-	public void setNames(String jsonName, String dbName) {
-		this.jsonName = jsonName;
-		this.dbName = dbName;
-	}
-	
-	@Override
 	public String dbName() {
 		return dbName;
 	}
@@ -113,7 +102,7 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 	
 	@Override
-	public JavaType defaultValue() {
+	public T defaultValue() {
 		return defaultValue;
 	}
 	
@@ -147,7 +136,7 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 		
 		return false;
 	}
-	
+
 	@Override
 	public boolean isSystemProperty() {
 		return isSystemProperty;
@@ -164,17 +153,7 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 	
 	@Override
-	public Class<? extends GraphObject> relatedType() {
-		return null;
-	}
-
-	@Override
-	public boolean isCollection() {
-		return false;
-	}
-	
-	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
 		
 		// return empty string on null value here to enable searching for empty values
 		String searchString = searchValue != null ? searchValue.toString() : "";

@@ -63,7 +63,7 @@ public class File extends AbstractNode implements Linkable {
 
 	private static final Logger logger                    = Logger.getLogger(File.class.getName());
 
-	public static final EntityProperty<Folder> parentFolder     = new EntityProperty<Folder>(Folder.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final EntityProperty<Folder> parentFolder     = new EntityProperty<Folder>("parentFolder", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
 	
 	public static final Property<String>       contentType      = new StringProperty("contentType");
 	public static final Property<String>       relativeFilePath = new StringProperty("relativeFilePath");

@@ -35,23 +35,21 @@ import org.structr.core.notion.Notion;
  */
 
 
-public class CollectionNotionProperty<T> extends Property<List<T>> {
+public class CollectionNotionProperty<S extends GraphObject, T> extends Property<List<T>> {
 	
 	private static final Logger logger = Logger.getLogger(CollectionIdProperty.class.getName());
 	
-	private CollectionProperty base = null;
-	private Notion<T> notion   = null;
+	private Property<List<S>> base = null;
+	private Notion<S, T> notion    = null;
 	
-	public CollectionNotionProperty(CollectionProperty base, Notion<T> notion) {
-		this(null, base, notion);
-	}
-	
-	public CollectionNotionProperty(String name, CollectionProperty base, Notion<T> notion) {
+	public CollectionNotionProperty(String name, Property<List<S>> base, Notion<S, T> notion) {
 		
 		super(name);
 		
 		this.notion = notion;
 		this.base   = base;
+		
+		notion.setType(base.relatedType());
 	}
 
 	@Override
@@ -91,6 +89,24 @@ public class CollectionNotionProperty<T> extends Property<List<T>> {
 
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, List<T> value) throws FrameworkException {
-		base.setProperty(securityContext, obj, notion.getCollectionAdapterForSetter(securityContext).adapt(value));
+		
+		if (value != null) {
+		
+			base.setProperty(securityContext, obj, notion.getCollectionAdapterForSetter(securityContext).adapt(value));
+			
+		} else {
+		
+			base.setProperty(securityContext, obj, null);
+		}
+	}
+
+	@Override
+	public Class relatedType() {
+		return base.relatedType();
+	}
+
+	@Override
+	public boolean isCollection() {
+		return true;
 	}
 }

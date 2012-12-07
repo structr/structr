@@ -783,52 +783,21 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public AbstractNode getEndNode() {
 
-		try {
-
-			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (AbstractNode) nodeFactory.createNode(dbRelationship.getEndNode());
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to instantiate node", fex);
-
-		}
-
-		return null;
+		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+		return (AbstractNode) nodeFactory.createNode(dbRelationship.getEndNode());
 
 	}
 
 	public AbstractNode getStartNode() {
 
-		try {
-
-			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (AbstractNode) nodeFactory.createNode(dbRelationship.getStartNode());
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to instantiate node", fex);
-
-		}
-
-		return null;
-
+		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+		return (AbstractNode) nodeFactory.createNode(dbRelationship.getStartNode());
 	}
 
 	public AbstractNode getOtherNode(final AbstractNode node) {
 
-		try {
-
-			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (AbstractNode) nodeFactory.createNode(dbRelationship.getOtherNode(node.getNode()));
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to instantiate node", fex);
-
-		}
-
-		return null;
+		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+		return (AbstractNode) nodeFactory.createNode(dbRelationship.getOtherNode(node.getNode()));
 
 	}
 

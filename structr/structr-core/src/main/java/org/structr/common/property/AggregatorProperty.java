@@ -90,4 +90,14 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 		
 		return Collections.emptyList();
 	}
+	
+	@Override
+	public Class relatedType() {
+		return AbstractNode.class;
+	}
+	
+	@Override
+	public boolean isCollection() {
+		return true;
+	}
 }

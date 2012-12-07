@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.property.Property;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
 
 /**
@@ -34,23 +33,21 @@ import org.structr.core.notion.Notion;
  */
 
 
-public class EntityNotionProperty<T> extends Property<T> {
+public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> {
 	
 	private static final Logger logger = Logger.getLogger(EntityIdProperty.class.getName());
 	
-	private EntityProperty base = null;
-	private Notion<T> notion    = null;
+	private Property<S> base    = null;
+	private Notion<S, T> notion = null;
 	
-	public EntityNotionProperty(EntityProperty base, Notion<T> notion) {
-		this(null, base, notion);
-	}	
-	
-	public EntityNotionProperty(String name, EntityProperty base, Notion<T> notion) {
+	public EntityNotionProperty(String name, Property<S> base, Notion<S, T> notion) {
 		
 		super(name);
 		
 		this.notion = notion;
 		this.base   = base;
+		
+		notion.setType(base.relatedType());
 	}
 
 	@Override
@@ -90,15 +87,23 @@ public class EntityNotionProperty<T> extends Property<T> {
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 		
-		GraphObject graphObject = notion.getAdapterForSetter(securityContext).adapt(value);
-		
-		if (graphObject instanceof AbstractNode) {
-
-			base.setProperty(securityContext, obj, (AbstractNode)graphObject);
+		if (value != null) {
+	
+			base.setProperty(securityContext, obj, notion.getAdapterForSetter(securityContext).adapt(value));
 			
 		} else {
 			
-			logger.log(Level.WARNING, "Unable to apply notion of type {0} to property {1}", new Object[] { notion.getClass(), this } );
+			base.setProperty(securityContext, obj, null);
 		}
-	}	
+	}
+
+	@Override
+	public Class relatedType() {
+		return base.relatedType();
+	}
+
+	@Override
+	public boolean isCollection() {
+		return false;
+	}
 }

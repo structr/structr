@@ -34,6 +34,6 @@ import org.structr.web.entity.Content;
  */
 public class Title extends HtmlElement {
 
-	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>(Head.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

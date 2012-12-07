@@ -41,7 +41,7 @@ public class Ol extends HtmlElement {
 	public static final Property<String> _reversed = new HtmlProperty("reversed");
 	public static final Property<String> _start    = new HtmlProperty("start");
 
-	public static final CollectionProperty<Li> lis = new CollectionProperty<Li>(Li.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Li> lis = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final View htmlView = new View(Ol.class, PropertyView.Html,
 	    _reversed, _start

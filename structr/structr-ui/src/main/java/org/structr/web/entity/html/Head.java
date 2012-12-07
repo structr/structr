@@ -33,11 +33,11 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Head extends HtmlElement {
 
-	public static final CollectionProperty<Html>   htmls   = new CollectionProperty<Html>(Html.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<Title>  titles  = new CollectionProperty<Title>(Title.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Style>  styles  = new CollectionProperty<Style>(Style.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Script> scripts = new CollectionProperty<Script>(Script.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Link>   links   = new CollectionProperty<Link>(Link.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Meta>   metas   = new CollectionProperty<Meta>(Meta.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Base>   bases   = new CollectionProperty<Base>(Base.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Html>   htmls   = new CollectionProperty<Html>("htmls", Html.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Title>  titles  = new CollectionProperty<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Style>  styles  = new CollectionProperty<Style>("styles", Style.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Script> scripts = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Link>   links   = new CollectionProperty<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Meta>   metas   = new CollectionProperty<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Base>   bases   = new CollectionProperty<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

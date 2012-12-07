@@ -47,9 +47,9 @@ public interface Element extends GraphObject {
 	public static final Property<String>              tag        = new StringProperty("tag");
 	public static final Property<Set<String>>         paths      = new PathsProperty("paths");
 
-	public static final CollectionProperty<Component> components = new CollectionProperty<Component>(Component.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Page>      pages      = new CollectionProperty<Page>(Page.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<Element>   elements   = new CollectionProperty<Element>(Element.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Component> components = new CollectionProperty<Component>("components", Component.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Page>      pages      = new CollectionProperty<Page>("pages", Page.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Element>   elements   = new CollectionProperty<Element>("elements", Element.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Element.class, PropertyView.Ui,
 		AbstractNode.name, tag

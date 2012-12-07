@@ -62,8 +62,8 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		this.nullValuesOnlyProperty = new BooleanProperty(name.concat(".").concat("nullValuesOnly"));
 		this.entityClass            = entityClass;
 
-		
-		// this looks strange
+		// register in entity context
+		EntityContext.registerProperty(entityClass, nullValuesOnlyProperty);
 		EntityContext.registerPropertyGroup(entityClass, this, this);	
 	}
 	
@@ -283,6 +283,16 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
 		setGroupedProperties(securityContext, value, obj);
+	}
+	
+	@Override
+	public Class relatedType() {
+		return null;
+	}
+	
+	@Override
+	public boolean isCollection() {
+		return false;
 	}
 	
 	/**

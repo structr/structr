@@ -32,10 +32,7 @@ import org.structr.core.graph.search.SearchOperator;
  *
  * @author Christian Morgner
  */
-public interface PropertyKey<JavaType> {
-	
-	public void setNames(String name);
-	public void setNames(String jsonName, String dbName);
+public interface PropertyKey<T> {
 	
 	public String jsonName();
 	public String dbName();
@@ -45,21 +42,21 @@ public interface PropertyKey<JavaType> {
 	 * wrong type was provided.
 	 */
 	public String typeName();
-	public Class<? extends GraphObject> relatedType();
+	public Class relatedType();
 	
-	public JavaType defaultValue();
+	public T defaultValue();
 	
-	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy);
-	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext);
 	
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass);
 	public Class<? extends GraphObject> getDeclaringClass();
 
-	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch);
+	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch);
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
 	
-	public JavaType getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
-	public void setProperty(SecurityContext securityContext, GraphObject obj, JavaType value) throws FrameworkException;
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
+	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
 
 	public void registrationCallback(Class entityType);
 	

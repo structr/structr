@@ -25,10 +25,8 @@ import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.IndexRelationshipCommand;
 import java.lang.reflect.Field;
-import org.structr.core.converter.PropertyConverter;
 import org.apache.commons.lang.StringUtils;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -43,12 +41,9 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.notion.Notion;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -110,7 +105,6 @@ public class EntityContext {
 	private static final Map<Long, TransactionChangeSet> globalChangeSets                                   = new ConcurrentHashMap<Long, TransactionChangeSet>();
 	private static final ThreadLocal<SecurityContext> securityContextMap                                    = new ThreadLocal<SecurityContext>();
 	private static final ThreadLocal<Long> transactionKeyMap                                                = new ThreadLocal<Long>();
-//	private static final ThreadLocalChangeSet globalChangeSet                                               = new ThreadLocalChangeSet();
 	private static GenericFactory genericFactory                                                            = new DefaultGenericFactory();
 
 	//~--- methods --------------------------------------------------------
@@ -168,17 +162,12 @@ public class EntityContext {
 			PropertyKey propertyKey = entry.getValue();
 			Field field             = entry.getKey();
 			Class declaringClass    = field.getDeclaringClass();
-
+			
 			if (declaringClass != null) {
 				
 				propertyKey.setDeclaringClass(declaringClass);
 				registerProperty(declaringClass, propertyKey);
 				
-			}
-			
-			// set name if not set
-			if (propertyKey.dbName() == null && propertyKey.jsonName() == null) {
-				propertyKey.setNames(field.getName());
 			}
 			
 			registerProperty(entityType, propertyKey);
@@ -198,7 +187,7 @@ public class EntityContext {
 		}
 	}
 	
-	private static void registerProperty(Class type, PropertyKey propertyKey) {
+	public static void registerProperty(Class type, PropertyKey propertyKey) {
 		
 		getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(),   propertyKey);
 		getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), propertyKey);
@@ -337,50 +326,6 @@ public class EntityContext {
 	}
 
 
-	// ----- PropertyConverter methods -----
-	/**
-	 * Registers a property converter for the given property key of all entities with
-	 * the given type.
-	 * 
-	 * @param type the type of the entities for which the converter should be registered
-	 * @param propertyKey the property key under which the validator should be registered
-	 * @param propertyConverterClass the type of the converter to register
-	 */
-//	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
-//		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
-//	}
-
-	/**
-	 * Registers a property converter for the given property key of all entities with
-	 * the given type, using the given value.
-	 * 
-	 * @param type the type of the entities for which the converter should be registered
-	 * @param propertyKey the property key under which the validator should be registered
-	 * @param propertyConverterClass the type of the converter to register
-	 */
-//	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
-//
-//		getPropertyConverterMapForType(type).put(propertyKey, propertyConverterClass);
-//
-//		if (value != null) {
-//
-//			getPropertyConversionParameterMapForType(type).put(propertyKey, value);
-//			globalKnownPropertyKeys.add(propertyKey);
-//
-//		}
-//	}
-
-	// ----- scanEntity-only property map -----
-	/**
-	 * Defines the given property of the given entity to be scanEntity-only.
-	 * 
-	 * @param type the type of the entities
-	 * @param key the key that should be set scanEntity-only
-	 */
-//	public static void registerReadOnlyProperty(Class type, PropertyKey key) {
-//		getReadOnlyPropertySetForType(type).add(key);
-//	}
-
 	// ----- searchable property map -----
 	/**
 	 * Registers the given set of properties of the given entity type to be stored
@@ -422,18 +367,6 @@ public class EntityContext {
 
 		key.registerSearchableProperties(searchablePropertySet);
 	}
-
-	// ----- write-once property map -----
-	/**
-	 * Defines the given property of the given type to be able to be written only
-	 * once. This is useful for system properties like uuid etc.
-	 * 
-	 * @param type the entity type
-	 * @param key the key to be set to write-once
-	 */
-//	public static void registerWriteOnceProperty(Class type, PropertyKey key) {
-//		getWriteOncePropertySetForType(type).add(key);
-//	}
 
 	// ----- private methods -----
 	/**
@@ -609,12 +542,6 @@ public class EntityContext {
 		String sourceType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[0];
 		Class realType  = getEntityClassForRawType(sourceType);
 
-//		try {
-//			realType = (Class) Services.command(null, GetEntityClassCommand.class).execute(StringUtils.capitalize(sourceType));
-//		} catch (FrameworkException ex) {
-//			logger.log(Level.WARNING, "No real type found for {0}", sourceType);
-//		}
-
 		return realType;
 	}
 	
@@ -627,12 +554,6 @@ public class EntityContext {
 
 		String destType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[2];
 		Class realType  = getEntityClassForRawType(destType);
-
-//		try {
-//			realType = (Class) Services.command(null, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-//		} catch (FrameworkException ex) {
-//			logger.log(Level.WARNING, "No real type found for {0}", destType);
-//		}
 
 		return realType;
 	}
@@ -710,13 +631,10 @@ public class EntityContext {
 
 			transformations.addAll(getEntityCreationTransformationsForType(localType));
 
-			// FIXME: include interfaces as well??
-			
 			localType = localType.getSuperclass();
 
 		}
 
-//              return new TreeSet<Transformation<AbstractNode>>(transformations).descendingSet();
 		return transformations;
 	}
 
@@ -815,7 +733,8 @@ public class EntityContext {
 			if (GraphObject.uuid.dbName().equals(dbName)) {
 				return GraphObject.uuid;
 			}
-			
+		
+			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { dbName, type } );
 			key = new GenericProperty(dbName);
 		}
 		
@@ -834,6 +753,7 @@ public class EntityContext {
 				return GraphObject.uuid;
 			}
 
+			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { jsonName, type } );
 			key = new GenericProperty(jsonName);
 		}
 		

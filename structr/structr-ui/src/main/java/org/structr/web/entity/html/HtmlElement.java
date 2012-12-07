@@ -59,6 +59,7 @@ import org.structr.common.property.StringProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.PageHelper;
+import org.structr.web.entity.Component;
 import org.structr.web.entity.PageElement;
 import org.structr.web.entity.RemoteView;
 import org.structr.web.entity.View;
@@ -73,9 +74,9 @@ public abstract class HtmlElement extends PageElement implements Element {
 
 	private static final Logger logger                                      = Logger.getLogger(HtmlElement.class.getName());
 		
-	public static final CollectionProperty<HtmlElement> parents             = new CollectionProperty<HtmlElement>(HtmlElement.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<View>        views               = new CollectionProperty<View>(View.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<RemoteView>  remoteViews         = new CollectionProperty<RemoteView>(RemoteView.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<HtmlElement> parents             = new CollectionProperty<HtmlElement>("parents", HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<RemoteView>  remoteViews         = new CollectionProperty<RemoteView>("remoteViews", RemoteView.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<View>        views               = new CollectionProperty<View>("views", View.class, RelType.CONTAINS, Direction.OUTGOING, false);
        
 	public static final Property<String>                path                = new StringProperty("path");
 	

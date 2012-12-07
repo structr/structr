@@ -33,10 +33,6 @@ public class MappedProperty<T> extends PrimitiveProperty<T> {
 	
 	private PropertyKey<T> mappedKey = null;
 	
-	public MappedProperty(PropertyKey<T> mappedKey) {
-		this(null, mappedKey);
-	}
-	
 	public MappedProperty(String name, PropertyKey<T> mappedKey) {
 		super(name);
 		

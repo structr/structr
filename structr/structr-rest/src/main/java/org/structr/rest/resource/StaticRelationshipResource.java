@@ -72,7 +72,7 @@ public class StaticRelationshipResource extends SortableResource {
 	TypeResource typeResource       = null;
 	TypedIdResource typedIdResource = null;
 
-	//~--- constructors ---------------------------------------------------
+	//~--- constructors ---------------------------------------------------constructors
 
 	public StaticRelationshipResource(final SecurityContext securityContext, final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
@@ -86,52 +86,46 @@ public class StaticRelationshipResource extends SortableResource {
 	@Override
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
-		// fetch results from typedIdResource (should be a single node)
-		final List<? extends GraphObject> results = typedIdResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
+		// ok, source node exists, fetch it
+		final AbstractNode sourceNode = typedIdResource.getTypesafeNode();
+		if (sourceNode != null) {
 
-		if (results != null) {
+			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
+			if (key != null) {
 
-			// ok, source node exists, fetch it
-			final AbstractNode sourceNode = typedIdResource.getTypesafeNode();
-			if (sourceNode != null) {
+				final Object value = sourceNode.getProperty(key);
+				if (value != null) {
 
-				final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
-				if (key != null) {
+					if (value instanceof List) {
 
-					final Object value = sourceNode.getProperty(key);
-					if (value != null) {
+						final List<GraphObject> list = (List<GraphObject>)value;
+						applyDefaultSorting(list, sortKey, sortDescending);
 
-						if (value instanceof List) {
-						
-							final List<GraphObject> list = (List<GraphObject>)value;
-							applyDefaultSorting(list, sortKey, sortDescending);
+						//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
 
-							//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
-							return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
-							
-						} else if (value instanceof Iterable) {
+					} else if (value instanceof Iterable) {
 
-							// check type of value (must be an Iterable of GraphObjects in order to proceed here)
-							final List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
-							final Iterable sourceIterable              = (Iterable) value;
+						// check type of value (must be an Iterable of GraphObjects in order to proceed here)
+						final List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
+						final Iterable sourceIterable              = (Iterable) value;
 
-							for (final Object o : sourceIterable) {
+						for (final Object o : sourceIterable) {
 
-								if (o instanceof GraphObject) {
+							if (o instanceof GraphObject) {
 
-									propertyListResult.add((GraphObject) o);
-								}
+								propertyListResult.add((GraphObject) o);
 							}
-
-							applyDefaultSorting(propertyListResult, sortKey, sortDescending);
-
-							//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
-							return new Result(PagingHelper.subList(propertyListResult, pageSize, page, offsetId), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
-							
 						}
-					}
 
+						applyDefaultSorting(propertyListResult, sortKey, sortDescending);
+
+						//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(propertyListResult, pageSize, page, offsetId), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
+
+					}
 				}
+
 			}
 		}
 

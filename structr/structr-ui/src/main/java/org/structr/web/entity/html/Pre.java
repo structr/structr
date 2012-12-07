@@ -33,7 +33,7 @@ import org.structr.web.entity.Content;
  */
 public class Pre extends HtmlElement {
 
-	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	@Override
 	public boolean avoidWhitespace() {

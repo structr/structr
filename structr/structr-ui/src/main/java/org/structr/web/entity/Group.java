@@ -44,7 +44,7 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Group extends AbstractNode implements Principal {
 
-	public static final CollectionProperty<User> users = new CollectionProperty<User>(User.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<User> users = new CollectionProperty<User>("users", User.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	//~--- methods --------------------------------------------------------
 

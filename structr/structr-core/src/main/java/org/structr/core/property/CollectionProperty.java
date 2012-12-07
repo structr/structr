@@ -29,6 +29,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -46,7 +47,8 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 	private static final Logger logger = Logger.getLogger(CollectionProperty.class.getName());
 
-	private Notion notion              = null;
+	private boolean oneToMany = false;
+	private Notion notion     = null;
 	
 	/**
 	 * Constructs a collection property with the given name, based on the given property, transformed by the given notion.
@@ -56,7 +58,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param notion
 	 */
 	public CollectionProperty(String name, CollectionProperty base, Notion notion) {
-		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.getCascadeDelete());
+		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isOneToMany(), base.getCascadeDelete());
 	}
 
 	/**
@@ -67,27 +69,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param notion
 	 */
 	public CollectionProperty(String name, CollectionProperty base, Notion notion, int deleteCascade) {
-		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, deleteCascade);
-	}
-
-	/**
-	 * Constructs a collection property with the name of the declaring field, the given destination type and the given relationship type.
-	 *
-	 * @param destType
-	 * @param relType
-	 */
-	public CollectionProperty(Class destType, RelationshipType relType) {
-		this(null, destType, relType);
-	}
-
-	/**
-	 * Constructs a collection property with the name of the declaring field, the given destination type and the given relationship type.
-	 *
-	 * @param destType
-	 * @param relType
-	 */
-	public CollectionProperty(Class destType, RelationshipType relType, int deleteCascade) {
-		this(null, destType, relType, Direction.OUTGOING, deleteCascade);
+		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isOneToMany(), deleteCascade);
 	}
 
 	/**
@@ -97,20 +79,8 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param destType
 	 * @param relType
 	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType) {
-		this(name, destType, relType, Direction.OUTGOING);
-	}
-
-	/**
-	 * Constructs a collection property with the name of the declaring field, the given destination type, the given relationship type, the given direction and the given cascade delete flag.
-	 *
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param cascadeDelete
-	 */
-	public CollectionProperty(Class destType, RelationshipType relType, Direction direction, int cascadeDelete) {
-		this(null, destType, relType, direction, cascadeDelete);
+	public CollectionProperty(String name, Class destType, RelationshipType relType, boolean oneToMany) {
+		this(name, destType, relType, Direction.OUTGOING, oneToMany);
 	}
 
 	/**
@@ -122,19 +92,21 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param direction
 	 * @param cascadeDelete
 	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, int cascadeDelete) {
-		this(name, destType, relType, direction, new ObjectNotion(), cascadeDelete);
+	public CollectionProperty(String name, Class destType, RelationshipType relType, boolean oneToMany, int cascadeDelete) {
+		this(name, destType, relType, Direction.OUTGOING, new ObjectNotion(), oneToMany, cascadeDelete);
 	}
 
 	/**
-	 * Constructs a collection property with the name of the declaring field, the given destination type, the given relationship type and the given direction.
+	 * Constructs a collection property with the given name, the given destination type, the given relationship type, the given direction and the given cascade delete flag.
 	 *
+	 * @param name
 	 * @param destType
 	 * @param relType
 	 * @param direction
+	 * @param cascadeDelete
 	 */
-	public CollectionProperty(Class destType, RelationshipType relType, Direction direction) {
-		this(null, destType, relType, direction);
+	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean oneToMany, int cascadeDelete) {
+		this(name, destType, relType, direction, new ObjectNotion(), oneToMany, cascadeDelete);
 	}
 
 	/**
@@ -145,20 +117,8 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param relType
 	 * @param direction
 	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction) {
-		this(name, destType, relType, direction, new ObjectNotion());
-	}
-
-	/**
-	 * Constructs a collection property with the name of the declaring field, the given destination type, the given relationship type, the given direction and the given notion.
-	 *
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param notion
-	 */
-	public CollectionProperty(Class destType, RelationshipType relType, Direction direction, Notion notion) {
-		this(null, destType, relType, direction, notion);
+	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean oneToMany) {
+		this(name, destType, relType, direction, new ObjectNotion(), oneToMany);
 	}
 
 	/**
@@ -170,22 +130,8 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param direction
 	 * @param notion
 	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion) {
-		this(name, destType, relType, direction, notion, Relation.DELETE_NONE);
-	}
-
-	/**
-	 * Constructs a collection property with the name of the declaring field, the given destination type, the given relationship type, the given direction, the given notion and the given cascade
-	 * delete flag.
-	 *
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param notion
-	 * @param cascadeDelete
-	 */
-	public CollectionProperty(Class destType, RelationshipType relType, Direction direction, Notion notion, int cascadeDelete) {
-		this(null, destType, relType, direction, notion, cascadeDelete);
+	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean oneToMany) {
+		this(name, destType, relType, direction, notion, oneToMany, Relation.DELETE_NONE);
 	}
 
 	/**
@@ -199,13 +145,16 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param notion
 	 * @param cascadeDelete
 	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, int cascadeDelete) {
+	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean oneToMany, int cascadeDelete) {
 
-		super(name, destType, relType, direction, Cardinality.ManyToMany, cascadeDelete);
+		super(name, destType, relType, direction, oneToMany ? Cardinality.OneToMany : Cardinality.ManyToMany, cascadeDelete);
 
-		this.notion = notion;
+		this.notion    = notion;
+		this.oneToMany = oneToMany;
+
 		this.notion.setType(destType);
 		
+		EntityContext.registerConvertedProperty(this);
 	}
 	
 	@Override
@@ -220,7 +169,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 	@Override
 	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
-		return null;
+		return getNotion().getCollectionConverter(securityContext);
 	}
 
 	@Override
@@ -230,7 +179,6 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 			AbstractNode node = (AbstractNode)obj;
 
-			// TODO: maybe this check can be removed to improve performance
 			if (cardinality.equals(Relation.Cardinality.OneToMany) || cardinality.equals(Relation.Cardinality.ManyToMany)) {
 
 				NodeFactory nodeFactory = new NodeFactory(securityContext);
@@ -320,5 +268,9 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	@Override
 	public Notion getNotion() {
 		return notion;
+	}
+
+	public boolean isOneToMany() {
+		return oneToMany;
 	}
 }

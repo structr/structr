@@ -105,7 +105,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 	//~--- methods --------------------------------------------------------
 
-	public T createNode(final Node node) throws FrameworkException {
+	public T createNode(final Node node) {
 
 		String type     = AbstractNode.type.dbName();
 		String nodeType = node.hasProperty(type)
@@ -116,7 +116,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 	}
 
-	public T createNodeWithType(final Node node, final String nodeType) throws FrameworkException {
+	public T createNodeWithType(final Node node, final String nodeType) {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newNode = (T)securityContext.lookup(node);
@@ -157,7 +157,18 @@ public class NodeFactory<T extends AbstractNode> {
 			newNode.init(factoryProfile.getSecurityContext(), node);
 			newNode.onNodeInstantiation();
 
-			newNode.setType(nodeType);
+			String newNodeType = newNode.getProperty(AbstractNode.type);
+			if (newNodeType == null || (newNodeType != null && !newNodeType.equals(nodeType))) {
+				
+				try {
+
+					newNode.setType(nodeType);
+
+				} catch (Throwable t) {
+
+					logger.log(Level.SEVERE, "Unable to set type property {0} on node {1}: {2}", new Object[] { nodeType, newNode, t.getMessage() } );
+				}
+			}
 			
 			// cache node for this request
 			securityContext.store(newNode);

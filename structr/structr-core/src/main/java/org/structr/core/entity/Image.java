@@ -60,8 +60,7 @@ public class Image extends File {
 
 	private static final Logger logger = Logger.getLogger(Image.class.getName());
 
-	// public static final Property<String> imageData = new ImageDataProperty("imageData", new KeyAndClass(null, null));     // FIXME!!?
-	public static final EntityProperty<Folder> folder = new EntityProperty<Folder>(Folder.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final EntityProperty<Folder> folder = new EntityProperty<Folder>("folder", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
 	public static final Property<Integer>      height = new IntProperty("height");
 	public static final Property<Integer>      width  = new IntProperty("width");
 	

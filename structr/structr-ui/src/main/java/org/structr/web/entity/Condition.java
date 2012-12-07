@@ -46,8 +46,8 @@ import org.structr.core.property.CollectionProperty;
 public class Condition extends AbstractNode {
 
 	public static final Property<String>            query    = new StringProperty("query");
-	public static final CollectionProperty<Page>    pages    = new CollectionProperty<Page>(Page.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<Element> elements = new CollectionProperty<Element>(Element.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Page>    pages    = new CollectionProperty<Page>("pages", Page.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Element> elements = new CollectionProperty<Element>("elements", Element.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Condition.class, PropertyView.Ui,
 		type, name, query

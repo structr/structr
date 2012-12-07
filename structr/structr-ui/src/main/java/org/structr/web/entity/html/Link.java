@@ -49,9 +49,9 @@ public class Link extends HtmlElement {
 	public static final Property<String> _type     = new HtmlProperty("type");
 	public static final Property<String> _sizes    = new HtmlProperty("sizes");
 	
-	public static final CollectionProperty<Head> heads      = new CollectionProperty<Head>(Head.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final EntityProperty<Linkable> linkable   = new EntityProperty<Linkable>(Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name));
-	public static final Property<String>         linkableId = new EntityIdProperty(linkable);
+	public static final CollectionProperty<Head> heads      = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final EntityProperty<Linkable> linkable   = new EntityProperty<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
+	public static final Property<String>         linkableId = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(Link.class, PropertyView.Ui,
 		linkableId, linkable

@@ -48,15 +48,15 @@ public class Form extends HtmlElement {
 	public static final Property<String> _novalidate    = new HtmlProperty("novalidate");
 	public static final Property<String> _target        = new HtmlProperty("target");
 	
-	public static final CollectionProperty<Div>      divParents = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<P>        pParents   = new CollectionProperty<P>(P.class, RelType.CONTAINS, Direction.INCOMING);
-	public static final CollectionProperty<Content>  contents   = new CollectionProperty<Content>(Content.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Div>      divs       = new CollectionProperty<Div>(Div.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Input>    inputs     = new CollectionProperty<Input>(Input.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Button>   buttons    = new CollectionProperty<Button>(Button.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Select>   selects    = new CollectionProperty<Select>(Select.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Label>    labels     = new CollectionProperty<Label>(Label.class, RelType.CONTAINS, Direction.OUTGOING);
-	public static final CollectionProperty<Textarea> textareas  = new CollectionProperty<Textarea>(Textarea.class, RelType.CONTAINS, Direction.OUTGOING);
+	public static final CollectionProperty<Div>      divParents = new CollectionProperty<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<P>        pParents   = new CollectionProperty<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Content>  contents   = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Div>      divs       = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Input>    inputs     = new CollectionProperty<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Button>   buttons    = new CollectionProperty<Button>("buttons", Button.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Select>   selects    = new CollectionProperty<Select>("selects", Select.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Label>    labels     = new CollectionProperty<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Textarea> textareas  = new CollectionProperty<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final View htmlView = new View(Form.class, PropertyView.Html,
 	    _acceptCharset, _action, _autocomplete, _enctype, _method, _name, _novalidate, _target

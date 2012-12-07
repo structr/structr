@@ -33,7 +33,7 @@ import org.structr.core.property.EntityProperty;
  */
 public class TestFour extends AbstractNode {
 	
-	public static final EntityProperty<TestOne> testOne = new EntityProperty<TestOne>(TestOne.class, RelType.DATA, Direction.INCOMING, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final EntityProperty<TestOne> testOne = new EntityProperty<TestOne>("testOne", TestOne.class, RelType.DATA, Direction.INCOMING, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

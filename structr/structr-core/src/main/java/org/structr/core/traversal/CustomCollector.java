@@ -37,7 +37,7 @@ import org.structr.core.entity.AbstractNode;
  *
  * @author Christian Morgner
  */
-public abstract class CustomCollector implements TraverserInterface, Value<TraverserInterface> {
+public abstract class CustomCollector<T extends AbstractNode> implements TraverserInterface<T>, Value<TraverserInterface<T>> {
 
 	private List<RelationshipType> relTypes = new LinkedList<RelationshipType>();
 	private List<Predicate> predicates = new LinkedList<Predicate>();
@@ -60,7 +60,7 @@ public abstract class CustomCollector implements TraverserInterface, Value<Trave
 
 
 	@Override
-	public TraversalDescription getTraversalDescription(final SecurityContext securityContext, Object sourceProperty) {
+	public TraversalDescription getTraversalDescription(final SecurityContext securityContext) {
 
 		TraversalDescription description = Traversal
 			.description()

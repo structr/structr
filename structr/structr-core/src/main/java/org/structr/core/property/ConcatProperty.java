@@ -54,4 +54,14 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 
 		return combinedPropertyValue.toString();
 	}
+	
+	@Override
+	public Class relatedType() {
+		return null;
+	}
+	
+	@Override
+	public boolean isCollection() {
+		return false;
+	}
 }

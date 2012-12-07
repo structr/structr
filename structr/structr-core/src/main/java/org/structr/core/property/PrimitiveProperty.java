@@ -168,4 +168,14 @@ public abstract class PrimitiveProperty<T> extends Property<T> {
 		}
 		
 	}
+	
+	@Override
+	public Class relatedType() {
+		return null;
+	}
+	
+	@Override
+	public boolean isCollection() {
+		return false;
+	}
 }

@@ -359,7 +359,7 @@ public abstract class Resource {
 		return -1;
 	}
 
-	private static void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<PropertyKey> searchableProperties) throws FrameworkException {
+	private static void checkForIllegalSearchKeys(final HttpServletRequest request, Class type, final Set<PropertyKey> searchableProperties) throws FrameworkException {
 
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
@@ -367,11 +367,12 @@ public abstract class Resource {
 		for (final Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
 
 			final String requestParameterName  = e.nextElement();
-			final PropertyKey requestParameter = new StringProperty(requestParameterName);
+			
+			final PropertyKey requestParameterKey = EntityContext.getPropertyKeyForJSONName(type, requestParameterName);
 
-			if (!searchableProperties.contains(requestParameter) && !NON_SEARCH_FIELDS.contains(requestParameterName)) {
+			if (!searchableProperties.contains(requestParameterKey) && !NON_SEARCH_FIELDS.contains(requestParameterName)) {
 
-				errorBuffer.add("base", new InvalidSearchField(requestParameter));
+				errorBuffer.add("base", new InvalidSearchField(requestParameterKey));
 
 			}
 
@@ -476,7 +477,7 @@ public abstract class Resource {
 							                        fulltextIndex,
 							                        keywordIndex);
 
-			searchAttributes = checkAndAssembleSearchAttributes(securityContext, request, looseSearch, searchableProperties);
+			searchAttributes = checkAndAssembleSearchAttributes(securityContext, request, type, looseSearch, searchableProperties);
 
 		}
 		return searchAttributes;
@@ -578,6 +579,7 @@ public abstract class Resource {
 
 	private static List<SearchAttribute> checkAndAssembleSearchAttributes(final SecurityContext securityContext,
 	                                                                      final HttpServletRequest request,
+									      final Class type,
 	                                                                      final boolean looseSearch,
 	                                                                      final Set<PropertyKey> searchableProperties)
 	                                                                    				  throws FrameworkException {
@@ -586,7 +588,7 @@ public abstract class Resource {
 
 		if (searchableProperties != null) {
 
-			checkForIllegalSearchKeys(request, searchableProperties);
+			checkForIllegalSearchKeys(request, type, searchableProperties);
 
 			searchAttributes = new LinkedList<SearchAttribute>();
 

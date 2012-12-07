@@ -44,7 +44,7 @@ public class Meta extends HtmlElement {
 	public static final Property<String> _content   = new HtmlProperty("content");
 	public static final Property<String> _charset   = new HtmlProperty("charset");
 
-	public static final CollectionProperty<Head> heads = new CollectionProperty<Head>(Head.class, RelType.CONTAINS, Direction.INCOMING);
+	public static final CollectionProperty<Head> heads = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
 
 	public static final View htmlView = new View(Meta.class, PropertyView.Html,
 		_name, _httpEquiv, _content, _charset
