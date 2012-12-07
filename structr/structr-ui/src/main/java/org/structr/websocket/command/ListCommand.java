@@ -36,6 +36,8 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.structr.core.entity.AbstractNode;
+import org.structr.web.common.RelationshipHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -137,24 +139,24 @@ public class ListCommand extends AbstractCommand {
 //                              }
 //
 //                      }
-//
-//                      for (GraphObject obj : resultList) {
-//
-//
-//                              if (obj instanceof AbstractNode) {
-//                                      
-//                                      AbstractNode node = (AbstractNode) obj;
-//                                      
-//                                      if (RelationshipHelper.hasChildren(node, node.getUuid())) {
-//
-//                                              nodesWithChildren.add(node.getUuid());
-//                                      }
-//                              }
-//
-//                      }
-//
-//                      // Determine children in this resource
-//                      webSocketData.setNodesWithChildren(nodesWithChildren);
+
+                      for (GraphObject obj : resultList) {
+
+
+                              if (obj instanceof AbstractNode) {
+                                      
+                                      AbstractNode node = (AbstractNode) obj;
+                                      
+                                      if (RelationshipHelper.hasChildren(node, node.getUuid())) {
+
+                                              nodesWithChildren.add(node.getUuid());
+                                      }
+                              }
+
+                      }
+
+                      // Determine children in this resource
+                      webSocketData.setNodesWithChildren(nodesWithChildren);
 //
 //                      // paging
 //                      if (webSocketData.getPageSize() > 0) {
