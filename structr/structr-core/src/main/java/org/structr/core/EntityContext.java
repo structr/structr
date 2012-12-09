@@ -734,7 +734,7 @@ public class EntityContext {
 				return GraphObject.uuid;
 			}
 		
-			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { dbName, type } );
+//			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { dbName, type } );
 			key = new GenericProperty(dbName);
 		}
 		
@@ -753,7 +753,7 @@ public class EntityContext {
 				return GraphObject.uuid;
 			}
 
-			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { jsonName, type } );
+//			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { jsonName, type } );
 			key = new GenericProperty(jsonName);
 		}
 		

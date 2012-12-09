@@ -182,6 +182,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 			if (cardinality.equals(Relation.Cardinality.OneToMany) || cardinality.equals(Relation.Cardinality.ManyToMany)) {
 
 				NodeFactory nodeFactory = new NodeFactory(securityContext);
+				Class destinationType   = getDestType();
 				List<T> nodes           = new LinkedList<T>();
 				Node dbNode             = node.getNode();
 				AbstractNode value      = null;
@@ -191,7 +192,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
 
 						value = nodeFactory.createNode(rel.getOtherNode(dbNode));
-						if (value != null && getDestType().isInstance(value)) {
+						if (value != null && destinationType.isInstance(value)) {
 
 							nodes.add((T)value);
 						}

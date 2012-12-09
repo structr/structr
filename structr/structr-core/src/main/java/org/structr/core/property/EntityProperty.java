@@ -211,6 +211,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 			if (cardinality.equals(Relation.Cardinality.OneToOne) || cardinality.equals(Relation.Cardinality.ManyToOne)) {
 
 				NodeFactory nodeFactory = new NodeFactory(securityContext);
+				Class destinationType   = getDestType();
 				Node dbNode             = node.getNode();
 				AbstractNode value      = null;
 
@@ -221,7 +222,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 						value = nodeFactory.createNode(rel.getOtherNode(dbNode));
 
 						// break on first hit of desired type
-						if (value != null && getDestType().isInstance(value)) {
+						if (value != null && destinationType.isInstance(value)) {
 							return (T)value;
 						}
 					}
