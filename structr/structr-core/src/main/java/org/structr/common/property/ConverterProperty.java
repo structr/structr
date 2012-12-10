@@ -25,12 +25,13 @@ import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class ConverterProperty<T> extends Property<T> {
+public class ConverterProperty<T> extends PrimitiveProperty<T> {
 	
 	private static final Logger logger = Logger.getLogger(ConverterProperty.class.getName());
 	private Constructor constructor    = null;

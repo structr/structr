@@ -2,16 +2,16 @@ package org.structr.web.property;
 
 import java.util.Set;
 import org.structr.common.SecurityContext;
-import org.structr.common.property.Property;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PrimitiveProperty;
 import org.structr.web.converter.PathsConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class PathsProperty extends Property<Set<String>> {
+public class PathsProperty extends PrimitiveProperty<Set<String>> {
 
 	public PathsProperty(String name) {
 		super(name);

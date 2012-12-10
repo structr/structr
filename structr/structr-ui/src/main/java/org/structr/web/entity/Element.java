@@ -31,8 +31,8 @@ import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.property.PathsProperty;
 
 //~--- interfaces -------------------------------------------------------------
@@ -44,8 +44,12 @@ import org.structr.web.property.PathsProperty;
  */
 public interface Element extends GraphObject {
 
-	public static final Property<String>      tag   = new StringProperty("tag");
-	public static final Property<Set<String>> paths = new PathsProperty("paths");
+	public static final Property<String>              tag        = new StringProperty("tag");
+	public static final Property<Set<String>>         paths      = new PathsProperty("paths");
+
+	public static final CollectionProperty<Component> components = new CollectionProperty<Component>("components", Component.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Page>      pages      = new CollectionProperty<Page>("pages", Page.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Element>   elements   = new CollectionProperty<Element>("elements", Element.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Element.class, PropertyView.Ui,
 		AbstractNode.name, tag
@@ -55,25 +59,10 @@ public interface Element extends GraphObject {
 
 	static class Impl {
 
-//		protected static final String[] uiAttributes = { UiKey.name.name(), UiKey.tag.name() };
-
-		//~--- static initializers ------------------------------------
-
 		static {
-
-//			EntityContext.registerPropertySet(Element.class, PropertyView.All, uiAttributes);
-//			EntityContext.registerPropertySet(Element.class, PropertyView.Public, uiAttributes);
-//			EntityContext.registerPropertySet(Element.class, PropertyView.Ui, uiAttributes);
-
-			EntityContext.registerEntityRelation(Element.class, Component.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-			EntityContext.registerEntityRelation(Element.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-			EntityContext.registerEntityRelation(Element.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 
 			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), uiView.properties());
 			EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(),  uiView.properties());
-			
-//                      EntityContext.registerEntityRelation(Element.class,     Page.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
-
 		}
 
 	}

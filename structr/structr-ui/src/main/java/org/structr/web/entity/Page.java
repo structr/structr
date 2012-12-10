@@ -21,24 +21,20 @@
 
 package org.structr.web.entity;
 
-import java.util.List;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.GenericProperty;
 import org.structr.common.property.IntProperty;
 import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.RelationClass;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.graph.NodeService;
-import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EntityProperty;
 import org.structr.web.entity.html.Html;
 
 //~--- classes ----------------------------------------------------------------
@@ -50,15 +46,17 @@ import org.structr.web.entity.html.Html;
  */
 public class Page extends AbstractNode implements Linkable {
 
-//	
+	public static final Property<String>              tag             = new StringProperty("tag");
+	public static final Property<String>              contentType     = new StringProperty("contentType");
+	public static final Property<Integer>             position        = new IntProperty("position");
+	public static final Property<Integer>             cacheForSeconds = new IntProperty("cacheForSeconds");
+	public static final Property<Integer>             version         = new IntProperty("version").systemProperty().readOnly();
 
-	public static final Property<List<Component>> components      = new GenericProperty<List<Component>>("components");
-	public static final Property<List<Element>>   elements        = new GenericProperty<List<Element>>("elements");
-	public static final Property<String>          tag             = new StringProperty("tag");
-	public static final Property<String>          contentType     = new StringProperty("contentType");
-	public static final Property<Integer>         position        = new IntProperty("position");
-	public static final Property<Integer>         cacheForSeconds = new IntProperty("cacheForSeconds");
-	public static final Property<Integer>         version         = new IntProperty("version").systemProperty().readOnly();
+	public static final EntityProperty<Html>          html            = new EntityProperty<Html>("html", Html.class, RelType.CONTAINS, true);
+	
+	public static final CollectionProperty<Component> components      = new CollectionProperty<Component>("components", Component.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Element>   elements        = new CollectionProperty<Element>("elements", Element.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Content>   contents        = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
 		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
@@ -70,23 +68,9 @@ public class Page extends AbstractNode implements Linkable {
 	
 	
 	static {
-
-//		EntityContext.registerPropertySet(Page.class, PropertyView.All, UiKey.values());
-//		EntityContext.registerPropertySet(Page.class, PropertyView.Public, UiKey.values());
-//		EntityContext.registerPropertySet(Page.class, PropertyView.Ui, UiKey.values());
-
-		EntityContext.registerPropertyRelation(AbstractNode.class, ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid));
-
-		EntityContext.registerEntityRelation(Page.class, Component.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Page.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Page.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Page.class, Html.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne);
 		
 		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
-		
-//		EntityContext.registerReadOnlyProperty(Page.class, version);
-
 	}
 
 	//~--- constant enums -------------------------------------------------

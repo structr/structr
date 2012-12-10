@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelationshipEndNodeConverter;
+import org.structr.core.property.PrimitiveProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -32,7 +33,7 @@ import org.structr.core.converter.RelationshipEndNodeConverter;
  *
  * @author Axel Morgner
  */
-public class EndNodeProperty<T> extends Property<T> {
+public class EndNodeProperty<T> extends PrimitiveProperty<T> {
 
 	public EndNodeProperty(String name) {
 

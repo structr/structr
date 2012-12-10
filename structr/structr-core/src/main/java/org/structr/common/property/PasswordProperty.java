@@ -1,10 +1,12 @@
 package org.structr.common.property;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.TooShortToken;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.PasswordConverter;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.ValidationInfo;
+import org.structr.core.property.PropertyKey;
 
 /**
  *
@@ -12,7 +14,7 @@ import org.structr.core.converter.ValidationInfo;
  */
 public class PasswordProperty extends StringProperty {
 
-	private ValidationInfo info = null;
+	private ValidationInfo validationInfo = null;
 	
 	public PasswordProperty(String name) {
 		this(name, null);
@@ -21,7 +23,15 @@ public class PasswordProperty extends StringProperty {
 	public PasswordProperty(String name, ValidationInfo info) {
 		super(name);
 		
-		this.info = info;
+		this.validationInfo = info;
+	}
+	
+	@Override
+	public void registrationCallback(Class entityType) {
+
+		if (validationInfo != null && validationInfo.getErrorKey() == null) {
+			validationInfo.setErrorKey(this);
+		}
 	}
 	
 	@Override
@@ -30,12 +40,27 @@ public class PasswordProperty extends StringProperty {
 	}
 	
 	@Override
-	public PropertyConverter<String, String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new PasswordConverter(securityContext, info);
-	}
+	public void setProperty(SecurityContext securityContext, GraphObject obj, String clearTextPassword) throws FrameworkException {
+		
+		if (clearTextPassword != null) {
+			
+			if (validationInfo != null) {
 
-	@Override
-	public PropertyConverter<String, String> inputConverter(SecurityContext securityContext) {
-		return null;
+				String errorType     = validationInfo.getErrorType();
+				PropertyKey errorKey = validationInfo.getErrorKey();
+				int minLength        = validationInfo.getMinLength();
+
+				if (minLength > 0 && clearTextPassword.length() < minLength) {
+
+					throw new FrameworkException(errorType, new TooShortToken(errorKey, minLength));
+				}
+			}
+		
+			super.setProperty(securityContext, obj, DigestUtils.sha512Hex(clearTextPassword));
+			
+		} else {
+			
+			super.setProperty(securityContext, obj, null);
+		}
 	}
 }

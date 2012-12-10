@@ -30,11 +30,11 @@ import org.structr.core.GraphObject;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,20 +50,20 @@ import java.util.logging.Logger;
  *
  * @author Christian Morgner
  */
-public abstract class Notion<T> {
+public abstract class Notion<S extends GraphObject, T> {
 
 	private static final Logger logger = Logger.getLogger(Notion.class.getName());
 	
-	protected DeserializationStrategy<T, GraphObject> deserializationStrategy = null;
-	protected String idProperty                                               = null;
-	protected SecurityContext securityContext                                 = null;
-	protected SerializationStrategy<GraphObject, T> serializationStrategy     = null;
-	protected Class<GraphObject> type                                         = null;
+	protected DeserializationStrategy<T, S> deserializationStrategy = null;
+	protected SerializationStrategy<S, T> serializationStrategy     = null;
+	protected SecurityContext securityContext                       = null;
+	protected String idProperty                                     = null;
+	protected Class<S> type                                         = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public Notion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
-
+		
 		this.serializationStrategy   = serializationStrategy;
 		this.deserializationStrategy = deserializationStrategy;
 	}
@@ -79,40 +79,40 @@ public abstract class Notion<T> {
 	 */
 	public abstract PropertyKey getPrimaryPropertyKey();
 
-	public Adapter<GraphObject, T> getAdapterForGetter(final SecurityContext securityContext) {
+	public Adapter<S, T> getAdapterForGetter(final SecurityContext securityContext) {
 
 		this.securityContext = securityContext;
 
-		return new Adapter<GraphObject, T>() {
+		return new Adapter<S, T>() {
 
 			@Override
-			public T adapt(GraphObject s) throws FrameworkException {
+			public T adapt(S s) throws FrameworkException {
 				return serializationStrategy.serialize(securityContext, type, s);
 			}
 		};
 	}
 
-	public Adapter<T, GraphObject> getAdapterForSetter(final SecurityContext securityContext) {
+	public Adapter<T, S> getAdapterForSetter(final SecurityContext securityContext) {
 
-		return new Adapter<T, GraphObject>() {
+		return new Adapter<T, S>() {
 
 			@Override
-			public GraphObject adapt(T s) throws FrameworkException {
+			public S adapt(T s) throws FrameworkException {
 				return deserializationStrategy.deserialize(securityContext, type, s);
 			}
 		};
 	}
 
-	public Adapter<Collection<GraphObject>, Collection<T>> getCollectionAdapterForGetter(final SecurityContext securityContext) {
+	public Adapter<List<S>, List<T>> getCollectionAdapterForGetter(final SecurityContext securityContext) {
 
-		return new Adapter<Collection<GraphObject>, Collection<T>>() {
+		return new Adapter<List<S>, List<T>>() {
 
 			@Override
-			public Collection<T> adapt(Collection<GraphObject> s) throws FrameworkException {
+			public List<T> adapt(List<S> s) throws FrameworkException {
 
 				List<T> list = new LinkedList<T>();
 
-				for (GraphObject o : s) {
+				for (S o : s) {
 
 					list.add(serializationStrategy.serialize(securityContext, type, o));
 
@@ -123,14 +123,14 @@ public abstract class Notion<T> {
 		};
 	}
 
-	public Adapter<Collection<T>, Collection<GraphObject>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
+	public Adapter<List<T>, List<S>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
 
-		return new Adapter<Collection<T>, Collection<GraphObject>>() {
+		return new Adapter<List<T>, List<S>>() {
 
 			@Override
-			public Collection<GraphObject> adapt(Collection<T> s) throws FrameworkException {
+			public List<S> adapt(List<T> s) throws FrameworkException {
 
-				List<GraphObject> list = new LinkedList<GraphObject>();
+				List<S> list = new LinkedList<S>();
 				for (T t : s) {
 
 					list.add(deserializationStrategy.deserialize(securityContext, type, t));
@@ -142,9 +142,43 @@ public abstract class Notion<T> {
 		};
 	}
 
+	public PropertyConverter<T, S> getEntityConverter(SecurityContext securityContext) {
+		
+		return new PropertyConverter<T, S>(securityContext, null) {
+
+			@Override
+			public T revert(S source) throws FrameworkException {
+				return getAdapterForGetter(securityContext).adapt(source);
+			}
+
+			@Override
+			public S convert(T source) throws FrameworkException {
+				return getAdapterForSetter(securityContext).adapt(source);
+			}
+		};
+		
+	}
+
+	public PropertyConverter<List<T>, List<S>> getCollectionConverter(SecurityContext securityContext) {
+		
+		return new PropertyConverter<List<T>, List<S>>(securityContext, null) {
+
+			@Override
+			public List<T> revert(List<S> source) throws FrameworkException {
+				return getCollectionAdapterForGetter(securityContext).adapt(source);
+			}
+
+			@Override
+			public List<S> convert(List<T> source) throws FrameworkException {
+				return getCollectionAdapterForSetter(securityContext).adapt(source);
+			}
+		};
+		
+	}
+	
 	//~--- set methods ----------------------------------------------------
 
-	public void setType(Class<GraphObject> type) {
+	public void setType(Class<S> type) {
 		this.type = type;
 	}
 

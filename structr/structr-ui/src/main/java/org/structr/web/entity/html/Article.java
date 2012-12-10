@@ -24,8 +24,7 @@ package org.structr.web.entity.html;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -34,21 +33,12 @@ import org.structr.core.entity.RelationClass;
  */
 public class Article extends HtmlElement {
 
-	static {
-
-//		EntityContext.registerPropertySet(Article.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Article.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Article.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-		EntityContext.registerEntityRelation(Article.class, H1.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Article.class, H2.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Article.class, H3.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Article.class, H4.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Article.class, H5.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Article.class, H6.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Article.class, P.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Article.class, Div.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
-
+	public static final CollectionProperty<H1>  h1s  = new CollectionProperty<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H2>  h2s  = new CollectionProperty<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H3>  h3s  = new CollectionProperty<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H4>  h4s  = new CollectionProperty<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H5>  h5s  = new CollectionProperty<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H6>  h6s  = new CollectionProperty<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<P>   ps   = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Div> divs = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

@@ -23,7 +23,6 @@ package org.structr.core.property;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.ThumbnailParameters;
-import org.structr.common.property.Property;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.ThumbnailConverter;
@@ -35,7 +34,7 @@ import org.structr.core.entity.Image;
  *
  * @author Axel Morgner
  */
-public class ThumbnailProperty<T> extends Property<Image> {
+public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 
 	private ThumbnailParameters tnParams = null;
 
@@ -51,26 +50,31 @@ public class ThumbnailProperty<T> extends Property<Image> {
 	}
 
 	@Override
-	public String typeName() {
-		return ""; // read-only
-	}
-
-	@Override
 	public PropertyConverter<Image, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-
 		return new ThumbnailConverter(securityContext, entity, tnParams);
 
 	}
 
 	@Override
-	public PropertyConverter<?, Image> inputConverter(SecurityContext securityContext) {
-
+	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		
+		try {
+			return databaseConverter(securityContext, obj).revert(null);
+			
+		} catch (Throwable t) {
+			
+		}
+		
 		return null;
-
 	}
-
+	
 	@Override
-	public Object fixDatabaseProperty(Object value) {
-		return null;
+	public Class relatedType() {
+		return Image.class;
+	}
+	
+	@Override
+	public boolean isCollection() {
+		return false;
 	}
 }

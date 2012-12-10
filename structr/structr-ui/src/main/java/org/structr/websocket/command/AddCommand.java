@@ -28,7 +28,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
@@ -50,6 +50,8 @@ import java.util.logging.Logger;
 import org.structr.common.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
+import org.structr.core.property.AbstractRelationProperty;
+import org.structr.web.entity.Element;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -117,7 +119,6 @@ public class AddCommand extends AbstractCommand {
 
 				String originalPageId                    = (String) nodeData.get("sourcePageId");
 				String newPageId                         = (String) nodeData.get("targetPageId");
-				RelationClass rel                        = EntityContext.getRelationClass(parentNode.getClass(), nodeToAdd.getClass());
 				PropertyKey<Long> originalPageIdProperty = null;
 				PropertyKey<Long> newPageIdProperty      = null;
 				
@@ -129,7 +130,7 @@ public class AddCommand extends AbstractCommand {
 					newPageIdProperty      = new LongProperty(newPageId);
 				}
 
-				if (rel != null) {
+				{
 
 					try {
 
@@ -184,7 +185,7 @@ public class AddCommand extends AbstractCommand {
 							// convertFromInput relationship properties
 							PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 							
-							rel.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
+							Element.elements.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
 							
 							logger.log(Level.INFO, "Created new relationship between parent node {0}, added node {1} ({2})", new Object[] { parentNode.getUuid(),
 								nodeToAdd.getUuid(), relData });
@@ -201,7 +202,7 @@ public class AddCommand extends AbstractCommand {
 
 					} catch (Throwable t) {
 
-						t.printStackTrace();;
+						t.printStackTrace();
 						
 						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
@@ -251,7 +252,7 @@ public class AddCommand extends AbstractCommand {
 							// convertFromInput relationship properties
 							PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 							
-							rel.createRelationship(securityContext, nodeToAdd, contentNode, relProperties);
+							Element.elements.createRelationship(securityContext, nodeToAdd, contentNode, relProperties);
 
 							// set page ID on copied branch
 							if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {

@@ -32,7 +32,7 @@ import org.structr.common.error.FrameworkException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import org.structr.common.property.Property;
+import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -305,6 +305,11 @@ public class SuperUser implements Principal {
 
 	@Override
 	public Object getPropertyForIndexing(PropertyKey key) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
+	}
+
+	@Override
+	public PropertyContainer getPropertyContainer() {
+		return null;
 	}
 }

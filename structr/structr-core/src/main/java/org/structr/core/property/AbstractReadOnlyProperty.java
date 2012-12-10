@@ -16,30 +16,25 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.property;
+package org.structr.core.property;
 
+import java.util.List;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.common.property.Property;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.converter.TraversingConverter;
-import org.structr.core.traversal.TraverserInterface;
 
 /**
- *
+ * Abstract base class for read-only properties.
+ * 
  * @author Christian Morgner
  */
-public class TraverserProperty<T> extends Property<T> {
+public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 
-	private TraverserInterface traverserInterface = null;
-	
-	public TraverserProperty(String name, TraverserInterface traverser) {
+	public AbstractReadOnlyProperty(String name) {
 		super(name);
-		
-		this.traverserInterface = traverser;
-		
-		// make us known to the entity context
-		EntityContext.registerConvertedProperty(this);
 	}
 	
 	@Override
@@ -48,17 +43,22 @@ public class TraverserProperty<T> extends Property<T> {
 	}
 	
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new TraversingConverter(securityContext, entity, traverserInterface);
+	public Object fixDatabaseProperty(Object value) {
+		return value;
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+		throw new FrameworkException(obj.getClass().getSimpleName(), new ReadOnlyPropertyToken(this));
+	}
+
+	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
 		return null;
 	}
 
 	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
 }

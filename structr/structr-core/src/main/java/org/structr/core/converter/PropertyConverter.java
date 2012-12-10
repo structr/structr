@@ -30,7 +30,7 @@ import org.structr.core.GraphObject;
  *
  * @author Christian Morgner
  */
-public abstract class PropertyConverter<SourceType, TargetType> {
+public abstract class PropertyConverter<S, T> {
 
 	protected SecurityContext securityContext = null;
 	protected GraphObject currentObject       = null;
@@ -64,7 +64,7 @@ public abstract class PropertyConverter<SourceType, TargetType> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract SourceType revert(TargetType source) throws FrameworkException;
+	public abstract S revert(T source) throws FrameworkException;
 	
 	/**
 	 * Converts from source type to destination type. Caution: source
@@ -73,7 +73,7 @@ public abstract class PropertyConverter<SourceType, TargetType> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract TargetType convert(SourceType source) throws FrameworkException;
+	public abstract T convert(S source) throws FrameworkException;
 
 	/**
 	 * Convert from source type to Comparable to allow a more
@@ -84,7 +84,7 @@ public abstract class PropertyConverter<SourceType, TargetType> {
 	 * @param value
 	 * @return 
 	 */
-	public Comparable convertForSorting(SourceType source) throws FrameworkException {
+	public Comparable convertForSorting(S source) throws FrameworkException {
 		
 		if(source != null) {
 			

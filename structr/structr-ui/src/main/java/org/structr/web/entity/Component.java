@@ -32,7 +32,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.NodeService;
 
@@ -75,13 +74,6 @@ public class Component extends AbstractNode implements Element {
 
 	static {
 
-//		EntityContext.registerPropertySet(Component.class, PropertyView.All, UiKey.values());
-//		EntityContext.registerPropertySet(Component.class, PropertyView.Public, UiKey.values());
-//		EntityContext.registerPropertySet(Component.class, PropertyView.Ui, UiKey.values());
-		
-		EntityContext.registerEntityRelation(Component.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Component.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		
 		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
 

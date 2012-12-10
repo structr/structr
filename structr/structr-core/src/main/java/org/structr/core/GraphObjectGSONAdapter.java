@@ -40,6 +40,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.property.StringProperty;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.notion.Notion;
+import org.structr.core.property.AbstractRelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -240,7 +242,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		@Override
 		public JsonElement serialize(GraphObject source, String localPropertyView, int depth) {
 			
-			// prevent endless recursion by pruning at depth 2
+			// prevent endless recursion by pruning at depth n
 			if (depth > outputNestingDepth) {
 
 				return null;

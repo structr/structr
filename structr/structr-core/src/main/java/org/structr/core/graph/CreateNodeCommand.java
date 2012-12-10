@@ -113,14 +113,14 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 					securityRel.setAllowed(Permission.values());
 
 					node.unlockReadOnlyPropertiesOnce();
-					node.setProperty(AbstractNode.createdBy, user.getProperty(AbstractNode.uuid), false);
+					node.setProperty(AbstractNode.createdBy, user.getProperty(AbstractNode.uuid));
 				}
 				
 				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(AbstractNode.createdDate, now, false);
+				node.setProperty(AbstractNode.createdDate, now);
 
 				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(AbstractNode.lastModifiedDate, now, false);
+				node.setProperty(AbstractNode.lastModifiedDate, now);
 				logger.log(Level.FINE, "Node {0} created", node.getId());
 
 				properties.remove(AbstractNode.type);

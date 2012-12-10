@@ -33,7 +33,6 @@ import java.util.logging.Level;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import javax.sound.midi.SysexMessage;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -55,6 +54,7 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final AtomicLong transactionCounter = new AtomicLong(0);
 	private static final int MAX_DEPTH                 = 16;
 	private static final boolean debug                 = "true".equals(debugProperty);
+	private static final boolean logExceptions         = false;
 
 	private static final ThreadLocal<Transaction> transactions = new ThreadLocal<Transaction>();
 	private static final ThreadLocal<Long> transactionKeys     = new ThreadLocal<Long>();
@@ -110,7 +110,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 					} catch (Throwable t) {
 
-						if (debug) {
+						if (debug || logExceptions) {
 							t.printStackTrace();
 						}
 
@@ -122,7 +122,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			if(exception != null) {
 
-				if (debug) {
+				if (debug || logExceptions) {
 					exception.printStackTrace();
 				}
 
@@ -133,6 +133,12 @@ public class TransactionCommand extends NodeServiceCommand {
 					
 					EntityContext.clearTransactionData(transactionKey);
 					throw (FrameworkException)exception;
+					
+				} else {
+					
+					exception.printStackTrace();
+					
+					throw new RuntimeException(exception);
 				}
 			}
 
@@ -184,7 +190,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 					} catch(Throwable t) {
 						
-						if (debug) {
+						if (debug || logExceptions) {
 							t.printStackTrace();
 						}
 						

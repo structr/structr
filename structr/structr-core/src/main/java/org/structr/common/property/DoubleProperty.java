@@ -23,12 +23,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class DoubleProperty extends Property<Double> {
+public class DoubleProperty extends PrimitiveProperty<Double> {
 	
 	public DoubleProperty(String name) {
 		super(name);

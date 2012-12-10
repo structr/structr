@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelationshipStartNodeConverter;
+import org.structr.core.property.PrimitiveProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -32,7 +33,7 @@ import org.structr.core.converter.RelationshipStartNodeConverter;
  *
  * @author Axel Morgner
  */
-public class StartNodeProperty<T> extends Property<T> {
+public class StartNodeProperty<T> extends PrimitiveProperty<T> {
 
 	public StartNodeProperty(String name) {
 

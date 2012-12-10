@@ -24,12 +24,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.CypherQueryConverter;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.cypher.CypherQueryHandler;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CypherProperty<T> extends Property<T> {
+public class CypherProperty<T> extends PrimitiveProperty<T> {
 	
 	private CypherQueryHandler handler = null;
 	

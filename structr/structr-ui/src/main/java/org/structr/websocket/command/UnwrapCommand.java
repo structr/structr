@@ -31,7 +31,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -48,6 +48,7 @@ import java.util.logging.Logger;
 import org.structr.common.property.GenericProperty;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.property.StringProperty;
+import org.structr.web.entity.Element;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -92,29 +93,24 @@ public class UnwrapCommand extends AbstractCommand {
 
 					if ((parentNode != null) && (newComponent != null)) {
 
-						RelationClass rel = EntityContext.getRelationClass(parentNode.getClass(), newComponent.getClass());
+						// First element in new component, so set position to 0
+						PropertyMap relProps = new PropertyMap();
 
-						if (rel != null) {
+						relProps.put(new GenericProperty(pageId), 0);
+						//relProps.put("pageId", pageId);
+						relProps.put(new StringProperty("componentId"), componentId);
 
-							// First element in new component, so set position to 0
-							PropertyMap relProps = new PropertyMap();
+						try {
 
-							relProps.put(new GenericProperty(pageId), 0);
-							//relProps.put("pageId", pageId);
-							relProps.put(new StringProperty("componentId"), componentId);
+							Element.elements.createRelationship(securityContext, newComponent, nodeToWrap, relProps);
 
-							try {
+						} catch (Throwable t) {
 
-								rel.createRelationship(securityContext, newComponent, nodeToWrap, relProps);
+							getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
-							} catch (Throwable t) {
-
-								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
-							}
-
-							tagOutgoingRelsWithComponentId(newComponent, newComponent, componentId);
 						}
+
+						tagOutgoingRelsWithComponentId(newComponent, newComponent, componentId);
 
 					} else {
 

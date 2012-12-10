@@ -34,9 +34,12 @@ import org.structr.common.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
-import org.structr.core.entity.RelationClass;
-import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.EntityProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.Content;
 
@@ -47,16 +50,33 @@ import org.structr.web.entity.Content;
  */
 public class A extends HtmlElement {
 
-	public static final Property<String> _href     = new HtmlProperty("href");
-	public static final Property<String> _target   = new HtmlProperty("target");
-	public static final Property<String> _ping     = new HtmlProperty("ping");
-	public static final Property<String> _rel      = new HtmlProperty("rel");
-	public static final Property<String> _media    = new HtmlProperty("media");
-	public static final Property<String> _hreflang = new HtmlProperty("hreflang");
-	public static final Property<String> _type     = new HtmlProperty("type");
-
-	public static final Property<String>         linkableId = new StringProperty("linkable_id");
-	public static final Property<List<Linkable>> linkable   = new GenericProperty<List<Linkable>>("linkable");
+	public static final Property<String>            _href       = new HtmlProperty("href");
+	public static final Property<String>            _target     = new HtmlProperty("target");
+	public static final Property<String>            _ping       = new HtmlProperty("ping");
+	public static final Property<String>            _rel        = new HtmlProperty("rel");
+	public static final Property<String>            _media      = new HtmlProperty("media");
+	public static final Property<String>            _hreflang   = new HtmlProperty("hreflang");
+	public static final Property<String>            _type       = new HtmlProperty("type");
+  
+	public static final CollectionProperty<Content> contents    = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, false);
+	public static final CollectionProperty<Span>    spans       = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Img>     imgs        = new CollectionProperty<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Div>     div         = new CollectionProperty<Div>("div", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Section> sections    = new CollectionProperty<Section>("sections", Section.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<P>       ps          = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H1>      h1s         = new CollectionProperty<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H2>      h2s         = new CollectionProperty<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H3>      h3s         = new CollectionProperty<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H4>      h4s         = new CollectionProperty<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H5>      h5s         = new CollectionProperty<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<H6>      h6s         = new CollectionProperty<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Li>      lis         = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, Direction.INCOMING, false);
+ 
+	public static final CollectionProperty<Div>     divParents  = new CollectionProperty<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<P>       pParents    = new CollectionProperty<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
+ 
+	public static final EntityProperty<Linkable>    linkable    = new EntityProperty<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
+	public static final Property<String>            linkableId  = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(A.class, PropertyView.Ui,
 		linkableId, linkable
@@ -66,34 +86,6 @@ public class A extends HtmlElement {
 		_href, _target, _ping, _rel, _media, _hreflang, _type
 	);
 	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-//		EntityContext.registerPropertySet(A.class, PropertyView.Ui, UiKey.values());
-//		EntityContext.registerPropertySet(A.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		
-		EntityContext.registerEntityRelation(A.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Img.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Div.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Section.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, P.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H1.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H2.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H3.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H4.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H5.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H6.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Div.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, P.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Li.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-
-		EntityContext.registerEntityRelation(A.class, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.name), RelationClass.DELETE_NONE);
-		EntityContext.registerPropertyRelation(A.class, linkableId, Linkable.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.uuid), RelationClass.DELETE_NONE);
-
-	}
-
 	//~--- methods --------------------------------------------------------
 
 	@Override

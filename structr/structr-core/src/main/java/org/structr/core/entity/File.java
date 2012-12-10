@@ -36,7 +36,7 @@ import org.structr.common.property.LongProperty;
 import org.structr.common.property.Property;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
-import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -51,6 +51,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.GenericProperty;
 import org.structr.common.property.StringProperty;
+import org.structr.core.property.EntityProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -62,22 +63,24 @@ import org.structr.common.property.StringProperty;
 public class File extends AbstractNode implements Linkable {
 
 	private static final Logger logger                    = Logger.getLogger(File.class.getName());
-	public static final Property<String> contentType      = new StringProperty("contentType");
-	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath");
-	public static final Property<Long> size               = new LongProperty("size");
-	public static final Property<String> url              = new StringProperty("url");
-	public static final Property<Folder> parentFolder     = new GenericProperty("parentFolder");
-	public static final Property<Long> checksum           = new LongProperty("checksum").systemProperty();
-	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 
-	public static final View publicView                   = new View(File.class, PropertyView.Ui, type, name, contentType, size, url);
-	public static final View uiView                       = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds);
+	
+	public static final EntityProperty<Folder> parentFolder     = new EntityProperty<Folder>("parentFolder", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
+	
+	public static final Property<String>       contentType      = new StringProperty("contentType");
+	public static final Property<String>       relativeFilePath = new StringProperty("relativeFilePath");
+	public static final Property<Long>         size             = new LongProperty("size");
+	public static final Property<String>       url              = new StringProperty("url");
+	public static final Property<Long>         checksum         = new LongProperty("checksum").systemProperty();
+	public static final Property<Integer>      cacheForSeconds  = new IntProperty("cacheForSeconds");
+
+	public static final View publicView = new View(File.class, PropertyView.Ui, type, name, contentType, size, url);
+	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds);
 
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerPropertyRelation(File.class, parentFolder, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
 		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(), uiView.properties());
 

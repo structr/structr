@@ -20,7 +20,7 @@ package org.structr.core.property;
 
 import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
-import org.structr.common.property.Property;
+import org.structr.common.property.StringProperty;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.ImageConverter;
 import org.structr.core.converter.PropertyConverter;
@@ -29,7 +29,7 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @author Christian Morgner
  */
-public class ImageDataProperty<T> extends Property<String> {
+public class ImageDataProperty<T> extends StringProperty {
 	
 	private KeyAndClass keyAndClass = null;
 	

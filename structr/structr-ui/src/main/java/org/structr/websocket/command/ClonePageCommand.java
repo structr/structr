@@ -28,7 +28,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
@@ -47,6 +46,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.property.LongProperty;
 import org.structr.common.property.PropertyMap;
+import org.structr.core.property.AbstractRelationProperty;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -115,26 +116,20 @@ public class ClonePageCommand extends AbstractCommand {
 
 						if (htmlNode != null) {
 
-							RelationClass rel = EntityContext.getRelationClass(newPage.getClass(), htmlNode.getClass());
+							PropertyMap relProps = new PropertyMap();
+							relProps.put(new LongProperty(pageId), 0);
 
-							if (rel != null) {
+							try {
 
-								PropertyMap relProps = new PropertyMap();
-								relProps.put(new LongProperty(pageId), 0);
+								Page.elements.createRelationship(securityContext, newPage, htmlNode, relProps);
 
-								try {
+							} catch (Throwable t) {
 
-									rel.createRelationship(securityContext, newPage, htmlNode, relProps);
-
-								} catch (Throwable t) {
-
-									getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
-								}
-
-								RelationshipHelper.tagOutgoingRelsWithPageId(newPage, newPage, originalPageId, pageId);
+								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
 							}
+
+							RelationshipHelper.tagOutgoingRelsWithPageId(newPage, newPage, originalPageId, pageId);
 
 						}
 

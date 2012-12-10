@@ -23,10 +23,8 @@ package org.structr.web.entity.html;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -36,25 +34,17 @@ import org.structr.web.entity.Content;
  */
 public class Span extends HtmlElement {
 
-	static {
-
-//		EntityContext.registerPropertySet(Span.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Span.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Span.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		
-		EntityContext.registerEntityRelation(Span.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, B.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, P.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, Label.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, Input.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, Address.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, Footer.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, A.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, Img.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Span.class, Script.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
+	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Span>    spans    = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<B>       bs       = new CollectionProperty<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<P>       ps       = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Label>   labels   = new CollectionProperty<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Input>   inputs   = new CollectionProperty<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Address> addresss = new CollectionProperty<Address>("addresss", Address.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Footer>  footers  = new CollectionProperty<Footer>("footers", Footer.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<A>       as       = new CollectionProperty<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Img>     imgs     = new CollectionProperty<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Script>  scripts  = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	//~--- methods --------------------------------------------------------
 

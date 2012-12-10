@@ -20,9 +20,7 @@ package org.structr.common.property;
 
 import org.structr.core.property.PropertyKey;
 import java.util.Set;
-import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
@@ -32,15 +30,15 @@ import org.structr.core.graph.search.TextualSearchAttribute;
  *
  * @author Christian Morgner
  */
-public abstract class Property<JavaType> implements PropertyKey<JavaType> {
+public abstract class Property<T> implements PropertyKey<T> {
 
 	protected Class<? extends GraphObject> declaringClass  = null;
-	protected JavaType defaultValue      = null;
-	protected boolean isReadOnlyProperty = false;
-	protected boolean isWriteOnceProperty   = false;
-	protected boolean isSystemProperty   = false;
-	protected String dbName              = null;
-	protected String jsonName            = null;
+	protected T defaultValue                        = null;
+	protected boolean isReadOnlyProperty                   = false;
+	protected boolean isWriteOnceProperty                  = false;
+	protected boolean isSystemProperty                     = false;
+	protected String dbName                                = null;
+	protected String jsonName                              = null;
 	
 	protected Property(String name) {
 		this(name, name);
@@ -50,25 +48,25 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 		this(jsonName, dbName, null);
 	}
 	
-	protected Property(String jsonName, String dbName, JavaType defaultValue) {
+	protected Property(String jsonName, String dbName, T defaultValue) {
 		this.defaultValue = defaultValue;
 		this.jsonName = jsonName;
 		this.dbName = dbName;
 	}
 	
 	public abstract Object fixDatabaseProperty(Object value);
-	
-	public Property<JavaType> systemProperty() {
+
+	public Property<T> systemProperty() {
 		this.isSystemProperty = true;
 		return this;
 	}
 	
-	public Property<JavaType> readOnly() {
+	public Property<T> readOnly() {
 		this.isReadOnlyProperty = true;
 		return this;
 	}
 	
-	public Property<JavaType> writeOnce() {
+	public Property<T> writeOnce() {
 		this.isWriteOnceProperty = true;
 		return this;
 	}
@@ -76,6 +74,10 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	@Override
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
 		this.declaringClass = declaringClass;
+	}
+	
+	@Override
+	public void registrationCallback(Class type) {
 	}
 	
 	@Override
@@ -100,7 +102,7 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	}
 	
 	@Override
-	public JavaType defaultValue() {
+	public T defaultValue() {
 		return defaultValue;
 	}
 	
@@ -134,22 +136,7 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 		
 		return false;
 	}
-	
-	@Override
-	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject currentObject) {
-		return null;
-	}
 
-	@Override
-	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext) {
-		return null;
-	}
-
-	@Override
-	public Class<? extends GraphObject> relatedType() {
-		return null;
-	}
-	
 	@Override
 	public boolean isSystemProperty() {
 		return isSystemProperty;
@@ -164,14 +151,9 @@ public abstract class Property<JavaType> implements PropertyKey<JavaType> {
 	public boolean isWriteOnceProperty() {
 		return isWriteOnceProperty;
 	}
-
-	@Override
-	public boolean isCollection() {
-		return false;
-	}
 	
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
 		
 		// return empty string on null value here to enable searching for empty values
 		String searchString = searchValue != null ? searchValue.toString() : "";

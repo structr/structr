@@ -22,8 +22,6 @@ package org.structr.core.converter;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.GraphDatabaseCommand;
@@ -57,11 +55,7 @@ public class NodeIdNodeConverter extends PropertyConverter<AbstractNode, Long> {
 		Node node = graphDb.getNodeById(nodeId);
 		if (node != null) {
 
-			try {
-				return factory.createNode(node);
-				
-			} catch(FrameworkException fex) {
-			}
+			return factory.createNode(node);
 		}
 		
 		return null;

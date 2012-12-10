@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -118,15 +117,12 @@ public class SchemaTypeResource extends Resource {
 					propProperties.put("system", property.isSystemProperty());
 					
 					Class<? extends GraphObject> relatedType = property.relatedType();
-					
 					if (relatedType != null) {
-						
 						propProperties.put("relatedType", relatedType.getName());
 						propProperties.put("type", relatedType.getSimpleName());
 					} else {
 						propProperties.put("type", property.typeName());
 					}
-					
 					propProperties.put("isCollection", property.isCollection());
 
 					PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);

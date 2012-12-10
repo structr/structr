@@ -29,8 +29,7 @@ import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -45,22 +44,12 @@ public class Meta extends HtmlElement {
 	public static final Property<String> _content   = new HtmlProperty("content");
 	public static final Property<String> _charset   = new HtmlProperty("charset");
 
+	public static final CollectionProperty<Head> heads = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
+
 	public static final View htmlView = new View(Meta.class, PropertyView.Html,
 		_name, _httpEquiv, _content, _charset
 	);
 	
-	//~--- static initializers --------------------------------------------
-
-	static {
-//
-//		EntityContext.registerPropertySet(Meta.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Meta.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Meta.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		
-		EntityContext.registerEntityRelation(Meta.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-
-	}
-
 	//~--- get methods ----------------------------------------------------
 
 	@Override

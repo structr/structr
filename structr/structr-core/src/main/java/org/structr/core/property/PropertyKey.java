@@ -21,6 +21,7 @@ package org.structr.core.property;
 
 import java.util.Set;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
@@ -31,7 +32,7 @@ import org.structr.core.graph.search.SearchOperator;
  *
  * @author Christian Morgner
  */
-public interface PropertyKey<JavaType> {
+public interface PropertyKey<T> {
 	
 	public String jsonName();
 	public String dbName();
@@ -41,19 +42,23 @@ public interface PropertyKey<JavaType> {
 	 * wrong type was provided.
 	 */
 	public String typeName();
-	public Class<? extends GraphObject> relatedType();
+	public Class relatedType();
 	
-	public JavaType defaultValue();
+	public T defaultValue();
 	
-	public PropertyConverter<JavaType, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy);
-	public PropertyConverter<?, JavaType> inputConverter(SecurityContext securityContext);
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext);
 	
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass);
 	public Class<? extends GraphObject> getDeclaringClass();
 
-	public SearchAttribute getSearchAttribute(SearchOperator op, JavaType searchValue, boolean exactMatch);
+	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch);
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
 	
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
+	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
+
+	public void registrationCallback(Class entityType);
 	
 	/**
 	 * Indicates whether this property is a system property or not. If a transaction

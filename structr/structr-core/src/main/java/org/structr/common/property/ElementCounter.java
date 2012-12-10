@@ -18,16 +18,16 @@
  */
 package org.structr.common.property;
 
+import java.util.Collection;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.converter.ResultCountConverter;
+import org.structr.core.property.AbstractReadOnlyProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class ElementCounter extends IntProperty {
+public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	
 	private Property<? extends Iterable> collectionProperty = null;
 	
@@ -38,12 +38,43 @@ public class ElementCounter extends IntProperty {
 	}
 	
 	@Override
-	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new ResultCountConverter(securityContext, entity, collectionProperty);
+	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		
+		int count = 0;
+		
+		if(obj != null) {
+			
+			Object toCount = obj.getProperty(collectionProperty);
+			if(toCount != null) {
+
+				if (toCount instanceof Collection) {
+
+					count = ((Collection)toCount).size();
+
+				} else if (toCount instanceof Iterable) {
+
+					for(Object o : ((Iterable)toCount)) {
+						count++;
+					}
+
+				} else {
+
+					// a single object
+					count = 1;
+				}
+			}
+		}
+		
+		return count;
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return null;	// no conversion of the database value
+	public Class relatedType() {
+		return null;
+	}
+
+	@Override
+	public boolean isCollection() {
+		return false;
 	}
 }

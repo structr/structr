@@ -21,14 +21,14 @@
 
 package org.structr.common.property;
 
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.RelationClass;
-import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.lang.reflect.ParameterizedType;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -37,9 +37,6 @@ import java.lang.reflect.ParameterizedType;
  * @author Christian Morgner
  */
 public class GenericProperty<T> extends Property<T> {
-
-	private Boolean isCollection;
-	private Class<? extends GraphObject> relatedType;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -84,48 +81,33 @@ public class GenericProperty<T> extends Property<T> {
 	}
 
 	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
 	public Class<? extends GraphObject> relatedType() {
-
-		if (relatedType != null) {
-
-			return relatedType;
-		}
-
-		RelationClass relType = EntityContext.getRelationClass(getDeclaringClass(), this);
-
-		if (relType != null) {
-
-			relatedType  = relType.getDestType();
-			isCollection = (Cardinality.ManyToMany.equals(relType.getCardinality()) || Cardinality.OneToMany.equals(relType.getCardinality()));
-
-		}
-
-		return relatedType;
-
+		return null;
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public boolean isCollection() {
-
-		if (isCollection != null) {
-
-			return isCollection;
-		}
-
-		RelationClass relType = EntityContext.getRelationClass(getDeclaringClass(), this);
-
-		if (relType != null) {
-
-			relatedType  = relType.getDestType();
-			isCollection = (Cardinality.ManyToMany.equals(relType.getCardinality()) || Cardinality.OneToMany.equals(relType.getCardinality()));
-			return isCollection;
-
-		}
-
-		return super.isCollection();
-
+		return false;
 	}
 
+	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return null;
+	}
+
+	@Override
+	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	}
 }

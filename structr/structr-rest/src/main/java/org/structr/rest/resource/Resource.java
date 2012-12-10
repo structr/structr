@@ -60,7 +60,6 @@ import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
@@ -250,36 +249,11 @@ public abstract class Resource {
 	public void postProcessResultSet(final Result result) {}
 
 	// ----- protected methods -----
-	protected RelationClass findRelationClass(final TypedIdResource typedIdResource, final TypeResource typeResource) {
-		return findRelationClass(typedIdResource.getTypeResource(), typeResource);
-	}
+	protected PropertyKey findPropertyKey(final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
-	protected RelationClass findRelationClass(final TypeResource typeResource, final TypedIdResource typedIdResource) {
-		return findRelationClass(typeResource, typedIdResource.getTypeResource());
-	}
-
-	protected RelationClass findRelationClass(final TypedIdResource typedIdResource1, final TypedIdResource typedIdResource2) {
-		return findRelationClass(typedIdResource1.getTypeResource(), typedIdResource2.getTypeResource());
-	}
-
-	protected RelationClass findRelationClass(final TypeResource typeResource1, final TypeResource typeResource2) {
-
-		final Class<? extends GraphObject> type1 = typeResource1.getEntityClass();
-		final Class<? extends GraphObject> type2 = typeResource2.getEntityClass();
-
-		if (type1 != null && type2 != null) {
-
-			return EntityContext.getRelationClass(type1, type2);
-		}
-
-		if (type1 != null) {
-
-			PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type1, typeResource2.getRawType());
-			return EntityContext.getRelationClassForProperty(type1, key);
-
-		}
-
-		return null;
+		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
+		
+		return EntityContext.getPropertyKeyForJSONName(sourceNodeType, typeResource.getRawType());
 	}
 
 	protected String buildLocationHeader(final GraphObject newObject) {
@@ -385,7 +359,7 @@ public abstract class Resource {
 		return -1;
 	}
 
-	private static void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<PropertyKey> searchableProperties) throws FrameworkException {
+	private static void checkForIllegalSearchKeys(final HttpServletRequest request, Class type, final Set<PropertyKey> searchableProperties) throws FrameworkException {
 
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
@@ -393,11 +367,12 @@ public abstract class Resource {
 		for (final Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
 
 			final String requestParameterName  = e.nextElement();
-			final PropertyKey requestParameter = new StringProperty(requestParameterName);
+			
+			final PropertyKey requestParameterKey = EntityContext.getPropertyKeyForJSONName(type, requestParameterName);
 
-			if (!searchableProperties.contains(requestParameter) && !NON_SEARCH_FIELDS.contains(requestParameterName)) {
+			if (!searchableProperties.contains(requestParameterKey) && !NON_SEARCH_FIELDS.contains(requestParameterName)) {
 
-				errorBuffer.add("base", new InvalidSearchField(requestParameter));
+				errorBuffer.add("base", new InvalidSearchField(requestParameterKey));
 
 			}
 
@@ -502,7 +477,7 @@ public abstract class Resource {
 							                        fulltextIndex,
 							                        keywordIndex);
 
-			searchAttributes = checkAndAssembleSearchAttributes(securityContext, request, looseSearch, searchableProperties);
+			searchAttributes = checkAndAssembleSearchAttributes(securityContext, request, type, looseSearch, searchableProperties);
 
 		}
 		return searchAttributes;
@@ -604,6 +579,7 @@ public abstract class Resource {
 
 	private static List<SearchAttribute> checkAndAssembleSearchAttributes(final SecurityContext securityContext,
 	                                                                      final HttpServletRequest request,
+									      final Class type,
 	                                                                      final boolean looseSearch,
 	                                                                      final Set<PropertyKey> searchableProperties)
 	                                                                    				  throws FrameworkException {
@@ -612,7 +588,7 @@ public abstract class Resource {
 
 		if (searchableProperties != null) {
 
-			checkForIllegalSearchKeys(request, searchableProperties);
+			checkForIllegalSearchKeys(request, type, searchableProperties);
 
 			searchAttributes = new LinkedList<SearchAttribute>();
 

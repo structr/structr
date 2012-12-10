@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.ListUtils;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -41,10 +40,8 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.StructrTransaction;
@@ -53,6 +50,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
+import org.structr.core.property.AbstractRelationProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -74,7 +72,7 @@ public class StaticRelationshipResource extends SortableResource {
 	TypeResource typeResource       = null;
 	TypedIdResource typedIdResource = null;
 
-	//~--- constructors ---------------------------------------------------
+	//~--- constructors ---------------------------------------------------constructors
 
 	public StaticRelationshipResource(final SecurityContext securityContext, final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
@@ -88,128 +86,46 @@ public class StaticRelationshipResource extends SortableResource {
 	@Override
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
-		// fetch results from typedIdResource (should be a single node)
-		final List<? extends GraphObject> results = typedIdResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
+		// ok, source node exists, fetch it
+		final AbstractNode sourceNode = typedIdResource.getTypesafeNode();
+		if (sourceNode != null) {
 
-		if (results != null) {
+			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
+			if (key != null) {
 
-			// ok, source node exists, fetch it
-			final AbstractNode sourceNode = typedIdResource.getTypesafeNode();
+				final Object value = sourceNode.getProperty(key);
+				if (value != null) {
 
-			if (sourceNode != null) {
+					if (value instanceof List) {
 
-				// fetch static relationship definition
-				final RelationClass staticRel = findRelationClass(typedIdResource, typeResource);
+						final List<GraphObject> list = (List<GraphObject>)value;
+						applyDefaultSorting(list, sortKey, sortDescending);
 
-				if (staticRel != null) {
+						//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
 
-					final List relatedNodes = staticRel.getRelatedNodes(securityContext, sourceNode);
+					} else if (value instanceof Iterable) {
 
-					// check for search keys in request first..
-					final List<SearchAttribute> dummyList = typeResource.extractSearchableAttributesFromRequest(securityContext);
+						// check type of value (must be an Iterable of GraphObjects in order to proceed here)
+						final List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
+						final Iterable sourceIterable              = (Iterable) value;
 
-					if (!dummyList.isEmpty()) {
+						for (final Object o : sourceIterable) {
 
-						// use result list of doGet from typeResource and intersect with relatedNodes list.
-						final List<? extends GraphObject> typeNodes = typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
-						final List intersection           = ListUtils.intersection(relatedNodes, typeNodes);
+							if (o instanceof GraphObject) {
 
-
-
-						// Caution: intersection may not be empty
-						// if (!intersection.isEmpty()) {
-
-						applyDefaultSorting(intersection, sortKey, sortDescending);
-
-						return new Result(PagingHelper.subList(intersection, pageSize, page, offsetId), intersection.size(), isCollectionResource(), isPrimitiveArray());
-					}
-
-					// return non-empty list
-					if (!relatedNodes.isEmpty()) {
-
-						applyDefaultSorting(relatedNodes, sortKey, sortDescending);
-
-						return new Result(PagingHelper.subList(relatedNodes, pageSize, page, offsetId), relatedNodes.size(), isCollectionResource(), isPrimitiveArray());
-					}
-
-					// do not return empty collection here, try getProperty
-					// return Collections.emptyList();
-
-				}
-
-				// URL: /type1/uuid/type2
-				// we need to use the raw type of the second type constraint
-				// as the property key for getProperty
-				// look for a property converter for the given type and key
-				final Class type      = sourceNode.getClass();
-				final PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type, typeResource.getRawType());
-
-				// use database converter here, because results will be converted for output during serialization!
-				final PropertyConverter converter = key.databaseConverter(securityContext, sourceNode);
-
-				if (converter != null) {
-
-					converter.setRawMode(true);    // disable notion
-
-					final Object value = converter.revert(null);
-
-					// create error message in advance to avoid having to construct it twice in different locations
-					final StringBuilder msgBuilder = new StringBuilder();
-
-					msgBuilder.append("Property result on type ");
-					msgBuilder.append(sourceNode.getClass().getSimpleName());
-					msgBuilder.append(", key ");
-					msgBuilder.append(key);
-					msgBuilder.append(" is not an Iterable<GraphObject>!");
-
-					final String msg = msgBuilder.toString();
-
-					if (value != null) {
-
-						// check for non-empty list of GraphObjects
-						if (value instanceof List &&!((List) value).isEmpty() && ((List) value).get(0) instanceof GraphObject) {
-
-							final List<GraphObject> list = (List<GraphObject>) value;
-
-							applyDefaultSorting(list, sortKey, sortDescending);
-
-							//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
-							return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
-
-						} else if (value instanceof Iterable) {
-
-							// check type of value (must be an Iterable of GraphObjects in order to proceed here)
-							final List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
-							final Iterable sourceIterable              = (Iterable) value;
-
-							for (final Object o : sourceIterable) {
-
-								if (o instanceof GraphObject) {
-
-									propertyListResult.add((GraphObject) o);
-
-								} else {
-
-									throw new SystemException(msg);
-
-								}
-
+								propertyListResult.add((GraphObject) o);
 							}
-
-							applyDefaultSorting(propertyListResult, sortKey, sortDescending);
-
-							//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
-							return new Result(PagingHelper.subList(propertyListResult, pageSize, page, offsetId), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
 						}
-					} else {
 
-						logger.log(Level.SEVERE, msg);
+						applyDefaultSorting(propertyListResult, sortKey, sortDescending);
 
-						throw new SystemException(msg);
+						//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(propertyListResult, pageSize, page, offsetId), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
 
 					}
-
 				}
+
 			}
 		}
 
@@ -225,11 +141,11 @@ public class StaticRelationshipResource extends SortableResource {
 		if (results != null) {
 
 			// fetch static relationship definition
-			final RelationClass staticRel = findRelationClass(typedIdResource, typeResource);
+			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
+			if (key != null && key instanceof AbstractRelationProperty) {
 
-			if (staticRel != null) {
-
-				final AbstractNode startNode = typedIdResource.getTypesafeNode();
+				final AbstractRelationProperty staticRel = (AbstractRelationProperty)key;
+				final AbstractNode startNode             = typedIdResource.getTypesafeNode();
 
 				if (startNode != null) {
 
@@ -334,111 +250,113 @@ public class StaticRelationshipResource extends SortableResource {
 			public Object execute() throws FrameworkException {
 
 				final AbstractNode sourceNode = typedIdResource.getIdResource().getNode();
-				final RelationClass rel    = EntityContext.getRelationClass(sourceNode.getClass(), typeResource.getEntityClass());
+				final PropertyKey propertyKey = findPropertyKey(typedIdResource, typeResource);
+				
+				if (sourceNode != null && propertyKey != null) {
 
-				if (sourceNode != null && rel != null) {
+					if (propertyKey instanceof AbstractRelationProperty) {
+						
+						final AbstractRelationProperty relationshipProperty = (AbstractRelationProperty)propertyKey;
+						final Class sourceNodeType                          = sourceNode.getClass();
 
-					Class sourceNodeType = sourceNode.getClass();
-					
-					//if (EntityContext.isReadOnlyProperty(sourceNodeType, EntityContext.getPropertyKeyForName(sourceNodeType, typeResource.getRawType()))) {
-					if (EntityContext.getPropertyKeyForJSONName(sourceNodeType, typeResource.getRawType()).isReadOnlyProperty()) {
+						if (relationshipProperty.isReadOnlyProperty()) {
 
-						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
+							logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 
-						return null;
+							return null;
+						}
 
-					}
+						// fetch notion
+						final Notion notion                  = relationshipProperty.getNotion();
+						final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
-					// fetch notion
-					final Notion notion                  = rel.getNotion();
-					final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
+						// apply notion if the property set contains the ID property as the only element
+						if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
 
-					// apply notion if the property set contains the ID property as the only element
-					if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
+							// the notion that is defined for this relationship can deserialize
+							// objects with a single key (uuid for example), and the POSTed
+							// property set contains value(s) for this key, so we only need
+							// to create relationships
+							final Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
+							final Object keySource                                     = propertySet.get(primaryPropertyKey.jsonName());
 
-						// the notion that is defined for this relationship can deserialize
-						// objects with a single key (uuid for example), and the POSTed
-						// property set contains value(s) for this key, so we only need
-						// to create relationships
-						final Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
-						final Object keySource                                     = propertySet.get(primaryPropertyKey.jsonName());
+							if (keySource != null) {
 
-						if (keySource != null) {
+								GraphObject otherNode = null;
 
-							GraphObject otherNode = null;
+								if (keySource instanceof Collection) {
 
-							if (keySource instanceof Collection) {
+									final Collection collection = (Collection) keySource;
 
-								final Collection collection = (Collection) keySource;
+									for (final Object key : collection) {
 
-								for (final Object key : collection) {
+										otherNode = deserializationStrategy.adapt(key);
 
-									otherNode = deserializationStrategy.adapt(key);
+										if (otherNode != null && otherNode instanceof AbstractNode) {
 
-									if (otherNode != null && otherNode instanceof AbstractNode) {
+											relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
 
-										rel.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
+										} else {
 
-									} else {
-										
-										logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
+											logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
+										}
+
 									}
-
-								}
-
-							} else {
-
-								// create a single relationship
-								otherNode = deserializationStrategy.adapt(keySource);
-
-								if (otherNode != null && otherNode instanceof AbstractNode) {
-
-									rel.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
 
 								} else {
 
-									logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
+									// create a single relationship
+									otherNode = deserializationStrategy.adapt(keySource);
 
+									if (otherNode != null && otherNode instanceof AbstractNode) {
+
+										relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
+
+									} else {
+
+										logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
+
+									}
 								}
+
+								return otherNode;
+
+							} else {
+
+								logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
+
 							}
 
-							return otherNode;
+							return null;
 
 						} else {
 
-							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
+							// the notion can not deserialize objects with a single key, or
+							// the POSTed propertySet did not contain a key to deserialize,
+							// so we create a new node from the POSTed properties and link
+							// the source node to it. (this is the "old" implementation)
+							final AbstractNode otherNode = typeResource.createNode(propertySet);
 
-						}
+							// FIXME: this prevents post creation transformations from working
+							// properly if they rely on an already existing relationship when
+							// the transformation runs.
 
-						return null;
-					} else {
+							// TODO: we need to find a way to notify the listener at the end of the
+							// transaction, when all entities and relationships are created!
+							if (otherNode != null) {
 
-						// the notion can not deserialize objects with a single key, or
-						// the POSTed propertySet did not contain a key to deserialize,
-						// so we create a new node from the POSTed properties and link
-						// the source node to it. (this is the "old" implementation)
-						final AbstractNode otherNode = typeResource.createNode(propertySet);
-
-						// FIXME: this prevents post creation transformations from working
-						// properly if they rely on an already existing relationship when
-						// the transformation runs.
-
-						// TODO: we need to find a way to notify the listener at the end of the
-						// transaction, when all entities and relationships are created!
-						if (otherNode != null) {
-
-							// FIXME: this creates duplicate relationships when the related
-							//        node ID is already present in the property set..
+								// FIXME: this creates duplicate relationships when the related
+								//        node ID is already present in the property set..
 
 
 
-							rel.createRelationship(securityContext, sourceNode, otherNode);
+								relationshipProperty.createRelationship(securityContext, sourceNode, otherNode);
 
-							return otherNode;
+								return otherNode;
 
+							}
 						}
 					}
-
 				}
 
 				throw new IllegalPathException();

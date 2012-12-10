@@ -28,7 +28,6 @@ import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.graph.NodeService;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -36,6 +35,7 @@ import org.structr.core.graph.NodeService;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.property.Property;
 import org.structr.common.property.StringProperty;
+import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,7 +45,9 @@ import org.structr.common.property.StringProperty;
  */
 public class Condition extends AbstractNode {
 
-	public static final Property<String> query = new StringProperty("query");
+	public static final Property<String>            query    = new StringProperty("query");
+	public static final CollectionProperty<Page>    pages    = new CollectionProperty<Page>("pages", Page.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Element> elements = new CollectionProperty<Element>("elements", Element.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Condition.class, PropertyView.Ui,
 		type, name, query
@@ -57,13 +59,6 @@ public class Condition extends AbstractNode {
 
 	static {
 
-//		EntityContext.registerPropertySet(Condition.class, PropertyView.All, Condition.Key.values());
-//		EntityContext.registerPropertySet(Condition.class, PropertyView.Public, Condition.Key.values());
-//		EntityContext.registerPropertySet(Condition.class, PropertyView.Ui, Condition.Key.values());
-		
-		EntityContext.registerEntityRelation(Condition.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Condition.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		    
 		EntityContext.registerSearchablePropertySet(Condition.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(Condition.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
 

@@ -32,8 +32,9 @@ import org.structr.core.notion.ObjectNotion;
  *
  * @author Christian Morgner
  */
-public class RandomRelatedNodes extends AbstractNodeCollector {
+public class RandomRelatedNodes<T extends AbstractNode> extends AbstractNodeCollector<T> {
 
+	private Class resultType = null;
 	private int count = 0;
 	
 	public RandomRelatedNodes(RelationshipType relType, Direction direction, Class resultType, int maxDepth, int count) {
@@ -46,13 +47,15 @@ public class RandomRelatedNodes extends AbstractNodeCollector {
 
 		// add type predicate
 		this.addPredicate(new TypePredicate(resultType.getSimpleName()));
+		
+		this.resultType = resultType;
 
 		this.setNotion(notion);
 		this.count = count;
 	}
 
 	@Override
-	public List transformResult(List<AbstractNode> result) {
+	public List transformResult(List<T> result) {
 
 		// random ordering
 		Collections.shuffle(result);
@@ -63,5 +66,10 @@ public class RandomRelatedNodes extends AbstractNodeCollector {
 
 	@Override
 	public void cleanup() {
+	}
+
+	@Override
+	public Class getResultType() {
+		return resultType;
 	}
 }

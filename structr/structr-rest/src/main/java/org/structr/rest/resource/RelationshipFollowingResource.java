@@ -54,7 +54,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.AbstractRelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,20 +71,20 @@ public class RelationshipFollowingResource extends SortableResource implements E
 
 	//~--- fields ---------------------------------------------------------
 
-	private TypedIdResource firstResource                  = null;
-	private Set<Object> idSet                              = null;
-	private TypedIdResource lastResource                   = null;
-	private int pathLength                                 = 0;
-	private TraversalDescription traversalDescription      = null;
-	private List<String> uriParts                          = null;
-	private Set<RelationClass> visitedRelationships = null;
+	private TypedIdResource firstResource                      = null;
+	private Set<Object> idSet                                  = null;
+	private TypedIdResource lastResource                       = null;
+	private int pathLength                                     = 0;
+	private TraversalDescription traversalDescription          = null;
+	private List<String> uriParts                              = null;
+	private Set<AbstractRelationProperty> visitedRelationships = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public RelationshipFollowingResource(SecurityContext securityContext, TypedIdResource typedIdResource) {
 
 		this.traversalDescription = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).evaluator(Evaluators.excludeStartPosition());
-		this.visitedRelationships = new LinkedHashSet<RelationClass>();
+		this.visitedRelationships = new LinkedHashSet<AbstractRelationProperty>();
 		this.securityContext      = securityContext;
 		this.idSet                = new LinkedHashSet<Object>();
 		this.uriParts             = new LinkedList<String>();
@@ -148,14 +148,15 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		uriParts.add(typedIdResource.getUriPart());
 
 		// find static relationship between the two types
-		RelationClass rel = findRelationClass(lastResource, typedIdResource);
-		if (rel != null) {
+		PropertyKey key = findPropertyKey(lastResource, typedIdResource.getTypeResource());
+		if (key != null && key instanceof AbstractRelationProperty) {
 
+			AbstractRelationProperty rel = (AbstractRelationProperty)key;
+			
 			if (!visitedRelationships.contains(rel)) {
 
 				traversalDescription = traversalDescription.relationships(rel.getRelType(), rel.getDirection());
 				visitedRelationships.add(rel);
-
 			}
 
 		} else {

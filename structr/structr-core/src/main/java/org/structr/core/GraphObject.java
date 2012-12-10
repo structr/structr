@@ -20,13 +20,13 @@
 package org.structr.core;
 
 import java.util.Date;
+import org.neo4j.graphdb.PropertyContainer;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.Property;
-import org.structr.common.property.StringProperty;
+import org.structr.common.property.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -37,8 +37,15 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public interface GraphObject {
 
-	public static final Property<String>  uuid = new StringProperty("uuid").systemProperty().writeOnce();
-	public static final Property<String>  type = new StringProperty("type").writeOnce();
+	public static final Property<String>  uuid                        = new StringProperty("uuid").systemProperty().writeOnce();
+	public static final Property<String>  type                        = new StringProperty("type").writeOnce();
+
+	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().writeOnce();
+	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemProperty().readOnly();
+	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
+	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
+	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
+	public static final Property<Date>    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
 	
 	// ----- methods common to both types -----
 	/**
@@ -62,6 +69,13 @@ public interface GraphObject {
 	 */
 	public String getType();
 
+	/**
+	 * Returns the underlying property container for this graph object.
+	 * 
+	 * @return 
+	 */
+	public PropertyContainer getPropertyContainer();
+	
 	/**
 	 * Returns the property set for the given view as an Iterable.
 	 *

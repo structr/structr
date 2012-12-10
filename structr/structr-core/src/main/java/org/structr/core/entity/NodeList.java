@@ -871,17 +871,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
 		Node node = getFirstRawNode();
 
-		try {
+		if (node != null) {
 
-			if (node != null) {
-
-				return factory.createNode(node);
-			}
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to instantiate node", fex);
-
+			return factory.createNode(node);
 		}
 
 		return (null);
@@ -907,19 +899,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 	 * @return the last node of this list, or null
 	 */
 	public AbstractNode getLastNode() {
-
-		try {
-
-			return factory.createNode(getLastRawNode());
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to instantiate node", fex);
-
-		}
-
-		return null;
-
+		return factory.createNode(getLastRawNode());
 	}
 
 	/**

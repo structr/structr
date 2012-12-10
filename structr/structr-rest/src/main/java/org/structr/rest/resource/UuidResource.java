@@ -115,8 +115,9 @@ public class UuidResource extends FilterableResource {
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		Result results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
-		int size       = results.size();
+		Result results    = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
+		int size          = results.size();
+		AbstractNode node = null;
 
 		switch (size) {
 
@@ -125,18 +126,24 @@ public class UuidResource extends FilterableResource {
 
 			case 1 :
 				
-				AbstractNode node = (AbstractNode) results.get(0);
+				node = (AbstractNode) results.get(0);
 				
 				if (!securityContext.isReadable(node, true, false)) {
 					throw new NotAllowedException();
 				}
+				
+				node.setSecurityContext(securityContext);
 				
 				return node;
 
 			default :
 				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
 
-				return (AbstractNode)results.get(0);
+				node = (AbstractNode)results.get(0);
+				
+				node.setSecurityContext(securityContext);
+				
+				return node;
 
 		}
 

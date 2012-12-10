@@ -28,6 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
+import org.structr.core.property.CollectionProperty;
 
 /**
  *
@@ -35,18 +36,20 @@ import org.structr.core.notion.Notion;
  */
 public class Aggregation implements Value<Aggregation> {
 
-	private Map<Class, Notion> notions          = new LinkedHashMap<Class, Notion>();
-	private Set<Class> aggregationTypes         = new LinkedHashSet<Class>();
-	private Comparator<AbstractNode> comparator = null;
+	private Set<CollectionProperty<? extends AbstractNode>> aggregationProperties = new LinkedHashSet<CollectionProperty<? extends AbstractNode>>();
+	private Map<Class, Notion> notions                                            = new LinkedHashMap<Class, Notion>();
+	private Comparator<AbstractNode> comparator                                   = null;
 
-	public Aggregation(Comparator<AbstractNode> comparator, Class... types) {
-		this.comparator = comparator;
-		for(Class type : types) {
-			this.aggregationTypes.add(type);
+	public Aggregation(Comparator<AbstractNode> comparator, CollectionProperty<? extends AbstractNode>... properties) {
+		
+		for(CollectionProperty<? extends AbstractNode> property : properties) {
+			this.aggregationProperties.add(property);
 		}
+		
+		this.comparator = comparator;
 	}
 
-	public void setNotionForType(Class type, Notion notion) {
+	public void setNotionForProperty(Class type, Notion notion) {
 		notions.put(type, notion);
 	}
 	
@@ -58,8 +61,8 @@ public class Aggregation implements Value<Aggregation> {
 		return comparator;
 	}
 
-	public Set<Class> getAggregationTypes() {
-		return aggregationTypes;
+	public Set<CollectionProperty<? extends AbstractNode>> getAggregationProperties() {
+		return aggregationProperties;
 	}
 
 	@Override

@@ -28,8 +28,7 @@ import org.structr.common.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -41,22 +40,12 @@ public class Ol extends HtmlElement {
 
 	public static final Property<String> _reversed = new HtmlProperty("reversed");
 	public static final Property<String> _start    = new HtmlProperty("start");
+
+	public static final CollectionProperty<Li> lis = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final View htmlView = new View(Ol.class, PropertyView.Html,
 	    _reversed, _start
 	);
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-//		EntityContext.registerPropertySet(Ol.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Ol.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Ol.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-		EntityContext.registerEntityRelation(Ol.class, Li.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
 
 	@Override
 	public Property[] getHtmlAttributes() {

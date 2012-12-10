@@ -21,14 +21,11 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.property.Property;
-import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.*;
-import org.structr.common.property.GenericProperty;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.CollectionProperty;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -38,21 +35,7 @@ import org.structr.core.notion.PropertyNotion;
  */
 public interface Linkable extends GraphObject {
 
-	public static final Property<List<AbstractNode>> linkingElements = new GenericProperty<List<AbstractNode>>("linkingElements");
+	public static final CollectionProperty<AbstractNode> linkingElements = new CollectionProperty<AbstractNode>("linkingElements", AbstractNode.class, RelType.LINK, Direction.INCOMING, new PropertyNotion(AbstractNode.uuid), true);
 
 	public static final View uiView = new View(Linkable.class, PropertyView.Ui, linkingElements);
-	
-	//~--- inner classes --------------------------------------------------
-
-	static class Impl {
-
-		static {
-
-//			EntityContext.registerPropertySet(Linkable.class, PropertyView.Ui, linkingElements);
-			EntityContext.registerPropertyRelation(Linkable.class, Linkable.linkingElements, AbstractNode.class, RelType.LINK, Direction.INCOMING, RelationClass.Cardinality.OneToMany, new PropertyNotion(AbstractNode.uuid));
-
-		}
-
-	}
-
 }

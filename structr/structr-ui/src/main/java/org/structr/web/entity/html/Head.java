@@ -23,10 +23,8 @@ package org.structr.web.entity.html;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -35,20 +33,11 @@ import org.structr.core.entity.RelationClass;
  */
 public class Head extends HtmlElement {
 
-	static {
-
-//		EntityContext.registerPropertySet(Head.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Head.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Head.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-
-		EntityContext.registerEntityRelation(Head.class, Html.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Head.class, Title.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Head.class, Style.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Head.class, Script.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Head.class, Link.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Head.class, Meta.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Head.class, Base.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
-
+	public static final CollectionProperty<Html>   htmls   = new CollectionProperty<Html>("htmls", Html.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Title>  titles  = new CollectionProperty<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Style>  styles  = new CollectionProperty<Style>("styles", Style.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Script> scripts = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Link>   links   = new CollectionProperty<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Meta>   metas   = new CollectionProperty<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Base>   bases   = new CollectionProperty<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

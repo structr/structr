@@ -36,6 +36,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
@@ -61,8 +62,8 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		this.nullValuesOnlyProperty = new BooleanProperty(name.concat(".").concat("nullValuesOnly"));
 		this.entityClass            = entityClass;
 
-		
-		// this looks strange
+		// register in entity context
+		EntityContext.registerProperty(entityClass, nullValuesOnlyProperty);
 		EntityContext.registerPropertyGroup(entityClass, this, this);	
 	}
 	
@@ -274,62 +275,47 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		return null;
 	}
 	
+	@Override
+	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getGroupedProperties(securityContext, obj);
+	}
+	
+	@Override
+	public void setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
+		setGroupedProperties(securityContext, value, obj);
+	}
+	
+	@Override
+	public Class relatedType() {
+		return null;
+	}
+	
+	@Override
+	public boolean isCollection() {
+		return false;
+	}
+	
 	/**
 	 * Acts as a wrapper for property keys to prefix their name with
 	 * the name of the surrounding property group.
 	 */
-	private class GroupPropertyWrapper implements PropertyKey {
+	private class GroupPropertyWrapper extends PrimitiveProperty {
 
 		private PropertyKey wrappedKey = null;
 		
 		public GroupPropertyWrapper(PropertyKey keyToWrap) {
+			
+			super(GroupProperty.this.jsonName.concat(".").concat(keyToWrap.jsonName()),
+			      GroupProperty.this.dbName.concat(".").concat(keyToWrap.jsonName()),
+			      keyToWrap.defaultValue()
+			);
+			
 			this.wrappedKey = keyToWrap;
 		}
 		
 		@Override
 		public String toString() {
 			return "(".concat(jsonName()).concat("|").concat(dbName()).concat(")");
-		}
-	
-		@Override
-		public int hashCode() {
-
-			// make hashCode funtion work for subtypes that override jsonName() etc. as well
-			if (dbName() != null && jsonName() != null) {
-				return (dbName().hashCode() * 31) + jsonName().hashCode();
-			}
-
-			if (dbName() != null) {
-				return dbName().hashCode();
-			}
-
-			if (jsonName() != null) {
-				return jsonName().hashCode();
-			}
-
-			// TODO: check if it's ok if null key is not unique
-			return super.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object o) {
-
-			if (o instanceof PropertyKey) {
-
-				return o.hashCode() == hashCode();
-			}
-
-			return false;
-		}
-		
-		@Override
-		public String jsonName() {
-			return GroupProperty.this.jsonName.concat(".").concat(wrappedKey.jsonName());
-		}
-
-		@Override
-		public String dbName() {
-			return GroupProperty.this.dbName.concat(".").concat(wrappedKey.dbName());
 		}
 		
 		@Override
@@ -398,8 +384,18 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		@Override
+		public Object fixDatabaseProperty(Object value) {
+			
+			if (wrappedKey instanceof Property) {
+				return ((Property)wrappedKey).fixDatabaseProperty(value);
+			}
+			
+			return null;
+		}
+
+		@Override
 		public boolean isCollection() {
-			throw new UnsupportedOperationException("Not supported yet.");
+			return false;
 		}
 	}
 }

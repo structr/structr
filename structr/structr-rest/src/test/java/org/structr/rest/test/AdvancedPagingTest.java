@@ -37,7 +37,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 
 		// create a root object
 		
-		String resource = "/test_two";
+		String resource = "/test_twos";
 		
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
@@ -45,7 +45,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 		
 		String baseId = getUuidFromLocation(location);
 		
-		resource = resource.concat("/").concat(baseId).concat("/test_one");
+		resource = resource.concat("/").concat(baseId).concat("/test_ones");
 		
 		String offsetId = null;
 		
@@ -68,7 +68,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 		
 		System.out.println("Offset ID: " + offsetId);
 		
-		resource = "/test_one";
+		resource = "/test_ones";
 		
 		for (int page=1; page<5; page++) {
 			
@@ -167,7 +167,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 
 		// create a root object
 		
-		String resource = "/test_two";
+		String resource = "/test_twos";
 		
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
@@ -175,7 +175,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 		
 		String baseId = getUuidFromLocation(location);
 		
-		resource = resource.concat("/").concat(baseId).concat("/test_one");
+		resource = resource.concat("/").concat(baseId).concat("/test_ones");
 		
 		String offsetId = null;
 		
@@ -198,7 +198,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 		
 		System.out.println("Offset ID: " + offsetId);
 		
-		resource = "/test_two/" + baseId + "/test_one";
+		resource = "/test_twos/" + baseId + "/test_ones";
 		
 		for (int page=1; page<5; page++) {
 			

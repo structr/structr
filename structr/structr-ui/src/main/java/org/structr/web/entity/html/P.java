@@ -23,10 +23,8 @@ package org.structr.web.entity.html;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.RelationClass;
+import org.structr.core.property.CollectionProperty;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -36,66 +34,56 @@ import org.structr.web.entity.Content;
  */
 public class P extends HtmlElement {
 
-	static {
-
-//		EntityContext.registerPropertySet(P.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(P.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(P.class, PropertyView.Html, PropertyView.Html, HtmlElement.htmlAttributes);
-//
-		EntityContext.registerEntityRelation(P.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		
-		EntityContext.registerEntityRelation(P.class, A.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Abbr.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Area.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Audio.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, B.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Bdi.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Bdo.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Br.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Button.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Canvas.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Cite.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Code.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Command.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Datalist.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Del.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Dfn.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Em.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Embed.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, I.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Iframe.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Img.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Input.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Ins.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Kbd.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Keygen.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Label.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Map.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Mark.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Math.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Meter.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Noscript.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Object.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Output.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Progress.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Q.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Ruby.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, S.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Samp.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Script.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Select.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Small.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Span.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Strong.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Sub.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Sup.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Textarea.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Time.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, U.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Var.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Video.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(P.class, Wbr.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-
-	}
-
+	public static final CollectionProperty<Content>  contents  = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<A>        as        = new CollectionProperty<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Abbr>     abbrs     = new CollectionProperty<Abbr>("abbrs", Abbr.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Area>     areas     = new CollectionProperty<Area>("areas", Area.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Audio>    audios    = new CollectionProperty<Audio>("audios", Audio.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<B>        bs        = new CollectionProperty<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Bdi>      bdis      = new CollectionProperty<Bdi>("bdis", Bdi.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Bdo>      bdos      = new CollectionProperty<Bdo>("bdos", Bdo.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Br>       brs       = new CollectionProperty<Br>("brs", Br.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Button>   buttons   = new CollectionProperty<Button>("buttons", Button.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Canvas>   canvases  = new CollectionProperty<Canvas>("canvases", Canvas.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Cite>     cites     = new CollectionProperty<Cite>("cites", Cite.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Code>     codes     = new CollectionProperty<Code>("codes", Code.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Command>  commands  = new CollectionProperty<Command>("commands", Command.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Datalist> datalists = new CollectionProperty<Datalist>("datalists", Datalist.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Del>      dels      = new CollectionProperty<Del>("dels", Del.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Dfn>      dfns      = new CollectionProperty<Dfn>("dfns", Dfn.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Em>       ems       = new CollectionProperty<Em>("ems", Em.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Embed>    embeds    = new CollectionProperty<Embed>("embeds", Embed.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<I>        is        = new CollectionProperty<I>("is", I.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Iframe>   iframes   = new CollectionProperty<Iframe>("iframes", Iframe.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Img>      imgs      = new CollectionProperty<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Input>    inputs    = new CollectionProperty<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Ins>      inss      = new CollectionProperty<Ins>("inss", Ins.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Kbd>      kbds      = new CollectionProperty<Kbd>("kbds", Kbd.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Keygen>   keygens   = new CollectionProperty<Keygen>("keygens", Keygen.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Label>    labels    = new CollectionProperty<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Map>      maps      = new CollectionProperty<Map>("maps", Map.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Mark>     marks     = new CollectionProperty<Mark>("marks", Mark.class, RelType.CONTAINS, Direction.OUTGOING, false);
+// ???	public static final CollectionProperty<Math>     maths     = new CollectionProperty<Math>("maths", Math.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Meter>    meters    = new CollectionProperty<Meter>("meters", Meter.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Noscript> noscripts = new CollectionProperty<Noscript>("noscripts", Noscript.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Object>   objects   = new CollectionProperty<Object>("objects", Object.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Output>   outputs   = new CollectionProperty<Output>("outputs", Output.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Progress> progresss = new CollectionProperty<Progress>("progresss", Progress.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Q>        qs        = new CollectionProperty<Q>("qs", Q.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Ruby>     rubys     = new CollectionProperty<Ruby>("rubys", Ruby.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<S>        ss        = new CollectionProperty<S>("ss", S.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Samp>     samps     = new CollectionProperty<Samp>("samps", Samp.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Script>   scripts   = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Select>   selects   = new CollectionProperty<Select>("selects", Select.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Small>    smalls    = new CollectionProperty<Small>("smalls", Small.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Span>     spans     = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Strong>   strongs   = new CollectionProperty<Strong>("strongs", Strong.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Sub>      subs      = new CollectionProperty<Sub>("subs", Sub.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Sup>      sups      = new CollectionProperty<Sup>("sups", Sup.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Textarea> textareas = new CollectionProperty<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Time>     times     = new CollectionProperty<Time>("times", Time.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<U>        us        = new CollectionProperty<U>("us", U.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Var>      vars      = new CollectionProperty<Var>("vars", Var.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Video>    videos    = new CollectionProperty<Video>("videos", Video.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Wbr>      wbrs      = new CollectionProperty<Wbr>("wbrs", Wbr.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

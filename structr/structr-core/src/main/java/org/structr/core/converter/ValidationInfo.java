@@ -29,13 +29,13 @@ import org.structr.core.Value;
  */
 public class ValidationInfo implements Value<ValidationInfo> {
 
-	private PropertyKey errorKey = null;
+	private PropertyKey<String> errorKey = null;
 	private String errorType = null;
 	private int minLength = -1;
 
-	public ValidationInfo(String errorType, PropertyKey errorKey, int minLength) {
+	public ValidationInfo(String errorType, PropertyKey<String> errorKey, int minLength) {
 		this.errorType = errorType;
-		this.errorKey = errorKey;
+		this.errorKey  = errorKey;
 		this.minLength = minLength;
 	}
 
@@ -52,6 +52,10 @@ public class ValidationInfo implements Value<ValidationInfo> {
 		return errorType;
 	}
 
+	public void setErrorKey(PropertyKey<String> errorKey) {
+		this.errorKey = errorKey;
+	}
+	
 	public PropertyKey getErrorKey() {
 		return errorKey;
 	}
