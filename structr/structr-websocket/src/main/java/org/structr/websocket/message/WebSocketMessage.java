@@ -57,6 +57,7 @@ public class WebSocketMessage {
 	private Set<PropertyKey> modifiedProperties = new LinkedHashSet<PropertyKey>();
 	private Set<PropertyKey> removedProperties  = new LinkedHashSet<PropertyKey>();
 	private List<? extends GraphObject> result  = null;
+	private int rawResultCount                  = 0;
 	private TreeNode resultTree                 = null;
 	private boolean sessionValid                = false;
 	private String sortKey                      = null;
@@ -86,6 +87,7 @@ public class WebSocketMessage {
 		newCopy.pageSize           = this.pageSize;
 		newCopy.parent             = this.parent;
 		newCopy.result             = this.result;
+		newCopy.rawResultCount     = this.rawResultCount;
 		newCopy.resultTree         = this.resultTree;
 		newCopy.sessionValid       = this.sessionValid;
 		newCopy.sortKey            = this.sortKey;
@@ -136,6 +138,10 @@ public class WebSocketMessage {
 		return result;
 	}
 
+	public int getRawResultCount() {
+		return rawResultCount;
+	}
+
 	public String getSortKey() {
 		return sortKey;
 	}
@@ -176,9 +182,6 @@ public class WebSocketMessage {
 		return chunkSize;
 	}
 
-	/**
-	 * @return the graphObject
-	 */
 	public GraphObject getGraphObject() {
 		return graphObject;
 	}
@@ -197,102 +200,103 @@ public class WebSocketMessage {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setCommand(String command) {
+	public void setCommand(final String command) {
 		this.command = command;
 	}
 
-	public void setId(String id) {
+	public void setId(final String id) {
 		this.id = id;
 	}
 
-	public void setNodeData(String key, Object value) {
+	public void setNodeData(final String key, Object value) {
 		nodeData.put(key, value);
 	}
 
-	public void setNodeData(Map<String, Object> data) {
+	public void setNodeData(final Map<String, Object> data) {
 		this.nodeData.putAll(data);
 	}
 
-	public void setRelData(String key, Object value) {
+	public void setRelData(final String key, Object value) {
 		relData.put(key, value);
 	}
 
-	public void setRelData(Map<String, Object> data) {
+	public void setRelData(final Map<String, Object> data) {
 		this.relData.putAll(data);
 	}
 
-	public void setCallback(String callback) {
+	public void setCallback(final String callback) {
 		this.callback = callback;
 	}
 
-	public void setButton(String button) {
+	public void setButton(final String button) {
 		this.button = button;
 	}
 
-	public void setParent(String parent) {
+	public void setParent(final String parent) {
 		this.parent = parent;
 	}
 
-	public void setView(String view) {
+	public void setView(final String view) {
 		this.view = view;
 	}
 
-	public void setResult(List<? extends GraphObject> result) {
+	public void setResult(final List<? extends GraphObject> result) {
 		this.result = result;
 	}
 
-	public void setResultTree(TreeNode resultTree) {
+	public void setRawResultCount(final int rawResultCount) {
+		this.rawResultCount = rawResultCount;
+	}
+
+	public void setResultTree(final TreeNode resultTree) {
 		this.resultTree = resultTree;
 	}
 
-	public void setSortKey(String sortKey) {
+	public void setSortKey(final String sortKey) {
 		this.sortKey = sortKey;
 	}
 
-	public void setPageSize(int pageSize) {
+	public void setPageSize(final int pageSize) {
 		this.pageSize = pageSize;
 	}
 
-	public void setPage(int page) {
+	public void setPage(final int page) {
 		this.page = page;
 	}
 
-	public void setSortOrder(String sortOrder) {
+	public void setSortOrder(final String sortOrder) {
 		this.sortOrder = sortOrder;
 	}
 
-	public void setToken(String token) {
+	public void setToken(final String token) {
 		this.token = token;
 	}
 
-	public void setSessionValid(boolean sessionValid) {
+	public void setSessionValid(final boolean sessionValid) {
 		this.sessionValid = sessionValid;
 	}
 
-	public void setMessage(String message) {
+	public void setMessage(final String message) {
 		this.message = message;
 	}
 
-	public void setCode(int code) {
+	public void setCode(final int code) {
 		this.code = code;
 	}
 
-	public void setModifiedProperties(Set<PropertyKey> modifiedProperties) {
+	public void setModifiedProperties(final Set<PropertyKey> modifiedProperties) {
 		this.modifiedProperties = modifiedProperties;
 	}
 	
-	public void setRemovedProperties(Set<PropertyKey> removedProperties) {
+	public void setRemovedProperties(final Set<PropertyKey> removedProperties) {
 		this.removedProperties = removedProperties;
 	}
 
-	public void setChunkSize(int chunkSize) {
+	public void setChunkSize(final int chunkSize) {
 		this.chunkSize = chunkSize;
 	}
 
-	/**
-	 * @param graphObject the graphObject to set
-	 */
-	public void setGraphObject(GraphObject graphObject) {
+	public void setGraphObject(final GraphObject graphObject) {
 		this.graphObject = graphObject;
 	}
 

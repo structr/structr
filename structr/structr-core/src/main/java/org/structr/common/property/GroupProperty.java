@@ -336,6 +336,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		public String typeName() {
 			return wrappedKey.typeName();
 		}
+		
+		@Override
+		public Class relatedType() {
+			return wrappedKey.relatedType();
+		}
 
 		@Override
 		public Object defaultValue() {
@@ -353,13 +358,13 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		@Override
-		public void setDeclaringClassName(String declaringClassName) {
-			wrappedKey.setDeclaringClassName(declaringClassName);
+		public void setDeclaringClass(Class declaringClass) {
+			wrappedKey.setDeclaringClass(declaringClass);
 		}
 		
 		@Override
-		public String getDeclaringClassName() {
-			return wrappedKey.getDeclaringClassName();
+		public Class<? extends GraphObject> getDeclaringClass() {
+			return wrappedKey.getDeclaringClass();
 		}
 
 		@Override
@@ -392,5 +397,9 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			return wrappedKey.isWriteOnceProperty();
 		}
 
+		@Override
+		public boolean isCollection() {
+			throw new UnsupportedOperationException("Not supported yet.");
+		}
 	}
 }

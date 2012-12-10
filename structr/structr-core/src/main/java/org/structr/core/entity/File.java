@@ -49,6 +49,7 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.property.GenericProperty;
 import org.structr.common.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -65,11 +66,12 @@ public class File extends AbstractNode implements Linkable {
 	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath");
 	public static final Property<Long> size               = new LongProperty("size");
 	public static final Property<String> url              = new StringProperty("url");
-	public static final Property<String> parentFolder     = new StringProperty("parentFolder");
+	public static final Property<Folder> parentFolder     = new GenericProperty("parentFolder");
 	public static final Property<Long> checksum           = new LongProperty("checksum").systemProperty();
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 
-	public static final View uiView                       = new View(File.class, PropertyView.Ui, contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds);
+	public static final View publicView                   = new View(File.class, PropertyView.Ui, type, name, contentType, size, url);
+	public static final View uiView                       = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds);
 
 	//~--- static initializers --------------------------------------------
 
