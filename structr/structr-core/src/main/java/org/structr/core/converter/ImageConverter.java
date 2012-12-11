@@ -52,9 +52,9 @@ public class ImageConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(ImageConverter.class.getName());
 
-	private KeyAndClass keyAndClass = null;
+	private KeyAndClass<Image> keyAndClass = null;
 	
-	public ImageConverter(SecurityContext securityContext, GraphObject entity, KeyAndClass kc) {
+	public ImageConverter(SecurityContext securityContext, GraphObject entity, KeyAndClass<Image> kc) {
 		
 		super(securityContext, entity);
 		
@@ -102,7 +102,7 @@ public class ImageConverter extends PropertyConverter {
 				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
 				Services.command(securityContext, IndexNodeCommand.class).update(img, AbstractNode.uuid);
 				
-				currentObject.setProperty(keyAndClass.getPropertyKey(), img.getUuid());
+				currentObject.setProperty(keyAndClass.getPropertyKey(), img);
 			}
 			
 			return null;

@@ -400,6 +400,12 @@ public class SecurityContext {
 			return false;
 		}
 
+		// Ask for user only if node is visible for authenticated users
+		if (node.isVisibleToAuthenticatedUsers() && getUser() != null) {
+			
+			return true;
+		}
+
 		// Ask the security context
 		if (isAllowed(node, Permission.read)) {
 
@@ -433,12 +439,6 @@ public class SecurityContext {
 			return true;
 		}
 
-//              // non-backend users are not allowed here
-//              if (!user.isBackendUser()) {
-//
-//                      return false;
-//
-//              }
 		// users with scanEntity permissions may see the node
 		if (isAllowedInBackend(node, Permission.read)) {
 
@@ -469,40 +469,6 @@ public class SecurityContext {
 			return false;
 		}
 
-		/*
-		 *
-		 * boolean visibleByTime = false;
-		 *
-		 * // check visibility period of time (see STRUCTR-13)
-		 * Date visStartDate       = node.getVisibilityStartDate();
-		 * long effectiveStartDate = 0L;
-		 * Date createdDate        = node.getCreatedDate();
-		 *
-		 * if (createdDate != null) {
-		 *
-		 *       effectiveStartDate = Math.max(createdDate.getTime(), 0L);
-		 *
-		 * }
-		 *
-		 * // if no start date for visibility is given,
-		 * // take the maximum of 0 and creation date.
-		 * visStartDate = ((visStartDate == null)
-		 *               ? new Date(effectiveStartDate)
-		 *               : visStartDate);
-		 *
-		 * // if no end date for visibility is given,
-		 * // take the Long.MAX_VALUE
-		 * Date visEndDate = node.getVisibilityEndDate();
-		 *
-		 * visEndDate = ((visEndDate == null)
-		 *             ? new Date(Long.MAX_VALUE)
-		 *             : visEndDate);
-		 *
-		 * Date now = new Date();
-		 *
-		 * visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
-		 */
-
 		// public nodes are always visible (constrained by time)
 		if (node.isVisibleToPublicUsers()) {
 
@@ -518,26 +484,7 @@ public class SecurityContext {
 
 			if (user != null) {
 
-				// user not null means user is authenticated
-				// SuperUser
-				// if (user instanceof SuperUser) {
 				return true;
-
-				// }
-				// frontend user
-//                              if (user.isFrontendUser()) {
-//
-//                                      boolean hasReadPermission = node.isGranted(AbstractRelationship.Permission.scanEntity.name(), user);
-//
-//                                      if (!hasReadPermission) {
-//
-//                                              response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//
-//                                      }
-//
-//                                      return hasReadPermission;
-//
-//                              }
 			}
 		}
 

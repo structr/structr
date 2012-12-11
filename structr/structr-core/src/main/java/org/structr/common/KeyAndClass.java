@@ -28,14 +28,14 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Axel Morgner
  */
-public class KeyAndClass {
+public class KeyAndClass<T> {
 
-	private Class cls;
-	private PropertyKey key;
+	private Class<T> cls;
+	private PropertyKey<T> key;
 
 	//~--- constructors ---------------------------------------------------
 
-	public KeyAndClass(final PropertyKey key, final Class cls) {
+	public KeyAndClass(final PropertyKey<T> key, final Class<T> cls) {
 
 		this.key = key;
 		this.cls = cls;
@@ -44,13 +44,13 @@ public class KeyAndClass {
 
 	//~--- get methods ----------------------------------------------------
 
-	public PropertyKey getPropertyKey() {
+	public PropertyKey<T> getPropertyKey() {
 
 		return key;
 
 	}
 
-	public Class getCls() {
+	public Class<T> getCls() {
 
 		return cls;
 
