@@ -21,6 +21,9 @@ package org.structr.core.entity;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.property.ListArrayProperty;
+import org.structr.common.property.Property;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.EntityProperty;
 
 /**
@@ -33,7 +36,8 @@ import org.structr.core.property.EntityProperty;
  */
 public class TestFour extends AbstractNode {
 	
-	public static final EntityProperty<TestOne> testOne = new EntityProperty<TestOne>("testOne", TestOne.class, RelType.DATA, Direction.INCOMING, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final EntityProperty<TestOne> testOne             = new EntityProperty<TestOne>("testOne", TestOne.class, RelType.DATA, Direction.INCOMING, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<String>("stringArrayProperty", String.class);
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

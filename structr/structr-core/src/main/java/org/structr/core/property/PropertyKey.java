@@ -46,7 +46,7 @@ public interface PropertyKey<T> {
 	
 	public T defaultValue();
 	
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy);
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity);
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext);
 	
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass);

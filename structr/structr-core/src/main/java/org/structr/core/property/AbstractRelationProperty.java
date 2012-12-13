@@ -110,63 +110,24 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 					if (newRel != null) {
 
 						GenericFactory genericFactory = EntityContext.getGenericFactory();
-						Class newRelationshipClass    = newRel.getClass();
 						
 						switch (getCardinality()) {
 
-							case ManyToOne :
-							case OneToOne : {
+							case OneToOne:
 
-								Class destType = finalTargetNode.getClass();
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
+								break;
+								
+							case ManyToOne:
 
-								// delete previous relationships to nodes of the same destination combinedType and direction
-								List<AbstractRelationship> rels = finalSourceNode.getRelationships(getRelType(), getDirection());
-
-								for (AbstractRelationship rel : rels) {
-
-									if (rel.equals(newRel)) {
-										continue;
-									}
-									
-									Class relationshipClass = rel.getClass();
-									boolean isGeneric = genericFactory.isGeneric(relationshipClass);
-									
-									if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass) || destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass()))) {
-
-										deleteRel.execute(rel);
-
-									}
-								}
-
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
 								break;
 
-							}
-
-							case OneToMany : {
-
-								Class sourceType = finalSourceNode.getClass();
-
-								// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
-								// of the same combinedType incoming to the target node
-								List<AbstractRelationship> rels = finalTargetNode.getRelationships(getRelType(), Direction.INCOMING);
-
-								for (AbstractRelationship rel : rels) {
-
-									if (rel.equals(newRel)) {
-										continue;
-									}
-									
-									Class relationshipClass = rel.getClass();
-									boolean isGeneric = genericFactory.isGeneric(relationshipClass);
-									    
-									if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || sourceType.isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())) {
-
-										deleteRel.execute(rel);
-
-									}
-								}
-
-							}
+							case OneToMany:
+							
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
+								break;
 
 						}
 
@@ -316,5 +277,56 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 	public int getCascadeDelete() {
 		return cascadeDelete;
+	}
+	
+	// ----- private methods -----
+	private void ensureOneToMany(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, GenericFactory genericFactory, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+		
+		Class newRelationshipClass = newRel.getClass();
+		Class sourceType           = finalSourceNode.getClass();
+
+		// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
+		// of the same combinedType incoming to the target node
+		List<AbstractRelationship> rels = finalTargetNode.getRelationships(getRelType(), Direction.INCOMING);
+		for (AbstractRelationship rel : rels) {
+
+			if (rel.equals(newRel)) {
+				continue;
+			}
+
+			Class relationshipClass = rel.getClass();
+			boolean isGeneric = genericFactory.isGeneric(relationshipClass);
+
+			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || sourceType.isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())) {
+
+				deleteRel.execute(rel);
+
+			}
+		}
+
+	}
+	
+	private void ensureManyToOne(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, GenericFactory genericFactory, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+		
+		Class newRelationshipClass = newRel.getClass();
+		Class destType             = finalTargetNode.getClass();
+
+		// delete previous relationships to nodes of the same destination combinedType and direction
+		List<AbstractRelationship> rels = finalSourceNode.getRelationships(getRelType(), getDirection());
+		for (AbstractRelationship rel : rels) {
+
+			if (rel.equals(newRel)) {
+				continue;
+			}
+
+			Class relationshipClass = rel.getClass();
+			boolean isGeneric = genericFactory.isGeneric(relationshipClass);
+
+			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass) || destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass()))) {
+
+				deleteRel.execute(rel);
+
+			}
+		}
 	}
 }
