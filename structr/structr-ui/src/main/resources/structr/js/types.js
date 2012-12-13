@@ -32,6 +32,7 @@ var _Types = {
     },
 	
     onload : function() {
+        _Types.init();
         if (debug) console.log('onload');
         if (palette) palette.remove();
 

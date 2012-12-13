@@ -42,9 +42,12 @@ var _Pages = {
     clone_icon : 'icon/page_copy.png',
 
     init : function() {
+        pageSize['Page'] = 10;
+        page['Page'] = 1;
+        
         //console.log('_Pages.init()');
         _Pages.resize();
-        _Pages.makeMenuDroppable();
+        //_Pages.makeMenuDroppable();
 
     },
 
@@ -94,6 +97,9 @@ var _Pages = {
     },
 
     onload : function() {
+        
+        _Pages.init();
+        
         activeTab = $.cookie('structrActiveTab');
         if (debug) console.log('value read from cookie', activeTab);
 
@@ -123,6 +129,7 @@ var _Pages = {
         
         Command.list('Page');
         
+        Structr.addPager(pages, 'Page');
         
         _Elements.showPalette();
 

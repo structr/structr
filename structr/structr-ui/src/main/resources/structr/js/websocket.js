@@ -23,6 +23,13 @@ var token;
 var loggedIn = false;
 var user;
 
+var rawResultCount = [];
+var pageCount = [];
+var page = 1;
+var pageSize = 25;
+var sort = 'name';
+var order = 'asc';
+
 function connect() {
 
     if (token) {
@@ -53,11 +60,13 @@ function connect() {
 
         ws.onmessage = function(message) {
 
+            if (debug) console.log(message);
+
             var data = $.parseJSON(message.data);
-            if (debug) console.log(data);
+            console.log(data);
 
             //var msg = $.parseJSON(message);
-            var type = data.type;
+            var type = data.data.type;
             var command = data.command;
             var parentId = data.id;
             var entityId = data.data.id;
@@ -69,6 +78,9 @@ function connect() {
             var sessionValid = data.sessionValid;
             var code = data.code;
             var callback = data.callback;
+            
+            rawResultCount[type] = data.rawResultCount;
+            pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
 
             {
                 if (debug) console.log('command: ' + command);
@@ -213,6 +225,9 @@ function connect() {
 				
                 if (debug) console.log('LIST:', result);
                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
+                console.log('page count for type ' + type, pageCount[type], $('#pager' + type), $('.pageCount', $('#pager' + type)));
+                $('.pageCount', $('#pager' + type)).val(pageCount[type]);
+                
                 $(result).each(function(i, entity) {
                     if (debug) console.log('LIST: ' + entity.type);
                     
@@ -501,10 +516,10 @@ function connect() {
         }
 
         ws.onclose = function() {
-            //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.reconnect);
+            //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
             //Structr.error('Connection lost or timed out. Trying automatic reconnect');
             log('Connection was lost or timed out. Trying automatic reconnect');
-            //Structr.reconnect();
+            Structr.silentReconnect();
         }
 
     } catch (exception) {

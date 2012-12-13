@@ -35,6 +35,9 @@ var _Components = {
     },
 
     onload : function() {
+        
+        _Components.init();
+        
 	//Structr.activateMenuEntry('pages');
 	if (debug) console.log('onload');
 	if (palette) palette.remove();

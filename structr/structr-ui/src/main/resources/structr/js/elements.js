@@ -127,6 +127,7 @@ var _Elements = {
     },
 
     onload : function() {
+        _Elements.init();
         if (debug) console.log('onload');
         elements = $('#elements', main);
         _Elements.refresh();

@@ -30,9 +30,16 @@ var _UsersAndGroups = {
     init : function() {
     //Structr.classes.push('user');
     //Structr.classes.push('group');
+        pageSize['Group'] = 25;
+        pageSize['User'] = 25;
+        
+        page['Group'] = 1;
+        page['User'] = 1;
+    
     },
 	
     onload : function() {
+        _UsersAndGroups.init();
         //Structr.activateMenuEntry('usersAndGroups');
         if (debug) console.log('onload');
         if (palette) palette.remove();
@@ -55,6 +62,7 @@ var _UsersAndGroups = {
                 return Command.create(entity);
             });
         }
+        Structr.addPager(groups, 'Group');
     },
 
     refreshUsers : function() {
@@ -68,6 +76,7 @@ var _UsersAndGroups = {
                 return Command.create(entity);
             });
         }
+        Structr.addPager(users, 'User');
     },
 
     removeUserFromGroup : function(userId, groupId) {

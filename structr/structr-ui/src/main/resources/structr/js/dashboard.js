@@ -39,6 +39,9 @@ var _Dashboard = {
     },
 
     onload : function() {
+        
+        _Dashboard.init();
+        
         activeTab = $.cookie('structrActiveTab');
         if (debug) console.log('value read from cookie', activeTab);
 

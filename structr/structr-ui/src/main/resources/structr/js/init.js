@@ -31,6 +31,8 @@ var dmp;
 var editorCursor;
 var dialog;
 
+var page = [];
+var pageSize = [];
 
 $(document).ready(function() {
     
@@ -118,6 +120,13 @@ $(document).ready(function() {
         Structr.modules['files'].onload();
     });
 
+    $('#images_').on('click', function(e) {
+        e.stopPropagation();
+        main.empty();
+        Structr.activateMenuEntry('images');
+        Structr.modules['images'].onload();
+    });
+
     $('#usersAndGroups_').on('click', function(e) {
         e.stopPropagation();
         main.empty();
@@ -165,6 +174,10 @@ var Structr = {
     link_icon: 'icon/link.png',
     key_icon: 'icon/key.png',
 
+    silentReconnect : function() {
+        connect();
+    },
+
     reconnect : function() {
 	
         $.unblockUI({
@@ -172,7 +185,6 @@ var Structr = {
         });
 
         Structr.init();
-    //connect();
     },
 
     init : function() {
@@ -269,7 +281,7 @@ var Structr = {
             if (debug) console.log(Structr.modules);
             var module = Structr.modules[lastMenuEntry];
             if (module) {
-                module.init();
+                //module.init();
                 module.onload();
                 if (module.resize) module.resize();
             }
@@ -566,6 +578,68 @@ var Structr = {
         }
         
         return entity;
+    },
+    
+    addPager : function(el, type) {
+        
+        el.append('<div class="pager" id="pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
+            + ' Page <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
+            + ' of <input class="readonly pageCount" readonly="readonly" size="3">'
+            + ' Page Size: <input class="pageSize" type="text" size="3" value="' + pageSize[type] + '"></div>');
+        var pager = $('#pager' + type);
+        
+        var pageLeft = $('.pageLeft', pager);
+        var pageRight = $('.pageRight', pager);
+        var pageForm = $('.page', pager);
+        var pageSizeForm = $('.pageSize', pager);
+
+        pageSizeForm.on('keypress', function(e) {
+            if (e.keyCode == 13) {
+                pageSize[type] = $(this).val();
+                pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
+                $('.pageSize', pager).val(pageSize[type]);
+                $('.pageCount', pager).val(pageCount[type]);
+                $('.node', el).remove();
+                Command.list(type, pageSize[type], page[type], sort, order);
+            }
+        });
+
+        pageForm.on('keypress', function(e) {
+            if (e.keyCode == 13) {
+                page[type] = $(this).val();
+                $('.page', pager).val(page[type]);
+                $('.node', el).remove();
+                Command.list(type, pageSize[type], page[type], sort, order);
+            }
+        });
+
+        if (page[type] == 1) {
+            pageLeft.attr('disabled', 'disabled').addClass('disabled');
+        }
+
+        pageLeft.on('click', function() {
+            pageRight.removeAttr('disabled').removeClass('disabled');
+            page[type]--;
+            if (page[type] == 1) {
+                pageLeft.attr('disabled', 'disabled').addClass('disabled');
+            }
+            $('.page', pager).val(page[type]);
+            $('.node', el).remove();
+            Command.list(type, pageSize[type], page[type], sort, order);
+        });
+        
+        pageRight.on('click', function() {
+            pageLeft.removeAttr('disabled').removeClass('disabled');
+            page[type]++;
+            if (page[type] == pageCount[type]) {
+                pageRight.attr('disabled', 'disabled').addClass('disabled');
+            }
+            $('.page', pager).val(page[type]);
+            $('.node', el).remove();
+            Command.list(type, pageSize[type], page[type], sort, order);
+        });
+        
+        return Command.list(type, pageSize[type], page[type], sort, order);
     }
 };
 
@@ -650,7 +724,7 @@ function getExpanded() {
 }
 
 
-function formatValue(key, obj) {
+function formatValueInputField(key, obj) {
 
     if (obj == null) {
         return '<input name="' + key + '" type="text" value="">';
@@ -669,6 +743,44 @@ function formatValue(key, obj) {
 
     } else {
         return '<input name="' + key + '" type="text" value="' + obj + '">';
+
+    }
+}
+
+function formatValue(value, key, type, id) {
+
+    if (value == null) {
+        return '';
+    } else if (value.constructor === String) {
+        
+        return value;
+        
+    } else if (value.constructor === Object) {
+
+        //return JSON.stringify(obj);
+        var out = '';
+        $(Object.keys(value)).each(function(i, k) {
+            //console.log(v);
+            //out += JSON.stringify(v);
+            out += k + ': ' + formatValue(value[k]) + '\n' ;
+        });
+        return out;
+
+    } else if (value.constructor === Array) {
+        //var out = '<table>';
+        var out = '';
+        $(value).each(function(i, v) {
+            //console.log(v);
+            out += JSON.stringify(v);
+            //out += '<tr><td>' + key + '</td><td>' + formatValue(obj[key]) + '</td></tr>' ;
+        });
+        
+        //out += '</table>';
+
+        return out;
+
+    } else {
+        return value;
 
     }
 }
@@ -876,6 +988,11 @@ if (typeof String.prototype.capitalize != 'function') {
     };
 }
 
+if (typeof String.prototype.escapeForJSON != 'function') {
+    String.prototype.escapeForJSON = function() {
+        return this.replace(/"/g, '\'');
+    };
+}
 /**
  * Clean text from contenteditable
  * 
@@ -922,4 +1039,72 @@ function nvl(value, defaultValue) {
         returnValue = value;
     }
     return returnValue;
+}
+
+String.prototype.toCamel = function(){
+	return this.replace(/(\-[a-z])/g, function($1){return $1.toUpperCase().replace('-','');});
+};   
+
+String.prototype.toUnderscore = function(){
+	return this.replace(/([A-Z])/g, function($1){return "_"+$1.toLowerCase();});
+};
+
+/**
+ * Gratefully taken from https://gist.github.com/24261/7fdb113f1e26111bd78c0c6fe515f6c0bf418af5
+ * 
+ * The method trims the given string 'str' to fit nicely within a box of 'len' px width
+ * without line break.
+ */
+function fitStringToSize(str,len) {
+    var result = str;
+    var span = document.createElement("span");
+    span.style.visibility = 'hidden';
+    span.style.padding = '0px';
+    document.body.appendChild(span);
+
+    // on first run, check if string fits into the length already.
+    span.innerHTML = result;
+    if(span.offsetWidth > len) {
+        var posStart = 0, posMid, posEnd = str.length;
+        while (true) {
+            // Calculate the middle position
+            posMid = posStart + Math.ceil((posEnd - posStart) / 2);
+            // Break the loop if this is the last round
+            if (posMid==posEnd || posMid==posStart) break;
+
+            span.innerHTML = str.substring(0,posMid) + '&hellip;';
+
+            // Test if the width at the middle position is
+            // too wide (set new end) or too narrow (set new start).
+            if ( span.offsetWidth > len ) posEnd = posMid; else posStart=posMid;
+        }
+        
+        //Escape < and >, eliminate trailing space and a widow character if one is present.
+        result = str.substring(0,posStart).replace("<","&lt;").replace(">","&gt;").replace(/(\s.)?\s*$/,'') + '&hellip;';
+    }
+    document.body.removeChild(span);
+    return result;
+}
+//
+//function getShortLink(str,len,url)
+//{
+//    return '<a title="' + str.replace("\"","&#34;") + '" href="'+ url +'">' + fitStringToSize(str,len) + '<\/a>';
+//}
+//
+//function getShortAbbr(str,len)
+//{
+//    return '<abbr title="' + str.replace("\"","&#34;") + '">' + fitStringToSize(str,len) + '<\/abbr>';
+//}
+
+function showAjaxLoader(el) {
+    
+//    if (el) {
+//        el.after($('#ajaxLoader'));
+//    }
+    
+    $('#ajaxLoader').show();
+}
+
+function hideAjaxLoader() {
+    $('#ajaxLoader').hide();
 }

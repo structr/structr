@@ -24,8 +24,8 @@ var _Entities = {
     booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
     numberAttrs : ['position', 'size'],
     dateAttrs : ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
-    hiddenAttrs : ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'relativeFilePath', 'path', 'elements', 'linkingElements', 'components', 'paths', 'parents'],
-    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version'],
+    hiddenAttrs : ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'linkingElements', 'components', 'paths', 'parents'],
+    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
     
     changeBooleanAttribute : function(attrElement, value) {
 
@@ -127,9 +127,9 @@ var _Entities = {
         } else if (entity.type == 'Image') {
             
             if (debug) console.log('Image:', entity);
-            _Files.uploadFile(entity);
+            _Images.uploadFile(entity);
             
-            lastAppendedObj = _Files.appendImageElement(entity, parentId, add, hasChildren, true);
+            lastAppendedObj = _Images.appendImageElement(entity, parentId, add, hasChildren);
             
         } else if (entity.type == 'File') {
             
@@ -369,7 +369,7 @@ var _Entities = {
                                 
                                 if (key != 'id') {
                                 
-                                    props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                    props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
                                 
                                 }
                                 
@@ -381,7 +381,7 @@ var _Entities = {
                                 //console.log('Set ID to relationship ID', id);
                                 }
                                 
-                                props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
                                                                
                             } else {
                                 
@@ -421,7 +421,7 @@ var _Entities = {
                                     
                                     } else {
                                 
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
                                     }
                                 
                                 }

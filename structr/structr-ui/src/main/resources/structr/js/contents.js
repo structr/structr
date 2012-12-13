@@ -35,6 +35,9 @@ var _Contents = {
     },
 
     onload : function() {
+        
+        _Contents.init();
+        
         if (debug) console.log('onload');
         if (palette) palette.remove();
         main.append('<div id="contents"></div>');

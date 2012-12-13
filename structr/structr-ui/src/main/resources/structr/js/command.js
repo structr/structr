@@ -48,14 +48,16 @@ var Command = {
      * type to the sending client (no broadcast).
      * The server will return an array with all
      * node ids which have child nodes in this page.
-     * 
-     * TODO: Add paging and sorting
      */
-    list : function(type) {
+    list : function(type, pageSize, page, sort, order) {
         var obj = {};
         obj.command = 'LIST';
         var data = {};
         data.type = type;
+        obj.pageSize = pageSize;
+        obj.page = page;
+        obj.sort = sort;
+        obj.order = order;
         obj.data = data;
         if (debug) console.log('list()', obj);
         return sendObj(obj);
