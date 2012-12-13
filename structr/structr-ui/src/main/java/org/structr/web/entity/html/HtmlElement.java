@@ -577,8 +577,9 @@ public abstract class HtmlElement extends PageElement implements Element {
 		AbstractNode node                = startNode;
 		String[] parts                   = refKey.split("[\\.]+");
 		String referenceKey              = parts[parts.length - 1];
-		PropertyKey pageIdProperty       = new GenericProperty(pageId);
-		PropertyKey referenceKeyProperty = new GenericProperty(referenceKey);
+
+		PropertyKey pageIdProperty       = new StringProperty(pageId);
+		PropertyKey referenceKeyProperty = new StringProperty(referenceKey);
 
 		// walk through template parts
 		for (int i = 0; (i < parts.length) && (node != null); i++) {
