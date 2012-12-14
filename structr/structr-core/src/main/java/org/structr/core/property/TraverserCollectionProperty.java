@@ -29,7 +29,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.property.AbstractReadOnlyCollectionProperty;
 import org.structr.core.traversal.TraverserInterface;
 
 /**

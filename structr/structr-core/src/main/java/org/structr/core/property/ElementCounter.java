@@ -21,7 +21,6 @@ package org.structr.core.property;
 import java.util.Collection;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.property.AbstractReadOnlyProperty;
 
 /**
  *

@@ -23,7 +23,6 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.graph.search.TextualSearchAttribute;
-import org.structr.core.property.PropertyKey;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +35,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.PrimitiveProperty;
 
 /**
  *

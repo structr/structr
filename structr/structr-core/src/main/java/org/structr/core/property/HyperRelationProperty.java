@@ -24,9 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.AbstractReadOnlyProperty;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
 
 /**
  *

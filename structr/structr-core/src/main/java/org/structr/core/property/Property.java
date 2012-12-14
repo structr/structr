@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.property.PropertyKey;
 import java.util.Set;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.search.Search;

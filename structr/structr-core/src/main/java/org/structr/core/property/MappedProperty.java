@@ -18,12 +18,10 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.PropertyMapper;
-import org.structr.core.property.PrimitiveProperty;
 
 /**
  *

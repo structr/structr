@@ -6,7 +6,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TooShortToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.ValidationInfo;
-import org.structr.core.property.PropertyKey;
 
 /**
  *

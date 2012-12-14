@@ -27,8 +27,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.Aggregation;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
-import org.structr.core.property.AbstractReadOnlyCollectionProperty;
-import org.structr.core.property.CollectionProperty;
 
 /**
  *

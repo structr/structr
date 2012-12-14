@@ -24,7 +24,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.CypherQueryConverter;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.cypher.CypherQueryHandler;
-import org.structr.core.property.PrimitiveProperty;
 
 /**
  *

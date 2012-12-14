@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.property.PropertyKey;
 import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;

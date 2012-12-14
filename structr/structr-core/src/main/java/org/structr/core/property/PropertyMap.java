@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.property.PropertyKey;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
