@@ -19,7 +19,7 @@
 package org.structr.core.graph.search;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.graph.NodeAttribute;
 
 /**

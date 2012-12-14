@@ -19,12 +19,12 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.property.DoubleProperty;
+import org.structr.core.property.DoubleProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.NodeIndex;
 

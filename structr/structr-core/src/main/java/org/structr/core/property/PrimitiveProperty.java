@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.Property;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;

@@ -19,12 +19,12 @@
 
 
 
-package org.structr.common.property;
+package org.structr.core.property;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.converter.RelationshipEndNodeConverter;
+import org.structr.core.converter.RelationshipStartNodeConverter;
 import org.structr.core.property.PrimitiveProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -33,9 +33,9 @@ import org.structr.core.property.PrimitiveProperty;
  *
  * @author Axel Morgner
  */
-public class EndNodeProperty<T> extends PrimitiveProperty<T> {
+public class StartNodeProperty<T> extends PrimitiveProperty<T> {
 
-	public EndNodeProperty(String name) {
+	public StartNodeProperty(String name) {
 
 		super(name);
 
@@ -46,7 +46,7 @@ public class EndNodeProperty<T> extends PrimitiveProperty<T> {
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 
-		return new RelationshipEndNodeConverter(securityContext, entity);
+		return new RelationshipStartNodeConverter(securityContext, entity);
 
 	}
 

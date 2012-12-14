@@ -19,7 +19,7 @@
 package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.PropertyMap;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.Person;

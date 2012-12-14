@@ -19,14 +19,17 @@
 
 package org.structr.core;
 
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
+import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.BooleanProperty;
 import java.util.Date;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.core.property.PropertyKey;
-import org.structr.common.property.PropertyMap;
+import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 

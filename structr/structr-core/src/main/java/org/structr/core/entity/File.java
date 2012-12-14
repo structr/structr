@@ -31,9 +31,9 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.IntProperty;
-import org.structr.common.property.LongProperty;
-import org.structr.common.property.Property;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.Property;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.Relation.Cardinality;
@@ -49,8 +49,8 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.GenericProperty;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.property.EntityProperty;
 
 //~--- classes ----------------------------------------------------------------

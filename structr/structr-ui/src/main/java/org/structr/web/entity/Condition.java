@@ -33,8 +33,8 @@ import org.structr.core.graph.NodeService;
 //~--- JDK imports ------------------------------------------------------------
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.property.Property;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------

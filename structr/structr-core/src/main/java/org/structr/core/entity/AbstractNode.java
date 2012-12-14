@@ -21,6 +21,10 @@
 
 package org.structr.core.entity;
 
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.graph.SetOwnerCommand;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
@@ -61,7 +65,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
-import org.structr.common.property.*;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 

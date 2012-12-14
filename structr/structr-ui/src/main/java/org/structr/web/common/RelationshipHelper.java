@@ -25,8 +25,8 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyMap;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 
@@ -48,8 +48,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.property.LongProperty;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------

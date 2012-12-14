@@ -21,8 +21,8 @@ package org.structr.core.entity;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.property.ListArrayProperty;
-import org.structr.common.property.Property;
+import org.structr.core.property.ListArrayProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.EntityProperty;
 

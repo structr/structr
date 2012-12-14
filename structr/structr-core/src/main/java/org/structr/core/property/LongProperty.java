@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.property;
+package org.structr.core.property;
 
 import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;

@@ -21,7 +21,6 @@
 
 package org.structr.core.module;
 
-import antlr.StringUtils;
 import org.structr.core.agent.Agent;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -31,7 +30,6 @@ import org.structr.core.entity.GenericNode;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 
 import java.lang.reflect.Modifier;
 
@@ -46,9 +44,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import org.structr.common.property.Property;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.*;
 
 //~--- classes ----------------------------------------------------------------
@@ -160,7 +156,7 @@ public class ModuleService implements SingletonService {
 
 		for (final String name : classes) {
 			
-			String className = StringUtils.stripFront(name, ".");
+			String className = StringUtils.removeStart(name, ".");
 
 			logger.log(Level.FINE, "Instantiating class {0} ", className);
 

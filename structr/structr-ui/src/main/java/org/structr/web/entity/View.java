@@ -39,8 +39,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.property.Property;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------

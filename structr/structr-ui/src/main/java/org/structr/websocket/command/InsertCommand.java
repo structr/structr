@@ -36,7 +36,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.PropertyMap;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Element;
 
 //~--- classes ----------------------------------------------------------------

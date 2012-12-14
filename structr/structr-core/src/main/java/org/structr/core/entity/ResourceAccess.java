@@ -19,15 +19,15 @@
 package org.structr.core.entity;
 
 import java.util.logging.Logger;
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.LongProperty;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService;
 

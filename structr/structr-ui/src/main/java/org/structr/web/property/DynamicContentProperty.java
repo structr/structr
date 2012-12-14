@@ -1,7 +1,7 @@
 package org.structr.web.property;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.web.converter.DynamicConverter;

@@ -43,7 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.core.property.PropertyKey;
-import org.structr.common.property.PropertyMap;
+import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractRelationship;
 

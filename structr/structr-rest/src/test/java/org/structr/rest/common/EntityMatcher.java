@@ -28,7 +28,7 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 
 /**

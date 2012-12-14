@@ -26,7 +26,7 @@ import org.neo4j.graphdb.Node;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.EntityContext;
 import org.structr.core.Result;

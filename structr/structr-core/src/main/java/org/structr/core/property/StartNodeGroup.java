@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.property;
+package org.structr.core.property;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
@@ -28,9 +28,9 @@ import org.structr.core.entity.AbstractRelationship;
  *
  * @author Christian Morgner
  */
-public class EndNodeGroup extends GroupProperty {
+public class StartNodeGroup extends GroupProperty {
 	
-	public EndNodeGroup(String name, Class<? extends GraphObject> entityClass, PropertyKey... properties) {
+	public StartNodeGroup(String name, Class<? extends GraphObject> entityClass, PropertyKey... properties) {
 		super(name, entityClass, properties);
 	}
 
@@ -39,13 +39,18 @@ public class EndNodeGroup extends GroupProperty {
 
 		if(source instanceof AbstractRelationship) {
 
-			AbstractRelationship rel = (AbstractRelationship)source;
-			AbstractNode end         = rel.getEndNode();
+			AbstractRelationship rel  = (AbstractRelationship)source;
+			AbstractNode startNode    = rel.getStartNode();
 
-			return super.getGroupedProperties(securityContext, end);
+			return super.getGroupedProperties(securityContext, startNode);
 		}
 
 		return null;
+	}
+	
+	@Override
+	public String typeName() {
+		return ""; // read-only
 	}
 
 	@Override

@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.LongProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------

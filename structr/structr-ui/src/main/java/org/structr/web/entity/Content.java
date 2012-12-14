@@ -21,7 +21,7 @@
 
 package org.structr.web.entity;
 
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.neo4j.graphdb.Direction;
 
@@ -46,8 +46,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.property.IntProperty;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;

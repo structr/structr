@@ -20,10 +20,10 @@ package org.structr.core.entity;
 
 import java.util.Collections;
 import java.util.List;
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.common.SecurityContext;
-import org.structr.common.property.IntProperty;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.StringProperty;
 
 /**
  *

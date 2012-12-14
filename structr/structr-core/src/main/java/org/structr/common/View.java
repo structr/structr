@@ -18,7 +18,7 @@
  */
 package org.structr.common;
 
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.core.GraphObject;
 
 /**

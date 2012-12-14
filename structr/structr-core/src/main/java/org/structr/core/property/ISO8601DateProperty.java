@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.common.property;
+package org.structr.core.property;
 
 /**
  * Date converter for the ISO 8601 format.

@@ -19,7 +19,7 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertyMap;
+import org.structr.core.property.PropertyMap;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;

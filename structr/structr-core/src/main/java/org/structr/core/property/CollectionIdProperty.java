@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import java.util.List;
-import org.structr.common.property.Property;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;

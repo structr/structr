@@ -19,7 +19,7 @@
 
 
 
-package org.structr.common.property;
+package org.structr.core.property;
 
 
 //~--- JDK imports ------------------------------------------------------------

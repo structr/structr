@@ -88,7 +88,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.time.DateUtils;
-import org.structr.common.property.GenericProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.web.common.PageHelper;
 

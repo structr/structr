@@ -16,41 +16,47 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.property;
+package org.structr.core.property;
 
-import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.converter.CypherQueryConverter;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.cypher.CypherQueryHandler;
+import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class StartNodeGroup extends GroupProperty {
+public class CypherProperty<T> extends PrimitiveProperty<T> {
 	
-	public StartNodeGroup(String name, Class<? extends GraphObject> entityClass, PropertyKey... properties) {
-		super(name, entityClass, properties);
-	}
+	private CypherQueryHandler handler = null;
+	
+	public CypherProperty(String name, CypherQueryHandler handler) {
+		super(name);
+		
+		this.handler = handler;
+		
+		// make us known to the entity context
+		EntityContext.registerConvertedProperty(this);
 
-	@Override
-	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
-
-		if(source instanceof AbstractRelationship) {
-
-			AbstractRelationship rel  = (AbstractRelationship)source;
-			AbstractNode startNode    = rel.getStartNode();
-
-			return super.getGroupedProperties(securityContext, startNode);
-		}
-
-		return null;
 	}
 	
 	@Override
 	public String typeName() {
 		return ""; // read-only
+	}
+	
+	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new CypherQueryConverter(securityContext, entity, handler);
+	}
+
+	@Override
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return null;
 	}
 
 	@Override

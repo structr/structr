@@ -32,8 +32,8 @@ import org.structr.web.entity.html.HtmlElement;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.structr.common.property.Property;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 

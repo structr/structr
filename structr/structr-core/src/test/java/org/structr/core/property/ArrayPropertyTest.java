@@ -21,7 +21,6 @@ package org.structr.core.property;
 import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.Property;
 import org.structr.core.entity.TestFour;
 
 /**

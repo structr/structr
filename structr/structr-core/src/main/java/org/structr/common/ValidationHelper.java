@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.*;
-import org.structr.common.property.GenericProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.GraphObject;
 
 /**

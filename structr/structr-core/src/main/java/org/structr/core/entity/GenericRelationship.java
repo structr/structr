@@ -27,15 +27,15 @@ package org.structr.core.entity;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.neo4j.graphdb.Relationship;
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.common.property.PropertyMap;
+import org.structr.core.property.PropertyMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.RelationshipIndex;
 

@@ -16,32 +16,43 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.property;
+package org.structr.core.property;
 
+import java.lang.reflect.Constructor;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.CypherQueryConverter;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.cypher.CypherQueryHandler;
 import org.structr.core.property.PrimitiveProperty;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CypherProperty<T> extends PrimitiveProperty<T> {
+public class ConverterProperty<T> extends PrimitiveProperty<T> {
 	
-	private CypherQueryHandler handler = null;
+	private static final Logger logger = Logger.getLogger(ConverterProperty.class.getName());
+	private Constructor constructor    = null;
 	
-	public CypherProperty(String name, CypherQueryHandler handler) {
+	public ConverterProperty(String name, Class<? extends PropertyConverter<?, T>> converterClass) {
+		
 		super(name);
 		
-		this.handler = handler;
+		try {
+			this.constructor = converterClass.getConstructor(SecurityContext.class, GraphObject.class);
+			
+		} catch(NoSuchMethodException nsmex) {
+			
+			logger.log(Level.SEVERE, "Unable to instantiate converter of type {0} for key {1}", new Object[] {
+				converterClass.getName(),
+				name
+			});
+		}
 		
 		// make us known to the entity context
 		EntityContext.registerConvertedProperty(this);
-
 	}
 	
 	@Override
@@ -50,17 +61,34 @@ public class CypherProperty<T> extends PrimitiveProperty<T> {
 	}
 	
 	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new CypherQueryConverter(securityContext, entity, handler);
+		return createConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
-
-	@Override
-	public Object fixDatabaseProperty(Object value) {
+	
+	private PropertyConverter createConverter(SecurityContext securityContext, GraphObject entity) {
+		
+		try {
+			
+			return (PropertyConverter<?, T>)constructor.newInstance(securityContext, entity);
+			
+		} catch(Throwable t) {
+			
+			logger.log(Level.SEVERE, "Unable to instantiate converter of type {0} for key {1}", new Object[] {
+				constructor.getClass().getName(),
+				dbName
+			});
+		}
+		
 		return null;
 	}
 }

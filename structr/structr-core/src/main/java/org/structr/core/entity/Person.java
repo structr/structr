@@ -21,6 +21,10 @@
 
 package org.structr.core.entity;
 
+import org.structr.core.property.PasswordProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.BooleanProperty;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 
@@ -32,11 +36,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
-import org.structr.common.property.*;
 import org.structr.core.Services;
 import org.structr.core.graph.CreateRelationshipCommand;
 

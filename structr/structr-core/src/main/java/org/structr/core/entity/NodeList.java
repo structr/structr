@@ -46,8 +46,8 @@ import org.structr.core.graph.TransactionCommand;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.GenericProperty;
-import org.structr.common.property.Property;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.Property;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------

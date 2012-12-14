@@ -2,7 +2,7 @@ package org.structr.web.common;
 
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 

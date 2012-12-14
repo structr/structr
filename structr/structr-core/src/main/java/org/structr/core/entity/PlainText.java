@@ -21,9 +21,9 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 

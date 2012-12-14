@@ -23,7 +23,7 @@ package org.structr.web.entity.html;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;

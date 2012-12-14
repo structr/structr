@@ -21,12 +21,12 @@
 
 package org.structr.web.entity.relation;
 
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.Element;

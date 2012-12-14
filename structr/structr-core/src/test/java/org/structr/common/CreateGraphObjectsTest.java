@@ -21,7 +21,7 @@
 
 package org.structr.common;
 
-import org.structr.common.property.PropertyMap;
+import org.structr.core.property.PropertyMap;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
@@ -47,8 +47,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.IntProperty;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.entity.TestTwo;
 
 //~--- classes ----------------------------------------------------------------

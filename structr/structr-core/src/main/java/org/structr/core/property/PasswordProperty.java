@@ -1,4 +1,4 @@
-package org.structr.common.property;
+package org.structr.core.property;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.common.SecurityContext;

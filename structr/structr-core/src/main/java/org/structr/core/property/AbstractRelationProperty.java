@@ -25,8 +25,6 @@ import org.structr.common.GenericFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
-import org.structr.common.property.Property;
-import org.structr.common.property.PropertyMap;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;

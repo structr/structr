@@ -23,12 +23,12 @@ package org.structr.web.entity;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.property.Property;
+import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.property.IntProperty;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;

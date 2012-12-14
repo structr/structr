@@ -21,6 +21,9 @@
 
 package org.structr.web.entity;
 
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.core.property.PropertyKey;
@@ -37,7 +40,6 @@ import org.structr.core.graph.NodeService.NodeIndex;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
-import org.structr.common.property.*;
 import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------

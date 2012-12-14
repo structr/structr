@@ -16,11 +16,14 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.property;
+package org.structr.core.property;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PrimitiveProperty;
@@ -29,117 +32,130 @@ import org.structr.core.property.PrimitiveProperty;
  *
  * @author Christian Morgner
  */
-public class EnumProperty<T extends Enum> extends PrimitiveProperty<T> {
+public class DateProperty extends PrimitiveProperty<Date> {
 	
-	private Class<T> enumType = null;
+	private SimpleDateFormat dateFormat = null;
 	
-	public EnumProperty(String name, Class<T> enumType) {
-		this(name, enumType, null);
-	}
-	
-	public EnumProperty(String name, Class<T> enumType, T defaultValue) {
-		this(name, name, enumType, defaultValue);
-	}
-	
-	public EnumProperty(String jsonName, String dbName, Class<T> enumType, T defaultValue) {
+	public DateProperty(String name, String pattern) {
+		super(name);
 		
-		super(jsonName, dbName, defaultValue);
-		
-		this.enumType = enumType;
+		dateFormat = new SimpleDateFormat(pattern);
 	}
 	
 	@Override
 	public String typeName() {
-		return "String";
+		return "Date";
 	}
 	
 	@Override
-	public PropertyConverter<T, String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Date, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new DatabaseConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<String, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<String, Date> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
-	
+
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		
 		if (value != null) {
 			
-			if (value instanceof String) {
+			if (value instanceof Long) {
 				return value;
+			}
+			
+			if (value instanceof Number) {
+				return ((Number)value).longValue();
+			}
+			
+			try {
+				
+				return Long.parseLong(value.toString());
+				
+			} catch (Throwable t) {
+			}
+			
+			try {
+				
+				return dateFormat.parse(value.toString()).getTime();
+				
+			} catch (Throwable t) {
 			}
 		}
 		
 		return null;
 	}
-
-	protected class DatabaseConverter extends PropertyConverter<T, String> {
+	
+	private class DatabaseConverter extends PropertyConverter<Date, Long> {
 
 		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
 			super(securityContext, entity);
 		}
-
-		@Override
-		public T revert(String source) throws FrameworkException {
-
-			if (source != null) {
-
-				return (T)Enum.valueOf(enumType, source.toString());
-			}
-
-			return null;
-			
-		}
 		
 		@Override
-		public String convert(T source) throws FrameworkException {
+		public Long convert(Date source) throws FrameworkException {
 
 			if (source != null) {
 				
-				return source.toString();
+				return source.getTime();
 			}
 			
 			return null;
 		}
-		
+
+		@Override
+		public Date revert(Long source) throws FrameworkException {
+
+			if (source != null) {
+
+				return new Date(source);
+			}
+
+			return null;
+			
+		}
 	}
 	
-	protected class InputConverter extends PropertyConverter<String, T> {
+	private class InputConverter extends PropertyConverter<String, Date> {
 
 		public InputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
-		
-		@Override
-		public String revert(T source) throws FrameworkException {
-
-			if (source != null) {
-				
-				return source.toString();
-			}
-			
-			return null;
-		}
 
 		@Override
-		public T convert(String source) throws FrameworkException {
+		public Date convert(String source) throws FrameworkException {
 
 			if (source != null) {
 
 				try {
-					return (T)Enum.valueOf(enumType, source.toString());
-					
+					return dateFormat.parse(source);
+
 				} catch(Throwable t) {
-					
-					throw new FrameworkException(declaringClass.getSimpleName(), new ValueToken(EnumProperty.this, enumType.getEnumConstants()));
+
+					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(DateProperty.this));
 				}
+
 			}
 
 			return null;
 			
+		}
+		
+		@Override
+		public String revert(Date source) throws FrameworkException {
+
+			if (source != null) {
+				return dateFormat.format(source);
+			}
+			
+			return null;
+		}
+		
+		@Override
+		public Integer getSortType() {
+			return SortField.LONG;
 		}
 		
 	}

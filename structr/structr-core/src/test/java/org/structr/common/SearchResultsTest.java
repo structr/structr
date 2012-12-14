@@ -22,7 +22,7 @@
 package org.structr.common;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.common.property.PropertyMap;
+import org.structr.core.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
@@ -41,7 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.property.StringProperty;
+import org.structr.core.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
