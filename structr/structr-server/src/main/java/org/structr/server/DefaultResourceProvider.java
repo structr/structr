@@ -52,9 +52,10 @@ public class DefaultResourceProvider implements ResourceProvider {
 
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterResource.class);	// maintenance parameter
 
+		resourceMap.put(Pattern.compile("_schema"),		SchemaResource.class);			// special resource for schema information
+		
 		resourceMap.put(Pattern.compile("[a-z_]+"),		TypeResource.class);			// any type match
 
-		resourceMap.put(Pattern.compile("_schema"),		SchemaResource.class);			// special resource for schema information
 		
 		return resourceMap;
 	}
