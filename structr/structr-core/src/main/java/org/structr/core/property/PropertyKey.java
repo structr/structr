@@ -28,7 +28,7 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
 
 /**
- * Interface for typed node property keys.
+ * Base interface for typed property keys.
  *
  * @author Christian Morgner
  */

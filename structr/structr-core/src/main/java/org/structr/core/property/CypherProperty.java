@@ -29,7 +29,7 @@ import org.structr.core.cypher.CypherQueryHandler;
  *
  * @author Christian Morgner
  */
-public class CypherProperty<T> extends PrimitiveProperty<T> {
+public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 	
 	private CypherQueryHandler handler = null;
 	

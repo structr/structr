@@ -27,17 +27,20 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.notion.Notion;
 import org.structr.core.traversal.TraverserInterface;
 
 /**
- *
+ * A property that uses a {@see TraverserInterface} to return a single entity.
+ * 
  * @author Christian Morgner
  */
 public class TraverserEntityProperty<T extends AbstractNode> extends AbstractReadOnlyProperty<T> {
 
-	private TraverserInterface traverserInterface = null;
+	private TraverserInterface<T> traverserInterface = null;
 	
 	public TraverserEntityProperty(String name, TraverserInterface traverser) {
 		super(name);
@@ -54,7 +57,7 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 		TraversalDescription description = traverserInterface.getTraversalDescription(securityContext);
 		AbstractNode currentNode = (AbstractNode)obj;
 
-		Comparator<AbstractNode> comparator = traverserInterface.getComparator();
+		Comparator<T> comparator = traverserInterface.getComparator();
 		List<T> nodes = getTraversalResults(securityContext, comparator, description, currentNode);
 
 		if (traverserInterface.collapseSingleResult() && nodes.isEmpty()) {
@@ -73,7 +76,7 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 	}
 
 	// ----- private methods -----
-	private List<T> getTraversalResults(SecurityContext securityContext, Comparator<AbstractNode> comparator, TraversalDescription traversalDescription, AbstractNode node) {
+	private List<T> getTraversalResults(SecurityContext securityContext, Comparator<T> comparator, TraversalDescription traversalDescription, AbstractNode node) {
 
 		// use traverser
 		Iterable<Node> nodes = traversalDescription.traverse(node.getNode()).nodes();
@@ -106,5 +109,17 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 	@Override
 	public boolean isCollection() {
 		return false;
+	}
+
+	@Override
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		
+		Notion notion = traverserInterface.getNotion();
+		if (notion != null) {
+		
+			return notion.getEntityConverter(securityContext);
+		}
+		
+		return null;
 	}
 }

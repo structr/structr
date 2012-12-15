@@ -24,7 +24,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
- *
+ * A property group that returns grouped properties from the start node of a relationship.
+ * 
  * @author Christian Morgner
  */
 public class StartNodeGroup extends GroupProperty {

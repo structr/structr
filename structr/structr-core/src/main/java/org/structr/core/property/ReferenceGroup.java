@@ -25,7 +25,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
- *
+ * A property that returns grouped properties from a set of {@see Reference} elements.
+ * 
  * @author Christian Morgner
  */
 public class ReferenceGroup extends GroupProperty {

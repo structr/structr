@@ -28,6 +28,9 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
 
 /**
+ * Contains information about a related node property. This class can be used together
+ * with {@see ReferenceGroup} to return a group of properties from both start and end
+ * node of a relationship.
  * 
  * @author Christian Morgner
  */

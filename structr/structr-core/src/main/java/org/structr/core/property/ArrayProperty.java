@@ -27,10 +27,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+* A property that stores and retrieves an array of the given type.
  *
  * @author Christian Morgner
  */
-public class ArrayProperty<T> extends PrimitiveProperty<T[]> {
+public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	private Class<T> componentType = null;
 	

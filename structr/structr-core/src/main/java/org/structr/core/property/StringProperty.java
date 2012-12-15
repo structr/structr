@@ -23,10 +23,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+ * A property that stores and retrieves a simple String value.
  *
  * @author Christian Morgner
  */
-public class StringProperty extends PrimitiveProperty<String> {
+public class StringProperty extends AbstractPrimitiveProperty<String> {
 	
 	public StringProperty(String name) {
 		this(name, name);

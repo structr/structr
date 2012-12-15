@@ -25,10 +25,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+* A property that stores and retrieves a simple Double value.
  *
  * @author Christian Morgner
  */
-public class DoubleProperty extends PrimitiveProperty<Double> {
+public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	
 	public DoubleProperty(String name) {
 		super(name);

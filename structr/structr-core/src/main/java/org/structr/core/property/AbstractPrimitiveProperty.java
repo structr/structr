@@ -32,22 +32,23 @@ import org.structr.core.graph.TransactionCommand;
 
 
 /**
- *
+ * Abstract base class for primitive properties.
+ * 
  * @author Christian Morgner
  */
-public abstract class PrimitiveProperty<T> extends Property<T> {
+public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
-	private static final Logger logger = Logger.getLogger(PrimitiveProperty.class.getName());
+	private static final Logger logger = Logger.getLogger(AbstractPrimitiveProperty.class.getName());
 	
-	public PrimitiveProperty(String name) {
+	public AbstractPrimitiveProperty(String name) {
 		super(name);
 	}
 
-	public PrimitiveProperty(String jsonName, String dbName) {
+	public AbstractPrimitiveProperty(String jsonName, String dbName) {
 		super(jsonName, dbName);
 	}
 
-	public PrimitiveProperty(String jsonName, String dbName, T defaultValue) {
+	public AbstractPrimitiveProperty(String jsonName, String dbName, T defaultValue) {
 		super(jsonName, dbName, defaultValue);
 	}
 	
@@ -143,7 +144,7 @@ public abstract class PrimitiveProperty<T> extends Property<T> {
 						} else {
 
 							// Setting last modified date explicetely is not allowed
-							if (!PrimitiveProperty.this.equals(AbstractNode.lastModifiedDate)) {
+							if (!AbstractPrimitiveProperty.this.equals(AbstractNode.lastModifiedDate)) {
 
 								propertyContainer.setProperty(dbName(), convertedValue);
 

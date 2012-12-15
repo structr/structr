@@ -27,10 +27,14 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+ * A property that applies a given converter to its value. This is needed for backwards compatibiliy only
+ * and will be removed in future releases.
  *
+ * @Deprecated This property is needed for backwards compatibility only and will be removed in future releases
+ * 
  * @author Christian Morgner
  */
-public class ConverterProperty<T> extends PrimitiveProperty<T> {
+public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 	
 	private static final Logger logger = Logger.getLogger(ConverterProperty.class.getName());
 	private Constructor constructor    = null;

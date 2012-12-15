@@ -4,14 +4,14 @@ import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.PrimitiveProperty;
+import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.web.converter.PathsConverter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class PathsProperty extends PrimitiveProperty<Set<String>> {
+public class PathsProperty extends AbstractPrimitiveProperty<Set<String>> {
 
 	public PathsProperty(String name) {
 		super(name);

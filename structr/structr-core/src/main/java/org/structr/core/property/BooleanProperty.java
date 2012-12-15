@@ -27,10 +27,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+* A property that stores and retrieves a simple Boolean value.
  *
  * @author Christian Morgner
  */
-public class BooleanProperty extends PrimitiveProperty<Boolean> {
+public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<String>(Arrays.asList(new String[] { "true", "1", "on" }));
 

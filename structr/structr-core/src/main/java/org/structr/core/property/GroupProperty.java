@@ -297,7 +297,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	 * Acts as a wrapper for property keys to prefix their name with
 	 * the name of the surrounding property group.
 	 */
-	private class GroupPropertyWrapper extends PrimitiveProperty {
+	private class GroupPropertyWrapper extends AbstractPrimitiveProperty {
 
 		private PropertyKey wrappedKey = null;
 		

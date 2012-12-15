@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
 /**
+ * A read-only property that returns the number of elements in a collection returned from a given property.
  *
  * @author Christian Morgner
  */

@@ -18,19 +18,43 @@
  */
 package org.structr.core.property;
 
+import org.structr.common.StructrTest;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.TestFour;
+
 /**
- * A read-only {@see Reference}.
  *
  * @author Christian Morgner
  */
-public class ReadOnlyReference<T> extends Reference<T> {
+public class BooleanPropertyTest extends StructrTest {
 	
-	public ReadOnlyReference(PropertyKey propertyKey, Key referenceType, PropertyKey<T> referenceKey) {
-		super(propertyKey, referenceType, referenceKey);
-	}
-	
-	@Override
-	public boolean isReadOnlyProperty() {
-		return true;
+	public void test() {
+		
+		Property<Boolean> instance = TestFour.booleanProperty;
+		TestFour testEntity        = null;
+		
+		try {
+			testEntity = createTestNode(TestFour.class);
+			
+		} catch (FrameworkException fex) {
+			
+			fail("Unable to create test node.");
+		}
+		
+		assertNotNull(testEntity);
+		
+		// store boolean in the test entitiy
+		Boolean value = Boolean.TRUE;
+		
+		try {
+			instance.setProperty(securityContext, testEntity, value);
+			
+		} catch (FrameworkException fex) {
+			
+			fail("Unable to store array");
+		}
+
+		// check value from database
+		assertEquals(value, instance.getProperty(securityContext, testEntity, true));
 	}
 }

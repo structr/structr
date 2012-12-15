@@ -26,6 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
 /**
+ * A property that returns the end node of a hyperrelationship.
  *
  * @author Christian Morgner
  */

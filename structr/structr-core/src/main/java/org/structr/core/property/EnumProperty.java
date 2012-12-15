@@ -25,10 +25,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+* A property that stores and retrieves a simple enum value of the given type.
  *
  * @author Christian Morgner
  */
-public class EnumProperty<T extends Enum> extends PrimitiveProperty<T> {
+public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	
 	private Class<T> enumType = null;
 	
