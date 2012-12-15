@@ -31,7 +31,8 @@ import org.structr.core.entity.Image;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * A property that automatically created a thumbnail for an image. (?)
+ * 
  * @author Axel Morgner
  */
 public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {

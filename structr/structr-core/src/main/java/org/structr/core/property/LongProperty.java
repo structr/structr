@@ -25,10 +25,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
- *
+ * A property that stores and retrieves a simple Long value.
+ * 
  * @author Christian Morgner
  */
-public class LongProperty extends PrimitiveProperty<Long> {
+public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	
 	public LongProperty(String name) {
 		super(name);

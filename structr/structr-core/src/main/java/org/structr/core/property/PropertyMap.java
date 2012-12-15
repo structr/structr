@@ -33,7 +33,8 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 
 /**
- * Refactoring helper.
+ * A container for properties and their values that is used for input/output and database
+ * conversion.
  * 
  * @author Christian Morgner
  */

@@ -29,11 +29,10 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.notion.Notion;
 
 /**
+ * A property that wraps a {@see PropertyNotion} with the given notion around a {@see CollectionProperty}.
  *
  * @author Christian Morgner
  */
-
-
 public class CollectionNotionProperty<S extends GraphObject, T> extends Property<List<T>> {
 	
 	private static final Logger logger = Logger.getLogger(CollectionIdProperty.class.getName());

@@ -5,7 +5,8 @@
 package org.structr.core.property;
 
 /**
- * Date converter for the ISO 8601 format.
+* A property that stores and retrieves a Date string in ISO8601 format. This property
+* uses a long value internally to provide millisecond precision.
  * 
  * @author Christian Morgner
  */

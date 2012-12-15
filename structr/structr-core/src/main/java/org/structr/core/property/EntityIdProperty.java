@@ -23,6 +23,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 
 /**
+ * A property that wraps a {@see PropertyNotion} with the entity's UUID around an {@see EntityProperty}.
  *
  * @author Christian Morgner
  */

@@ -26,10 +26,11 @@ import org.structr.core.converter.RelatedNodePropertyMapper;
 import org.structr.core.entity.AbstractNode;
 
 /**
- *
+ * A property that returns another property value from a related node.
+ * 
  * @author Christian Morgner
  */
-public class RelatedNodeProperty<T> extends PrimitiveProperty<T> {
+public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	
 	private EntityProperty<? extends AbstractNode> sourceKey = null;
 	private PropertyKey targetKey                            = null;

@@ -33,7 +33,10 @@ import org.structr.core.converter.PropertyConverter;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * A generic dummy property that does nothing. Please do not use.
  *
+ * @Deprectated This property has not functionality
+ * 
  * @author Christian Morgner
  */
 public class GenericProperty<T> extends Property<T> {

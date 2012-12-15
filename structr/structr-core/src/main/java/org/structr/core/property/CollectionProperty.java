@@ -40,6 +40,7 @@ import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
 /**
+ * A property that defines a relationship with the given parameters between a node and a collection of other nodes.
  *
  * @author Christian Morgner
  */

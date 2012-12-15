@@ -25,10 +25,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+* A property that stores and retrieves a simple Integer value.
  *
  * @author Christian Morgner
  */
-public class IntProperty extends PrimitiveProperty<Integer> {
+public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
 	public IntProperty(String name) {
 		this(name, name, null);

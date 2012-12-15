@@ -26,6 +26,7 @@ import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.graph.search.TextualSearchAttribute;
 
 /**
+ * Abstract base class for all property types.
  *
  * @author Christian Morgner
  */

@@ -22,7 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.Property;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.*;
 
 /**
  *
@@ -30,9 +30,14 @@ import org.structr.core.property.ArrayProperty;
  */
 public class TestThree extends AbstractNode {
 	
-	public static final Property<String[]> stringArrayProperty = new ArrayProperty<String>("stringArrayProperty", String.class);
+	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<String>("stringArrayProperty", String.class);
+	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty");
+	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty");
+	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty");
+	public static final Property<Long>          longProperty        = new LongProperty("longProperty");
+	public static final Property<String>        stringProperty      = new StringProperty("stringProperty");
 	
 	public static final View publicView = new View(TestThree.class, PropertyView.Public,
-		stringArrayProperty
+		stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty
 	);
 }

@@ -27,11 +27,14 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.notion.Notion;
 import org.structr.core.traversal.TraverserInterface;
 
 /**
+ * A property that uses a {@see TraverserInterface} to return a collection of entities.
  *
  * @author Christian Morgner
  */
@@ -102,5 +105,17 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
+		
+		Notion notion = traverserInterface.getNotion();
+		if (notion != null) {
+		
+			return notion.getCollectionConverter(securityContext);
+		}
+		
+		return null;
 	}
 }

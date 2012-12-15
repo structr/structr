@@ -28,10 +28,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+* A property that stores and retrieves a simple string-based Date with
+* the given date format pattern. This property uses a long value internally
+* to provide millisecond precision.
  *
  * @author Christian Morgner
  */
-public class DateProperty extends PrimitiveProperty<Date> {
+public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	
 	private SimpleDateFormat dateFormat = null;
 	

@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.test;
+package org.structr.rest.test.property;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
@@ -27,13 +27,13 @@ import static org.hamcrest.Matchers.*;
  *
  * @author Christian Morgner
  */
-public class ArrayPropertyRestTest extends StructrRestTest {
+public class LongPropertyRestTest extends StructrRestTest {
 	
-	public void testArrayPropertyViaRest() {
+	public void testViaRest() {
 		
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.body(" { 'stringArrayProperty' : ['one', 'two', 'three', 'four', 'five'] } ")
+			.body(" { 'longProperty' : 2857312362 } ")
 		.expect()
 			.statusCode(201)
 		.when()
@@ -48,11 +48,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
-			.body("result[0].stringArrayProperty[0]", equalTo("one"))
-			.body("result[0].stringArrayProperty[1]", equalTo("two"))
-			.body("result[0].stringArrayProperty[2]", equalTo("three"))
-			.body("result[0].stringArrayProperty[3]", equalTo("four"))
-			.body("result[0].stringArrayProperty[4]", equalTo("five"))
+			.body("result[0].longProperty", equalTo(2857312362L))
 		.when()
 			.get("/test_threes");
 		
