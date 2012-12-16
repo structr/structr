@@ -25,7 +25,7 @@ var win = $(window);
 
 $(document).ready(function() {
     Structr.registerModule('images', _Images);
-    Structr.classes.push('folder');
+//    Structr.classes.push('folder');
     Structr.classes.push('image');
     _Images.resize();
     win.resize(function() {
@@ -38,19 +38,19 @@ var _Images = {
     icon : 'icon/page_white.png',
     add_file_icon : 'icon/page_white_add.png',
     delete_file_icon : 'icon/page_white_delete.png',
-    add_folder_icon : 'icon/folder_add.png',
-    folder_icon : 'icon/folder.png',
-    delete_folder_icon : 'icon/folder_delete.png',
+//    add_folder_icon : 'icon/folder_add.png',
+//    folder_icon : 'icon/folder.png',
+//    delete_folder_icon : 'icon/folder_delete.png',
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
         //Structr.classes.push('file');
         //Structr.classes.push('folder');
         //Structr.classes.push('image');
-        pageSize['Folder'] = 25;
+//        pageSize['Folder'] = 25;
         pageSize['Image'] = 25;
         
-        page['Folder'] = 1;
+//        page['Folder'] = 1;
         page['Image'] = 1;
 
     
@@ -86,11 +86,12 @@ var _Images = {
         if (debug) console.log('onload');
         if (palette) palette.remove();
 
-        main.append('<table id="dropArea"><tr><td id="folders"></td><td id="images"></td></tr></table>');
-        folders = $('#folders');
+//        main.append('<table id="dropArea"><tr><td id="folders"></td><td id="images"></td></tr></table>');
+        main.append('<table id="dropArea"><tr><td id="images"></td></tr></table>');
+//        folders = $('#folders');
         images = $('#images');
         
-        _Images.refreshFolders();
+//        _Images.refreshFolders();
         _Images.refreshImages();
 
     //	_Images.resize();
@@ -223,7 +224,7 @@ var _Images = {
 
         if (debug) console.log('Files.appendFileElement', file, folderId, add, hasChildren);
         
-        if (!folderId && file.parentFolder) return false;
+        //if (!folderId && file.parentFolder) return false;
         
 
         var div;
