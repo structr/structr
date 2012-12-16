@@ -71,6 +71,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.Result;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -335,7 +336,7 @@ public class Importer {
 				// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 				if (!key.equals("text")) {
 
-					attrs.add(new NodeAttribute(new GenericProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue()));
+					attrs.add(new NodeAttribute(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue()));
 				}
 
 			}
