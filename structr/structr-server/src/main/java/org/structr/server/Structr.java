@@ -100,7 +100,7 @@ public class Structr {
 
 	private Map<String, ServletHolder> servlets                = new LinkedHashMap<String, ServletHolder>();
 	private Map<String, String> servletParams                  = new HashMap<String, String>();
-	private ResourceHandler resourceHandler                    = null;
+	private List<ContextHandler> resourceHandler		   = new LinkedList<ContextHandler>();
 
 	private boolean enableRewriteFilter                        = false;
 	private boolean quiet                                      = false;
@@ -251,11 +251,16 @@ public class Structr {
 	}
 		
 	public Structr addResourceHandler(String contextPath, String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
-		staticResourceContextPath = contextPath;
-		resourceHandler = new ResourceHandler();
+		
+		ResourceHandler resourceHandler = new ResourceHandler();
 		resourceHandler.setDirectoriesListed(directoriesListed);
 		resourceHandler.setWelcomeFiles(welcomeFiles);
 		resourceHandler.setResourceBase(resourceBase);		
+		ContextHandler staticResourceHandler = new ContextHandler();
+		staticResourceHandler.setContextPath(contextPath);
+		staticResourceHandler.setHandler(resourceHandler);
+		
+		this.resourceHandler.add(staticResourceHandler);
 		return this;
 	}
 	
@@ -454,13 +459,13 @@ public class Structr {
 		}
 		
 		// add possible resource handler for static resources
-		if (resourceHandler != null) {
+		if (!resourceHandler.isEmpty()) {
 
-			ContextHandler staticResourceHandler = new ContextHandler();
-			staticResourceHandler.setContextPath(staticResourceContextPath);
-			staticResourceHandler.setHandler(resourceHandler);
+			for (ContextHandler contextHandler : resourceHandler) {
+
+				contexts.addHandler(contextHandler);
 			
-			contexts.addHandler(staticResourceHandler);
+			}
 		
 		}
 		
