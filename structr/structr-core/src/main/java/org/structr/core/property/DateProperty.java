@@ -36,7 +36,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	
-	private SimpleDateFormat dateFormat = null;
+	protected SimpleDateFormat dateFormat = null;
 	
 	public DateProperty(String name, String pattern) {
 		super(name);
