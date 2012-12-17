@@ -45,9 +45,9 @@ var _Files = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-    //Structr.classes.push('file');
-    //Structr.classes.push('folder');
-    //Structr.classes.push('image');
+        //Structr.classes.push('file');
+        //Structr.classes.push('folder');
+        //Structr.classes.push('image');
         pageSize['Folder'] = 25;
         pageSize['File'] = 25;
         pageSize['Image'] = 25;
@@ -622,25 +622,15 @@ var _Files = {
     },
 
     updateTextFile : function(file, text) {
-
-        
-
         var chunks = Math.ceil(text.length / chunkSize);
-        
         //console.log(text, text.length, chunks);
-                
         for (var c=0; c<chunks; c++) {
-                        
             var start = c*chunkSize;
             var end = (c+1)*chunkSize;
-                        
             var chunk = utf8_to_b64(text.substring(start,end));
             // TODO: check if we can send binary data directly
-
             Command.chunk(file.id, c, chunkSize, chunk);
-
         }
-
     },
 
     appendEditFileIcon : function(parent, file) {
@@ -665,37 +655,42 @@ var _Files = {
     },
 
     editContent : function (button, file, element) {
+        debug = true;
+        var url = viewRootUrl + file.name + '?edit';
+        if (debug) console.log('editContent', button, file, element, url);
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         var text;
         
+        var contentType;
+        var dataType = 'text';
+                
+        if (file.name.endsWith('.css')) {
+            contentType = 'text/css';
+        } else if (file.name.endsWith('.js')) {
+            contentType = 'text/javascript';
+        } else {
+            contentType = 'text/plain';
+        }
+        
+        if (debug) console.log('contentType, dataType', contentType, dataType);
+        
         $.ajax({
-            url: viewRootUrl + file.name + '?edit',
-            async: true,
-            //dataType: 'json',
-            contentType: 'text/plain',
+            url: url,
+            //async: false,
+            dataType: dataType,
+            contentType: contentType,
             headers: headers,
             success: function(data) {
-                //console.log(data);
+                console.log(data);
                 text = data;
-                
-                var mode;
-                
-                if (file.name.endsWith('.css')) {
-                    mode = 'text/css';
-                } else if (file.name.endsWith('.js')) {
-                    mode = 'text/javascript';
-                } else {
-                    mode = 'text/plain';
-                }
-                
                 if (isDisabled(button)) return;
                 var div = element.append('<div class="editor"></div>');
                 if (debug) console.log(div);
                 var contentBox = $('.editor', element);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
-                    mode:  mode,
+                    mode:  contentType,
                     lineNumbers: true
                 //            ,
                 //            onChange: function(cm, changes) {
@@ -724,17 +719,21 @@ var _Files = {
                 editor.id = file.id;
                 
                 element.parent().children('.dialogBtn').append('<button id="saveFile"> Save </button>');
+                element.parent().children('.dialogBtn').append('<button id="saveAndClose"> Save and close</button>');
                 $(element.parent().find('button#saveFile').first()).on('click', function(e) {
                     e.stopPropagation();
-                    
-                    //console.log(editor.getValue());
-                    
                     _Files.updateTextFile(file, editor.getValue());
-                   
                 });
-                        
-         
-
+                $(element.parent().find('button#saveAndClose').first()).on('click', function(e) {
+                    e.stopPropagation();
+                    _Files.updateTextFile(file, editor.getValue());
+                    setTimeout(function() {
+                        $('.dialogCancelButton', $('.dialogBtn')).click();
+                    }, 100);
+                });
+            },
+            error : function(xhr, statusText, error) {
+                console.log(xhr, statusText, error);
             }
         });
         

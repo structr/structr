@@ -18,7 +18,6 @@
  */
 
 var defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton;
 var searchField;
 
 var browser = (typeof document == 'object');
@@ -37,15 +36,6 @@ if (browser) {
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
 
-        dialogBox = $('#dialogBox');
-        dialogMsg = $('.dialogMsg', dialogBox);
-        dialogBtn = $('.dialogBtn', dialogBox);
-        dialogTitle = $('.dialogTitle', dialogBox);
-        dialogMeta = $('.dialogMeta', dialogBox);
-        dialogText = $('.dialogText', dialogBox);
-        dialogCancelButton = $('.dialogCancelButton', dialogBox);
-        dialogSaveButton = $('.save', dialogBox);
-
     });
 } else {
     defaultView = 'public';
@@ -61,7 +51,7 @@ var _Crud = {
     schemaLoading : false,
     schemaLoaded : false,
     
-    types : [ "User", "Group", "Page", "File", "Image", "Content" ],
+    types : [  "Conference", "Person", "Session", "Track" ],
     views : [ "public", "all"],
 
     schema : [],
@@ -1167,7 +1157,7 @@ var _Crud = {
             dialogText.empty();
             dialogMsg.empty();
             dialogMeta.empty();
-            dialogBtn.empty();
+            //dialogBtn.empty();
             
             if (text) dialogTitle.html(text);
             if (callbackCancel) dialogCancelButton.on('click', function(e) {

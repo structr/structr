@@ -63,7 +63,7 @@ function connect() {
             if (debug) console.log(message);
 
             var data = $.parseJSON(message.data);
-            console.log(data);
+            //console.log(data);
 
             //var msg = $.parseJSON(message);
             var type = data.data.type;
@@ -225,7 +225,7 @@ function connect() {
 				
                 if (debug) console.log('LIST:', result);
                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
-                console.log('page count for type ' + type, pageCount[type], $('#pager' + type), $('.pageCount', $('#pager' + type)));
+                //console.log('page count for type ' + type, pageCount[type], $('#pager' + type), $('.pageCount', $('#pager' + type)));
                 $('.pageCount', $('#pager' + type)).val(pageCount[type]);
                 
                 $(result).each(function(i, entity) {
@@ -403,31 +403,31 @@ function connect() {
                     if (debug) console.log('else');
                 
                     var element = $('.' + data.id + '_');
-                    var input = $('.props tr td.value input', element);
+//                    var input = $('.props tr td.value input', element);
                     if (debug) console.log(element);
-
-                    // remove save and cancel icons
-                    input.parent().children('.icon').each(function(i, img) {
-                        $(img).remove();
-                    });
-
-                    // make inactive
-                    input.removeClass('active');
-                    if (debug) console.log(element);
+//
+//                    // remove save and cancel icons
+//                    input.parent().children('.icon').each(function(i, img) {
+//                        $(img).remove();
+//                    });
+//
+//                    // make inactive
+//                    input.removeClass('active');
 
                     // update values with given key
-                    for (var key in data.data) {
-                    
-                        var inputElement = element.children('.props tr td.' + key + ' input');
+                    if (debug) console.log(data, data.data);
+                    $.each(Object.keys(data.data), function(k, key) {
+                    //for (var key in data.data) {
+                        var inputElement = $('td.' + key + '_ input', element);
+                        if (debug) console.log(inputElement);
                         var newValue = data.data[key];
-                        if (debug) console.log(key, newValue, typeof newValue);
+                        console.log(key, newValue, typeof newValue);
 
-                        var attrElement = element.children('.' + key + '_');
+                        var attrElement = $('.' + key + '_', element);
                     
                         if (attrElement && $(attrElement).length) {
                     
                             var tag = $(attrElement).get(0).tagName.toLowerCase();
-                        
                         
                             attrElement.val(value);
                             attrElement.show();
@@ -485,15 +485,15 @@ function connect() {
                             }, 100);
                         }
 
-                    }
+                    });
                 
 
                 
                 }
                 
-                if (input) {
-                    input.data('changed', false);
-                }
+//                if (input) {
+//                    input.data('changed', false);
+//                }
                 
                 _Pages.reloadPreviews();
                 

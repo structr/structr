@@ -281,7 +281,7 @@ var _Entities = {
             views = ['all', 'in', 'out', '_html_'];
         }
 
-        dialog.empty();
+        //dialog.empty();
         Structr.dialog('Edit Properties of ' + entity.id,
             function() {
                 return true;
@@ -358,10 +358,10 @@ var _Entities = {
                         //			if (view == 'in' || view == 'out') {
                         //			    tabView.append('<br><h3>Relationship ' + res['id']+ '</h3>')
                         //			}
-				
-                        tabView.append('<table class="props ' + view + '_' + res['id'] +'"></table>');
+			console.log('res[id]', res['id']);
+                        tabView.append('<table class="props ' + view + ' ' + res['id'] +'_"></table>');
 
-                        var props = $('.props.' + view + '_' + res['id'], tabView);
+                        var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
 				
                         $(keys).each(function(i, key) {
 
@@ -389,7 +389,7 @@ var _Entities = {
                                     
                                     if (isIn(key, _Entities.readOnlyAttrs)) {
                                         
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td></tr>');
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_ readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td></tr>');
                                 
                                     } else if (isIn(key, _Entities.booleanAttrs)) {
                                     

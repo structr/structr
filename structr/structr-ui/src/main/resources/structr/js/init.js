@@ -30,18 +30,29 @@ var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
 var dialog;
+var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, loginButton;
 
 var page = [];
 var pageSize = [];
 
 $(document).ready(function() {
+
+    header = $('#header');
+    main = $('#main');
     
     dialog = $('#dialogBox .dialogText');
+    dialogBox = $('#dialogBox');
+    dialogMsg = $('.dialogMsg', dialogBox);
+    dialogBtn = $('.dialogBtn', dialogBox);
+    dialogTitle = $('.dialogTitle', dialogBox);
+    dialogMeta = $('.dialogMeta', dialogBox);
+    dialogText = $('.dialogText', dialogBox);
+    dialogCancelButton = $('.dialogCancelButton', dialogBtn);
+    dialogSaveButton = $('.save', dialogBox);
+    loginButton = $('#loginButton');
 
     dmp = new diff_match_patch()
     if (debug) console.log('Debug mode');
-    header = $('#header');
-    main = $('#main');
         
     $('#import_json').on('click', function(e) {
         e.stopPropagation();
@@ -52,7 +63,7 @@ $(document).ready(function() {
         });
     });
     
-    $('#loginButton').on('click', function(e) {
+    loginButton.on('click', function(e) {
         e.stopPropagation();
         var username = $('#usernameField').val();
         var password = $('#passwordField').val();
@@ -137,15 +148,15 @@ $(document).ready(function() {
     $('#usernameField').keypress(function(e) {
         e.stopPropagation();
         if (e.which == 13) {
-            jQuery(this).blur();
-            jQuery('#loginButton').focus().click();
+            $(this).blur();
+            loginButton.focus().click();
         }
     });
     $('#passwordField').keypress(function(e) {
         e.stopPropagation();
         if (e.which == 13) {
-            jQuery(this).blur();
-            jQuery('#loginButton').focus().click();
+            $(this).blur();
+            loginButton.focus().click();
         }
     });
 	
@@ -153,7 +164,7 @@ $(document).ready(function() {
     
     $(document).keyup(function(e) {
         if (e.keyCode == 27) {
-            $('#dialogBox .dialogCancelButton').click();
+            dialogCancelButton.click();
         }
     });     
 	
@@ -340,15 +351,15 @@ var Structr = {
 
     dialog : function(text, callbackOk, callbackCancel) {
 
-        $('#dialogBox .dialogMsg').empty();
-        $('#dialogBox .dialogMeta').empty();
-        $('#dialogBox .dialogBtn').empty();
+        dialogMsg.empty();
+        dialogMeta.empty();
+        $(':not(.dialogCancelButton)', dialogBtn).remove();
             
-        if (text) $('#dialogBox .dialogTitle').html(text);
-        if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function(e) {
+        if (text) dialogTitle.html(text);
+        if (callbackCancel) dialogCancelButton.on('click', function(e) {
             e.stopPropagation();
             callbackCancel();
-            $('#dialogBox .dialogText').empty();
+            dialogText.empty();
             _Pages.reloadPreviews();
             $.unblockUI({
                 fadeOut: 25
@@ -359,7 +370,7 @@ var Structr = {
         $.blockUI({
             fadeIn: 25,
             fadeOut: 25,
-            message: $('#dialogBox'),
+            message: dialogBox,
             css: {
                 border: 'none',
                 backgroundColor: 'transparent'
@@ -772,7 +783,7 @@ function formatValue(value, key, type, id) {
         $(value).each(function(i, v) {
             //console.log(v);
             out += JSON.stringify(v);
-            //out += '<tr><td>' + key + '</td><td>' + formatValue(obj[key]) + '</td></tr>' ;
+        //out += '<tr><td>' + key + '</td><td>' + formatValue(obj[key]) + '</td></tr>' ;
         });
         
         //out += '</table>';

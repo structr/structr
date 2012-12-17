@@ -50,6 +50,10 @@ h2 {
     color: white;
 }
 
+button {
+    font-family: Arial, Helvetica, Sans-serif ! important;
+}
+
 #header {
     /*    width: 100%;*/
     height: 60px;
@@ -619,9 +623,10 @@ button img {
 
 #dialogBox {
     width: 800px;
-    max-height: 800px;
-    margin-left: -284px;
-    margin-top: -300px;
+    /*max-height: 800px;*/
+    margin: -300px 0 0 -284px;
+    padding-bottom: 48px;
+    position: relative;
 }
 
 .dialogTitle {
@@ -631,13 +636,29 @@ button img {
 }
 
 .dialogMsg {
-    text-align: center;
+    /*text-align: center;*/
     height: 36px;
+    text-align: left;
+    width: 300px;
+    position: absolute;
+    left: 24px;
+    bottom: 24px;
 }
 
 .dialogBtn {
+    width: 300px;
+    position: absolute;
+    right: 24px;
+    bottom: 24px;
     text-align: left;
     height: 36px;
+    padding: 0;
+    margin: 0;
+}
+
+.dialogBtn button {
+    float: right;
+    margin: 8px 0 0 12px;
 }
 
 .dialogText, .dialogMeta {
@@ -650,6 +671,8 @@ button img {
 
 .dialogText {
     /*height: 600px;*/
+    max-height: 800px;
+    
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {
@@ -657,9 +680,10 @@ button img {
     vertical-align: top;
 }
 
-.okButton, .dialogOkButton, .dialogCancelButton {
+/*.okButton, .dialogOkButton, .dialogCancelButton {
+    float: right;
     padding-left: 8px ! important;
-}
+}*/
 
 #login {
     padding-top: 16px;
@@ -750,9 +774,10 @@ button img {
 }
 
 div.infoBox {
+    position: absolute;
     width: 240px;
     min-height: 12px;
-    margin: 12px auto;
+    /*margin: 12px 0 12px 60px;*/
     text-align: left;
     padding: 6px 28px;
     font-size: 10pt;

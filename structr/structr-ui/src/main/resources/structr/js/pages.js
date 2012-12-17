@@ -161,13 +161,14 @@ var _Pages = {
                 $('#_name', dialog).val(addr.substring(addr.lastIndexOf("/")+1));
             });
 
-            dialog.append('<button id="startImport">Start Import</button>');
 
             Structr.dialog('Import Page from URL', function() {
                 return true;
             }, function() {
                 return true;
             });
+            
+            dialogBtn.append('<button id="startImport">Start Import</button>');
 			
             $('#startImport').on('click', function(e) {
                 e.stopPropagation();
@@ -557,23 +558,23 @@ var _Pages = {
                         self.parent().children('.structr-node').show();
                     });
 
-                    $('b', el).on('click', function(e) {
-                        e.stopPropagation();
-                        var self = $(this);
-                        var element = self.closest('[structr_element_id]');
-                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-                        entity.type = element.prop('structr_type');
-                        entity.name = element.prop('structr_name');
-                        if (debug) console.log('edit', entity);
-                        //var parentId = element.prop('structr_element_id');
-                        if (debug) console.log(element);
-                        Structr.dialog('Edit Properties of ' + entity.id, function() {
-                            if (debug) console.log('save')
-                        }, function() {
-                            if (debug) console.log('cancelled')
-                        });
-                        _Entities.showProperties(entity);
-                    });
+//                    $('b', el).on('click', function(e) {
+//                        e.stopPropagation();
+//                        var self = $(this);
+//                        var element = self.closest('[structr_element_id]');
+//                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
+//                        entity.type = element.prop('structr_type');
+//                        entity.name = element.prop('structr_name');
+//                        if (debug) console.log('edit', entity);
+//                        //var parentId = element.prop('structr_element_id');
+//                        if (debug) console.log(element);
+////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
+////                            if (debug) console.log('save')
+////                        }, function() {
+////                            if (debug) console.log('cancelled')
+////                        });
+//                        _Entities.showProperties(entity);
+//                    });
 
                     $('.delete_icon', el).on('click', function(e) {
                         e.stopPropagation();
