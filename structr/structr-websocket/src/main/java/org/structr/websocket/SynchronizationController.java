@@ -225,6 +225,23 @@ public class SynchronizationController implements StructrTransactionListener {
 				logger.log(Level.WARNING, "Unable to convert properties from type {0} to input type", relationship.getClass());
 			}
 
+		} else if (graphObject instanceof AbstractNode) {
+			
+			AbstractNode node = (AbstractNode) graphObject;
+			
+			try {
+				Map<String, Object> nodeProperties = new HashMap<String, Object>();
+				nodeProperties.put(key.dbName(), newValue);
+				nodeProperties.put(AbstractNode.type.dbName(), node.getType()); // needed for type resolution
+				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, node.getClass(), PropertyMap.databaseTypeToJavaType(securityContext, graphObject, nodeProperties));
+				properties.remove(AbstractNode.type.jsonName()); // remove type again
+				message.setNodeData(properties);
+				
+			} catch(FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Unable to convert properties from type {0} to input type", node.getClass());
+			}
+		
 		}
 
 		message.setId(uuid);

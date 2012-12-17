@@ -167,19 +167,19 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 					
 					modifiedProperties.add(toJsonPrimitive(modifiedKey));
 
-					Object newValue = graphObject.getProperty(modifiedKey);
-
-					if (newValue != null) {
-
-						if (graphObject instanceof AbstractNode) {
-
-							src.getNodeData().put(modifiedKey.jsonName(), newValue);
-						} else {
-
-							src.getRelData().put(modifiedKey.jsonName(), newValue);
-						}
-
-					}
+//					Object newValue = graphObject.getProperty(modifiedKey);
+//
+//					if (newValue != null) {
+//
+//						if (graphObject instanceof AbstractNode) {
+//
+//							src.getNodeData().put(modifiedKey.jsonName(), newValue);
+//						} else {
+//
+//							src.getRelData().put(modifiedKey.jsonName(), newValue);
+//						}
+//
+//					}
 
 				}
 				
