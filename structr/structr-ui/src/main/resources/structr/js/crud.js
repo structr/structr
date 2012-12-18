@@ -51,8 +51,8 @@ var _Crud = {
     schemaLoading : false,
     schemaLoaded : false,
     
-    types : [  "Conference", "Person", "Session", "Track" ],
-    views : [ "public", "all"],
+    types : [  "User", "Page" ],
+    views : [ "public", "all", "ui"],
 
     schema : [],
     keys : [],
@@ -212,11 +212,8 @@ var _Crud = {
                     //console.log('schema loaded?', _Crud.isSchemaLoaded());
                     
                     if (_Crud.isSchemaLoaded()) {
-                        
-                        console.log('Schema loaded successfully');
-        
+                        //console.log('Schema loaded successfully');
                         if (browser) _Crud.initTabs();
-                    
                     }
                     
                 });
