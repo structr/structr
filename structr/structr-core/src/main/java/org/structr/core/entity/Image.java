@@ -47,6 +47,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ThumbnailProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,9 +63,14 @@ public class Image extends File {
 
 	public static final Property<Integer> height = new IntProperty("height");
 	public static final Property<Integer> width  = new IntProperty("width");
+	
+	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall", new ThumbnailParameters(100, 100, false));
+	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid", new ThumbnailParameters(300, 300, false));
+	
+	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").systemProperty();
 
-	public static final View uiView              = new View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height);
-	public static final View publicView          = new View(Image.class, PropertyView.Public, type, name, width, height);
+	public static final View uiView              = new View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid);
+	public static final View publicView          = new View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid);
 
 	//~--- methods --------------------------------------------------------
 
@@ -304,9 +311,11 @@ public class Image extends File {
 							thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
 							thumbnail.setWidth(tnWidth);
 							thumbnail.setHeight(tnHeight);
-							thumbnail.setHidden(originalImage.getHidden());
-							thumbnail.setVisibleToPublicUsers(originalImage.getVisibleToPublicUsers());
-							thumbnail.setVisibleToAuthenticatedUsers(originalImage.getVisibleToAuthenticatedUsers());
+							
+							thumbnail.setProperty(Image.hidden,				originalImage.getProperty(Image.hidden));
+							thumbnail.setProperty(Image.visibleToAuthenticatedUsers,		originalImage.getProperty(Image.visibleToAuthenticatedUsers));
+							thumbnail.setProperty(Image.visibleToPublicUsers,		originalImage.getProperty(Image.visibleToPublicUsers));
+							
 							thumbnailRelationship.setProperty(Image.width, tnWidth);
 							thumbnailRelationship.setProperty(Image.height, tnHeight);
 							thumbnailRelationship.setProperty(Image.checksum, newChecksum);
@@ -359,7 +368,7 @@ public class Image extends File {
 	 */
 	public boolean isThumbnail() {
 
-		return hasRelationship(RelType.THUMBNAIL, Direction.INCOMING);
+		return getProperty(Image.isThumbnail) || hasRelationship(RelType.THUMBNAIL, Direction.INCOMING);
 
 	}
 
@@ -376,83 +385,83 @@ public class Image extends File {
 		setProperty(Image.height, height);
 
 	}
-
-	/** Copy public flag to all thumbnails */
-	@Override
-	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
-
-		super.setVisibleToPublicUsers(publicFlag);
-
-		for (Image thumbnail : getThumbnails()) {
-
-			thumbnail.setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
-		}
-
-	}
-
-	/** Copy visible for authenticated users flag to all thumbnails */
-	@Override
-	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
-
-		super.setVisibleToAuthenticatedUsers(flag);
-
-		for (Image thumbnail : getThumbnails()) {
-
-			thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
-		}
-
-	}
-
-	/** Copy hidden flag to all thumbnails */
-	@Override
-	public void setHidden(final boolean hidden) throws FrameworkException {
-
-		super.setHidden(hidden);
-
-		for (Image thumbnail : getThumbnails()) {
-
-			thumbnail.setProperty(AbstractNode.hidden, hidden);
-		}
-
-	}
-
-	/** Copy deleted flag to all thumbnails */
-	@Override
-	public void setDeleted(final boolean deleted) throws FrameworkException {
-
-		super.setDeleted(deleted);
-
-		for (Image thumbnail : getThumbnails()) {
-
-			thumbnail.setProperty(AbstractNode.deleted, deleted);
-		}
-
-	}
-
-	/** Copy visibility start date to all thumbnails */
-	@Override
-	public void setVisibilityStartDate(final Date date) throws FrameworkException {
-
-		super.setVisibilityStartDate(date);
-
-		for (Image thumbnail : getThumbnails()) {
-
-			thumbnail.setProperty(AbstractNode.visibilityStartDate, date);
-		}
-
-	}
-
-	/** Copy visibility end date to all thumbnails */
-	@Override
-	public void setVisibilityEndDate(final Date date) throws FrameworkException {
-
-		super.setVisibilityEndDate(date);
-
-		for (Image thumbnail : getThumbnails()) {
-
-			thumbnail.setProperty(AbstractNode.visibilityEndDate, date);
-		}
-
-	}
+//
+//	/** Copy public flag to all thumbnails */
+//	@Override
+//	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
+//
+//		super.setVisibleToPublicUsers(publicFlag);
+//
+//		for (Image thumbnail : getThumbnails()) {
+//
+//			thumbnail.setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
+//		}
+//
+//	}
+//
+//	/** Copy visible for authenticated users flag to all thumbnails */
+//	@Override
+//	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
+//
+//		super.setVisibleToAuthenticatedUsers(flag);
+//
+//		for (Image thumbnail : getThumbnails()) {
+//
+//			thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
+//		}
+//
+//	}
+//
+//	/** Copy hidden flag to all thumbnails */
+//	@Override
+//	public void setHidden(final boolean hidden) throws FrameworkException {
+//
+//		super.setHidden(hidden);
+//
+//		for (Image thumbnail : getThumbnails()) {
+//
+//			thumbnail.setProperty(AbstractNode.hidden, hidden);
+//		}
+//
+//	}
+//
+//	/** Copy deleted flag to all thumbnails */
+//	@Override
+//	public void setDeleted(final boolean deleted) throws FrameworkException {
+//
+//		super.setDeleted(deleted);
+//
+//		for (Image thumbnail : getThumbnails()) {
+//
+//			thumbnail.setProperty(AbstractNode.deleted, deleted);
+//		}
+//
+//	}
+//
+//	/** Copy visibility start date to all thumbnails */
+//	@Override
+//	public void setVisibilityStartDate(final Date date) throws FrameworkException {
+//
+//		super.setVisibilityStartDate(date);
+//
+//		for (Image thumbnail : getThumbnails()) {
+//
+//			thumbnail.setProperty(AbstractNode.visibilityStartDate, date);
+//		}
+//
+//	}
+//
+//	/** Copy visibility end date to all thumbnails */
+//	@Override
+//	public void setVisibilityEndDate(final Date date) throws FrameworkException {
+//
+//		super.setVisibilityEndDate(date);
+//
+//		for (Image thumbnail : getThumbnails()) {
+//
+//			thumbnail.setProperty(AbstractNode.visibilityEndDate, date);
+//		}
+//
+//	}
 
 }

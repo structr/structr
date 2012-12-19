@@ -81,6 +81,7 @@ function connect() {
             
             rawResultCount[type] = data.rawResultCount;
             pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
+            Structr.updatePager(type);
 
             {
                 if (debug) console.log('command: ' + command);

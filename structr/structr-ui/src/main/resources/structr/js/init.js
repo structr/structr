@@ -591,12 +591,31 @@ var Structr = {
         return entity;
     },
     
+    updatePager : function(type) {
+        var pager = $('#pager' + type);
+        
+        if (pager) {
+            
+            var pageLeft = $('.pageLeft', pager);
+            var pageRight = $('.pageRight', pager);
+            if (page[type] == 1) {
+                pageLeft.attr('disabled', 'disabled').addClass('disabled');
+            }
+
+            if (page[type] == pageCount[type]) {
+                pageRight.attr('disabled', 'disabled').addClass('disabled');
+            }
+            
+        }
+    },
+    
     addPager : function(el, type) {
         
         el.append('<div class="pager" id="pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
-            + ' Page <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
+            + ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
             + ' of <input class="readonly pageCount" readonly="readonly" size="3">'
-            + ' Page Size: <input class="pageSize" type="text" size="3" value="' + pageSize[type] + '"></div>');
+            + ' Items: <input class="pageSize" type="text" size="3" value="' + pageSize[type] + '"></div>');
+        
         var pager = $('#pager' + type);
         
         var pageLeft = $('.pageLeft', pager);
@@ -626,6 +645,10 @@ var Structr = {
 
         if (page[type] == 1) {
             pageLeft.attr('disabled', 'disabled').addClass('disabled');
+        }
+
+        if (page[type] == pageCount[type]) {
+            pageRight.attr('disabled', 'disabled').addClass('disabled');
         }
 
         pageLeft.on('click', function() {

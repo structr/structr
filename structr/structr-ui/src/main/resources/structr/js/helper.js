@@ -63,7 +63,13 @@ if (typeof String.prototype.lpad != 'function') {
         while (str.length < length)
             str = padString + str;
         return str;
-    }
+    };
+}
+
+if (typeof String.prototype.contains != 'function') {
+    String.prototype.contains = function(pattern) {
+        return this.indexOf(pattern) > 0;
+    };
 }
 
 if (typeof String.prototype.splitAndTitleize != 'function') {
@@ -75,7 +81,7 @@ if (typeof String.prototype.splitAndTitleize != 'function') {
             res.push(part.capitalize());
         })
         return res.join(" ");
-    }
+    };
 }
 
 /**

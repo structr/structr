@@ -51,8 +51,8 @@ var _Crud = {
     schemaLoading : false,
     schemaLoaded : false,
     
-    types : [  "Conference", "Person", "Session", "Track" ],
-    views : [ "public", "all"],
+    types : [  "User", "Page" ],
+    views : [ "public", "all", "ui"],
 
     schema : [],
     keys : [],
@@ -212,11 +212,8 @@ var _Crud = {
                     //console.log('schema loaded?', _Crud.isSchemaLoaded());
                     
                     if (_Crud.isSchemaLoaded()) {
-                        
-                        console.log('Schema loaded successfully');
-        
+                        //console.log('Schema loaded successfully');
                         if (browser) _Crud.initTabs();
-                    
                     }
                     
                 });
@@ -860,9 +857,16 @@ var _Crud = {
         searchField.focus();
     },
 
-    getAndAppendNode : function(parentType, parentId, key, id, cell) {
-        console.log('headers', headers);
-        if (!id) return;
+    getAndAppendNode : function(parentType, parentId, key, obj, cell) {
+        //console.log('headers', headers);
+        if (!obj) return;
+        var id;
+        if ((typeof obj) == 'object') {
+            id = obj.id;
+        } else {
+            id = obj;
+        }
+        
         $.ajax({
             url: rootUrl + id + '/' + _Crud.view[_Crud.type],
             headers: headers,
