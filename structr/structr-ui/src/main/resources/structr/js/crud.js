@@ -857,9 +857,16 @@ var _Crud = {
         searchField.focus();
     },
 
-    getAndAppendNode : function(parentType, parentId, key, id, cell) {
-        console.log('headers', headers);
-        if (!id) return;
+    getAndAppendNode : function(parentType, parentId, key, obj, cell) {
+        //console.log('headers', headers);
+        if (!obj) return;
+        var id;
+        if ((typeof obj) == 'object') {
+            id = obj.id;
+        } else {
+            id = obj;
+        }
+        
         $.ajax({
             url: rootUrl + id + '/' + _Crud.view[_Crud.type],
             headers: headers,

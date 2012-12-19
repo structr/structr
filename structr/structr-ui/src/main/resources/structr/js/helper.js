@@ -81,7 +81,7 @@ if (typeof String.prototype.splitAndTitleize != 'function') {
             res.push(part.capitalize());
         })
         return res.join(" ");
-    }
+    };
 }
 
 /**
