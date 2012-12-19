@@ -29,6 +29,7 @@ import org.structr.core.entity.Image;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
@@ -62,13 +63,22 @@ public class ThumbnailConverter extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
+		if (((Image) this.currentObject).getProperty(Image.isThumbnail)) {
+			return null;
+		}
+		
 		Image thumbnail = ((Image) currentObject).getScaledImage(parameters.getMaxWidth(), parameters.getMaxHeight(), parameters.getCropToFit());
 
 		if (thumbnail == null) {
 			logger.log(Level.WARNING, "Could not create thumbnail for {0}", source);
 			return null;
 		}
-
+		try {
+			thumbnail.setProperty(Image.isThumbnail, true);
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "Could not set isThumbnail property on {0}", thumbnail);
+		}
+		
 		return thumbnail;//.getUuid();
 	}
 }
