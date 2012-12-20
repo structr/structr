@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PATH=$PATH:.
+
+REST_URL=http://localhost:8082/structr/rest
+REST_USER=admin
+REST_PW=admin
+
+export PATH
+export REST_URL
+export REST_USER
+export REST_PW
+
