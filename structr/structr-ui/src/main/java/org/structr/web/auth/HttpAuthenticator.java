@@ -213,7 +213,7 @@ public class HttpAuthenticator implements Authenticator {
 
 		String usernameAndPassword = new String(Base64.decodeBase64(auth.substring(6)));
 
-		logger.log(Level.INFO, "Decoded user and pass: {0}", usernameAndPassword);
+		logger.log(Level.FINE, "Decoded user and pass: {0}", usernameAndPassword);
 
 		String[] userAndPass = StringUtils.split(usernameAndPassword, ":");
 

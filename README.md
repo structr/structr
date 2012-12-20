@@ -1,6 +1,6 @@
 # The structr project
 
-structr is a Java framework for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive Java API and a set of features common to most use cases. This enables developers to build a sophisticated web or mobile app based on Neo4j within hours.
+structr (pronounce it like 'structure') is a Java framework for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive Java API and a set of features common to most use cases. This enables developers to build a sophisticated web or mobile app based on Neo4j within hours.
 
 ### Main features
 - highly configurable RESTful API using Java beans
@@ -12,18 +12,6 @@ structr is a Java framework for mobile and web applications based on the graph d
 
 ### Awards
 structr was awarded with the Graphie Award for the Most Innovative Open Source Graph Application in 2012.
-
-## Use cases
-
-Although structr and graph databases in general have a broad spectrum of use cases, we picked some of them where structr is used in production.
-
-Currently, structr powers ...
-
-- the central backend of a social network with web, mobile and facebook apps
-- structr.org and some other web sites
-- a luxury hotel information website with a large number of images and details
-- a data backend for a multi-tenant web application
-- a mobile scoreboard app for billard matches (Android)
 
 ## Getting started
 structr uses [Apache Maven](http://maven.apache.org/), so you can use Maven to get a demo project up and running in 5 minutes with our simple example archetype.

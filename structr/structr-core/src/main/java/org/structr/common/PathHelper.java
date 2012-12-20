@@ -104,11 +104,20 @@ public class PathHelper {
 		}
 	}
 
-	public static String clean(String path) {
+	public static String clean(final String path) {
 
 		// Remove leading and trailing /
 		return StringUtils.strip(path, PATH_SEP);
 	}
+	
+	public static String replaceWhitespaceByPlus(final String path) {
+		return StringUtils.replace(path, " ", "+");
+	}
+	
+	public static String replaceWhitespaceByPercentTwenty(final String path) {
+		return StringUtils.replace(path, " ", "%20");
+	}
+	
 
 	//~--- get methods ----------------------------------------------------
 

@@ -87,6 +87,7 @@ import java.util.regex.Matcher;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.graph.GetNodeByIdCommand;
@@ -597,6 +598,16 @@ public class HtmlServlet extends HttpServlet {
 		// FIXME: Take full page path into account
 		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
 		
+		// If no results were found, try to replace whitespace by '+' or '%20'
+		
+		if (entryPoints.isEmpty()) {
+			entryPoints = findPossibleEntryPoints(request, PathHelper.getName(PathHelper.replaceWhitespaceByPlus(path)));
+		}
+		
+		if (entryPoints.isEmpty()) {
+			entryPoints = findPossibleEntryPoints(request, PathHelper.getName(PathHelper.replaceWhitespaceByPercentTwenty(path)));
+		}
+		
 		for (AbstractNode node : entryPoints) {
 			if (node instanceof org.structr.core.entity.File) {
 				return (org.structr.core.entity.File) node;
@@ -717,17 +728,53 @@ public class HtmlServlet extends HttpServlet {
 		return null;
 	}
 
-	private List<AbstractNode> findPossibleEntryPoints(HttpServletRequest request, final String name) throws FrameworkException {
+	private List<AbstractNode> findPossibleEntryPointsByUuid(HttpServletRequest request, final String uuid) throws FrameworkException {
+
+		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+
+		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
+			return possibleEntryPoints;
+		}
+
+		if (uuid.length() > 0) {
+
+			logger.log(Level.FINE, "Requested id: {0}", uuid);
+
+			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+
+			searchAttrs.add(Search.andExactUuid(uuid));
+
+			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+
+			group.add(Search.orExactType(Page.class.getSimpleName()));
+			group.add(Search.orExactType(Component.class.getSimpleName()));
+			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
+//			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
+			searchAttrs.add(group);
+
+			// Searching for pages needs super user context anyway
+			Result results = searchNodesAsSuperuser.execute(searchAttrs);
+			
+			logger.log(Level.FINE, "{0} results", results.size());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
+			
+			return (List<AbstractNode>) results.getResults();
+		}
+
+		return Collections.EMPTY_LIST;
+	}
+
+	private List<AbstractNode> findPossibleEntryPointsByName(HttpServletRequest request, final String name) throws FrameworkException {
 
 		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 		
-		if (possibleEntryPoints != null) {
+		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
 		}
-		
+
 		if (name.length() > 0) {
 
-			logger.log(Level.FINE, "File name {0}", name);
+			logger.log(Level.FINE, "Requested name: {0}", name);
 
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
@@ -743,7 +790,7 @@ public class HtmlServlet extends HttpServlet {
 
 			// Searching for pages needs super user context anyway
 			Result results = searchNodesAsSuperuser.execute(searchAttrs);
-
+			
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
 			
@@ -753,6 +800,34 @@ public class HtmlServlet extends HttpServlet {
 		return Collections.EMPTY_LIST;
 	}
 
+	private List<AbstractNode> findPossibleEntryPoints(HttpServletRequest request, final String name) throws FrameworkException {
+
+		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		
+		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
+			return possibleEntryPoints;
+		}
+		
+		if (name.length() > 0) {
+
+			logger.log(Level.FINE, "Requested name {0}", name);
+
+			possibleEntryPoints = findPossibleEntryPointsByUuid(request, name);
+		
+			if (possibleEntryPoints.isEmpty()) {
+				possibleEntryPoints = findPossibleEntryPointsByName(request, name);
+			}
+			
+			return possibleEntryPoints;
+		}
+
+		return Collections.EMPTY_LIST;
+	}
+
+//	private static void clearPossibleEntryPoints(HttpServletRequest request) {
+//		request.removeAttribute(POSSIBLE_ENTRY_POINTS);
+//	}
+	
 	private static String indent(final int depth, final boolean newline) {
 
 		StringBuilder indent = new StringBuilder();
