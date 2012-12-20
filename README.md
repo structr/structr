@@ -1,5 +1,5 @@
 Welcome to structr. See http://structr.org for more information.
-
+[![Build Status](https://secure.travis-ci.org/structr/structr.png)](http://travis-ci.org/structr/structr)
 <h2>structr contains the following maven projects:</h2>
 
 <ul>
