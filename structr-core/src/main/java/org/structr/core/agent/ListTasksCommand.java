@@ -21,7 +21,7 @@ package org.structr.core.agent;
 import java.util.Collection;
 
 /**
- * Returns a Collection of the currently remaining Tasks.
+ * Returns a Collection of the currently remaining {@link Task}s
  *
  * @author Christian Morgner
  */

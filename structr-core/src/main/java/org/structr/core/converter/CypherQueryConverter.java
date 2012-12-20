@@ -34,6 +34,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.GraphDatabaseCommand;
 
 /**
+ * Executes the given {@link CypherQueryConverter} on the current node and
+ * returns the results.
  *
  * @author Christian Morgner
  */

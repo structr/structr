@@ -45,9 +45,9 @@ import org.structr.core.entity.AbstractNode;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Command for indexing relationships
+ * Indexes relationships.
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class IndexRelationshipCommand extends NodeServiceCommand {
 

@@ -16,20 +16,19 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.log;
 
 import org.structr.core.Command;
 
 /**
- *
+ * Abstract base class for all log service commands.
+ * 
  * @author Axel Morgner
  */
-public abstract class LogServiceCommand extends Command
-{
+public abstract class LogServiceCommand extends Command {
+
 	@Override
-	public Class getServiceClass()
-	{
-		return(LogService.class);
+	public Class getServiceClass() {
+		return (LogService.class);
 	}
 }

@@ -47,7 +47,7 @@ import org.structr.core.graph.CreateRelationshipCommand;
 
 /**
  *
- * @author amorgner
+ * @author Axel Morgner
  *
  */
 public class Person extends AbstractNode implements Principal {

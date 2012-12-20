@@ -39,7 +39,7 @@ import org.structr.core.graph.NodeFactory;
 /**
  * Searches for a user node by her/his name in the database and returns the result.
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class SearchUserCommand extends NodeServiceCommand {
 

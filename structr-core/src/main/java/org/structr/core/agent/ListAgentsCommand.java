@@ -20,7 +20,7 @@
 package org.structr.core.agent;
 
 /**
- * Returns a collection of the currently running agents.
+ * Returns a collection of the currently running {@link Agent}s.
  *
  * @author Christian Morgner
  */

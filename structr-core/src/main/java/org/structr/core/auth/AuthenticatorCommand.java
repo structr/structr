@@ -26,9 +26,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 
 /**
- * A command that creates and returns an {@see Authenticator} instance
- * for the given ServletConfig. This command takes a ServletConfig
- * as its only parameter.
+ * A command that creates and returns an {@link Authenticator} instance for the
+ * given ServletConfig. This command takes a ServletConfig as its only
+ * parameter.
  *
  * @author Christian Morgner
  */

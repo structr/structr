@@ -34,7 +34,8 @@ import org.structr.core.property.EntityProperty;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * Maps the given target property key to a related node.
+ * 
  * @author Christian Morgner
  */
 public class RelatedNodePropertyMapper extends PropertyConverter {

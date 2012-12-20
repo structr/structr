@@ -22,12 +22,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.graph.NodeAttribute;
 
 /**
- * Represents an attribute for textual search.
+ * Represents an attribute for textual search, used in {@link SearchNodeCommand}.
  *
- * <p>
- * Used in {@see SearchNodeCommand}.
- *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class TextualSearchAttribute extends SearchAttribute {
 

@@ -28,9 +28,12 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
+import org.structr.core.property.AggregatorProperty;
 import org.structr.core.property.CollectionProperty;
 
 /**
+ * Encapsulates a sorted collection of related nodes of different types, to be
+ * used by an {@link AggregatorProperty}.
  *
  * @author Christian Morgner
  */

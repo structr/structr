@@ -28,8 +28,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 
 /**
- * An authenticator interface that defines how the system
- * can obtain a principal from a HttpServletRequest.
+ * An authenticator interface that defines how the system can obtain a principal
+ * from a HttpServletRequest.
  *
  * @author Christian Morgner
  * @author Axel Morgner

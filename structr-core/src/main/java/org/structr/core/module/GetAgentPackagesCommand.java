@@ -22,6 +22,7 @@ package org.structr.core.module;
 import java.util.Set;
 
 /**
+ * Returns a Set of java packages that contain agents.
  *
  * @author Christian Morgner
  */

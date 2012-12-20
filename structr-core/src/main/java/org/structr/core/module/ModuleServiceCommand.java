@@ -16,20 +16,19 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.module;
 
 import org.structr.core.Command;
 
 /**
+ * Abstract base class for all module service commands.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
-public abstract class ModuleServiceCommand extends Command
-{
+public abstract class ModuleServiceCommand extends Command {
+
 	@Override
-	public Class getServiceClass()
-	{
-		return(ModuleService.class);
+	public Class getServiceClass() {
+		return (ModuleService.class);
 	}
 }

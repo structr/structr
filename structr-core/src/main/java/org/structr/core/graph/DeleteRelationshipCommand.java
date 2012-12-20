@@ -39,8 +39,9 @@ import org.structr.common.SecurityContext;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Deletes the relationship supplied as a parameter.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public class DeleteRelationshipCommand extends NodeServiceCommand {
 

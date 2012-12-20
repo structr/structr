@@ -44,6 +44,7 @@ import org.structr.core.Result;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * A validator that ensures global uniqueness for given entity type.
  *
  * @author Christian Morgner
  */

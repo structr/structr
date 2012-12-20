@@ -25,7 +25,7 @@ import java.util.List;
  * Represents a group of search operators, to be used for queries
  * with multiple textual search attributes grouped by parenthesis.
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class SearchAttributeGroup extends SearchAttribute {
 

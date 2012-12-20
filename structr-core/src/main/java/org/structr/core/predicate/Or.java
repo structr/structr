@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Predicate;
 
 /**
+ * Combines two predicates with OR.
  *
  * @author Christian Morgner
  */

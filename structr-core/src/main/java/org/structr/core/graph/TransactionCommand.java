@@ -44,8 +44,20 @@ import org.structr.core.entity.AbstractNode;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author cmorgner
+ * Graph service command for database operations that need to be wrapped in
+ * a transaction. All operations that modify the database need to be executed
+ * in a transaction, which can be achieved using the following code:
+ * 
+ * <pre>
+ * Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+ * 
+ *	public Object execute() throws FrameworkException {
+ *		// do stuff here
+ *	}
+ * });
+ * </pre>
+ * 
+ * @author Christian Morgner
  */
 public class TransactionCommand extends NodeServiceCommand {
 

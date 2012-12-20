@@ -31,14 +31,13 @@ import org.structr.core.entity.AbstractRelationship;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Set user as new owner of a node
+ * Sets user as new owner of a node.
  *
  * <b>Usage:</b>
  * <pre>

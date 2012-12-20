@@ -29,7 +29,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.notion.Notion;
 
 /**
- * A property that wraps a {@see PropertyNotion} with the given notion around a {@see CollectionProperty}.
+ * A property that wraps a {@link PropertyNotion} with the given notion around a {@link CollectionProperty}.
  *
  * @author Christian Morgner
  */

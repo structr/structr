@@ -46,8 +46,6 @@ import org.structr.core.property.PropertyKey;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * This command takes a property set as parameter.
- * 
  * Sets the properties found in the property set on all relationships matching the type.
  * If no type property is found, set the properties on all relationships.
  *

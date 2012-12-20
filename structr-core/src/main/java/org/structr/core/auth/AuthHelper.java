@@ -25,10 +25,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.search.Search;
@@ -46,6 +44,7 @@ import org.structr.core.Result;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Authentication helper used in structr UI.
  *
  * @author Axel Morgner
  */

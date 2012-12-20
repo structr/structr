@@ -24,6 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
 /**
+ * Defines a strategy for serializing a {@link GraphObject} into an output
+ * object.
  *
  * @author Christian Morgner
  */

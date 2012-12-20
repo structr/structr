@@ -27,7 +27,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.notion.Notion;
 
 /**
-* A property that wraps a {@see PropertyNotion} with the given notion around an {@see EntityProperty}.
+* A property that wraps a {@link PropertyNotion} with the given notion around an {@link EntityProperty}.
  *
  * @author Christian Morgner
  */

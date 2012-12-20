@@ -37,6 +37,8 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
 
 /**
+ * Tries to fix properties in the database that have been stored there with the
+ * wrong type.
  *
  * @author Christian Morgner
  */

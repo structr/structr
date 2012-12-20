@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
 /**
+ * Serializes a {@link GraphObject} using a set of properties.
  *
  * @author Christian Morgner
  */

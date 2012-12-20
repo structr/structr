@@ -31,7 +31,7 @@ import org.structr.core.property.CollectionProperty;
 
 /**
  *
- * @author axel
+ * @author Axel Morgner
  */
 public interface Linkable extends GraphObject {
 

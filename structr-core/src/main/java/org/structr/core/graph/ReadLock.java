@@ -37,12 +37,12 @@ import org.structr.common.error.FrameworkException;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Obtain a read lock for the specified node.
- * Defaults to a write lock if locks are unavailable
+ * Obtain a read lock for the specified node. Defaults to a write lock if locks
+ * are unavailable.
  *
  * @param node the node, a Long nodeId or a String nodeId
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class ReadLock extends NodeServiceCommand {
 

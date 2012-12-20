@@ -34,7 +34,7 @@ import org.structr.core.notion.Notion;
 import org.structr.core.traversal.TraverserInterface;
 
 /**
- * A property that uses a {@see TraverserInterface} to return a collection of entities.
+ * A property that uses a {@link TraverserInterface} to return a collection of entities.
  *
  * @author Christian Morgner
  */

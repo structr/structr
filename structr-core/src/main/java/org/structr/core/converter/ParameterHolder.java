@@ -21,6 +21,7 @@ package org.structr.core.converter;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * A parameter holder.
  *
  * @author Christian Morgner
  */

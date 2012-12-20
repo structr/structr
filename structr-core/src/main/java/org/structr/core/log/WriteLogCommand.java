@@ -17,11 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 package org.structr.core.log;
-
-import org.apache.commons.lang.StringUtils;
 
 import org.fusesource.hawtdb.api.BTreeIndexFactory;
 import org.fusesource.hawtdb.api.IndexFactory;
@@ -41,7 +37,7 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Simple and fast key/value logger
+ * Simple and fast key/value logger.
  * 
  * The execute method takes two parameters: A key (String) and a String[] with arbitrary data.
  * Each log entry gets a unique id (UUID).

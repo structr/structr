@@ -40,14 +40,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.DynamicRelationshipType;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Set a new UUID on each graph object of the given type.
- *
- * For nodes, set type, for relationships relType
+ * Sets a new UUID on each graph object of the given type. For nodes, set type,
+ * for relationships relType.
  *
  * @author Axel Morgner
  */

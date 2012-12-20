@@ -27,7 +27,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 
 /**
- * The task definition for rebuilding the Lucene index in structr.
+ * The task class for rebuilding the Lucene index in structr.
  *
  * @author Axel Morgner
  */

@@ -29,7 +29,7 @@ import org.structr.core.property.StringProperty;
 
 /**
  *
- * @author amorgner
+ * @author Axel Morgner
  *
  */
 public class PlainText extends AbstractNode {

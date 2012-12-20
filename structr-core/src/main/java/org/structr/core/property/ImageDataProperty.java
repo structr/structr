@@ -25,7 +25,7 @@ import org.structr.core.converter.ImageConverter;
 import org.structr.core.converter.PropertyConverter;
 
 /**
- * A property that tries to create an {@see Image} from BASE64 encoded data you store with setProperty.
+ * A property that tries to create an {@link Image} from BASE64 encoded data you store with setProperty.
  *
  * @author Christian Morgner
  */

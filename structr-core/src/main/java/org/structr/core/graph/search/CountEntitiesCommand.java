@@ -34,6 +34,9 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeServiceCommand;
 
 /**
+ * A special command that uses a Lucene index lookup to count the number of
+ * entities between a lower and an upper search term. This is used for range
+ * queries.
  *
  * @author Christian Morgner
  */

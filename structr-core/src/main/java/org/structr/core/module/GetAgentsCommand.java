@@ -23,6 +23,8 @@ import java.util.Map;
 import org.structr.core.agent.Agent;
 
 /**
+ * Returns a mapping between the names of all registered agents and their
+ * corresponding Class objects.
  *
  * @author Christian Morgner
  */

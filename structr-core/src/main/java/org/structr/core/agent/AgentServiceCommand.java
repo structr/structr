@@ -22,8 +22,9 @@ package org.structr.core.agent;
 import org.structr.core.Command;
 
 /**
- *
- * @author cmorgner
+ * Abstract base class for agent service commands.
+ * 
+ * @author Christian Morgner
  */
 public abstract class AgentServiceCommand extends Command
 {

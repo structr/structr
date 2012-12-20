@@ -24,7 +24,9 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 
 /**
- *
+ * Thrown when a protected resource is accessed. In the REST server, this
+ * exception causes the HTTP status code 401 to be returned .
+ * 
  * @author Christian Morgner
  */
 public class UnauthorizedException extends FrameworkException {

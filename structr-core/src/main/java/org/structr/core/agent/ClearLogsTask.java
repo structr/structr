@@ -27,7 +27,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 
 /**
- * Remove all logging nodes
+ * Remove all logging nodes.
  *
  * @author amorgner
  */

@@ -25,8 +25,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -40,9 +38,9 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Command for removing relationship from the index
+ * Removes a relationship from the index.
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class RemoveRelationshipFromIndex extends NodeServiceCommand {
 

@@ -26,6 +26,8 @@ import org.structr.core.agent.ReturnValue;
 import org.structr.core.agent.Task;
 
 /**
+ * An agent to test the cron service. This agent just logs the execution of the
+ * test task and returns a success value.
  *
  * @author Christian Morgner
  */

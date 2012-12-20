@@ -40,12 +40,12 @@ import org.structr.common.error.FrameworkException;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Returns a List of Relationships for the given node.
+ * Returns an aggregated Map of relationship counts for the given node.
  *
  * @param one or more AbstractNode instances to collect the properties from.
  * @return a list of relationships for the given nodes
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 

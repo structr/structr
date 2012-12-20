@@ -32,7 +32,9 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 
 /**
- *
+ * Fetches a node by its UUID. This is just a convenience wrapper around the
+ * {@link SearchNodeCommand}.
+ * 
  * @author Christian Morgner
  */
 public class GetNodeByIdCommand extends NodeServiceCommand {

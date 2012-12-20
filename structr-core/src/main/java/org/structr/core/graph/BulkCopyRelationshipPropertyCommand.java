@@ -31,16 +31,14 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 /**
- * This command takes a property set as parameter.
- *
- * Sets the properties found in the property set on all nodes matching the type. If no type property is found, set the properties on all nodes.
+ * Sets the properties found in the property set on all nodes matching the type.
+ * If no type property is found, set the properties on all nodes.
  *
  * @author Axel Morgner
  */

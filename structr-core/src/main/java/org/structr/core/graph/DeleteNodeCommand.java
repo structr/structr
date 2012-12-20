@@ -22,7 +22,6 @@
 package org.structr.core.graph;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -41,7 +40,7 @@ import org.structr.common.error.ErrorBuffer;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Delete a node
+ * Deletes a node.
  *
  * @param node the node, a Long nodeId or a String nodeId
  * @return null

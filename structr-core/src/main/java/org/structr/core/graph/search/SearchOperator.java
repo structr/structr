@@ -20,7 +20,7 @@ package org.structr.core.graph.search;
 
 /**
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public enum SearchOperator {
     AND,

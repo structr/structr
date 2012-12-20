@@ -26,11 +26,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 
 /**
- * Get all nodes in the database.
+ * Fetches all the nodes in the database.
  *
- * This command takes no parameters.
- *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class GetAllNodes extends NodeServiceCommand {
 

@@ -28,7 +28,9 @@ import org.structr.core.Predicate;
 import org.structr.core.notion.Notion;
 
 /**
- *
+ * Defines the information necessary to traverse the graph and collect nodes
+ * according to a set of predicates.
+ * 
  * @author Christian Morgner
  */
 public interface TraverserInterface<T> {

@@ -22,10 +22,10 @@ package org.structr.core.graph;
 import org.structr.common.error.FrameworkException;
 
 /**
- *
- * @author cmorgner
+ * Encapsulates the code that need to be wrapped into a transaction.
+ * 
+ * @author Christian Morgner
  */
-public abstract class StructrTransaction<T>
-{
+public abstract class StructrTransaction<T> {
 	public abstract T execute() throws FrameworkException;
 }

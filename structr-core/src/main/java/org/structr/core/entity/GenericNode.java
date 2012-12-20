@@ -29,8 +29,10 @@ import org.structr.common.error.FrameworkException;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author axel
+ * A generic node entity that will be instantiated when a node with an unknown
+ * type is encountered.
+ * 
+ * @author Axel Morgner
  */
 public class GenericNode extends AbstractNode {
 

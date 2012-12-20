@@ -21,10 +21,8 @@ package org.structr.core.module;
 import org.structr.core.agent.Agent;
 
 /**
- * Command for finding entity classes by class name. This command exists
- * because the ModuleService must be initialized before entity classes
- * can be found, and initialization is intiated automatically when a
- * command is requested.
+ * Looks up an agent class by its name and returns it. Returns null of no agent
+ * class was found.
  *
  * @author Christian Morgner
  */

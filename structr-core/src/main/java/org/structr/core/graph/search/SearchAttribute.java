@@ -23,13 +23,11 @@ import java.util.List;
 import org.structr.core.GraphObject;
 
 /**
- * Wrapper representing a part of a search query.
+ * Wrapper representing a part of a search query. All parts of a search query
+ * must have a search operator and a payload. The payload can be either a node
+ * attribute oder a group of serach attributes.
  *
- * All parts of a search query must have a search operator and a payload.
- *
- * The payload can be either a node attribute oder a group of serach attributes.
- *
- * @author axel
+ * @author Axel Morgner
  */
 public abstract class SearchAttribute {
 

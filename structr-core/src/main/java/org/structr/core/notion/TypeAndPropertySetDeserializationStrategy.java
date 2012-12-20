@@ -44,6 +44,7 @@ import org.structr.core.Result;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Deserializes a {@link GraphObject} using a type and a set of property values.
  *
  * @author Christian Morgner
  */

@@ -45,7 +45,7 @@ import org.structr.core.property.PropertyMap;
  * way to instantiate and initialize structr relationships, as this is the most-
  * used operation.
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class RelationshipFactory<T extends AbstractRelationship> implements Adapter<Relationship, T> {
 

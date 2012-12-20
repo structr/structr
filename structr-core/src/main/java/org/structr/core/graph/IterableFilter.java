@@ -25,7 +25,10 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Predicate;
 
 /**
- *
+ * An Iterable implementation that evaluates a set of predicates evaluate for
+ * each element in the collection, deciding whether to include the element or
+ * not.
+ * 
  * @author Christian Morgner
  */
 public class IterableFilter<T> implements Iterable<T> {

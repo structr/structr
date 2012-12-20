@@ -22,11 +22,12 @@ package org.structr.core.graph;
 import org.neo4j.graphdb.traversal.Evaluator;
 
 /**
+ * Define the methods which make an object evaluable by an {@link Evaluator}.
  *
  * @author Christian Morgner
  */
-public interface Evaluable
-{
+public interface Evaluable {
+	
 	public void addEvaluator(Evaluator e);
 	public void removeEvaluator(Evaluator e);
 }

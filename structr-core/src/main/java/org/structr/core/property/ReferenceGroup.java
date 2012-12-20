@@ -25,7 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
- * A property that returns grouped properties from a set of {@see Reference} elements.
+ * A property that returns grouped properties from a set of {@link Reference} elements.
  * 
  * @author Christian Morgner
  */

@@ -25,14 +25,12 @@ import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.NotFoundException;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.graph.GraphDatabaseCommand;
 
 /**
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class CleanUpFilesAgent extends Agent {
 

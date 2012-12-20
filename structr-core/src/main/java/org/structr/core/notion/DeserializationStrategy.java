@@ -24,6 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
 /**
+ * Defines a strategy for deserializing a {@link GraphObject} from an input
+ * object.
  *
  * @author Christian Morgner
  */

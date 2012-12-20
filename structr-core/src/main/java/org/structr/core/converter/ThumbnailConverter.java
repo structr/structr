@@ -35,7 +35,7 @@ import org.structr.core.GraphObject;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Converts an image into a thumbnail
+ * Creates a thumbnail for an {@link Image}.
  *
  * @author Axel Morgner
  */

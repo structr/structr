@@ -1093,6 +1093,11 @@ public class EntityContext {
 	//~--- inner classes --------------------------------------------------
 
 	// <editor-fold defaultstate="collapsed" desc="EntityContextModificationListener">
+	/**
+	 * Neo4j transaction event handler that implements the post-processing
+	 * of nodes and relationships in structr. This class handles the
+	 * change set of neo4j.
+	 */
 	public static class EntityContextModificationListener implements TransactionEventHandler<Long> {
 
 		// ----- interface TransactionEventHandler -----

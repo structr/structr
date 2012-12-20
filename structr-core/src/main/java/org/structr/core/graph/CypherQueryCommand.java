@@ -44,6 +44,8 @@ import org.structr.core.Services;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Executes the given Cypher query and tries to convert the result in a List
+ * of {@link GraphObject}s.
  *
  * @author Christian Morgner
  */

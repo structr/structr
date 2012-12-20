@@ -22,8 +22,9 @@ package org.structr.core.graph;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 /**
- *
- * @author cmorgner
+ * Returns the Neo4j graph database instance.
+ * 
+ * @author Christian Morgner
  */
 public class GraphDatabaseCommand extends NodeServiceCommand {
 	

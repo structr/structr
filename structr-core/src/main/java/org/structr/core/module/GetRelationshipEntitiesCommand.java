@@ -21,8 +21,10 @@ package org.structr.core.module;
 import java.util.Map;
 
 /**
+ * Returns a mapping between the names of all registered relationship entities
+ * and their corresponding Class objects.
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class GetRelationshipEntitiesCommand extends ModuleServiceCommand {
 

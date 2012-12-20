@@ -42,8 +42,10 @@ import org.structr.core.graph.NodeService.RelationshipIndex;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author amorgner
+ * A generic relationship entity that will be instantiated when an anonymous
+ * relationship is encountered.
+ * 
+ * @author Axel Morgner
  *
  */
 public class GenericRelationship extends AbstractRelationship {

@@ -53,7 +53,7 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * <b>Search for nodes by attributes</b>
+ * Search for nodes by their attributes.
  * <p>
  * The execute method takes four parameters:
  * <p>
@@ -67,7 +67,7 @@ import java.util.logging.Logger;
  *       search criteria
  * </ol>
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand {
 

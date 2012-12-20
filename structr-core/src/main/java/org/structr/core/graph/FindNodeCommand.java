@@ -39,10 +39,10 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Look up a node in database and returns the result.
+ * Looks up a node in database and returns the result.
  *
- * @author amorgner
- * @author cmorgner
+ * @author Axel Morgner
+ * @author Christian Morgner
  */
 public class FindNodeCommand extends NodeServiceCommand {
 

@@ -25,6 +25,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
+ * Returns the "type" property of the end node when evaluated.
  *
  * @author Christian Morgner
  */

@@ -26,11 +26,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
- * Get all relationships in the database.
+ * Fetches all the relationships in the database.
  *
- * This command takes no parameters.
- *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class GetAllRelationships extends NodeServiceCommand {
 

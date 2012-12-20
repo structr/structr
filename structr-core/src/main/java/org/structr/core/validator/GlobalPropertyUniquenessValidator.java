@@ -44,8 +44,10 @@ import org.structr.core.Result;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * A validator that ensures global uniqueness of a given property value,
+ * regardless of the entity's type.
  *
- * @author chrisi
+ * @author Christian Morgner
  */
 public class GlobalPropertyUniquenessValidator extends PropertyValidator<String> {
 

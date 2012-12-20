@@ -51,9 +51,7 @@ import org.structr.core.module.ModuleService;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * A factory for structr nodes. This class exists because we need a fast
- * way to instantiate and initialize structr nodes, as this is the most-
- * used operation.
+ * A factory for structr nodes.
  *
  * @author Christian Morgner
  * @author Axel Morgner

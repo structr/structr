@@ -34,6 +34,8 @@ import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 
 /**
+ * Abstract base class for custom node collectors. Extend this class to specify
+ * uniqueness and evaluators for a traversal.
  *
  * @author Christian Morgner
  */

@@ -21,7 +21,6 @@
 
 package org.structr.core.graph;
 
-import java.util.Iterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -43,14 +42,11 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * This command takes a property set as parameter.
- *
  * Sets the properties found in the property set on all nodes matching the type.
  * If no type property is found, set the properties on all nodes.
  *

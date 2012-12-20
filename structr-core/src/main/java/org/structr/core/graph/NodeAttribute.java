@@ -22,9 +22,9 @@ import org.structr.core.property.PropertyKey;
 
 /**
  * A parameterized node attribute to identify a node attribute
- * in {@see FindNodeCommand}.
+ * in {@link FindNodeCommand}.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public class NodeAttribute {
 

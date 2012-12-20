@@ -51,8 +51,9 @@ import org.structr.core.graph.search.SearchNodeCommand;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Command for indexing nodes
- *
+ * Indexes nodes.
+ * 
+ * @deprecated Use the {@link NewIndexNodeCommand}
  * @author Axel Morgner
  */
 public class IndexNodeCommand extends NodeServiceCommand {

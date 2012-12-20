@@ -20,7 +20,7 @@
 package org.structr.core.agent;
 
 /**
- * Defines the possible return values for task execution in the agent system of
+ * Defines the possible return values for task execution in the agent service of
  * structr.
  * 
  * @author Christian Morgner

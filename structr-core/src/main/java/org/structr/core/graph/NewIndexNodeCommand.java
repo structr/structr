@@ -39,7 +39,8 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 
 /**
- *
+ * Indexes nodes.
+ * 
  * @author Christian Morgner
  */
 public class NewIndexNodeCommand extends NodeServiceCommand {

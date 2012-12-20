@@ -20,6 +20,7 @@
 package org.structr.core.cron;
 
 /**
+ * Encapsulates information about a single time field of a CRON task.
  *
  * @author Christian Morgner
  */

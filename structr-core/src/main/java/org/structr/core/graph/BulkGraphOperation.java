@@ -22,7 +22,8 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
 /**
- *
+ * Encapsulates a bulk graph operation.
+ * 
  * @author Christian Morgner
  */
 public interface BulkGraphOperation<T extends GraphObject> {

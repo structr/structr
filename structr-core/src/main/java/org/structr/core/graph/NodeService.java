@@ -53,8 +53,10 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author cmorgner
+ * The graph/node service main class.
+ * 
+ * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class NodeService implements SingletonService {
 

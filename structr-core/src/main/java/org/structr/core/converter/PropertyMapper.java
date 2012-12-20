@@ -25,6 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
 
 /**
+ * Maps a property to another property.
  *
  * @author Christian Morgner
  */

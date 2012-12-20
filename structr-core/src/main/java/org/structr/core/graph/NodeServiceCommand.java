@@ -30,6 +30,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 
 /**
+ * Abstract base class for all graph service commands.
  *
  * @author Christian Morgner
  */

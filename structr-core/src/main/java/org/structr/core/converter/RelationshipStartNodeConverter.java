@@ -28,6 +28,7 @@ import org.structr.core.entity.AbstractRelationship;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Returns the start node of a relationship when evaluated.
  *
  * @author Axel Morgner
  */

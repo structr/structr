@@ -24,7 +24,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 
 /**
-* A property that wraps a {@see PropertyNotion} with the entity's UUID around a {@see CollectionProperty}.
+* A property that wraps a {@link PropertyNotion} with the entity's UUID around a {@link CollectionProperty}.
  *
  * @author Christian Morgner
  */

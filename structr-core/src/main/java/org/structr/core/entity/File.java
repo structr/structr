@@ -36,7 +36,6 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -49,16 +48,15 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.EntityProperty;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * A file that stores its binary content on disk.
  *
  * @author Axel Morgner
- *
  */
 public class File extends AbstractNode implements Linkable {
 

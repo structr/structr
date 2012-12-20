@@ -42,6 +42,8 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Returns the values previously stored under the given key with the
+ * {@link WriteLogCommand}.
  *
  * @author Axel Morgner
  */

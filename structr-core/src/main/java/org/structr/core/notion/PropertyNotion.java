@@ -22,7 +22,8 @@ package org.structr.core.notion;
 import org.structr.core.property.PropertyKey;
 
 /**
- * A notion that returns only a single property of the source object.
+ * Combines a {@link PropertySerializationStrategy} and a {@link TypeAndValueDeserializationStrategy}
+ * to read/write a {@link GraphObject}.
  *
  * @author Christian Morgner
  */

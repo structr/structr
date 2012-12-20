@@ -50,8 +50,9 @@ import org.structr.core.entity.AbstractRelationship;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Creates a new node in the database with the given properties.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceCommand {
 

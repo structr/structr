@@ -29,7 +29,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
 
 /**
- * A property that uses an {@see Aggregation} to return a list of entities.
+ * A property that uses an {@link Aggregation} to return a list of entities.
  *
  * @author Christian Morgner
  */

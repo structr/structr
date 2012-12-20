@@ -22,6 +22,8 @@ package org.structr.core.notion;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * Combines a {@link PropertySerializationStrategy} and an {@link IdDeserializationStrategy}
+ * to read/write a relationship entity.
  *
  * @author Christian Morgner
  */

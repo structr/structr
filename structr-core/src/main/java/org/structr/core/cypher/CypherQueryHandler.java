@@ -36,6 +36,9 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipFactory;
 
 /**
+ * Abstract base class for Cypher queries. Extend this class and implement the
+ * abstract method to transform the raw Cypher query result into a meaningful
+ * object.
  *
  * @author Christian Morgner
  */

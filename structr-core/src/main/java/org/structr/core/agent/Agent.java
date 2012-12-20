@@ -35,9 +35,9 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * An Agent runs tasks
+ * Abstract base class for all agents.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public abstract class Agent extends Thread implements StatusInfo {
 

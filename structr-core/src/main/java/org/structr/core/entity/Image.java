@@ -53,8 +53,9 @@ import org.structr.core.property.ThumbnailProperty;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author amorgner
+ * An image whose binary data will be stored on disk.
+ * 
+ * @author Axel Morgner
  *
  */
 public class Image extends File {

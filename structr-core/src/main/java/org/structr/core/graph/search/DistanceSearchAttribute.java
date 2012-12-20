@@ -31,7 +31,7 @@ import org.structr.core.graph.NodeAttribute;
  * <p>
  * Used in {@see SearchNodeCommand}.
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class DistanceSearchAttribute extends SearchAttribute {
 

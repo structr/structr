@@ -47,8 +47,10 @@ import org.structr.core.GraphObject;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author amorgner
+ * The agent class that acts on {@link RebuildIndexTask}, rebuilding the Lucene
+ * index in structr.
+ * 
+ * @author Axel Morgner
  */
 public class RebuildIndexAgent extends Agent {
 

@@ -29,6 +29,9 @@ import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
 /**
+ * A node collector that collects related nodes of a given result type with a
+ * traversal of the given relationship type and direction and randomizes the
+ * resulting list.
  *
  * @author Christian Morgner
  */

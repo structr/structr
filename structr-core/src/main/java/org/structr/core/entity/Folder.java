@@ -32,8 +32,9 @@ import org.structr.core.property.EntityProperty;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * The Folder entity.
  *
- * @author amorgner
+ * @author Axel Morgner
  *
  */
 public class Folder extends AbstractNode {

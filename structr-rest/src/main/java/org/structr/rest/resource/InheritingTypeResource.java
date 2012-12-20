@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.lucene.search.SortField;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
@@ -36,8 +35,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.converter.DateConverter;
-import org.structr.core.converter.IntConverter;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
@@ -103,21 +100,12 @@ public class InheritingTypeResource extends TypeResource {
 			}
 
 			Integer sortType = null;
-//			final PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
-			
 			if (sortKey != null) {
 				
 				final PropertyConverter converter = sortKey.inputConverter(securityContext);
 				if (converter != null) {
 					
 					sortType = converter.getSortType();
-					/*
-					if (converter instanceof IntConverter) {
-						sortType = SortField.INT;
-					} else if (converter instanceof DateConverter) {
-						sortType = SortField.LONG;
-					}
-					*/
 
 				}
 			}

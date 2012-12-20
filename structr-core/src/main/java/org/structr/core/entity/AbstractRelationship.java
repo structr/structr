@@ -71,9 +71,9 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author amorgner
- *
+ * Bbstract base class for all relationship entities in structr.
+ * 
+ * @author Axel Morgner
  */
 public abstract class AbstractRelationship implements GraphObject, Comparable<AbstractRelationship> {
 
@@ -81,7 +81,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public static final Property<String>   combinedType  = new StringProperty("combinedType");
 	public static final Property<Integer>  cascadeDelete = new IntProperty("cascadeDelete");
-	public static final Property<Date>     createdDate   = new ISO8601DateProperty("createdDate").systemProperty();
 	public static final Property<String[]> allowed       = new GenericProperty<String[]>("allowed");
 	
 	

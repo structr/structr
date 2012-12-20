@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Command for removing nodes from the index
+ * Removes nodes from the index.
  *
  * @author Axel Morgner
  */

@@ -28,9 +28,9 @@ import org.mozilla.javascript.tools.shell.Global;
 import org.structr.common.error.FrameworkException;
 
 /**
- * Execute given code as ECMAScript return output
+ * Executes the given code as ECMAScript and returns the output.
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class ECMAScriptCommand extends NodeServiceCommand {
 

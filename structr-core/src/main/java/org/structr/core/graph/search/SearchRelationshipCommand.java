@@ -56,9 +56,9 @@ import org.structr.core.property.PropertyKey;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * <b>Search for relationships by attributes</b>
+ * Search for relationships by their attributes.
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class SearchRelationshipCommand extends NodeServiceCommand {
 

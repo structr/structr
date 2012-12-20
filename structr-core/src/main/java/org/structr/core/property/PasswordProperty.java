@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.ValidationInfo;
 
 /**
- * A {@see StringProperty} that converts its value to a hexadecimal SHA512 hash upon storage.
+ * A {@link StringProperty} that converts its value to a hexadecimal SHA512 hash upon storage.
  * The return value of this property will always be the password hash, the clear-text password
  * will be lost.
  *

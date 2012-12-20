@@ -52,7 +52,7 @@ import org.structr.core.Result;
 
 /**
  *
- * @author axel
+ * @author Axel Morgner
  */
 public abstract class Search {
 

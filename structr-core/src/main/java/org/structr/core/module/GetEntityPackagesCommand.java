@@ -21,6 +21,7 @@ package org.structr.core.module;
 import java.util.Set;
 
 /**
+ * Returns a Set of all java packages that contain structr entities.
  *
  * @author Christian Morgner
  */

@@ -38,7 +38,9 @@ import org.structr.core.property.PropertyMap;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * The SuperUser entity. Please note that this class is not persitent but will
+ * be instantiated when needed.
+ * 
  * @author amorgner
  *
  */

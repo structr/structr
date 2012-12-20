@@ -29,8 +29,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 
 /**
- *
- * @author chrisi
+ * A task for testing the CRON service.
+ * 
+ * @author Christian Morgner
  */
 public class CronTestTask implements Task {
 

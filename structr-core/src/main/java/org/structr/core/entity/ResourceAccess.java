@@ -32,7 +32,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService;
 
 /**
- * Controls access to REST resources
+ * Controls access to REST resources.
  * 
  * Objects of this class act as a doorkeeper for REST resources
  * that match the signature string in the 'signature' field.

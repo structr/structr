@@ -26,6 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 
 /**
+ * A validator that ensures valid boolean values for a given property.
  *
  * @author Christian Morgner
  */

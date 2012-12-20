@@ -31,6 +31,8 @@ import org.structr.core.PropertyValidator;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * A validator that ensures a given String value is a valid enum element of the
+ * given type.
  *
  * @author Christian Morgner
  */

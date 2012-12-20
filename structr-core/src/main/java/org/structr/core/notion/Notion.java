@@ -39,14 +39,12 @@ import org.structr.core.converter.PropertyConverter;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Combines a serialization strategy and a deserialization strategy
- * to form a notion of an object. A notion in this context is a
- * viewer-specific selection of properties that can be configured
- * separately for each entity via {@see EntityContext}. You can
- * for example configure the User entity to return only its name when
- * referenced from a Folder entity, but to return the whole object
- * when referenced from a Group entity.
- *
+ * Combines a serialization strategy and a deserialization strategy to form a
+ * notion of an object. A notion in this context is a viewer-specific selection
+ * of properties that can be configured separately for each entity via
+ * {@link EntityContext}. You can for example configure the User entity to
+ * return only its name when referenced from a Folder entity, but to return the
+ * whole object when referenced from a Group entity.
  *
  * @author Christian Morgner
  */

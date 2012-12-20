@@ -47,8 +47,9 @@ import org.structr.common.error.FrameworkException;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author cmorgner
+ * The agent service main class.
+ * 
+ * @author Christian Morgner
  */
 public class AgentService extends Thread implements RunnableService {
 

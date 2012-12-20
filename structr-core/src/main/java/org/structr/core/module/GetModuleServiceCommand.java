@@ -19,6 +19,7 @@
 package org.structr.core.module;
 
 /**
+ * Returns the module service instance.
  *
  * @author Christian Morgner
  */

@@ -16,13 +16,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.core.entity;
 
 /**
- * Defines a class of relations between a source class and a target class with a direction and a cardinality.
+ * Defines constants for structr's relationship entities.
  *
  * @author Christian Morgner
  */

@@ -36,7 +36,7 @@ import org.structr.core.property.StringProperty;
 
 /**
  *
- * @author amorgner
+ * @author Axel Morgner
  *
  */
 public interface Principal extends GraphObject {

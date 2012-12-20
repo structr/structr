@@ -30,9 +30,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
-import org.structr.core.GraphObject;
-import org.structr.core.JsonInput;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
@@ -50,6 +47,7 @@ import org.structr.core.*;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Deserializes a {@link GraphObject} using the UUID property.
  *
  * @author Christian Morgner
  */

@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 /**
+ * Converts a Long value to a Date and back.
  *
  * @author Christian Morgner
  */

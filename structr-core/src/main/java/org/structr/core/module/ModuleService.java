@@ -50,11 +50,8 @@ import org.structr.core.*;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Modules need to be installed and uninstalled manually This service keeps an index of installed / activated modules for efficient access files: - $BASEDIR/modules/modules.conf -> properties file
- *
- * The entity class cache needs to be initialized with the structr core entities even when no modules exist.
- *
- *
+ * The module service main class.
+ * 
  * @author Christian Morgner
  */
 public class ModuleService implements SingletonService {

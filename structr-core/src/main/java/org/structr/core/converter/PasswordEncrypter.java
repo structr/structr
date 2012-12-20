@@ -25,7 +25,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.common.SecurityContext;
 
 /**
- *
+ * Returns the hexadecimal SHA512 hash of a given value.
+ * 
  * @author Christian Morgner
  */
 public class PasswordEncrypter extends PropertyConverter {

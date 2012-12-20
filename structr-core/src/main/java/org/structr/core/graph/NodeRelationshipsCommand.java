@@ -22,7 +22,6 @@
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -41,12 +40,12 @@ import org.structr.common.error.FrameworkException;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Returns a List of Relationships for the given node.
+ * Returns a List of relationships for the given node.
  *
  * @param one or more AbstractNode instances to collect the properties from.
  * @return a list of relationships for the given nodes
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class NodeRelationshipsCommand extends NodeServiceCommand {
 

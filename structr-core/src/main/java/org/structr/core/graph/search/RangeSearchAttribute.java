@@ -21,6 +21,8 @@ package org.structr.core.graph.search;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * An experimental search attribute to support range queries in structr. This
+ * is not used yet.
  *
  * @author Christian Morgner
  */

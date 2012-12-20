@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Remove files from the files directory
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class CleanUpFilesTask implements Task {
 

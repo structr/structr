@@ -24,6 +24,7 @@ import org.structr.core.Converter;
 import org.structr.core.Value;
 
 /**
+ * Converts an Integer to a String and back.
  *
  * @author Christian Morgner
  */

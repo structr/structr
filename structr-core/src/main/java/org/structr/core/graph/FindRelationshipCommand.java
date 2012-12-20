@@ -25,7 +25,6 @@ import org.neo4j.graphdb.*;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
-import org.structr.core.UnsupportedArgumentError;
 
 //import org.structr.common.xpath.JXPathFinder;
 
@@ -40,7 +39,7 @@ import org.structr.core.entity.AbstractRelationship;
 /**
  * Searches for a relationship in the database and return the result.
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class FindRelationshipCommand<T extends AbstractRelationship> extends NodeServiceCommand {
 

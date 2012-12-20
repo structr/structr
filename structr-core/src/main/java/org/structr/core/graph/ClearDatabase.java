@@ -38,7 +38,7 @@ import org.structr.core.Result;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Clear database.
+ * Clears database.
  *
  * This command takes no parameters.
  *

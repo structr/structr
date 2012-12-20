@@ -19,7 +19,7 @@
 package org.structr.core.property;
 
 /**
- * A read-only {@see Reference}.
+ * A read-only {@link Reference}.
  *
  * @author Christian Morgner
  */

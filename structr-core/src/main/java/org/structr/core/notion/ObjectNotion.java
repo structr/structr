@@ -25,7 +25,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
 /**
- * The default notion that returns the object itself.
+ * Combines an {@link ObjectSerializationStrategy} and an {@link IdDeserializationStrategy}
+ * to read/write a {@link graphObject}. This is the default notion.
  *
  * @author Christian Morgner
  */

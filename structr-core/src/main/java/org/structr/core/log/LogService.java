@@ -39,7 +39,8 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * The log service main class.
+ * 
  * @author Axel Morgner
  */
 public class LogService implements SingletonService {

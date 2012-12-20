@@ -26,6 +26,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 
 /**
+ * A cache entity. This is only used in tests right now.
  *
  * @author Christian Morgner
  */
