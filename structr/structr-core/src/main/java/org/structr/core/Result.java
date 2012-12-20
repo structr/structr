@@ -21,7 +21,6 @@ package org.structr.core;
 
 import java.util.Collections;
 import java.util.List;
-import org.structr.core.GraphObject;
 
 /**
  * Encapsulates the result of a query operation.

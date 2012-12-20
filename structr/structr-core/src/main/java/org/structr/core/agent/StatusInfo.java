@@ -20,10 +20,11 @@
 package org.structr.core.agent;
 
 /**
- *
- * @author chrisi
+ * Defines the ability of a task to return status information.
+ * 
+ * @author Christian Morgner
  */
-public interface StatusInfo
-{
+public interface StatusInfo {
+	
 	public Object getStatusProperty(String key);
 }

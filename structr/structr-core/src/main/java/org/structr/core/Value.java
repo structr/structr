@@ -23,11 +23,27 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 /**
- *
+ * A value holder that can be fetched and set in the presence of a
+ * {@link SecurityContext}.
+ * 
  * @author Christian Morgner
  */
 public interface Value<T> {
 
+	/**
+	 * Sets the current value of this value holder.
+	 * 
+	 * @param securityContext the security context
+	 * @param value the value to be set
+	 * @throws FrameworkException 
+	 */
 	public void set(SecurityContext securityContext, T value) throws FrameworkException;
+	
+	/**
+	 * Gets the current value of this value holder.
+	 * 
+	 * @param securityContext the security context
+	 * @return the current value
+	 */
 	public T get(SecurityContext securityContext);
 }

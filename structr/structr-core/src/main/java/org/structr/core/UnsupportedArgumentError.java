@@ -23,7 +23,7 @@ package org.structr.core;
  * Thrown when a command does not know how to handle a parameter to
  * its {@see Command.execute} method.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public class UnsupportedArgumentError extends Error
 {

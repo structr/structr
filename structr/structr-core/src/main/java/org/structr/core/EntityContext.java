@@ -63,8 +63,8 @@ import org.structr.core.graph.NodeService.RelationshipIndex;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * A global context for functional mappings between nodes and
- * relationships, property views and property validators.
+ * A global context for functional mappings between nodes and relationships,
+ * property views and property validators.
  *
  * @author Axel Morgner
  * @author Christian Morgner

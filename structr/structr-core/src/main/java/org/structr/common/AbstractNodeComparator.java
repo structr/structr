@@ -27,7 +27,7 @@ import org.structr.core.entity.AbstractNode;
 
 /**
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class AbstractNodeComparator implements Comparator {
 

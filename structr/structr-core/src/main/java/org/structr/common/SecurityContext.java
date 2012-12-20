@@ -52,7 +52,6 @@ import org.neo4j.graphdb.Node;
  * to query permission flags for a given node. This is the place where
  * HttpServletRequest and Authenticator get together.
  *
- *
  * @author Christian Morgner
  */
 public class SecurityContext {

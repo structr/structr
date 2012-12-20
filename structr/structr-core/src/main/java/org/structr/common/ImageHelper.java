@@ -52,7 +52,7 @@ import javax.imageio.ImageIO;
 
 /**
  *
- * @author axel
+ * @author Axel Morgner
  */
 public abstract class ImageHelper {
 

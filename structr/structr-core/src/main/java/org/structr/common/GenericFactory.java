@@ -22,13 +22,30 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
+ * Defines methods that are used by {@link NodeFactory} and
+ * {@link RelationshipFactory} when creating nodes with unknown types / generic
+ * nodes.
  *
  * @author Christian Morgner
  */
 public interface GenericFactory {
 	
+	/**
+	 * @return an uninitialized instance of a generic relationship
+	 */
 	public AbstractRelationship createGenericRelationship();
+	
+	/**
+	 * @return an uninitialized instance of a generic node
+	 */
 	public AbstractNode createGenericNode();
 	
+	/**
+	 * Indicates whether the given class is a generic type according to
+	 * this class.
+	 * 
+	 * @param entityClass the type to check
+	 * @return whether the given type is a generic type
+	 */
 	public boolean isGeneric(Class<?> entityClass);
 }

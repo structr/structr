@@ -40,7 +40,7 @@ import org.structr.common.error.FrameworkException;
  * all commands you create for that service from this base class.
  * </p>
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public abstract class Command {
 

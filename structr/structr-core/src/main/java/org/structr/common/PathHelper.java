@@ -31,7 +31,8 @@ import org.structr.core.graph.FindNodeCommand;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * A helper class that provides methods for URL path splitting etc.
+ * 
  * @author Christian Morgner
  */
 public class PathHelper {

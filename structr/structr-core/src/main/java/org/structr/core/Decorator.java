@@ -20,11 +20,11 @@
 package org.structr.core;
 
 /**
- * 
+ * Defines a method for the decorator pattern.
  *
  * @author Christian Morgner
  */
-public interface Decorator<AbstractNode>
-{
+public interface Decorator<AbstractNode> {
+	
 	public void decorate(AbstractNode t);
 }

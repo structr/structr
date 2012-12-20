@@ -24,7 +24,8 @@ import java.util.Comparator;
 import org.structr.core.entity.AbstractNode;
 
 /**
- * An adapter for AbstractNode to GraphObject.
+ * A wrapper around {@link GraphObjectComparator} to be able to use it for
+ * {@link AbstractNode} objects without type cast.
  * 
  * @author Christian Morgner
  */

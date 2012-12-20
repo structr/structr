@@ -27,10 +27,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 
 /**
- * Use this interface for tasks that convert a given node into another
- * type.
+ * The task definition for rebuilding the Lucene index in structr.
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class RebuildIndexTask implements Task {
 

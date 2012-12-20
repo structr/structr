@@ -42,9 +42,9 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Utility class
+ * Utility class.
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class FileHelper {
 

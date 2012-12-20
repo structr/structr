@@ -60,7 +60,7 @@ import org.structr.common.GeoHelper.GeoCodingResult.Type;
 
 /**
  * Helper class to create location nodes from coordinates or by using
- * online geocoding service
+ * online geocoding service.
  *
  * @author Axel Morgner
  */

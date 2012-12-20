@@ -33,8 +33,10 @@ import org.structr.core.entity.AbstractNode;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author axel
+ * A comparator for structr entities that uses a given property key and sort
+ * order for comparison.
+ * 
+ * @author Axel Morgner
  */
 public class GraphObjectComparator implements Comparator<GraphObject>, ViewTransformation {
 
@@ -49,7 +51,11 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 
 	//~--- constructors ---------------------------------------------------
 
-	// public GraphObjectComparator() {};
+	/**
+	 * Creates a new GraphObjectComparator with the given sort key and order.
+	 * @param sortKey
+	 * @param sortOrder 
+	 */
 	public GraphObjectComparator(final PropertyKey sortKey, final String sortOrder) {
 
 		this.sortKey   = sortKey;

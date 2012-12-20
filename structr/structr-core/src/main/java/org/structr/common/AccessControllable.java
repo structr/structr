@@ -25,7 +25,7 @@ import org.structr.core.entity.Principal;
 
 /**
  * Interface to encapsulate query-able permissions. This interface exists
- * in order to make {@org.structr.core.common.SecurityContext} testable.
+ * in order to make {@link SecurityContext} testable.
  *
  * @author Christian Morgner
  */

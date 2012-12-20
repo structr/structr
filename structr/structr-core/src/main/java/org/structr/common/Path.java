@@ -20,7 +20,8 @@
 package org.structr.common;
 
 /**
- *
+ * Defines path constants for structr's service layer.
+ * 
  * @author Christian Morgner
  */
 public enum Path {

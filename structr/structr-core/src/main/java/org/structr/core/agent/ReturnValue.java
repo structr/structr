@@ -20,11 +20,13 @@
 package org.structr.core.agent;
 
 /**
- *
- * @author cmorgner
+ * Defines the possible return values for task execution in the agent system of
+ * structr.
+ * 
+ * @author Christian Morgner
  */
-public enum ReturnValue
-{
+public enum ReturnValue {
+	
 	Success,
 
 	Retry,

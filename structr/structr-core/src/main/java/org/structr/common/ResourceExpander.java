@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class ResourceExpander implements RelationshipExpander {
 

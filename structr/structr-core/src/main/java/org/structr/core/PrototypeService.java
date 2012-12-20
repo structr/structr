@@ -21,9 +21,10 @@ package org.structr.core;
 
 /**
  * A service that will be instantiated each time a command from this service
- * is requested.
+ * is requested. Use this class when your service needs to be newly instantiated
+ * for every command.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public interface PrototypeService extends Service
 {

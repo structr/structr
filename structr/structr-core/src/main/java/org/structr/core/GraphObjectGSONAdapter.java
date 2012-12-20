@@ -40,8 +40,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.notion.Notion;
-import org.structr.core.property.AbstractRelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 

@@ -45,7 +45,7 @@ import javax.servlet.http.HttpSessionListener;
 /**
  * Web application lifecycle listener.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public class ApplicationContextListener implements ServletContextListener, HttpSessionListener {
 

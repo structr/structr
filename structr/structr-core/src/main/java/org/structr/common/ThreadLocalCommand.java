@@ -23,7 +23,9 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 
 /**
- *
+ * A thread-local version of a structr service command. Use this class when you
+ * need a static, re-usable instance of a command that you call very often.
+ * 
  * @author Christian Morgner
  */
 public class ThreadLocalCommand<T extends Command> extends ThreadLocal<T> {

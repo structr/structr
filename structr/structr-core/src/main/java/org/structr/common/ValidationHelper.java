@@ -28,6 +28,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.GraphObject;
 
 /**
+ * Defines helper methods for property validation.
  *
  * @author Christian Morgner
  */
@@ -36,6 +37,16 @@ public class ValidationHelper {
 	private static final PropertyKey UnknownType = new GenericProperty("unknown type");
 	
 	// ----- public static methods -----
+	/**
+	 * Checks whether the value for the given property key of the given node
+	 * has at least the given length.
+	 * 
+	 * @param node the node
+	 * @param key the property key whose value should be checked
+	 * @param minLength the min length
+	 * @param errorBuffer the error buffer
+	 * @return whether the property value has a minimum length of minLength
+	 */
 	public static boolean checkStringMinLength(GraphObject node, PropertyKey<String> key, int minLength, ErrorBuffer errorBuffer) {
 
 		String value = node.getProperty(key);
@@ -60,6 +71,15 @@ public class ValidationHelper {
 		return true;
 	}
 
+	/**
+	 * Checks whether the value for the given property key of the given node
+	 * is a non-empty string.
+	 * 
+	 * @param node the node
+	 * @param key the property key
+	 * @param errorBuffer the error buffer
+	 * @return whether the property value is a non-empty string
+	 */
 	public static boolean checkStringNotBlank(GraphObject node, PropertyKey<String> key, ErrorBuffer errorBuffer) {
 
 		String type  = node.getType();
@@ -75,6 +95,15 @@ public class ValidationHelper {
 		return true;
 	}
 
+	/**
+	 * Checks whether the value for the given property key of the given node
+	 * is a non-empty string.
+	 * 
+	 * @param node the node
+	 * @param key the property key
+	 * @param errorBuffer the error buffer
+	 * @return whether the property value is a non-null string
+	 */
 	public static boolean checkPropertyNotNull(GraphObject node, PropertyKey key, ErrorBuffer errorBuffer) {
 		
 		String type  = node.getType();
@@ -109,6 +138,15 @@ public class ValidationHelper {
 		return true;
 	}
 
+	/**
+	 * Checks whether the value for the given property key of the given node
+	 * is non null and of type Date.
+	 * 
+	 * @param node the node
+	 * @param key the property key
+	 * @param errorBuffer the error buffer
+	 * @return whether the property value is a non-empty Date
+	 */
 	public static boolean checkDate(GraphObject node, PropertyKey<Date> key, ErrorBuffer errorBuffer) {
 
 		Date date     = node.getDateProperty(key);
@@ -125,6 +163,18 @@ public class ValidationHelper {
 		return error;
 	}
 
+
+	/**
+	 * Checks whether the Date values for the two given property keys are
+	 * in chronological order, i.e. the Date of key1 lies before the one of
+	 * key2.
+	 * 
+	 * @param node the node
+	 * @param key1 the first Date key
+	 * @param key2 the second Date key
+	 * @param errorBuffer the error buffer
+	 * @return whether the Date value of key1 lies before the one of key2
+	 */
 	public static boolean checkDatesChronological(GraphObject node, PropertyKey<Date> key1, PropertyKey<Date> key2, ErrorBuffer errorBuffer) {
 
 		Date date1    = node.getDateProperty(key1);
@@ -146,6 +196,16 @@ public class ValidationHelper {
 		return error;
 	}
 
+	/**
+	 * Checks whether the value for the given property key of the given node
+	 * is one of the values array.
+	 * 
+	 * @param node the node
+	 * @param key the property key
+	 * @param values the values to check against
+	 * @param errorBuffer the error buffer
+	 * @return whether the value for the given property key is in values
+	 */
 	public static boolean checkStringInArray(GraphObject node, PropertyKey<String> key, String[] values, ErrorBuffer errorBuffer) {
 
 		String type  = node.getType();
@@ -165,11 +225,33 @@ public class ValidationHelper {
 		return true;
 	}
 
+	/**
+	 * Checks whether the value for the given property key of the given node
+	 * is a valid enum value of the given type.
+	 * 
+	 * @param node the node
+	 * @param key the property key
+	 * @param enumType the enum type to check against
+	 * @param errorBuffer the error buffer
+	 * @return whether the value for the given property key is of enumType
+	 */
 	public static boolean checkStringInEnum(GraphObject node, PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
 		
 		return checkStringInEnum(node.getType(), node, key, enumType, errorBuffer);
 	}
 	
+	/**
+	 * Checks whether the value for the given property key of the given node
+	 * is a valid enum value of the given type. In case of an error, the
+	 * type identifiery in typeString is used for the error message.
+	 * 
+	 * @param typeString
+	 * @param node the node
+	 * @param key the property key
+	 * @param enumType the enum type to check against
+	 * @param errorBuffer the error buffer
+	 * @return whether the value for the given property key is of enumType
+	 */
 	public static boolean checkStringInEnum(String typeString, GraphObject node, PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
 
 		Enum value = node.getProperty(key);
@@ -188,6 +270,16 @@ public class ValidationHelper {
 		return true;
 	}
 
+	/**
+	 * Checks whether the value for the given property key of the given node
+	 * is null OR one of the values given in the values array.
+	 * 
+	 * @param node the node
+	 * @param key the property key
+	 * @param values the values array
+	 * @param errorBuffer the error buffer
+	 * @return whether the property value for the given key is null or in values
+	 */
 	public static boolean checkNullOrStringInArray(GraphObject node, PropertyKey<String> key, String[] values, ErrorBuffer errorBuffer) {
 
 		String value = node.getProperty(key);

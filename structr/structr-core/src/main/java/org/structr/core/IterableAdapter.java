@@ -27,9 +27,9 @@ import org.structr.common.error.FrameworkException;
 
 /**
  * Converts an Iterable of source type S to an Iterable of target type T by
- * passing each element through and {@see org.structr.core.Adapter}. This class
- * implements lazy evaluation in the sense that a call to {@see #next} causes
- * the next element of the source Iterable to be converted and returned.
+ * passing each element through an {@link Adapter}. This class implements lazy
+ * evaluation in the sense that a call to the "next" method causes the next
+ * element of the source Iterable to be converted and returned.
  *
  * @author Christian Morgner
  */

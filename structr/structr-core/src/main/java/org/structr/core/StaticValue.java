@@ -22,9 +22,11 @@ package org.structr.core;
 import org.structr.common.SecurityContext;
 
 /**
- * A generic value parameter for functional evaluation.
+ * A generic value parameter for functional evaluation, with a static value
+ * assigned to it. This value object will return the exact given value on
+ * every evaluation.
  *
- * @author chrisi
+ * @author Christian Morgner
  */
 public class StaticValue<T> implements Value<T> {
 

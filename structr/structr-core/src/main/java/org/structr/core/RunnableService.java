@@ -26,7 +26,7 @@ package org.structr.core;
  * let your RunnableService implementation extend java.lang.Thread and map
  * the startService() and stopService() methods appropriately.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public interface RunnableService extends Service {
 

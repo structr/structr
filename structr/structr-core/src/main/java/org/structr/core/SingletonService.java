@@ -20,9 +20,10 @@
 package org.structr.core;
 
 /**
- * A service that has exactly one instance throughout the whole application lifespan.
+ * A service that has exactly one instance throughout the whole application
+ * lifespan. Use this service type for singleton classes.
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public interface SingletonService extends Service
 {

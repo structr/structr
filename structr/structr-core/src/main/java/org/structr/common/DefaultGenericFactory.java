@@ -24,6 +24,9 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
 
 /**
+ * The default factory for unknown types in structr. When structr needs to
+ * instantiate a node with an unknown / unregistered type, this class is
+ * used.
  *
  * @author Christian Morgner
  */

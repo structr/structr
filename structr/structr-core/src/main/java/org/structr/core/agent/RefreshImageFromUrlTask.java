@@ -30,7 +30,7 @@ import org.structr.core.entity.Principal;
  * Use this interface for tasks that convert a given node into another
  * type.
  *
- * @author amorgner
+ * @author Axel Morgner
  */
 public class RefreshImageFromUrlTask implements Task {
 

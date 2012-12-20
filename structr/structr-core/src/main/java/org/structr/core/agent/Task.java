@@ -25,25 +25,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 
 /**
- * An experimental interface description for a structr task.
- * To be discussed..
- *
- * First thoughts:
- *  - tasks operate on one or more nodes
- *  - tasks can have a priority
- *  - tasks can be scheduled for later execution
- *  - no need to hold a reference to the db since each node knows its
- *    GraphDatabaseService.
- *  - tasks whose scheduledTime has expired will be handeled with highest
- *    priority?
- *
- *Questions:
- *  - can / should tasks depend on other tasks? It might be simpler to
- *    see tasks as single, self-contained entities.
- *  - identification: Java class name or String identifier?
- *  - implement Delayed for DelayQueue? what about priority?
- *
- * @author cmorgner
+ * A task that an {@link Agent} can operate on.
+
+ * @author Christian Morgner
  */
 public interface Task extends Delayed, StatusInfo {
 

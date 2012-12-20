@@ -20,7 +20,6 @@ package org.structr.core;
 
 import java.util.*;
 import org.neo4j.graphdb.PropertyContainer;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
@@ -29,10 +28,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 
 /**
- *
+ * A dummy graph object that uses a map as its data store.
+ * 
  * @author Christian Morgner
  */
-
 public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override

@@ -26,7 +26,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * Wrapper class for JSON input via {@see JsonRestServlet}.
+ * Wrapper class for JSON input via {@link JsonRestServlet}.
  *
  * @author Christian Morgner
  */
@@ -49,23 +49,6 @@ public class JsonInput implements Map<String, Object> {
 		attributes.put(key, value);
 	}
 
-//	/**
-//	 * Add a key-value-pair of given type to this property set.
-//	 *
-//	 * @param key the key
-//	 * @param value the value
-//	 * @param type the type
-//	 */
-//	public void add(String key, Object value, String type) {
-//
-//		attributes.put(key, new NodeAttribute(key, value));
-//	}
-
-	/**
-	 * Return the list of attributes in this property set.
-	 *
-	 * @return the list of attributes
-	 */
 	public Map<String, Object> getAttributes() {
 		return attributes;
 	}

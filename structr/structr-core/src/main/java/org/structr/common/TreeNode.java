@@ -31,8 +31,9 @@ import java.util.Set;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author axel
+ * A tree node.
+ * 
+ * @author Axel Morgner
  */
 public class TreeNode {
 

@@ -45,7 +45,7 @@ import org.structr.common.error.FrameworkException;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Main entry point for access to services in structr.
+ * Provides access to the service layer in structr.
  *
  * <p>
  * Use the {@see #command} method to obtain an instance of the desired command.

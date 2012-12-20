@@ -22,21 +22,19 @@ import java.util.LinkedHashSet;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
- *
+ * Encapsulates the changeset of a neo4j database transaction, taking care of
+ * structr internals.
+ * 
  * @author Christian Morgner
  */
 public class TransactionChangeSet {
 
-	private static final Logger logger = Logger.getLogger(TransactionChangeSet.class.getName());
-	
 	private Queue<AbstractNode> propagationQueue    = new ConcurrentLinkedQueue<AbstractNode>();
 	private boolean systemOnly                      = true;
 	

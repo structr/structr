@@ -23,9 +23,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 /**
- * A PropertyGroup can be used to encapsulate multiple node properties
- * into a single property. Register classes of this type with
- * {@see EntityContext#registerPropertyGroup}.
+ * A PropertyGroup can be used to encapsulate multiple node properties into a
+ * single property.
  *
  * @author Christian Morgner
  */

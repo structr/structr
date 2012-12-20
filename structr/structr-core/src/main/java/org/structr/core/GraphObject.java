@@ -34,7 +34,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
- * A common base class for {@see AbstractNode} and {@see AbstractRelationship}.
+ * A common base class for {@link AbstractNode} and {@link AbstractRelationship}.
  *
  * @author Christian Morgner
  */

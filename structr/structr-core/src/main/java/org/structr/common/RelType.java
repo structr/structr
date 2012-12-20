@@ -21,10 +21,9 @@ package org.structr.common;
 import org.neo4j.graphdb.RelationshipType;
 
 /**
- * Contains all application-specific relationship types
+ * Defines relationship types for structr's internal relationships.
  * 
- * @author amorgner
- *
+ * @author Axel Morgner
  */
 public enum RelType implements RelationshipType {
 	UNDEFINED, LINK, PAGE_LINK,

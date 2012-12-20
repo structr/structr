@@ -26,6 +26,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
 /**
+ * The internal post-processing transformation that assigns UUIDs to structr
+ * entities. This transformation is registered for all structr entities.
  *
  * @author Christian Morgner
  */

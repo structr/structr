@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
  */
 public interface ViewTransformation extends Transformation<List<? extends GraphObject>> {
 
+	@Override
 	public void apply(SecurityContext securityContext, List<? extends GraphObject> list) throws FrameworkException;
 	
 	/**
