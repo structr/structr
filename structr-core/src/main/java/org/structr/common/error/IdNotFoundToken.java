@@ -23,6 +23,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 
 /**
+ * Indicates that a given ID could not be found.
  *
  * @author Christian Morgner
  */

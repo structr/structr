@@ -23,10 +23,7 @@ package org.structr.common;
 
 
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -34,8 +31,12 @@ import org.structr.core.graph.StructrTransaction;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.property.StringProperty;
+import org.neo4j.graphdb.Relationship;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -114,7 +115,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 	}
 
-	/**
+	 /**
 	 * Test the results of setProperty and getProperty of a relationship
 	 */
 	public void test02ModifyRelationship() {
@@ -128,11 +129,18 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 			// Modify values
 			rel.setProperty(key1, val1);
-			assertTrue(rel.getProperty(key1).equals(val1));
+			
+			assertTrue("Expected relationship to have a value for key '" + key1.dbName() + "'", rel.getRelationship().hasProperty(key1.dbName()));
+			
+			assertEquals(val1, rel.getRelationship().getProperty(key1.dbName()));
+			
+			Object vrfy1 = rel.getProperty(key1);
+			assertEquals(val1, vrfy1);
 			
 			val1 = "öljkhöohü8osdfhoödhi";
 			rel.setProperty(key1, val1);
-			assertTrue(rel.getProperty(key1).equals(val1));
+			Object vrfy2 = rel.getProperty(key1);
+			assertEquals(val1, vrfy2);
 			
 
 		} catch (FrameworkException ex) {

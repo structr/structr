@@ -81,7 +81,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	// properties
-	public static final Property<String>          base                        = new StringProperty("base");
 	public static final Property<String>          name                        = new StringProperty("name");
 	public static final Property<String>          createdBy                   = new StringProperty("createdBy").systemProperty().writeOnce();
 	public static final Property<Boolean>         deleted                     = new BooleanProperty("deleted");
@@ -130,8 +129,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected String cachedUuid = null;
 	protected boolean isDirty;
 
-//      protected Principal user;
-	
 	//~--- constructors ---------------------------------------------------
 
 	public AbstractNode() {
@@ -284,7 +281,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Can be used to permit the setting of a scanEntity-only
+	 * Can be used to permit the setting of a read-only
 	 * property once. The lock will be restored automatically
 	 * after the next setProperty operation. This method exists
 	 * to prevent automatic set methods from setting a scanEntity-only
@@ -574,146 +571,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 		
 		return key.getProperty(securityContext, this, applyConverter);
-		
-		/*
-		Object value;
-		
-		if (dbNode == null) {
-
-			return null;
-		}
-
-		value             = (T)(applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key));
-		Class type        = this.getClass();
-		boolean dontCache = false;
-
-		// only use cached value if property is accessed the "normal" way (i.e. WITH converters)
-		if (value == null) {
-			
-			// ----- BEGIN property group resolution -----
-			PropertyGroup<T> propertyGroup = EntityContext.getPropertyGroup(type, key);
-
-			if (propertyGroup != null) {
-
-				try {
-					return propertyGroup.getGroupedProperties(securityContext, this);
-					
-				} catch(Throwable t) {
-						
-					// CHM: remove debugging code later
-					t.printStackTrace();
-					
-					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-						key.dbName(),
-						entityType.getSimpleName(),
-						getUuid(),
-						t.getMessage()
-					});
-				}
-			}
-
-			if (dbNode.hasProperty(key.dbName())) {
-
-				if ((key != null) && (dbNode != null)) {
-
-					value = dbNode.getProperty(key.dbName());
-				}
-
-			} else {
-
-				// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-				Relation rel = EntityContext.getRelationClass(type, key);
-
-				if (rel != null) {
-
-					// apply notion (default is "as-is")
-					Notion notion = rel.getNotion();
-
-					// return collection or single element depending on cardinality of relationship
-					switch (rel.getCardinality()) {
-
-						case ManyToMany :
-						case OneToMany :
-							value     = Notion.convertList(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
-							dontCache = true;
-							break;
-
-						case OneToOne :
-						case ManyToOne :
-							try {
-
-								value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
-								dontCache = true;
-
-							} catch (FrameworkException fex) {
-
-								logger.log(Level.WARNING, "Error while adapting related node", fex);
-
-							}
-
-							break;
-
-					}
-				}
-
-				// ----- END automatic property resolution -----
-			}
-
-			// only apply converter if requested
-			// (required for getComparableProperty())
-			if(applyConverter) {
-
-				// apply property converters
-				PropertyConverter converter = key.databaseConverter(securityContext, this);
-				if (converter != null) {
-
-					try {
-						value = converter.revert(value);
-						
-					} catch(Throwable t) {
-						
-						// CHM: remove debugging code later
-						t.printStackTrace();
-						
-						logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-							key.dbName(),
-							getClass().getSimpleName(),
-							t.getMessage()
-						});
-					}
-
-				}
-			}
-
-			if(!dontCache) {
-				
-				// only cache value if it is NOT the schema default
-				if(applyConverter) {
-					
-					cachedConvertedProperties.put(key, value);
-					
-				} else {
-					
-					cachedRawProperties.put(key, value);
-				}
-			}
-		}
-
-		// no value found, use schema default
-		if (value == null) {
-
-			value = key.defaultValue();
-			dontCache = true;
-		}
-		
-		try {
-
-			return (T)value;
-			
-		} catch(Throwable t) {
-			throw new IllegalStateException("Value for key " + key.dbName() + " has incorrect type, maybe you forgot to register a PropertyConverter?");
-		}
-		*/
 	}
 
 	public String getPropertyMD5(final PropertyKey key) {
@@ -1467,12 +1324,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
-//	public void setLastModifiedDate(final Date date) throws FrameworkException {
-//
-//		setProperty(Key.lastModifiedDate.name(), date);
-//
-//	}
-
 	public void setVisibilityStartDate(final Date date) throws FrameworkException {
 
 		setProperty(AbstractNode.visibilityStartDate, date);
@@ -1621,90 +1472,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		key.setProperty(securityContext, this, value);
-		
-		/*
-		// ----- BEGIN property group resolution -----
-		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
-
-		if (propertyGroup != null) {
-
-			propertyGroup.setGroupedProperties(securityContext, value, this);
-
-			return;
-
-		}
-
-		// static relationship detected, create or remove relationship
-		Relation rel = EntityContext.getRelationClass(type, key);
-
-		if (rel != null) {
-
-			if (value != null) {
-
-				// TODO: check cardinality here
-				if (value instanceof Iterable) {
-
-					Collection<GraphObject> collection = (Collection)rel.getNotion().getCollectionAdapterForSetter(securityContext).adapt(value);
-					for (GraphObject graphObject : collection) {
-
-						if (graphObject instanceof AbstractNode) {
-							
-							rel.createRelationship(securityContext, this, (AbstractNode)graphObject);
-						}
-					}
-
-				} else {
-
-					GraphObject graphObject = (GraphObject)rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
-					if (graphObject instanceof AbstractNode) {
-
-						rel.createRelationship(securityContext, this, (AbstractNode)graphObject);
-					}
-
-				}
-			} else {
-
-				// new value is null
-				Object existingValue = getProperty(key);
-
-				// do nothing if value is already null
-				if (existingValue == null) {
-
-					return;
-				}
-
-				// support collection resources, too
-				if (existingValue instanceof Iterable) {
-
-					for (Object val : ((Iterable) existingValue)) {
-
-						GraphObject graphObject = (GraphObject)rel.getNotion().getAdapterForSetter(securityContext).adapt(val);
-						if (graphObject instanceof AbstractNode) {
-							
-							rel.removeRelationship(securityContext, this, (AbstractNode)graphObject);
-						}
-
-					}
-
-				} else {
-
-					GraphObject graphObject = (GraphObject)rel.getNotion().getAdapterForSetter(securityContext).adapt(existingValue);
-					if (graphObject instanceof AbstractNode) {
-
-						rel.removeRelationship(securityContext, this, (AbstractNode)graphObject);
-					}
-				}
-			}
-
-		} else {
-
-		}
-
-		// remove property from cached properties
-		cachedConvertedProperties.remove(key);
-		cachedRawProperties.remove(key);
-		*/
-
 	}
 
 	public void setOwner(final AbstractNode owner) {

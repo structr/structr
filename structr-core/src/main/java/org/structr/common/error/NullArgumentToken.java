@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * Indicates that a property value may not be null.
  *
  * @author Christian Morgner
  */

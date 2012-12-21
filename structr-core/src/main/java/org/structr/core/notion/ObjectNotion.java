@@ -25,8 +25,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
 /**
- * Combines an {@link ObjectSerializationStrategy} and an {@link IdDeserializationStrategy}
- * to read/write a {@link graphObject}. This is the default notion.
+ * Combines an {@link ObjectSerializationStrategy} and an
+ * {@link IdDeserializationStrategy} to read/write a
+ * {@link org.structr.core.GraphObject}. This is the default notion.
  *
  * @author Christian Morgner
  */
@@ -43,6 +44,9 @@ public class ObjectNotion extends Notion {
 		super(serializationStrategy, deserializationStrategy);
 	}
 
+	/**
+	 * Identity serialization strategy. This class returns the object unmodified.
+	 */
 	public static class ObjectSerializationStrategy implements SerializationStrategy {
 		@Override
 		public Object serialize(SecurityContext securityContext, Class type, GraphObject source) {

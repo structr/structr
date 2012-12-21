@@ -25,6 +25,7 @@ import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * Indicates that a required object could not be found.
  *
  * @author Christian Morgner
  */

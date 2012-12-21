@@ -23,7 +23,6 @@ package org.structr.core.entity;
 
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
-import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.NodeFactory;
@@ -103,9 +102,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	protected Class entityType     = getClass();
 	private String cachedEndNodeId = null;
 
-	// test
-	protected PropertyMap cachedConvertedProperties = new PropertyMap();
-	protected PropertyMap cachedRawProperties       = new PropertyMap();
 	private String cachedStartNodeId                = null;
 	protected SecurityContext securityContext       = null;
 	private boolean readOnlyPropertiesUnlocked      = false;
@@ -182,7 +178,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		} catch (Throwable t) {
 		}
-
 	}
 
 	public AbstractNode identifyStartNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
@@ -441,121 +436,21 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		if (key == null || key.dbName() == null) {
 			return null;
 		}
-		
-		Object value      = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
-		boolean dontCache = false;
-		Class type         = this.getClass();
-		
-		if(value == null || !applyConverter) {
 
-			PropertyKey startNodeIdKey = getStartNodeIdKey();
-			PropertyKey endNodeIdKey   = getEndNodeIdKey();
+		PropertyKey startNodeIdKey = getStartNodeIdKey();
+		PropertyKey endNodeIdKey   = getEndNodeIdKey();
 
-			if (startNodeIdKey != null && key.equals(startNodeIdKey)) {
+		if (startNodeIdKey != null && key.equals(startNodeIdKey)) {
 
-				value = getStartNodeId();
-				
-				if(applyConverter) {
-					
-					cachedConvertedProperties.put(key, value);
-					
-				} else {
-					
-					cachedRawProperties.put(key, value);
-				}
-				
-				return (T)value;
-
-			}
-			
-			if (endNodeIdKey != null && key.equals(endNodeIdKey)) {
-
-				value = getEndNodeId();
-				
-				if(applyConverter) {
-					
-					cachedConvertedProperties.put(key, value);
-					
-				} else {
-					
-					cachedRawProperties.put(key, value);
-				}
-
-				return (T)value;
-				
-			}
-			
-			// ----- BEGIN property group resolution -----
-			PropertyGroup<T> propertyGroup = EntityContext.getPropertyGroup(type, key);
-
-			if (propertyGroup != null) {
-
-				try {
-					return propertyGroup.getGroupedProperties(securityContext, this);
-					
-				} catch(FrameworkException fex) {
-					
-					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-						key.dbName(),
-						entityType.getSimpleName(),
-						fex.getMessage()
-					});
-				}
-			}
-
-			if (dbRelationship.hasProperty(key.dbName())) {
-
-				value = dbRelationship.getProperty(key.dbName());
-			}
-
-			// only apply converter if requested
-			// (required for getComparableProperty())
-			if(applyConverter) {
-
-				PropertyConverter converter = key.databaseConverter(securityContext, this);
-				if (converter != null) {
-
-					try {
-
-						value = converter.revert(value);
-						
-					} catch(Throwable t) {
-						
-						// CHM: remove debugging code later
-						t.printStackTrace();
-						
-						logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-							key.dbName(),
-							getClass().getSimpleName(),
-							t.getMessage()
-						});
-					}
-				}
-			}
-
-			if(!dontCache) {
-
-				// only cache value if it is NOT the schema default
-				if(applyConverter) {
-					
-					cachedConvertedProperties.put(key, value);
-					
-				} else {
-					
-					cachedRawProperties.put(key, value);
-				}
-			}
+			return (T) getStartNodeId();
 		}
 
-		// no value found, use schema default
-		if (value == null) {
+		if (endNodeIdKey != null && key.equals(endNodeIdKey)) {
 
-			value = key.defaultValue();
-			dontCache = true;
+			return (T)getEndNodeId();
 		}
-
-		return (T)value;
-
+		
+		return key.getProperty(securityContext, this, applyConverter);
 	}
 
 	@Override
@@ -743,7 +638,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		Class type = getClass();
 		
 		// check property converter
-//		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		PropertyConverter converter = key.databaseConverter(securityContext, this);
 		if (converter != null) {
 			
@@ -1033,10 +927,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		PropertyKey startNodeIdKey = getStartNodeIdKey();
 		PropertyKey endNodeIdKey   = getEndNodeIdKey();
-
-		// clear cached property
-		cachedConvertedProperties.remove(key);
-		cachedRawProperties.remove(key);
 		
 		if ((startNodeIdKey != null) && key.equals(startNodeIdKey)) {
 
@@ -1053,9 +943,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			return;
 
 		}
-
-		Class type = this.getClass();
-
+		
 		// check for read-only properties
 		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
 		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
@@ -1068,77 +956,12 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				
 			} else {
 
-				throw new FrameworkException(type.getSimpleName(), new ReadOnlyPropertyToken(key));
+				throw new FrameworkException(getClass().getSimpleName(), new ReadOnlyPropertyToken(key));
 			}
 
 		}
-
-		// ----- BEGIN property group resolution -----
-		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
-
-		if (propertyGroup != null) {
-
-			propertyGroup.setGroupedProperties(securityContext, value, this);
-
-			return;
-
-		}
-
-//		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-		PropertyConverter converter = key.databaseConverter(securityContext, this);
-		final Object convertedValue;
-
-		if (converter != null) {
-
-			convertedValue = converter.convert(value);
-
-		} else {
-
-			convertedValue = value;
-		}
-
-		final Object oldValue = getProperty(key);
 		
-		// don't make any changes if
-		// - old and new value both are null
-		// - old and new value are not null but equal
-		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
-
-			return;
-		}
-
-		// Commit value directly to database
-		StructrTransaction transaction = new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				try {
-
-					// save space
-					if (convertedValue == null) {
-
-						dbRelationship.removeProperty(key.dbName());
-						
-					} else {
-
-						dbRelationship.setProperty(key.dbName(), convertedValue);
-					}
-					
-				} finally {}
-
-				return null;
-
-			}
-
-		};
-
-		// execute transaction
-		Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-		// clear cached property
-		cachedConvertedProperties.remove(key);
-		cachedRawProperties.remove(key);
+		key.setProperty(securityContext, this, value);
 	}
 
 	/**

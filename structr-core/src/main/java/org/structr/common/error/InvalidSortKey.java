@@ -25,6 +25,7 @@ import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * Indicates an invalid sort key.
  *
  * @author Christian Morgner
  */

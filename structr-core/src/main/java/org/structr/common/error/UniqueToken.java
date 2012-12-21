@@ -25,7 +25,8 @@ import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
- *
+ * Indicates that a specific property value already exists in the database.
+ * 
  * @author Christian Morgner
  */
 public class UniqueToken extends SemanticErrorToken {

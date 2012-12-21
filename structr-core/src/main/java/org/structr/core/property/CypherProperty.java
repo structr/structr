@@ -26,6 +26,8 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.cypher.CypherQueryHandler;
 
 /**
+ * A property that executes the given {@link CypherQueryHandler} when evaluated
+ * and returns the results of the query.
  *
  * @author Christian Morgner
  */

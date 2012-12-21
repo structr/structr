@@ -24,7 +24,7 @@ import org.structr.core.Predicate;
 
 
 /**
- * A predicate that evaluates to <b>true>/b> if two Comparable objects compare
+ * A predicate that evaluates to <b>true</b> if two Comparable objects compare
  * to a value greater than 0 using the compareTo methods. This predicate
  * evaluates to <b>true</b> if there is only one parameter value for the
  * evaluate method.

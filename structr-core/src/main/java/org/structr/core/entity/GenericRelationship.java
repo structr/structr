@@ -59,13 +59,7 @@ public class GenericRelationship extends AbstractRelationship {
 	
 	static {
 
-//		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All, Key.values());
-
 		EntityContext.registerSearchableProperty(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), AbstractRelationship.uuid);
-		
-		// register start and end node for ui view
-//		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.Ui, UiKey.values());
-		
 	}
 	
 	//~--- constructors ---------------------------------------------------

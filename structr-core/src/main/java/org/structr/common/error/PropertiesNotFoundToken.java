@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * Indicates that a desired object could not be found.
  *
  * @author Christian Morgner
  */

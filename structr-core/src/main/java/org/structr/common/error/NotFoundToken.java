@@ -23,6 +23,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * Abstract base class for not found tokens, this error token yields the HTTP
+ * status code 404.
  *
  * @author Christian Morgner
  */

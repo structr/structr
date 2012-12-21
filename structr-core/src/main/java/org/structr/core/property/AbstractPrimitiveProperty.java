@@ -54,21 +54,17 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-		
+
 		Object value = null;
 		
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
-		if (propertyContainer != null) {
-			
-			if (propertyContainer.hasProperty(dbName())) {
 
-				if (propertyContainer != null) {
+		if (propertyContainer != null && propertyContainer.hasProperty(dbName())) {
 
-					value = propertyContainer.getProperty(dbName());
-				}
-			}
+			value = propertyContainer.getProperty(dbName());
+
 		}
-		
+
 		if(applyConverter) {
 
 			// apply property converters
@@ -157,6 +153,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 							}
 						}
+						
+					} catch (Throwable t) {
+						
+						t.printStackTrace();
 
 					} finally {}
 

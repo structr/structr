@@ -83,8 +83,14 @@ public class NodeService implements SingletonService {
 
 	//~--- constant enums -------------------------------------------------
 
+	/**
+	 * The list of existing node indices.
+	 */
 	public static enum NodeIndex { uuid, user, caseInsensitiveUser, keyword, fulltext, layer }
 
+	/**
+	 * The list of existing relationship indices.
+	 */
 	public static enum RelationshipIndex { rel_uuid, rel_keyword, rel_fulltext }
 
 	//~--- methods --------------------------------------------------------

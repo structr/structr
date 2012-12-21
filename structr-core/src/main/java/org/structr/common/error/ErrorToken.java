@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * Abstract base class for all error tokens.
  *
  * @author Christian Morgner
  */

@@ -155,6 +155,14 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 					if ((properties != null) &&!properties.isEmpty()) {
 
 						for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
+							
+							PropertyKey key = entry.getKey();
+							
+							// on creation, writing of read-only properties should be possible
+							if (key.isReadOnlyProperty() || key.isWriteOnceProperty()) {
+								newRel.unlockReadOnlyPropertiesOnce();
+							}
+							
 							newRel.setProperty(entry.getKey(), entry.getValue());
 						}
 

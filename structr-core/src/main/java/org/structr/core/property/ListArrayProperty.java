@@ -25,6 +25,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+ * A property that stores a list of strings, separated by a given separator, in
+ * a string array in the database.
  *
  * @Deprecated This property is not working correctly, please do not use.
  * 

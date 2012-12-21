@@ -25,6 +25,7 @@ import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
+ * Indicates that the length of a property value is too large.
  *
  * @author Christian Morgner
  */

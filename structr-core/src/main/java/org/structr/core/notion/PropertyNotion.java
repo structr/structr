@@ -23,7 +23,7 @@ import org.structr.core.property.PropertyKey;
 
 /**
  * Combines a {@link PropertySerializationStrategy} and a {@link TypeAndValueDeserializationStrategy}
- * to read/write a {@link GraphObject}.
+ * to read/write a {@link org.structr.core.GraphObject}.
  *
  * @author Christian Morgner
  */

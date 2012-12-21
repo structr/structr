@@ -117,6 +117,10 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		return resultList;
 	}
+	
+	/**
+	 * A thread local version of the neo4j cypher execution engine.
+	 */
 	protected static class ThreadLocalExecutionEngine extends ThreadLocal<ExecutionEngine> {
 		
 		@Override

@@ -39,7 +39,7 @@ import org.structr.core.converter.PropertyConverter;
  * 
  * @author Christian Morgner
  */
-public class GenericProperty<T> extends Property<T> {
+public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	//~--- constructors ---------------------------------------------------
 
@@ -103,14 +103,5 @@ public class GenericProperty<T> extends Property<T> {
 	@Override
 	public boolean isCollection() {
 		return false;
-	}
-
-	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-		return null;
-	}
-
-	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 	}
 }

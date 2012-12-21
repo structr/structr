@@ -24,8 +24,8 @@ import java.util.Set;
 import java.util.Map;
 
 /**
- * A buffer that collects error tokens to allow for i18n
- * and human readable output later.
+ * A buffer that collects error tokens to allow for i18n and human readable
+ * output.
  *
  * @author Christian Morgner
  */

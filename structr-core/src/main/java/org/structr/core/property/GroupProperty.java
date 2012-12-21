@@ -37,6 +37,7 @@ import org.structr.core.PropertyGroup;
 import org.structr.core.converter.PropertyConverter;
 
 /**
+ * A property that combines other properties in a nested object.
  *
  * @author Christian Morgner
  */

@@ -26,7 +26,8 @@ import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
- *
+ * Indicates that a property value was not in the expected set of values.
+ * 
  * @author Christian Morgner
  */
 public class ValueToken extends SemanticErrorToken {

@@ -43,8 +43,8 @@ import org.structr.core.notion.Notion;
 
 /**
  * Abstract base class for node collector implementations that can be plugged into
- * {@see TraversingConverter}. To use this collector, subclass it, add predicates
- * and an optional notion to it and use {@see EntityContext} to register it as the
+ * {@link TraversingConverter}. To use this collector, subclass it, add predicates
+ * and an optional notion to it and use {@link EntityContext} to register it as the
  * value parameter of a TraversingConverter.
  *
  * @author Christian Morgner
@@ -162,6 +162,7 @@ public abstract class AbstractNodeCollector<T extends AbstractNode> implements T
 	 *
 	 * @param predicate
 	 */
+	@Override
 	public void addPredicate(Predicate<Node> predicate) {
 		this.predicates.add(predicate);
 	}
