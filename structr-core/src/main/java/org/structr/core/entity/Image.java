@@ -42,11 +42,12 @@ import org.structr.core.graph.TransactionCommand;
 
 import java.io.IOException;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.EntityContext;
+import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ThumbnailProperty;
 
@@ -70,8 +71,13 @@ public class Image extends File {
 	
 	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").systemProperty();
 
-	public static final View uiView              = new View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid);
-	public static final View publicView          = new View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid);
+	public static final View uiView              = new View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail);
+	public static final View publicView          = new View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail);
+	
+	static {
+		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail);
+		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail);
+	}
 
 	//~--- methods --------------------------------------------------------
 
