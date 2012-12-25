@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.StructrTest;
@@ -126,6 +127,35 @@ public class CollectionPropertyTest extends StructrTest {
 		// verfiy that the relationships in testSix1 have been removed by the previous call
 		List vrfy3 = instance.getProperty(securityContext, testSix1, true);
 		assertTrue(vrfy3 != null && vrfy3.size() == 0);
+		
+		// again set two TestOne entities on textSix1
+		instance.setProperty(securityContext, testSix1, testOnesToSet);
+
+		// verfiy that the relationships in testSix1 have in fact been created
+		List vrfy4 = instance.getProperty(securityContext, testSix1, true);
+		assertTrue(vrfy4 != null && vrfy4.size() == 2);
+		
+		// remove relationships by setting null
+		instance.setProperty(securityContext, testSix1, null);
+		
+		// verfiy that the relationships in testSix1 have been removed by the previous call
+		List vrfy5 = instance.getProperty(securityContext, testSix1, true);
+		assertTrue(vrfy5 != null && vrfy5.size() == 0);
+		
+		// again set two TestOne entities on textSix1
+		instance.setProperty(securityContext, testSix1, testOnesToSet);
+
+		// verfiy that the relationships in testSix1 have in fact been created
+		List vrfy6 = instance.getProperty(securityContext, testSix1, true);
+		assertTrue(vrfy6 != null && vrfy6.size() == 2);
+		
+		// remove relationships by setting an empty list
+		instance.setProperty(securityContext, testSix1, Collections.EMPTY_LIST);
+		
+		// verfiy that the relationships in testSix1 have been removed by the previous call
+		List vrfy7 = instance.getProperty(securityContext, testSix1, true);
+		assertTrue(vrfy7 != null && vrfy7.size() == 0);
+
 	}
 	
 	
