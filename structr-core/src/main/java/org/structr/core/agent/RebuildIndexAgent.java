@@ -22,7 +22,6 @@
 package org.structr.core.agent;
 
 import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.IndexNodeCommand;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.IndexRelationshipCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
@@ -43,6 +42,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NewIndexNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,7 +95,7 @@ public class RebuildIndexAgent extends Agent {
 		final NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
 		final Iterable<Node> allNodes         = GlobalGraphOperations.at(graphDb).getAllNodes();
-		final IndexNodeCommand indexer        = Services.command(securityContext, IndexNodeCommand.class);
+		final NewIndexNodeCommand indexer     = Services.command(securityContext, NewIndexNodeCommand.class);
 		long nodeCount                        = 0L;
 	
 		logger.log(Level.INFO, "Start indexing of nodes.");
@@ -117,7 +117,7 @@ public class RebuildIndexAgent extends Agent {
 
 							if (dbNode.hasProperty(GraphObject.uuid.dbName())) {
 
-								indexer.update(nodeFactory.createNode(dbNode));
+								indexer.updateNode(nodeFactory.createNode(dbNode));
 
 								// restart transaction after 1000 iterations
 								if (++count == 1000) {
