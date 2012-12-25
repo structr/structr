@@ -42,6 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Command;
 import org.structr.core.agent.Task;
+import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -59,6 +60,7 @@ public class MaintenanceParameterResource extends Resource {
 	static {
 
 		maintenanceCommandMap.put("rebuildIndex", RebuildIndexTask.class);
+		maintenanceCommandMap.put("rebuildIndexForType", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("clearDatabase", ClearDatabase.class);
 		maintenanceCommandMap.put("fixNodeProperties", BulkFixNodePropertiesCommand.class);
 		maintenanceCommandMap.put("setNodeProperties", BulkSetNodePropertiesCommand.class);
