@@ -21,6 +21,7 @@
 
 package org.structr.core.notion;
 
+import java.util.Collections;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -127,6 +128,10 @@ public abstract class Notion<S extends GraphObject, T> {
 
 			@Override
 			public List<S> adapt(List<T> s) throws FrameworkException {
+				
+				if (s == null) {
+					return Collections.EMPTY_LIST;
+				}
 
 				List<S> list = new LinkedList<S>();
 				for (T t : s) {
