@@ -86,7 +86,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			}
 
 
-			long nodeCount = NodeServiceCommand.bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+			long nodeCount = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {

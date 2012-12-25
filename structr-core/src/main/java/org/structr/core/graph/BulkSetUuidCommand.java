@@ -28,13 +28,11 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -64,8 +62,6 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
 		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
-		long nodeCount                         = 0L;
-		long relCount                          = 0L;
 
 		if (entityType != null) {
 
@@ -77,57 +73,45 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				final Result<AbstractNode> result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 				final List<AbstractNode> nodes    = result.getResults();
 
-				logger.log(Level.INFO, "Start setting UUID on all nodes of type {1}", new Object[] { AbstractNode.uuid, type.getSimpleName() });
+				logger.log(Level.INFO, "Start setting UUID on all nodes of type {0}", new Object[] { type.getSimpleName() });
 
-				final Iterator<AbstractNode> nodeIterator = nodes.iterator();
+				long count = bulkGraphOperation(securityContext, nodes, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
-				while (nodeIterator.hasNext()) {
+					@Override
+					public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-					nodeCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
+						if (!node.getClass().equals(type)) {
 
-						@Override
-						public Integer execute() throws FrameworkException {
+							return;
+						}
 
-							int count = 0;
+						try {
 
-							while (nodeIterator.hasNext()) {
+							node.setProperty(AbstractNode.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
 
-								AbstractNode abstractNode = nodeIterator.next();
+						} catch (FrameworkException fex) {
 
-								if (!abstractNode.getClass().equals(type)) {
-
-									continue;
-								}
-
-								try {
-
-									abstractNode.setProperty(AbstractNode.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
-
-								} catch (Throwable t) {
-
-									logger.log(Level.WARNING, "Unable to set UUID on {0}: {1}", new Object[] { type.getSimpleName(), t.getMessage() });
-
-								}
-
-								// restart transaction after 1000 iterations
-								if (++count == 1000) {
-
-									break;
-								}
-
-							}
-
-							return count;
+							logger.log(Level.WARNING, "Unable to set UUID of node {0}: {1}", new Object[] { node, fex.getMessage() });
 
 						}
 
-					});
+					}
+					@Override
+					public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
 
-					logger.log(Level.INFO, "Set UUID on {0} nodes ...", nodeCount);
+						logger.log(Level.WARNING, "Unable to set UUID of node {0}: {1}", new Object[] { node, t.getMessage() });
 
-				}
+					}
+					@Override
+					public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 
-				logger.log(Level.INFO, "Done");
+						logger.log(Level.WARNING, "Unable to set UUID on node: {0}", t.getMessage());
+
+					}
+
+				});
+
+				logger.log(Level.INFO, "Done with setting UUID on {0} nodes", count);
 
 				return;
 			}
@@ -137,57 +121,45 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 			// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 			final List<AbstractRelationship> rels = relFactory.instantiateRelationships(superUserContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
 
-			logger.log(Level.INFO, "Start setting UUID on all rels of type {1}", new Object[] { AbstractRelationship.uuid, relType });
+			logger.log(Level.INFO, "Start setting UUID on all rels of type {0}", new Object[] { relType });
 
-			final Iterator<AbstractRelationship> nodeIterator = rels.iterator();
+			long count = bulkGraphOperation(securityContext, rels, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
 
-			while (nodeIterator.hasNext()) {
+				@Override
+				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
-				relCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
+					if (!rel.getType().equals(relType)) {
 
-					@Override
-					public Integer execute() throws FrameworkException {
+						return;
+					}
 
-						int count = 0;
+					try {
 
-						while (nodeIterator.hasNext()) {
+						rel.setProperty(AbstractRelationship.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
 
-							AbstractRelationship abstractRel = nodeIterator.next();
+					} catch (FrameworkException fex) {
 
-							if (!abstractRel.getType().equals(relType)) {
-
-								continue;
-							}
-
-							try {
-
-								abstractRel.setProperty(AbstractRelationship.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
-
-							} catch (Throwable t) {
-
-								logger.log(Level.WARNING, "Unable to set UUID on {0}: {1}", new Object[] { relType, t.getMessage() });
-
-							}
-
-							// restart transaction after 1000 iterations
-							if (++count == 1000) {
-
-								break;
-							}
-
-						}
-
-						return count;
+						logger.log(Level.WARNING, "Unable to set UUID of relationship {0}: {1}", new Object[] { rel, fex.getMessage() });
 
 					}
 
-				});
+				}
+				@Override
+				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
 
-				logger.log(Level.INFO, "Set UUID on {0} rels ...", relCount);
+					logger.log(Level.WARNING, "Unable to set UUID of relationship {0}: {1}", new Object[] { rel, t.getMessage() });
 
-			}
+				}
+				@Override
+				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 
-			logger.log(Level.INFO, "Done");
+					logger.log(Level.WARNING, "Unable to set UUID on relationship: {0}", t.getMessage());
+
+				}
+
+			});
+
+			logger.log(Level.INFO, "Done with setting UUID on {0} relationships", count);
 
 			return;
 		}
