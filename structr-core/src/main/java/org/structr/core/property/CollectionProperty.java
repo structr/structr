@@ -226,7 +226,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 			
 			AbstractNode sourceNode = (AbstractNode)obj;
 
-			if (collection != null) {
+			if (collection != null && !collection.isEmpty()) {
 
 				// FIXME: how are existing relationships handled if they need to be removed??
 				
