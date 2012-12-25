@@ -26,6 +26,9 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
+import org.structr.core.EntityContext;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityProperty;
 
@@ -39,13 +42,19 @@ import org.structr.core.property.EntityProperty;
  */
 public class Folder extends AbstractNode {
 
-	public static final EntityProperty<Folder>     parentFolder = new EntityProperty<Folder>("parentFolder", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
+	public static final EntityProperty<Folder>     parentFolder = new EntityProperty<Folder>("parentFolder", Folder.class, RelType.CONTAINS, Direction.INCOMING, new PropertySetNotion(uuid, name), true);
 
-	public static final CollectionProperty<Folder> folders      = new CollectionProperty<Folder>("folders", Folder.class, RelType.CONTAINS, true);
-	public static final CollectionProperty<File>   files        = new CollectionProperty<File>("files", File.class, RelType.CONTAINS, true);
-	public static final CollectionProperty<Image>  images       = new CollectionProperty<Image>("images", Image.class, RelType.CONTAINS, true);
+	public static final CollectionProperty<Folder> folders      = new CollectionProperty<Folder>("folders", Folder.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	public static final CollectionProperty<File>   files        = new CollectionProperty<File>("files", File.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	public static final CollectionProperty<Image>  images       = new CollectionProperty<Image>("images", Image.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parentFolder, folders, files, images
 	);
+
+	static {
+		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name);
+		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name);
+	}
+
 }
