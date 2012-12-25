@@ -99,8 +99,12 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			assertTrue(node.getProperty(AbstractNode.name).equals(name));
 			node.setProperty(AbstractNode.hidden, true);
 			assertTrue(node.getBooleanProperty(AbstractNode.hidden));
+			node.setProperty(AbstractNode.hidden, false);
+			assertFalse(node.getBooleanProperty(AbstractNode.hidden));
 			node.setProperty(AbstractNode.deleted, true);
 			assertTrue(node.getBooleanProperty(AbstractNode.deleted));
+			node.setProperty(AbstractNode.deleted, false);
+			assertFalse(node.getBooleanProperty(AbstractNode.deleted));
 			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
 			assertTrue(node.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
 			node.setProperty(AbstractNode.visibleToPublicUsers, true);
