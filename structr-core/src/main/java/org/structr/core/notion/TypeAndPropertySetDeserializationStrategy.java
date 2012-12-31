@@ -84,8 +84,17 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 			
 			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-			for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-				attrs.add(Search.andExactProperty(entry.getKey(), entry.getValue().toString()));
+			// Check if properties contain the UUID attribute
+			if (attributes.containsKey(GraphObject.uuid)) {
+				
+				attrs.add(Search.andExactUuid(attributes.get(GraphObject.uuid)));
+				
+			} else {
+			
+				for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+					attrs.add(Search.andExactProperty(entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : null));
+				}
+			
 			}
 
 			// just check for existance
