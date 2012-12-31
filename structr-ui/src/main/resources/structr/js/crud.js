@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
+var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
 var searchField;
 
 var browser = (typeof document == 'object');
@@ -27,16 +27,36 @@ if (browser) {
     
     $(document).ready(function() {
 
-        defaultView     = urlParam('view') ? urlParam('view') : 'public';
-        defaultSort     = urlParam('sort') ? urlParam('sort') : '';
-        defaultOrder    = urlParam('order') ? urlParam('order') : '';
-        defaultPage     = urlParam('page') ? urlParam('page') : 1;
-        defaultPageSize = urlParam('pageSize') ? urlParam('pageSize') : 10;
+        defaultType     = 'Hotel';
+        defaultView     = 'public';
+        defaultSort     = '';
+        defaultOrder    = '';
+                
+        defaultPage     = 1;
+        defaultPageSize = 10;
  
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
+        
+        console.log(_Crud.type);
+        
+        if (!_Crud.type) {
+            _Crud.restoreTypeFromCookie();
+            console.log(_Crud.type);
+        }
 
+        if (!_Crud.type) {
+            _Crud.type = urlParam('type');
+            console.log(_Crud.type);
+        }
+        
+        if (!_Crud.type) {
+            _Crud.type = defaultType;
+            console.log(_Crud.type);
+        }
+        
     });
+    
 } else {
     defaultView = 'public';
     // default header fields
@@ -51,8 +71,8 @@ var _Crud = {
     schemaLoading : false,
     schemaLoaded : false,
     
-    types : [  "User", "Page" ],
-    views : [ "public", "all", "ui"],
+    types : [ 'Page', 'User', 'Content' ],
+    views : [ 'public', 'all', 'ui' ],
 
     schema : [],
     keys : [],
@@ -68,20 +88,25 @@ var _Crud = {
     
     init : function() {
 
-        headers = {
-            'X-StructrSessionToken' : token
-        };
+        if (token) {
+
+            headers = {
+                'X-StructrSessionToken' : token
+            };
+        } else {
+            headers = {
+                'X-User' : 'admin',
+                'X-Password' : 'admin'
+            };   
+            
+        }
 
         _Crud.schemaLoading = false;
         _Crud.schemaLoaded = false;
         _Crud.schema = [];
         _Crud.keys = [];
 
-        _Crud.type             = urlParam('type');
-        if (!_Crud.type) _Crud.type = 'Conference';
-
         _Crud.loadSchema();
-
 
         main = $('#main');
         //showAjaxLoader(main);
@@ -164,9 +189,13 @@ var _Crud = {
     },
 
     updateUrl : function(type) {
-        //console.log('updateUrl', type);
+        console.log('updateUrl', type, _Crud.pageSize[type], _Crud.page[type]);
+        
         if (type) {
-            window.history.pushState('object or string', 'Title', _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]) + '&view=' + _Crud.view[type] + '&type=' + type + '#crud');
+            _Crud.storeTypeInCookie();
+            _Crud.storePagerDataInCookie();
+            //window.history.pushState('', '', _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]) + '&view=' + _Crud.view[type] + '&type=' + type + '#crud');
+            window.location.hash = '#crud';
         }
         searchField.focus();
 
@@ -188,7 +217,7 @@ var _Crud = {
         
         //_Crud.schema[type] = [];
         
-        var url = rootUrl + '_schema/' + type.toLowerCase();
+        var url = rootUrl + '_schema/' + type.toUnderscore();
         $.ajax({
             url: url,
             headers: headers,
@@ -198,14 +227,10 @@ var _Crud = {
             success: function(data) {
                 
                 $.each(data.result, function(i, res) {
-                    //console.log(res.type, res.views);
+                    //console.log(res);
                     var type = res.type;
 
-                    _Crud.view[type]        = defaultView;
-                    _Crud.sort[type]        = defaultSort;
-                    _Crud.order[type]       = defaultOrder;
-                    _Crud.pageSize[type]    = defaultPageSize;
-                    _Crud.page[type]        = defaultPage;
+                    _Crud.determinePagerData(type);
 
                     _Crud.schema[type] = res;
                     //console.log('Type definition for ' + type + ' loaded');
@@ -224,12 +249,37 @@ var _Crud = {
         });        
     },
     
+    determinePagerData : function(type) {
+        
+        // Priority: JS vars -> Cookie -> URL -> Default
+
+        if (!_Crud.view[type]) {
+            _Crud.view[type]        = urlParam('view');
+            _Crud.sort[type]        = urlParam('sort');
+            _Crud.order[type]       = urlParam('order');
+            _Crud.pageSize[type]    = urlParam('pageSize');
+            _Crud.page[type]        = urlParam('page');
+        }
+        
+        if (!_Crud.view[type]) {
+            _Crud.restorePagerDataFromCookie();
+        }
+
+        if (!_Crud.view[type]) {
+            _Crud.view[type]        = defaultView;
+            _Crud.sort[type]        = defaultSort;
+            _Crud.order[type]       = defaultOrder;
+            _Crud.pageSize[type]    = defaultPageSize;
+            _Crud.page[type]        = defaultPage;
+        }
+    },
+    
     addTab : function(type) {
         var res = _Crud.schema[type];
         $('#resourceTabsMenu').append('<li><a href="#' +  type + '"><span>' + _Crud.formatKey(type) + '</span></a></li>');
         $('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + res.url + '"></div>');
         var typeNode = $('#' + type);
-        _Crud.addPager(type, typeNode, _Crud.pageSize[type], _Crud.page[type]);
+        _Crud.addPager(type, typeNode);
         typeNode.append('<table></table>');
         var table = $('table', typeNode);
         table.append('<tr></tr>');
@@ -292,12 +342,58 @@ var _Crud = {
         var view = typeDef.views[_Crud.view[type]];
         return view[key].relatedType;
     },
-
-    addPager : function(type, el, pageSize, page) {
-        el.append('<div style="clear: both"><button id="pageLeft">&lt; Prev</button>'
-            + ' Page <input id="page" type="text" size="3" value="' + page + '"><button id="pageRight">Next &gt;</button> of <input class="readonly" readonly="readonly" id="pageCount" size="3" value="' + nvl(_Crud.pageCount, 0) + '">'
-            + ' Page Size: <input id="pageSize" type="text" size="3" value="' + pageSize + '"></div>');
+    
+    /**
+     * Append a pager for the given type to the given DOM element.
+     */
+    addPager : function(type, el) {
         
+        if (!_Crud.page[type]) {
+            _Crud.page[type]     = urlParam('page') ? urlParam('page') : (defaultPage ? defaultPage : 1);
+        }
+        
+        if (!_Crud.pageSize[type]) {
+            _Crud.pageSize[type] = urlParam('pageSize') ? urlParam('pageSize') : (defaultPageSize ? defaultPageSize : 10);
+        }
+ 
+        el.append('<div style="clear: both"><button id="pageLeft">&lt; Prev</button>'
+            + ' Page <input id="page" type="text" size="3" value="' + _Crud.page[type] + '"><button id="pageRight">Next &gt;</button> of <input class="readonly" readonly="readonly" id="pageCount" size="3" value="' + nvl(_Crud.pageCount, 0) + '">'
+            + ' Page Size: <input id="pageSize" type="text" size="3" value="' + _Crud.pageSize[type] + '"></div>');
+        
+    },
+    
+    storeTypeInCookie : function() {
+        $.cookie('structrCrudType', _Crud.type);
+    },
+    
+    restoreTypeFromCookie : function() {
+        var cookie = $.cookie('structrCrudType');
+        if (cookie) {
+            _Crud.type = cookie;
+            console.log('Current type from Cookie', cookie);
+        }
+    },
+    
+    storePagerDataInCookie : function() {
+        var type = _Crud.type;
+        var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
+        console.log('pager data to store in cookie: ', pagerData);
+        $.cookie('structrCrudPagerData_' + type, pagerData);
+    },
+    
+    restorePagerDataFromCookie : function() {
+        var type = _Crud.type;
+        var cookie = $.cookie('structrCrudPagerData_' + type);
+        
+        if (cookie) {
+            var pagerData = cookie.split(',');
+            console.log('Pager Data from Cookie', pagerData);
+            _Crud.view[type]      = pagerData[0];
+            _Crud.sort[type]      = pagerData[1];
+            _Crud.order[type]     = pagerData[2];
+            _Crud.page[type]      = pagerData[3];
+            _Crud.pageSize[type]  = pagerData[4];
+        }
     },
 
     replaceSortHeader : function(type) {
@@ -337,13 +433,7 @@ var _Crud = {
     },
 
     activateList : function(type) {
-        //        console.log('activateList', type, _Crud.view[type], _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
-        //        console.log($('#' + type), $('#' + type).attr('data-url'));
-        //var url  = $('#' + type).attr('data-url').substring(1);
-        var url = _Crud.restType(type);
-        
-        url = rootUrl + url + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
-        //console.log('activateList', url);
+        var url = rootUrl + _Crud.restType(type) + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
         _Crud.list(type, url);
         document.location.hash = type;
     },
@@ -362,9 +452,6 @@ var _Crud = {
         //console.log('list', type, url, table);
         table.append('<tr></tr>');
         _Crud.clearList(type);
-        var headers = {
-            'X-StructrSessionToken' : token
-        };
         $.ajax({
             url: url,
             headers: headers,
@@ -372,11 +459,15 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                console.log(data);
                 $.each(data.result, function(i, item) {
                     _Crud.appendRow(type, item);
                 });
                 _Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
                 _Crud.replaceSortHeader(type);
+            },
+            error : function(a,b,c) {
+                console.log(a,b,c);
             }
         });
     },
@@ -407,9 +498,6 @@ var _Crud = {
             });
             exportArea.append('\n');
         }
-        var headers = {
-            'X-StructrSessionToken' : token
-        };
         $.ajax({
             url: url,
             headers: headers,
@@ -732,8 +820,8 @@ var _Crud = {
     refreshCell : function(id, key, newValue) {
         //    console.log('refreshCell', id, key, newValue);
         var c = _Crud.cell(id, key);
-        //c.empty();
-        c.text(newValue);
+        c.empty();
+        //c.text(newValue);
         //console.log('newValue', newValue);
         _Crud.populateCell(id, key, _Crud.type, newValue, c);
         
@@ -877,11 +965,31 @@ var _Crud = {
             success: function(data) {
                 var node = data.result;
                 //console.log('node', node);
-                cell.append('<div id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+                cell.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
                 //console.log(node);
                 if (node.type == 'Image') {
-                    nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.name + '"></div>');
+                    nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.tnSmall.id + '"></div>');
+                    $('.thumbnail', nodeEl).on('click', function(e) {
+                        e.stopPropagation();
+                        window.open(viewRootUrl + node.name, 'Download ' + img.name);
+                    });
+        
+                    $('.thumbnail', nodeEl).on('mouseenter', function(e) {
+                        e.stopPropagation();
+                        $('.thumbnailZoom').remove();
+                        nodeEl.parent().append('<img class="thumbnailZoom" src="/' + node.tnMid.id + '">');
+                        var tnZoom = $($('.thumbnailZoom', nodeEl.parent())[0]);
+                        tnZoom.css({
+                            top: (nodeEl.position().top) + 'px',
+                            left: (nodeEl.position().left - 42) + 'px'
+                        });
+                        tnZoom.on('mouseleave', function(e) {
+                            e.stopPropagation();
+                            $('.thumbnailZoom').remove();
+                        });
+                    });
+                               
                 }
                 $('.remove', nodeEl).on('click', function(e) {
                     e.preventDefault();
@@ -914,12 +1022,12 @@ var _Crud = {
                 $.each(data.result, function(i, node) {
                 
                     //console.log('node', node);
-                    el.append('<div id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
+                    el.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
                 
                     var nodeEl = $('#_' + node.id, el);
                     //console.log(node);
                     if (node.type == 'Image') {
-                        nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.name + '"></div>');
+                        nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
                     }
                     
                     nodeEl.on('click', function(e) {
@@ -988,12 +1096,12 @@ var _Crud = {
                     $.each(data.result, function(i, node) {
                 
                         //console.log('node', node);
-                        $('#resultsFor' + type, searchResults).append('<div id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
+                        $('#resultsFor' + type, searchResults).append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
                 
                         var nodeEl = $('#_' + node.id, searchResults);
                         //console.log(node);
                         if (node.type == 'Image') {
-                            nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.name + '"></div>');
+                            nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
                         }
                     
                         nodeEl.on('click', function(e) {
@@ -1044,12 +1152,17 @@ var _Crud = {
                             ids.push(id);
                         }
                     });
+                    
+                    console.log('new id array: ', ids);
+                    var json = '{"' + key + '":null}';
+                    console.log('PUT ', json, ' to url ', url);
+                    
                     $.ajax({
                         url: url,
                         headers: headers,
                         type: 'PUT',
                         dataType: 'json',
-                        data: '{"' + key + '":null}',
+                        data: json,
                         contentType: 'application/json; charset=utf-8',
                         //async: false,
                         success: function(data) {
@@ -1090,6 +1203,7 @@ var _Crud = {
     addRelatedObject : function(type, id, key, relatedId, reload) {
         var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
         var url = rootUrl + urlType + '/' + id;
+        console.log('headers', headers);
         if (_Crud.isCollection(key, type)) {
             var ids = [];
             $.ajax({
@@ -1261,7 +1375,7 @@ var _Crud = {
             dialogBox.append('<button class="save" id="saveProperties">Save</button>');
             $('.save', $('#dialogBox')).on('click', function() {
                 var form = $('#entityForm');
-                var json = JSON.stringify(serializeObject(form));
+                var json = JSON.stringify(_Crud.serializeObject(form));
                 //console.log(json);
                 dialogText.empty();
                 if (create) {
@@ -1275,7 +1389,7 @@ var _Crud = {
         }
         
         if (node && node.type == 'Image') {
-            dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.name + '"></div></div>');
+            dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
         }
         
     },

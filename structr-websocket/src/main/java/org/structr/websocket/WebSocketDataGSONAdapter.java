@@ -24,11 +24,9 @@ package org.structr.websocket;
 import com.google.gson.*;
 
 import org.structr.common.PropertyView;
-import org.structr.common.TreeNode;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectGSONAdapter;
 import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.StaticValue;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -276,13 +274,13 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		}
 
 		// serialize result tree
-		if (src.getResultTree() != null) {
-
-			TreeNode node = src.getResultTree();
-
-			root.add("root", buildTree(node, context));
-
-		}
+//		if (src.getResultTree() != null) {
+//
+//			TreeNode node = src.getResultTree();
+//
+//			root.add("root", buildTree(node, context));
+//
+//		}
 
 		return root;
 
@@ -316,29 +314,29 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 	}
 
-	private JsonObject buildTree(TreeNode node, JsonSerializationContext context) {
-
-		AbstractNode data    = node.getData();
-		JsonObject jsonChild = new JsonObject();
-
-		if (data != null) {
-
-			jsonChild = graphObjectSerializer.serialize(data, GraphObject.class, context).getAsJsonObject();
-		}
-
-		JsonArray array = new JsonArray();
-
-		for (TreeNode childNode : node.getChildren()) {
-
-//                      AbstractNode childData = childNode.getNodeData();
-			array.add(buildTree(childNode, context));
-		}
-
-		jsonChild.add("children", array);
-
-		return jsonChild;
-
-	}
+//	private JsonObject buildTree(TreeNode node, JsonSerializationContext context) {
+//
+//		AbstractNode data    = node.getData();
+//		JsonObject jsonChild = new JsonObject();
+//
+//		if (data != null) {
+//
+//			jsonChild = graphObjectSerializer.serialize(data, GraphObject.class, context).getAsJsonObject();
+//		}
+//
+//		JsonArray array = new JsonArray();
+//
+//		for (TreeNode childNode : node.getChildren()) {
+//
+////                      AbstractNode childData = childNode.getNodeData();
+//			array.add(buildTree(childNode, context));
+//		}
+//
+//		jsonChild.add("children", array);
+//
+//		return jsonChild;
+//
+//	}
 
 	@Override
 	public WebSocketMessage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {

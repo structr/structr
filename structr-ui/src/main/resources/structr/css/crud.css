@@ -223,8 +223,8 @@ img.thumbnail {
 
 .resourceBox td .thumbnailZoom,
 #relatedNodesList .node .thumbnailZoom {
-    max-width: 200px;
-    max-height: 200px;
+    max-width: 300px;
+    max-height: 300px;
     position: absolute;
     z-index: 4;
 }

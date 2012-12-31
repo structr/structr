@@ -99,8 +99,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		// get a chunk (part) of an object
 		addCommand(ChunkCommand.class);
 
-		// render an object tree
-		addCommand(TreeCommand.class);
 	}
 
 	//~--- fields ---------------------------------------------------------

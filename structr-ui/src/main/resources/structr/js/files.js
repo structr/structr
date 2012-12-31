@@ -27,7 +27,7 @@ $(document).ready(function() {
     Structr.registerModule('files', _Files);
     Structr.classes.push('file');
     Structr.classes.push('folder');
-    Structr.classes.push('image');
+//    Structr.classes.push('image');
     _Files.resize();
     win.resize(function() {
         _Files.resize();
@@ -50,11 +50,11 @@ var _Files = {
         //Structr.classes.push('image');
         pageSize['Folder'] = 25;
         pageSize['File'] = 25;
-        pageSize['Image'] = 25;
+//        pageSize['Image'] = 25;
         
         page['Folder'] = 1;
         page['File'] = 1;
-        page['Image'] = 1;
+//        page['Image'] = 1;
 
     
     },
@@ -87,14 +87,15 @@ var _Files = {
         if (debug) console.log('onload');
         if (palette) palette.remove();
 
-        main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
+        //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
+        main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
-        images = $('#images');
+//        images = $('#images');
         
         _Files.refreshFolders();
         _Files.refreshFiles();
-        _Files.refreshImages();
+//        _Files.refreshImages();
 
     //	_Files.resize();
     },

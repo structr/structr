@@ -25,12 +25,13 @@ var win = $(window);
 
 $(document).ready(function() {
     Structr.registerModule('images', _Images);
-//    Structr.classes.push('folder');
+    //    Structr.classes.push('folder');
     Structr.classes.push('image');
-    _Images.resize();
+    
     win.resize(function() {
         _Images.resize();
     });
+    
 });
 
 var _Images = {
@@ -38,22 +39,14 @@ var _Images = {
     icon : 'icon/page_white.png',
     add_file_icon : 'icon/page_white_add.png',
     delete_file_icon : 'icon/page_white_delete.png',
-//    add_folder_icon : 'icon/folder_add.png',
-//    folder_icon : 'icon/folder.png',
-//    delete_folder_icon : 'icon/folder_delete.png',
+    //    add_folder_icon : 'icon/folder_add.png',
+    //    folder_icon : 'icon/folder.png',
+    //    delete_folder_icon : 'icon/folder_delete.png',
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-        //Structr.classes.push('file');
-        //Structr.classes.push('folder');
-        //Structr.classes.push('image');
-//        pageSize['Folder'] = 25;
-        pageSize['Image'] = 25;
-        
-//        page['Folder'] = 1;
-        page['Image'] = 1;
-
-    
+        //defaultPageSize = 25;
+        //defaultPage = 1;
     },
     resize : function() {
 
@@ -61,7 +54,7 @@ var _Images = {
         var windowHeight = win.height();
         var headerOffsetHeight = 82;
 
-        var fw;
+        var fw = 0;
 
         if (folders) {
             fw = Math.max(180, Math.min(windowWidth/2, 360));
@@ -73,129 +66,40 @@ var _Images = {
         
         if (images) {
             images.css({
-                width: Math.max(400, (windowWidth - fw - 80)) + 'px',
+                width: Math.max(400, (windowWidth - fw - 36)) + 'px',
                 height: windowHeight - headerOffsetHeight + 'px'
             });
         }
     },
 
+    /**
+     * The onload method is called whenever this module is activated
+     */
     onload : function() {
+        
+        console.log('_Images#onload');
         
         _Images.init();
         
-        if (debug) console.log('onload');
         if (palette) palette.remove();
 
-//        main.append('<table id="dropArea"><tr><td id="folders"></td><td id="images"></td></tr></table>');
+        //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="images"></td></tr></table>');
         main.append('<table id="dropArea"><tr><td id="images"></td></tr></table>');
-//        folders = $('#folders');
+        //folders = $('#folders');
         images = $('#images');
         
-//        _Images.refreshFolders();
+        //_Images.refreshFolders();
         _Images.refreshImages();
 
-    //	_Images.resize();
+        //_Images.resize();
     },
 
     unload : function() {
         $(main.children('table')).remove();
     },
-
-    refreshFiles : function() {
-        files.empty();
-        
-        if (window.File && window.FileReader && window.FileList && window.Blob) {
-
-            files.append('<h1>Files</h1>');
-            
-            
-            
-            drop = $('#dropArea');
-
-            drop.on('dragover', function(event) {
-                if (debug) console.log('dragging over #files area');
-                event.originalEvent.dataTransfer.dropEffect = 'copy';
-                return false;
-            });
-            
-            drop.on('drop', function(event) {
-                
-                if (!event.originalEvent.dataTransfer) {
-                    console.log(event);
-                    return;
-                }
-                
-                if (debug) console.log('dropped something in the #files area')
-                
-                event.stopPropagation();
-                event.preventDefault();
-                
-                fileList = event.originalEvent.dataTransfer.files;
-                console.log(fileList);
-                var filesToUpload = [];
-                var tooLargeFiles = [];
-
-                $(fileList).each(function(i, file) {
-                    if (file.size <= sizeLimit) {
-                        filesToUpload.push(file);
-                    } else {
-                        tooLargeFiles.push(file);
-                    }
-                });
-
-                if (filesToUpload.length < fileList.length) {
-
-                    var errorText = 'The following files are too large (limit ' + sizeLimit/(1024*1024) + ' Mbytes):<br>\n';
-
-                    $(tooLargeFiles).each(function(i, tooLargeFile) {
-                        errorText += tooLargeFile.name + ': ' + Math.round(tooLargeFile.size/(1024*1024)) + ' Mbytes<br>\n';
-                    });
-
-                    Structr.error(errorText, function() {
-                        $.unblockUI({
-                            fadeOut: 25
-                        });
-                        $(filesToUpload).each(function(i, file) {
-                            if (debug) console.log(file);
-                            if (file) _Images.createFile(file);
-                        });
-                    });
-                    
-                } else {
-                    
-                    var dialogMsg = $('#dialogMsg');
-
-                    dialog.empty();
-                    dialogMsg.empty();
-
-                    dialog.append('<table class="props"></table>');
-                    
-                    $(filesToUpload).each(function(i, fileToUpload) {
-                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
-                    });
-
-                    Structr.dialog('Uploading Files', function() {
-                        return true;
-                    }, function() {
-                        return true;
-                    });
-                    
-                    $(filesToUpload).each(function(i, file) {
-                        if (debug) console.log(file);
-                        if (file) _Images.createFile(file);
-                    });
-
-                }
-
-                return false;
-            });
-        }
-        Structr.addPager(files, 'File');
-        //Command.list('File', pageSize, page, sort, order);
-        _Images.resize();
-    },
 	
     refreshImages : function() {
+        _Images.resize();
         images.empty();
         images.append('<h1>Images</h1>');
         Structr.addPager(images, 'Image');
@@ -220,12 +124,14 @@ var _Images = {
         return icon;
     },
 
-    appendImageElement : function(file, folderId, add, hasChildren) {
+    appendImageElement : function(img, folderId, add, hasChildren) {
 
-        if (debug) console.log('Files.appendFileElement', file, folderId, add, hasChildren);
+        //console.log('Images.appendImageElement', img, folderId, add, hasChildren);
         
         //if (!folderId && file.parentFolder) return false;
         
+        // suppress images without thumbnails
+        if (!img.tnSmall || img.isThumbnail) return false;
 
         var div;
         var parentElement, cls;
@@ -233,14 +139,15 @@ var _Images = {
         parentElement = images;
         cls = 'image';
 
-        var icon = _Files.getIcon(file, true);
+        var tn = '/' + img.tnSmall.id;
         
         var parent = Structr.findParent(folderId, null, null, parentElement);
         
         if (add) _Entities.ensureExpanded(parent);
         
         var delIcon, newDelIcon;
-        div = Structr.node(file.id);
+        div = Structr.node(img.id);
+        
         if (add && div && div.length) {
             
             var formerParent = div.parent();
@@ -258,65 +165,76 @@ var _Images = {
             
         } else {
         
-            parent.append('<div class="node ' + cls + ' ' + file.id + '_">'
-                + '<div class="wrap"><img class="thumbnail" src="'+ icon + '"></div>'
-                + '<b class="name_">' + fitStringToSize(file.name, 98) + '</b> <span class="id">' + file.id + '</span>'
-                + '</div>');
-            div = Structr.node(file.id, folderId);
+            parent.append('<div class="node ' + cls + ' ' + img.id + '_">'
+                + '<div class="wrap"><img class="thumbnail" src="'+ tn + '"></div>'
+                + '<b class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
+                + '<div class="icons"></div></div>');
+            div = Structr.node(img.id, folderId);
             
             if (debug) console.log('appended new div to parent', div, parent);
         }
-
-        $('.thumbnail', div).on('click', function(e) {
-            e.stopPropagation();
-            window.open(viewRootUrl + file.name, 'Download ' + file.name);
-        });
         
-        $('.thumbnail', div).hoverIntent(function(e) {
+        var iconArea = $('.icons', div);
+
+        $('.thumbnail', div).on('mouseenter', function(e) {
             e.stopPropagation();
-            images.append('<img class="thumbnailZoom" src="' + icon + '">');
+            images.append('<img class="thumbnailZoom" src="/' + img.tnMid.id + '">');
             var tnZoom = $($('.thumbnailZoom', images)[0]);
+            
             tnZoom.css({
                 top: (div.position().top) + 'px',
                 left: (div.position().left - 42) + 'px'
             });
             
-        },function(e) {
-            e.stopPropagation();
-            $('.thumbnailZoom', images).remove();
-        }
-        );
+            tnZoom.on('mouseleave', function(e) {
+                e.stopPropagation();
+                $('.thumbnailZoom', images).remove();
+            });
+            
+            tnZoom.on('click', function(e) {
+                e.stopPropagation();
+                Structr.dialog(img.name, function() {
+                    return true;
+                }, function() {
+                    return true;
+                });
+                    
+                _Images.showImageDetails($(this), img, dialogText);
+            });
+
+        });
+            
         
         if (debug) console.log(folderId, add);
         
         delIcon = $('.delete_icon', div);
 
         if (folderId) {
-            newDelIcon = '<img title="Remove '+  cls + ' \'' + file.name + '\' from folder ' + folderId + '" alt="Remove '+  cls + ' \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Images.delete_file_icon + '">';
+            newDelIcon = '<img title="Remove '+  cls + ' \'' + img.name + '\' from folder ' + folderId + '" alt="Remove '+  cls + ' \'' + img.name + '\' from folder" class="delete_icon button" src="' + _Images.delete_file_icon + '">';
             if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
-                div.append(newDelIcon);
+                iconArea.append(newDelIcon);
                 delIcon = $('.delete_icon', div);
             }
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
                 //_Images.removeFileFromFolder(file.id, folderId, isImage);
-                Command.removeSourceFromTarget(file.id, folderId);
+                Command.removeSourceFromTarget(img.id, folderId);
             });
             disable($('.delete_icon', parent)[0]);
 			
         } else {
-            newDelIcon = '<img title="Delete ' + file.name + ' \'' + file.name + '\'" alt="Delete ' + file.name + ' \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+            newDelIcon = '<img title="Delete ' + img.name + ' \'' + img.name + '\'" alt="Delete ' + img.name + ' \'' + img.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
             if (add && delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
-                div.append(newDelIcon);
+                iconArea.append(newDelIcon);
                 delIcon = $('.delete_icon', div);
             } 
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
-                _Entities.deleteNode(this, file);
+                _Entities.deleteNode(this, img);
             });
 		
         }
@@ -331,19 +249,14 @@ var _Images = {
             }
         });
 
-        _Entities.appendAccessControlIcon(div, file);
-        _Entities.appendEditPropertiesIcon(div, file);
-        _Images.appendEditFileIcon(div, file);      
+        _Entities.appendAccessControlIcon(iconArea, img);
+        _Entities.appendEditPropertiesIcon(iconArea, img);
+        _Images.appendEditFileIcon(iconArea, img);      
 
-        _Entities.setMouseOver(div);
+        _Entities.setMouseOver(iconArea);
         
         return div;
     },
-	
-    //    appendImageElement : function(file, folderId, removeExisting, hasChildren) {
-    //        if (debug) console.log('appendImageElement', file, folderId, removeExisting);
-    //        return _Images.appendFileElement(file, folderId, removeExisting, hasChildren, true);
-    //    },
 		
     appendFolderElement : function(folder, folderId, hasChildren) {
 		
@@ -613,28 +526,6 @@ var _Images = {
 
     },
 
-    updateTextFile : function(file, text) {
-
-        
-
-        var chunks = Math.ceil(text.length / chunkSize);
-        
-        //console.log(text, text.length, chunks);
-                
-        for (var c=0; c<chunks; c++) {
-                        
-            var start = c*chunkSize;
-            var end = (c+1)*chunkSize;
-                        
-            var chunk = utf8_to_b64(text.substring(start,end));
-            // TODO: check if we can send binary data directly
-
-            Command.chunk(file.id, c, chunkSize, chunk);
-
-        }
-
-    },
-
     appendEditFileIcon : function(parent, file) {
         
         var editIcon = $('.edit_file_icon', parent);
@@ -652,85 +543,16 @@ var _Images = {
             }, function() {
                 if (debug) console.log('cancelled')
             });
-            _Images.editContent(this, file, $('#dialogBox .dialogText'));
+            _Images.editImage(this, file, $('#dialogBox .dialogText'));
         });
     },
 
-    editContent : function (button, file, element) {
-        var headers = {};
-        headers['X-StructrSessionToken'] = token;
-        var text;
-        
-        $.ajax({
-            url: viewRootUrl + file.name + '?edit',
-            async: true,
-            //dataType: 'json',
-            contentType: 'text/plain',
-            headers: headers,
-            success: function(data) {
-                //console.log(data);
-                text = data;
-                
-                var mode;
-                
-                if (file.name.endsWith('.css')) {
-                    mode = 'text/css';
-                } else if (file.name.endsWith('.js')) {
-                    mode = 'text/javascript';
-                } else {
-                    mode = 'text/plain';
-                }
-                
-                if (isDisabled(button)) return;
-                var div = element.append('<div class="editor"></div>');
-                if (debug) console.log(div);
-                var contentBox = $('.editor', element);
-                editor = CodeMirror(contentBox.get(0), {
-                    value: unescapeTags(text),
-                    mode:  mode,
-                    lineNumbers: true
-                //            ,
-                //            onChange: function(cm, changes) {
-                //                
-                //                var element = $( '.' + entity.id + '_')[0];
-                //                
-                //                text1 = $(element).children('.content_').text();
-                //                text2 = editor.getValue();
-                //                
-                //                if (!text1) text1 = '';
-                //                if (!text2) text2 = '';
-                //		
-                //                if (debug) console.log('Element', element);
-                //                if (debug) console.log(text1);
-                //                if (debug) console.log(text2);
-                //                
-                //                if (text1 == text2) return;
-                //                editorCursor = cm.getCursor();
-                //                if (debug) console.log(editorCursor);
-                //
-                //                Command.patch(entity.id, text1, text2);
-                //				
-                //            }
-                });
+    showImageDetails : function(button, image, element) {
+        element.append('<img class="imageDetail" src="/' + image.id + '"><br><a href="/' + image.id + '">Download</a>');
+    },
 
-                editor.id = file.id;
-                
-                element.parent().children('.dialogBtn').append('<button id="saveFile"> Save </button>');
-                $(element.parent().find('button#saveFile').first()).on('click', function(e) {
-                    e.stopPropagation();
-                    
-                    //console.log(editor.getValue());
-                    
-                    _Images.updateTextFile(file, editor.getValue());
-                   
-                });
-                        
-         
-
-            }
-        });
-        
-        
-
+    editImage : function (button, image, element) {
+        console.log(image);
+        element.append('<img src="/' + image.id + '"><br><a href="' + image.id + '">Download</a>');
     }    
 };

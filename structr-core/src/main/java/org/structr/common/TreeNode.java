@@ -31,7 +31,11 @@ import java.util.Set;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * A tree node.
+ * This class represents a node in a tree.
+ * 
+ * Each tree node has one parent node and an ordered set of child nodes.
+ * A tree node of this class doesn't know its absolute position in the tree,
+ * so the depth has to be set from outside.
  * 
  * @author Axel Morgner
  */

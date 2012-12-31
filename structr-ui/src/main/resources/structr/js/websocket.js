@@ -149,12 +149,12 @@ function connect() {
 
                 }
 
-            } else if (command == 'TREE') { /*********************** TREE ************************/
-				
-                if (debug) console.log('Render Tree');
-                if (debug) console.log(data.root, data.id);
-				
-                _Entities.renderTree(data.root, data.id);
+//            } else if (command == 'TREE') { /*********************** TREE ************************/
+//				
+//                if (debug) console.log('Render Tree');
+//                if (debug) console.log(data.root, data.id);
+//				
+//                _Entities.renderTree(data.root, data.id);
 
             } else if (command == 'GET') { /*********************** GET ************************/
 
@@ -422,7 +422,7 @@ function connect() {
                         var inputElement = $('td.' + key + '_ input', element);
                         if (debug) console.log(inputElement);
                         var newValue = data.data[key];
-                        console.log(key, newValue, typeof newValue);
+//                        console.log(key, newValue, typeof newValue);
 
                         var attrElement = $('.' + key + '_', element);
                     

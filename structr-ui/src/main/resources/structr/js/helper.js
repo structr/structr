@@ -132,15 +132,15 @@ function nvl(value, defaultValue) {
     return returnValue;
 }
 
-String.prototype.toCamel = function(){
-    return this.replace(/(\-[a-z])/g, function($1){
-        return $1.toUpperCase().replace('-','');
+String.prototype.toCamel = function() {
+    return this.replace(/(\-[a-z])/g, function(part) {
+        return part.toUpperCase().replace('-','');
     });
 };   
 
-String.prototype.toUnderscore = function(){
-    return this.replace(/([A-Z])/g, function($1){
-        return "_"+$1.toLowerCase();
+String.prototype.toUnderscore = function() {
+    return this.replace(/([A-Z])/g, function(m, a, offset) {
+        return (offset>0?'_':'') + m.toLowerCase();
     });
 };
 
@@ -202,4 +202,42 @@ function showAjaxLoader(el) {
 
 function hideAjaxLoader() {
     $('#ajaxLoader').hide();
+}
+
+function formatValue(value, key, type, id) {
+
+    if (value == null) {
+        return '';
+    } else if (value.constructor === String) {
+        
+        return value;
+        
+    } else if (value.constructor === Object) {
+
+        //return JSON.stringify(obj);
+        var out = '';
+        $(Object.keys(value)).each(function(i, k) {
+            //console.log(v);
+            //out += JSON.stringify(v);
+            out += k + ': ' + formatValue(value[k]) + '\n' ;
+        });
+        return out;
+
+    } else if (value.constructor === Array) {
+        //var out = '<table>';
+        var out = '';
+        $(value).each(function(i, v) {
+            //console.log(v);
+            out += JSON.stringify(v);
+        //out += '<tr><td>' + key + '</td><td>' + formatValue(obj[key]) + '</td></tr>' ;
+        });
+        
+        //out += '</table>';
+
+        return out;
+
+    } else {
+        return value;
+
+    }
 }

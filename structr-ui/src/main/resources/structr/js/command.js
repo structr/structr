@@ -46,8 +46,6 @@ var Command = {
      * 
      * The server will return a result set containing all items of the given
      * type to the sending client (no broadcast).
-     * The server will return an array with all
-     * node ids which have child nodes in this page.
      */
     list : function(type, pageSize, page, sort, order) {
         var obj = {};
@@ -87,20 +85,6 @@ var Command = {
         if (pageId) data.pageId = pageId;
         obj.data = data;
         if (debug) console.log('children()', obj);
-        return sendObj(obj);
-    },
-
-    /**
-     * Send a TREE command to the server.
-     * 
-     * The server will return a the complete tree below the root node with
-     * the given id to the sending client (no broadcast).
-     */
-    getTree : function(id) {
-        var obj = {};
-        obj.command = 'TREE';
-        obj.id = id;
-        if (debug) console.log('getTree()', obj);
         return sendObj(obj);
     },
 

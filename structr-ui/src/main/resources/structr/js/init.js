@@ -36,7 +36,7 @@ var page = [];
 var pageSize = [];
 
 $(document).ready(function() {
-
+    
     header = $('#header');
     main = $('#main');
     
@@ -592,6 +592,9 @@ var Structr = {
     },
     
     updatePager : function(type) {
+        
+        if (!type) return;
+        
         var pager = $('#pager' + type);
         
         if (pager) {
@@ -605,12 +608,59 @@ var Structr = {
             if (page[type] == pageCount[type]) {
                 pageRight.attr('disabled', 'disabled').addClass('disabled');
             }
-            
+
+            //var urlData = '?pageSize=' + pageSize[type] + '&page=' + page[type] + '#' + lastMenuEntry;
+            //console.log(urlData);
+            //window.history.pushState('', '', urlData);
+            Structr.storePagerDataInCookie(type);
         }
     },
     
+    storePagerDataInCookie : function(type) {
+        $.cookie('structrPagerData_' + type, page[type] + ',' + pageSize[type]);
+    },
+    
+    restorePagerDataFromCookie : function(type) {
+        var cookie = $.cookie('structrPagerData_' + type);
+        if (cookie) {
+            var pagerData = cookie.split(',');
+            console.log('Pager Data from Cookie', pagerData);
+            page[type]      = pagerData[0];
+            pageSize[type]  = pagerData[1];
+        }
+    },
+    
+    /**
+     * Append a pager for the given type to the given DOM element.
+     * 
+     * This pager calls Command#list (WebSocket call) after being loaded
+     * and binds Command#list to all actions.
+     */
     addPager : function(el, type) {
+
+        // Priority of stored pager data:
+        // JS variables -> URL -> Cookie
         
+        var pageFromUrl     = urlParam('page');
+        var pageSizeFromUrl = urlParam('pageSize');
+        
+        console.log('from url', pageFromUrl, pageSizeFromUrl);
+        
+        if (!page[type] && !pageSize[type]) {
+            page[type]      =  pageFromUrl;
+            pageSize[type]  = pageSizeFromUrl;
+        }
+        
+        if (!page[type] && !pageSize[type]) {
+            Structr.restorePagerDataFromCookie(type);
+        }
+        
+        if (!page[type] && !pageSize[type]) {
+            page[type]      = defaultPage;
+            pageSize[type]  = defaultPageSize;
+        }
+        
+ 
         el.append('<div class="pager" id="pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
             + ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
             + ' of <input class="readonly pageCount" readonly="readonly" size="3">'
@@ -777,44 +827,6 @@ function formatValueInputField(key, obj) {
 
     } else {
         return '<input name="' + key + '" type="text" value="' + obj + '">';
-
-    }
-}
-
-function formatValue(value, key, type, id) {
-
-    if (value == null) {
-        return '';
-    } else if (value.constructor === String) {
-        
-        return value;
-        
-    } else if (value.constructor === Object) {
-
-        //return JSON.stringify(obj);
-        var out = '';
-        $(Object.keys(value)).each(function(i, k) {
-            //console.log(v);
-            //out += JSON.stringify(v);
-            out += k + ': ' + formatValue(value[k]) + '\n' ;
-        });
-        return out;
-
-    } else if (value.constructor === Array) {
-        //var out = '<table>';
-        var out = '';
-        $(value).each(function(i, v) {
-            //console.log(v);
-            out += JSON.stringify(v);
-        //out += '<tr><td>' + key + '</td><td>' + formatValue(obj[key]) + '</td></tr>' ;
-        });
-        
-        //out += '</table>';
-
-        return out;
-
-    } else {
-        return value;
 
     }
 }

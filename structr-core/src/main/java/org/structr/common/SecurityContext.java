@@ -285,7 +285,7 @@ public class SecurityContext {
 			flags = flagObject.longValue();
 		} else {
 
-			logger.log(Level.WARNING, "No resource flag set for {0}", resource);
+			logger.log(Level.FINE, "No resource flag set for {0}", resource);
 		}
 
 		return flags;
