@@ -271,7 +271,8 @@ img.disabled {
     /*border: none;*/
     font-size: 8pt;
     /*font-size: inherit;*/
-    background: transparent;
+    background: #fff;
+    border: 1px solid #a5a5a5;
     width: 380px;
 }
 

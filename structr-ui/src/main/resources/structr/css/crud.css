@@ -57,7 +57,7 @@
 
 .resourceBox td input[type=text] {
     margin: 0;
-    padding: 2px 4px;
+    border: 1px solid #a5a5a5;
     /*border: none;*/
 }
 
@@ -256,6 +256,7 @@ img.thumbnail {
     width: 776px;
     /*height: 660px;*/
     position: relative;
+    min-height: 100px;
 }
 
 #dialogBox .dialogText .thumbnailZoom {
@@ -284,14 +285,19 @@ img.thumbnail {
 * Search
 */
  
-#searchBox {
+.searchBox {
      position: absolute;
      right: 12px;
      top: 66px;
      z-index: 5;
+     line-height: 1em;
 }
 
-#searchBox input {
+.searchBoxDialog {
+     top: 1px;
+}
+
+.searchBox input.search {
     border: 1px solid #a5a5a5;
     border-radius: 3px;
     width: 240px;
@@ -299,18 +305,22 @@ img.thumbnail {
     padding: 2px 4px;
 }
 
-#searchResults {
+.searchResults {
     margin-top: 42px;
 }
 
-h2#searchResultsTitle {
+h2.searchResultsTitle {
     position: absolute;
     color: #333;
     top: 60px;
     left: 12px;
 }
 
-#searchResults h3 {
+.dialogText h2.searchResultsTitle {
+    top: 1px;
+}
+
+.searchResults h3 {
     color: #333;
     clear: both;
     margin: 0 0 12px 0;
@@ -324,11 +334,11 @@ h2#searchResultsTitle {
     border: 1px solid red;
 }
 
-#searchResults .node {
+.searchResults .node {
     margin: 0 4px 4px 0;
 }
 
-#clearSearchIcon {
+.clearSearchIcon {
     display: none;
     position: absolute;
     top: 9px;
