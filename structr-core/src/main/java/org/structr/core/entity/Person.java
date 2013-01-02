@@ -73,7 +73,7 @@ public class Person extends AbstractNode implements Principal {
 	public static final Property<Boolean> newsletter          = new BooleanProperty("newsletter");
 	
 	public static final View publicView = new View(Person.class, PropertyView.Public,
-		salutation, firstName, middleNameOrInitial, lastName
+		name, salutation, firstName, middleNameOrInitial, lastName
 	);
 	
 	static {
@@ -421,7 +421,7 @@ public class Person extends AbstractNode implements Principal {
 
 		for (AbstractRelationship rel : parentRels) {
 
-			AbstractNode node = rel.getEndNode();
+			AbstractNode node = rel.getStartNode();
 
 			if (node instanceof Principal) {
 

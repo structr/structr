@@ -44,7 +44,7 @@ public interface Principal extends GraphObject {
 	public static final Property<String>  sessionId = new StringProperty("sessionId");
 	//public static final Property<String>  groups    = new StringProperty("groups");
 	public static final Property<Boolean> blocked   = new BooleanProperty("blocked");
-	public static final Property<String>  realName  = new StringProperty("realName");
+	//public static final Property<String>  realName  = new StringProperty("realName");
 
 	
 	//~--- methods --------------------------------------------------------
