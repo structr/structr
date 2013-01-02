@@ -72,8 +72,8 @@ public class File extends AbstractNode implements Linkable {
 	public static final Property<Long>         checksum         = new LongProperty("checksum").systemProperty();
 	public static final Property<Integer>      cacheForSeconds  = new IntProperty("cacheForSeconds");
 
-	public static final View publicView = new View(File.class, PropertyView.Ui, type, name, contentType, size, url);
-	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds);
+	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);
+	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds, owner);
 
 	//~--- static initializers --------------------------------------------
 

@@ -34,7 +34,6 @@ import org.structr.core.property.Property;
 import org.structr.core.Services;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
@@ -49,6 +48,7 @@ import java.util.logging.Logger;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.ThumbnailProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -70,22 +70,28 @@ public class Image extends File {
 	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid", new ThumbnailParameters(300, 300, false));
 	
 	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").systemProperty();
+	
+//	public static final CollectionProperty<Image> thumbnails = new CollectionProperty("thumbnails", Image.class, RelType.THUMBNAIL, Direction.OUTGOING, true, Relation.DELETE_OUTGOING);
 
-	public static final View uiView              = new View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail);
-	public static final View publicView          = new View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail);
+	public static final View uiView              = new View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner);
+	public static final View publicView          = new View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner);
 	
 	static {
-		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail);
-		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail);
+		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail, owner);
+		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail, owner);
 	}
 
 	//~--- methods --------------------------------------------------------
 
-	// Cached list with relationships to thumbnails
-//      private List<AbstractRelationship> thumbnailRelationships = null;
-	public void removeThumbnails() {
+//	@Override
+//	public void afterDeletion(SecurityContext securityContext) {
+//
+//		removeThumbnails();
+//
+//	}
+	
+	private void removeThumbnails() {
 
-		DeleteRelationshipCommand deleteRelationship = Services.command(securityContext, DeleteRelationshipCommand.class);
 		DeleteNodeCommand deleteNode                 = Services.command(securityContext, DeleteNodeCommand.class);
 
 		for (AbstractRelationship s : getThumbnailRelationships()) {
@@ -102,8 +108,7 @@ public class Image extends File {
 
 			try {
 
-				deleteRelationship.execute(s);
-				deleteNode.execute(thumbnail);
+				deleteNode.execute(thumbnail, true);
 
 			} catch (FrameworkException fex) {
 
@@ -112,9 +117,6 @@ public class Image extends File {
 			}
 
 		}
-
-		// Clear cache
-//              thumbnailRelationships = null;
 
 	}
 
@@ -146,7 +148,7 @@ public class Image extends File {
 	}
 
 	/**
-	 * Get (cached) thumbnail relationships
+	 * Get thumbnail relationships
 	 *
 	 * @return
 	 */
@@ -297,7 +299,7 @@ public class Image extends File {
 							data = thumbnailData.getBytes();
 
 							// create thumbnail node
-							thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class);
+							thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class, true);
 
 						} catch (IOException ex) {
 
@@ -308,7 +310,10 @@ public class Image extends File {
 						if (thumbnail != null) {
 
 							// Create a thumbnail relationship
-							AbstractRelationship thumbnailRelationship = createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL);
+							AbstractRelationship thumbnailRelationship = createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL, true);
+							
+							// Thumbnails always have to be removed along with origin image
+							thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.DELETE_OUTGOING);
 
 							// Add to cache list
 							// thumbnailRelationships.add(thumbnailRelationship);
