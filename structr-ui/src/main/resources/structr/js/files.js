@@ -45,19 +45,8 @@ var _Files = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-        //Structr.classes.push('file');
-        //Structr.classes.push('folder');
-        //Structr.classes.push('image');
-        pageSize['Folder'] = 25;
-        pageSize['File'] = 25;
-//        pageSize['Image'] = 25;
-        
-        page['Folder'] = 1;
-        page['File'] = 1;
-//        page['Image'] = 1;
-
-    
     },
+
     resize : function() {
 
         var windowWidth = win.width();
@@ -110,8 +99,6 @@ var _Files = {
         if (window.File && window.FileReader && window.FileList && window.Blob) {
 
             files.append('<h1>Files</h1>');
-            
-            
             
             drop = $('#dropArea');
 
@@ -246,13 +233,13 @@ var _Files = {
         var div;
         var parentElement, cls;
         
-        if (isImage) {
-            parentElement = images;
-            cls = 'image';
-        } else {
+//        if (isImage) {
+//            parentElement = images;
+//            cls = 'image';
+//        } else {
             parentElement = files;
             cls = 'file';
-        }
+//        }
 
         var icon = _Files.getIcon(file, isImage);
         
@@ -350,7 +337,7 @@ var _Files = {
     },
 	
     appendImageElement : function(file, folderId, removeExisting, hasChildren) {
-        if (debug) console.log('appendImageElement', file, folderId, removeExisting);
+        console.log('appendImageElement', file, folderId, removeExisting);
         return _Files.appendFileElement(file, folderId, removeExisting, hasChildren, true);
     },
 		

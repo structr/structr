@@ -517,10 +517,10 @@ function connect() {
         }
 
         ws.onclose = function() {
-            //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
+            Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
             //Structr.error('Connection lost or timed out. Trying automatic reconnect');
-            log('Connection was lost or timed out. Trying automatic reconnect');
-            Structr.silentReconnect();
+            //log('Connection was lost or timed out. Trying automatic reconnect');
+            //Structr.silentReconnect();
         }
 
     } catch (exception) {

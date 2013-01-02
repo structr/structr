@@ -68,13 +68,13 @@ if (browser) {
             
             _Crud.loadSchema(function() {
                 _Crud.crudRead(null, id, function(node) {
-                    console.log(node);
-                    _Crud.showDetails(node);
+                    //console.log(node);
+                    _Crud.showDetails(node, false, _Crud.type);
                 });
             });
             
         } else {
-            _Crud.onload();
+        //_Crud.onload();
         }
         
     });
@@ -146,7 +146,7 @@ var _Crud = {
                
                 _Crud.search(searchString, main, null, function(e, node) {
                     e.preventDefault();
-                    _Crud.showDetails(node, true, false);
+                    _Crud.showDetails(node, false);
                     return false;
                 });
                 
@@ -406,14 +406,14 @@ var _Crud = {
         var cookie = $.cookie('structrCrudType');
         if (cookie) {
             _Crud.type = cookie;
-            console.log('Current type from Cookie', cookie);
+        //console.log('Current type from Cookie', cookie);
         }
     },
     
     storePagerDataInCookie : function() {
         var type = _Crud.type;
         var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
-        console.log('pager data to store in cookie: ', pagerData);
+        //console.log('pager data to store in cookie: ', pagerData);
         $.cookie('structrCrudPagerData_' + type, pagerData);
     },
     
@@ -423,7 +423,7 @@ var _Crud = {
         
         if (cookie) {
             var pagerData = cookie.split(',');
-            console.log('Pager Data from Cookie', pagerData);
+            //console.log('Pager Data from Cookie', pagerData);
             _Crud.view[type]      = pagerData[0];
             _Crud.sort[type]      = pagerData[1];
             _Crud.order[type]     = pagerData[2];
@@ -441,7 +441,7 @@ var _Crud = {
             if (key != 'Actions') {
                 $('a', th).off('click');
                 th.empty();
-                th.append('<a href="' + _Crud.sortAndPagingParameters(key, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
+                th.append('<a href="' + _Crud.sortAndPagingParameters(type, key, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
                 $('a', th).on('click', function(event) {
                     event.preventDefault();
                     _Crud.sort[type] = key;
@@ -454,13 +454,15 @@ var _Crud = {
         });
     },
 
-    sortAndPagingParameters : function(s,o,ps,p) {
+    sortAndPagingParameters : function(t,s,o,ps,p) {
+        var typeParam = (t ? 'type=' + t : '');
         var sortParam = (s ? 'sort=' + s : '');
         var orderParam = (o ? 'order=' + o : '');
         var pageSizeParam = (ps ? 'pageSize=' + ps : '');
         var pageParam = (p ? 'page=' + p : '');
     
-        var params = (sortParam ? '?' + sortParam : '');
+        var params = (typeParam ? '?' + typeParam : '');
+        params = params + (sortParam ? (params.length?'&':'?') + sortParam : '');
         params = params + (orderParam ? (params.length?'&':'?') + orderParam : '');
         params = params + (pageSizeParam ? (params.length?'&':'?') + pageSizeParam : '');
         params = params + (pageParam ? (params.length?'&':'?') + pageParam : '');
@@ -469,7 +471,7 @@ var _Crud = {
     },
 
     activateList : function(type) {
-        var url = rootUrl + _Crud.restType(type) + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+        var url = rootUrl + _Crud.restType(type) + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
         _Crud.list(type, url);
         document.location.hash = type;
     },
@@ -495,9 +497,11 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                console.log(data);
+                //console.log(data);
                 $.each(data.result, function(i, item) {
-                    _Crud.appendRow(type, item);
+                    if (item.type == type) {
+                        _Crud.appendRow(type, item);
+                    }
                 });
                 _Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
                 _Crud.replaceSortHeader(type);
@@ -509,7 +513,7 @@ var _Crud = {
     },
 
     crudExport : function(type) {
-        var url  = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+        var url  = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
         //console.log(b);
         _Crud.dialog('Export ' + type + ' list as CSV', function() {
             }, function() {
@@ -560,12 +564,19 @@ var _Crud = {
         _Crud.pageCount = pc;
         $('.pageCount', typeNode).val(_Crud.pageCount);
 
-        if (_Crud.page[type] == 1) {
-            $('.pageLeft', typeNode).attr('disabled', 'disabled').addClass('disabled');
-        }
+        var pageLeft = $('.pageLeft', typeNode);
+        var pageRight = $('.pageRight', typeNode);
 
-        if (_Crud.page[type] == _Crud.pageCount) {
-            $('.pageRight', typeNode).attr('disabled', 'disabled').addClass('disabled');
+        if (_Crud.page[type] < 2) {
+            pageLeft.attr('disabled', 'disabled').addClass('disabled');
+        } else {
+            pageLeft.removeAttr('disabled').removeClass('disabled');
+        }
+        
+        if (!_Crud.pageCount || _Crud.pageCount == 0 || (_Crud.page[type] == _Crud.pageCount)) {
+            pageRight.attr('disabled', 'disabled').addClass('disabled');
+        } else {
+            pageRight.removeAttr('disabled').removeClass('disabled');
         }
 
         _Crud.updateUrl(type);
@@ -584,6 +595,8 @@ var _Crud = {
         $('.pageSize', pagerNode).on('keypress', function(e) {
             if (e.keyCode == 13) {
                 _Crud.pageSize[type] = $(this).val();
+                // set page no to 1
+                _Crud.page[type] = 1;
                 _Crud.activateList(type);
             }
         });
@@ -620,7 +633,7 @@ var _Crud = {
     },
 
     crudRead : function(type, id, callback) {
-        //console.log('headers', headers);
+        console.log('headers', headers);
         $.ajax({
             url: rootUrl + id + (type && _Crud.view[type] ? '/' + _Crud.view[type] : ''),
             headers: headers,
@@ -645,22 +658,22 @@ var _Crud = {
     },
 
     crudEdit : function(id) {
+        var type = _Crud.type;
         $.ajax({
-            url: rootUrl + id + '/' + _Crud.view[_Crud.type],
+            url: rootUrl + id + '/' + _Crud.view[type],
             headers: headers,
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                var type = data.result.type;
                 //console.log('type', type);
                 _Crud.dialog('Edit ' + type + ' ' + id, function() {
                     //console.log('ok')
                     }, function() {
                     //console.log('cancel')
                     });                
-                _Crud.showDetails(data.result, false, false);
+                _Crud.showDetails(data.result, false, type);
             //_Crud.populateForm($('#entityForm'), data.result);
             }
         });
@@ -698,7 +711,7 @@ var _Crud = {
                         }, function() {
                         //console.log('cancel')
                         });
-                    _Crud.showDetails(null, false, true, type);
+                    _Crud.showDetails(null, true, type);
                 }
             }
         });
@@ -742,6 +755,7 @@ var _Crud = {
     },
 
     crudUpdateObj : function(id, json, onSuccess, onError) {
+        //console.log('crudUpdateObj JSON:', json);
         $.ajax({
             url: rootUrl + id,
             headers: headers,
@@ -972,7 +986,7 @@ var _Crud = {
                 });
                 
             });
-            row.append('<td class="actions"><span class="edit"><button><img src="icon/pencil.png"> Edit</span></button><button><span class="delete"><img src="icon/cross.png"> Delete</span></button></td>');
+            row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button></td>');
             $('.actions .edit', row).on('mouseup', function(event) {
                 event.preventDefault();
                 _Crud.crudEdit(id);
@@ -989,7 +1003,6 @@ var _Crud = {
     },
 
     populateCell : function(id, key, type, value, cell) {
-
         var isCollection = _Crud.isCollection(key, type);
         var relatedType  = _Crud.relatedType(key, type);
         var simpleType;
@@ -1052,7 +1065,7 @@ var _Crud = {
         }
         
         $.ajax({
-            url: rootUrl + id + '/' + _Crud.view[_Crud.type],
+            url: rootUrl + id + '/' + _Crud.view[parentType],
             headers: headers,
             type: 'GET',
             dataType: 'json',
@@ -1062,18 +1075,26 @@ var _Crud = {
                 var node = data.result;
                 //console.log('node', node);
                 
-                
                 cell.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
                 //console.log(node);
                 if (node.type == 'Image') {
-                    if (node.tnSmall) {
+                    
+                    if (node.isThumbnail) {
+                        nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
+                    } else if (node.tnSmall) {
                         nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.tnSmall.id + '"></div>');
-                        $('.thumbnail', nodeEl).on('click', function(e) {
-                            e.stopPropagation();
-                            window.open(viewRootUrl + node.name, 'Download ' + img.name);
-                        });
+                        
+                    }
+                        
+                    $('.thumbnail', nodeEl).on('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        _Crud.showDetails(node, false, _Crud.type);
+                        return false;
+                    });
 
+                    if (node.tnMid) {
                         $('.thumbnail', nodeEl).on('mouseenter', function(e) {
                             e.stopPropagation();
                             $('.thumbnailZoom').remove();
@@ -1097,7 +1118,7 @@ var _Crud = {
                 });
                 nodeEl.on('click', function(e) {
                     e.preventDefault();
-                    _Crud.showDetails(node, true, false); // readonly form
+                    _Crud.showDetails(node, false, _Crud.type);
                     return false;
                 });                    
 
@@ -1106,43 +1127,43 @@ var _Crud = {
   
     },
     
-//    getAndAppendNodes : function(parentType, id, key, type, el, pageSize) {
-//        var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
-//        var view = 'public'; // _Crud.view[_Crud.type]
-//        var url = rootUrl + urlType + '/' + view + _Crud.sortAndPagingParameters('name', 'asc', pageSize, 1);
-//        $.ajax({
-//            url: url,
-//            headers: headers,
-//            type: 'GET',
-//            dataType: 'json',
-//            contentType: 'application/json; charset=utf-8',
-//            //async: false,
-//            success: function(data) {
-//                
-//                $.each(data.result, function(i, node) {
-//                
-//                    //console.log('node', node);
-//                    el.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
-//                
-//                    var nodeEl = $('#_' + node.id, el);
-//                    //console.log(node);
-//                    if (node.type == 'Image') {
-//                        nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
-//                    }
-//                    
-//                    nodeEl.on('click', function(e) {
-//                        e.preventDefault();
-//                        _Crud.addRelatedObject(parentType, id, key, node, function() {
-//                            document.location.reload();
-//                        });
-//                        return false;
-//                    });
-//                
-//                });
-//            }
-//        });
-//  
-//    },
+    //    getAndAppendNodes : function(parentType, id, key, type, el, pageSize) {
+    //        var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
+    //        var view = 'public'; // _Crud.view[_Crud.type]
+    //        var url = rootUrl + urlType + '/' + view + _Crud.sortAndPagingParameters('name', 'asc', pageSize, 1);
+    //        $.ajax({
+    //            url: url,
+    //            headers: headers,
+    //            type: 'GET',
+    //            dataType: 'json',
+    //            contentType: 'application/json; charset=utf-8',
+    //            //async: false,
+    //            success: function(data) {
+    //                
+    //                $.each(data.result, function(i, node) {
+    //                
+    //                    //console.log('node', node);
+    //                    el.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
+    //                
+    //                    var nodeEl = $('#_' + node.id, el);
+    //                    //console.log(node);
+    //                    if (node.type == 'Image') {
+    //                        nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
+    //                    }
+    //                    
+    //                    nodeEl.on('click', function(e) {
+    //                        e.preventDefault();
+    //                        _Crud.addRelatedObject(parentType, id, key, node, function() {
+    //                            document.location.reload();
+    //                        });
+    //                        return false;
+    //                    });
+    //                
+    //                });
+    //            }
+    //        });
+    //  
+    //    },
     
     clearSearch : function(el) {
         if (_Crud.clearSearchResults(el)) {
@@ -1185,7 +1206,7 @@ var _Crud = {
         
         $.each(types, function(t, type) {
             
-            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters('name', 'asc', pageSize, 1) + '&name=' + searchString + '&loose=1';
+            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', pageSize, 1) + '&name=' + searchString + '&loose=1';
             
             //console.log(url);
             
@@ -1203,19 +1224,23 @@ var _Crud = {
                     }
                 
                     $.each(data.result, function(i, node) {
+                        
+                        if (node.type == type) {
+                            
+                            //console.log('node', node);
+                            $('#resultsFor' + type, searchResults).append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
                 
-                        //console.log('node', node);
-                        $('#resultsFor' + type, searchResults).append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
-                
-                        var nodeEl = $('#_' + node.id, searchResults);
-                        //console.log(node);
-                        if (node.type == 'Image') {
-                            nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
-                        }
+                            var nodeEl = $('#_' + node.id, searchResults);
+                            //console.log(node);
+                            if (node.type == 'Image') {
+                                nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
+                            }
                     
-                        nodeEl.on('click', function(e) {
-                            onClickCallback(e, node);
-                        });
+                            nodeEl.on('click', function(e) {
+                                onClickCallback(e, node);
+                            });
+                        
+                        }
                 
                     });
                 }
@@ -1235,10 +1260,10 @@ var _Crud = {
         }, 250);
         
         //        //_Crud.addPager(type, el, 50, 1);
-//        el.append('<div id="relatedNodesList"></div>');
-//        var relatedNodesList = $('#relatedNodesList', el);
+        //        el.append('<div id="relatedNodesList"></div>');
+        //        var relatedNodesList = $('#relatedNodesList', el);
         //        var pagerNode = _Crud.addPager(type, relatedNodesList);
-//        _Crud.getAndAppendNodes(parentType, id, key, type, relatedNodesList, 100, false);
+        //        _Crud.getAndAppendNodes(parentType, id, key, type, relatedNodesList, 100, false);
         //        _Crud.activatePagerElements(type, pagerNode);
 
         search.keyup(function(e) {
@@ -1259,7 +1284,7 @@ var _Crud = {
                     e.preventDefault();
                     _Crud.addRelatedObject(parentType, id, key, node, function() {
                         //document.location.reload();
-                    });
+                        });
                     return false;
                 });
                 
@@ -1489,17 +1514,21 @@ var _Crud = {
         });
     },
 
-    showDetails : function(node, readonly, create, typeOnCreate) {
+    showDetails : function(node, create, typeParam) {
 
-        var type = (node ? node.type : typeOnCreate);
+        var type = node.type;
+        if (!type) {
+            Structr.error('Missing type', function() {}, function() {});
+            return;
+        }
         var typeDef = _Crud.schema[type];
         
         if (node) {
             //console.log('Edit node', node);
-            _Crud.dialog('Details of ' + node.type + ' ' + node.name + '<span class="id"> [' + node.id + ']</span>', function() {}, function() {});
+            _Crud.dialog('Details of ' + type + ' ' + node.name + '<span class="id"> [' + node.id + ']</span>', function() {}, function() {});
         } else {
             //console.log('Create new node of type', typeOnCreate);
-            _Crud.dialog('Create new ' + typeOnCreate, function() {}, function() {});
+            _Crud.dialog('Create new ' + type, function() {}, function() {});
         }
         
         //console.log('readonly', readonly);
@@ -1520,7 +1549,7 @@ var _Crud = {
             table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td><td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
             var cell = $('.' + key, table);
             if (node && node.id) {
-                //console.log(node.id, key, type, node[key], cells);
+                //console.log(node.id, key, type, node[key], cell);
                 _Crud.populateCell(node.id, key, node.type, node[key], cell);
             } else {
                 //console.log(key,node[key]);
@@ -1537,7 +1566,7 @@ var _Crud = {
                 //console.log(json);
                 //dialogText.empty();
                 if (create) {
-                    _Crud.crudCreate(typeOnCreate, typeDef.url, json);
+                    _Crud.crudCreate(type, typeDef.url, json);
                 } else {
                     var id = form.attr('data-id');
                     //console.log('updating', id);

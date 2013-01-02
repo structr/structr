@@ -45,8 +45,8 @@ var _Images = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-        //defaultPageSize = 25;
-        //defaultPage = 1;
+    //defaultPageSize = 25;
+    //defaultPage = 1;
     },
     resize : function() {
 
@@ -77,8 +77,6 @@ var _Images = {
      */
     onload : function() {
         
-        console.log('_Images#onload');
-        
         _Images.init();
         
         if (palette) palette.remove();
@@ -91,7 +89,7 @@ var _Images = {
         //_Images.refreshFolders();
         _Images.refreshImages();
 
-        //_Images.resize();
+    //_Images.resize();
     },
 
     unload : function() {
@@ -102,6 +100,89 @@ var _Images = {
         _Images.resize();
         images.empty();
         images.append('<h1>Images</h1>');
+        
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            
+            drop = $('#dropArea');
+
+            drop.on('dragover', function(event) {
+                //console.log('dragging over #images area');
+                event.originalEvent.dataTransfer.dropEffect = 'copy';
+                return false;
+            });
+            
+            drop.on('drop', function(event) {
+                
+                if (!event.originalEvent.dataTransfer) {
+                    console.log(event);
+                    return;
+                }
+                
+                if (debug) console.log('dropped something in the #files area')
+                
+                event.stopPropagation();
+                event.preventDefault();
+                
+                fileList = event.originalEvent.dataTransfer.files;
+                console.log(fileList);
+                var filesToUpload = [];
+                var tooLargeFiles = [];
+
+                $(fileList).each(function(i, file) {
+                    if (file.size <= sizeLimit) {
+                        filesToUpload.push(file);
+                    } else {
+                        tooLargeFiles.push(file);
+                    }
+                });
+
+                if (filesToUpload.length < fileList.length) {
+
+                    var errorText = 'The following files are too large (limit ' + sizeLimit/(1024*1024) + ' Mbytes):<br>\n';
+
+                    $(tooLargeFiles).each(function(i, tooLargeFile) {
+                        errorText += tooLargeFile.name + ': ' + Math.round(tooLargeFile.size/(1024*1024)) + ' Mbytes<br>\n';
+                    });
+
+                    Structr.error(errorText, function() {
+                        $.unblockUI({
+                            fadeOut: 25
+                        });
+                        $(filesToUpload).each(function(i, file) {
+                            if (debug) console.log(file);
+                            if (file) _Files.createFile(file);
+                        });
+                    });
+                    
+                } else {
+                    
+                    var dialogMsg = $('#dialogMsg');
+
+                    dialog.empty();
+                    dialogMsg.empty();
+
+                    dialog.append('<table class="props"></table>');
+                    
+                    $(filesToUpload).each(function(i, fileToUpload) {
+                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
+                    });
+
+                    Structr.dialog('Uploading Files', function() {
+                        return true;
+                    }, function() {
+                        return true;
+                    });
+                    
+                    $(filesToUpload).each(function(i, file) {
+                        if (debug) console.log(file);
+                        if (file) _Files.createFile(file);
+                    });
+
+                }
+
+                return false;
+            });
+        }        
         Structr.addPager(images, 'Image');
     },
 	
@@ -126,12 +207,12 @@ var _Images = {
 
     appendImageElement : function(img, folderId, add, hasChildren) {
 
-        //console.log('Images.appendImageElement', img, folderId, add, hasChildren);
+        if (debug) console.log('Images.appendImageElement', img, folderId, add, hasChildren);
         
         //if (!folderId && file.parentFolder) return false;
         
         // suppress images without thumbnails
-        if (!img.tnSmall || img.isThumbnail) return false;
+        if (img.isThumbnail) return false;
 
         var div;
         var parentElement, cls;
@@ -139,8 +220,6 @@ var _Images = {
         parentElement = images;
         cls = 'image';
 
-        var tn = '/' + img.tnSmall.id;
-        
         var parent = Structr.findParent(folderId, null, null, parentElement);
         
         if (add) _Entities.ensureExpanded(parent);
@@ -165,6 +244,9 @@ var _Images = {
             
         } else {
         
+            var tn = '/structr/img/ajax-loader.gif';
+            
+            //var tn = '/' + img.tnSmall.id;
             parent.append('<div class="node ' + cls + ' ' + img.id + '_">'
                 + '<div class="wrap"><img class="thumbnail" src="'+ tn + '"></div>'
                 + '<b class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
@@ -172,38 +254,17 @@ var _Images = {
             div = Structr.node(img.id, folderId);
             
             if (debug) console.log('appended new div to parent', div, parent);
+            
+            var tnSmall = img.tnSmall;
+            if (tnSmall) {
+                _Images.showThumbnails(img, div);
+            } else {
+                _Images.reloadThumbnail(img.id, div);
+            }
         }
         
         var iconArea = $('.icons', div);
 
-        $('.thumbnail', div).on('mouseenter', function(e) {
-            e.stopPropagation();
-            images.append('<img class="thumbnailZoom" src="/' + img.tnMid.id + '">');
-            var tnZoom = $($('.thumbnailZoom', images)[0]);
-            
-            tnZoom.css({
-                top: (div.position().top) + 'px',
-                left: (div.position().left - 42) + 'px'
-            });
-            
-            tnZoom.on('mouseleave', function(e) {
-                e.stopPropagation();
-                $('.thumbnailZoom', images).remove();
-            });
-            
-            tnZoom.on('click', function(e) {
-                e.stopPropagation();
-                Structr.dialog(img.name, function() {
-                    return true;
-                }, function() {
-                    return true;
-                });
-                    
-                _Images.showImageDetails($(this), img, dialogText);
-            });
-
-        });
-            
         
         if (debug) console.log(folderId, add);
         
@@ -257,7 +318,61 @@ var _Images = {
         
         return div;
     },
-		
+
+    showThumbnails : function(img, el) {
+        $('.thumbnail', el).attr('src', '/' + img.tnSmall.id);
+        $('.thumbnail', el).on('mouseenter', function(e) {
+            e.stopPropagation();
+            $('.thumbnailZoom', images).remove();
+            images.append('<img class="thumbnailZoom" src="/' + img.tnMid.id + '">');
+            var tnZoom = $($('.thumbnailZoom', images)[0]);
+            
+            tnZoom.on('load', function() {
+                if (debug) console.log(tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
+                var pos = el.position();
+                
+                tnZoom.css({
+                    top:  (pos.top+(el.height()-tnZoom.height())/2) + 'px',
+                    left: (pos.left+(el.width()-tnZoom.width())/2) + 6 + 'px'
+                }).show();
+            });
+            
+            tnZoom.on('mouseleave', function(e) {
+                e.stopPropagation();
+                $('.thumbnailZoom', images).remove();
+            });
+            
+            tnZoom.on('click', function(e) {
+                e.stopPropagation();
+                Structr.dialog(img.name, function() {
+                    return true;
+                }, function() {
+                    return true;
+                });
+                    
+                _Images.showImageDetails($(this), img, dialogText);
+            });
+
+        });
+    },
+
+    reloadThumbnail : function(id, el) {
+        // wait 1 sec. and try again
+        window.setTimeout(function() {
+            headers = {
+                'X-StructrSessionToken' : token
+            };
+            _Crud.crudRead('Image', id, function(img) {
+                var tn = img.tnSmall;
+                if (!tn) {
+                    _Images.reloadThumbnail(id, el);
+                } else {
+                    _Images.showThumbnails(img, el);
+                }
+            });
+        }, 5000);
+    },
+
     appendFolderElement : function(folder, folderId, hasChildren) {
 		
         if (debug) console.log('appendFolderElement', folder, folderId, hasChildren);

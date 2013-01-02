@@ -498,10 +498,12 @@ span.id {
 }*/
 
 #images .thumbnailZoom {
-    max-width: 200px;
-    max-height: 200px;
+    max-width: 300px;
+    max-height: 300px;
     position: absolute;
     z-index: 4;
+    display: none;
+    
 }
 
 /*#images .node:hover img.thumbnail {
@@ -525,10 +527,10 @@ span.id {
 }
 
 .imageDetail {
-    width: 776px;
+    /*width: 776px;*/
+    /*max-height: 776px;*/
+    max-width: 776px;
     max-height: 776px;
-/*    max-width: 776px;
-    max-height: 776px;*/
     margin: 0;
     padding: 0;
 }

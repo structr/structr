@@ -603,10 +603,14 @@ var Structr = {
             var pageRight = $('.pageRight', pager);
             if (page[type] == 1) {
                 pageLeft.attr('disabled', 'disabled').addClass('disabled');
+            } else {
+                pageLeft.removeAttr('disabled', 'disabled').removeClass('disabled');
             }
 
             if (page[type] == pageCount[type]) {
                 pageRight.attr('disabled', 'disabled').addClass('disabled');
+            } else {
+                pageRight.removeAttr('disabled', 'disabled').removeClass('disabled');
             }
 
             //var urlData = '?pageSize=' + pageSize[type] + '&page=' + page[type] + '#' + lastMenuEntry;
@@ -624,7 +628,7 @@ var Structr = {
         var cookie = $.cookie('structrPagerData_' + type);
         if (cookie) {
             var pagerData = cookie.split(',');
-            console.log('Pager Data from Cookie', pagerData);
+            if (debug) console.log('Pager Data from Cookie', pagerData);
             page[type]      = pagerData[0];
             pageSize[type]  = pagerData[1];
         }
@@ -644,8 +648,6 @@ var Structr = {
         var pageFromUrl     = urlParam('page');
         var pageSizeFromUrl = urlParam('pageSize');
         
-        console.log('from url', pageFromUrl, pageSizeFromUrl);
-        
         if (!page[type] && !pageSize[type]) {
             page[type]      =  pageFromUrl;
             pageSize[type]  = pageSizeFromUrl;
@@ -659,7 +661,6 @@ var Structr = {
             page[type]      = defaultPage;
             pageSize[type]  = defaultPageSize;
         }
-        
  
         el.append('<div class="pager" id="pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
             + ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
@@ -677,6 +678,8 @@ var Structr = {
             if (e.keyCode == 13) {
                 pageSize[type] = $(this).val();
                 pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
+                page[type] = 1;
+                $('.page', pager).val(page[type]);
                 $('.pageSize', pager).val(pageSize[type]);
                 $('.pageCount', pager).val(pageCount[type]);
                 $('.node', el).remove();
