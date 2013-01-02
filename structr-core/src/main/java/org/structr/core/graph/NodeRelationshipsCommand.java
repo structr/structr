@@ -21,6 +21,7 @@
 
 package org.structr.core.graph;
 
+import java.util.Collections;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -68,8 +69,14 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 		RelationshipFactory factory       = new RelationshipFactory(securityContext);
 		List<AbstractRelationship> result = new LinkedList<AbstractRelationship>();
 		Node node                         = sourceNode.getNode();
-		Iterable<Relationship> rels       = null;
+		Iterable<Relationship> rels;
 
+		if (node == null) {
+			
+			return Collections.EMPTY_LIST;
+			
+		}
+		
 		if (relType != null) {
 			
 			rels = node.getRelationships(relType, dir);
