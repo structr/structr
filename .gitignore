@@ -11,3 +11,5 @@ structr-ui/logs
 structr-ui/structr.conf
 structr-ui/logDb.dat
 structr-ui/src/main/resources/bin/su
+**nb-configuration.xml
+
