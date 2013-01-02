@@ -79,16 +79,26 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 
 			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-			// FIXME: use uuid only here?
 			if (source instanceof JsonInput) {
 
 				JsonInput properties = (JsonInput) source;
 				PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, type, properties.getAttributes());
 				
-				for (Entry<PropertyKey, Object> entry : map.entrySet()) {
+				// If property map contains the uuid, search only for uuid
+				if (map.containsKey(GraphObject.uuid)) {
+				
+					attrs.add(Search.andExactUuid(map.get(GraphObject.uuid)));
 
-					attrs.add(Search.andExactProperty(entry.getKey(), entry.getValue().toString()));
+					
+				} else { // FIXME: Better throw an exception here instead of searching for all properties
 
+				
+					for (Entry<PropertyKey, Object> entry : map.entrySet()) {
+
+						attrs.add(Search.andExactProperty(entry.getKey(), entry.getValue().toString()));
+
+					}
+				
 				}
 
 			} else if (source instanceof GraphObject) {
