@@ -56,7 +56,7 @@ public class DeleteCommand extends AbstractCommand {
 		if (node != null) {
 
 			try {
-				Services.command(securityContext, DeleteNodeCommand.class).execute(node);
+				Services.command(securityContext, DeleteNodeCommand.class).execute(node, true);
 			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to delete node", fex);
 			}
