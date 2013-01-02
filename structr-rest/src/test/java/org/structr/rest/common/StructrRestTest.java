@@ -166,7 +166,7 @@ public class StructrRestTest extends TestCase {
 			servletContext.setInitParameter("configfile.path", basePath + "/structr.conf");
 
 			// configure JSON REST servlet
-			JsonRestServlet structrRestServlet     = new JsonRestServlet(new DefaultResourceProvider(), PropertyView.Public, AbstractNode.uuid);
+			JsonRestServlet structrRestServlet     = new JsonRestServlet(new TestResourceProvider(), PropertyView.Public, AbstractNode.uuid);
 			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
 
 			Map<String, String> servletParams = new LinkedHashMap<String, String>();
