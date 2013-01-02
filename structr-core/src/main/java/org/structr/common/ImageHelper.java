@@ -101,12 +101,31 @@ public abstract class ImageHelper {
 	 */
 	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType)
 		throws FrameworkException, IOException {
+		
+		return createImage(securityContext, imageData, contentType, imageType, false);
+	}
+	
+	/**
+	 * Create a new image node from the given image data
+	 *
+	 * @param securityContext
+	 * @param imageData
+	 * @param contentType
+	 * @param imageType
+	 * @param markAsThumbnail
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final boolean markAsThumbnail)
+		throws FrameworkException, IOException {
 
 		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
 		PropertyMap props                          = new PropertyMap();
 
 		props.put(AbstractNode.type, imageType.getSimpleName());
 		props.put(File.contentType, contentType);
+		props.put(Image.isThumbnail, markAsThumbnail);
 
 		Image newImage = createNodeCommand.execute(props);
 
