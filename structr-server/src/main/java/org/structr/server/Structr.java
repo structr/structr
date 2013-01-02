@@ -68,6 +68,7 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class Structr {
 	
@@ -81,7 +82,6 @@ public class Structr {
 	private String keyStorePassword                            = null;
 	private String contextPath                                 = System.getProperty("contextPath", "/");
 	private String basePath                                    = "";
-	private String staticResourceContextPath                   = "/static";
 
 	private int restPort                                       = 8082;
 	private int httpsPort                                      = 8083;
