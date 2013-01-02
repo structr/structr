@@ -251,7 +251,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			return type + " (" + name + "," + type + "," + id + ")";
 
-		} catch (Throwable ignore) {}
+		} catch (Throwable ignore) {
+			logger.log(Level.WARNING, ignore.getMessage());
+		}
 
 		return "<AbstractNode>";
 
