@@ -34,11 +34,11 @@ public class RemoteView extends View {
 	public static final Property<String>            remotePassword = new StringProperty("remotePassword");
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(RemoteView.class, PropertyView.Ui,
-		repositoryUrl, remoteUser, remotePassword
+		type, repositoryUrl, remoteUser, remotePassword
 	);
 		
 	public static final org.structr.common.View publicView = new org.structr.common.View(RemoteView.class, PropertyView.Public,
-		repositoryUrl, remoteUser, remotePassword
+		type, repositoryUrl, remoteUser, remotePassword
 	);
 		
 		

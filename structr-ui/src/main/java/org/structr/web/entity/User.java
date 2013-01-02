@@ -57,11 +57,11 @@ public class User extends Person implements Principal {
 	public static final CollectionProperty<Group> groups          = new CollectionProperty<Group>("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups
+		type, name, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
-		realName
+		type, name
 	);
 	
 	static {
@@ -119,12 +119,6 @@ public class User extends Person implements Principal {
 
 	}
 
-	public String getRealName() {
-
-		return getProperty(Person.realName);
-
-	}
-
 	public String getConfirmationKey() {
 
 		return getProperty(User.confirmationKey);
@@ -154,12 +148,6 @@ public class User extends Person implements Principal {
 	public void setPassword(final String passwordValue) throws FrameworkException {
 
 		setProperty(password, passwordValue);
-
-	}
-
-	public void setRealName(final String realName) throws FrameworkException {
-
-		setProperty(Person.realName, realName);
 
 	}
 

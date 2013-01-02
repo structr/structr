@@ -45,6 +45,14 @@ import org.structr.core.property.CollectionProperty;
 public class Group extends AbstractNode implements Principal {
 
 	public static final CollectionProperty<User> users = new CollectionProperty<User>("users", User.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
+		type, name, users, blocked
+	);
+	
+	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
+		type, name, users, blocked
+	);
 
 	//~--- methods --------------------------------------------------------
 

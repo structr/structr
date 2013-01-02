@@ -52,7 +52,7 @@ public interface Element extends GraphObject {
 	public static final CollectionProperty<Element>   elements   = new CollectionProperty<Element>("elements", Element.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Element.class, PropertyView.Ui,
-		AbstractNode.name, tag
+		type, AbstractNode.name, tag
 	);
 
 	//~--- inner classes --------------------------------------------------

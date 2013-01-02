@@ -59,11 +59,11 @@ public class Page extends AbstractNode implements Linkable {
 	public static final CollectionProperty<Content>   contents        = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
+		type, name, tag, components, elements, linkingElements, contentType, owner, position, cacheForSeconds, version
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		name, tag, components, elements, linkingElements, contentType, ownerId, position, cacheForSeconds, version
+		type, name, tag, components, elements, linkingElements, contentType, owner, position, cacheForSeconds, version
 	);
 	
 	

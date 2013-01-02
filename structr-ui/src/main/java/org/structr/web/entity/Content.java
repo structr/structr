@@ -116,11 +116,11 @@ public class Content extends AbstractNode {
 	public static final CollectionProperty<Span>       spans            = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.INCOMING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Content.class, PropertyView.Ui,
-		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
+		type, name, tag, content, contentType, size,  paths, dataKey, typeDefinitionId
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Content.class, PropertyView.Public,
-		name, tag, content, contentType, size, type, paths, dataKey, typeDefinitionId
+		type, name, tag, content, contentType, size, paths, dataKey, typeDefinitionId
 	);
 
 	//~--- static initializers --------------------------------------------
