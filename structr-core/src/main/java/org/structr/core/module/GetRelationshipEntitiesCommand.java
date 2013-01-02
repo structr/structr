@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>, structr <structr@structr.org>
+ *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
  * 
