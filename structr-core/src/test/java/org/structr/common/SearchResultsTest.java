@@ -41,6 +41,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.TestSeven;
+import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -168,6 +170,42 @@ public class SearchResultsTest extends StructrTest {
 			searchAttributes.add(Search.andExactProperty(key1, val1));
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+	
+	public void test04SearchByLocation() {
+
+		try {
+
+			PropertyMap props = new PropertyMap();
+			PropertyKey lat   = TestSeven.latitude;
+			PropertyKey lon   = TestSeven.longitude;
+			
+			String type       = TestSeven.class.getSimpleName();
+
+			props.put(lat, 50.12284d);
+			props.put(lon, 8.73923d);
+
+			AbstractNode node                      = createTestNode(type, props);
+			boolean includeDeletedAndHidden        = true;
+			boolean publicOnly                     = false;
+			
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
+			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertEquals(1, result.size());
+			assertTrue(result.get(0).equals(node));
 
 		} catch (FrameworkException ex) {
 
