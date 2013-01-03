@@ -33,8 +33,12 @@
             <url>http://maven.structr.org:8082/artifactory/release</url>
         </repository> 
         <repository>
-            <id>neo4j-public-repository</id>
-            <url>http://m2.neo4j.org/content/groups/everything</url>
+            <id>neo4j-releases</id>
+            <url>http://m2.neo4j.org/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>neo4j-snapshots</id>
+            <url>http://m2.neo4j.org/content/repositories/snapshots</url>
         </repository>
         <repository>
             <id>wordrak</id>
