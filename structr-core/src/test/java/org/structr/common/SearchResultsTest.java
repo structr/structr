@@ -21,18 +21,24 @@
 
 package org.structr.common;
 
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.neo4j.graphdb.NotFoundException;
+
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestSeven;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.FilterSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.graph.search.TextualSearchAttribute;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -41,9 +47,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.TestSeven;
-import org.structr.core.graph.search.DistanceSearchAttribute;
-import org.structr.core.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -179,24 +182,23 @@ public class SearchResultsTest extends StructrTest {
 		}
 
 	}
-	
+
 	public void test04SearchByLocation() {
 
 		try {
 
-			PropertyMap props = new PropertyMap();
-			PropertyKey lat   = TestSeven.latitude;
-			PropertyKey lon   = TestSeven.longitude;
-			
-			String type       = TestSeven.class.getSimpleName();
+			final PropertyMap props = new PropertyMap();
+			final PropertyKey lat   = TestSeven.latitude;
+			final PropertyKey lon   = TestSeven.longitude;
+			final String type       = TestSeven.class.getSimpleName();
 
 			props.put(lat, 50.12284d);
 			props.put(lon, 8.73923d);
+			props.put(AbstractNode.name, "TestSeven-0");
 
 			AbstractNode node                      = createTestNode(type, props);
 			boolean includeDeletedAndHidden        = true;
 			boolean publicOnly                     = false;
-			
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
@@ -210,6 +212,102 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	public void test05SpatialRollback() {
+
+//		try {
+
+			final String type = TestSeven.class.getSimpleName();
+			AbstractNode node = null;
+
+			try {
+
+				// outer transaction
+				node = transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+
+					@Override
+					public AbstractNode execute() throws FrameworkException {
+
+						final PropertyMap props = new PropertyMap();
+						final PropertyKey lat   = TestSeven.latitude;
+						final PropertyKey lon   = TestSeven.longitude;
+
+						props.put(AbstractNode.type, type);
+						props.put(lat, 50.12284d);
+						props.put(lon, 8.73923d);
+						props.put(AbstractNode.name, "TestSeven-0");;
+
+						// this will work
+						AbstractNode node = createNodeCommand.execute(props);
+
+						props.remove(AbstractNode.name);
+						props.put(lat, 50.12285d);
+						props.put(lon, 8.73924d);
+
+						// this will fail
+						AbstractNode node2 = createNodeCommand.execute(props);
+						
+						// adding another 
+						AbstractNode node3 = createNodeCommand.execute(props);
+						
+//						boolean includeDeletedAndHidden        = true;
+//						boolean publicOnly                     = false;
+//						List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+//
+//						searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
+//						searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+//
+//						Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+//
+//						assertEquals(1, result.size());
+//						assertTrue(result.get(0).equals(node));
+
+						return node2;
+
+					}
+
+				});
+
+				fail("Expected a FrameworkException (name must_not_be_empty)");
+			} catch (FrameworkException nfe) {
+
+				// Expected
+			}
+
+//
+//		} catch (FrameworkException ex) {
+//
+//			logger.log(Level.SEVERE, ex.toString());
+//			System.out.println(ex.toString());
+//			fail("Unexpected exception");
+//
+//		}
+
+	}
+
+	public void test06DistanceSearchOnEmptyDB() {
+
+		try {
+
+			boolean includeDeletedAndHidden        = true;
+			boolean publicOnly                     = false;
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertEquals(0, result.size());
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			System.out.println(ex.toString());
 			fail("Unexpected exception");
 
 		}

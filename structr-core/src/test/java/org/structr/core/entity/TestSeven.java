@@ -20,10 +20,14 @@ package org.structr.core.entity;
 
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.DoubleProperty;
+import org.structr.core.validator.TypeUniquenessValidator;
 
 /**
  * A simple entity with lat,lon coordinates
@@ -45,4 +49,25 @@ public class TestSeven extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(TestSeven.class, NodeIndex.fulltext.name(), latitude, longitude);
 		EntityContext.registerSearchablePropertySet(TestSeven.class, NodeIndex.keyword.name(), latitude, longitude);
 	}
+	
+	@Override
+	public boolean beforeCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {
+		return isValid(errorBuffer);
+	}
+	
+	@Override
+	public boolean beforeModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {
+		return isValid(errorBuffer);
+	}
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean error = false;
+
+		error |= ValidationHelper.checkStringNotBlank(this, name, errorBuffer);
+
+		return !error;
+	}
+	
 }

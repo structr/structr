@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.TestSeven;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.entity.TestTwo;
@@ -206,6 +207,13 @@ public class CreateGraphObjectsTest extends StructrTest {
 						if (AbstractNode.class.isAssignableFrom(entityClass)) {
 
 							String type = entityClass.getSimpleName();
+							
+							// For TestSeven, fill mandatory fields
+							if (type.equals(TestSeven.class.getSimpleName())) {
+
+								props.put(TestSeven.name, "TestSeven-0");
+
+							}
 
 							// For ResourceAccess, fill mandatory fields
 							if (type.equals(ResourceAccess.class.getSimpleName())) {
@@ -250,6 +258,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
+			System.out.println(ex.toString());
 			fail("Unexpected exception");
 
 		}
