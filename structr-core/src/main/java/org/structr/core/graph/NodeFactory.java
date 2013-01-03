@@ -540,33 +540,35 @@ public class NodeFactory<T extends AbstractNode> {
 		for (Node node : spatialRecordHits) {
 
 			Long dbNodeId = null;
-			Node realNode = null;
+			Node realNode = node; //null;
 
-			if (node.hasProperty("id")) {
-
-				dbNodeId = (Long) node.getProperty("id");
-
-				try {
-
-					realNode = graphDb.getNodeById(dbNodeId);
-
-				} catch (NotFoundException nfe) {
-
-					// Should not happen, but it does
-					// FIXME: Why does the spatial index return an unknown ID?
-					logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
-
-					for (String key : node.getPropertyKeys()) {
-
-						logger.log(Level.FINE, "{0}={1}", new Object[] { key, node.getProperty(key) });
-					}
-				}
-
-			}
+//			if (node.hasProperty("id")) {
+//
+//				dbNodeId = (Long) node.getProperty("id");
+//
+//				try {
+//
+//					realNode = graphDb.getNodeById(dbNodeId);
+//
+//				} catch (NotFoundException nfe) {
+//
+//					// Should not happen, but it does
+//					// FIXME: Why does the spatial index return an unknown ID?
+//					logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
+//
+//					for (String key : node.getPropertyKeys()) {
+//
+//						logger.log(Level.FINE, "{0}={1}", new Object[] { key, node.getProperty(key) });
+//					}
+//				}
+//
+//			}
 
 			if (realNode != null) {
 
 				AbstractNode n = createNode(realNode);
+				
+				nodes.add(n);
 
 				// Check is done in createNodeWithType already, so we don't have to do it again
 				if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {

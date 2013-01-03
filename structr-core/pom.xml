@@ -63,7 +63,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-spatial</artifactId>
-            <version>0.9.STRUCTR</version>
+            <version>0.10-SNAPSHOT</version>
             <exclusions>
             </exclusions>
         </dependency>
