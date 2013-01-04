@@ -14,6 +14,18 @@
 	</properties>
   
 	<build>
+		<distributionManagement>
+			<repository>
+				<id>releases.maven.structr.org</id>
+				<name>maven.structr.org-releases</name>
+				<url>http://maven.structr.org:8082/artifactory/release</url>
+			</repository>
+			<snapshotRepository>
+				<id>snapshots.maven.structr.org</id>
+				<name>maven.structr.org-snapshots</name>
+				<url>http://maven.structr.org:8082/artifactory/snapshot</url>
+			</snapshotRepository>
+		</distributionManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
