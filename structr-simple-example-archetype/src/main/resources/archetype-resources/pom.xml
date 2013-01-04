@@ -14,18 +14,6 @@
 	</properties>
   
 	<build>
-		<distributionManagement>
-			<repository>
-				<id>releases.maven.structr.org</id>
-				<name>maven.structr.org-releases</name>
-				<url>http://maven.structr.org:8082/artifactory/release</url>
-			</repository>
-			<snapshotRepository>
-				<id>snapshots.maven.structr.org</id>
-				<name>maven.structr.org-snapshots</name>
-				<url>http://maven.structr.org:8082/artifactory/snapshot</url>
-			</snapshotRepository>
-		</distributionManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -122,4 +110,18 @@
 			<version>0.6-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>releases.maven.structr.org</id>
+			<name>maven.structr.org-releases</name>
+			<url>http://maven.structr.org:8082/artifactory/release</url>
+		</repository>
+		<repository>
+			<id>snapshots.maven.structr.org</id>
+			<name>maven.structr.org-snapshots</name>
+			<url>http://maven.structr.org:8082/artifactory/snapshot</url>
+		</repository>
+	</repositories>
+
 </project>

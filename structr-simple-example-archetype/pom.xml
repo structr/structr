@@ -33,6 +33,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
 	<distributionManagement>
 		<repository>
 			<id>releases.maven.structr.org</id>
@@ -45,5 +46,5 @@
 			<url>http://maven.structr.org:8082/artifactory/snapshot</url>
 		</snapshotRepository>
 	</distributionManagement>
-
+	
 </project>
