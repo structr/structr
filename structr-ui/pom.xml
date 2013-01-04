@@ -97,8 +97,8 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.8</version>
-        </dependency>
+            <version>1.9-SNAPSHOT</version>
+            </dependency>
         <dependency>
             <groupId>com.flagstone</groupId>
             <artifactId>transform</artifactId>
