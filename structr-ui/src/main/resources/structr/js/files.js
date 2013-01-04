@@ -73,7 +73,7 @@ var _Files = {
         
         _Files.init();
         
-        if (debug) console.log('onload');
+        log('onload');
         if (palette) palette.remove();
 
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
@@ -103,7 +103,7 @@ var _Files = {
             drop = $('#dropArea');
 
             drop.on('dragover', function(event) {
-                if (debug) console.log('dragging over #files area');
+                log('dragging over #files area');
                 event.originalEvent.dataTransfer.dropEffect = 'copy';
                 return false;
             });
@@ -115,7 +115,7 @@ var _Files = {
                     return;
                 }
                 
-                if (debug) console.log('dropped something in the #files area')
+                log('dropped something in the #files area')
                 
                 event.stopPropagation();
                 event.preventDefault();
@@ -146,7 +146,7 @@ var _Files = {
                             fadeOut: 25
                         });
                         $(filesToUpload).each(function(i, file) {
-                            if (debug) console.log(file);
+                            log(file);
                             if (file) _Files.createFile(file);
                         });
                     });
@@ -171,7 +171,7 @@ var _Files = {
                     });
                     
                     $(filesToUpload).each(function(i, file) {
-                        if (debug) console.log(file);
+                        log(file);
                         if (file) _Files.createFile(file);
                     });
 
@@ -225,7 +225,7 @@ var _Files = {
 
     appendFileElement : function(file, folderId, add, hasChildren, isImage) {
 
-        if (debug) console.log('Files.appendFileElement', file, folderId, add, hasChildren, isImage);
+        log('Files.appendFileElement', file, folderId, add, hasChildren, isImage);
         
         if (!folderId && file.parentFolder) return false;
         
@@ -266,7 +266,7 @@ var _Files = {
                 enable($('.delete_icon', formerParent)[0]);
             }            
             
-            if (debug) console.log('appended existing div to parent', div, parent);
+            log('appended existing div to parent', div, parent);
             
         } else {
         
@@ -276,14 +276,14 @@ var _Files = {
                 + '</div>');
             div = Structr.node(file.id, folderId);
             
-            if (debug) console.log('appended new div to parent', div, parent);
+            log('appended new div to parent', div, parent);
         }
 
         $('.typeIcon', div).on('click', function(e) {
             e.stopPropagation();
             window.open(viewRootUrl + file.name, 'Download ' + file.name);
         });
-        if (debug) console.log(folderId, add);
+        log(folderId, add);
         
         delIcon = $('.delete_icon', div);
 
@@ -343,11 +343,11 @@ var _Files = {
 		
     appendFolderElement : function(folder, folderId, hasChildren) {
 		
-        if (debug) console.log('appendFolderElement', folder, folderId, hasChildren);
+        log('appendFolderElement', folder, folderId, hasChildren);
         
         var parent = Structr.findParent(folderId, null, null, folders);
         
-        if (debug) console.log('appendFolderElement parent', parent);
+        log('appendFolderElement parent', parent);
         if (!parent) return false;
         
         //parent.append('<div id="_' + folderId + '" class="node element ' + folderId + '_"></div>');
@@ -363,7 +363,7 @@ var _Files = {
         //div = Structr.node(folder.id);
         div = $('#_' + folder.id);
         
-        if (debug) console.log('appendFolderElement: parent, div', parent, div);
+        log('appendFolderElement: parent, div', parent, div);
         
         if (div && div.length) {
             
@@ -439,12 +439,12 @@ var _Files = {
                 var self = $(this);
                 var fileId = getId(ui.draggable);
                 var folderId = getId(self);
-                if (debug) console.log('fileId, folderId', fileId, folderId);
+                log('fileId, folderId', fileId, folderId);
                 if (!(fileId == folderId)) {
                     var nodeData = {};
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
-                    if (debug) console.log('addExpandedNode(folderId)', addExpandedNode(folderId));
+                    log('addExpandedNode(folderId)', addExpandedNode(folderId));
                     Command.createAndAdd(folderId, nodeData);
                 }
             }
@@ -483,11 +483,11 @@ var _Files = {
             enable($('.delete_icon', folder)[0]);
         }
 
-        if (debug) console.log('removeFolderFromFolder: fileId=' + folderToRemoveId + ', folderId=' + folderId);
+        log('removeFolderFromFolder: fileId=' + folderToRemoveId + ', folderId=' + folderId);
     },
     
     removeFileFromFolder : function(fileId, folderId, isImage) {
-        if (debug) console.log('removeFileFromFolder', fileId, folderId, isImage);
+        log('removeFileFromFolder', fileId, folderId, isImage);
         
         var parentElement, cls;
         if (isImage) {
@@ -501,7 +501,7 @@ var _Files = {
         var folder = Structr.node(folderId);
         var file = Structr.node(fileId, folderId);
         
-        if (debug) console.log(file, folder);
+        log(file, folder);
         
         _Entities.resetMouseOverState(file);
         
@@ -528,13 +528,13 @@ var _Files = {
     },
     
     removeImageFromFolder : function(imageId, folderId) {
-        if (debug) console.log('removeImageFromFolder', imageId, folderId);
+        log('removeImageFromFolder', imageId, folderId);
         _Files.removeFileFromFolder(imageId, folderId, true);
     },
 
     createFile : function(fileObj) {
         var entity = {};
-        if (debug) console.log(fileObj);
+        log(fileObj);
         entity.contentType = fileObj.type;
         entity.name = fileObj.name;
         entity.size = fileObj.size;
@@ -544,23 +544,23 @@ var _Files = {
     
     uploadFile : function(file) {
 
-        if (debug) console.log(fileList);
+        log(fileList);
 
         $(fileList).each(function(i, fileObj) {
 
-            if (debug) console.log(file);
+            log(file);
 
             if (fileObj.name == file.name) {
      
-                if (debug) console.log(fileObj);
-                if (debug) console.log('Uploading chunks for file ' + file.id);
+                log(fileObj);
+                log('Uploading chunks for file ' + file.id);
                 
                 var reader = new FileReader();
                 reader.readAsBinaryString(fileObj);
                 //reader.readAsText(fileObj);
 
                 var chunks = Math.ceil(fileObj.size / chunkSize);
-                if (debug) console.log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
+                log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
 
                 // slicing is still unstable/browser dependent yet, see f.e. http://georgik.sinusgear.com/2011/05/06/html5-api-file-slice-changed/
 
@@ -582,9 +582,9 @@ var _Files = {
 
                 reader.onload = function(f) {
                     
-                    if (debug) console.log('File was read into memory.');
+                    log('File was read into memory.');
                     var binaryContent = f.target.result;
-                    if (debug) console.log('uploadFile: binaryContent', binaryContent);
+                    log('uploadFile: binaryContent', binaryContent);
 
                     for (var c=0; c<chunks; c++) {
                         
@@ -599,7 +599,7 @@ var _Files = {
                     }
                     var typeIcon = Structr.node(file.id).find('.typeIcon');
                     var iconSrc = typeIcon.prop('src');
-                    if (debug) console.log('Icon src: ', iconSrc);
+                    log('Icon src: ', iconSrc);
                     typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
 
                 }
@@ -634,9 +634,9 @@ var _Files = {
             var self = $(this);
             //var text = self.parent().find('.file').text();
             Structr.dialog('Edit ' + file.name, function() {
-                if (debug) console.log('content saved')
+                log('content saved')
             }, function() {
-                if (debug) console.log('cancelled')
+                log('cancelled')
             });
             _Files.editContent(this, file, $('#dialogBox .dialogText'));
         });
@@ -645,7 +645,7 @@ var _Files = {
     editContent : function (button, file, element) {
         debug = true;
         var url = viewRootUrl + file.name + '?edit';
-        if (debug) console.log('editContent', button, file, element, url);
+        log('editContent', button, file, element, url);
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         var text;
@@ -661,7 +661,7 @@ var _Files = {
             contentType = 'text/plain';
         }
         
-        if (debug) console.log('contentType, dataType', contentType, dataType);
+        log('contentType, dataType', contentType, dataType);
         
         $.ajax({
             url: url,
@@ -674,7 +674,7 @@ var _Files = {
                 text = data;
                 if (isDisabled(button)) return;
                 var div = element.append('<div class="editor"></div>');
-                if (debug) console.log(div);
+                log(div);
                 var contentBox = $('.editor', element);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
@@ -691,13 +691,13 @@ var _Files = {
                 //                if (!text1) text1 = '';
                 //                if (!text2) text2 = '';
                 //		
-                //                if (debug) console.log('Element', element);
-                //                if (debug) console.log(text1);
-                //                if (debug) console.log(text2);
+                //                log('Element', element);
+                //                log(text1);
+                //                log(text2);
                 //                
                 //                if (text1 == text2) return;
                 //                editorCursor = cm.getCursor();
-                //                if (debug) console.log(editorCursor);
+                //                log(editorCursor);
                 //
                 //                Command.patch(entity.id, text1, text2);
                 //				

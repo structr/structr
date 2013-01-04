@@ -39,7 +39,7 @@ var _Components = {
         _Components.init();
         
 	//Structr.activateMenuEntry('pages');
-	if (debug) console.log('onload');
+	log('onload');
 	if (palette) palette.remove();
 
 	main.append('<table id="pagesEditor"><tr><td id="components"></td><td id="elements"></td></tr></table>');
@@ -78,12 +78,12 @@ var _Components = {
     },
     
     appendComponentElement : function(component, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress) {
-        if (debug) console.log('_Components.appendComponentElement', component, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
+        log('_Components.appendComponentElement', component, parentId, componentId, pageId, removeExisting, hasChildren, treeAddress);
 
 	var parent;
         
         if (treeAddress) {
-            if (debug) console.log('tree address', treeAddress);
+            log('tree address', treeAddress);
             parent = $('#_' + treeAddress);
         } else {
             parent = Structr.findParent(parentId, componentId, pageId, components);
@@ -149,7 +149,7 @@ var _Components = {
     },
 
     appendElementElement : function(element, parentId, pageId) {
-	if (debug) console.log('Components.appendElementElement');
+	log('Components.appendElementElement');
 	var div = _Elements.appendElementElement(element, parentId, pageId);
 	//console.log(div);
 	if (parentId) {
@@ -171,11 +171,11 @@ var _Components = {
 	    drop: function(event, ui) {
 		var self = $(this);
 		var page = self.closest( '.page')[0];
-		if (debug) console.log(page);
+		log(page);
 		var contentId = getId(ui.draggable);
 		var elementId = getId(self);
 		var pos = $('.content', self).length;
-		if (debug) console.log(pos);
+		log(pos);
 		var pageId;
 		if (page) {
 		    pageId = getId(page);
@@ -195,7 +195,7 @@ var _Components = {
     },
 
     deleteComponent : function(button, component) {
-	if (debug) console.log('delete component', component);
+	log('delete component', component);
 	_Entities.deleteNode(button, component);
     },
 

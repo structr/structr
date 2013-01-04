@@ -78,6 +78,23 @@ button {
     left: 16px;
 }
 
+#footer {
+    display: none;
+    font-size: 10px;
+    height: 100px;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background: #f0f0f0;
+    border-top: 1px solid #999;
+    overflow: auto;
+}
+
+#log {
+    margin: 0 4px;
+}
+
 #menu {
     position: absolute;
     top: 17px;

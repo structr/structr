@@ -37,7 +37,7 @@ var Command = {
         var data = {};
         data.id = id;
         obj.data = data;
-        if (debug) console.log('get()', obj);
+        log('get()', obj);
         return sendObj(obj);
     },
 
@@ -57,7 +57,7 @@ var Command = {
         obj.sort = sort;
         obj.order = order;
         obj.data = data;
-        if (debug) console.log('list()', obj);
+        log('list()', obj);
         return sendObj(obj);
     },
 
@@ -84,7 +84,7 @@ var Command = {
         if (treeAddress) data.treeAddress = treeAddress;
         if (pageId) data.pageId = pageId;
         obj.data = data;
-        if (debug) console.log('children()', obj);
+        log('children()', obj);
         return sendObj(obj);
     },
 
@@ -110,7 +110,7 @@ var Command = {
 
         data.displayElementId = elementSelector;
         obj.data = data;
-        if (debug) console.log('getProperty()', obj);
+        log('getProperty()', obj);
         return sendObj(obj);
     },
     
@@ -129,7 +129,7 @@ var Command = {
     //        var data = {};
     //        data.html = html;
     //        obj.data = data;
-    //        if (debug) console.log('insert()', obj);
+    //        log('insert()', obj);
     //        return sendObj(obj);
     //    },
 
@@ -143,7 +143,7 @@ var Command = {
         var obj = {};
         obj.command = 'DELETE';
         obj.id = id;
-        if (debug) console.log('deleteNode()', obj);
+        log('deleteNode()', obj);
         return sendObj(obj);
     },
 
@@ -154,7 +154,7 @@ var Command = {
      * with the given targetId and broadcast a removal notification.
      */
     removeSourceFromTarget : function(entityId, parentId, componentId, pageId, position) {
-        if (debug) console.log('Remove ' + entityId + ' from ' + parentId);
+        log('Remove ' + entityId + ' from ' + parentId);
         var obj = {};
         obj.command = 'REMOVE';
         obj.id = entityId;
@@ -164,7 +164,7 @@ var Command = {
         data.pageId = pageId;
         data.position = position;
         obj.data = data;
-        if (debug) console.log('removeSourceFromTarget()', obj);
+        log('removeSourceFromTarget()', obj);
         return sendObj(obj);
     },
 
@@ -175,14 +175,14 @@ var Command = {
      * tree and broadcast a removal notification.
      */
     remove : function(entityId, treeAddress) {
-        if (debug) console.log('Remove ' + treeAddress);
+        log('Remove ' + treeAddress);
         var obj = {};
         obj.command = 'REMOVE';
         obj.id = entityId;
         var data = {};
         data.treeAddress = treeAddress;
         obj.data = data;
-        if (debug) console.log('remove()', obj);
+        log('remove()', obj);
         return sendObj(obj);
     },
 
@@ -203,7 +203,7 @@ var Command = {
         data[key] = value;
         if (recursive) data['recursive'] = true;
         obj.data = data;
-        if (debug) console.log('setProperty()', obj);
+        log('setProperty()', obj);
         return sendObj(obj);
     },
 
@@ -218,7 +218,7 @@ var Command = {
         obj.command = 'UPDATE';
         obj.id = id;
         obj.data = data;
-        if (debug) console.log('setProperties()', obj);
+        log('setProperties()', obj);
         return sendObj(obj);
     },
 
@@ -254,7 +254,7 @@ var Command = {
         obj.id = id;
         obj.data = nodeData;
         obj.relData = relData;
-        if (debug) console.log('createAndAdd()', obj);
+        log('createAndAdd()', obj);
         return sendObj(obj);
     },
 
@@ -275,7 +275,7 @@ var Command = {
         obj.id = id;
         obj.data = nodeData;
         //obj.relData = relData;
-        if (debug) console.log('move()', obj);
+        log('move()', obj);
         return sendObj(obj);
     },
 
@@ -295,7 +295,7 @@ var Command = {
             nodeData.content = nodeData.name;
         }
         obj.data = nodeData;
-        if (debug) console.log('create()', obj);
+        log('create()', obj);
         return sendObj(obj);
     },
 
@@ -313,7 +313,7 @@ var Command = {
             nodeData.name = 'New Page ' + Math.floor(Math.random() * (999999 - 1));
         }
         obj.data = nodeData;
-        if (debug) console.log('createSimplePage()', obj);
+        log('createSimplePage()', obj);
         return sendObj(obj);
     },
     
@@ -338,7 +338,7 @@ var Command = {
         data.publicVisible = publicVisible;
         data.authVisible = authVisible;
         obj.data = data;
-        if (debug) console.log('importPage()', obj);
+        log('importPage()', obj);
         return sendObj(obj);
     },
 
@@ -352,7 +352,7 @@ var Command = {
      * The server will broadcast an UPDATE notification.
      */
     patch : function(id, text1, text2) {
-        if (debug) console.log(text1, text2);
+        log(text1, text2);
 
         // no null values allowed
         if (!text1) text1 = '';
@@ -360,7 +360,7 @@ var Command = {
 
         var p = dmp.patch_make(text1, text2);
         var strp = dmp.patch_toText(p);
-        if (debug) console.log(strp, $.quoteString(strp));
+        log(strp, $.quoteString(strp));
 
         var obj = {};
         obj.command = 'PATCH';
@@ -368,7 +368,7 @@ var Command = {
         var data = {};
         data.patch = strp;
         obj.data = data;
-        if (debug) console.log('patch()', obj);
+        log('patch()', obj);
         return sendObj(obj);
     },
 
@@ -390,7 +390,7 @@ var Command = {
         obj.data = nodeData;
         obj.command = 'CLONE';
         obj.id = id;
-        if (debug) console.log('clonePage()', obj);
+        log('clonePage()', obj);
         return sendObj(obj);
     },
     
@@ -414,7 +414,7 @@ var Command = {
         data.chunkSize = chunkSize;
         data.chunk = chunk;
         obj.data = data;
-        if (debug) console.log('chunk()', obj);
+        log('chunk()', obj);
         return sendObj(obj);
     },
     
@@ -433,7 +433,7 @@ var Command = {
         var data = {};
         data.targetId = targetId;
         obj.data = data;
-        if (debug) console.log('link()', obj);
+        log('link()', obj);
         return sendObj(obj);
     },
     
@@ -451,7 +451,7 @@ var Command = {
         obj.id = id;
         obj.data = nodeData;
         obj.relData = relData;
-        if (debug) console.log('wrap()', obj);
+        log('wrap()', obj);
         return sendObj(obj);
         
     }

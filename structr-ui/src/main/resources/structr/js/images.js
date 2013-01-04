@@ -118,7 +118,7 @@ var _Images = {
                     return;
                 }
                 
-                if (debug) console.log('dropped something in the #files area')
+                log('dropped something in the #files area')
                 
                 event.stopPropagation();
                 event.preventDefault();
@@ -149,7 +149,7 @@ var _Images = {
                             fadeOut: 25
                         });
                         $(filesToUpload).each(function(i, file) {
-                            if (debug) console.log(file);
+                            log(file);
                             if (file) _Files.createFile(file);
                         });
                     });
@@ -174,7 +174,7 @@ var _Images = {
                     });
                     
                     $(filesToUpload).each(function(i, file) {
-                        if (debug) console.log(file);
+                        log(file);
                         if (file) _Files.createFile(file);
                     });
 
@@ -207,7 +207,7 @@ var _Images = {
 
     appendImageElement : function(img, folderId, add, hasChildren) {
 
-        if (debug) console.log('Images.appendImageElement', img, folderId, add, hasChildren);
+        log('Images.appendImageElement', img, folderId, add, hasChildren);
         
         //if (!folderId && file.parentFolder) return false;
         
@@ -240,7 +240,7 @@ var _Images = {
                 enable($('.delete_icon', formerParent)[0]);
             }            
             
-            if (debug) console.log('appended existing div to parent', div, parent);
+            log('appended existing div to parent', div, parent);
             
         } else {
         
@@ -253,7 +253,7 @@ var _Images = {
                 + '<div class="icons"></div></div>');
             div = Structr.node(img.id, folderId);
             
-            if (debug) console.log('appended new div to parent', div, parent);
+            log('appended new div to parent', div, parent);
             
             var tnSmall = img.tnSmall;
             if (tnSmall) {
@@ -266,7 +266,7 @@ var _Images = {
         var iconArea = $('.icons', div);
 
         
-        if (debug) console.log(folderId, add);
+        log(folderId, add);
         
         delIcon = $('.delete_icon', div);
 
@@ -328,7 +328,7 @@ var _Images = {
             var tnZoom = $($('.thumbnailZoom', images)[0]);
             
             tnZoom.on('load', function() {
-                if (debug) console.log(tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
+                log(tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
                 var pos = el.position();
                 
                 tnZoom.css({
@@ -375,11 +375,11 @@ var _Images = {
 
     appendFolderElement : function(folder, folderId, hasChildren) {
 		
-        if (debug) console.log('appendFolderElement', folder, folderId, hasChildren);
+        log('appendFolderElement', folder, folderId, hasChildren);
         
         var parent = Structr.findParent(folderId, null, null, folders);
         
-        if (debug) console.log('appendFolderElement parent', parent);
+        log('appendFolderElement parent', parent);
         if (!parent) return false;
         
         //parent.append('<div id="_' + folderId + '" class="node element ' + folderId + '_"></div>');
@@ -395,7 +395,7 @@ var _Images = {
         //div = Structr.node(folder.id);
         div = $('#_' + folder.id);
         
-        if (debug) console.log('appendFolderElement: parent, div', parent, div);
+        log('appendFolderElement: parent, div', parent, div);
         
         if (div && div.length) {
             
@@ -471,12 +471,12 @@ var _Images = {
                 var self = $(this);
                 var fileId = getId(ui.draggable);
                 var folderId = getId(self);
-                if (debug) console.log('fileId, folderId', fileId, folderId);
+                log('fileId, folderId', fileId, folderId);
                 if (!(fileId == folderId)) {
                     var nodeData = {};
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
-                    if (debug) console.log('addExpandedNode(folderId)', addExpandedNode(folderId));
+                    log('addExpandedNode(folderId)', addExpandedNode(folderId));
                     Command.createAndAdd(folderId, nodeData);
                 }
             }
@@ -515,11 +515,11 @@ var _Images = {
             enable($('.delete_icon', folder)[0]);
         }
 
-        if (debug) console.log('removeFolderFromFolder: fileId=' + folderToRemoveId + ', folderId=' + folderId);
+        log('removeFolderFromFolder: fileId=' + folderToRemoveId + ', folderId=' + folderId);
     },
     
     removeFileFromFolder : function(fileId, folderId, isImage) {
-        if (debug) console.log('removeFileFromFolder', fileId, folderId, isImage);
+        log('removeFileFromFolder', fileId, folderId, isImage);
         
         var parentElement, cls;
         if (isImage) {
@@ -533,7 +533,7 @@ var _Images = {
         var folder = Structr.node(folderId);
         var file = Structr.node(fileId, folderId);
         
-        if (debug) console.log(file, folder);
+        log(file, folder);
         
         _Entities.resetMouseOverState(file);
         
@@ -560,13 +560,13 @@ var _Images = {
     },
     
     removeImageFromFolder : function(imageId, folderId) {
-        if (debug) console.log('removeImageFromFolder', imageId, folderId);
+        log('removeImageFromFolder', imageId, folderId);
         _Images.removeFileFromFolder(imageId, folderId, true);
     },
 
     createFile : function(fileObj) {
         var entity = {};
-        if (debug) console.log(fileObj);
+        log(fileObj);
         entity.contentType = fileObj.type;
         entity.name = fileObj.name;
         entity.size = fileObj.size;
@@ -576,23 +576,23 @@ var _Images = {
     
     uploadFile : function(file) {
 
-        if (debug) console.log(fileList);
+        log(fileList);
 
         $(fileList).each(function(i, fileObj) {
 
-            if (debug) console.log(file);
+            log(file);
 
             if (fileObj.name == file.name) {
      
-                if (debug) console.log(fileObj);
-                if (debug) console.log('Uploading chunks for file ' + file.id);
+                log(fileObj);
+                log('Uploading chunks for file ' + file.id);
                 
                 var reader = new FileReader();
                 reader.readAsBinaryString(fileObj);
                 //reader.readAsText(fileObj);
 
                 var chunks = Math.ceil(fileObj.size / chunkSize);
-                if (debug) console.log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
+                log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
 
                 // slicing is still unstable/browser dependent yet, see f.e. http://georgik.sinusgear.com/2011/05/06/html5-api-file-slice-changed/
 
@@ -614,9 +614,9 @@ var _Images = {
 
                 reader.onload = function(f) {
                     
-                    if (debug) console.log('File was read into memory.');
+                    log('File was read into memory.');
                     var binaryContent = f.target.result;
-                    if (debug) console.log('uploadFile: binaryContent', binaryContent);
+                    log('uploadFile: binaryContent', binaryContent);
 
                     for (var c=0; c<chunks; c++) {
                         
@@ -631,7 +631,7 @@ var _Images = {
                     }
                     var typeIcon = Structr.node(file.id).find('.typeIcon');
                     var iconSrc = typeIcon.prop('src');
-                    if (debug) console.log('Icon src: ', iconSrc);
+                    log('Icon src: ', iconSrc);
                     typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
 
                 }
@@ -654,9 +654,9 @@ var _Images = {
             var self = $(this);
             //var text = self.parent().find('.file').text();
             Structr.dialog('Edit ' + file.name, function() {
-                if (debug) console.log('content saved')
+                log('content saved')
             }, function() {
-                if (debug) console.log('cancelled')
+                log('cancelled')
             });
             _Images.editImage(this, file, $('#dialogBox .dialogText'));
         });

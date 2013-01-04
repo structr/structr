@@ -113,14 +113,14 @@ function cleanText(input) {
     var output = '';
     $(input).each(function(i, line) {
         var cleaned = $(line).text();
-        if (debug) console.log(cleaned.length);
+        log(cleaned.length);
         if (cleaned.length) {
             output += cleaned;
         } else {
             output += '\n';
         }
     });
-    if (debug) console.log(output);
+    log(output);
     return output;
 }
 

@@ -101,9 +101,9 @@ var _Pages = {
         _Pages.init();
         
         activeTab = $.cookie('structrActiveTab');
-        if (debug) console.log('value read from cookie', activeTab);
+        log('value read from cookie', activeTab);
 
-        if (debug) console.log('onload');
+        log('onload');
         
         main.prepend('<div id="pages"></div><div id="previews"></div><div id="palette"></div>');
 
@@ -153,11 +153,11 @@ var _Pages = {
 
             var addressField = $('#_address', dialog);
 
-            if (debug) console.log('addressField', addressField);
+            log('addressField', addressField);
 
             addressField.on('blur', function() {
                 var addr = $(this).val().replace(/\/+$/, "");
-                if (debug) console.log(addr);
+                log(addr);
                 $('#_name', dialog).val(addr.substring(addr.lastIndexOf("/")+1));
             });
 
@@ -179,7 +179,7 @@ var _Pages = {
                 var publicVisible = $('#_publicVisible:checked', dialog).val() == 'on';
                 var authVisible = $('#_authVisible:checked', dialog).val() == 'on';
 
-                if (debug) console.log('start');
+                log('start');
                 return Command.importPage(address, name, timeout, publicVisible, authVisible);
             });
             
@@ -258,7 +258,7 @@ var _Pages = {
 
     resetTab : function(element, name) {
 
-        if (debug) console.log('resetTab', element);
+        log('resetTab', element);
         
         element.children('input').hide();
         element.children('.name_').show();
@@ -278,7 +278,7 @@ var _Pages = {
             var self = $(this);
             var clicks = e.originalEvent.detail;
             if (clicks == 1) {
-                if (debug) console.log('click', self, self.css('z-index'));
+                log('click', self, self.css('z-index'));
                 if (self.hasClass('active')) {
                     _Pages.makeTabEditable(self);
                 } else {
@@ -295,7 +295,7 @@ var _Pages = {
     activateTab : function(element) {
         
         var name = $.trim(element.children('.name_').text());
-        if (debug) console.log('activateTab', element, name);
+        log('activateTab', element, name);
 
         previewTabs.children('li').each(function() {
             $(this).removeClass('active');
@@ -313,7 +313,7 @@ var _Pages = {
 
         element.addClass('active');
 
-        if (debug) console.log('set cookie for active tab', activeTab);
+        log('set cookie for active tab', activeTab);
         $.cookie('structrActiveTab', activeTab, {
             expires: 7,
             path: '/'
@@ -323,11 +323,11 @@ var _Pages = {
     
     reloadIframe : function(id, name) {
         var iframe = $('#preview_' + id);
-        if (debug) console.log(iframe);
+        log(iframe);
         iframe.prop('src', viewRootUrl + name + '?edit');
         iframe.parent().show();
         iframe.on('load', function() {
-            if (debug) console.log('iframe loaded', $(this));
+            log('iframe loaded', $(this));
         });
         _Pages.resize();
 
@@ -347,7 +347,7 @@ var _Pages = {
         input.focus().select();
 
         input.on('blur', function() {
-            if (debug) console.log('blur');
+            log('blur');
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
@@ -357,7 +357,7 @@ var _Pages = {
         input.keypress(function(e) {
             if (e.keyCode == 13 || e.keyCode == 9) {
                 e.preventDefault(); 
-                if (debug) console.log('keypress');
+                log('keypress');
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
@@ -371,7 +371,7 @@ var _Pages = {
 
     appendPageElement : function(entity, hasChildren) {
 
-        if (debug) console.log('appendPageElement', entity, hasChildren);
+        log('appendPageElement', entity, hasChildren);
 
         //pages.append('<div id="_' + pages.children('.page').length + '" class="node page ' + entity.id + '_"></div>');
         pages.append('<div id="_' + entity.id + '" class="node page ' + entity.id + '_"></div>');
@@ -531,7 +531,7 @@ var _Pages = {
 
                         nodeData.tag = (tag != 'content' ? tag : '');
                         nodeData.id = contentId;
-                        if (debug) console.log(relData);
+                        log(relData);
                         // suppress dropping anything in prview iframes for now
                         console.log('suppressed command', 'Command.createAndAdd(', elementId, nodeData, relData, ')');
                         // Command.createAndAdd(elementId, nodeData, relData);
@@ -549,11 +549,11 @@ var _Pages = {
                         var self = $(this);
                         var element = self.closest('[structr_element_id]');
                         //var element = self.children('.structr-node');
-                        if (debug) console.log(element);
+                        log(element);
                         var entity = Structr.entity(structrId, element.prop('structr_element_id'));
                         entity.type = element.prop('structr_type');
                         entity.name = element.prop('structr_name');
-                        if (debug) console.log('move', entity);
+                        log('move', entity);
                         //var parentId = element.prop('structr_element_id');
                         self.parent().children('.structr-node').show();
                     });
@@ -565,13 +565,13 @@ var _Pages = {
 //                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
 //                        entity.type = element.prop('structr_type');
 //                        entity.name = element.prop('structr_name');
-//                        if (debug) console.log('edit', entity);
+//                        log('edit', entity);
 //                        //var parentId = element.prop('structr_element_id');
-//                        if (debug) console.log(element);
+//                        log(element);
 ////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
-////                            if (debug) console.log('save')
+////                            log('save')
 ////                        }, function() {
-////                            if (debug) console.log('cancelled')
+////                            log('cancelled')
 ////                        });
 //                        _Entities.showProperties(entity);
 //                    });
@@ -583,7 +583,7 @@ var _Pages = {
                         var entity = Structr.entity(structrId, element.prop('structr_element_id'));
                         entity.type = element.prop('structr_type');
                         entity.name = element.prop('structr_name');
-                        if (debug) console.log('delete', entity);
+                        log('delete', entity);
                         var parentId = element.prop('structr_element_id');
 
                         Command.removeSourceFromTarget(entity.id, parentId);
@@ -622,7 +622,7 @@ var _Pages = {
                                 left: pos.left + offsetLeft + 'px',
                                 cursor: 'pointer'
                             }).show();
-                            if (debug) console.log(header);
+                            log(header);
                         },
                         mouseout: function(e) {
                             e.stopPropagation();
@@ -639,7 +639,7 @@ var _Pages = {
             });
 
             $(this).contents().find('[structr_content_id]').each(function(i,element) {
-                if (debug) console.log(element);
+                log(element);
                 var el = $(element);
                 var structrId = el.attr('structr_content_id');
                 if (structrId) {
@@ -673,7 +673,7 @@ var _Pages = {
 
                             // Store old text in global var
                             textBeforeEditing = cleanText(self.contents());
-                            if (debug) console.log("textBeforeEditing", textBeforeEditing);
+                            log("textBeforeEditing", textBeforeEditing);
 
                         },
                         blur: function(e) {
@@ -681,7 +681,7 @@ var _Pages = {
                             var self = $(this);
                             contentSourceId = self.attr('structr_content_id');
                             var text = cleanText(self.contents());
-                            if (debug) console.log('blur contentSourceId: ' + contentSourceId);
+                            log('blur contentSourceId: ' + contentSourceId);
                             //_Pages.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
                             //Command.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
                             Command.patch(contentSourceId, textBeforeEditing, text);
@@ -703,7 +703,7 @@ var _Pages = {
     },
 
     appendElementElement : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
-        if (debug) console.log('_Pages.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+        log('_Pages.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
         
         var div;
         if (entity.type == 'Component') {
@@ -728,7 +728,7 @@ var _Pages = {
                 e.stopPropagation();
                 var self = $(this);
                 
-//                if (debug) console.log('appendElementElement div', div);
+//                log('appendElementElement div', div);
 //                var pos = self.parent().parent().children('.node').index(self.parent());
 //                
 //                var pageId = getId(self.closest('.page')[0]);
@@ -769,12 +769,12 @@ var _Pages = {
                 obj.id = pageId;
             },
             update: function(event, ui) {
-                if (debug) console.log('---------')
-                if (debug) console.log(pageId);
+                log('---------')
+                log(pageId);
                 var data = {};
                 $(ui.item).parent().children('.node').each(function(i,v) {
                     var self = $(this);
-                    if (debug) console.log(getId(self), i);
+                    log(getId(self), i);
                     data[getId(self)] = i;
                     _Entities.resetMouseOverState(v);
                 });
@@ -797,15 +797,15 @@ var _Pages = {
             drop: function(event, ui) {
                 var self = $(this);
 
-                if (debug) console.log('dropped', event, ui.draggable);
+                log('dropped', event, ui.draggable);
                 
                 treeAddress = getElementPath(self);
-                if (debug) console.log('treeAddress', treeAddress);
+                log('treeAddress', treeAddress);
                 //addExpandedNode(treeAddress);
                 _Entities.ensureExpanded(self);
                 
                 if (sorting) {
-                    if (debug) console.log('sorting, no drop allowed');
+                    log('sorting, no drop allowed');
                     return;
                 }
                 var nodeData = {};
@@ -814,15 +814,15 @@ var _Pages = {
 				
                 var page = self.closest('.page')[0];
 
-                if (debug) console.log(page);
+                log(page);
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
                 
-                if (debug) console.log('contentId', contentId);
-                if (debug) console.log('elementId', elementId);
+                log('contentId', contentId);
+                log('elementId', elementId);
 
                 if (contentId == elementId) {
-                    if (debug) console.log('drop on self not allowed');
+                    log('drop on self not allowed');
                     return;
                 }
                 
@@ -832,7 +832,7 @@ var _Pages = {
                 if (cls == 'image') {
                     contentId = undefined;
                     name = $(ui.draggable).find('.name_').text();
-                    if (debug) console.log('Image dropped, creating <img> node', name);
+                    log('Image dropped, creating <img> node', name);
                     nodeData._html_src = name;
                     nodeData.name = name;
                     tag = 'img';
@@ -844,16 +844,16 @@ var _Pages = {
                     name = $(ui.draggable).children('.name_').text();
                     
                     var parentTag = self.children('.tag_').text();
-                    if (debug) console.log(parentTag);
+                    log(parentTag);
                     nodeData.linkable_id = contentId;
                     
                     if (parentTag == 'head') {
                         
-                        if (debug) console.log('File dropped in <head>');
+                        log('File dropped in <head>');
                         
                         if (name.endsWith('.css')) {
                             
-                            if (debug) console.log('CSS file dropped in <head>, creating <link>');
+                            log('CSS file dropped in <head>, creating <link>');
                             
                             tag = 'link';
                             nodeData._html_href = '/${link.name}';
@@ -863,7 +863,7 @@ var _Pages = {
                             
                         } else if (name.endsWith('.js')) {
                             
-                            if (debug) console.log('JS file dropped in <head>, creating <script>');
+                            log('JS file dropped in <head>, creating <script>');
                             
                             tag = 'script';
                             nodeData._html_src = '/${link.name}';
@@ -872,7 +872,7 @@ var _Pages = {
                         
                     } else {
                     
-                        if (debug) console.log('File dropped, creating <a> node', name);
+                        log('File dropped, creating <a> node', name);
                         nodeData._html_href = '/${link.name}';
                         nodeData._html_title = '${link.name}';
                         nodeData.linkable_id = contentId;
@@ -892,7 +892,7 @@ var _Pages = {
                             nodeData.childContent = 'Initial Content for ' + tag;
                             
                             var pos = self.children('.node').length;
-                            if (debug) console.log('new nested child', treeAddress + '_' + pos);
+                            log('new nested child', treeAddress + '_' + pos);
                             // set as expanded in advance
                             addExpandedNode(treeAddress + '_' + pos);
                             
@@ -904,9 +904,9 @@ var _Pages = {
                     }
                 }
                 
-                if (debug) console.log($(ui.draggable));
+                log($(ui.draggable));
                 var p = Structr.numberOfNodes(self, contentId);
-                if (debug) console.log(p);
+                log(p);
 
                 if (page) {
                     pageId = getId(page);
@@ -938,7 +938,7 @@ var _Pages = {
                     nodeData.sourcePageId = sourcePageId;
                 }
 
-                if (debug) console.log('drop event in appendElementElement', elementId, nodeData, relData);
+                log('drop event in appendElementElement', elementId, nodeData, relData);
                 Command.createAndAdd(elementId, nodeData, relData);
             }
         });
@@ -947,14 +947,14 @@ var _Pages = {
     },
 
     appendContentElement : function(content, parentId, componentId, pageId, treeAdress) {
-        if (debug) console.log('Pages.appendContentElement', content, parentId, componentId, pageId, treeAdress);
+        log('Pages.appendContentElement', content, parentId, componentId, pageId, treeAdress);
 		
         var div = _Contents.appendContentElement(content, parentId, componentId, pageId, treeAdress);
         if (!div) return false;
 
-        if (debug) console.log('appendContentElement div', div);
+        log('appendContentElement div', div);
         var pos = Structr.numberOfNodes($(div).parent())-1;
-        if (debug) console.log('pos', content.id, pos);
+        log('pos', content.id, pos);
 
         //var div = Structr.node(content.id, parentId, componentId, pageId, pos);
 
@@ -973,9 +973,9 @@ var _Pages = {
 //                //self.off('mouseover');
 //                var component = self.closest( '.component')[0];
 //                var page = self.closest( '.page')[0];
-//                if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, getId(component), getId(page), pos);
+//                log('Command.removeSourceFromTarget', content.id, parentId, getId(component), getId(page), pos);
 //                Command.removeSourceFromTarget(content.id, parentId, getId(component), getId(page), pos)
-            //                if (debug) console.log('Command.removeSourceFromTarget', content.id, parentId, componentId, pageId, pos);
+            //                log('Command.removeSourceFromTarget', content.id, parentId, componentId, pageId, pos);
             //                Command.removeSourceFromTarget(content.id, parentId, componentId, pageId, pos)
                 _Entities.listContainingNodes(content, div);
             });
@@ -994,7 +994,7 @@ var _Pages = {
     },
 
     removeComponentFromPage : function(entityId, parentId, componentId, pageId, pos) {
-        if (debug) console.log('Pages.removeComponentFromPage');
+        log('Pages.removeComponentFromPage');
 
         var page = Structr.node(pageId);
         var component = Structr.node(entityId, componentId, componentId, pageId, pos);
@@ -1004,7 +1004,7 @@ var _Pages = {
             _Entities.removeExpandIcon(page);
         }
         var numberOfComponents = $('.component', page).size();
-        if (debug) console.log(numberOfComponents);
+        log(numberOfComponents);
         if (numberOfComponents == 0) {
             enable($('.delete_icon', page)[0]);
         }
@@ -1013,14 +1013,14 @@ var _Pages = {
     },
 
     removeFrom : function(entityId, parentId, componentId, pageId, pos) {
-        if (debug) console.log('Pages.removeFrom', entityId, parentId, componentId, pageId, pos);
+        log('Pages.removeFrom', entityId, parentId, componentId, pageId, pos);
 
         var parent = Structr.node(parentId, null, componentId, pageId);
         var element = Structr.node(entityId, parentId, componentId, pageId, pos);
 
         //var parent = $(element).parent();
 
-        if (debug) console.log('parent', parent);
+        log('parent', parent);
         
         element.remove();
 
@@ -1092,7 +1092,7 @@ var _Pages = {
             $('iframe', box).width(w);
             $('iframe', box).height(h);
 
-            if (debug) console.log("box,w,h", box, w, h);
+            log("box,w,h", box, w, h);
 
         });
 

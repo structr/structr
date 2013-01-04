@@ -33,7 +33,7 @@ var _Types = {
 	
     onload : function() {
         _Types.init();
-        if (debug) console.log('onload');
+        log('onload');
         if (palette) palette.remove();
 
         main.append('<table><tr><td id="types"></td></tr></table>');
@@ -56,7 +56,7 @@ var _Types = {
     
     appendTypeElement : function(type) {
 		
-        if (debug) console.log('appendTypeElement', type);
+        log('appendTypeElement', type);
         
         
         types.append('<div id="_' + type.id + '" structr_type="folder" class="node folder ' + type.id + '_">'

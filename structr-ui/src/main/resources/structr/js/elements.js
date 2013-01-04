@@ -128,7 +128,7 @@ var _Elements = {
 
     onload : function() {
         _Elements.init();
-        if (debug) console.log('onload');
+        log('onload');
         elements = $('#elements', main);
         _Elements.refresh();
     //        _Elements.showPalette();
@@ -136,7 +136,7 @@ var _Elements = {
 
     showPalette : function() {
         $(_Elements.elementGroups).each(function(i,group) {
-            if (debug) console.log(group);
+            log(group);
             palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
             $(group.elements).each(function(j,elem) {
                 var div = $('#group_' + group.name);
@@ -186,8 +186,8 @@ var _Elements = {
     },
 
     appendElementElement : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
-        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-        if (debug) console.log(entity.id);
+        log('_Elements.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+        log(entity.id);
         var parent;
         
         if (treeAddress) {
@@ -196,25 +196,25 @@ var _Elements = {
             parent = Structr.findParent(parentId, componentId, pageId, elements);
         }
         
-        if (debug) console.log('appendElementElement parent', parent);
+        log('appendElementElement parent', parent);
         if (!parent) return false;
         
         var parentPath = getElementPath(parent);
-        if (debug) console.log(parentPath);
+        log(parentPath);
         
         _Entities.ensureExpanded(parent);
         
         var pos = parent.children('.node').length;
-        if (debug) console.log(pos);
+        log(pos);
         
         var id = parentPath + '_' + parent.children('.node').length;
-        if (debug) console.log(id);
+        log(id);
         
         parent.append('<div id="_' + id + '" class="node element ' + entity.id + '_"></div>');
         
         //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
         var div = $('#_' + id);
-        if (debug) console.log('Element appended (div, parent)', div, parent);
+        log('Element appended (div, parent)', div, parent);
         
         if (!div) return;
         
@@ -269,7 +269,7 @@ var _Elements = {
                 relData[pageId] = pos;
                 relData.pageId = pageId;
             }
-            if (debug) console.log('Wrap element in component', getId(node), nodeData, relData);
+            log('Wrap element in component', getId(node), nodeData, relData);
             //_Entities.createAndAdd(getId(node), nodeData, relData);
             
             var dialog = $('#dialogBox .dialogText');
@@ -301,7 +301,7 @@ var _Elements = {
                     fadeOut: 25
                 });
 
-                if (debug) console.log('start');
+                log('start');
                 return Command.wrap(getId(node), nodeData, relData);
             });
 

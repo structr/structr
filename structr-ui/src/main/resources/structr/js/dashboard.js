@@ -43,9 +43,9 @@ var _Dashboard = {
         _Dashboard.init();
         
         activeTab = $.cookie('structrActiveTab');
-        if (debug) console.log('value read from cookie', activeTab);
+        log('value read from cookie', activeTab);
 
-        if (debug) console.log('onload');
+        log('onload');
         
         main.append('<div class="callToAction button">Create a new Page <img src="img/go.gif" alt="Create a new Page"></div>');
         

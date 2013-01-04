@@ -23,7 +23,7 @@ var viewRootUrl = '/';
 var wsRoot = '/structr/ws';
 /********************************************************************/
 
-var header, main;
+var header, main, footer;
 var debug = false;
 //var onload = [];
 var lastMenuEntry, activeTab;
@@ -37,8 +37,17 @@ var pageSize = [];
 
 $(document).ready(function() {
     
+    if (urlParam('debug')) {
+        debug = true;
+    }
+    
     header = $('#header');
     main = $('#main');
+    footer = $('#footer');
+    
+    if (debug) {
+        footer.show();
+    }
     
     dialog = $('#dialogBox .dialogText');
     dialogBox = $('#dialogBox');
@@ -52,7 +61,6 @@ $(document).ready(function() {
     loginButton = $('#loginButton');
 
     dmp = new diff_match_patch()
-    if (debug) console.log('Debug mode');
         
     $('#import_json').on('click', function(e) {
         e.stopPropagation();
@@ -184,54 +192,28 @@ var Structr = {
     expanded_icon: 'icon/tree_arrow_down.png',
     link_icon: 'icon/link.png',
     key_icon: 'icon/key.png',
-
-    silentReconnect : function() {
-        connect();
-    },
-
+    
     reconnect : function() {
-	
-        $.unblockUI({
-            fadeOut: 25
-        });
-
-        Structr.init();
+        
+        console.log('activating reconnect loop');
+        reconn = window.setInterval(function() {
+            connect();
+        }, 1000);
+        console.log('activated reconnect loop', reconn);
     },
 
     init : function() {
-
+        
         token = $.cookie('structrSessionToken');
         user = $.cookie('structrUser');
-        if (debug) console.log('token', token);
-        if (debug) console.log('user', user);
-        
-        $.unblockUI({
-            fadeOut: 25
-        });
-
-        connect();
-	
-        main.empty();
+        log('token', token);
+        log('user', user);
 
         Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
-        if (debug) console.log('######## Expanded IDs after reload ##########', Structr.expanded);
-        if (debug) console.log('expanded ids', $.cookie('structrTreeExpandedIds'));
+        log('######## Expanded IDs after reload ##########', Structr.expanded);
+        log('expanded ids', $.cookie('structrTreeExpandedIds'));
 
-        ws.onopen = function() {
-
-            if (debug) console.log('logged in? ' + loggedIn);
-            if (!loggedIn) {
-                if (debug) console.log('no');
-                $('#logout_').html('Login');
-                Structr.login();
-            } else {
-                if (debug) console.log('Current user: ' + user);
-                $('#logout_').html(' Logout <span class="username">' + (user ? user : '') + '</span>');
-				
-                Structr.loadInitialModule();
-				
-            }
-        }
+        connect();
 
     },
 
@@ -257,7 +239,7 @@ var Structr = {
     },
 
     doLogin : function(username, password) {
-        if (debug) console.log('doLogin ' + username + ' with ' + password);
+        log('doLogin ' + username + ' with ' + password);
         if (send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }')) {
             user = username;
             return true;
@@ -266,7 +248,7 @@ var Structr = {
     },
 
     doLogout : function(text) {
-        if (debug) console.log('doLogout ' + user);
+        log('doLogout ' + user);
         //Structr.saveSession();
         $.cookie('structrSessionToken', '');
         $.cookie('structrUser', '');
@@ -281,15 +263,15 @@ var Structr = {
     loadInitialModule : function() {
         var browserUrl = window.location.href;
         var anchor = getAnchorFromUrl(browserUrl);
-        if (debug) console.log('anchor', anchor);
+        log('anchor', anchor);
 
         lastMenuEntry = ((anchor && anchor != 'logout') ? anchor : $.cookie('structrLastMenuEntry'));
         if (!lastMenuEntry) {
             lastMenuEntry = 'dashboard';
         } else {
-            if (debug) console.log('Last menu entry found: ' + lastMenuEntry);
+            log('Last menu entry found: ' + lastMenuEntry);
             Structr.activateMenuEntry(lastMenuEntry);
-            if (debug) console.log(Structr.modules);
+            log(Structr.modules);
             var module = Structr.modules[lastMenuEntry];
             if (module) {
                 //module.init();
@@ -382,11 +364,11 @@ var Structr = {
 
     error : function(text, callback) {
         if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        console.log(callback);
+        //console.log(callback);
         if (callback) $('#errorBox .okButton').on('click', function(e) {
             e.stopPropagation();
             //callback();
-            console.log(callback);
+            //console.log(callback);
 			
             $.unblockUI({
                 fadeOut: 25
@@ -423,11 +405,11 @@ var Structr = {
 	
     registerModule : function(name, module) {
         Structr.modules[name] = module;
-        if (debug) console.log('Module ' + name + ' registered');
+        log('Module ' + name + ' registered');
     },
 
     containsNodes : function(element) {
-        if (debug) console.log(element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
+        log(element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
         return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
     },
 
@@ -437,29 +419,29 @@ var Structr = {
             childNodes = childNodes.not('.' + excludeId + '_');
         }
         var n = childNodes.length;
-        if (debug) console.log('children', $(element).children('.node'));
-        if (debug) console.log('number of nodes in element', element, n);
+        log('children', $(element).children('.node'));
+        log('number of nodes in element', element, n);
         return n;
     },
 
     findParent : function(parentId, componentId, pageId, defaultElement) {
         var parent = Structr.node(parentId, null, componentId, pageId);
-        if (debug) console.log('findParent', parentId, componentId, pageId, defaultElement, parent);
-        if (debug) console.log('findParent: parent element from Structr.node: ', parent);
+        log('findParent', parentId, componentId, pageId, defaultElement, parent);
+        log('findParent: parent element from Structr.node: ', parent);
         if (!parent) parent = defaultElement;
-        if (debug) console.log('findParent: final parent element: ', parent);
+        log('findParent: final parent element: ', parent);
         return parent;
     },
     
     node : function(id, parentId, componentId, pageId, position) {
         var entityElement, parentElement, componentElement, pageElement;
 
-        if (debug) console.log('Structr.node', id, parentId, componentId, pageId, position);
+        log('Structr.node', id, parentId, componentId, pageId, position);
 
         if (id && parentId && componentId && pageId && (pageId != parentId) && (pageId != componentId)) {
 
             pageElement = $('.node.' + pageId + '_');
-            if (debug) console.log('pageElement', pageElement);
+            log('pageElement', pageElement);
             
             if (id == pageId) {
                 
@@ -468,7 +450,7 @@ var Structr = {
             } else {
                 
                 componentElement = $('.node.' + componentId + '_', pageElement);
-                if (debug) console.log('componentElement', componentElement);
+                log('componentElement', componentElement);
                 
                 if (id == componentId) {
                     entityElement = componentElement;
@@ -480,13 +462,13 @@ var Structr = {
                     } else {
                         parentElement = $('.node.' + parentId + '_', componentElement);
                     }
-                    if (debug) console.log('parentElement', parentElement);
+                    log('parentElement', parentElement);
                     
                     if (id == parentId) {
                         entityElement = parentElement;
                     } else {
                         entityElement = parentElement.children('.node.' + id + '_');
-                        if (debug) console.log('entityElement', entityElement);
+                        log('entityElement', entityElement);
                     }
                 }
             }
@@ -555,19 +537,19 @@ var Structr = {
     
     getClass : function(el) {
         var c;
-        if (debug) console.log(Structr.classes);
+        log(Structr.classes);
         $(Structr.classes).each(function(i, cls) {
-            if (debug) console.log('testing class', cls);
+            log('testing class', cls);
             if (el && el.hasClass(cls)) {
                 c = cls;
-                if (debug) console.log('found class', cls);
+                log('found class', cls);
             }
         });
         return c;
     },
 	
     entityFromElement : function(element) {
-        if (debug) console.log(element);
+        log(element);
         
         var entity = {};
         entity.id = getId($(element));
@@ -628,7 +610,7 @@ var Structr = {
         var cookie = $.cookie('structrPagerData_' + type);
         if (cookie) {
             var pagerData = cookie.split(',');
-            if (debug) console.log('Pager Data from Cookie', pagerData);
+            log('Pager Data from Cookie', pagerData);
             page[type]      = pagerData[0];
             pageSize[type]  = pagerData[1];
         }
@@ -763,7 +745,7 @@ function plural(type) {
 }
 
 function addExpandedNode(treeAddress) {
-    if (debug) console.log('addExpandedNode', treeAddress);
+    log('addExpandedNode', treeAddress);
 
     if (!treeAddress) return;
 
@@ -776,7 +758,7 @@ function addExpandedNode(treeAddress) {
 }
 
 function removeExpandedNode(treeAddress) {
-    if (debug) console.log('removeExpandedNode', treeAddress);
+    log('removeExpandedNode', treeAddress);
 
     if (!treeAddress) return;
     
@@ -788,13 +770,13 @@ function removeExpandedNode(treeAddress) {
 }
 
 function isExpanded(treeAddress) {
-    if (debug) console.log('treeAddress, getExpanded()[treeAddress]', treeAddress, getExpanded()[treeAddress]);
+    log('treeAddress, getExpanded()[treeAddress]', treeAddress, getExpanded()[treeAddress]);
 
     if (!treeAddress) return false;
 
     var isExpanded = getExpanded()[treeAddress] == true ? true : false;
 
-    if (debug) console.log(isExpanded);
+    log(isExpanded);
 
     return isExpanded;
 }

@@ -38,7 +38,7 @@ var _Contents = {
         
         _Contents.init();
         
-        if (debug) console.log('onload');
+        log('onload');
         if (palette) palette.remove();
         main.append('<div id="contents"></div>');
 
@@ -76,10 +76,10 @@ var _Contents = {
     },
 
     appendContentElement : function(content, parentId, componentId, pageId, treeAddress) {
-        if (debug) console.log('Contents.appendContentElement', content, parentId, componentId, pageId, treeAddress);
+        log('Contents.appendContentElement', content, parentId, componentId, pageId, treeAddress);
 
         if (treeAddress) {
-            if (debug) console.log('Contents.appendContentElement: tree address', treeAddress);
+            log('Contents.appendContentElement: tree address', treeAddress);
             parent = $('#_' + treeAddress);
         } else {
             parent = Structr.findParent(parentId, componentId, pageId, contents);
@@ -87,7 +87,7 @@ var _Contents = {
         
         if (!parent) return false;
         
-        if (debug) console.log(parent);
+        log(parent);
 
         //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
@@ -103,7 +103,7 @@ var _Contents = {
             + '</div>');
         
         var pos = parent.children('.' + content.id + '_').length-1;
-        if (debug) console.log('pos', content.id, pos);
+        log('pos', content.id, pos);
         
         //var div = Structr.node(content.id, parentId, componentId, pageId, pos);
         var div = $('#_' + id);
@@ -120,9 +120,9 @@ var _Contents = {
             var self = $(this);
             var text = self.parent().find('.content_').text();
             Structr.dialog('Edit content of ' + content.id, function() {
-                if (debug) console.log('content saved')
+                log('content saved')
             }, function() {
-                if (debug) console.log('cancelled')
+                log('cancelled')
             });
             _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
         });
@@ -132,9 +132,9 @@ var _Contents = {
             var self = $(this);
             var text = self.parent().find('.content_').text();
             Structr.dialog('Edit content of ' + content.id, function() {
-                if (debug) console.log('content saved')
+                log('content saved')
             }, function() {
-                if (debug) console.log('cancelled')
+                log('cancelled')
             });
             _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
         });
@@ -148,7 +148,7 @@ var _Contents = {
     editContent : function (button, entity, text, element) {
         if (isDisabled(button)) return;
         var div = element.append('<div class="editor"></div>');
-        if (debug) console.log(div);
+        log(div);
         var contentBox = $('.editor', element);
         contentType = contentType ? contentType : entity.contentType;
         //alert(contentType);
@@ -169,13 +169,13 @@ var _Contents = {
 //                if (!text1) text1 = '';
 //                if (!text2) text2 = '';
 //		
-//                if (debug) console.log('Element', element);
-//                if (debug) console.log(text1);
-//                if (debug) console.log(text2);
+//                log('Element', element);
+//                log(text1);
+//                log(text2);
 //                
 //                if (text1 == text2) return;
 //                editorCursor = cm.getCursor();
-//                if (debug) console.log(editorCursor);
+//                log(editorCursor);
 //
 //                //timer = window.setTimeout(function() {
 //                Command.patch(entity.id, text1, text2);
@@ -204,7 +204,7 @@ var _Contents = {
                 
             if (text1 == text2) return;
 //            editorCursor = cm.getCursor();
-//            if (debug) console.log(editorCursor);
+//            log(editorCursor);
 
             //timer = window.setTimeout(function() {
             Command.patch(entity.id, text1, text2);

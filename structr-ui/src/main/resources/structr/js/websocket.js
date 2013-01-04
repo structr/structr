@@ -22,6 +22,7 @@ var ws;
 var token;
 var loggedIn = false;
 var user;
+var reconn;
 
 var rawResultCount = [];
 var pageCount = [];
@@ -37,30 +38,76 @@ function connect() {
     }
 
     try {
-
+        
+        ws = null;
+        
         var isEnc = (window.location.protocol == 'https:');
         var host = document.location.host;
         var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
 
-        if (debug) console.log(wsUrl);
+        log(wsUrl);
         if ('WebSocket' in window) {
+            
             ws = new WebSocket(wsUrl, 'structr');
-        }
-        else if ('MozWebSocket' in window) {
+            
+        } else if ('MozWebSocket' in window) {
+            
             ws = new MozWebSocket(wsUrl, 'structr');
+            
         } else {
+            
             alert('Your browser doesn\'t support WebSocket.');
-            return;
+            return false;
+            
         }
 
-        log('State: ' + ws.readyState);
+        log('WebSocket.readyState: ' + ws.readyState, ws);
 		
         var entityId;
         var entity;
 
+        ws.onopen = function() {
+            
+            $.unblockUI({
+                fadeOut: 25
+            });
+            
+            console.log('de-activating reconnect loop', reconn);
+            window.clearInterval(reconn);
+
+            log('logged in? ' + loggedIn);
+            if (!loggedIn) {
+                log('no');
+                $('#logout_').html('Login');
+                Structr.login();
+            } else {
+                log('Current user: ' + user);
+                $('#logout_').html(' Logout <span class="username">' + (user ? user : '') + '</span>');
+				
+                Structr.loadInitialModule();
+				
+            }
+        }
+
+        ws.onclose = function() {
+            
+            if (reconn) {
+                log('Automatic reconnect already active');
+                return;
+            }
+            
+            main.empty();
+            //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
+            Structr.dialog('Connection lost or timed out. Trying to reconnect ...');
+            //log('Connection was lost or timed out. Trying automatic reconnect');
+            log('ws onclose');
+            Structr.reconnect();
+            
+        }
+
         ws.onmessage = function(message) {
 
-            if (debug) console.log(message);
+            log(message);
 
             var data = $.parseJSON(message.data);
             //console.log(data);
@@ -84,18 +131,18 @@ function connect() {
             Structr.updatePager(type);
 
             {
-                if (debug) console.log('command: ' + command);
-                if (debug) console.log('type: ' + type);
-                if (debug) console.log('code: ' + code);
-                if (debug) console.log('callback: ' + callback);
-                if (debug) console.log('sessionValid: ' + sessionValid);
+                log('command: ' + command);
+                log('type: ' + type);
+                log('code: ' + code);
+                log('callback: ' + callback);
+                log('sessionValid: ' + sessionValid);
             }
-            if (debug) console.log('result: ' + $.toJSON(result));
+            log('result: ' + $.toJSON(result));
 
             if (command == 'LOGIN') { /*********************** LOGIN ************************/
                 token = data.token;
                 user = data.data.username;
-                if (debug) console.log('token', token);
+                log('token', token);
 		
                 if (sessionValid) {
                     $.cookie('structrSessionToken', token);
@@ -123,7 +170,7 @@ function connect() {
                 Structr.login();
 
             } else if (command == 'STATUS') { /*********************** STATUS ************************/
-                if (debug) console.log('Error code: ' + code);
+                log('Error code: ' + code);
 				
                 if (code == 403) {
                     Structr.login('Wrong username or password!');
@@ -149,19 +196,12 @@ function connect() {
 
                 }
 
-//            } else if (command == 'TREE') { /*********************** TREE ************************/
-//				
-//                if (debug) console.log('Render Tree');
-//                if (debug) console.log(data.root, data.id);
-//				
-//                _Entities.renderTree(data.root, data.id);
-
             } else if (command == 'GET') { /*********************** GET ************************/
 
-                if (debug) console.log('GET:', data);
+                log('GET:', data);
 
                 var d = data.data.displayElementId;
-                if (debug) console.log('displayElementId', d);
+                log('displayElementId', d);
 
                 var parentElement;
                 if (d != null) {
@@ -170,34 +210,34 @@ function connect() {
                     parentElement = $($('.' + data.id + '_')[0]);
                 }
 
-                if (debug) console.log('parentElement', parentElement);
+                log('parentElement', parentElement);
                 var key = data.data.key;
                 var value = data.data[key];
 
                 var attrElement = $(parentElement.find('.' + key + '_')[0]);
-                if (debug) console.log('attrElement', attrElement);
-                if (debug) console.log(key, value);
+                log('attrElement', attrElement);
+                log(key, value);
 
                 if (attrElement && value) {
 
                     if (typeof value == 'boolean') {
-                        if (debug) console.log(attrElement, value);
+                        log(attrElement, value);
                         _Entities.changeBooleanAttribute(attrElement, value);
 
                     } else {
                         
-                        if (debug) console.log($(attrElement));
+                        log($(attrElement));
                         
                         var tag = $(attrElement).get(0).tagName.toLowerCase();
                         
-                        if (debug) console.log('attrElement tagName', tag);
+                        log('attrElement tagName', tag);
                         
                         if (!(tag == 'select')) {
-                            if (debug) console.log('appending ' + value + ' to attrElement', attrElement);
+                            log('appending ' + value + ' to attrElement', attrElement);
                             attrElement.append(value);
                         }
                         
-                        if (debug) console.log('setting ' + value + ' on attrElement', attrElement);
+                        log('setting ' + value + ' on attrElement', attrElement);
                         
                         attrElement.val(value);
                         attrElement.show();
@@ -208,98 +248,98 @@ function connect() {
 
                 var treeAddress = data.data.treeAddress;
 
-                if (debug) console.log('CHILDREN:', parentId, componentId, pageId);
-                if (debug) console.log('CHILDREN');
-                if (debug) console.log('parentId', parentId);
-                if (debug) console.log('componentId', componentId);
-                if (debug) console.log('pageId', pageId);
-                if (debug) console.log('Nodes with children', data.nodesWithChildren);
-                if (debug) console.log('Tree address', treeAddress);
+                log('CHILDREN:', parentId, componentId, pageId);
+                log('CHILDREN');
+                log('parentId', parentId);
+                log('componentId', componentId);
+                log('pageId', pageId);
+                log('Nodes with children', data.nodesWithChildren);
+                log('Tree address', treeAddress);
                 
                 
                 $(result).each(function(i, child) {
-                    if (debug) console.log('CHILDREN: ', child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren), treeAddress);
+                    log('CHILDREN: ', child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren), treeAddress);
                     _Entities.appendObj(child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren), treeAddress);
                 });
 
             } else if (command == 'LIST') { /*********************** LIST ************************/
 				
-                if (debug) console.log('LIST:', result);
-                if (debug) console.log('Nodes with children', data.nodesWithChildren);
+                log('LIST:', result);
+                log('Nodes with children', data.nodesWithChildren);
                 //console.log('page count for type ' + type, pageCount[type], $('#pager' + type), $('.pageCount', $('#pager' + type)));
                 $('.pageCount', $('#pager' + type)).val(pageCount[type]);
                 
                 $(result).each(function(i, entity) {
-                    if (debug) console.log('LIST: ' + entity.type);
+                    log('LIST: ' + entity.type);
                     
                     if (entity.type != 'Folder' || !entity.parentFolder) {
                         _Entities.appendObj(entity, null, null, null, false, isIn(entity.id, data.nodesWithChildren), treeAddress);
                     } else {
-                        if (debug) console.log(entity);
+                        log(entity);
                     }
                     
                 });
 
             } else if (command == 'DELETE') { /*********************** DELETE ************************/
                 var elementSelector = '.' + data.id + '_';
-                if (debug) console.log($(elementSelector));
+                log($(elementSelector));
                 $(elementSelector).remove();
                 if (buttonClicked) enable(buttonClicked);
                 _Pages.reloadPreviews();
 
             } else if (command == 'REMOVE') { /*********************** REMOVE ************************/
 
-                if (debug) console.log(command, data);
+                log(command, data);
 
                 //parent = Structr.node(parentId);
                 entity = Structr.node(entityId, parentId, componentId, pageId, position);
 
-                //if (debug) console.log(parent);
-                if (debug) console.log(entity);
+                //log(parent);
+                log(entity);
 
                 //var id = getIdFromClassString(entity.prop('class'));
                 //entity.id = id;
                 if (entity.hasClass('user')) {
-                    if (debug) console.log('remove user from group');
+                    log('remove user from group');
                     _UsersAndGroups.removeUserFromGroup(entityId, parentId, position);
 
                 } else if (entity.hasClass('element') || entity.hasClass('content') || entity.hasClass('component')) {
                     
-                    if (debug) console.log('remove element from page', entityId, parentId, componentId, pageId, position);
+                    log('remove element from page', entityId, parentId, componentId, pageId, position);
                     _Pages.removeFrom(entityId, parentId, componentId, pageId, position);
                     _Pages.reloadPreviews();
 
                 } else if (entity.hasClass('file')) {
-                    if (debug) console.log('remove file from folder');
+                    log('remove file from folder');
                     _Files.removeFileFromFolder(entityId, parentId, position);
 
                 } else if (entity.hasClass('image')) {
-                    if (debug) console.log('remove image from folder');
+                    log('remove image from folder');
                     _Files.removeImageFromFolder(entityId, parentId, position);
 
                 } else if (entity.hasClass('folder')) {
-                    if (debug) console.log('remove folder from folder');
+                    log('remove folder from folder');
                     _Files.removeFolderFromFolder(entityId, parentId, position);
 
                 } else {
-                //if (debug) console.log('remove element');
+                //log('remove element');
                 //entity.remove();
                 }
 
                 _Pages.reloadPreviews();
-                if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
+                log('Removed ' + entityId + ' from ' + parentId);
 
             //} else if (command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
             //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                if (debug) console.log(command, result, data, data.data);
+                log(command, result, data, data.data);
                 
                 //var treeAddress = data.data.treeAddress;
 				
                 $(result).each(function(i, entity) {
                     
-                   if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                   log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
                     //var el = Structr.node(entity.id, parentId, componentId, pageId);
                     var el = Structr.elementFromAddress(treeAddress);
@@ -322,39 +362,39 @@ function connect() {
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
                 
-                if (debug) console.log('UPDATE');
+                log('UPDATE');
                 
                 var relData = data.relData;
-                if (debug) console.log('relData', relData);
+                log('relData', relData);
                 
                 var removedProperties = data.removedProperties;
                 var modifiedProperties = data.modifiedProperties;
                 
-                if (debug) console.log(removedProperties, modifiedProperties);
+                log(removedProperties, modifiedProperties);
                 
                 var isRelOp = false;
                 
                 if (relData && relData.startNodeId && relData.endNodeId) {
                     isRelOp = true;
-                    if (debug) console.log('relationship', relData, relData.startNodeId, relData.endNodeId);
+                    log('relationship', relData, relData.startNodeId, relData.endNodeId);
                     
                 }
                 
                 if (modifiedProperties) {
-                    if (debug) console.log('modifiedProperties.length', modifiedProperties.length);
+                    log('modifiedProperties.length', modifiedProperties.length);
                     var resId = modifiedProperties[0];
-                    if (debug) console.log('relData[resId]', relData[resId]);
+                    log('relData[resId]', relData[resId]);
                 }
                 
                 if (relData && removedProperties && removedProperties.length) {
-                    if (debug) console.log('removedProperties', removedProperties);
+                    log('removedProperties', removedProperties);
                     _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
                     
                 } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
                     
-                    if (debug) console.log(data);
+                    log(data);
                     
-                    if (debug) console.log('modifiedProperties', modifiedProperties[0]);
+                    log('modifiedProperties', modifiedProperties[0]);
                 		    
                     var newPageId = modifiedProperties[0];
                     //var pos = relData[newPageId];
@@ -365,25 +405,25 @@ function connect() {
                         page   = Structr.node(newPageId);
                     }
                     
-                    if (debug) console.log('page', page);
+                    log('page', page);
                 		    
                     if (page && page.length) {
                                     
                         var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                        if (debug) console.log('entity', entity, pageId, newPageId);
+                        log('entity', entity, pageId, newPageId);
                         if (entity && newPageId) {
                             
                             parentId = relData.startNodeId;
                             
                             var parent = Structr.entity(parentId);
-                            if (debug) console.log('parent type', parent, parent.type);
+                            log('parent type', parent, parent.type);
                             if (!parent.type || parent.type == 'Page') return;
                             
                             var id = entity.id;
                             //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
                             //_Entities.appendObj(entity, relData.startNodeId, null, newPageId);
                             var el = Structr.node(id, parentId, componentId, newPageId);
-                            if (debug) console.log('node already exists?', el);
+                            log('node already exists?', el);
                             
                             if (id && (!el || !el.length)) {
                                 //el.remove();
@@ -401,11 +441,11 @@ function connect() {
                     
                 } else {
                     
-                    if (debug) console.log('else');
+                    log('else');
                 
                     var element = $('.' + data.id + '_');
 //                    var input = $('.props tr td.value input', element);
-                    if (debug) console.log(element);
+                    log(element);
 //
 //                    // remove save and cancel icons
 //                    input.parent().children('.icon').each(function(i, img) {
@@ -416,11 +456,11 @@ function connect() {
 //                    input.removeClass('active');
 
                     // update values with given key
-                    if (debug) console.log(data, data.data);
+                    log(data, data.data);
                     $.each(Object.keys(data.data), function(k, key) {
                     //for (var key in data.data) {
                         var inputElement = $('td.' + key + '_ input', element);
-                        if (debug) console.log(inputElement);
+                        log(inputElement);
                         var newValue = data.data[key];
 //                        console.log(key, newValue, typeof newValue);
 
@@ -433,7 +473,7 @@ function connect() {
                             attrElement.val(value);
                             attrElement.show();
                     
-                            if (debug) console.log(attrElement, inputElement);
+                            log(attrElement, inputElement);
                     
                         }
                     
@@ -464,23 +504,23 @@ function connect() {
 
                             if (key == 'content') {
 
-                                if (debug) console.log(attrElement.text(), newValue);
+                                log(attrElement.text(), newValue);
 
                                 attrElement.text(newValue);
 
                                 // hook for CodeMirror edit areas
                                 if (editor && editor.id == data.id) {
-                                    if (debug) console.log(editor.id);
+                                    log(editor.id);
                                     editor.setValue(newValue);
                                     //editor.setCursor(editorCursor);
                                 }
                             }
                         }
                     
-                        if (debug) console.log(key, Structr.getClass(element));
+                        log(key, Structr.getClass(element));
                     
                         if (key == 'name' && Structr.getClass(element) == 'page') {
-                            if (debug) console.log('Reload iframe', data.id, newValue);
+                            log('Reload iframe', data.id, newValue);
                             window.setTimeout(function() {
                                 _Pages.reloadIframe(data.id, newValue)
                             }, 100);
@@ -500,13 +540,13 @@ function connect() {
                 
             } else if (command == 'WRAP') { /*********************** WRAP ************************/
 
-                if (debug) console.log('WRAP');
+                log('WRAP');
 
             } else {
-                if (debug) console.log('Received unknown command: ' + command);
+                log('Received unknown command: ' + command);
 
                 if (sessionValid == false) {
-                    if (debug) console.log('invalid session');
+                    log('invalid session');
                     $.cookie('structrSessionToken', '');
                     $.cookie('structrUser', '');
                     clearMain();
@@ -516,16 +556,9 @@ function connect() {
             }
         }
 
-        ws.onclose = function() {
-            Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
-            //Structr.error('Connection lost or timed out. Trying automatic reconnect');
-            //log('Connection was lost or timed out. Trying automatic reconnect');
-            //Structr.silentReconnect();
-        }
-
     } catch (exception) {
         log('Error in connect(): ' + exception);
-        Structr.init();
+        //Structr.init();
     }
 
 }
@@ -563,10 +596,15 @@ function send(text) {
 }
 
 function log(msg) {
-    if (debug) console.log(msg);
-    $('#log').append('<br>' + msg);
+    if (debug) {
+        console.log(msg);
+        if (footer) {
+            var div = $('#log', footer);
+            div.append('<p>' + msg + '</p>');
+            footer.scrollTop(div.height());
+        }
+    }
 }
-
 
 function getAnchorFromUrl(url) {
     if (url) {

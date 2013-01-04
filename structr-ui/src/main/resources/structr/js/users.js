@@ -41,7 +41,7 @@ var _UsersAndGroups = {
     onload : function() {
         _UsersAndGroups.init();
         //Structr.activateMenuEntry('usersAndGroups');
-        if (debug) console.log('onload');
+        log('onload');
         if (palette) palette.remove();
 
         main.append('<table><tr><td id="users"></td><td id="groups"></td></tr></table>');
@@ -93,7 +93,7 @@ var _UsersAndGroups = {
 
         _Entities.resetMouseOverState(user);
         
-        if (debug) console.log('removeUserFromGroup, containesNodes?', group, Structr.containsNodes(group));
+        log('removeUserFromGroup, containesNodes?', group, Structr.containsNodes(group));
 
         if (!Structr.containsNodes(group)) {
             _Entities.removeExpandIcon(group);
@@ -113,27 +113,27 @@ var _UsersAndGroups = {
         });
 
         var numberOfUsers = $('.user', group).size();
-        if (debug) console.log(numberOfUsers);
+        log(numberOfUsers);
         if (numberOfUsers == 0) {
             enable($('.delete_icon', group)[0]);
         }
 
-        if (debug) console.log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
+        log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
         
     },
 
     deleteUser : function(button, user) {
-        if (debug) console.log('deleteUser ' + user);
+        log('deleteUser ' + user);
         _Entities.deleteNode(button, user);
     },
 
     deleteGroup : function(button, group) {
-        if (debug) console.log('deleteGroup ' + group);
+        log('deleteGroup ' + group);
         _Entities.deleteNode(button, group);
     },
 
     appendGroupElement : function(group, hasChildren) {
-        if (debug) console.log('appendGroupElement', group, hasChildren);
+        log('appendGroupElement', group, hasChildren);
         groups.append('<div id="_' + group.id + '" class="node group ' + group.id + '_">'
             + '<img class="typeIcon" src="icon/group.png">'
             + '<b class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
@@ -172,7 +172,7 @@ var _UsersAndGroups = {
     },
 
     appendUserElement : function(user, groupId, removeExisting) {
-        if (debug) console.log('appendUserElement', user, groupId, removeExisting);
+        log('appendUserElement', user, groupId, removeExisting);
 
         if (!groupId && user.groups.length) return false;
 
@@ -190,7 +190,7 @@ var _UsersAndGroups = {
 
             var parent = Structr.node(groupId);
             
-            if (debug) console.log('parent, div', parent, div);
+            log('parent, div', parent, div);
             
             if (removeExisting && div && div.length) {
                 parent.append(div.css({
@@ -200,12 +200,12 @@ var _UsersAndGroups = {
                 delIcon = $('.delete_icon', div);
                 delIcon.replaceWith(newDelIcon);
                 
-                if (debug) console.log('################ disable delete icon');
+                log('################ disable delete icon');
                 
 
             } else {
                 
-                if (debug) console.log('### new user, appending to ', parent);
+                log('### new user, appending to ', parent);
                 
                 
                 parent.append('<div class="node user ' + user.id + '_">'

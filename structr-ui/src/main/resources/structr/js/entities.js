@@ -29,7 +29,7 @@ var _Entities = {
     
     changeBooleanAttribute : function(attrElement, value) {
 
-        if (debug) console.log('Change boolean attribute ', attrElement, ' to ', value);
+        log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value == true) {
             attrElement.removeClass('disabled');
@@ -44,12 +44,12 @@ var _Entities = {
     },
 
     renderTree : function(parent, rootId) {
-        if (debug) console.log('Entities.renderTree');
+        log('Entities.renderTree');
         var children = parent.children;
 					
         if (children && children.length > 0) {
             $(children).each(function(i,child) {
-                if (debug) console.log(child);
+                log(child);
                 if (child.type == 'Page') {
                     _Pages.appendPageElement(child, parent.id, rootId);
                 } else if (child.type == 'Component') {
@@ -58,7 +58,7 @@ var _Entities = {
                     _Pages.appendContentElement(child, parent.id, rootId);
                 } else if (child.type == 'Folder') {
                     var entity = child;
-                    if (debug) console.log('Render Tree: ' , entity);
+                    log('Render Tree: ' , entity);
                     var folderElement = _Files.appendFolderElement(child, parent.id);
                     var files = entity.files;
                     if (files && files.length > 0) {
@@ -79,7 +79,7 @@ var _Entities = {
     reloadChildren : function(id, componentId, pageId) {
         var el = Structr.node(id, null, componentId, pageId);
         
-        if (debug) console.log('reloadChildren', el);
+        log('reloadChildren', el);
         
         $(el).children('.node').remove();
         _Entities.resetMouseOverState(el);
@@ -90,7 +90,7 @@ var _Entities = {
 
     appendObj : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
 
-        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+        log('_Entities.appendObj: ', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
 
         var lastAppendedObj;
         var expand = false;
@@ -116,7 +116,7 @@ var _Entities = {
 
         } else if (entity.type == 'Content') {
 
-            if (debug) console.log('appending content element', entity, parentId, componentId, pageId, treeAddress);
+            log('appending content element', entity, parentId, componentId, pageId, treeAddress);
             lastAppendedObj = _Pages.appendContentElement(entity, parentId, componentId, pageId, treeAddress);
 
         } else if (entity.type == 'Folder') {
@@ -126,51 +126,51 @@ var _Entities = {
 
         } else if (entity.type == 'Image') {
             
-            if (debug) console.log('Image:', entity);
+            log('Image:', entity);
             _Images.uploadFile(entity);
             
             lastAppendedObj = _Images.appendImageElement(entity, parentId, add, hasChildren);
             
         } else if (entity.type == 'File') {
             
-            if (debug) console.log('File: ', entity);
+            log('File: ', entity);
             _Files.uploadFile(entity);
             
             lastAppendedObj = _Files.appendFileElement(entity, parentId, add, hasChildren, false);
             
         } else if (entity.type == 'TypeDefinition') {
             
-            if (debug) console.log('TypeDefinition: ', entity);
+            log('TypeDefinition: ', entity);
             lastAppendedObj = _Types.appendTypeElement(entity);
             
         } else {
 
-            if (debug) console.log('Entity: ', entity);
+            log('Entity: ', entity);
             lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
             expand = isExpanded(getElementPath(lastAppendedObj));
         }
 
-        if (debug) console.log('lastAppendedObj', lastAppendedObj);
+        log('lastAppendedObj', lastAppendedObj);
 
         if (lastAppendedObj) {
             
             var t = getElementPath(lastAppendedObj);
-            if (debug) console.log(t);
+            log(t);
             
             if (expand) {
-                if (debug) console.log('expand', lastAppendedObj);
+                log('expand', lastAppendedObj);
                 _Entities.ensureExpanded(lastAppendedObj);
             }
 
             var parent = lastAppendedObj.parent();
-            if (debug) console.log('lastAppendedObj.parent()', parent);
+            log('lastAppendedObj.parent()', parent);
             if (parent.children('.node') && parent.children('.node').length==1) {
                 
-                if (debug) console.log('parent of last appended object has children');
+                log('parent of last appended object has children');
 
                 //addExpandedNode(treeAddress);
                 var ent = Structr.entityFromElement(parent);
-                if (debug) console.log('entity', ent);
+                log('entity', ent);
                 ent.pageId = pageId;
                 _Entities.appendExpandIcon(parent, ent, true, true);
 
@@ -182,7 +182,7 @@ var _Entities = {
     deleteNode : function(button, entity) {
         buttonClicked = button;
         if (isDisabled(button)) return;
-        if (debug) console.log('deleteNode');
+        log('deleteNode');
         Structr.confirmation('<p>Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\'?</p>',
             function() {
                 if (Command.deleteNode(entity.id)) {
@@ -195,7 +195,7 @@ var _Entities = {
 
     listContainingNodes : function(entity, node) {
 
-        if (debug) console.log('listContainingNodes', entity, getElementPath(node));
+        log('listContainingNodes', entity, getElementPath(node));
 
         dialog.empty();
         Structr.dialog('Click on element to remove it from the page tree',
@@ -209,8 +209,8 @@ var _Entities = {
         dialog.append('<p>Hover your mouse over the element instance to detect which node is being removed.</p>')
         var headers = {};
         headers['X-StructrSessionToken'] = token;
-        if (debug) console.log('headers', headers);
-        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id, headers);
+        log('headers', headers);
+        log('showProperties URL: ' + rootUrl + entity.id, headers);
             
         $.ajax({
             url: rootUrl + entity.id,
@@ -224,7 +224,7 @@ var _Entities = {
                     var cont = $('.' + entity.id + '_', dialog);
 
                     $(data.result.paths).each(function(i, path) {
-                        if (debug) console.log(path);
+                        log(path);
 
                         //                        var pageId = path.substring(32);
                         
@@ -256,7 +256,7 @@ var _Entities = {
                             'cursor': 'pointer'
                         }).on('click', function(e) {
                             //console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
-                            if (debug) console.log(path);
+                            log(path);
                             Command.remove(entity.id, path);
                                         
                             $('.' + path).parent('tr').remove();
@@ -329,8 +329,8 @@ var _Entities = {
 
             var headers = {};
             headers['X-StructrSessionToken'] = token;
-            if (debug) console.log('headers', headers);
-            if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
+            log('headers', headers);
+            log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
             
             $.ajax({
                 url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
@@ -341,7 +341,7 @@ var _Entities = {
                 success: function(data) {
                     //element.append('<div class="sep"></div>');
                     //element.append('<table class="props"></table>');
-                    if (debug) console.log(data.result);
+                    log(data.result);
                     
                     // Default: Edit node id
                     var id = entity.id;
@@ -396,7 +396,7 @@ var _Entities = {
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
-                                            if (debug) console.log('set property', id, key, checkbox.attr('checked') == 'checked');
+                                            log('set property', id, key, checkbox.attr('checked') == 'checked');
                                             Command.setProperty(id, key, checkbox.attr('checked') == 'checked');
                                         });
                                         Command.getProperty(id, key, '#dialogBox');
@@ -516,20 +516,20 @@ var _Entities = {
                 Command.getProperty(entity.id, 'visibleToPublicUsers', '#dialogBox');
                 Command.getProperty(entity.id, 'visibleToAuthenticatedUsers', '#dialogBox');
 
-                if (debug) console.log(publicSwitch);
-                if (debug) console.log(authSwitch);
+                log(publicSwitch);
+                log(authSwitch);
                 
                 publicSwitch.on('click', function(e) {
                     e.stopPropagation();
                     var rec = $('#recursive', dt).is(':checked');
-                    if (debug) console.log('Toggle switch', publicSwitch.hasClass('disabled'))
+                    log('Toggle switch', publicSwitch.hasClass('disabled'))
                     Command.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'), rec);
                 });
 
                 authSwitch.on('click', function(e) {
                     e.stopPropagation();
                     var rec = $('#recursive', dt).is(':checked');
-                    if (debug) console.log('Toggle switch', authSwitch.hasClass('disabled'))
+                    log('Toggle switch', authSwitch.hasClass('disabled'))
                     Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'), rec);
                 });
 
@@ -565,7 +565,7 @@ var _Entities = {
             headers: headers,
             success: function(data) {
                 $(data.result).each(function(i, result) {
-                    if (debug) console.log(result);
+                    log(result);
                     selectElement.append('<option value="' + result.id + '">' + result.name + '</option>');
                 });
             }
@@ -573,7 +573,7 @@ var _Entities = {
                 
         element.append('</select></span>');
 
-        if (debug) console.log('Command.getProperty(', entity.id, key, '#' + key + 'Box', ')');
+        log('Command.getProperty(', entity.id, key, '#' + key + 'Box', ')');
         Command.getProperty(entity.id, key, '#' + key + 'Box');
         var select = $('#' + key + 'Select', element);
         select.on('change', function() {
@@ -591,7 +591,7 @@ var _Entities = {
         }
         editIcon.on('click', function(e) {
             e.stopPropagation();
-            if (debug) console.log('showProperties', entity);
+            log('showProperties', entity);
             _Entities.showProperties(entity);
         });
     },
@@ -600,7 +600,7 @@ var _Entities = {
 
         var button = $(el.children('.expand_icon').first());
         if (button && button.length) {
-            if (debug) console.log('Expand icon already existing');
+            log('Expand icon already existing');
             return;
         }
 
@@ -610,7 +610,7 @@ var _Entities = {
 
             var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
             //var icon = Structr.expand_icon;
-            if (debug) console.log(icon);
+            log(icon);
             
             typeIcon.css({
                 paddingRight: 0 + 'px'
@@ -623,7 +623,7 @@ var _Entities = {
                 
                 button.on('click', function(e) {
                     
-                    if (debug) console.log('expand icon clicked');
+                    log('expand icon clicked');
                     
                     e.stopPropagation();
                     _Entities.toggleElement($(this).parent('.node'));
@@ -632,7 +632,7 @@ var _Entities = {
                 
                 $(el).on('click', function(e) {
                     
-                    if (debug) console.log('node clicked');
+                    log('node clicked');
                     _Entities.toggleElement(this);
                     
                 });
@@ -736,9 +736,9 @@ var _Entities = {
                 var self = $(v);
                 var sid = self.attr('structr_element_id');
                 if (sid == nodeId) {
-                    if (debug) console.log(sid);
+                    log(sid);
                     self.removeClass('nodeHover');
-                    if (debug) console.log(self);
+                    log(self);
                 }
             });
         }
@@ -752,11 +752,11 @@ var _Entities = {
         
         var elId = el.attr('id');
         
-        if (debug) console.log(el);
+        log(el);
         
         var treeAddress = elId ? elId.substring(1) : undefined;
         
-        if (debug) console.log('ensureExpanded: elId, treeAddress', elId, treeAddress);
+        log('ensureExpanded: elId, treeAddress', elId, treeAddress);
         addExpandedNode(treeAddress);
         
         b = el.children('.expand_icon').first();
@@ -788,11 +788,11 @@ var _Entities = {
         
         var elId = el.attr('id');
         
-        if (debug) console.log(el);
+        log(el);
         
         var treeAddress = elId ? elId.substring(1) : undefined;
         
-        if (debug) console.log('toggleElement: treeAddress', treeAddress);
+        log('toggleElement: treeAddress', treeAddress);
         
         b = el.children('.expand_icon').first();
         src = b.prop('src');
