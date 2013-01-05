@@ -1099,8 +1099,6 @@ var _Pages = {
     },
     
     makeMenuDroppable : function() {
-
-        $('#pages_').removeClass('nodeHover').droppable('enable');
         
         $('#pages_').droppable({
             accept: '.element, .content, .component, .file, .image',
@@ -1123,6 +1121,7 @@ var _Pages = {
         
         });
         
+        $('#pages_').removeClass('nodeHover').droppable('enable');
     }
 
 };
