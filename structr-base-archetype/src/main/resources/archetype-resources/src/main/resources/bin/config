@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# configuration options for ${project.build.finalName}
+#
+
+RUN_OPTS="-cp lib/*:${project.build.finalName}.jar"
+JAVA_OPTS="-Xms1g -Xmx1g -XX:+UseNUMA"
+MAIN_CLASS="${package}.Server"
+DISPLAY_NAME="${artifactId}-${version}"
+LOG_FILE="logs/server.log"
+PID_FILE="server.pid"
