@@ -385,6 +385,20 @@ var Structr = {
         });
     },
 
+    reconnectDialog : function(text) {
+        if (text) $('#tempErrorBox .errorText').html('<img src="icon/error.png"> ' + text);
+        //console.log(callback);
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            message: $('#tempErrorBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+    },
+
     activateMenuEntry : function(name) {
         lastMenuEntry = name;
         $('.menu a').each(function(i,v) {

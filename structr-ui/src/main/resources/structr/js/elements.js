@@ -223,7 +223,7 @@ var _Elements = {
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
 
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
-            + '<b class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
+            + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
             + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class : '</span>')
             + '</div>');
@@ -340,8 +340,8 @@ var _Elements = {
                             
                             //console.log(entity.id, res.linkingElements);
                             
-                            dialog.append('<div class="page ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
-                                + '<b class="name_">' + res.name + '</b></div>');
+                            dialog.append('<div class="node page ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
+                                + '<b title="' + res.name + '" class="name_">' + res.name + '</b></div>');
                             
                             var div = $('.' + res.id + '_', dialog);
                             
@@ -379,18 +379,18 @@ var _Elements = {
                     contentType: 'application/json; charset=utf-8',
                     headers: headers,
                     success: function(data) {
-                        $(data.result).each(function(i, res) {
+                        $(data.result).each(function(i, file) {
                             
-                            console.log(entity.id, res.name, res);
+                            log(entity.id, file.name, file);
                             
-                            dialog.append('<div class="file ' + res.id + '_"><img class="typeIcon" src="' + _Files.getIcon(res) + '">'
-                                + '<b class="name_">' + res.name + '</b></div>');
+                            dialog.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+                                + '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
                             
-                            var div = $('.' + res.id + '_', dialog);
+                            var div = $('.' + file.id + '_', dialog);
                             
                             div.on('click', function(e) {
                                 e.stopPropagation();
-                                Command.link(entity.id, res.id); 
+                                Command.link(entity.id, file.id); 
                                 $('#dialogBox .dialogText').empty();
                                 _Pages.reloadPreviews();
                                 $.unblockUI({
@@ -406,7 +406,8 @@ var _Elements = {
                                 $(this).removeClass('nodeHover');
                             });
                             
-                            if (isIn(entity.id, res.linkingElements)) {
+                            if (isIn(entity.id, file.linkingElements)) {
+                                console.log(entity.id, file.linkingElements);
                                 div.addClass('nodeActive');
                             }
                             

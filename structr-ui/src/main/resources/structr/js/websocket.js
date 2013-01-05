@@ -72,7 +72,7 @@ function connect() {
                 fadeOut: 25
             });
             
-            console.log('de-activating reconnect loop', reconn);
+            log('de-activating reconnect loop', reconn);
             window.clearInterval(reconn);
 
             log('logged in? ' + loggedIn);
@@ -98,7 +98,7 @@ function connect() {
             
             main.empty();
             //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
-            Structr.dialog('Connection lost or timed out. Trying to reconnect ...');
+            Structr.reconnectDialog('Connection lost or timed out. Trying to reconnect ...');
             //log('Connection was lost or timed out. Trying automatic reconnect');
             log('ws onclose');
             Structr.reconnect();
@@ -495,7 +495,11 @@ function connect() {
                             if (attrElement && tag == 'select') {
                                 attrElement.val(newValue);
                             } else {
-                                attrElement.text(newValue);
+                                log(key, newValue);
+                                if (key == 'name') {
+                                    attrElement.html(fitStringToSize(newValue, 200));
+                                    attrElement.attr('title', newValue);
+                                }
                             }
                         
                             if (inputElement) {
@@ -506,7 +510,7 @@ function connect() {
 
                                 log(attrElement.text(), newValue);
 
-                                attrElement.text(newValue);
+                                //attrElement.text(newValue);
 
                                 // hook for CodeMirror edit areas
                                 if (editor && editor.id == data.id) {

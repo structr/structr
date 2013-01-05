@@ -136,7 +136,7 @@ var _UsersAndGroups = {
         log('appendGroupElement', group, hasChildren);
         groups.append('<div id="_' + group.id + '" class="node group ' + group.id + '_">'
             + '<img class="typeIcon" src="icon/group.png">'
-            + '<b class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
+            + '<b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
             + '</div>');
         var div = Structr.node(group.id);
 
@@ -211,7 +211,7 @@ var _UsersAndGroups = {
                 parent.append('<div class="node user ' + user.id + '_">'
                     + '<img class="typeIcon" src="icon/user.png">'
                     //				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
-                    + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
+                    + ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
                     + '</div>');
                 div = Structr.node(user.id, groupId);
                 div.append(newDelIcon);
@@ -234,7 +234,7 @@ var _UsersAndGroups = {
             users.append('<div class="node user ' + user.id + '_">'
                 + '<img class="typeIcon" src="icon/user.png">'
                 //				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
-                + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
+                + ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
                 + '</div>');
             div = $('.' + user.id + '_', users);
             

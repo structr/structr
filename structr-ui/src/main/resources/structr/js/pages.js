@@ -32,6 +32,8 @@ $(document).ready(function() {
     win.resize(function() {
         _Pages.resize();
     });
+
+    _Pages.makeMenuDroppable();
 });
 
 var _Pages = {
@@ -47,7 +49,6 @@ var _Pages = {
         
         //console.log('_Pages.init()');
         _Pages.resize();
-        //_Pages.makeMenuDroppable();
 
     },
 
@@ -228,7 +229,7 @@ var _Pages = {
 
         var tab = $('#show_' + entity.id, previews);
 		
-        tab.append('<img class="typeIcon" src="icon/page.png"> <b class="name_">' + entity.name + '</b>');
+        tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + entity.name + '</b>');
         tab.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
 
@@ -384,7 +385,7 @@ var _Pages = {
         });
 
         div.append('<img class="typeIcon" src="icon/page.png">'
-            + '<b class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
+            + '<b title="' + entity.name + '" class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
 
@@ -831,7 +832,7 @@ var _Pages = {
                 
                 if (cls == 'image') {
                     contentId = undefined;
-                    name = $(ui.draggable).find('.name_').text();
+                    name = $(ui.draggable).find('.name_').attr('title');
                     log('Image dropped, creating <img> node', name);
                     nodeData._html_src = name;
                     nodeData.name = name;
@@ -841,11 +842,11 @@ var _Pages = {
                     _Pages.makeMenuDroppable();
                     
                 } else if (cls == 'file') {
-                    name = $(ui.draggable).children('.name_').text();
+                    name = $(ui.draggable).children('.name_').attr('title');
                     
                     var parentTag = self.children('.tag_').text();
                     log(parentTag);
-                    nodeData.linkable_id = contentId;
+                    nodeData.linkableId = contentId;
                     
                     if (parentTag == 'head') {
                         
@@ -875,7 +876,6 @@ var _Pages = {
                         log('File dropped, creating <a> node', name);
                         nodeData._html_href = '/${link.name}';
                         nodeData._html_title = '${link.name}';
-                        nodeData.linkable_id = contentId;
                         nodeData.childContent = '${parent.link.name}';
                         tag = 'a';
                     }
@@ -884,7 +884,7 @@ var _Pages = {
                     Structr.modules['files'].unload();
                     _Pages.makeMenuDroppable();
 
-                } else {               
+                } else {  
                     if (!contentId) {
                         tag = $(ui.draggable).text();
 
@@ -938,7 +938,7 @@ var _Pages = {
                     nodeData.sourcePageId = sourcePageId;
                 }
 
-                log('drop event in appendElementElement', elementId, nodeData, relData);
+                console.log('drop event in appendElementElement', elementId, nodeData, relData);
                 Command.createAndAdd(elementId, nodeData, relData);
             }
         });
@@ -1099,9 +1099,9 @@ var _Pages = {
     },
     
     makeMenuDroppable : function() {
-        
-        $('#pages_').removeClass('nodeHover').droppable('enable');
 
+        $('#pages_').removeClass('nodeHover').droppable('enable');
+        
         $('#pages_').droppable({
             accept: '.element, .content, .component, .file, .image',
             greedy: true,
@@ -1112,7 +1112,7 @@ var _Pages = {
             
                 e.stopPropagation();
                 $('#pages_').droppable('disable');
-                console.log('over is off');
+                log('over is off');
             
                 Structr.activateMenuEntry('pages');
                 document.location = '/structr/#pages'

@@ -473,7 +473,7 @@ span.id {
     color: #999;
 }
 
-#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #types .node
+#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #types .node, .dialogText .node
 /*#pages .page, #files .page, #users .page,  #groups .page, #types .page,
 #pages .type, #files .type, #users .type,  #groups .type, #types .type,
 #pages .component, #files .component, #users .component,  #groups .component, #types .component,
@@ -659,6 +659,11 @@ button img {
 
 #confirmation, #infoBox, #errorBox {
     width: 360px;
+}
+
+#tempErrorBox {
+    width: 400px;
+    padding-bottom: 16px
 }
 
 #dialogBox {

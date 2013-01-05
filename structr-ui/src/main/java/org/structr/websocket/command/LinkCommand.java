@@ -34,6 +34,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
+import org.structr.web.entity.html.Link;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -62,7 +63,7 @@ public class LinkCommand extends AbstractCommand {
 					@Override
 					public Object execute() throws FrameworkException {
 
-						Linkable.linkingElements.createRelationship(securityContext, sourceNode, targetNode);
+						Link.linkable.createRelationship(securityContext, sourceNode, targetNode);
 
 						return null;
 					}

@@ -24,7 +24,7 @@ var _Entities = {
     booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
     numberAttrs : ['position', 'size'],
     dateAttrs : ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
-    hiddenAttrs : ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'linkingElements', 'components', 'paths', 'parents'],
+    hiddenAttrs : ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
     readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
     
     changeBooleanAttribute : function(attrElement, value) {
@@ -232,7 +232,7 @@ var _Entities = {
                         
                         cont.append('<tr><td class="' + path + '">'
                             + '<div style="display: inline-block" class="node ' + entity.id + '_">'
-                            + '<img style="float: left" class="remove_icon" src="' + Structr.delete_icon +  '"><b class="tag_">' + displayName + '</b></div></td>'
+                            + '<img style="float: left" class="remove_icon" src="' + Structr.delete_icon +  '"><b title="' + displayName + '" class="tag_">' + displayName + '</b></div></td>'
                             + '</tr>');
                                     
                         //Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
@@ -353,12 +353,12 @@ var _Entities = {
 			
                         var keys = Object.keys(res);
 
-                        if (debug ) console.log('keys', keys);
+                        log('keys', keys);
 
                         //			if (view == 'in' || view == 'out') {
                         //			    tabView.append('<br><h3>Relationship ' + res['id']+ '</h3>')
                         //			}
-			console.log('res[id]', res['id']);
+			log('res[id]', res['id']);
                         tabView.append('<table class="props ' + view + ' ' + res['id'] +'_"></table>');
 
                         var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
@@ -450,23 +450,23 @@ var _Entities = {
                                 });
 
                                 input.on('focusout', function() {
-                                    console.log('relId', relId);
+                                    log('relId', relId);
                                     var objId = relId ? relId : id;
-                                    console.log('set properties of obj', objId);
+                                    log('set properties of obj', objId);
                                     
                                     var keyInput = input.parent().parent().children('td').first().children('input');
-                                    console.log(keyInput);
+                                    log(keyInput);
                                     if (keyInput && keyInput.length) {
                                     
                                         // new key
-                                        console.log('new key: Command.setProperty(', objId, keyInput.val(), input.val());
+                                        log('new key: Command.setProperty(', objId, keyInput.val(), input.val());
                                         Command.setProperty(objId, keyInput.val(), input.val());
                                         
                                         
                                     } else {
                                         
                                         // existing key
-                                        console.log('existing key: Command.setProperty(', objId, input.prop('name'), input.val());
+                                        log('existing key: Command.setProperty(', objId, input.prop('name'), input.val());
                                         Command.setProperty(objId, input.prop('name'), input.val());
                                         
                                     }
@@ -821,7 +821,7 @@ var _Entities = {
     makeNameEditable : function(element) {
         //element.off('dblclick');
         element.off('hover');
-        var oldName = $.trim(element.children('b.name_').first().text());
+        var oldName = $.trim(element.children('b.name_').attr('title'));
         //console.log('oldName', oldName);
         element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
         element.find('.button').hide();
@@ -834,7 +834,7 @@ var _Entities = {
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
-            self.replaceWith('<b class="name_">' + newName + '</b>');
+            self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToSize(newName, 200) + '</b>');
             $('.name_', element).on('click', function(e) {
                 e.stopPropagation();
                 _Entities.makeNameEditable(element);
@@ -846,8 +846,7 @@ var _Entities = {
             if (e.keyCode == 13) {
                 var self = $(this);
                 var newName = self.val();
-                Command.setProperty(getId(element), "name", newName);
-                self.replaceWith('<b class="name_">' + newName + '</b>');
+                self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToSize(newName, 200) + '</b>');
                 $('.name_', element).on('click', function(e) {
                     e.stopPropagation();
                     _Entities.makeNameEditable(element);

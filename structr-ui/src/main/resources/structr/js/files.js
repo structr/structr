@@ -272,7 +272,7 @@ var _Files = {
         
             parent.append('<div class="node ' + cls + ' ' + file.id + '_">'
                 + '<img class="typeIcon" src="'+ icon + '">'
-                + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
+                + '<b title="' + file.name + '" class="name_">' + fitStringToSize(file.name, 200) + '</b> <span class="id">' + file.id + '</span>'
                 + '</div>');
             div = Structr.node(file.id, folderId);
             
@@ -323,7 +323,7 @@ var _Files = {
             //containment: '#main',
             zIndex: 4,
             stop : function(e,ui) {
-                $('#pages_').removeClass('nodeHover').droppable('enable');
+                $('#pages_').droppable('enable').removeClass('nodeHover');
             }
         });
 
@@ -383,7 +383,7 @@ var _Files = {
             
             parent.append('<div id="_' + folder.id + '" structr_type="folder" class="node folder ' + folder.id + '_">'
                 + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
-                + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
+                + '<b title="' + folder.name + '" class="name_">' + fitStringToSize(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
                 + '</div>');
         
             //div = Structr.node(folder.id, parent.id);

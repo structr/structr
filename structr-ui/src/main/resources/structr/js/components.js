@@ -100,7 +100,7 @@ var _Components = {
 
 	parent.append('<div id="_' + id + '" class="node component ' + component.id + '_">'
 	    + '<img class="typeIcon" src="'+ _Components.icon + '">'
-	    + '<b class="name_">' + (name ? name : '') + '</b> [<b class="kind_">' + (kind ? kind : '') + '</b>] <span class="id">' + component.id + '</span>'
+	    + '<b title="' + (name ? name : '') + '" class="name_">' + (name ? name : '') + '</b> [<b class="kind_">' + (kind ? kind : '') + '</b>] <span class="id">' + component.id + '</span>'
 	    + '</div>');
 	
         var div = $('#_' + id);

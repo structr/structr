@@ -249,7 +249,7 @@ var _Images = {
             //var tn = '/' + img.tnSmall.id;
             parent.append('<div class="node ' + cls + ' ' + img.id + '_">'
                 + '<div class="wrap"><img class="thumbnail" src="'+ tn + '"></div>'
-                + '<b class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
+                + '<b title="' + img.name + '" class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
                 + '<div class="icons"></div></div>');
             div = Structr.node(img.id, folderId);
             
@@ -415,7 +415,7 @@ var _Images = {
             
             parent.append('<div id="_' + folder.id + '" structr_type="folder" class="node folder ' + folder.id + '_">'
                 + '<img class="typeIcon" src="'+ _Images.folder_icon + '">'
-                + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
+                + '<b title="' + folder.name + '" class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
                 + '</div>');
         
             //div = Structr.node(folder.id, parent.id);
