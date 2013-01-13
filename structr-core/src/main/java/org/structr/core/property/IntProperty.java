@@ -25,10 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
 
 /**
 * A property that stores and retrieves a simple Integer value.

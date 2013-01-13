@@ -20,8 +20,10 @@ package org.structr.rest.entity;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.EntityContext;
 import org.structr.core.property.Property;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.*;
 
 /**
@@ -40,4 +42,10 @@ public class TestThree extends AbstractNode {
 	public static final View publicView = new View(TestThree.class, PropertyView.Public,
 		stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty
 	);
+	
+	static {
+		
+		EntityContext.registerSearchablePropertySet(TestThree.class, NodeIndex.fulltext.name(), publicView.properties());
+		EntityContext.registerSearchablePropertySet(TestThree.class, NodeIndex.keyword.name(),  publicView.properties());
+	}
 }

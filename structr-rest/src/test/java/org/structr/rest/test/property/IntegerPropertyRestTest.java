@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.*;
  */
 public class IntegerPropertyRestTest extends StructrRestTest {
 	
-	public void testViaRest() {
+	public void testBasics() {
 		
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -52,7 +52,56 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes");
 		
+	}
+	
+	public void testSearch() {
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/test_threes");
+		
+		// test for three elements
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(3))
+		.when()
+			.get("/test_threes");
+		
+		// test strict search
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result[0].integerProperty", equalTo(2))
+		.when()
+			.get("/test_threes?integerProperty=2");
 		
 		
+		// test range query
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(2))
+		.when()
+			.get("/test_threes?integerProperty=[1 TO 2]");
+	
 	}
 }

@@ -23,13 +23,15 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.response.Response;
 import org.structr.rest.common.StructrRestTest;
 
+import static org.hamcrest.Matchers.*;
+
 /**
  *
  * @author Christian Morgner
  */
 public class DoublePropertyRestTest extends StructrRestTest {
 	
-	public void testViaRest() {
+	public void testBasics() {
 		
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -58,5 +60,56 @@ public class DoublePropertyRestTest extends StructrRestTest {
 		
 		assertEquals(3.1415927, response.getBody().jsonPath().getDouble("result[0].doubleProperty"));
 		
+	}
+	
+	public void testSearch() {
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 1.2 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 2.3 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 3.4 } ").expect().statusCode(201).when().post("/test_threes");
+		
+		// test for three elements
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(3))
+		.when()
+			.get("/test_threes");
+		
+		// test strict search
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result[0].doubleProperty", equalTo(2.3f))
+		.when()
+			.get("/test_threes?doubleProperty=2.3");
+		
+		
+		// test range query
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(2))
+		.when()
+			.get("/test_threes?doubleProperty=[1.1 TO 2.4]");
+	
 	}
 }

@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.*;
  */
 public class BooleanPropertyRestTest extends StructrRestTest {
 	
-	public void testViaRest() {
+	public void testBasics() {
 		
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")

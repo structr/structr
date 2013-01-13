@@ -57,21 +57,13 @@ public class RangeSearchAttribute extends SearchAttribute {
 	public String getValue() {
 		
 		StringBuilder buf = new StringBuilder();
-
-//		WORKS FOR STRING FIELDS
-//		buf.append(searchKey.name());
-//		buf.append(":[\"");
-//		buf.append(rangeStart.toString());
-//		buf.append("\" TO \"");
-//		buf.append(rangeEnd.toString());
-//		buf.append("\"]");
-		
+	
 		buf.append(searchKey.dbName());
-		buf.append(":[");
+		buf.append(":[\"");
 		buf.append(rangeStart.toString());
-		buf.append(" TO ");
+		buf.append("\" TO \"");
 		buf.append(rangeEnd.toString());
-		buf.append("]");
+		buf.append("\"]");
 		
 		return buf.toString();
 	}
