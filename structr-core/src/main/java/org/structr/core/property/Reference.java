@@ -159,6 +159,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public String getSearchStringValue(T source) {
+		return propertyKey.getSearchStringValue(source);
+	}
+
+	@Override
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
 		propertyKey.registerSearchableProperties(searchableProperties);
 	}

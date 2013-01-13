@@ -54,6 +54,7 @@ public interface PropertyKey<T> {
 
 	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch);
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
+	public String getSearchStringValue(T source);
 	
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
