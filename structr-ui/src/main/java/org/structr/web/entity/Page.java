@@ -128,6 +128,11 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 
 	@Override
 	public Text createTextNode(String string) {
+		
+		// TODO: create new Content (implements Text) node
+		// in database and return it
+		
+		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

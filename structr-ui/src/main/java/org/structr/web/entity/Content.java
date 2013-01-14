@@ -48,6 +48,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.web.property.DynamicContentProperty;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Text;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,7 +58,7 @@ import org.structr.web.property.DynamicContentProperty;
  *
  * @author Axel Morgner
  */
-public class Content extends HtmlElement {
+public class Content extends HtmlElement implements Text {
 
 	private static final Logger logger         = Logger.getLogger(Content.class.getName());
 
@@ -160,5 +162,67 @@ public class Content extends HtmlElement {
 	@Override
 	public short getNodeType() {
 		return TEXT_NODE;
+	}
+	
+	// ----- interface org.w3c.dom.Text -----
+
+	@Override
+	public Text splitText(int i) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public boolean isElementContentWhitespace() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public String getWholeText() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Text replaceWholeText(String string) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public String getData() throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void setData(String string) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public int getLength() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public String substringData(int i, int i1) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void appendData(String string) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void insertData(int i, String string) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void deleteData(int i, int i1) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void replaceData(int i, int i1, String string) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }
