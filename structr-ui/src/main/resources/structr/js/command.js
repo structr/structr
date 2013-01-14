@@ -34,9 +34,10 @@ var Command = {
     get : function(id) {
         var obj = {};
         obj.command = 'GET';
-        var data = {};
-        data.id = id;
-        obj.data = data;
+        obj.id = id;
+        //var data = {};
+        //data.id = id;
+        //obj.data = data;
         log('get()', obj);
         return sendObj(obj);
     },

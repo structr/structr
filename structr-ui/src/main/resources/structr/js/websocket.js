@@ -31,6 +31,8 @@ var pageSize = 25;
 var sort = 'name';
 var order = 'asc';
 
+var footer = $('#footer');
+
 function connect() {
 
     if (token) {
@@ -198,7 +200,9 @@ function connect() {
 
             } else if (command == 'GET') { /*********************** GET ************************/
 
-                log('GET:', data);
+                console.log('GET:', data);
+                StructrModel.objects[data.data.uuid].attributes = data.data;
+                //console.log(data.data.uuid);
 
                 var d = data.data.displayElementId;
                 log('displayElementId', d);
