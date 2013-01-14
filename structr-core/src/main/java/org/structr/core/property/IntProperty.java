@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.util.NumericUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -132,5 +133,10 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public String getSearchStringValue(Integer source) {
+		return source != null ? NumericUtils.intToPrefixCoded(source) : "";
 	}
 }

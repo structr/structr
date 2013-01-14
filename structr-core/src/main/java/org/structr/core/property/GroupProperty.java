@@ -298,7 +298,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	 * Acts as a wrapper for property keys to prefix their name with
 	 * the name of the surrounding property group.
 	 */
-	private class GroupPropertyWrapper extends AbstractPrimitiveProperty {
+	private class GroupPropertyWrapper extends Property {
 
 		private PropertyKey wrappedKey = null;
 		
@@ -395,6 +395,16 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		@Override
 		public boolean isCollection() {
 			return false;
+		}
+
+		@Override
+		public Object getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+			return wrappedKey.getProperty(securityContext, obj, applyConverter);
+		}
+
+		@Override
+		public void setProperty(SecurityContext securityContext, GraphObject obj, Object value) throws FrameworkException {
+			wrappedKey.setProperty(securityContext, obj, value);
 		}
 	}
 }

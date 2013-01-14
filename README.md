@@ -104,5 +104,5 @@ In order to contribute to structr, you must sign the structr Contributor’s Lic
 
 ## Copyright and License
 
-Copyright 2010-2012 Axel Morgner
+Copyright 2010-2013 Axel Morgner
 structr is licensed under the GPLv3 and AGPLv3 (structr UI).

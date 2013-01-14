@@ -51,7 +51,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSearchField;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -517,7 +516,6 @@ public abstract class Resource {
 					try {
 					
 						PropertyConverter inputConverter = key.inputConverter(securityContext);
-						PropertyConverter databaseConverter  = key.databaseConverter(securityContext, null);
 						Object rangeStartConverted       = rangeStart;
 						Object rangeEndConverted         = rangeEnd;
 						
@@ -527,11 +525,9 @@ public abstract class Resource {
 							rangeEndConverted   = inputConverter.convert(rangeEndConverted);
 						}
 						
-						if (databaseConverter != null) {
-							
-							rangeStartConverted = databaseConverter.convert(rangeStartConverted);
-							rangeEndConverted   = databaseConverter.convert(rangeEndConverted);
-						}
+						// let property key determine exact search value (might be a numeric value..)
+						rangeStartConverted = key.getSearchStringValue(rangeStartConverted);
+						rangeEndConverted   = key.getSearchStringValue(rangeEndConverted);
 						
 						return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, SearchOperator.AND);
 						
@@ -556,7 +552,22 @@ public abstract class Resource {
 			return Search.andMatchExactValues(key, strippedValue, SearchOperator.AND);
 
 		} else {
-			return Search.andExactProperty(key, searchValue);
+			
+			PropertyConverter inputConverter = key.inputConverter(securityContext);
+			Object convertedSearchValue      = searchValue;
+			
+			if (inputConverter != null) {
+			
+				try {
+					convertedSearchValue = inputConverter.convert(searchValue);
+					
+				} catch (Throwable t) {
+					
+					logger.log(Level.WARNING, "Unable to convert search value for key {0}", key);
+				}
+			}
+			
+			return Search.andExactProperty(key, convertedSearchValue);
 		}
 	}
 

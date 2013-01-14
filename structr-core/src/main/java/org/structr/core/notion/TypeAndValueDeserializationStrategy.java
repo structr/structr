@@ -39,6 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.TypeToken;
 import org.structr.core.*;
+import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,12 +54,12 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 	//~--- fields ---------------------------------------------------------
 
-	protected boolean createIfNotExisting     = false;
-	protected PropertyKey<String> propertyKey = null;
+	protected boolean createIfNotExisting = false;
+	protected PropertyKey propertyKey     = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public TypeAndValueDeserializationStrategy(PropertyKey<String> propertyKey, boolean createIfNotExisting) {
+	public TypeAndValueDeserializationStrategy(PropertyKey propertyKey, boolean createIfNotExisting) {
 
 		this.createIfNotExisting = createIfNotExisting;
 		this.propertyKey         = propertyKey;
@@ -76,21 +77,30 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		// TODO: check why this doesn't work for setProperty with plain uuid..
 		
-		if (source != null) {
+		
+		// create and fill input map with source object
+		Map<String, Object> sourceMap = new LinkedHashMap<String, Object>();
+		sourceMap.put(propertyKey.jsonName(), source);
+
+		// try to convert input type to java type in order to create object correctly
+		PropertyMap convertedSourceMap = PropertyMap.inputTypeToJavaType(securityContext, type, sourceMap);
+		Object convertedSource = convertedSourceMap.get(propertyKey);
+		
+		if (convertedSource != null) {
 
 			// FIXME: use uuid only here?
-			if (source instanceof JsonInput) {
+			if (convertedSource instanceof JsonInput) {
 
-				Object value = ((JsonInput)source).getAttributes().get(propertyKey.jsonName());
+				Object value = ((JsonInput)convertedSource).getAttributes().get(propertyKey.jsonName());
 				if (value != null) {
 					
 					String stringValue = value.toString();
 					attrs.add(Search.andExactProperty(propertyKey, stringValue));
 				}
 
-			} else if (source instanceof GraphObject) {
+			} else if (convertedSource instanceof GraphObject) {
 				
-				GraphObject obj = (GraphObject)source;
+				GraphObject obj = (GraphObject)convertedSource;
 				if (propertyKey != null) {
 					
 					attrs.add(Search.andExactProperty(propertyKey, obj.getProperty(propertyKey)));
@@ -106,7 +116,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				
 			} else {
 
-				attrs.add(Search.andExactProperty(propertyKey, source.toString()));
+				attrs.add(Search.andExactProperty(propertyKey, convertedSource));
 
 			}
 		}
@@ -119,25 +129,25 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 		switch (resultCount) {
 
 			case 0 :
-				if ((source != null) && createIfNotExisting) {
+				if ((convertedSource != null) && createIfNotExisting) {
 
 					// create node and return it
 					AbstractNode newNode = Services.command(securityContext, CreateNodeCommand.class).execute(
 								   new NodeAttribute(AbstractNode.type, type.getSimpleName()),
-								   new NodeAttribute(propertyKey, source.toString())
-					                       );
+								   new NodeAttribute(propertyKey, convertedSource)
+							       );
 
 					if (newNode != null) {
-						
-						return newNode;
-						
-					} else {
 
-						logger.log(Level.WARNING,
-							   "Unable to create node of type {0} for property {1}",
-							   new Object[] { type.getSimpleName(),
-									  propertyKey.jsonName() });
+						return newNode;
 					}
+					
+				} else {
+						
+					logger.log(Level.WARNING,
+						   "Unable to create node of type {0} for property {1}",
+						   new Object[] { type.getSimpleName(),
+								  propertyKey.jsonName() });
 				}
 
 				break;
@@ -151,11 +161,11 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				return obj;
 		}
 
-		if (source != null) {
+		if (convertedSource != null) {
 
 			Map<PropertyKey, Object> attributes = new LinkedHashMap<PropertyKey, Object>();
 
-			attributes.put(propertyKey,       source.toString());
+			attributes.put(propertyKey,       convertedSource);
 			attributes.put(AbstractNode.type, type.getSimpleName());
 
 			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));

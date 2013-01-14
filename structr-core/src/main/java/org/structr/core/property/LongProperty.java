@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.util.NumericUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -119,5 +120,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public String getSearchStringValue(Long source) {
+		return source != null ? NumericUtils.longToPrefixCoded(source) : "";
 	}
 }

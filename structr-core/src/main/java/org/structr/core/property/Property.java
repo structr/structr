@@ -156,7 +156,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
 		
 		// return empty string on null value here to enable searching for empty values
-		String searchString = searchValue != null ? searchValue.toString() : "";
+		String searchString = getSearchStringValue(searchValue);
 		String search       = exactMatch ? Search.exactMatch(searchString) : searchString;
 		
 		return new TextualSearchAttribute(this, search, op);
@@ -165,5 +165,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
 		searchableProperties.add(this);
+	}
+	
+	@Override
+	public String getSearchStringValue(T source) {
+		return source != null ? source.toString() : "";
 	}
 }

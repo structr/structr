@@ -669,7 +669,7 @@ button img {
 #dialogBox {
     width: 800px;
     /*max-height: 800px;*/
-    margin: -300px 0 0 -284px;
+    margin: -50% 0 0 -284px;
     padding-bottom: 48px;
     position: relative;
 }

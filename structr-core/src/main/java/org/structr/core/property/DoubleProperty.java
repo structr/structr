@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.util.NumericUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -119,5 +120,10 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public String getSearchStringValue(Double source) {
+		return source != null ? NumericUtils.doubleToPrefixCoded(source) : "";
 	}
 }
