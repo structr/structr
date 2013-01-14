@@ -236,7 +236,7 @@ public class Content extends HtmlElement implements Text {
 	}
 
 	@Override
-	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		String id            = getUuid();
 		boolean edit         = renderContext.getEdit();
@@ -284,7 +284,7 @@ public class Content extends HtmlElement implements Text {
 
 		if (content != null) {
 
-			buffer.append(content);
+			buffer.append(indent(depth, true)).append(content);
 		}
 		
 		if (edit && inBody) {

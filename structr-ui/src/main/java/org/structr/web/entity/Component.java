@@ -380,7 +380,7 @@ public class Component extends HtmlElement {
 	}
 	
 	@Override
-	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
-		super.getContent(securityContext, renderContext, depth - 1);
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+		super.render(securityContext, renderContext, depth - 1);
 	}
 }

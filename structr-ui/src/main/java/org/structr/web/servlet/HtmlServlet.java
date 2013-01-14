@@ -368,7 +368,7 @@ public class HtmlServlet extends HttpServlet {
 
 				} else {
 					
-					rootElement.getContent(securityContext, renderContext, 0);
+					rootElement.render(securityContext, renderContext, 0);
 
 					String content = renderContext.getBuffer().toString();
 					double end     = System.nanoTime();

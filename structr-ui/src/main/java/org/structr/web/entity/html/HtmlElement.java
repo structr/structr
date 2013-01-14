@@ -750,8 +750,7 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 	}
 
-	// ----- getContent -----
-	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		double start = System.nanoTime();
 		
@@ -763,13 +762,7 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 		String id            = getUuid();
 		String tag           = getProperty(HtmlElement.tag);
 
-		String ind = "";
-		
-		if (!avoidWhitespace()) {
-
-			ind = indent(depth, true);
-
-		}
+		buffer.append(indent(depth, true));
 		
 		if (StringUtils.isNotBlank(tag)) {
 
@@ -816,26 +809,26 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 			
 			buffer.append(">");
 
-			boolean whitespaceOnly = false;
-			int lastNewline        = buffer.lastIndexOf("\n");
-
-			whitespaceOnly = StringUtils.isBlank((lastNewline > -1)
-				? buffer.substring(lastNewline)
-				: buffer.toString());
-
-			if (!avoidWhitespace()) {
-
-				if (whitespaceOnly) {
-
-					buffer.replace(buffer.length() - 2, buffer.length(), "");
-
-				} else {
-
-					buffer.append(indent(depth - 1, true));
-
-				}
-
-			}
+//			boolean whitespaceOnly = false;
+//			int lastNewline        = buffer.lastIndexOf("\n");
+//
+//			whitespaceOnly = StringUtils.isBlank((lastNewline > -1)
+//				? buffer.substring(lastNewline)
+//				: buffer.toString());
+//
+//			if (!avoidWhitespace()) {
+//
+//				if (whitespaceOnly) {
+//
+//					buffer.replace(buffer.length() - 2, buffer.length(), "");
+//
+//				} else {
+//
+//					buffer.append(indent(depth - 1, true));
+//
+//				}
+//
+//			}
 
 			// recursively render children
 			List<AbstractRelationship> rels = Component.getChildRelationships(request, this);
@@ -846,30 +839,32 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 				if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-					subNode.getContent(securityContext, renderContext, depth + 1);
+					subNode.render(securityContext, renderContext, depth + 1);
 				}
 
 			}
 			
 			// render end tag, if needed (= if not singleton tags)
 			if (StringUtils.isNotBlank(tag) && (!isVoid)) {
+				
+				buffer.append(indent(depth, true));
 
 				buffer.append("</").append(tag).append(">");
 
-				if (!avoidWhitespace()) {
-
-					buffer.append(indent(depth - 1, true));
-
-				}
+//				if (!avoidWhitespace()) {
+//
+//					buffer.append(indent(depth - 1, true));
+//
+//				}
 
 			}
 
 		}
 	
-		if (!isVoid) {
-
-			buffer.append(ind);
-		}
+//		if (!isVoid) {
+//
+//			buffer.append(ind);
+//		}
 
 		double end = System.nanoTime();
 

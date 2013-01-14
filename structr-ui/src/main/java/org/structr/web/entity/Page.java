@@ -343,7 +343,7 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 	}
 
 	@Override
-	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		HttpServletRequest request = securityContext.getRequest();
 		Condition condition        = renderContext.getCondition();
@@ -362,7 +362,7 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 //
 //              }
 		
-		renderContext.getBuffer().append("<!DOCTYPE html>\n");
+		renderContext.getBuffer().append("<!DOCTYPE html>");
 
 		// recursively render children
 		List<AbstractRelationship> rels = Component.getChildRelationships(request, this);
@@ -375,7 +375,7 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 
 				if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-					subNode.getContent(securityContext, renderContext, depth + 1);
+					subNode.render(securityContext, renderContext, depth);
 				}
 
 			}
