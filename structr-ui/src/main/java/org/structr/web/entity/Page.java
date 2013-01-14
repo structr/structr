@@ -21,22 +21,18 @@
 
 package org.structr.web.entity;
 
-import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Linkable;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeService;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.html.Html;
@@ -61,7 +57,6 @@ import org.w3c.dom.Text;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
-import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletRequest;
 

@@ -76,6 +76,7 @@ import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.structr.common.Permission;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -95,13 +96,13 @@ import org.w3c.dom.UserDataHandler;
 public abstract class HtmlElement extends AbstractNode implements Element {
 
 	private static final Logger logger                             = Logger.getLogger(HtmlElement.class.getName());
-	private DecimalFormat decimalFormat                                            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));	
+	private DecimalFormat decimalFormat                            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));	
 	public static final Property<Long> version                     = new LongProperty("version");
-	public static final Property<String> tag               = new StringProperty("tag");
-	private static Set<Page> resultPages                   = new HashSet<Page>();
-	public static final Property<Integer> position         = new IntProperty("position");
-	public static final Property<String> path              = new StringProperty("path");
-	public static final EntityProperty<HtmlElement> parent = new EntityProperty<HtmlElement>("parent", HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Property<String> tag                       = new StringProperty("tag");
+	private static Set<Page> resultPages                           = new HashSet<Page>();
+	public static final Property<Integer> position                 = new IntProperty("position");
+	public static final Property<String> path                      = new StringProperty("path");
+	public static final EntityProperty<HtmlElement> parent         = new EntityProperty<HtmlElement>("parent", HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final CollectionProperty<HtmlElement> children = new CollectionProperty<HtmlElement>("children", HtmlElement.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final Property<String> _title                  = new HtmlProperty("title");
 	public static final Property<String> _tabindex               = new HtmlProperty("tabindex");
@@ -205,6 +206,12 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 	
 	public static SearchNodeCommand searchNodesAsSuperuser;
 
+
+	// ----- error messages for DOMExceptions -----
+	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE                           = "Permission denied";
+	protected static final String INDEX_SIZE_ERR_MESSAGE                                    = "Index out of range";
+
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -1076,6 +1083,15 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 		return resultPages;
 
+	}
+	
+	protected void checkWriteAccess() throws DOMException {
+		
+		if (!securityContext.isAllowed(this, Permission.write)) {
+			
+			// FIXME: fill in appropriate error message
+			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
+		}
 	}
 
 	// ----- interface org.w3c.dom.Element -----

@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.structr.common.Permission;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.EntityIdProperty;
@@ -88,12 +87,7 @@ public class Content extends HtmlElement implements Text {
 	public static final org.structr.common.View uiView                                    = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, dataKey,
 													typeDefinitionId);
 	public static final org.structr.common.View publicView                                = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, dataKey,
-													typeDefinitionId);
-
-	// error messages for DOMExceptions
-	private static final String NO_MODIFICATION_ALLOWED_MESSAGE                           = "Permission denied";
-	private static final String INDEX_SIZE_ERR_MESSAGE                                    = "Index out of range";
-	
+													typeDefinitionId);	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -372,11 +366,19 @@ public class Content extends HtmlElement implements Text {
 
 	@Override
 	public int getLength() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		
+		String text = getProperty(content);
+		
+		if (text != null) {
+			
+			return text.length();
+		}
+		
+		return 0;
 	}
 
 	@Override
-	public String substringData(int i, int i1) throws DOMException {
+	public String substringData(int offset, int count) throws DOMException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -410,16 +412,6 @@ public class Content extends HtmlElement implements Text {
 		checkWriteAccess();
 		
 		throw new UnsupportedOperationException("Not supported yet.");
-	}
-	
-	// ----- private methods -----
-	private void checkWriteAccess() throws DOMException {
-		
-		if (!securityContext.isAllowed(this, Permission.write)) {
-			
-			// FIXME: fill in appropriate error message
-			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
-		}
 	}
 
 	//~--- inner classes --------------------------------------------------
