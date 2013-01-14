@@ -64,6 +64,14 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <type>jar</type>
+            <scope>test</scope>
+            <optional>false</optional>
+        </dependency>
+        <dependency>
             <artifactId>urlrewritefilter</artifactId>
             <groupId>org.tuckey</groupId>
             <type>jar</type>
