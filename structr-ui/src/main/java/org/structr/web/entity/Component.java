@@ -43,7 +43,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
 import org.structr.core.property.IntProperty;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.html.HtmlElement;
 
 //~--- classes ----------------------------------------------------------------
@@ -375,5 +377,10 @@ public class Component extends HtmlElement {
 	@Override
 	public short getNodeType() {
 		return ELEMENT_NODE;
+	}
+	
+	@Override
+	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+		super.getContent(securityContext, renderContext, depth - 1);
 	}
 }

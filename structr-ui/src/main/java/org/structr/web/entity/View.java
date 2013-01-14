@@ -21,27 +21,35 @@
 
 package org.structr.web.entity;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import org.apache.commons.lang.StringUtils;
 
-
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.html.HtmlElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.core.graph.NodeService.NodeIndex;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,20 +59,19 @@ import org.structr.web.entity.html.HtmlElement;
  */
 public class View extends HtmlElement {
 
-	public static final Property<String> query = new StringProperty("query");
+	private static final Logger logger = Logger.getLogger(View.class.getName());
+	private DecimalFormat decimalFormat                                            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(View.class, PropertyView.Ui,
-		query
-	);
-	
-	public static final org.structr.common.View publicView = new org.structr.common.View(View.class, PropertyView.Public,
-		query
-	);
-	
+	public static final Property<String> query             = new StringProperty("query");
+	public static final org.structr.common.View uiView     = new org.structr.common.View(View.class, PropertyView.Ui, query);
+	public static final org.structr.common.View publicView = new org.structr.common.View(View.class, PropertyView.Public, query);
+
+	//~--- static initializers --------------------------------------------
+
 	static {
-			
+
 		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.fulltext.name(), publicView.properties());
-		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(),  publicView.properties());
+		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(), publicView.properties());
 
 	}
 
@@ -75,7 +82,7 @@ public class View extends HtmlElement {
 		try {
 
 			return (List<GraphObject>) Services.command(securityContext, CypherQueryCommand.class).execute(getQuery(request));
-			
+
 		} catch (Throwable t) {
 
 			t.printStackTrace();
@@ -87,7 +94,7 @@ public class View extends HtmlElement {
 	}
 
 	protected String getQuery(HttpServletRequest request) {
-		
+
 		String rawQuery = getProperty(query);
 		String query    = rawQuery;
 
@@ -98,8 +105,7 @@ public class View extends HtmlElement {
 
 			while (matcher.find()) {
 
-				String key = matcher.group(1);
-
+				String key   = matcher.group(1);
 				String value = request.getParameter(key);
 
 				if (StringUtils.isNotEmpty(value)) {
@@ -110,10 +116,11 @@ public class View extends HtmlElement {
 			}
 
 		}
-		
+
 		return query;
+
 	}
-	
+
 //      public static void main(String[] args) throws Exception {
 //              
 //              String rawQuery = "START n=node:keywordAllNodes(type='Page') MATCH n-[:CONTAINS*]->child WHERE (child.type = 'Content' AND child.content =~ /.*${request.search}.*/) RETURN DISTINCT n";
@@ -131,9 +138,51 @@ public class View extends HtmlElement {
 //                      }       
 //              
 //      }
-
 	@Override
 	public short getNodeType() {
+
 		return ELEMENT_NODE;
+
 	}
+
+	@Override
+	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+
+		double startView = System.nanoTime();
+		
+		HttpServletRequest request = renderContext.getRequest();
+		Condition condition = renderContext.getCondition();
+		String pageId = renderContext.getPageId();
+		String localComponentId = renderContext.getComponentId();
+
+		// fetch query results
+		List<GraphObject> results = getGraphObjects(request);
+		double endView            = System.nanoTime();
+
+		logger.log(Level.FINE, "Get graph objects for {0} in {1} seconds", new java.lang.Object[] { getUuid(), decimalFormat.format((endView - startView) / 1000000000.0) });
+
+		for (GraphObject result : results) {
+
+			// recursively render children
+			List<AbstractRelationship> rels = Component.getChildRelationships(request, this);
+
+			for (AbstractRelationship rel : rels) {
+
+				if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+
+					HtmlElement subNode = (HtmlElement) rel.getEndNode();
+
+					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
+
+						subNode.getContent(securityContext, renderContext, depth + 1);
+
+					}
+
+				}
+
+			}
+		}
+
+	}
+
 }
