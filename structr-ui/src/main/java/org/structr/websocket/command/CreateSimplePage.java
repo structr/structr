@@ -46,8 +46,8 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.relation.ChildrenRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -141,14 +141,8 @@ public class CreateSimplePage extends AbstractCommand {
 		nodeData.put(AbstractNode.visibleToAuthenticatedUsers, true);
 
 		PropertyMap relData = new PropertyMap();
-
-		if (page != null) {
-
-			String pageId = page.getUuid();
-
-			relData.put(new LongProperty(pageId), position);
-
-		}
+		
+		relData.put(ChildrenRelationship.position, position);
 
 		nodeData.put(AbstractNode.type, type);
 

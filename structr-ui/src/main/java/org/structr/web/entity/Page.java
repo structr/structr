@@ -21,19 +21,27 @@
 
 package org.structr.web.entity;
 
+import org.apache.commons.lang.StringUtils;
 
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Linkable;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeService;
 import org.structr.core.property.EntityProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.html.Html;
 import org.structr.web.entity.html.HtmlElement;
+
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -50,6 +58,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.List;
+import java.util.logging.Level;
+
+import javax.servlet.http.HttpServletRequest;
+
 //~--- classes ----------------------------------------------------------------
 
 /**
@@ -60,230 +75,347 @@ import org.w3c.dom.Text;
  */
 public class Page extends HtmlElement implements Linkable, Document, DocumentType, DOMImplementation {
 
-	public static final Property<String>              contentType     = new StringProperty("contentType");
-	public static final Property<Integer>             cacheForSeconds = new IntProperty("cacheForSeconds");
+	public static final Property<String> contentType       = new StringProperty("contentType");
+	public static final Property<Integer> cacheForSeconds  = new IntProperty("cacheForSeconds");
+	public static final EntityProperty<Html> html          = new EntityProperty<Html>("html", Html.class, RelType.CONTAINS, true);
+	public static final org.structr.common.View uiView     = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version);
+	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public, linkingElements, contentType, owner, cacheForSeconds, version);
 
-	public static final EntityProperty<Html>          html            = new EntityProperty<Html>("html", Html.class, RelType.CONTAINS, true);
-	
-	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		contentType, owner, cacheForSeconds, version
-	);
-	
-	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		linkingElements, contentType, owner, cacheForSeconds, version
-	);
-		
+	//~--- static initializers --------------------------------------------
+
 	static {
-		
+
 		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
+		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
+
 	}
 
-	//~--- constant enums -------------------------------------------------
-	
+	//~--- methods --------------------------------------------------------
+
 	public void increaseVersion() throws FrameworkException {
-		
+
 		Long _version = getProperty(Page.version);
-		
+
 		if (_version == null) {
-			
+
 			setProperty(Page.version, 1L);
-			
 		} else {
-			
-			setProperty(Page.version, _version+1);
+
+			setProperty(Page.version, _version + 1);
 		}
-		
-	}
 
-	@Override
-	public short getNodeType() {
-		return Element.DOCUMENT_NODE;
-	}
-
-	@Override
-	public DocumentType getDoctype() {
-		return this;
-	}
-
-	@Override
-	public DOMImplementation getImplementation() {
-		return this;
-	}
-
-	@Override
-	public Element getDocumentElement() {
-		return this;
 	}
 
 	@Override
 	public Element createElement(String string) throws DOMException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public DocumentFragment createDocumentFragment() {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public Text createTextNode(String string) {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public Comment createComment(String string) {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public CDATASection createCDATASection(String string) throws DOMException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public ProcessingInstruction createProcessingInstruction(String string, String string1) throws DOMException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public Attr createAttribute(String string) throws DOMException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public EntityReference createEntityReference(String string) throws DOMException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public Node importNode(Node node, boolean bln) throws DOMException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public Element createElementNS(String string, String string1) throws DOMException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public Attr createAttributeNS(String string, String string1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
 
-	@Override
-	public Element getElementById(String string) {
 		throw new UnsupportedOperationException("Not supported yet.");
-	}
 
-	@Override
-	public String getInputEncoding() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public String getXmlEncoding() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public boolean getXmlStandalone() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void setXmlStandalone(boolean bln) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public String getXmlVersion() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void setXmlVersion(String string) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public boolean getStrictErrorChecking() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void setStrictErrorChecking(boolean bln) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public String getDocumentURI() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void setDocumentURI(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public Node adoptNode(Node node) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
 
-	@Override
-	public DOMConfiguration getDomConfig() {
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public void normalizeDocument() {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public Node renameNode(Node node, String string, String string1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
 
-	@Override
-	public NamedNodeMap getEntities() {
 		throw new UnsupportedOperationException("Not supported yet.");
-	}
 
-	@Override
-	public NamedNodeMap getNotations() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public String getPublicId() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public String getSystemId() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public String getInternalSubset() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public boolean hasFeature(String string, String string1) {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public DocumentType createDocumentType(String string, String string1, String string2) throws DOMException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 	@Override
 	public Document createDocument(String string, String string1, DocumentType dt) throws DOMException {
+
 		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public short getNodeType() {
+
+		return Element.DOCUMENT_NODE;
+
+	}
+
+	@Override
+	public DocumentType getDoctype() {
+
+		return this;
+
+	}
+
+	@Override
+	public DOMImplementation getImplementation() {
+
+		return this;
+
+	}
+
+	@Override
+	public Element getDocumentElement() {
+
+		return this;
+
+	}
+
+	@Override
+	public Element getElementById(String string) {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getInputEncoding() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getXmlEncoding() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public boolean getXmlStandalone() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getXmlVersion() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public boolean getStrictErrorChecking() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getDocumentURI() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public DOMConfiguration getDomConfig() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public NamedNodeMap getEntities() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public NamedNodeMap getNotations() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getPublicId() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getSystemId() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public String getInternalSubset() {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+
+		HttpServletRequest request = securityContext.getRequest();
+		Condition condition        = renderContext.getCondition();
+		
+		renderContext.setPage(this);
+
+//              if (!edit) {
+//
+//                      Date nodeLastMod = startNode.getLastModifiedDate();
+//
+//                      if ((lastModified == null) || nodeLastMod.after(lastModified)) {
+//
+//                              lastModified = nodeLastMod;
+//
+//                      }
+//
+//              }
+		
+		renderContext.getBuffer().append("<!DOCTYPE html>\n");
+
+		// recursively render children
+		List<AbstractRelationship> rels = Component.getChildRelationships(request, this);
+
+		for (AbstractRelationship rel : rels) {
+
+			if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+
+				HtmlElement subNode = (HtmlElement) rel.getEndNode();
+
+				if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
+
+					subNode.getContent(securityContext, renderContext, depth + 1);
+				}
+
+			}
+
+		}
+
+	}
+
+	@Override
+	public boolean hasFeature(String string, String string1) {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	@Override
+	public void setXmlStandalone(boolean bln) throws DOMException {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public void setXmlVersion(String string) throws DOMException {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public void setStrictErrorChecking(boolean bln) {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
+	}
+
+	@Override
+	public void setDocumentURI(String string) {
+
+		throw new UnsupportedOperationException("Not supported yet.");
+
 	}
 
 }

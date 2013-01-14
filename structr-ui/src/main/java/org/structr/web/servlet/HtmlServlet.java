@@ -72,6 +72,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.structr.core.property.GenericProperty;
+import org.structr.web.common.RenderContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -90,6 +91,8 @@ public class HtmlServlet extends HttpServlet {
 	public static final String LAST_GET_URL = "lastGetUrl";
 	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
 
+	
+	public static SearchNodeCommand searchNodesAsSuperuser;
 	//~--- fields ---------------------------------------------------------
 
 
@@ -98,6 +101,11 @@ public class HtmlServlet extends HttpServlet {
 	private Gson gson;
 
 	//~--- methods --------------------------------------------------------
+	@Override
+	public void init() {
+		
+		 searchNodesAsSuperuser = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+	}
 
 	private String postToRestUrl(HttpServletRequest request, final String pagePath, final Map<String, Object> parameters) {
 
@@ -223,6 +231,7 @@ public class HtmlServlet extends HttpServlet {
 			logger.log(Level.FINE, "Path info {0}", path);
 			
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
+			RenderContext renderContext = RenderContext.getInstance(request, response, Locale.getDefault());
 			
 			org.structr.core.entity.File file = findFile(request, path);
 			HtmlElement rootElement = null;
@@ -298,14 +307,6 @@ public class HtmlServlet extends HttpServlet {
 				*/
 			}
 			
-			edit = false;
-
-			if (request.getParameter("edit") != null) {
-
-				edit = true;
-
-			}
-
 			/*
 			if (rootElement == null && file == null) {
 				
@@ -345,7 +346,8 @@ public class HtmlServlet extends HttpServlet {
 
 				PrintWriter out            = response.getWriter();
 				String uuid                = rootElement.getProperty(AbstractNode.uuid);
-				final StringBuilder buffer = new StringBuilder(8192);
+				
+				
 				
 				List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
 				Map<String, String[]> parameterMap = request.getParameterMap();
@@ -366,9 +368,9 @@ public class HtmlServlet extends HttpServlet {
 
 				} else {
 					
-					rootElement.getContent(securityContext, buffer);
+					rootElement.getContent(securityContext, renderContext, 0);
 
-					String content = buffer.toString();
+					String content = renderContext.getBuffer().toString();
 					double end     = System.nanoTime();
 					logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
 
@@ -392,7 +394,6 @@ public class HtmlServlet extends HttpServlet {
 					}
 
 					// 3: output content
-					out.append("<!DOCTYPE html>\n");
 					HttpAuthenticator.writeContent(content, response);
 
 				}

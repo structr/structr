@@ -21,10 +21,27 @@
 
 package org.structr.web.entity;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeService;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.html.HtmlElement;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -34,18 +51,61 @@ import org.structr.core.graph.NodeService;
  */
 public class SearchResultView extends View {
 
-	public static final org.structr.common.View uiView = new org.structr.common.View(SearchResultView.class, PropertyView.Ui,
-		type, name, query
-	);
-	
-	public static final org.structr.common.View publicView = new org.structr.common.View(SearchResultView.class, PropertyView.Public,
-		type, name, query
-	);
-	
+	private static final Logger logger                     = Logger.getLogger(SearchResultView.class.getName());
+	private DecimalFormat decimalFormat                                            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	public static final org.structr.common.View uiView     = new org.structr.common.View(SearchResultView.class, PropertyView.Ui, type, name, query);
+	public static final org.structr.common.View publicView = new org.structr.common.View(SearchResultView.class, PropertyView.Public, type, name, query);
+
+	//~--- static initializers --------------------------------------------
+
 	static {
-		
+
 		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
+		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
 
 	}
+
+	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+
+		HttpServletRequest request   = renderContext.getRequest();
+		Condition condition          = renderContext.getCondition();
+		Page page                    = renderContext.getPage();
+		double startSearchResultView = System.nanoTime();
+		String searchString          = (String) request.getParameter("search");
+
+		if ((request != null) && StringUtils.isNotBlank(searchString)) {
+
+			for (Page resultPage : getResultPages(securityContext, page)) {
+
+				// recursively render children
+				List<AbstractRelationship> rels = Component.getChildRelationships(request, resultPage);
+
+				for (AbstractRelationship rel : rels) {
+
+					if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+
+						HtmlElement subNode = (HtmlElement) rel.getEndNode();
+
+						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
+
+							subNode.getContent(securityContext, renderContext, depth + 1);
+						}
+
+					}
+
+				}
+			}
+
+		}
+
+		double endSearchResultView = System.nanoTime();
+
+		logger.log(Level.FINE, "Get graph objects for search {0} in {1} seconds", new java.lang.Object[] { searchString,
+			decimalFormat.format((endSearchResultView - startSearchResultView) / 1000000000.0) });
+
+	}
+
 }

@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.select.Elements;
+import org.structr.web.entity.relation.ChildrenRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -183,14 +184,7 @@ public class CreatePageTest extends StructrUiTest {
 		nodeData.put(AbstractNode.visibleToPublicUsers, true);
 
 		PropertyMap relData = new PropertyMap();
-
-		if (page != null) {
-
-			String pageId = page.getUuid();
-
-			relData.put(new LongProperty(pageId), position);
-
-		}
+		relData.put(ChildrenRelationship.position, position);
 
 		nodeData.put(AbstractNode.type, type);
 
