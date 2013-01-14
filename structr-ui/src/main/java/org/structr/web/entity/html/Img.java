@@ -79,4 +79,8 @@ public class Img extends HtmlElement {
 
 	}
 
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

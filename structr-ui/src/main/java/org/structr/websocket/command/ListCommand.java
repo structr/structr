@@ -38,6 +38,8 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.neo4j.graphdb.Direction;
+import org.structr.common.RelType;
 import org.structr.core.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
@@ -85,7 +87,7 @@ public class ListCommand extends AbstractCommand {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (RelationshipHelper.hasChildren(node, node.getUuid())) {
+					if (node.hasRelationship(RelType.CONTAINS, Direction.OUTGOING)) {
 
 						nodesWithChildren.add(node.getUuid());
 					}

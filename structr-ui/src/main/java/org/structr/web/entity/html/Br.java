@@ -21,11 +21,6 @@
 
 package org.structr.web.entity.html;
 
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
-
-//~--- classes ----------------------------------------------------------------
-
 /**
  * @author Axel Morgner
  */
@@ -46,6 +41,11 @@ public class Br extends HtmlElement {
 
 		return true;
 
+	}
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
 	}
 
 }

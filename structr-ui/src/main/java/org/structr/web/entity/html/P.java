@@ -86,4 +86,9 @@ public class P extends HtmlElement {
 	public static final CollectionProperty<Var>      vars      = new CollectionProperty<Var>("vars", Var.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Video>    videos    = new CollectionProperty<Video>("videos", Video.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Wbr>      wbrs      = new CollectionProperty<Wbr>("wbrs", Wbr.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

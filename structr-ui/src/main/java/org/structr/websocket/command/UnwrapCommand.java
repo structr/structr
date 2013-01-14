@@ -22,16 +22,12 @@
 package org.structr.websocket.command;
 
 
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -48,7 +44,7 @@ import java.util.logging.Logger;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.web.entity.Element;
+import org.structr.web.entity.html.HtmlElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -102,7 +98,7 @@ public class UnwrapCommand extends AbstractCommand {
 
 						try {
 
-							Element.elements.createRelationship(securityContext, newComponent, nodeToWrap, relProps);
+							HtmlElement.children.createRelationship(securityContext, newComponent, nodeToWrap, relProps);
 
 						} catch (Throwable t) {
 
@@ -110,7 +106,7 @@ public class UnwrapCommand extends AbstractCommand {
 
 						}
 
-						tagOutgoingRelsWithComponentId(newComponent, newComponent, componentId);
+						// tagOutgoingRelsWithComponentId(newComponent, newComponent, componentId);
 
 					} else {
 
@@ -143,6 +139,7 @@ public class UnwrapCommand extends AbstractCommand {
 
 	}
 
+	/*
 	private void tagOutgoingRelsWithComponentId(final AbstractNode startNode, final AbstractNode node, final String componentId) throws FrameworkException {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
@@ -163,7 +160,8 @@ public class UnwrapCommand extends AbstractCommand {
 		}
 
 	}
-
+	*/
+	
 	//~--- get methods ----------------------------------------------------
 
 	@Override

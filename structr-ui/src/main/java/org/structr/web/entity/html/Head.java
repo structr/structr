@@ -40,4 +40,9 @@ public class Head extends HtmlElement {
 	public static final CollectionProperty<Link>   links   = new CollectionProperty<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Meta>   metas   = new CollectionProperty<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Base>   bases   = new CollectionProperty<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

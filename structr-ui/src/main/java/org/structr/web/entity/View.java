@@ -28,7 +28,6 @@ import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CypherQueryCommand;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -42,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.web.entity.html.HtmlElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,16 +49,16 @@ import org.structr.core.graph.NodeService.NodeIndex;
  *
  * @author Christian Morgner
  */
-public class View extends AbstractNode implements Element {
+public class View extends HtmlElement {
 
 	public static final Property<String> query = new StringProperty("query");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(View.class, PropertyView.Ui,
-		type, name, query, paths
+		query
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(View.class, PropertyView.Public,
-		type, name, query, paths
+		query
 	);
 	
 	static {
@@ -132,4 +132,8 @@ public class View extends AbstractNode implements Element {
 //              
 //      }
 
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

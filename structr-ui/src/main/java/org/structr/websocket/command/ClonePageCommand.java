@@ -24,7 +24,6 @@ package org.structr.websocket.command;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -46,8 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.AbstractRelationProperty;
-import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.html.HtmlElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -121,7 +119,7 @@ public class ClonePageCommand extends AbstractCommand {
 
 							try {
 
-								Page.elements.createRelationship(securityContext, newPage, htmlNode, relProps);
+								HtmlElement.children.createRelationship(securityContext, newPage, htmlNode, relProps);
 
 							} catch (Throwable t) {
 

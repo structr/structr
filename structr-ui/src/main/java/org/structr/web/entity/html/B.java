@@ -45,6 +45,8 @@ public class B extends HtmlElement {
 
 	}
 
-	;
-
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

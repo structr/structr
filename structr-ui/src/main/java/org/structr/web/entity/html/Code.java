@@ -21,16 +21,6 @@
 
 package org.structr.web.entity.html;
 
-import org.neo4j.graphdb.Direction;
-
-import org.structr.common.PropertyView;
-import org.structr.common.RelType;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.Relation;
-import org.structr.web.entity.Content;
-
-//~--- classes ----------------------------------------------------------------
-
 /**
  * @author Axel Morgner
  */
@@ -54,6 +44,9 @@ public class Code extends HtmlElement {
 
 	}
 
-	;
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 
 }

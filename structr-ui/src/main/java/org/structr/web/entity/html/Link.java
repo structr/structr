@@ -75,4 +75,8 @@ public class Link extends HtmlElement {
 
 	}
 
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

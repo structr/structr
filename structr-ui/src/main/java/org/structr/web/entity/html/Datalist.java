@@ -39,4 +39,9 @@ public class Datalist extends HtmlElement {
 //
 //	}
 //
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

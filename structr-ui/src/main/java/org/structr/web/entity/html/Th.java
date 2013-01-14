@@ -59,4 +59,9 @@ public class Th extends HtmlElement {
 	public static final CollectionProperty<Form>     forms     = new CollectionProperty<Form>("forms", Form.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Script>   scripts   = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Pre>      pres      = new CollectionProperty<Pre>("pres", Pre.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

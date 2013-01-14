@@ -65,10 +65,12 @@ public class DynamicValidator extends PropertyValidator {
 				String dataKey = content.getProperty(Content.content);
 				String parentComponentId = null;
 				
+				/*
 				Component component = content.getParentComponent();
 				if (component != null) {
 					parentComponentId = component.getComponentId();
 				}
+				*/
 				
 				TypeDefinition typeDefinition = content.getTypeDefinition();
 				if (typeDefinition != null) {

@@ -256,7 +256,7 @@ public class DynamicTypeResource extends TypeResource {
 		templateProperties.put(AbstractNode.visibleToAuthenticatedUsers, template.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
 
 		// use parentId from template
-		String parentComponentId = template.getComponentId();
+		String parentComponentId = ""; //template.getComponentId();
 
 		propertySet.remove("pageId");
 
@@ -386,6 +386,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		long pos = 0;
 
+		/* FIXME!
 		for (final GraphObject template : templates) {
 
 			if (template instanceof Component) {
@@ -401,7 +402,8 @@ public class DynamicTypeResource extends TypeResource {
 			}
 
 		}
-
+		*/
+		
 		return pos;
 
 	}

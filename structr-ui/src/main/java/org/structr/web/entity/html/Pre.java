@@ -42,4 +42,8 @@ public class Pre extends HtmlElement {
 
 	}
 
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

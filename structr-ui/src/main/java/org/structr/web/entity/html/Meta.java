@@ -66,4 +66,8 @@ public class Meta extends HtmlElement {
 
 	}
 
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

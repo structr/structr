@@ -24,11 +24,9 @@ package org.structr.websocket.command;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
@@ -50,8 +48,7 @@ import java.util.logging.Logger;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.AbstractRelationProperty;
-import org.structr.web.entity.Element;
+import org.structr.web.entity.html.HtmlElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -185,7 +182,7 @@ public class AddCommand extends AbstractCommand {
 							// convertFromInput relationship properties
 							PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 							
-							Element.elements.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
+							HtmlElement.children.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
 							
 							logger.log(Level.INFO, "Created new relationship between parent node {0}, added node {1} ({2})", new Object[] { parentNode.getUuid(),
 								nodeToAdd.getUuid(), relData });
@@ -252,7 +249,7 @@ public class AddCommand extends AbstractCommand {
 							// convertFromInput relationship properties
 							PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 							
-							Element.elements.createRelationship(securityContext, nodeToAdd, contentNode, relProperties);
+							HtmlElement.children.createRelationship(securityContext, nodeToAdd, contentNode, relProperties);
 
 							// set page ID on copied branch
 							if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {

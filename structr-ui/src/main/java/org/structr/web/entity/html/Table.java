@@ -36,4 +36,9 @@ public class Table extends HtmlElement {
 	public static final CollectionProperty<Tr>    trs    = new CollectionProperty<Tr>("trs", Tr.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Thead> theads = new CollectionProperty<Thead>("theads", Thead.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Tbody> tbodys = new CollectionProperty<Tbody>("tbodys", Tbody.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

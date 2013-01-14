@@ -36,8 +36,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.PropertyKey;
+import org.neo4j.graphdb.Direction;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,60 +58,38 @@ public class ChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		String pageId                    = (String) webSocketData.getNodeData().get("pageId");
-		String componentId               = (String) webSocketData.getNodeData().get("componentId");
-		List<AbstractRelationship> rels  = node.getOutgoingRelationships(RelType.CONTAINS);
-		Map<Long, GraphObject> sortMap   = new TreeMap<Long, GraphObject>();
-		Set<String> nodesWithChildren    = new HashSet<String>();
-		List<GraphObject> result         = new LinkedList<GraphObject>();
-		PropertyKey<Long> pageIdProperty = new LongProperty(pageId);
+		List<AbstractRelationship> rels   = node.getOutgoingRelationships(RelType.CONTAINS);
+		Map<Integer, GraphObject> sortMap = new TreeMap<Integer, GraphObject>();
+		Set<String> nodesWithChildren     = new HashSet<String>();
+		List<GraphObject> result          = new LinkedList<GraphObject>();
 
 		for (AbstractRelationship rel : rels) {
 
 			AbstractNode endNode = rel.getEndNode();
-
 			if (endNode == null) {
 
 				continue;
 			}
 
+			if (endNode.hasRelationship(RelType.CONTAINS, Direction.OUTGOING)) {
+
+				nodesWithChildren.add(endNode.getProperty(GraphObject.uuid));
+			}
+			
 			if ((node instanceof Group) || (node instanceof Folder)) {
 
 				result.add(endNode);
-				nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, null));
-
 				continue;
 
 			}
 
-			if (pageId == null) {
-
-				return;
-			}
-
-			Long pos = null;
-
-			if (rel.getLongProperty(pageIdProperty) != null) {
-
-				pos = rel.getLongProperty(pageIdProperty);
-				
-			} else {
-
-				// Try "*"
-				pos = rel.getLongProperty(new LongProperty("*"));
-			}
-
-			String relCompId             = rel.getProperty(Component.componentId);
-			boolean isComponentOrContent = ((endNode instanceof Component) || (endNode instanceof Content));
-
-			if (pos == null || (isComponentOrContent && relCompId != null && !relCompId.equals(componentId))) {
+			Integer pos = rel.getProperty(Component.position);
+			if (pos == null) {
 
 				continue;
 			}
-
-			nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, pageId));
+			
 			sortMap.put(pos, endNode);
-
 		}
 
 		if (!sortMap.isEmpty()) {

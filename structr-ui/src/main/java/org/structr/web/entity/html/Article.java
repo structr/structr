@@ -41,4 +41,9 @@ public class Article extends HtmlElement {
 	public static final CollectionProperty<H6>  h6s  = new CollectionProperty<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<P>   ps   = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Div> divs = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.Element;
+import org.structr.web.entity.html.HtmlElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,7 +95,7 @@ public class InsertCommand extends AbstractCommand {
 				try {
 
 					PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
-					Element.elements.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
+					HtmlElement.children.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
 
 				} catch (Throwable t) {
 

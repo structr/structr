@@ -55,4 +55,8 @@ public class Span extends HtmlElement {
 
 	}
 
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

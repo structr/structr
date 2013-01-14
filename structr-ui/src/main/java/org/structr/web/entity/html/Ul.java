@@ -21,7 +21,6 @@
 
 package org.structr.web.entity.html;
 
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
 import org.structr.core.property.CollectionProperty;
@@ -34,4 +33,9 @@ import org.structr.core.property.CollectionProperty;
 public class Ul extends HtmlElement {
 
 	public static final CollectionProperty<Li> lis = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, false);
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

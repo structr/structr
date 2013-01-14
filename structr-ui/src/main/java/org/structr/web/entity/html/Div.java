@@ -62,4 +62,9 @@ public class Div extends HtmlElement {
 	public static final CollectionProperty<Script>   scripts   = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Table>    tables    = new CollectionProperty<Table>("tables", Table.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Pre>      pres      = new CollectionProperty<Pre>("pres", Pre.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

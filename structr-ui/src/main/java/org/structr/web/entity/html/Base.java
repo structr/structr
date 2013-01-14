@@ -68,4 +68,9 @@ public class Base extends HtmlElement {
 
 	}
 
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
+
 }

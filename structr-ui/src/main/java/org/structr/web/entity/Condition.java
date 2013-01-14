@@ -21,12 +21,9 @@
 
 package org.structr.web.entity;
 
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeService;
 
@@ -35,7 +32,7 @@ import org.structr.core.graph.NodeService;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.core.property.CollectionProperty;
+import org.structr.web.entity.html.HtmlElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -43,18 +40,16 @@ import org.structr.core.property.CollectionProperty;
  *
  * @author Christian Morgner
  */
-public class Condition extends AbstractNode {
+public class Condition extends HtmlElement {
 
 	public static final Property<String>            query    = new StringProperty("query");
-	public static final CollectionProperty<Page>    pages    = new CollectionProperty<Page>("pages", Page.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<Element> elements = new CollectionProperty<Element>("elements", Element.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Condition.class, PropertyView.Ui,
-		type, name, query
+		query
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(Condition.class, PropertyView.Public,
-		type, name, query
+		query
 	);
 
 	static {
@@ -68,6 +63,9 @@ public class Condition extends AbstractNode {
 
 	public boolean isSatisfied(HttpServletRequest request, AbstractRelationship rel) {
 
+		// FIXME
+		
+		/*
 		String uuid          = rel.getProperty(Component.componentId);
 		String requestedUuid = (String) request.getParameter("id");
 
@@ -75,9 +73,14 @@ public class Condition extends AbstractNode {
 
 			return uuid.equals(requestedUuid);
 		}
-
+		*/
+		
 		return false;
 
 	}
 
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

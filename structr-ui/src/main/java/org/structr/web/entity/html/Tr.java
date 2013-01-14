@@ -35,4 +35,9 @@ public class Tr extends HtmlElement {
 
 	public static final CollectionProperty<Td> tds = new CollectionProperty<Td>("tds", Td.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Th> ths = new CollectionProperty<Th>("ths", Th.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

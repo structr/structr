@@ -61,4 +61,9 @@ public class Body extends HtmlElement {
 	public static final CollectionProperty<Ol>         ols         = new CollectionProperty<Ol>("ols", Ol.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Form>       forms       = new CollectionProperty<Form>("forms", Form.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Script>     scripts     = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }

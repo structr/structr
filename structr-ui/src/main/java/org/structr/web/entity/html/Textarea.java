@@ -77,4 +77,9 @@ public class Textarea extends HtmlElement {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
 }
