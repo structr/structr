@@ -747,8 +747,7 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 	}
 
-	// ----- getContent -----
-	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		double start = System.nanoTime();
 		
@@ -837,7 +836,7 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 				if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-					subNode.getContent(securityContext, renderContext, depth + 1);
+					subNode.render(securityContext, renderContext, depth + 1);
 				}
 
 			}

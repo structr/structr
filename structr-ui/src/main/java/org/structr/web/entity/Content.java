@@ -236,7 +236,7 @@ public class Content extends HtmlElement {
 	}
 
 	@Override
-	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		String id            = getUuid();
 		boolean edit         = renderContext.getEdit();

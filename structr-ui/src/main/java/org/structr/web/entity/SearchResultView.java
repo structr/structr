@@ -68,7 +68,7 @@ public class SearchResultView extends View {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		HttpServletRequest request   = renderContext.getRequest();
 		Condition condition          = renderContext.getCondition();
@@ -91,7 +91,7 @@ public class SearchResultView extends View {
 
 						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-							subNode.getContent(securityContext, renderContext, depth + 1);
+							subNode.render(securityContext, renderContext, depth + 1);
 						}
 
 					}

@@ -146,7 +146,7 @@ public class View extends HtmlElement {
 	}
 
 	@Override
-	public void getContent(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		double startView = System.nanoTime();
 		
@@ -174,7 +174,7 @@ public class View extends HtmlElement {
 
 					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-						subNode.getContent(securityContext, renderContext, depth + 1);
+						subNode.render(securityContext, renderContext, depth + 1);
 
 					}
 
