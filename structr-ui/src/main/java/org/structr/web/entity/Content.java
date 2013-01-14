@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.structr.common.Permission;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.EntityIdProperty;
@@ -89,6 +90,10 @@ public class Content extends HtmlElement implements Text {
 	public static final org.structr.common.View publicView                                = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, dataKey,
 													typeDefinitionId);
 
+	// error messages for DOMExceptions
+	private static final String NO_MODIFICATION_ALLOWED_MESSAGE                           = "Permission denied";
+	private static final String INDEX_SIZE_ERR_MESSAGE                                    = "Index out of range";
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -293,31 +298,75 @@ public class Content extends HtmlElement implements Text {
 	
 	@Override
 	public Text splitText(int i) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		checkWriteAccess();
+		
+		String text = getProperty(content);
+		
+		if (text != null) {
+
+			int len = text.length();
+			
+			if (i < 0 || i > len) {
+				
+				throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
+				
+			} else {
+				
+				// TODO: split content on i, create new Content
+				// node and store both in database
+				
+			}
+		}
+		
+		throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);		
 	}
 
 	@Override
 	public boolean isElementContentWhitespace() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		
+		String text = getProperty(content);
+		
+		if (text != null) {
+		
+			// FIXME: is that correct?
+			return text.matches("[\\w]+");
+		}
+		
+		return false;
 	}
 
 	@Override
 	public String getWholeText() {
+
+		// TODO: collect content (rendered or not??) current
+		// and adjacent nodes and return concatenated result
+		
+		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public Text replaceWholeText(String string) throws DOMException {
+		
+		checkWriteAccess();
+		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public String getData() throws DOMException {
+		
+		checkWriteAccess();
+		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public void setData(String string) throws DOMException {
+		
+		checkWriteAccess();
+		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -333,22 +382,44 @@ public class Content extends HtmlElement implements Text {
 
 	@Override
 	public void appendData(String string) throws DOMException {
+		
+		checkWriteAccess();
+		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public void insertData(int i, String string) throws DOMException {
+		
+		checkWriteAccess();
+		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public void deleteData(int i, int i1) throws DOMException {
+		
+		checkWriteAccess();
+			
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public void replaceData(int i, int i1, String string) throws DOMException {
+		
+		checkWriteAccess();
+		
 		throw new UnsupportedOperationException("Not supported yet.");
+	}
+	
+	// ----- private methods -----
+	private void checkWriteAccess() throws DOMException {
+		
+		if (!securityContext.isAllowed(this, Permission.write)) {
+			
+			// FIXME: fill in appropriate error message
+			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
+		}
 	}
 
 	//~--- inner classes --------------------------------------------------

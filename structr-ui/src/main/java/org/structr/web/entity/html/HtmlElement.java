@@ -535,6 +535,9 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 	@Override
 	public void normalize() {
 
+		// TODO: normalize #text nodes, i.e. combine adjacent text
+		// nodes into a single one
+		
 		throw new UnsupportedOperationException("Not supported yet.");
 
 	}
@@ -1418,7 +1421,6 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 	//~--- inner classes --------------------------------------------------
 
-	// ----- nested classes -----
 	private static class StructrNodeList extends ArrayList<HtmlElement> implements NodeList {
 
 		public StructrNodeList(List<HtmlElement> children) {
