@@ -52,6 +52,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.structr.core.Services;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.EntityIdProperty;
@@ -59,12 +62,14 @@ import org.structr.core.property.EntityProperty;
 import org.structr.web.entity.html.HtmlElement;
 import org.structr.web.property.DynamicContentProperty;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Text;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Represents a content node
+ * Represents a content node. This class implements the org.w3c.dom.Text interface.
+ * All methods in the W3C Text interface are based on the raw database content.
  *
  * @author Axel Morgner
  */
@@ -245,21 +250,21 @@ public class Content extends HtmlElement implements Text {
 		}
 
 		// fetch content with variable replacement
-		String content = getPropertyWithVariableReplacement(renderContext, Content.content);
+		String _content = getPropertyWithVariableReplacement(renderContext, Content.content);
 
 		// examine content type and apply converter
-		String contentType = getProperty(Content.contentType);
+		String _contentType = getProperty(Content.contentType);
 
-		if (contentType != null) {
+		if (_contentType != null) {
 
-			Adapter<String, String> converter = contentConverters.get(contentType);
+			Adapter<String, String> converter = contentConverters.get(_contentType);
 
 			if (converter != null) {
 
 				try {
 
 					// apply adapter
-					content = converter.adapt(content);
+					_content = converter.adapt(_content);
 				} catch (FrameworkException fex) {
 
 					logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
@@ -271,14 +276,14 @@ public class Content extends HtmlElement implements Text {
 		}
 
 		// replace newlines with <br /> for rendering
-		if (((contentType == null) || contentType.equals("text/plain")) && (content != null) && !content.isEmpty()) {
+		if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
 
-			content = content.replaceAll("[\\n]{1}", "<br>");
+			_content = _content.replaceAll("[\\n]{1}", "<br>");
 		}
 
-		if (content != null) {
+		if (_content != null) {
 
-			buffer.append(indent(depth, true)).append(content);
+			buffer.append(indent(depth, true)).append(_content);
 		}
 		
 		if (edit && inBody) {
@@ -291,7 +296,7 @@ public class Content extends HtmlElement implements Text {
 	// ----- interface org.w3c.dom.Text -----
 	
 	@Override
-	public Text splitText(int i) throws DOMException {
+	public Text splitText(int offset) throws DOMException {
 
 		checkWriteAccess();
 		
@@ -301,15 +306,44 @@ public class Content extends HtmlElement implements Text {
 
 			int len = text.length();
 			
-			if (i < 0 || i > len) {
+			if (offset < 0 || offset > len) {
 				
 				throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
 				
 			} else {
 				
-				// TODO: split content on i, create new Content
-				// node and store both in database
+				final String firstPart  = text.substring(0, offset);
+				final String secondPart = text.substring(offset);
 				
+				final Document document  = getOwnerDocument();
+				final HtmlElement parent = getParent();
+				
+				if (document != null && parent != null) {
+					
+					try {
+
+						return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Text>() {
+
+							@Override
+							public Text execute() throws FrameworkException {
+
+								// first part goes into existing text element
+								setProperty(content, firstPart);
+								
+								// second part goes into new text element
+								return document.createTextNode(secondPart);
+							}
+						});
+
+					} catch (FrameworkException fex) {
+			
+						throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+					}					
+					
+				} else {
+						
+					throw new DOMException(DOMException.INVALID_STATE_ERR, CANNOT_SPLIT_TEXT_WITHOUT_PARENT);
+				}
 			}
 		}
 		
@@ -319,12 +353,13 @@ public class Content extends HtmlElement implements Text {
 	@Override
 	public boolean isElementContentWhitespace() {
 		
+		checkReadAccess();
+		
 		String text = getProperty(content);
 		
 		if (text != null) {
 		
-			// FIXME: is that correct?
-			return text.matches("[\\w]+");
+			return text.matches("[\\s]+");
 		}
 		
 		return false;
@@ -332,6 +367,8 @@ public class Content extends HtmlElement implements Text {
 
 	@Override
 	public String getWholeText() {
+		
+		checkReadAccess();
 
 		// TODO: collect content (rendered or not??) current
 		// and adjacent nodes and return concatenated result
@@ -351,17 +388,24 @@ public class Content extends HtmlElement implements Text {
 	@Override
 	public String getData() throws DOMException {
 		
-		checkWriteAccess();
+		checkReadAccess();
 		
-		throw new UnsupportedOperationException("Not supported yet.");
+		return getProperty(content);
 	}
 
 	@Override
-	public void setData(String string) throws DOMException {
+	public void setData(String data) throws DOMException {
 		
 		checkWriteAccess();
 		
-		throw new UnsupportedOperationException("Not supported yet.");
+		try {
+			
+			setProperty(content, data);
+			
+		} catch (FrameworkException fex) {
+			
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
 	}
 
 	@Override
@@ -379,39 +423,115 @@ public class Content extends HtmlElement implements Text {
 
 	@Override
 	public String substringData(int offset, int count) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		
+		checkReadAccess();
+
+		String text = getProperty(content);
+		
+		if (text != null) {
+
+			try {
+				
+				return text.substring(offset, offset + count);
+				
+			} catch (IndexOutOfBoundsException iobex) {
+				
+				throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
+			}
+		}
+		
+		return "";
 	}
 
 	@Override
-	public void appendData(String string) throws DOMException {
+	public void appendData(String data) throws DOMException {
 		
 		checkWriteAccess();
 		
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void insertData(int i, String string) throws DOMException {
+		String text = getProperty(content);
 		
-		checkWriteAccess();
-		
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void deleteData(int i, int i1) throws DOMException {
-		
-		checkWriteAccess();
+		// finally, set content to concatenated text and data
+		try {
 			
-		throw new UnsupportedOperationException("Not supported yet.");
+			setProperty(content, text.concat(data));
+			
+		} catch (FrameworkException fex) {
+			
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
 	}
 
 	@Override
-	public void replaceData(int i, int i1, String string) throws DOMException {
+	public void insertData(int offset, String data) throws DOMException {
 		
 		checkWriteAccess();
 		
-		throw new UnsupportedOperationException("Not supported yet.");
+		String text = getProperty(content);
+
+		String leftPart  = text.substring(0, offset);
+		String rightPart = text.substring(offset);
+
+		StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
+		buf.append(leftPart);
+		buf.append(data);
+		buf.append(rightPart);
+		
+		// finally, set content to concatenated left, data and right parts
+		try {
+			
+			setProperty(content, buf.toString());
+			
+		} catch (FrameworkException fex) {
+			
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}		
+	}
+
+	@Override
+	public void deleteData(int offset, int count) throws DOMException {
+		
+		checkWriteAccess();
+		
+		String text = getProperty(content);
+		
+		String leftPart  = text.substring(0, offset);
+		String rightPart = text.substring(offset + count);
+		
+		// finally, set content to concatenated left and right parts
+		try {
+			
+			setProperty(content, leftPart.concat(rightPart));
+			
+		} catch (FrameworkException fex) {
+			
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
+	}
+
+	@Override
+	public void replaceData(int offset, int count, String data) throws DOMException {
+		
+		checkWriteAccess();
+		
+		String text = getProperty(content);
+		
+		String leftPart  = text.substring(0, offset);
+		String rightPart = text.substring(offset + count);
+		
+		StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
+		buf.append(leftPart);
+		buf.append(data);
+		buf.append(rightPart);
+
+		// finally, set content to concatenated left and right parts
+		try {
+			
+			setProperty(content, buf.toString());
+			
+		} catch (FrameworkException fex) {
+			
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
 	}
 
 	//~--- inner classes --------------------------------------------------

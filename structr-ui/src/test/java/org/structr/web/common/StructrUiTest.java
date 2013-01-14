@@ -325,6 +325,31 @@ public class StructrUiTest extends TestCase {
 
 	}
 
+	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
+
+		final PropertyMap props = new PropertyMap();
+		props.put(AbstractNode.type, type.getSimpleName());
+
+		return (List<T>) transactionCommand.execute(new StructrTransaction<List<T>>() {
+
+			@Override
+			public List<T> execute() throws FrameworkException {
+
+				List<T> nodes = new LinkedList<T>();
+
+				for (int i = 0; i < number; i++) {
+
+					nodes.add((T) createNodeCommand.execute(props));
+				}
+
+				return nodes;
+
+			}
+
+		});
+
+	}
+
 	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
 
 		final PropertyMap props = new PropertyMap();
