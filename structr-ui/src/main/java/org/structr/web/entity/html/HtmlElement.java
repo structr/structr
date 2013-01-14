@@ -103,7 +103,9 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 	public static final Property<Integer> position                 = new IntProperty("position");
 	public static final Property<String> path                      = new StringProperty("path");
 	public static final EntityProperty<HtmlElement> parent         = new EntityProperty<HtmlElement>("parent", HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<HtmlElement> children = new CollectionProperty<HtmlElement>("children", HtmlElement.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EntityProperty<Page> page                  = new EntityProperty<Page>("page", Page.class, RelType.PAGE, Direction.OUTGOING, true);
+	public static final CollectionProperty<HtmlElement> children   = new CollectionProperty<HtmlElement>("children", HtmlElement.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	
 	public static final Property<String> _title                  = new HtmlProperty("title");
 	public static final Property<String> _tabindex               = new HtmlProperty("tabindex");
 	public static final Property<String> _style                  = new HtmlProperty("style");
@@ -209,7 +211,9 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 	// ----- error messages for DOMExceptions -----
 	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE                           = "Permission denied";
+	protected static final String INVALID_ACCESS_ERR_MESSAGE                                = "Permission denied";
 	protected static final String INDEX_SIZE_ERR_MESSAGE                                    = "Index out of range";
+	protected static final String CANNOT_SPLIT_TEXT_WITHOUT_PARENT                          = "Cannot split text element without parent and/or owner document";
 
 	
 	//~--- static initializers --------------------------------------------
@@ -365,10 +369,8 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 			}
 
 		});
-	}
 
-	static {
-
+		
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), publicView.properties());
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), publicView.properties());
 
@@ -528,8 +530,24 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 	@Override
 	public Node appendChild(Node node) throws DOMException {
 
-		throw new UnsupportedOperationException("Not supported yet.");
+		if (node instanceof AbstractNode) {
 
+			try {
+
+				AbstractNode abstractNode = (AbstractNode)node;
+
+				HtmlElement.children.createRelationship(securityContext, this, abstractNode);
+
+
+			} catch (FrameworkException fex) {
+
+				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+			}					
+
+			return node;
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -1093,6 +1111,15 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
 		}
 	}
+	
+	protected void checkReadAccess() throws DOMException {
+		
+		if (!securityContext.isAllowed(this, Permission.read)) {
+			
+			// FIXME: fill in appropriate error message
+			throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
+		}
+	}
 
 	// ----- interface org.w3c.dom.Element -----
 	@Override
@@ -1230,16 +1257,13 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 	@Override
 	public Document getOwnerDocument() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return getProperty(page);
 	}
 
 	@Override
 	public String getNamespaceURI() {
 
 		throw new UnsupportedOperationException("Not supported yet.");
-
 	}
 
 	@Override

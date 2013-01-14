@@ -59,6 +59,14 @@ import org.w3c.dom.Text;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import org.neo4j.graphdb.Direction;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,11 +78,13 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class Page extends HtmlElement implements Linkable, Document, DocumentType, DOMImplementation {
 
-	public static final Property<String> contentType       = new StringProperty("contentType");
-	public static final Property<Integer> cacheForSeconds  = new IntProperty("cacheForSeconds");
-	public static final EntityProperty<Html> html          = new EntityProperty<Html>("html", Html.class, RelType.CONTAINS, true);
-	public static final org.structr.common.View uiView     = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version);
-	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public, linkingElements, contentType, owner, cacheForSeconds, version);
+	public static final Property<String> contentType             = new StringProperty("contentType");
+	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds");
+	public static final EntityProperty<Html> html                = new EntityProperty<Html>("html", Html.class, RelType.CONTAINS, true);
+	public static final CollectionProperty<HtmlElement> elements = new CollectionProperty<HtmlElement>("elements", HtmlElement.class, RelType.PAGE, Direction.INCOMING, true);
+	
+	public static final org.structr.common.View uiView           = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version);
+	public static final org.structr.common.View publicView       = new org.structr.common.View(Page.class, PropertyView.Public, linkingElements, contentType, owner, cacheForSeconds, version);
 
 	//~--- static initializers --------------------------------------------
 
@@ -102,10 +112,35 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 	}
 
 	@Override
-	public Element createElement(String string) throws DOMException {
+	public Element createElement(String tag) throws DOMException {
 
-		throw new UnsupportedOperationException("Not supported yet.");
+		final String elementType = EntityContext.normalizeEntityName(tag);
+		
+		try {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<HtmlElement>() {
 
+				@Override
+				public HtmlElement execute() throws FrameworkException {
+					
+					// create new content element
+					HtmlElement element = (HtmlElement)Services.command(securityContext, CreateNodeCommand.class).execute(
+						new NodeAttribute(AbstractNode.type, elementType)
+					);
+					
+					// create relationship from page to new text element
+					Page.elements.createRelationship(securityContext, Page.this, element);
+					
+					return element;
+				}
+			});
+			
+		} catch (FrameworkException fex) {
+			
+			// FIXME: what to do with the exception here?
+			fex.printStackTrace();
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -116,13 +151,34 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 	}
 
 	@Override
-	public Text createTextNode(String string) {
+	public Text createTextNode(final String text) {
+
+		try {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Content>() {
+
+				@Override
+				public Content execute() throws FrameworkException {
+					
+					// create new content element
+					Content content = (Content)Services.command(securityContext, CreateNodeCommand.class).execute(
+						new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
+						new NodeAttribute(Content.content,   text)
+					);
+					
+					// create relationship from page to new text element
+					Page.elements.createRelationship(securityContext, Page.this, content);
+					
+					return content;
+				}
+			});
+			
+		} catch (FrameworkException fex) {
+			
+			// FIXME: what to do with the exception here?
+			fex.printStackTrace();
+		}
 		
-		// TODO: create new Content (implements Text) node
-		// in database and return it
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return null;
 	}
 
 	@Override
