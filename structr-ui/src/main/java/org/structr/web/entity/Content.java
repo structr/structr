@@ -284,7 +284,7 @@ public class Content extends HtmlElement {
 
 		if (content != null) {
 
-			buffer.append(content);
+			buffer.append(indent(depth, true)).append(content);
 		}
 		
 		if (edit && inBody) {

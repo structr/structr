@@ -359,7 +359,7 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 //
 //              }
 		
-		renderContext.getBuffer().append("<!DOCTYPE html>\n");
+		renderContext.getBuffer().append("<!DOCTYPE html>");
 
 		// recursively render children
 		List<AbstractRelationship> rels = Component.getChildRelationships(request, this);
@@ -372,7 +372,7 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 
 				if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-					subNode.getContent(securityContext, renderContext, depth + 1);
+					subNode.getContent(securityContext, renderContext, depth);
 				}
 
 			}
