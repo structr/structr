@@ -46,6 +46,7 @@ import org.structr.web.entity.relation.ChildrenRelationship;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.UserDataHandler;
@@ -363,6 +364,9 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 					throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR);
 				}
 			}
+			
+			// TODO: check hierarchy constraints imposed by the schema
+
 			
 			// validation sucessful
 			return;
@@ -973,23 +977,191 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	}
 
 	@Override
-	public Node insertBefore(Node node, Node node1) throws DOMException {
+	public Node insertBefore(final Node newChild, final Node refChild) throws DOMException {
 
 		checkWriteAccess();
-		checkSameDocument(node);
-		checkHierarchy(node);
+		
+		checkSameDocument(newChild);
+		checkSameDocument(refChild);
+		
+		checkHierarchy(newChild);
+		checkHierarchy(refChild);
+		
+		final DOMNode newNode = (DOMNode)newChild;
+		final DOMNode refNode = (DOMNode)refChild;
+		
+		// insert children from document fragment
+		final StructrNodeList nodesToAdd = new StructrNodeList();
+		
+		if (newNode instanceof DocumentFragment) {
+			
+			NodeList nodeList = ((DocumentFragment)newChild).getChildNodes();
+			int len           = nodeList.getLength();
+			
+			for (int i=0; i<len; i++) {
+				
+				DOMNode node = (DOMNode)nodeList.item(i);
+				nodesToAdd.add(node);
+			}
+			
+		} else {
 
-		throw new UnsupportedOperationException("Not supported yet.");
+			nodesToAdd.add((DOMNode)newChild);
+		}
+		
+		
+		try {
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					List<AbstractRelationship> rels = getChildRelationships();
+					int position                    = 0;
+
+					for (AbstractRelationship rel : rels) {
+
+						AbstractNode node = rel.getEndNode();
+						if (node instanceof DOMNode) {
+
+							DOMNode domNode = (DOMNode)node;
+
+							if (domNode.isSameNode(refNode)) {
+
+								int addCount           = nodesToAdd.getLength();
+								PropertyMap properties = new PropertyMap();
+
+								for (int i=0; i<addCount; i++) {
+
+									Node toAdd = nodesToAdd.item(i);
+
+									if (toAdd instanceof DOMNode) {
+
+										properties.clear();
+										properties.put(ChildrenRelationship.position, position);
+										DOMNode.children.createRelationship(securityContext, DOMNode.this, (DOMNode)toAdd, properties);						
+
+										position++;
+									}
+
+								}
+							}
+							
+							rel.setProperty(ChildrenRelationship.position, position);
+
+							position++;
+						}
+					}
+					
+					return null;
+				}
+
+			});
+
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+		}					
+
+		return refChild;
 	}
 
 	@Override
-	public Node replaceChild(Node node, Node node1) throws DOMException {
+	public Node replaceChild(final Node newChild, final Node oldChild) throws DOMException {
 
 		checkWriteAccess();
-		checkSameDocument(node);
-		checkHierarchy(node);
+		
+		checkSameDocument(newChild);
+		checkSameDocument(oldChild);
+		
+		checkHierarchy(newChild);
+		checkHierarchy(oldChild);
+		
+		final DOMNode newNode = (DOMNode)newChild;
+		final DOMNode oldNode = (DOMNode)oldChild;
+		
+		try {
 
-		throw new UnsupportedOperationException("Not supported yet.");
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					if (newChild instanceof DocumentFragment) {
+						
+						List<AbstractRelationship> rels = getChildRelationships();
+						int position                    = 0;
+						
+						for (AbstractRelationship rel : rels) {
+							
+							AbstractNode node = rel.getEndNode();
+							if (node instanceof DOMNode) {
+								
+								DOMNode domNode = (DOMNode)node;
+								
+								if (domNode.isSameNode(oldNode)) {
+
+									// remove old node
+									DOMNode.children.removeRelationship(securityContext, DOMNode.this, oldNode);
+									
+									
+									// insert children from document fragment
+									NodeList fragmentChildren = newChild.getChildNodes();
+									int len                   = fragmentChildren.getLength();
+									PropertyMap properties    = new PropertyMap();
+									
+									for (int i=0; i<len; i++) {
+			
+										Node fragmentChild = fragmentChildren.item(i);
+										
+										if (fragmentChild instanceof DOMNode) {
+
+											properties.clear();
+											properties.put(ChildrenRelationship.position, position);
+											DOMNode.children.createRelationship(securityContext, DOMNode.this, (DOMNode)fragmentChild, properties);						
+											
+											position++;
+										}
+										
+									}
+									
+								} else {
+
+									rel.setProperty(ChildrenRelationship.position, position);
+								}
+								
+								position++;
+							}
+						}
+						
+						
+					} else {
+
+						// save old position
+						int oldPosition = oldNode.getPositionInParent();
+
+						// remove old node
+						DOMNode.children.removeRelationship(securityContext, DOMNode.this, oldNode);
+					
+						// insert new node with position from old node
+						PropertyMap properties = new PropertyMap();
+						properties.put(ChildrenRelationship.position, oldPosition);
+						DOMNode.children.createRelationship(securityContext, DOMNode.this, newNode, properties);
+						
+					}
+					
+					return null;
+				}
+
+			});
+
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+		}					
+
+		return oldChild;
 	}
 
 	@Override
@@ -999,7 +1171,6 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 		checkSameDocument(node);
 		checkHierarchy(node);
 		checkIsChild(node);
-		
 		
 		final DOMNode otherNode = (DOMNode)node;
 		
@@ -1068,7 +1239,7 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	}
 
 	@Override
-	public Node cloneNode(boolean bln) {
+	public Node cloneNode(boolean deep) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

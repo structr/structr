@@ -183,7 +183,31 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	@Override
 	public DocumentFragment createDocumentFragment() {
 
-		throw new UnsupportedOperationException("Not supported yet.");
+		try {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DocumentFragment>() {
+
+				@Override
+				public DocumentFragment execute() throws FrameworkException {
+					
+					// create new content element
+					org.structr.web.entity.dom.DocumentFragment fragment = (org.structr.web.entity.dom.DocumentFragment)Services.command(securityContext, CreateNodeCommand.class).execute(
+						new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.DocumentFragment.class.getSimpleName())
+					);
+					
+					// create relationship from page to new text element
+					Page.elements.createRelationship(securityContext, Page.this, fragment);
+					
+					return fragment;
+				}
+			});
+			
+		} catch (FrameworkException fex) {
+			
+			// FIXME: what to do with the exception here?
+			fex.printStackTrace();
+		}
+		
+		return null;
 
 	}
 
