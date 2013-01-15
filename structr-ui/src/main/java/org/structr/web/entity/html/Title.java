@@ -21,24 +21,20 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
 import org.structr.core.property.CollectionProperty;
-import org.structr.web.entity.Content;
+import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * @author Axel Morgner
  */
-public class Title extends HtmlElement {
+public class Title extends DOMElement {
 
 	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
 }

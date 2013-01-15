@@ -25,8 +25,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.web.entity.Content;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -51,7 +51,7 @@ public class ContentRelationship extends AbstractRelationship {
 
 	static {
 
-		EntityContext.registerNamedRelation("data", ContentRelationship.class, HtmlElement.class, Content.class, RelType.CONTAINS);
+		EntityContext.registerNamedRelation("data", ContentRelationship.class, DOMElement.class, Content.class, RelType.CONTAINS);
 
 		// not needed, overridden below
 		// EntityContext.registerPropertySet(ContentRelationship.class, PropertyView.All,    ContentRelationship.Key.values());

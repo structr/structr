@@ -36,7 +36,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.common.RelationshipHelper;
-import org.structr.web.entity.Page;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 

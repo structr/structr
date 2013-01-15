@@ -21,22 +21,10 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
+
 /**
  * @author Axel Morgner
  */
-public class Video extends HtmlElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Video.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Video.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Video.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
-//
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
+public class Video extends DOMElement {
 }

@@ -21,22 +21,10 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
+
 /**
  * @author Axel Morgner
  */
-public class Address extends HtmlElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Address.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Address.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Address.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
-//
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
+public class Address extends DOMElement {
 }

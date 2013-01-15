@@ -53,8 +53,8 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.web.entity.Page;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.DOMElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -72,7 +72,7 @@ import java.util.regex.Pattern;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.Result;
 import org.structr.core.property.StringProperty;
-import org.structr.web.entity.Content;
+import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -314,18 +314,18 @@ public class Importer {
 			//attrs.add(new NodeAttribute(AbstractNode.name.name(), "New " + type));
 
 			// Tag name
-			attrs.add(new NodeAttribute(HtmlElement.tag, tag));
+			attrs.add(new NodeAttribute(DOMElement.tag, tag));
 
 			// "id" attribute: Put it into the "_html_id" field
 			if (StringUtils.isNotBlank(id)) {
 
-				attrs.add(new NodeAttribute(HtmlElement._id, id));
+				attrs.add(new NodeAttribute(DOMElement._id, id));
 			}
 
 			// "class" attribute: Put it into the "_html_class" field
 			if (StringUtils.isNotBlank(classString.toString())) {
 
-				attrs.add(new NodeAttribute(HtmlElement._class, StringUtils.trim(classString.toString())));
+				attrs.add(new NodeAttribute(DOMElement._class, StringUtils.trim(classString.toString())));
 			}
 
 			// Other attributes: Put them into the respective fields with "_html_" prefix
@@ -392,7 +392,7 @@ public class Importer {
 //
 //                      }
 			// Exclude data attribute because it may contain code with special characters, too
-			if (!key.equals(HtmlElement._data)) {
+			if (!key.equals(DOMElement._data)) {
 
 				searchAttrs.add(Search.andExactProperty(key, value));
 			}
@@ -413,7 +413,7 @@ public class Importer {
 
 		for (AbstractNode foundNode : result.getResults()) {
 			
-			String foundNodePath = foundNode.getProperty(HtmlElement.path);
+			String foundNodePath = foundNode.getProperty(DOMElement.path);
 
 			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
 
@@ -445,7 +445,7 @@ public class Importer {
 
 		node = (AbstractNode) createNode.execute(attributes);
 
-		node.setProperty(HtmlElement.path, nodePath);
+		node.setProperty(DOMElement.path, nodePath);
 
 		if (node != null) {
 

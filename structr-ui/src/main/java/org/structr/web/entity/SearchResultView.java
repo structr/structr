@@ -21,6 +21,7 @@
 
 package org.structr.web.entity;
 
+import org.structr.web.entity.dom.Page;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import org.apache.commons.lang.StringUtils;
@@ -29,10 +30,9 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeService;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.DOMElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -42,6 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -81,13 +82,13 @@ public class SearchResultView extends View {
 			for (Page resultPage : getResultPages(securityContext, page)) {
 
 				// recursively render children
-				List<AbstractRelationship> rels = Component.getChildRelationships(request, resultPage);
+				List<AbstractRelationship> rels = resultPage.getChildRelationships();
 
 				for (AbstractRelationship rel : rels) {
 
 					if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
 
-						HtmlElement subNode = (HtmlElement) rel.getEndNode();
+						DOMElement subNode = (DOMElement) rel.getEndNode();
 
 						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 

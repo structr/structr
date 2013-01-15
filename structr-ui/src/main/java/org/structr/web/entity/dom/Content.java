@@ -19,7 +19,7 @@
 
 
 
-package org.structr.web.entity;
+package org.structr.web.entity.dom;
 
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
@@ -59,10 +59,12 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.TypeDefinition;
 import org.structr.web.property.DynamicContentProperty;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
 //~--- classes ----------------------------------------------------------------
@@ -73,7 +75,7 @@ import org.w3c.dom.Text;
  *
  * @author Axel Morgner
  */
-public class Content extends HtmlElement implements Text {
+public class Content extends DOMNode implements Text {
 
 	private static final Logger logger                                                    = Logger.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                      = new StringProperty("contentType");
@@ -228,13 +230,6 @@ public class Content extends HtmlElement implements Text {
 	}
 
 	@Override
-	public short getNodeType() {
-
-		return TEXT_NODE;
-
-	}
-
-	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		String id            = getUuid();
@@ -316,7 +311,7 @@ public class Content extends HtmlElement implements Text {
 				final String secondPart = text.substring(offset);
 				
 				final Document document  = getOwnerDocument();
-				final HtmlElement parent = getParent();
+				final Node parent        = getParentNode();
 				
 				if (document != null && parent != null) {
 					
@@ -331,7 +326,12 @@ public class Content extends HtmlElement implements Text {
 								setProperty(content, firstPart);
 								
 								// second part goes into new text element
-								return document.createTextNode(secondPart);
+								Text newNode = document.createTextNode(secondPart);
+								
+								// make new node a child of old parent
+								parent.appendChild(newNode);
+								
+								return newNode;
 							}
 						});
 
@@ -359,7 +359,7 @@ public class Content extends HtmlElement implements Text {
 		
 		if (text != null) {
 		
-			return text.matches("[\\s]+");
+			return !text.matches("[\\S]*");
 		}
 		
 		return false;
@@ -367,21 +367,11 @@ public class Content extends HtmlElement implements Text {
 
 	@Override
 	public String getWholeText() {
-		
-		checkReadAccess();
-
-		// TODO: collect content (rendered or not??) current
-		// and adjacent nodes and return concatenated result
-		
-		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public Text replaceWholeText(String string) throws DOMException {
-		
-		checkWriteAccess();
-		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -533,7 +523,35 @@ public class Content extends HtmlElement implements Text {
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
 		}
 	}
+	
+	// ----- interface org.w3c.dom.Node -----
+	@Override
+	public short getNodeType() {
 
+		return TEXT_NODE;
+	}
+
+	@Override
+	public String getNodeName() {
+		return "#text";
+	}
+
+	@Override
+	public String getNodeValue() throws DOMException {
+		return getData();
+	}
+
+	@Override
+	public void setNodeValue(String data) throws DOMException {
+		setData(data);
+	}
+
+	@Override
+	public NamedNodeMap getAttributes() {
+		return null;
+	}
+
+	
 	//~--- inner classes --------------------------------------------------
 
 	private static class ThreadLocalConfluenceProcessor extends ThreadLocal<MarkupParser> {

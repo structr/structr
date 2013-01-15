@@ -21,10 +21,12 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
+
 /**
  * @author Axel Morgner
  */
-public class Abbr extends HtmlElement {
+public class Abbr extends DOMElement {
 
 //	static {
 //
@@ -42,10 +44,4 @@ public class Abbr extends HtmlElement {
 		return true;
 
 	}
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
-
 }

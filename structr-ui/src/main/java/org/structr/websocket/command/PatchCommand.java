@@ -25,7 +25,7 @@ import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Patch;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.Content;
+import org.structr.web.entity.dom.Content;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 

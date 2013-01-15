@@ -30,7 +30,7 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.DOMElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -43,7 +43,7 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class Condition extends HtmlElement {
+public class Condition extends DOMElement {
 
 	public static final Property<String> query             = new StringProperty("query");
 	public static final org.structr.common.View uiView     = new org.structr.common.View(Condition.class, PropertyView.Ui, query);

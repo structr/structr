@@ -492,7 +492,13 @@ public class EntityContext {
 	}
 
 	public static String createCombinedRelationshipType(Class sourceType, RelationshipType relType, Class destType) {
-		return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+		
+		if (sourceType != null && relType != null && destType != null) {
+			
+			return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+		}
+		
+		return "";
 	}
 
 	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
@@ -568,12 +574,17 @@ public class EntityContext {
 
 	public static Class getNamedRelationClass(String combinedRelationshipType) {
 
-		Class sourceType         = getSourceType(combinedRelationshipType);
-		Class destType           = getDestType(combinedRelationshipType);
-		RelationshipType relType = getRelType(combinedRelationshipType);
-		
-		return getNamedRelationClass(sourceType, destType, relType);
+		Class relEntity = globalRelationshipClassMap.get(combinedRelationshipType);
+		if (relEntity == null) {
 
+			Class sourceType         = getSourceType(combinedRelationshipType);
+			Class destType           = getDestType(combinedRelationshipType);
+			RelationshipType relType = getRelType(combinedRelationshipType);
+
+			relEntity = getNamedRelationClass(sourceType, destType, relType);
+		}
+		
+		return relEntity;
 	}
 
 	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
@@ -582,7 +593,7 @@ public class EntityContext {
 		Class sourceSuperClass   = sourceType;
 		Class destSuperClass     = destType;
 
-		while ((namedRelationClass == null) &&!sourceSuperClass.equals(Object.class) &&!destSuperClass.equals(Object.class)) {
+		while ((namedRelationClass == null) && sourceSuperClass != null && destSuperClass != null && !Object.class.equals(sourceSuperClass) && !Object.class.equals(destSuperClass)) {
 
 			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
 

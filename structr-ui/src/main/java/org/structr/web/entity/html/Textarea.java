@@ -21,6 +21,7 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
@@ -32,7 +33,7 @@ import org.structr.web.common.HtmlProperty;
 /**
  * @author Axel Morgner
  */
-public class Textarea extends HtmlElement {
+public class Textarea extends DOMElement {
 
 	public static final Property<String> _name        = new HtmlProperty("name");
 	public static final Property<String> _disabled    = new HtmlProperty("disabled");
@@ -51,19 +52,6 @@ public class Textarea extends HtmlElement {
 	    _name, _disabled, _form, _readonly, _maxlenght, _autofocus, _required, _placeholder, _dirname, _rows, _wrap, _cols
 	);
 	
-
-	//~--- static initializers --------------------------------------------
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Textarea.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Textarea.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Textarea.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
-
-	//~--- methods --------------------------------------------------------
-
 	@Override
 	public boolean avoidWhitespace() {
 
@@ -76,10 +64,5 @@ public class Textarea extends HtmlElement {
 
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
-	}
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
 	}
 }

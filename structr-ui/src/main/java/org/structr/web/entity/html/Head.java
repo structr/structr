@@ -21,6 +21,7 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
@@ -31,7 +32,7 @@ import org.structr.core.property.CollectionProperty;
 /**
  * @author Axel Morgner
  */
-public class Head extends HtmlElement {
+public class Head extends DOMElement {
 
 	public static final CollectionProperty<Html>   htmls   = new CollectionProperty<Html>("htmls", Html.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final CollectionProperty<Title>  titles  = new CollectionProperty<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
@@ -40,9 +41,4 @@ public class Head extends HtmlElement {
 	public static final CollectionProperty<Link>   links   = new CollectionProperty<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Meta>   metas   = new CollectionProperty<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Base>   bases   = new CollectionProperty<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
 }

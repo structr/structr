@@ -21,6 +21,7 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 import org.structr.core.property.Property;
 
@@ -33,7 +34,7 @@ import org.structr.web.common.HtmlProperty;
 /**
  * @author Axel Morgner
  */
-public class Base extends HtmlElement {
+public class Base extends DOMElement {
 
 	public static final Property<String> _href   = new HtmlProperty("href");
 	public static final Property<String> _target = new HtmlProperty("target");
@@ -67,10 +68,4 @@ public class Base extends HtmlElement {
 		return true;
 
 	}
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
-
 }

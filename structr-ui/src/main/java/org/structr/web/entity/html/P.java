@@ -21,18 +21,19 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
 import org.structr.core.property.CollectionProperty;
-import org.structr.web.entity.Content;
+import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * @author Axel Morgner
  */
-public class P extends HtmlElement {
+public class P extends DOMElement {
 
 	public static final CollectionProperty<Content>  contents  = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<A>        as        = new CollectionProperty<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
@@ -86,9 +87,4 @@ public class P extends HtmlElement {
 	public static final CollectionProperty<Var>      vars      = new CollectionProperty<Var>("vars", Var.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Video>    videos    = new CollectionProperty<Video>("videos", Video.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Wbr>      wbrs      = new CollectionProperty<Wbr>("wbrs", Wbr.class, RelType.CONTAINS, Direction.OUTGOING, false);
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
 }

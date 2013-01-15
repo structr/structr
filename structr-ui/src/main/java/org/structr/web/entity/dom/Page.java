@@ -19,7 +19,7 @@
 
 
 
-package org.structr.web.entity;
+package org.structr.web.entity.dom;
 
 
 import org.structr.common.PropertyView;
@@ -36,7 +36,6 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.html.Html;
-import org.structr.web.entity.html.HtmlElement;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -51,12 +50,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.EntityReference;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
@@ -67,6 +66,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.CollectionProperty;
+import org.structr.web.entity.Condition;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,15 +76,17 @@ import org.structr.core.property.CollectionProperty;
  * @author Axel Morgner
  * @author Christian Morgner
  */
-public class Page extends HtmlElement implements Linkable, Document, DocumentType, DOMImplementation {
+public class Page extends DOMNode implements Linkable, Document, DocumentType, DOMImplementation {
 
-	public static final Property<String> contentType             = new StringProperty("contentType");
-	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds");
-	public static final EntityProperty<Html> html                = new EntityProperty<Html>("html", Html.class, RelType.CONTAINS, true);
-	public static final CollectionProperty<HtmlElement> elements = new CollectionProperty<HtmlElement>("elements", HtmlElement.class, RelType.PAGE, Direction.INCOMING, true);
+	public static final Property<Integer> version                           = new IntProperty("version");
+	public static final Property<Integer> position                          = new IntProperty("position");
+	public static final Property<String> contentType                        = new StringProperty("contentType");
+	public static final Property<Integer> cacheForSeconds                   = new IntProperty("cacheForSeconds");
+	public static final EntityProperty<Html> html                           = new EntityProperty<Html>("html", Html.class, RelType.ROOT, true);
+	public static final CollectionProperty<DOMNode> elements                = new CollectionProperty<DOMNode>("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
 	
-	public static final org.structr.common.View uiView           = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version);
-	public static final org.structr.common.View publicView       = new org.structr.common.View(Page.class, PropertyView.Public, linkingElements, contentType, owner, cacheForSeconds, version);
+	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version);
+	public static final org.structr.common.View publicView                  = new org.structr.common.View(Page.class, PropertyView.Public, linkingElements, contentType, owner, cacheForSeconds, version);
 
 	//~--- static initializers --------------------------------------------
 
@@ -97,13 +99,48 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 
 	//~--- methods --------------------------------------------------------
 
+	@Override
+	protected void checkHierarchy(Node otherNode) throws DOMException {
+		
+		// verify that this document has only one document element
+		if (getProperty(html) != null) {
+			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT);
+		}
+		
+		if (!(otherNode instanceof Html)) {
+			
+			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);			
+		}
+		
+		super.checkHierarchy(otherNode);
+	}
+
+	@Override
+	public Node appendChild(final Node child) throws DOMException {
+		
+		Node node = super.appendChild(child);
+
+		try {
+
+			// create additional ROOT relationship
+			Page.html.createRelationship(securityContext, this, (DOMNode)child);
+			
+		} catch (FrameworkException fex) {
+			
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+		}
+		
+		return node;
+	}
+	
 	public void increaseVersion() throws FrameworkException {
 
-		Long _version = getProperty(Page.version);
+		Integer _version = getProperty(Page.version);
 
 		if (_version == null) {
 
-			setProperty(Page.version, 1L);
+			setProperty(Page.version, 1);
+			
 		} else {
 
 			setProperty(Page.version, _version + 1);
@@ -117,13 +154,13 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 		final String elementType = EntityContext.normalizeEntityName(tag);
 		
 		try {
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<HtmlElement>() {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DOMElement>() {
 
 				@Override
-				public HtmlElement execute() throws FrameworkException {
+				public DOMElement execute() throws FrameworkException {
 					
 					// create new content element
-					HtmlElement element = (HtmlElement)Services.command(securityContext, CreateNodeCommand.class).execute(
+					DOMElement element = (DOMElement)Services.command(securityContext, CreateNodeCommand.class).execute(
 						new NodeAttribute(AbstractNode.type, elementType)
 					);
 					
@@ -184,15 +221,61 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 	@Override
 	public Comment createComment(String string) {
 
-		throw new UnsupportedOperationException("Not supported yet.");
+		try {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Comment>() {
 
+				@Override
+				public org.structr.web.entity.dom.Comment execute() throws FrameworkException {
+					
+					// create new content element
+					org.structr.web.entity.dom.Comment content = (org.structr.web.entity.dom.Comment)Services.command(securityContext, CreateNodeCommand.class).execute(
+						new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.Comment.class.getSimpleName())
+					);
+					
+					// create relationship from page to new text element
+					Page.elements.createRelationship(securityContext, Page.this, content);
+					
+					return content;
+				}
+			});
+			
+		} catch (FrameworkException fex) {
+			
+			// FIXME: what to do with the exception here?
+			fex.printStackTrace();
+		}
+		
+		return null;
 	}
 
 	@Override
 	public CDATASection createCDATASection(String string) throws DOMException {
 
-		throw new UnsupportedOperationException("Not supported yet.");
+		try {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Cdata>() {
 
+				@Override
+				public Cdata execute() throws FrameworkException {
+					
+					// create new content element
+					Cdata content = (Cdata)Services.command(securityContext, CreateNodeCommand.class).execute(
+						new NodeAttribute(AbstractNode.type, Cdata.class.getSimpleName())
+					);
+					
+					// create relationship from page to new text element
+					Page.elements.createRelationship(securityContext, Page.this, content);
+					
+					return content;
+				}
+			});
+			
+		} catch (FrameworkException fex) {
+			
+			// FIXME: what to do with the exception here?
+			fex.printStackTrace();
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -278,28 +361,23 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 	public short getNodeType() {
 
 		return Element.DOCUMENT_NODE;
-
 	}
 
 	@Override
 	public DocumentType getDoctype() {
 
 		return this;
-
 	}
 
 	@Override
 	public DOMImplementation getImplementation() {
 
 		return this;
-
 	}
 
 	@Override
 	public Element getDocumentElement() {
-
-		return this;
-
+		return getProperty(html);
 	}
 
 	@Override
@@ -416,23 +494,18 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 		renderContext.getBuffer().append("<!DOCTYPE html>");
 
 		// recursively render children
-		List<AbstractRelationship> rels = Component.getChildRelationships(request, this);
-
-		for (AbstractRelationship rel : rels) {
+		for (AbstractRelationship rel : getChildRelationships()) {
 
 			if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
 
-				HtmlElement subNode = (HtmlElement) rel.getEndNode();
+				DOMNode subNode = (DOMNode)rel.getEndNode();
 
-				if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
+				if (subNode.isNotDeleted()) {
 
 					subNode.render(securityContext, renderContext, depth);
 				}
-
 			}
-
 		}
-
 	}
 
 	@Override
@@ -470,6 +543,36 @@ public class Page extends HtmlElement implements Linkable, Document, DocumentTyp
 
 		throw new UnsupportedOperationException("Not supported yet.");
 
+	}
+
+	// ----- interface org.w3c.dom.Node -----
+	@Override
+	public String getNodeName() {
+		return "#document";
+	}
+
+	@Override
+	public String getNodeValue() throws DOMException {
+		return null;
+	}
+
+	@Override
+	public void setNodeValue(String string) throws DOMException {
+	}
+
+	@Override
+	public NamedNodeMap getAttributes() {
+		return null;
+	}
+
+	@Override
+	public NodeList getElementsByTagName(String string) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public NodeList getElementsByTagNameNS(String string, String string1) {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 }

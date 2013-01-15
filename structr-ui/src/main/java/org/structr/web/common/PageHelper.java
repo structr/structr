@@ -33,7 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.entity.Page;
+import org.structr.web.entity.dom.Page;
 
 //~--- classes ----------------------------------------------------------------
 

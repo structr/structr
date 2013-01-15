@@ -30,14 +30,14 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.web.entity.Content;
-import org.structr.web.entity.Page;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.H1;
 import org.structr.web.entity.html.Head;
 import org.structr.web.entity.html.Html;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.html.Title;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -148,7 +148,7 @@ public class CreateSimplePage extends AbstractCommand {
 
 		if (!Content.class.getSimpleName().equals(type)) {
 
-			nodeData.put(HtmlElement.tag, type.toLowerCase());
+			nodeData.put(DOMElement.tag, type.toLowerCase());
 		}
 
 		AbstractNode element = createNode.execute(nodeData);

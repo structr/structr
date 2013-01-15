@@ -21,22 +21,10 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
+
 /**
  * @author Axel Morgner
  */
-public class Noscript extends HtmlElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Noscript.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Noscript.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Noscript.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
-//
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
+public class Noscript extends DOMElement {
 }

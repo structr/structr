@@ -21,22 +21,10 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
+
 /**
  * @author Axel Morgner
  */
-public class Thead extends HtmlElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Thead.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Thead.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Thead.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
-//
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
+public class Thead extends DOMElement {
 }

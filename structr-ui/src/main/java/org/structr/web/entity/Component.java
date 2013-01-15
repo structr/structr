@@ -21,13 +21,13 @@
 
 package org.structr.web.entity;
 
+import org.structr.web.entity.dom.Content;
 import org.structr.core.property.Property;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.StringProperty;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
@@ -46,7 +46,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.property.IntProperty;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,7 +57,7 @@ import org.structr.web.entity.html.HtmlElement;
  * @author Axel Morgner
  * @author Christian Morgner
  */
-public class Component extends HtmlElement {
+public class Component extends DOMElement {
 
 	private static final int MAX_DEPTH                          = 10;
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
@@ -178,7 +179,7 @@ public class Component extends HtmlElement {
 	}
 	*/
 	
-	private void collectChildren(List<Component> children, AbstractNode startNode, int depth, AbstractRelationship ref) {
+	private void collectChildren(List<Component> children, DOMNode startNode, int depth, AbstractRelationship ref) {
 
 		if (depth > MAX_DEPTH) {
 
@@ -199,9 +200,9 @@ public class Component extends HtmlElement {
 		}
 
 		// collection of properties must not depend on page
-		for (AbstractRelationship rel : getChildRelationships(null, startNode)) {
+		for (AbstractRelationship rel : startNode.getChildRelationships()) {
 
-			AbstractNode endNode = rel.getEndNode();
+			DOMNode endNode = (DOMNode)rel.getEndNode();
 
 			if (endNode == null) {
 
@@ -270,33 +271,6 @@ public class Component extends HtmlElement {
 
 	public Map<String, AbstractNode> getContentNodes() {
 		return contentNodes;
-	}
-	
-	public static List<AbstractRelationship> getChildRelationships(final HttpServletRequest request, final AbstractNode node) {
-
-		// fetch all relationships
-		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>(node.getOutgoingRelationships(RelType.CONTAINS));
-		
-		// sort relationships by position
-		Collections.sort(rels, new Comparator<AbstractRelationship>() {
-
-			@Override
-			public int compare(AbstractRelationship o1, AbstractRelationship o2) {
-
-				Integer pos1 = o1.getProperty(position);
-				Integer pos2 = o2.getProperty(position);
-
-				if (pos1 != null && pos2 != null) {
-				
-					return pos1.compareTo(pos2);	
-				}
-				
-				return 0;
-			}
-
-		});
-
-		return rels;
 	}
 
 	private static boolean hasAttribute(HttpServletRequest request, String key) {

@@ -21,6 +21,7 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
@@ -36,7 +37,7 @@ import org.structr.web.common.HtmlProperty;
 /**
  * @author Axel Morgner
  */
-public class Ol extends HtmlElement {
+public class Ol extends DOMElement {
 
 	public static final Property<String> _reversed = new HtmlProperty("reversed");
 	public static final Property<String> _start    = new HtmlProperty("start");
@@ -52,10 +53,5 @@ public class Ol extends HtmlElement {
 
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
-	}
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
 	}
 }

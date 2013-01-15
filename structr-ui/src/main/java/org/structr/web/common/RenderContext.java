@@ -29,7 +29,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Condition;
-import org.structr.web.entity.Page;
+import org.structr.web.entity.dom.Page;
 
 /**
  * Holds information about the context in which a resource is rendered,

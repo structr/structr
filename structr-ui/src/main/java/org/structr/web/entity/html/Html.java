@@ -21,6 +21,7 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
@@ -29,22 +30,22 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EntityProperty;
 import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.Page;
+import org.structr.web.entity.dom.Page;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * @author Axel Morgner
  */
-public class Html extends HtmlElement {
+public class Html extends DOMElement {
 
 	public static final Property<String> _manifest = new HtmlProperty("manifest");
 	
-	public static final CollectionProperty<Page> pages = new CollectionProperty<Page>("pages", Page.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<Head> heads = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Body> bodys = new CollectionProperty<Body>("bodys", Body.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EntityProperty<Page> page = new EntityProperty<Page>("page", Page.class, RelType.ROOT, Direction.INCOMING, false);
+	public static final EntityProperty<Head> head = new EntityProperty<Head>("head", Head.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EntityProperty<Body> body = new EntityProperty<Body>("body", Body.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final View htmlView = new View(Html.class, PropertyView.Html,
 		_manifest
@@ -58,10 +59,4 @@ public class Html extends HtmlElement {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
-
 }

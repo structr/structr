@@ -22,6 +22,7 @@
 package org.structr.web.entity.html;
 
 
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.common.RelType;
 import org.structr.core.property.CollectionProperty;
 
@@ -30,12 +31,7 @@ import org.structr.core.property.CollectionProperty;
 /**
  * @author Axel Morgner
  */
-public class Ul extends HtmlElement {
+public class Ul extends DOMElement {
 
 	public static final CollectionProperty<Li> lis = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, false);
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
 }

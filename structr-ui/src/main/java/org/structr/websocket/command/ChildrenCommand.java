@@ -29,7 +29,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Folder;
 import org.structr.web.common.RelationshipHelper;
 import org.structr.web.entity.Component;
-import org.structr.web.entity.Content;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.Group;
 import org.structr.websocket.message.WebSocketMessage;
 
