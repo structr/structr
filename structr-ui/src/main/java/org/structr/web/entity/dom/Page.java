@@ -66,6 +66,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Condition;
 
 //~--- classes ----------------------------------------------------------------
@@ -99,6 +100,35 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 
 	//~--- methods --------------------------------------------------------
 
+	/**
+	 * Creates a new Page entity with the given name in the database.
+	 * 
+	 * @param securityContext the security context to use
+	 * @param name the name of the new page, defaults to "page" if not set
+	 * 
+	 * @return the new page
+	 * @throws FrameworkException 
+	 */
+	public static Page createNewPage(SecurityContext securityContext, String name) throws FrameworkException {
+		
+		final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
+		final PropertyMap properties = new PropertyMap();
+
+		properties.put(AbstractNode.name, name != null ? name : "page");
+		properties.put(AbstractNode.type, Page.class.getSimpleName());
+		properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+		properties.put(Page.contentType, "text/html");
+		
+		return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Page>() {
+
+			@Override
+			public Page execute() throws FrameworkException {
+
+				return (Page)cmd.execute(properties);
+			}		
+		});
+	}
+	
 	@Override
 	protected void checkHierarchy(Node otherNode) throws DOMException {
 		
@@ -149,7 +179,7 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	}
 
 	@Override
-	public Element createElement(String tag) throws DOMException {
+	public Element createElement(final String tag) throws DOMException {
 
 		final String elementType = EntityContext.normalizeEntityName(tag);
 		
@@ -161,7 +191,8 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 					
 					// create new content element
 					DOMElement element = (DOMElement)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, elementType)
+						new NodeAttribute(AbstractNode.type, elementType),
+						new NodeAttribute(DOMElement.tag, tag)
 					);
 					
 					// create relationship from page to new text element

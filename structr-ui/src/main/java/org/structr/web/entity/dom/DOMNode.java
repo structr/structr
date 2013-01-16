@@ -18,7 +18,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalCommand;
@@ -78,7 +77,6 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	protected static final String NOT_FOUND_ERR_MESSAGE                     = "Node is not a child";
 	
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
-	protected static final ThreadLocalCommand<SearchNodeCommand> searchNodesAsSuperuser = new ThreadLocalCommand(SearchNodeCommand.class);
 	
 	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<DOMNode>("children", DOMNode.class, RelType.CONTAINS, Direction.OUTGOING, true);
 	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
@@ -364,6 +362,8 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 				if (_parent.isSameNode(otherNode)) {
 					throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR);
 				}
+				
+				_parent = _parent.getParentNode();
 			}
 			
 			// TODO: check hierarchy constraints imposed by the schema
@@ -379,10 +379,13 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	protected void checkSameDocument(Node otherNode) throws DOMException {
 		
 		Document doc = getOwnerDocument();
-		
-		if (!doc.equals(otherNode.getOwnerDocument())) {
-			
-			throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, WRONG_DOCUMENT_ERR_MESSAGE);
+
+		if (doc != null) {
+
+			if (!doc.equals(otherNode.getOwnerDocument())) {
+
+				throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, WRONG_DOCUMENT_ERR_MESSAGE);
+			}
 		}
 	}
 	
@@ -762,8 +765,7 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 
 		try {
 
-			Result<Content> result = searchNodesAsSuperuser.get().execute(searchAttributes);
-
+			Result<Content> result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(searchAttributes);
 			for (Content content : result.getResults()) {
 
 				resultPages.addAll(PageHelper.getPages(securityContext, content));
@@ -1302,9 +1304,14 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	@Override
 	public boolean isSameNode(Node node) {
 
-		if (node instanceof DOMNode) {
+		if (node != null && node instanceof DOMNode) {
 
-			return getProperty(GraphObject.uuid).equals(((DOMNode) node).getProperty(GraphObject.uuid));
+			String otherId = ((DOMNode)node).getProperty(GraphObject.uuid);
+			String ourId   = getProperty(GraphObject.uuid);
+			
+			if (ourId != null && otherId != null && ourId.equals(otherId)) {
+				return true;
+			}
 		}
 
 		return false;

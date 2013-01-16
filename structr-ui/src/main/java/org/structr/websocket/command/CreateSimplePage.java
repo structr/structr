@@ -21,24 +21,9 @@
 
 package org.structr.websocket.command;
 
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.H1;
-import org.structr.web.entity.html.Head;
-import org.structr.web.entity.html.Html;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.html.Title;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -46,8 +31,8 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.relation.ChildrenRelationship;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Element;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,107 +44,64 @@ import org.structr.web.entity.relation.ChildrenRelationship;
 public class CreateSimplePage extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
-	private static CreateNodeCommand createNode;
-	private static CreateRelationshipCommand createRel;
-	private static String pageName;
 	
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		pageName = (String) webSocketData.getNodeData().get(Page.name.dbName());
-
+		final String pageName                 = (String) webSocketData.getNodeData().get(Page.name.dbName());
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
-		createNode = Services.command(securityContext, CreateNodeCommand.class);
-		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
-
-		StructrTransaction transaction = new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				Page page = (Page) createElement(null, Page.class.getSimpleName(), 0, null, pageName);
-
-				page.setProperty(Page.contentType, "text/html");
-
-				Html html   = (Html) createElement(page, Html.class.getSimpleName(), 0, page);
-				Head head   = (Head) createElement(page, Head.class.getSimpleName(), 0, html);
-				Body body   = (Body) createElement(page, Body.class.getSimpleName(), 1, html);
-				Title title = (Title) createElement(page, Title.class.getSimpleName(), 0, head);
-
-				// nodeData.put(Content.UiKey.content.name(), "Page Title");
-				Content content = (Content) createElement(page, Content.class.getSimpleName(), 0, title);
-
-				// nodeData.remove(Content.UiKey.content.name());
-				content.setProperty(Content.content, "Page Title");
-
-				H1 h1 = (H1) createElement(page, H1.class.getSimpleName(), 0, body);
-
-				// nodeData.put(Content.UiKey.content.name(), "Page Title");
-				Content h1Content = (Content) createElement(page, Content.class.getSimpleName(), 0, h1);
-
-				// nodeData.remove(Content.UiKey.content.name());
-				h1Content.setProperty(Content.content, "Page Title");
-
-				Div div = (Div) createElement(page, Div.class.getSimpleName(), 1, body);
-
-				// nodeData.put(Content.UiKey.content.name(), "Body Text");
-				Content divContent = (Content) createElement(page, Content.class.getSimpleName(), 0, div);
-
-				divContent.setProperty(Content.content, "Body Text");
-
-				return page;
-
-			}
-
-		};
-
 		try {
+			
+			Page newPage = Page.createNewPage(securityContext, pageName);
+			if (newPage != null) {
+				
+				Element html  = newPage.createElement("html");
+				Element head  = newPage.createElement("head");
+				Element body  = newPage.createElement("body");
+				Element title = newPage.createElement("title");
+				Element h1    = newPage.createElement("h1");
+				Element div   = newPage.createElement("div");
+				
+				try {
+					// add HTML element to page
+					newPage.appendChild(html);
+					
+					// add HEAD and BODY elements to HTML
+					html.appendChild(head);
+					html.appendChild(body);
+					
+					// add TITLE element to HEAD
+					head.appendChild(title);
+					
+					// add H1 element to BODY
+					body.appendChild(h1);
 
-			// create nodes in transaction
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					// add DIV element to BODY
+					body.appendChild(div);
+					
+					// add text nodes
+					title.appendChild(newPage.createTextNode("Page Title"));					
+					h1.appendChild(newPage.createTextNode("Page Title"));
+					div.appendChild(newPage.createTextNode("Body Text"));
+					
+				} catch (DOMException dex) {
+					
+					dex.printStackTrace();
+					
+					throw new FrameworkException(422, dex.getMessage());
+				}
+			}
+			
 		} catch (FrameworkException fex) {
-
+		
+			fex.printStackTrace();
+			
 			logger.log(Level.WARNING, "Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).build(), true);
-
 		}
-
-	}
-
-	private AbstractNode createElement(final AbstractNode page, final String type, final int position, final AbstractNode parentElement) throws FrameworkException {
-		return createElement(page, type, position, parentElement, null);
-	}
-	
-	private AbstractNode createElement(final AbstractNode page, final String type, final int position, final AbstractNode parentElement, final String name) throws FrameworkException {
-
-		PropertyMap nodeData = new PropertyMap();
-
-		nodeData.put(AbstractNode.name, name != null ? name : type.toLowerCase());
-		nodeData.put(AbstractNode.visibleToAuthenticatedUsers, true);
-
-		PropertyMap relData = new PropertyMap();
-		
-		relData.put(ChildrenRelationship.position, position);
-
-		nodeData.put(AbstractNode.type, type);
-
-		if (!Content.class.getSimpleName().equals(type)) {
-
-			nodeData.put(DOMElement.tag, type.toLowerCase());
-		}
-
-		AbstractNode element = createNode.execute(nodeData);
-
-		if (parentElement != null) {
-
-			createRel.execute(parentElement, element, RelType.CONTAINS, relData, false);
-		}
-
-		return element;
-
 	}
 
 	//~--- get methods ----------------------------------------------------
