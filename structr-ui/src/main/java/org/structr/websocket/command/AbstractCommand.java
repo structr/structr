@@ -133,13 +133,13 @@ public abstract class AbstractCommand {
 
 				if (!results.isEmpty()) {
 
-					return (DOMNode) results.get(0);
+					return (AbstractNode) results.get(0);
 
 				}
 
 			} else {
 
-				List<DOMNode> results = (List<DOMNode>) Services.command(securityContext, FindNodeCommand.class).execute(id);
+				List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, FindNodeCommand.class).execute(id);
 
 				if (!results.isEmpty()) {
 

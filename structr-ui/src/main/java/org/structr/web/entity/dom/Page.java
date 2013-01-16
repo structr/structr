@@ -621,8 +621,13 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	}
 
 	@Override
-	public NodeList getElementsByTagName(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public NodeList getElementsByTagName(String tagName) {
+		
+		StructrNodeList results = new StructrNodeList();
+
+		collectElementsByTagName(this, results, tagName, 0);
+		
+		return results;
 	}
 
 	@Override
@@ -630,4 +635,24 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
+	// ----- private methods -----
+	private void collectElementsByTagName(DOMNode startNode, StructrNodeList results, String tagName, int depth) {
+		
+		if (startNode instanceof DOMElement) {
+			
+			if (tagName.equals(startNode.getProperty(DOMElement.tag))) {
+				results.add(startNode);
+			}
+			
+			NodeList _children = startNode.getChildNodes();
+			int len            = _children.getLength();
+			
+			for (int i=0; i<len; i++) {
+				
+				DOMNode child = (DOMNode)_children.item(i);
+				
+				collectElementsByTagName(child, results, tagName, depth+1);
+			}
+		}
+	}
 }

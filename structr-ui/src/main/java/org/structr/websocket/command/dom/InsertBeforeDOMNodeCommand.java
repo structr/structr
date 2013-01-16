@@ -7,17 +7,16 @@ import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
+public class InsertBeforeDOMNodeCommand extends AbstractCommand {
 
 	static {
 		
-		StructrWebSocket.addCommand(CreateAndReplaceDOMNodeCommand.class);
+		StructrWebSocket.addCommand(InsertBeforeDOMNodeCommand.class);
 	}
 	
 	@Override
@@ -25,6 +24,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 		String parentId              = (String) nodeData.get("parentId");
+		String newId                 = (String) nodeData.get("newId");
 		String refId                 = (String) nodeData.get("refId");
 		String pageId                = webSocketData.getPageId();
 		
@@ -33,7 +33,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 			// check for parent ID before creating any nodes
 			if (parentId == null) {
 		
-				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);		
+				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without parentId").build(), true);		
 				return;
 			}
 
@@ -45,64 +45,54 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 				return;
 			}
 
-			// check for ref ID before creating any nodes
+			// check for old ID before creating any nodes
 			if (refId == null) {
 		
-				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without refId").build(), true);		
+				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot insert node without refId").build(), true);
 				return;
 			}
 
-			// check if ref node with given ID exists
+			// check if old node with given ID exists
 			DOMNode refNode = getDOMNode(refId);
 			if (refNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("Reference node not found").build(), true);		
 				return;
 			}
-			
-			Document document = getPage(pageId);
-			if (document != null) {
 
-				String tagName  = (String) nodeData.get("tagName");
-				DOMNode newNode = null;
-				
-				try {
-
-					if (tagName != null && !tagName.isEmpty()) {
-
-						newNode = (DOMNode)document.createElement(tagName);
-
-					} else {
-
-						newNode = (DOMNode)document.createTextNode("");
-					}
-
-					// append new node to parent
-					if (newNode != null) {
-
-						parentNode.replaceChild(newNode, refNode);
-					}
-					
-				} catch (DOMException dex) {
-						
-					// send DOM exception
-					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
-				}
-				
-			} else {
+			// check for new ID before creating any nodes
+			if (newId == null) {
 		
-				getWebSocket().send(MessageBuilder.status().code(404).message("Page not found").build(), true);		
+				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without newId").build(), true);
+				return;
+			}
+
+			// check if new node with given ID exists
+			DOMNode newNode = getDOMNode(newId);
+			if (newNode == null) {
+		
+				getWebSocket().send(MessageBuilder.status().code(404).message("New node not found").build(), true);		
+				return;
+			}
+			
+			try {
+				parentNode.insertBefore(newNode, refNode);
+
+			} catch (DOMException dex) {
+
+				// send DOM exception
+				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
 			}
 			
 		} else {
 		
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot create node without pageId").build(), true);		
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot insert node without pageId").build(), true);		
 		}
 	}
 
 	@Override
 	public String getCommand() {
-		return "CREATE_AND_REPLACE_DOM_NODE";
+		return "INSERT_BEFORE_DOM_NODE";
 	}
 
 }
