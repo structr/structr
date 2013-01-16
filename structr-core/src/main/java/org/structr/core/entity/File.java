@@ -63,7 +63,7 @@ public class File extends AbstractNode implements Linkable {
 	private static final Logger logger                    = Logger.getLogger(File.class.getName());
 
 	
-	public static final EntityProperty<Folder> parentFolder     = new EntityProperty<Folder>("parentFolder", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
+	public static final EntityProperty<Folder> parent           = new EntityProperty<Folder>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
 	
 	public static final Property<String>       contentType      = new StringProperty("contentType");
 	public static final Property<String>       relativeFilePath = new StringProperty("relativeFilePath");
@@ -73,7 +73,7 @@ public class File extends AbstractNode implements Linkable {
 	public static final Property<Integer>      cacheForSeconds  = new IntProperty("cacheForSeconds");
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);
-	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parentFolder, checksum, cacheForSeconds, owner);
+	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, cacheForSeconds, owner);
 
 	//~--- static initializers --------------------------------------------
 

@@ -42,14 +42,14 @@ import org.structr.core.property.EntityProperty;
  */
 public class Folder extends AbstractNode {
 
-	public static final EntityProperty<Folder>     parentFolder = new EntityProperty<Folder>("parentFolder", Folder.class, RelType.CONTAINS, Direction.INCOMING, new PropertySetNotion(uuid, name), true);
+	public static final EntityProperty<Folder>     parent       = new EntityProperty<Folder>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, new PropertySetNotion(uuid, name), true);
 
 	public static final CollectionProperty<Folder> folders      = new CollectionProperty<Folder>("folders", Folder.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 	public static final CollectionProperty<File>   files        = new CollectionProperty<File>("files", File.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 	public static final CollectionProperty<Image>  images       = new CollectionProperty<Image>("images", Image.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
-		parentFolder, folders, files, images
+		parent, folders, files, images
 	);
 
 	static {
