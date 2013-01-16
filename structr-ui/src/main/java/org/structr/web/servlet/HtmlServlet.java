@@ -210,7 +210,6 @@ public class HtmlServlet extends HttpServlet {
 			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
 			response.setCharacterEncoding("UTF-8");
 			
-
 			boolean dontCache = false;
 			
 			String resp = (String) request.getSession().getAttribute(REST_RESPONSE);
@@ -232,6 +231,8 @@ public class HtmlServlet extends HttpServlet {
 			
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 			RenderContext renderContext = RenderContext.getInstance(request, response, Locale.getDefault());
+			
+			edit = renderContext.getEdit();
 			
 			org.structr.core.entity.File file = findFile(request, path);
 			HtmlElement rootElement = null;

@@ -239,7 +239,7 @@ public class Content extends HtmlElement implements Text {
 
 		String id            = getUuid();
 		boolean edit         = renderContext.getEdit();
-		boolean inBody       = renderContext.inBody();
+		boolean inBody       = true;//renderContext.inBody();
 		StringBuilder buffer = renderContext.getBuffer();
 
 		// In edit mode, add an artificial 'div' tag around content nodes within body

@@ -21,12 +21,10 @@
 
 package org.structr.websocket.command;
 
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
@@ -38,19 +36,15 @@ import org.structr.web.entity.html.Html;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.PropertyKey;
+
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.html.HtmlElement;
-
-//~--- classes ----------------------------------------------------------------
+import org.structr.web.entity.relation.ChildrenRelationship;
 
 /**
  *
@@ -60,8 +54,6 @@ import org.structr.web.entity.html.HtmlElement;
 public class AddCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(AddCommand.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
@@ -83,7 +75,6 @@ public class AddCommand extends AbstractCommand {
 			if (nodeToAddId != null) {
 
 				nodeToAdd = getNode(nodeToAddId);
-				
 			} else {
 
 				StructrTransaction transaction = new StructrTransaction<AbstractNode>() {
@@ -92,6 +83,7 @@ public class AddCommand extends AbstractCommand {
 					public AbstractNode execute() throws FrameworkException {
 
 						PropertyMap nodeProps = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
+
 						return Services.command(securityContext, CreateNodeCommand.class).execute(nodeProps);
 
 					}
@@ -101,8 +93,7 @@ public class AddCommand extends AbstractCommand {
 				try {
 
 					// create node in transaction
-					nodeToAdd      = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
+					nodeToAdd = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
 				} catch (FrameworkException fex) {
 
 					logger.log(Level.WARNING, "Could not create node.", fex);
@@ -114,97 +105,89 @@ public class AddCommand extends AbstractCommand {
 
 			if ((nodeToAdd != null) && (parentNode != null)) {
 
-				String originalPageId                    = (String) nodeData.get("sourcePageId");
-				String newPageId                         = (String) nodeData.get("targetPageId");
-				PropertyKey<Long> originalPageIdProperty = null;
-				PropertyKey<Long> newPageIdProperty      = null;
-				
-				if(originalPageId != null) {
-					originalPageIdProperty = new LongProperty(originalPageId);
-				}
-				
-				if (newPageId != null) {
-					newPageIdProperty      = new LongProperty(newPageId);
-				}
+				String originalPageId = (String) nodeData.get("sourcePageId");
+				String newPageId      = (String) nodeData.get("targetPageId");
 
+//                              PropertyKey<Long> originalPageIdProperty = null;
+//                              PropertyKey<Long> newPageIdProperty      = null;
+
+//                              if(originalPageId != null) {
+//                                      originalPageIdProperty = new LongProperty(originalPageId);
+//                              }
+//                              if (newPageId != null) {
+//                                      newPageIdProperty      = new LongProperty(newPageId);
+//                              }
 				{
-
 					try {
 
-						AbstractRelationship existingRel = null;
-						long maxPos                      = 0;
+//                                              AbstractRelationship existingRel = null;
+//						int maxPos = 0;
 
-						// Search for an existing relationship between the node to add and the parent
-						for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
-
-							if (r.getEndNode().equals(nodeToAdd) && originalPageIdProperty != null && r.getLongProperty(originalPageIdProperty) != null) {
-
-								existingRel = r;
-
-//                                                              r.setProperty(newPageId, Long.parseLong((String) relData.get(newPageId)));
-//                                                              logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[] { newPageId, relData.get(newPageId) });
+//                                              // Search for an existing relationship between the node to add and the parent
+//                                              for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
 //
-//                                                              addedPageIdProperty = true;
+//                                                      if (r.getEndNode().equals(nodeToAdd) && originalPageIdProperty != null && r.getLongProperty(originalPageIdProperty) != null) {
+//
+//                                                              existingRel = r;
+//
+////                                                              r.setProperty(newPageId, Long.parseLong((String) relData.get(newPageId)));
+////                                                              logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[] { newPageId, relData.get(newPageId) });
+////
+////                                                              addedPageIdProperty = true;
+//
+//                                                      }
+//
+//                                                      if (newPageIdProperty != null) {
+//                                                              
+//                                                              Long pos = r.getLongProperty(newPageIdProperty);
+//                                                              if (pos != null) {
+//
+//                                                                      maxPos = Math.max(pos, maxPos);
+//                                                              }
+//                                                      }
+//                                              }
+//                                              if (existingRel != null) {
+//
+//                                                      if (newPageIdProperty != null) {
+//                                                              
+//                                                              existingRel.setProperty(newPageIdProperty, Long.parseLong((String) relData.get(newPageId)));
+//                                                              logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[] { newPageId, maxPos + 1 });
+//                                                      }
+//
+//                                              } else {
+						// Debugging hook: Alert when parentNode is a page!
+						if (parentNode instanceof Page && !(nodeToAdd instanceof Html)) {
 
-							}
-
-							if (newPageIdProperty != null) {
-								
-								Long pos = r.getLongProperty(newPageIdProperty);
-								if (pos != null) {
-
-									maxPos = Math.max(pos, maxPos);
-								}
-							}
+							logger.log(Level.SEVERE, "Trying to add non Html node to Page!");
 						}
 
-						if (existingRel != null) {
+						// A new node was created, no relationship exists,
+						// so we create a new one.
+						relData.put(ChildrenRelationship.position.jsonName(), parentNode.getProperty(HtmlElement.children).size());
 
-							if (newPageIdProperty != null) {
-								
-								existingRel.setProperty(newPageIdProperty, Long.parseLong((String) relData.get(newPageId)));
-								logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[] { newPageId, maxPos + 1 });
-							}
+						// convertFromInput relationship properties
+						PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 
-						} else {
+						HtmlElement.children.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
+						logger.log(Level.INFO, "Created new relationship between parent node {0}, added node {1} ({2})", new Object[] { parentNode.getUuid(),
+							nodeToAdd.getUuid(), relData });
 
-							// Debugging hook: Alert when parentNode is a page!
-							if (parentNode instanceof Page && !(nodeToAdd instanceof Html)) {
+//                                              }
 
-								logger.log(Level.SEVERE, "Trying to add non Html node to Page!");
-							}
-
-							// A new node was created, no relationship exists,
-							// so we create a new one.
-							// overwrite with new position
-							relData.put(newPageId, maxPos + 1);
-							
-							// convertFromInput relationship properties
-							PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
-							
-							HtmlElement.children.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
-							
-							logger.log(Level.INFO, "Created new relationship between parent node {0}, added node {1} ({2})", new Object[] { parentNode.getUuid(),
-								nodeToAdd.getUuid(), relData });
-						}
-
-						// set page ID on copied branch
-						if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {
-
-							logger.log(Level.INFO, "Tagging branch of added node {0}: originalPageId: {1}, newPageId: {2}", new Object[] { nodeToAdd.getUuid(),
-								originalPageId, newPageId });
-							RelationshipHelper.tagOutgoingRelsWithPageId(nodeToAdd, nodeToAdd, originalPageId, newPageId);
-
-						}
-
+//                                              // set page ID on copied branch
+//                                              if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {
+//
+//                                                      logger.log(Level.INFO, "Tagging branch of added node {0}: originalPageId: {1}, newPageId: {2}", new Object[] { nodeToAdd.getUuid(),
+//                                                              originalPageId, newPageId });
+//                                                      RelationshipHelper.tagOutgoingRelsWithPageId(nodeToAdd, nodeToAdd, originalPageId, newPageId);
+//
+//                                              }
 					} catch (Throwable t) {
 
 						t.printStackTrace();
-						
 						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
 					}
-
 				}
 
 				// If text for a content child node is given, create and link a content node
@@ -244,11 +227,11 @@ public class AddCommand extends AbstractCommand {
 						try {
 
 							// New content node is at position 0!!
-							relData.put(newPageId, 0L);
-							
+							relData.put(ChildrenRelationship.position.jsonName(), 0);
+
 							// convertFromInput relationship properties
 							PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
-							
+
 							HtmlElement.children.createRelationship(securityContext, nodeToAdd, contentNode, relProperties);
 
 							// set page ID on copied branch
@@ -277,8 +260,6 @@ public class AddCommand extends AbstractCommand {
 		}
 
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

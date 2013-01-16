@@ -799,7 +799,7 @@ public abstract class HtmlElement extends AbstractNode implements Element {
 
 				if (depth == 1) {
 
-					buffer.append(" structr_page_id='").append(pageId).append("'");
+					buffer.append(" structr_page_id=\"").append(pageId).append("\"");
 				}
 
 				buffer.append(" structr_element_id=\"").append(id).append("\"");
