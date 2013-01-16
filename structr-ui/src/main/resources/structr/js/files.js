@@ -82,8 +82,8 @@ var _Files = {
         files = $('#files');
 //        images = $('#images');
         
-        _Files.refreshFolders();
         _Files.refreshFiles();
+        _Files.refreshFolders();
 //        _Files.refreshImages();
 
     //	_Files.resize();
@@ -111,7 +111,7 @@ var _Files = {
             drop.on('drop', function(event) {
                 
                 if (!event.originalEvent.dataTransfer) {
-                    console.log(event);
+                    log(event);
                     return;
                 }
                 
@@ -205,9 +205,9 @@ var _Files = {
         }
     },
 
-    getIcon : function(file, isImage) {
+    getIcon : function(file) {
         var icon = _Files.icon; // default
-        if (file && file.contentType && !isImage) {
+        if (file && file.contentType) {
 
             if (file.contentType.indexOf('pdf') > -1) {
                 icon = 'icon/page_white_acrobat.png';
@@ -216,44 +216,31 @@ var _Files = {
             } else if (file.contentType.indexOf('xml') > -1) {
                 icon = 'icon/page_white_code.png';
             }
-        } else {
-            icon = viewRootUrl + file.name;
         }
         
         return icon;
     },
 
-    appendFileElement : function(file, folderId, add, hasChildren, isImage) {
+    appendFileElement : function(file, add) {
 
-        log('Files.appendFileElement', file, folderId, add, hasChildren, isImage);
+        log('Files.appendFileElement', file);
         
-        if (!folderId && file.parentFolder) return false;
-        
+        //if (file.parent) return false;
 
-        var div;
-        var parentElement, cls;
+        var icon = _Files.getIcon(file);
+        var folderId = file.parent ? file.parent.id : null;
         
-//        if (isImage) {
-//            parentElement = images;
-//            cls = 'image';
-//        } else {
-            parentElement = files;
-            cls = 'file';
-//        }
-
-        var icon = _Files.getIcon(file, isImage);
+        var parent = Structr.findParent(folderId, null, null, files);
+        log(parent, folderId, isExpanded(folderId));
         
-        var parent = Structr.findParent(folderId, null, null, parentElement);
-        
-        if (parent == files && file.parentFolder) {
-            return;
+        if (parent != files && !isExpanded(folderId)) {
+            return false;
         }
-        
-        if (add) _Entities.ensureExpanded(parent);
+        //if (add) _Entities.ensureExpanded(parent);
         
         var delIcon, newDelIcon;
-        div = Structr.node(file.id);
-        if (add && div && div.length) {
+        var div = Structr.node(file.id);
+        if (div && div.length) {
             
             var formerParent = div.parent();
             parent.append(div.css({
@@ -270,7 +257,7 @@ var _Files = {
             
         } else {
         
-            parent.append('<div class="node ' + cls + ' ' + file.id + '_">'
+            parent.append('<div class="node file ' + file.id + '_">'
                 + '<img class="typeIcon" src="'+ icon + '">'
                 + '<b title="' + file.name + '" class="name_">' + fitStringToSize(file.name, 200) + '</b> <span class="id">' + file.id + '</span>'
                 + '</div>');
@@ -288,7 +275,7 @@ var _Files = {
         delIcon = $('.delete_icon', div);
 
         if (folderId) {
-            newDelIcon = '<img title="Remove '+  cls + ' \'' + file.name + '\' from folder ' + folderId + '" alt="Remove '+  cls + ' \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_file_icon + '">';
+            newDelIcon = '<img title="Remove file \'' + file.name + '\' from folder ' + folderId + '" alt="Remove file \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_file_icon + '">';
             if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
@@ -303,7 +290,7 @@ var _Files = {
             disable($('.delete_icon', parent)[0]);
 			
         } else {
-            newDelIcon = '<img title="Delete ' + file.name + ' \'' + file.name + '\'" alt="Delete ' + file.name + ' \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+            newDelIcon = '<img title="Delete file ' + file.name + '\'" alt="Delete file \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
             if (add && delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
@@ -341,14 +328,19 @@ var _Files = {
         return _Files.appendFileElement(file, folderId, removeExisting, hasChildren, true);
     },
 		
-    appendFolderElement : function(folder, folderId, hasChildren) {
-		
-        log('appendFolderElement', folder, folderId, hasChildren);
-        
+    appendFolderElement : function(folder) {
+
+        var folderId;
+        if (folder.parent) {
+            folderId = folder.parent.id;
+        }
+
         var parent = Structr.findParent(folderId, null, null, folders);
-        
         log('appendFolderElement parent', parent);
-        if (!parent) return false;
+        
+        if (parent != folders && !isExpanded(folderId)) {
+            return false;
+        }
         
         //parent.append('<div id="_' + folderId + '" class="node element ' + folderId + '_"></div>');
         
@@ -357,8 +349,6 @@ var _Files = {
         
         var delIcon, newDelIcon;    
         var div;
-        
-        var removeExisting = true;
         
         //div = Structr.node(folder.id);
         div = $('#_' + folder.id);
@@ -408,7 +398,7 @@ var _Files = {
 			
         } else {
             newDelIcon = '<img title="Delete ' + folder.name + ' \'' + folder.name + '\'" alt="Delete ' + folder.name + ' \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
-            if (removeExisting && delIcon && delIcon.length) {
+            if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);
@@ -420,6 +410,8 @@ var _Files = {
             });
 		
         }
+        
+        var hasChildren = (folder.folders && folder.folders.length) || (folder.files && folder.files.length);
         
         _Entities.appendExpandIcon(div, folder, hasChildren);
         

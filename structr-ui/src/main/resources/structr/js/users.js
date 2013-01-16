@@ -171,20 +171,17 @@ var _UsersAndGroups = {
         return div;
     },
 
-    appendUserElement : function(user, groupId, removeExisting) {
-        console.log('appendUserElement', user, groupId, removeExisting);
+    appendUserElement : function(user) {
+        log('appendUserElement', user);
 
         //if (user.groups && user.groups.length) return false;
 
-        removeExisting = true;
 
         var div;
         var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
         + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">'
         var delIcon;
         div = $('.' + user.id + '_', users);
-        
-        
         
         if (user.groups && user.groups.length) {
             
@@ -195,7 +192,7 @@ var _UsersAndGroups = {
             
             log('parent, div', parent, div);
             
-            if (removeExisting && div && div.length) {
+            if (div && div.length) {
                 parent.append(div.css({
                     top: 0,
                     left: 0
@@ -228,7 +225,19 @@ var _UsersAndGroups = {
 
             // disable delete icon on parent
             disable($('.delete_icon', parent)[0]);
-            div.draggable('disable').removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
+            //div.draggable('disable');
+            
+            div.draggable({
+                revert: 'invalid',
+                containment: '#pages',
+                zIndex: 4,
+                helper: 'clone',
+                start: function(event, ui) {
+                    $(this).draggable(disable);
+                }
+            });
+            
+            div.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
 
         } else {
 
@@ -245,7 +254,7 @@ var _UsersAndGroups = {
             + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
             delIcon = $('.delete_icon', div);
             
-            if (removeExisting && delIcon && delIcon.length) {
+            if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);

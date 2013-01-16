@@ -66,24 +66,13 @@ var Command = {
      * Send a CHILDREN command to the server.
      * 
      * The server will return a result set containing all children of the
-     * node with the given id which are rendered within the page with
-     * the given pageId and within the component with the given
-     * componentId to the sending client (no broadcast).
-     * 
-     * If the tree address is set, the client will add the children
-     * at the given address.
-     * 
-     * The server will return an array with all node ids which have child
-     * nodes in this page.
+     * node with the given id to the sending client (no broadcast).
      */
-    children : function(id, componentId, pageId, treeAddress) {
+    children : function(id) {
         var obj = {};
         obj.command = 'CHILDREN';
         obj.id = id;
         var data = {};
-        if (componentId) data.componentId = componentId;
-        if (treeAddress) data.treeAddress = treeAddress;
-        if (pageId) data.pageId = pageId;
         obj.data = data;
         log('children()', obj);
         return sendObj(obj);
@@ -220,6 +209,45 @@ var Command = {
         obj.id = id;
         obj.data = data;
         log('setProperties()', obj);
+        return sendObj(obj);
+    },
+
+    /**
+     * Send a CREATE_DOM_NODE command to the server.
+     * 
+     * The server will create a new DOM node with the given tag name.
+     * If tagName is omitted (undefined, null or empty), the server
+     * will create a content (#text) node.
+     * 
+     */
+    createDOMNode : function(pageId, tagName) {
+        var obj = {};
+        obj.command = 'CREATE_DOM_NODE';
+        obj.pageId = pageId;
+        obj.data.tagName = tagName;
+        log('createDOMNode()', obj);
+        return sendObj(obj);
+    },
+
+    /**
+     * Send a CREATE_AND_ADD_DOM_ELEMENT command to the server.
+     * 
+     * The server will create a new DOM node with the given tag name and
+     * append it as child of the node with the given parent id.
+     * 
+     * If tagName is omitted (undefined, null or empty), the server
+     * will create a content (#text) node.
+     * 
+     */
+    createAndAppendDOMNode : function(pageId, parentId, tagName) {
+        var obj = {};
+        obj.command = 'CREATE_AND_APPEND_DOM_NODE';
+        obj.pageId = pageId;
+        var data = {};
+        data.parentId = parentId;
+        data.tagName = tagName;
+        obj.data = data;
+        log('createAndAppendDOMNode()', obj);
         return sendObj(obj);
     },
 

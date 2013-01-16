@@ -448,14 +448,18 @@ function send(text) {
     return sendObj(obj);
 }
 
-function log(msg) {
+function log(messages) {
     if (debug) {
-        console.log(msg);
-        if (footer) {
-            var div = $('#log', footer);
-            div.append('<p>' + msg + '</p>');
-            footer.scrollTop(div.height());
-        }
+        console.log(messages);
+        $.each(messages, function(i, msg) {
+            
+            if (footer) {
+                var div = $('#log', footer);
+                div.append('<p>' + msg + '</p>');
+                footer.scrollTop(div.height());
+            }
+            
+        });
     }
 }
 

@@ -31,7 +31,7 @@ var StructrModel = {
      */
     create : function(data) {
         
-        //console.log("StructrModel.create", data);
+        log("StructrModel.create", data);
         
         var type = data.type;
         var obj;
@@ -41,9 +41,29 @@ var StructrModel = {
             obj = new StructrPage(data);
             _Entities.appendObj(obj);
             
-        } else if (type == 'Group' || type == 'User' || type == 'Image' || type == 'File' || type == 'Folder') {
+        } else if (type == 'Group') {
             
-            obj = new StructrObj(data);
+            obj = new StructrGroup(data);
+            _Entities.appendObj(obj);
+            
+        } else if (type == 'User') {
+            
+            obj = new StructrUser(data);
+            _Entities.appendObj(obj);
+            
+        } else if (type == 'File') {
+            
+            obj = new StructrFile(data);
+            _Entities.appendObj(obj);
+            
+        } else if (type == 'File' || type == 'Image') {
+            
+            obj = new StructrFile(data);
+            _Entities.appendObj(obj);
+            
+        } else if (type == 'Folder') {
+            
+            obj = new StructrFolder(data);
             _Entities.appendObj(obj);
             
         } else {
@@ -62,29 +82,37 @@ var StructrModel = {
     
     /**
      * Removes an object from the model.
-     * 
-     * This triggers a websocket command to remove the
-     * object on the server. 
      */
     remove : function(id) {
-        console.log('StructrModel.remove', id);
-        Command.deleteNode(id);
+        log('StructrModel.remove', id);
         delete StructrModel.objects[id];
     },
     
     /**
+     * Deletes an object
+     */
+    del : function(id) {
+        log('StructrModel.remove', id);
+        Command.deleteNode(id);
+        StructrModel.remove(id);
+    },
+
+/**
      * Update the model with the given data.
      * 
      * This function is usually triggered by a websocket message
      * and will trigger a UI refresh.
      **/
     update : function(data) {
-        console.log('StructrModel.update', data);
+        log('StructrModel.update', data);
         var obj = StructrModel.obj(data.id);
-        $.each(Object.keys(data.data), function(i, key) {
-            console.log(key, data.data[key]);
-            obj.setAttribute(key, data.data[key]);
-        });
+        
+        if (obj) {
+            $.each(Object.keys(data.data), function(i, key) {
+                log(key, data.data[key]);
+                obj.setAttribute(key, data.data[key]);
+            });
+        }
         
         StructrModel.refresh(data.id);
     },
@@ -94,86 +122,91 @@ var StructrModel = {
      * with the current object data from the model.
      */
     refresh : function(id) {
-        console.log('StructrModel.refresh', id);
-        //console.log(data.data.uuid);
+        log('StructrModel.refresh', id);
         
         var obj = StructrModel.obj(id);
-        var element = $('.' + id + '_');
         
-        // update values with given key
-        $.each(Object.keys(obj.attributes), function(i, key) {
-            //for (var key in data.data) {
-            var inputElement = $('td.' + key + '_ input', element);
-            log(inputElement);
-            var newValue = obj.attributes[key];
-            //console.log(key, newValue, typeof newValue);
+        if (obj) {
+            var element = $('.' + id + '_');
+        
+            log(obj, id, element);
+        
+            // update values with given key
+            $.each(Object.keys(obj.attributes), function(i, key) {
+                //for (var key in data.data) {
+                var inputElement = $('td.' + key + '_ input', element);
+                log(inputElement);
+                var newValue = obj.attributes[key];
+                //console.log(key, newValue, typeof newValue);
             
-            var attrElement = $('.' + key + '_', element);
+                var attrElement = element.children('.' + key + '_');
             
-            if (attrElement && $(attrElement).length) {
+                if (attrElement && $(attrElement).length) {
                 
-                var tag = $(attrElement).get(0).tagName.toLowerCase();
+                    var tag = $(attrElement).get(0).tagName.toLowerCase();
                 
-//                attrElement.val(newValue);
-//                attrElement.show();
-//                log(attrElement, inputElement);
+                //                attrElement.val(newValue);
+                //                attrElement.show();
+                //                log(attrElement, inputElement);
             
-            }
+                }
             
             
-            if (typeof newValue  == 'boolean') {
+                if (typeof newValue  == 'boolean') {
                 
-                _Entities.changeBooleanAttribute(attrElement, newValue);
+                    _Entities.changeBooleanAttribute(attrElement, newValue);
             
-            } else {
-                
-                attrElement.animate({
-                    color: '#81ce25'
-                }, 100, function() {
-                    $(this).animate({
-                        color: '#333333'
-                    }, 200);
-                });
-                
-                if (attrElement && tag == 'select') {
-                    attrElement.val(newValue);
                 } else {
-                    log(key, newValue);
-                    if (key == 'name') {
-                        attrElement.html(fitStringToSize(newValue, 200));
-                        attrElement.attr('title', newValue);
+                
+                    attrElement.animate({
+                        color: '#81ce25'
+                    }, 100, function() {
+                        $(this).animate({
+                            color: '#333333'
+                        }, 200);
+                    });
+                
+                    if (attrElement && tag == 'select') {
+                        attrElement.val(newValue);
+                    } else {
+                        log(key, newValue);
+                        if (key == 'name') {
+                            attrElement.html(fitStringToSize(newValue, 200));
+                            attrElement.attr('title', newValue);
+                        }
+                    }
+                
+                    if (inputElement) {
+                        inputElement.val(newValue);
+                    }
+                
+                    if (key == 'content') {
+                    
+                        log(attrElement.text(), newValue);
+                    
+                        attrElement.text(newValue);
+                    
+                        // hook for CodeMirror edit areas
+                        if (editor && editor.id == id) {
+                            log(editor.id);
+                            editor.setValue(newValue);
+                        //editor.setCursor(editorCursor);
+                        }
                     }
                 }
-                
-                if (inputElement) {
-                    inputElement.val(newValue);
-                }
-                
-                if (key == 'content') {
-                    
-                    log(attrElement.text(), newValue);
-                    
-                    attrElement.text(newValue);
-                    
-                    // hook for CodeMirror edit areas
-                    if (editor && editor.id == id) {
-                        log(editor.id);
-                        editor.setValue(newValue);
-                    //editor.setCursor(editorCursor);
-                    }
-                }
-            }
             
-            log(key, Structr.getClass(element));
+                log(key, Structr.getClass(element));
             
-            if (key == 'name' && Structr.getClass(element) == 'page') {
-                log('Reload iframe', data.id, newValue);
-                window.setTimeout(function() {
-                    _Pages.reloadIframe(data.id, newValue)
-                }, 100);
-            }
+                if (key == 'name' && Structr.getClass(element) == 'page') {
+                    log('Reload iframe', data.id, newValue);
+                    window.setTimeout(function() {
+                        _Pages.reloadIframe(data.id, newValue)
+                    }, 100);
+                }
         
-        });
+            });
+        
+        }
     
     },
     
@@ -189,7 +222,7 @@ var StructrModel = {
      */
     save : function(id) {
         var obj = StructrModel.obj(id);
-        console.log('StructrModel.save', obj.attributes);
+        log('StructrModel.save', obj.attributes);
         
         // Filter out object type data
         var data = {};
@@ -224,6 +257,127 @@ StructrObj.prototype.getId = function() {
 
 StructrObj.prototype.save = function() {
     StructrModel.save(this.id);
+}
+
+StructrObj.prototype.setAttribute = function(key, value) {
+    this.attributes[key] = value;
+}
+
+
+/**************************************
+ * Structr Folder
+ **************************************/
+
+function StructrFolder(data) {
+    this.id = data.id;
+    this.attributes = data;
+    this.parent = data.parent;
+    this.folders = data.folders;
+    this.files = data.files;
+}
+
+StructrFolder.prototype.getId = function() {
+    return this.id;
+}
+
+StructrFolder.prototype.save = function() {
+    StructrModel.save(this.id);
+}
+
+StructrFolder.prototype.setAttribute = function(key, value) {
+    this.attributes[key] = value;
+}
+
+StructrFolder.prototype.getFolders = function() {
+    return this.folders;
+}
+
+StructrFolder.prototype.getFiles = function() {
+    return this.files;
+}
+
+StructrFolder.prototype.getParent = function() {
+    return this.parent;
+}
+
+/**************************************
+ * Structr File
+ **************************************/
+
+function StructrFile(data) {
+    this.id = data.id;
+    this.attributes = data;
+    this.parent = data.parent;
+}
+
+StructrFile.prototype.getId = function() {
+    return this.id;
+}
+
+StructrFile.prototype.save = function() {
+    StructrModel.save(this.id);
+}
+
+StructrFile.prototype.setAttribute = function(key, value) {
+    this.attributes[key] = value;
+}
+
+StructrFile.prototype.getParent = function() {
+    return this.parent;
+}
+
+
+/**************************************
+ * Structr User
+ **************************************/
+
+function StructrUser(data) {
+    this.id = data.id;
+    this.attributes = data;
+    this.groups = data.groups;
+}
+
+StructrUser.prototype.getId = function() {
+    return this.id;
+}
+
+StructrUser.prototype.save = function() {
+    StructrModel.save(this.id);
+}
+
+StructrUser.prototype.setAttribute = function(key, value) {
+    this.attributes[key] = value;
+}
+
+StructrUser.prototype.getGroups = function() {
+    return this.groups;
+}
+
+
+/**************************************
+ * Structr Group
+ **************************************/
+
+function StructrGroup(data) {
+    this.id = data.id;
+    this.attributes = data;
+    this.users = data.users;
+}
+
+StructrGroup.prototype.getId = function() {
+    return this.id;
+}
+
+StructrGroup.prototype.save = function() {
+    StructrModel.save(this.id);
+}
+
+StructrGroup.prototype.setAttribute = function(key, value) {
+    this.attributes[key] = value;
+}
+
+StructrGroup.prototype.getUsers = function() {
+    return this.users;
 }
 
 
@@ -263,7 +417,6 @@ function StructrElement(data) {
     this.children = data.children;
     this.parent = data.parent;
     this.attributes = data;
-    console.log('StructrElement', this);
 }
 
 StructrElement.prototype.getChildren = function() {

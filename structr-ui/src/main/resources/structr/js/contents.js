@@ -87,7 +87,7 @@ var _Contents = {
         
         if (!parent) return false;
         
-        console.log(parent);
+        log(parent);
 
         //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 

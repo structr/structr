@@ -811,7 +811,6 @@ var _Pages = {
                 }
                 var nodeData = {};
                 var pageId;
-                var relData = {};
 				
                 var page = self.closest('.page')[0];
 
@@ -902,44 +901,24 @@ var _Pages = {
                     } else {
                         tag = cls;
                     }
+                    
+                    console.log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
+                    Command.createAndAppendDOMNode(getId(page), getId(self), (tag != 'content' ? tag : ''))
+
                 }
                 
-                log($(ui.draggable));
-                var p = Structr.numberOfNodes(self, contentId);
-                log(p);
+//                log($(ui.draggable));
+//
+//                nodeData.tag = (tag != 'content' ? tag : '');
+//                nodeData.type = tag.capitalize();
+//                nodeData.id = contentId;
+//                nodeData.targetPageId = pageId;
+//                
+//                alert('FIXME: Linking of nodes not supported!')
 
-//                if (page) {
-//                    pageId = getId(page);
-//                    //relData.pageId = pageId;
-//                    relData[pageId] = p;
-//                } else {
-//                    relData['*'] = p;
-//                }
-				
-                //if (!isExpanded(treeAddress)) {
-                //    _Entities.toggleElement(self);
-                //}
-
-//                var component = self.closest( '.component')[0];
-//                if (component) {
-//                    var componentId = getId(component);
-//                    relData.componentId = componentId;
-//                    relData[componentId] = pos;
-//                }
-
-                nodeData.tag = (tag != 'content' ? tag : '');
-                nodeData.type = tag.capitalize();
-                nodeData.id = contentId;
-                nodeData.targetPageId = pageId;
-
-                var sourcePage = ui.draggable.closest('.page')[0];
-                if (sourcePage) {
-                    var sourcePageId = getId(sourcePage);
-                    nodeData.sourcePageId = sourcePageId;
-                }
-
-                console.log('drop event in appendElementElement', elementId, nodeData, relData);
-                Command.createAndAdd(elementId, nodeData, relData);
+                //console.log('drop event in appendElementElement', elementId, nodeData, relData);
+                //Command.createAndAdd(elementId, nodeData, relData);
+                
             }
         });
 
