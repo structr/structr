@@ -2,12 +2,8 @@ package org.structr.web.entity.dom;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.relation.ChildrenRelationship;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;

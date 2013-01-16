@@ -1,7 +1,6 @@
 package org.structr.web.entity.dom;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.web.common.StructrUiTest;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.NodeList;

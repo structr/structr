@@ -59,12 +59,15 @@ import org.w3c.dom.Text;
 
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
+import org.structr.core.Predicate;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Condition;
@@ -436,10 +439,30 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	}
 
 	@Override
-	public Element getElementById(String string) {
+	public Element getElementById(final String id) {
+		
+		StructrNodeList results = new StructrNodeList();
 
-		throw new UnsupportedOperationException("Not supported yet.");
+		collectElementsByPredicate(this, results, new Predicate<DOMElement>() {
 
+			@Override
+			public boolean evaluate(SecurityContext securityContext, DOMElement... obj) {
+				
+				if (id.equals(obj[0].getProperty(DOMElement._id))) {					
+					return true;
+				}
+				
+				return false;
+			}
+			
+		}, 0, true);
+		
+		// return first result
+		if (results.getLength() == 1) {
+			return (DOMElement)results.item(0);
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -621,11 +644,23 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	}
 
 	@Override
-	public NodeList getElementsByTagName(String tagName) {
+	public NodeList getElementsByTagName(final String tagName) {
 		
 		StructrNodeList results = new StructrNodeList();
 
-		collectElementsByTagName(this, results, tagName, 0);
+		collectElementsByPredicate(this, results, new Predicate<DOMElement>() {
+
+			@Override
+			public boolean evaluate(SecurityContext securityContext, DOMElement... obj) {
+				
+				if (tagName.equals(obj[0].getProperty(DOMElement.tag))) {					
+					return true;
+				}
+				
+				return false;
+			}
+			
+		}, 0, false);
 		
 		return results;
 	}
@@ -636,12 +671,21 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	}
 
 	// ----- private methods -----
-	private void collectElementsByTagName(DOMNode startNode, StructrNodeList results, String tagName, int depth) {
+	private void collectElementsByPredicate(DOMNode startNode, StructrNodeList results, Predicate<DOMElement> predicate, int depth, boolean stopOnFirstHit) {
 		
-		if (startNode instanceof DOMElement) {
+		if (startNode instanceof DOMNode) {
 			
-			if (tagName.equals(startNode.getProperty(DOMElement.tag))) {
-				results.add(startNode);
+			if (startNode instanceof DOMElement) {
+				
+				if (predicate.evaluate(securityContext, (DOMElement)startNode)) {
+					
+					results.add(startNode);
+					
+					if (stopOnFirstHit) {
+						
+						return;
+					}
+				}
 			}
 			
 			NodeList _children = startNode.getChildNodes();
@@ -651,7 +695,7 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 				
 				DOMNode child = (DOMNode)_children.item(i);
 				
-				collectElementsByTagName(child, results, tagName, depth+1);
+				collectElementsByPredicate(child, results, predicate, depth+1, stopOnFirstHit);
 			}
 		}
 	}
