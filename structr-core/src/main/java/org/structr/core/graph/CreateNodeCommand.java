@@ -44,7 +44,6 @@ import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
@@ -96,12 +95,13 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 			PropertyMap properties = new PropertyMap(attributes);
 			Object typeObject      = properties.get(AbstractNode.type);
 			String nodeType        = (typeObject != null) ? typeObject.toString() : EntityContext.getGenericFactory().createGenericNode().getClass().getSimpleName();
+			boolean isCreation     = true;
 
-			NodeFactory<T> nodeFactory = new NodeFactory<T>(SecurityContext.getSuperUserInstance());
+			NodeFactory<T> nodeFactory = new NodeFactory<T>(securityContext);
+//			NodeFactory<T> nodeFactory = new NodeFactory<T>(SecurityContext.getSuperUserInstance());
 
-			
 			// Create node with type
-			node = nodeFactory.createNodeWithType(graphDb.createNode(), nodeType);
+			node = nodeFactory.createNodeWithType(graphDb.createNode(), nodeType, isCreation);
 			if(node != null) {
 				
 				if ((user != null) && user instanceof AbstractNode) {
@@ -140,7 +140,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 		}
 
 		if (node != null) {
-
+			
 			// notify node of its creation
 			node.onNodeCreation();
 

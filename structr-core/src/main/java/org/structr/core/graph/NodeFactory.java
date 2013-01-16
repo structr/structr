@@ -110,11 +110,11 @@ public class NodeFactory<T extends AbstractNode> {
 				  ? (String) node.getProperty(type)
 				  : "GenericNode";
 
-		return createNodeWithType(node, nodeType);
+		return createNodeWithType(node, nodeType, false);
 
 	}
 
-	public T createNodeWithType(final Node node, final String nodeType) {
+	public T createNodeWithType(final Node node, final String nodeType, boolean isCreation) {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newNode = (T)securityContext.lookup(node);
@@ -173,7 +173,7 @@ public class NodeFactory<T extends AbstractNode> {
 		}
 		
 		// check access
-		if (securityContext.isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
+		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
 
 			return newNode;
 		}
