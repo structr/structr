@@ -31,6 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.*;
+import org.structr.core.graph.search.Search;
 import org.structr.core.notion.Notion;
 
 /**
