@@ -42,8 +42,8 @@ import java.util.logging.Logger;
 
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.HtmlElement;
 import org.structr.web.entity.relation.ChildrenRelationship;
 
 /**
@@ -121,7 +121,7 @@ public class AddCommand extends AbstractCommand {
 					try {
 
 //                                              AbstractRelationship existingRel = null;
-						int maxPos = 0;
+//						int maxPos = 0;
 
 //                                              // Search for an existing relationship between the node to add and the parent
 //                                              for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
@@ -163,12 +163,12 @@ public class AddCommand extends AbstractCommand {
 
 						// A new node was created, no relationship exists,
 						// so we create a new one.
-						relData.put(ChildrenRelationship.position.jsonName(), parentNode.getProperty(HtmlElement.children).size() + 1);
+						relData.put(ChildrenRelationship.position.jsonName(), parentNode.getProperty(DOMElement.children).size());
 
 						// convertFromInput relationship properties
 						PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 
-						HtmlElement.children.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
+						DOMElement.children.createRelationship(securityContext, parentNode, nodeToAdd, relProperties);
 						logger.log(Level.INFO, "Created new relationship between parent node {0}, added node {1} ({2})", new Object[] { parentNode.getUuid(),
 							nodeToAdd.getUuid(), relData });
 
@@ -232,7 +232,7 @@ public class AddCommand extends AbstractCommand {
 							// convertFromInput relationship properties
 							PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 
-							HtmlElement.children.createRelationship(securityContext, nodeToAdd, contentNode, relProperties);
+							DOMElement.children.createRelationship(securityContext, nodeToAdd, contentNode, relProperties);
 
 							// set page ID on copied branch
 							if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {

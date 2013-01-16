@@ -263,6 +263,7 @@ function StructrElement(data) {
     this.children = data.children;
     this.parent = data.parent;
     this.attributes = data;
+    console.log('StructrElement', this);
 }
 
 StructrElement.prototype.getChildren = function() {

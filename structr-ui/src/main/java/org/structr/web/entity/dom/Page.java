@@ -171,7 +171,7 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 				}
 			});
 			
-		} catch (FrameworkException fex) {s
+		} catch (FrameworkException fex) {
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();

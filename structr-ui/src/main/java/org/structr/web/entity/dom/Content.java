@@ -92,9 +92,9 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor               = new ThreadLocalConfluenceProcessor();
 
 	public static final org.structr.common.View uiView                                    = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, dataKey,
-													typeDefinitionId);
+													typeDefinitionId, parent);
 	public static final org.structr.common.View publicView                                = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, dataKey,
-													typeDefinitionId);	
+													typeDefinitionId, parent);
 	//~--- static initializers --------------------------------------------
 
 	static {
