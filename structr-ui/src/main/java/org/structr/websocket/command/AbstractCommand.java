@@ -46,6 +46,7 @@ import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -86,6 +87,30 @@ public abstract class AbstractCommand {
 		return webSocket;
 	}
 
+	public Page getPage(final String id) {
+		
+		AbstractNode node = getNode(id);
+		
+		if (node != null && node instanceof Page) {
+			
+			return (Page) node;
+		}
+		
+		return null;
+	}
+
+	public DOMNode getDOMNode(final String id) {
+		
+		AbstractNode node = getNode(id);
+		
+		if (node != null && node instanceof DOMNode) {
+			
+			return (DOMNode) node;
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * Returns the node to which the uuid parameter
 	 * of this command refers to.
@@ -138,6 +163,10 @@ public abstract class AbstractCommand {
 	 * @return the node
 	 */
 	public AbstractRelationship getRelationship(final String id) {
+	
+		if (id == null) {
+			return null;
+		}
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
