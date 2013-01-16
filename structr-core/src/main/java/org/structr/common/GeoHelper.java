@@ -45,12 +45,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,6 +91,10 @@ public class GeoHelper {
 	}
 
 	public static GeoCodingResult geocode(final String address) throws FrameworkException {
+		return geocode(address, "de");
+	}
+	
+	public static GeoCodingResult geocode(final String address, final String language) throws FrameworkException {
 
 		String encodedAddress;
 
@@ -110,7 +112,7 @@ public class GeoHelper {
 		try {
 
 			String protocol              = "xml";    // "xml" or "json"
-			URL mapsUrl                  = new URL("http://maps.google.com/maps/api/geocode/" + protocol + "?sensor=false&address=" + encodedAddress);
+			URL mapsUrl                  = new URL("http://maps.google.com/maps/api/geocode/" + protocol + "?sensor=false&address=" + encodedAddress + "&language=" + language);
 			HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
 
 			connection.connect();
