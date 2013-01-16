@@ -30,8 +30,6 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.RelationshipHelper;
-import org.structr.web.entity.Content;
-import org.structr.web.entity.Page;
 import org.structr.web.entity.html.Html;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -43,6 +41,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.HtmlElement;
 import org.structr.web.entity.relation.ChildrenRelationship;
 
@@ -121,7 +121,7 @@ public class AddCommand extends AbstractCommand {
 					try {
 
 //                                              AbstractRelationship existingRel = null;
-//						int maxPos = 0;
+						int maxPos = 0;
 
 //                                              // Search for an existing relationship between the node to add and the parent
 //                                              for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
@@ -163,7 +163,7 @@ public class AddCommand extends AbstractCommand {
 
 						// A new node was created, no relationship exists,
 						// so we create a new one.
-						relData.put(ChildrenRelationship.position.jsonName(), parentNode.getProperty(HtmlElement.children).size());
+						relData.put(ChildrenRelationship.position.jsonName(), parentNode.getProperty(HtmlElement.children).size() + 1);
 
 						// convertFromInput relationship properties
 						PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);

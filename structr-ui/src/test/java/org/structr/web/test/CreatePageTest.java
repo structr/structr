@@ -31,14 +31,14 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.StructrUiTest;
-import org.structr.web.entity.Content;
-import org.structr.web.entity.Page;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.H1;
 import org.structr.web.entity.html.Head;
 import org.structr.web.entity.html.Html;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.html.Title;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -190,7 +190,7 @@ public class CreatePageTest extends StructrUiTest {
 
 		if (!Content.class.getSimpleName().equals(type)) {
 
-			nodeData.put(HtmlElement.tag, type.toLowerCase());
+			nodeData.put(DOMElement.tag, type.toLowerCase());
 		}
 
 		AbstractNode element = createNodeCommand.execute(nodeData);

@@ -21,6 +21,7 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
 
@@ -29,19 +30,5 @@ import org.structr.core.EntityContext;
 /**
  * @author Axel Morgner
  */
-public class Datalist extends HtmlElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Datalist.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Datalist.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Datalist.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
-//
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
+public class Datalist extends DOMElement {
 }

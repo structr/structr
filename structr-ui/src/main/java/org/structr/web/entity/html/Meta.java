@@ -21,6 +21,7 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
@@ -37,7 +38,7 @@ import org.structr.web.common.HtmlProperty;
 /**
  * @author Axel Morgner
  */
-public class Meta extends HtmlElement {
+public class Meta extends DOMElement {
 
 	public static final Property<String> _name      = new HtmlProperty("name");
 	public static final Property<String> _httpEquiv = new HtmlProperty("http-equiv");
@@ -64,10 +65,5 @@ public class Meta extends HtmlElement {
 
 		return true;
 
-	}
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
 	}
 }

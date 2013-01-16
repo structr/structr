@@ -30,7 +30,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.IntProperty;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,7 +50,7 @@ public class ChildrenRelationship extends AbstractRelationship {
 	
 	static {
 
-		EntityContext.registerNamedRelation("children", ChildrenRelationship.class, HtmlElement.class, HtmlElement.class, RelType.CONTAINS);
+		EntityContext.registerNamedRelation("children", ChildrenRelationship.class, DOMNode.class, DOMNode.class, RelType.CONTAINS);
 		
 //		EntityContext.registerPropertySet(ChildrenRelationship.class, PropertyView.Ui, Key.values());
 

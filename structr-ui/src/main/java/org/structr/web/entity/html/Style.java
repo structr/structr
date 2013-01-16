@@ -21,6 +21,7 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
@@ -31,14 +32,14 @@ import org.structr.common.RelType;
 import org.structr.common.View;
 import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.Content;
+import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * @author Axel Morgner
  */
-public class Style extends HtmlElement {
+public class Style extends DOMElement {
 
 	public static final Property<String> _media  = new HtmlProperty("media");
 	public static final Property<String> _type   = new HtmlProperty("type");
@@ -57,10 +58,5 @@ public class Style extends HtmlElement {
 
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
-	}
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
 	}
 }

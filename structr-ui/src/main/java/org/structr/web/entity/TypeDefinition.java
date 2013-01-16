@@ -19,6 +19,7 @@
 
 package org.structr.web.entity;
 
+import org.structr.web.entity.dom.Content;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;

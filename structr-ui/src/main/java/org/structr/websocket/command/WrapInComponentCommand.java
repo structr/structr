@@ -42,7 +42,7 @@ import java.util.logging.Logger;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.DOMElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -94,7 +94,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 						relProps.put(new StringProperty("componentId"), componentId);
 
 						try {
-							HtmlElement.children.createRelationship(securityContext, newComponent, nodeToWrap, relProps);
+							DOMElement.children.createRelationship(securityContext, newComponent, nodeToWrap, relProps);
 							
 						} catch (Throwable t) {
 							getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);

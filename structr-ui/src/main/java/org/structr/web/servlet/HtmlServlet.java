@@ -54,8 +54,7 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.entity.Component;
-import org.structr.web.entity.Page;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.Page;
 import org.structr.core.entity.File;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -73,6 +72,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.structr.core.property.GenericProperty;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -235,8 +235,8 @@ public class HtmlServlet extends HttpServlet {
 			edit = renderContext.getEdit();
 			
 			org.structr.core.entity.File file = findFile(request, path);
-			HtmlElement rootElement = null;
-			String searchFor        = null;
+			DOMNode rootElement               = null;
+			String searchFor                  = null;
 			
 			if (file == null) {
 			

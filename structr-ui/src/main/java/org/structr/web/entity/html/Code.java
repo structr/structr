@@ -21,10 +21,12 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
+
 /**
  * @author Axel Morgner
  */
-public class Code extends HtmlElement {
+public class Code extends DOMElement {
 //
 //	static {
 //
@@ -43,10 +45,4 @@ public class Code extends HtmlElement {
 		return true;
 
 	}
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
-
 }

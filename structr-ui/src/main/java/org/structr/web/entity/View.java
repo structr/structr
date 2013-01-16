@@ -30,13 +30,12 @@ import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.dom.DOMElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -50,6 +49,8 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,7 +58,7 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class View extends HtmlElement {
+public class View extends DOMElement {
 
 	private static final Logger logger = Logger.getLogger(View.class.getName());
 	private DecimalFormat decimalFormat                                            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -152,8 +153,6 @@ public class View extends HtmlElement {
 		
 		HttpServletRequest request = renderContext.getRequest();
 		Condition condition = renderContext.getCondition();
-		String pageId = renderContext.getPageId();
-		String localComponentId = renderContext.getComponentId();
 
 		// fetch query results
 		List<GraphObject> results = getGraphObjects(request);
@@ -163,23 +162,24 @@ public class View extends HtmlElement {
 
 		for (GraphObject result : results) {
 
-			// recursively render children
-			List<AbstractRelationship> rels = Component.getChildRelationships(request, this);
+			if (result instanceof DOMNode) {
 
-			for (AbstractRelationship rel : rels) {
+				// recursively render children
+				List<AbstractRelationship> rels = ((DOMNode)result).getChildRelationships();
 
-				if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+				for (AbstractRelationship rel : rels) {
 
-					HtmlElement subNode = (HtmlElement) rel.getEndNode();
+					if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
 
-					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
+						DOMElement subNode = (DOMElement) rel.getEndNode();
 
-						subNode.render(securityContext, renderContext, depth + 1);
+						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
+							subNode.render(securityContext, renderContext, depth + 1);
+
+						}
 					}
-
 				}
-
 			}
 		}
 

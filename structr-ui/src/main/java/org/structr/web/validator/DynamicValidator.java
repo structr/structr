@@ -32,7 +32,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.Component;
-import org.structr.web.entity.Content;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.TypeDefinition;
 import org.structr.web.error.DynamicValidationError;
 

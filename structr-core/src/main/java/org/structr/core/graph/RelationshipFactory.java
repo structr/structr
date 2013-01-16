@@ -133,7 +133,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			}
 
-		} catch (Throwable t) {}
+		} catch (Throwable t) { }
 
 		if (newRel == null) {
 			newRel = (T)EntityContext.getGenericFactory().createGenericRelationship();

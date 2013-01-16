@@ -60,7 +60,7 @@ import org.structr.rest.resource.TypeResource;
 import org.structr.rest.resource.UuidResource;
 import org.structr.web.common.RelationshipHelper;
 import org.structr.web.entity.Component;
-import org.structr.web.entity.Content;
+import org.structr.web.entity.dom.Content;
 //~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------

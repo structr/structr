@@ -21,22 +21,10 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
+
 /**
  * @author Axel Morgner
  */
-public class Caption extends HtmlElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Caption.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Caption.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Caption.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
-//
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
+public class Caption extends DOMElement {
 }

@@ -21,10 +21,12 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.web.entity.dom.DOMElement;
+
 /**
  * @author Axel Morgner
  */
-public class Progress extends HtmlElement {
+public class Progress extends DOMElement {
 //
 //	static {
 //
@@ -34,9 +36,4 @@ public class Progress extends HtmlElement {
 //
 //	}
 //
-
-	@Override
-	public short getNodeType() {
-		return ELEMENT_NODE;
-	}
 }
