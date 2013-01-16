@@ -88,9 +88,21 @@ var _Entities = {
         
     },
 
-    appendObj : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
+    appendObj : function(obj) {
 
-        log('_Entities.appendObj: ', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+        var entity = obj.attributes;
+        var add = false;
+        var parentId = obj.parent ? obj.parent.id : null;
+        var hasChildren;
+        if (entity.type == 'Group') {
+            hasChildren = entity.users ? entity.users.length : false;
+        } else {
+            hasChildren = entity.children ? entity.children.length : false;
+        }
+        log('_Entities.appendObj: ', entity, parentId, add, hasChildren);
+        
+        // FIXME: Remove unused parameters
+        var componentId, pageId, treeAddress;
 
         var lastAppendedObj;
         var expand = false;
@@ -185,11 +197,10 @@ var _Entities = {
         log('deleteNode');
         Structr.confirmation('<p>Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\'?</p>',
             function() {
-                if (Command.deleteNode(entity.id)) {
-                    $.unblockUI({
-                        fadeOut: 25
-                    });
-                }
+                StructrModel.remove(entity.id);
+                $.unblockUI({
+                    fadeOut: 25
+                });
             });
     },
 

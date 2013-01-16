@@ -237,7 +237,8 @@ var _Elements = {
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            _Entities.deleteElement(this, entity);
+            StructrModel.remove(entity.id);
+            //_Entities.deleteElement(this, entity);
         });
 
 

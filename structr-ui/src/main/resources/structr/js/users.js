@@ -172,9 +172,9 @@ var _UsersAndGroups = {
     },
 
     appendUserElement : function(user, groupId, removeExisting) {
-        log('appendUserElement', user, groupId, removeExisting);
+        console.log('appendUserElement', user, groupId, removeExisting);
 
-        if (!groupId && user.groups.length) return false;
+        //if (user.groups && user.groups.length) return false;
 
         removeExisting = true;
 
@@ -184,8 +184,11 @@ var _UsersAndGroups = {
         var delIcon;
         div = $('.' + user.id + '_', users);
         
-        if (groupId) {
+        
+        
+        if (user.groups && user.groups.length) {
             
+            var groupId = user.groups[0].id;
             //div = Structr.node(user.id, groupId);
 
             var parent = Structr.node(groupId);

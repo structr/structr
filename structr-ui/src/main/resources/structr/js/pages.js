@@ -800,8 +800,8 @@ var _Pages = {
 
                 log('dropped', event, ui.draggable);
                 
-                treeAddress = getElementPath(self);
-                log('treeAddress', treeAddress);
+//                treeAddress = getElementPath(self);
+//                log('treeAddress', treeAddress);
                 //addExpandedNode(treeAddress);
                 _Entities.ensureExpanded(self);
                 
@@ -908,13 +908,13 @@ var _Pages = {
                 var p = Structr.numberOfNodes(self, contentId);
                 log(p);
 
-                if (page) {
-                    pageId = getId(page);
-                    //relData.pageId = pageId;
-                    relData[pageId] = p;
-                } else {
-                    relData['*'] = p;
-                }
+//                if (page) {
+//                    pageId = getId(page);
+//                    //relData.pageId = pageId;
+//                    relData[pageId] = p;
+//                } else {
+//                    relData['*'] = p;
+//                }
 				
                 //if (!isExpanded(treeAddress)) {
                 //    _Entities.toggleElement(self);

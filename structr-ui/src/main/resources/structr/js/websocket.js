@@ -199,91 +199,28 @@ function connect() {
                 }
 
             } else if (command == 'GET') { /*********************** GET ************************/
-
-                console.log('GET:', data);
-                StructrModel.objects[data.data.uuid].attributes = data.data;
-                //console.log(data.data.uuid);
-
-                var d = data.data.displayElementId;
-                log('displayElementId', d);
-
-                var parentElement;
-                if (d != null) {
-                    parentElement = $($(d)[0]);
-                } else {
-                    parentElement = $($('.' + data.id + '_')[0]);
-                }
-
-                log('parentElement', parentElement);
-                var key = data.data.key;
-                var value = data.data[key];
-
-                var attrElement = $(parentElement.find('.' + key + '_')[0]);
-                log('attrElement', attrElement);
-                log(key, value);
-
-                if (attrElement && value) {
-
-                    if (typeof value == 'boolean') {
-                        log(attrElement, value);
-                        _Entities.changeBooleanAttribute(attrElement, value);
-
-                    } else {
-                        
-                        log($(attrElement));
-                        
-                        var tag = $(attrElement).get(0).tagName.toLowerCase();
-                        
-                        log('attrElement tagName', tag);
-                        
-                        if (!(tag == 'select')) {
-                            log('appending ' + value + ' to attrElement', attrElement);
-                            attrElement.append(value);
-                        }
-                        
-                        log('setting ' + value + ' on attrElement', attrElement);
-                        
-                        attrElement.val(value);
-                        attrElement.show();
-                    }
-                }
-
-            } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
-
-                var treeAddress = data.data.treeAddress;
-
-                log('CHILDREN:', parentId, componentId, pageId);
-                log('CHILDREN');
-                log('parentId', parentId);
-                log('componentId', componentId);
-                log('pageId', pageId);
-                log('Nodes with children', data.nodesWithChildren);
-                log('Tree address', treeAddress);
                 
+                log('GET', data);
+                StructrModel.refresh(data.id);
+                
+            } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
+                
+                log('CHILDREN', data);
                 
                 $(result).each(function(i, child) {
-                    log('CHILDREN: ', child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren), treeAddress);
-                    _Entities.appendObj(child, parentId, componentId, pageId, false, isIn(child.id, data.nodesWithChildren), treeAddress);
+                    StructrModel.create(child);
                 });
-
+                
             } else if (command == 'LIST') { /*********************** LIST ************************/
-				
-                log('LIST:', result);
-                log('Nodes with children', data.nodesWithChildren);
-                //console.log('page count for type ' + type, pageCount[type], $('#pager' + type), $('.pageCount', $('#pager' + type)));
+                
+                log('LIST', result);
+                
                 $('.pageCount', $('#pager' + type)).val(pageCount[type]);
                 
                 $(result).each(function(i, entity) {
-                    log('LIST: ' + entity.type);
-                    
-                    if (entity.type != 'Folder' || !entity.parentFolder) {
-                        _Entities.appendObj(entity, null, null, null, false, isIn(entity.id, data.nodesWithChildren), treeAddress);
-                    } else {
-                        log(entity);
-                    }
-                    
+                    StructrModel.create(entity);
                 });
-
+                
             } else if (command == 'DELETE') { /*********************** DELETE ************************/
                 var elementSelector = '.' + data.id + '_';
                 log($(elementSelector));
@@ -343,15 +280,17 @@ function connect() {
 				
                 $(result).each(function(i, entity) {
                     
-                   log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                   log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren));
+                   
+                   StructrModel.create(entity);
                     
-                    //var el = Structr.node(entity.id, parentId, componentId, pageId);
-                    var el = Structr.elementFromAddress(treeAddress);
-                    if (el) el.remove();
-                    
-                    //alert(entity.id);
-                    
-                    _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+//                    //var el = Structr.node(entity.id, parentId, componentId, pageId);
+//                    var el = Structr.elementFromAddress(treeAddress);
+//                    if (el) el.remove();
+//                    
+//                    //alert(entity.id);
+//                    
+//                    _Entities.appendObj(entity);
                     
                     if (command == 'CREATE' && entity.type == 'Page') {
                         var tab = $('#show_' + entity.id, previews);
@@ -444,102 +383,8 @@ function connect() {
                     }
                     
                 } else {
-                    
-                    log('else');
-                
-                    var element = $('.' + data.id + '_');
-//                    var input = $('.props tr td.value input', element);
-                    log(element);
-//
-//                    // remove save and cancel icons
-//                    input.parent().children('.icon').each(function(i, img) {
-//                        $(img).remove();
-//                    });
-//
-//                    // make inactive
-//                    input.removeClass('active');
-
-                    // update values with given key
-                    log(data, data.data);
-                    $.each(Object.keys(data.data), function(k, key) {
-                    //for (var key in data.data) {
-                        var inputElement = $('td.' + key + '_ input', element);
-                        log(inputElement);
-                        var newValue = data.data[key];
-//                        console.log(key, newValue, typeof newValue);
-
-                        var attrElement = $('.' + key + '_', element);
-                    
-                        if (attrElement && $(attrElement).length) {
-                    
-                            var tag = $(attrElement).get(0).tagName.toLowerCase();
-                        
-                            attrElement.val(value);
-                            attrElement.show();
-                    
-                            log(attrElement, inputElement);
-                    
-                        }
-                    
-
-                        if (typeof newValue  == 'boolean') {
-
-                            _Entities.changeBooleanAttribute(attrElement, newValue);
-                        
-                        } else {
-
-                            attrElement.animate({
-                                color: '#81ce25'
-                            }, 100, function() {
-                                $(this).animate({
-                                    color: '#333333'
-                                }, 200);
-                            });
-                        
-                            if (attrElement && tag == 'select') {
-                                attrElement.val(newValue);
-                            } else {
-                                log(key, newValue);
-                                if (key == 'name') {
-                                    attrElement.html(fitStringToSize(newValue, 200));
-                                    attrElement.attr('title', newValue);
-                                }
-                            }
-                        
-                            if (inputElement) {
-                                inputElement.val(newValue);
-                            }
-
-                            if (key == 'content') {
-
-                                log(attrElement.text(), newValue);
-
-                                //attrElement.text(newValue);
-
-                                // hook for CodeMirror edit areas
-                                if (editor && editor.id == data.id) {
-                                    log(editor.id);
-                                    editor.setValue(newValue);
-                                    //editor.setCursor(editorCursor);
-                                }
-                            }
-                        }
-                    
-                        log(key, Structr.getClass(element));
-                    
-                        if (key == 'name' && Structr.getClass(element) == 'page') {
-                            log('Reload iframe', data.id, newValue);
-                            window.setTimeout(function() {
-                                _Pages.reloadIframe(data.id, newValue)
-                            }, 100);
-                        }
-
-                    });
-                
-
-                
+                    StructrModel.update(data);
                 }
-                
 //                if (input) {
 //                    input.data('changed', false);
 //                }
