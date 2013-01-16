@@ -47,6 +47,7 @@ public class WebSocketMessage {
 	private String command                      = null;
 	private GraphObject graphObject             = null;
 	private String id                           = null;
+	private String pageId                       = null;
 	private String message                      = null;
 	private Map<String, Object> nodeData        = new LinkedHashMap<String, Object>();
 	private int page                            = 0;
@@ -75,6 +76,7 @@ public class WebSocketMessage {
 		newCopy.callback           = this.callback;
 		newCopy.code               = this.code;
 		newCopy.command            = this.command;
+		newCopy.pageId             = this.pageId;
 		newCopy.nodeData           = this.nodeData;
 		newCopy.relData            = this.relData;
 		newCopy.graphObject        = this.graphObject;
@@ -107,6 +109,10 @@ public class WebSocketMessage {
 
 	public String getId() {
 		return id;
+	}
+
+	public String getPageId() {
+		return pageId;
 	}
 
 	public Map<String, Object> getNodeData() {
@@ -205,6 +211,10 @@ public class WebSocketMessage {
 
 	public void setId(final String id) {
 		this.id = id;
+	}
+
+	public void setPageId(final String pageId) {
+		this.pageId = pageId;
 	}
 
 	public void setNodeData(final String key, Object value) {

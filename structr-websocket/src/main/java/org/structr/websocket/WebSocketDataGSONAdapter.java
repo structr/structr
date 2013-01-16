@@ -82,6 +82,11 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			root.add("id", new JsonPrimitive(src.getId()));
 		}
 
+		if (src.getPageId() != null) {
+
+			root.add("pageId", new JsonPrimitive(src.getPageId()));
+		}
+
 		if (src.getMessage() != null) {
 
 			root.add("message", new JsonPrimitive(src.getMessage()));
@@ -357,6 +362,11 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			if (root.has("id")) {
 
 				webSocketData.setId(root.getAsJsonPrimitive("id").getAsString());
+			}
+			
+			if (root.has("pageId")) {
+
+				webSocketData.setPageId(root.getAsJsonPrimitive("pageId").getAsString());
 			}
 
 			if (root.has("token")) {
