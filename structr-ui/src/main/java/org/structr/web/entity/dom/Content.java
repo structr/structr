@@ -49,6 +49,7 @@ import org.structr.web.validator.DynamicValidator;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -82,13 +83,16 @@ public class Content extends DOMNode implements Text {
 	public static final Property<String> content                                          = new DynamicContentProperty("content");
 	public static final Property<Integer> size                                            = new IntProperty("size");
 	public static final Property<String> dataKey                                          = new StringProperty("data-key");
+	
 	public static final EntityProperty<TypeDefinition> typeDefinition                     = new EntityProperty<TypeDefinition>("typeDefinition", TypeDefinition.class, RelType.IS_A, true);
 	public static final Property<String> typeDefinitionId                                 = new EntityIdProperty("typeDefinitionId", typeDefinition);
+	
+	private static final Map<String, Adapter<String, String>> contentConverters           = new LinkedHashMap<String, Adapter<String, String>>();
+
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                   = new ThreadLocalTracWikiProcessor();
 	private static final ThreadLocalTextileProcessor textileProcessor                     = new ThreadLocalTextileProcessor();
 	private static final ThreadLocalPegDownProcessor pegDownProcessor                     = new ThreadLocalPegDownProcessor();
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                 = new ThreadLocalMediaWikiProcessor();
-	private static final java.util.Map<String, Adapter<String, String>> contentConverters = new LinkedHashMap<String, Adapter<String, String>>();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor               = new ThreadLocalConfluenceProcessor();
 
 	public static final org.structr.common.View uiView                                    = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, dataKey,

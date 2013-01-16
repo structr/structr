@@ -21,6 +21,8 @@
 
 package org.structr.websocket;
 
+import org.structr.websocket.command.ChunkCommand;
+import org.structr.websocket.command.FileUploadHandler;
 import com.google.gson.Gson;
 
 import org.apache.commons.codec.binary.Base64;

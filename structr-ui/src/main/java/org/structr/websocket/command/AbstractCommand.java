@@ -45,6 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
+import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -107,13 +108,13 @@ public abstract class AbstractCommand {
 
 				if (!results.isEmpty()) {
 
-					return (AbstractNode) results.get(0);
+					return (DOMNode) results.get(0);
 
 				}
 
 			} else {
 
-				List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, FindNodeCommand.class).execute(id);
+				List<DOMNode> results = (List<DOMNode>) Services.command(securityContext, FindNodeCommand.class).execute(id);
 
 				if (!results.isEmpty()) {
 
