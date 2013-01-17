@@ -18,6 +18,11 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 	
 	// ----- interface org.w3c.dom.Node -----
 	@Override
+	public String getLocalName() {
+		return null;
+	}
+
+	@Override
 	public String getNodeName() {
 		return "#document-fragment";
 	}
@@ -39,6 +44,11 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 	@Override
 	public NamedNodeMap getAttributes() {
 		return null;
+	}
+	
+	@Override
+	public boolean hasAttributes() {
+		return false;
 	}
 
 	// ----- interface Renderable -----

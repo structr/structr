@@ -371,6 +371,10 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public String getWholeText() {
+		
+		
+		logLine("getWholeText()");
+		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -381,6 +385,9 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public String getData() throws DOMException {
+		
+		
+		logLine("getData(): " + getProperty(content));
 		
 		checkReadAccess();
 		
@@ -404,6 +411,9 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public int getLength() {
+		
+		
+		logLine("getLength()");
 		
 		String text = getProperty(content);
 		
@@ -530,18 +540,47 @@ public class Content extends DOMNode implements Text {
 	
 	// ----- interface org.w3c.dom.Node -----
 	@Override
+	public String getTextContent() throws DOMException {
+		return getData();
+	}
+
+	@Override
+	public void setTextContent(String textContent) throws DOMException {
+		setData(textContent);
+	}
+
+	@Override
+	public String getLocalName() {
+		
+		
+		logLine("getLocalName()");
+		
+		return null;
+	}
+
+	@Override
 	public short getNodeType() {
 
+		
+		logLine("getNodeType()");
+		
 		return TEXT_NODE;
 	}
 
 	@Override
 	public String getNodeName() {
+		
+		
+		logLine("getNodeName()");
+		
 		return "#text";
 	}
 
 	@Override
 	public String getNodeValue() throws DOMException {
+		
+		logLine("getNodeValue()");
+		
 		return getData();
 	}
 
@@ -553,6 +592,11 @@ public class Content extends DOMNode implements Text {
 	@Override
 	public NamedNodeMap getAttributes() {
 		return null;
+	}
+
+	@Override
+	public boolean hasAttributes() {
+		return false;
 	}
 
 	

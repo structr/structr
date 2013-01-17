@@ -20,9 +20,9 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
-import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Predicate;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -49,6 +49,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.w3c.dom.UserDataHandler;
 
 /**
@@ -884,14 +885,69 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 
 	}
 
+	protected void collectNodesByPredicate(Node startNode, StructrNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
+		
+		if (predicate.evaluate(securityContext, startNode)) {
+
+			results.add(startNode);
+
+			if (stopOnFirstHit) {
+
+				return;
+			}
+		}
+
+		NodeList _children = startNode.getChildNodes();
+		if (_children != null) {
+			
+			int len = _children.getLength();
+			for (int i=0; i<len; i++) {
+
+				Node child = _children.item(i);
+
+				collectNodesByPredicate(child, results, predicate, depth+1, stopOnFirstHit);
+			}
+		}
+	}
+
 	// ----- interface org.w3c.dom.Node -----
 	@Override
+	public String getTextContent() throws DOMException {
+
+		final StructrNodeList results = new StructrNodeList();
+		final StringBuilder buf       = new StringBuilder();
+		
+		collectNodesByPredicate(this, results, new Predicate<Node>() {
+
+			@Override
+			public boolean evaluate(SecurityContext securityContext, Node... obj) {
+				
+				if (obj[0] instanceof Text) {
+					buf.append(((Text)obj[0]).getTextContent());
+				}
+				
+				return false;
+			}
+			
+		}, 0, false);
+		
+		return buf.toString();
+	}
+
+	@Override
+	public void setTextContent(String textContent) throws DOMException {
+		// TODO: implement?
+	}
+	@Override
 	public Node getParentNode() {
+		
 		return getProperty(parent);
 	}
 
 	@Override
 	public NodeList getChildNodes() {
+		
+		checkReadAccess();
 		
 		StructrNodeList nodeList = new StructrNodeList();
 		
@@ -910,18 +966,23 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	@Override
 	public Node getFirstChild() {
 		
+		checkReadAccess();
+		
 		NodeList _children = getChildNodes();
+		Node firstChild    = null;
 		
 		if (_children.getLength() > 0) {
 			
-			return _children.item(0);
+			firstChild = _children.item(0);
 		}
-		
-		return null;
+
+		return firstChild;
 	}
 
 	@Override
 	public Node getLastChild() {
+		
+		checkReadAccess();
 		
 		NodeList _children = getChildNodes();
 		int length         = _children.getLength();
@@ -956,7 +1017,7 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 
 	@Override
 	public Node getNextSibling() {
-
+		
 		checkReadAccess();
 		
 		Node _parent = getParentNode();
@@ -1248,57 +1309,35 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 
 	@Override
 	public void normalize() {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public boolean isSupported(String string, String string1) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return false;
 	}
 
 	@Override
 	public String getNamespaceURI() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null; //return "http://www.w3.org/1999/xhtml";
 	}
 
 	@Override
 	public String getPrefix() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
-	public void setPrefix(String string) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public String getLocalName() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public boolean hasAttributes() {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void setPrefix(String prefix) throws DOMException {
 	}
 
 	@Override
 	public String getBaseURI() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public short compareDocumentPosition(Node node) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public String getTextContent() throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void setTextContent(String string) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return 0;
 	}
 
 	@Override
@@ -1319,36 +1358,65 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 
 	@Override
 	public String lookupPrefix(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public boolean isDefaultNamespace(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return true;
 	}
 
 	@Override
 	public String lookupNamespaceURI(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public boolean isEqualNode(Node node) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return equals(node);
 	}
 
 	@Override
 	public Object getFeature(String string, String string1) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public Object setUserData(String string, Object o, UserDataHandler udh) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public Object getUserData(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
+	
+	
+	protected void logLine(String method) {
+		
+		boolean doLog = false;
+		
+		if (this instanceof Page) {
+
+			if (((Page)this).doDebugging()) {
+				doLog = true;
+			}
+			
+		} else {
+			
+			Page page = (Page)getOwnerDocument();
+
+			if (page != null && page.doDebugging()) {
+				doLog = true;
+			}
+		}
+
+		if (doLog) {
+			
+			logger.log(Level.INFO, "################################################################################ {0}#{1}", new Object[] { getClass().getSimpleName(), method } );
+			
+			Thread.dumpStack();
+		}
+	}
+
 }

@@ -29,8 +29,11 @@ public class PageTest extends StructrUiTest {
 			DOMNode title  = (DOMNode)page.createElement("title");
 			DOMNode h1     = (DOMNode)page.createElement("h1");
 			DOMNode div1   = (DOMNode)page.createElement("div");
+			DOMNode p1     = (DOMNode)page.createElement("p");
 			DOMNode div2   = (DOMNode)page.createElement("div");
+			DOMNode p2     = (DOMNode)page.createElement("p");
 			DOMNode div3   = (DOMNode)page.createElement("div");
+			DOMNode p3     = (DOMNode)page.createElement("p");
 
 			try {
 				// add HTML element to page
@@ -48,22 +51,25 @@ public class PageTest extends StructrUiTest {
 
 				// add DIV element 1 to BODY
 				body.appendChild(div1);
+				div1.appendChild(p1);
 				
 				// add DIV element 2 to DIV
 				div1.appendChild(div2);
+				div2.appendChild(p2);
 				
 				// add DIV element 3 to DIV
 				div2.appendChild(div3);
+				div3.appendChild(p3);
 
 			} catch (DOMException dex) {
 
 				throw new FrameworkException(422, dex.getMessage());
 			}
 
-			NodeList divs = page.getElementsByTagName("div");
-			assertEquals(div1, divs.item(0));
-			assertEquals(div2, divs.item(1));
-			assertEquals(div3, divs.item(2));
+			NodeList divs = page.getElementsByTagName("p");
+			assertEquals(p1, divs.item(0));
+			assertEquals(p2, divs.item(1));
+			assertEquals(p3, divs.item(2));
 			
 
 		} catch (FrameworkException ex) {

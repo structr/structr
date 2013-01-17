@@ -48,11 +48,13 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletRequest;
+import org.structr.core.Predicate;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.IntProperty;
 import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.w3c.dom.TypeInfo;
 
 //~--- classes ----------------------------------------------------------------
@@ -62,7 +64,7 @@ import org.w3c.dom.TypeInfo;
  * @author Axel Morgner
  * @author Christian Morgner
  */
-public class DOMElement extends DOMNode implements Element {
+public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	private static final Logger logger                             = Logger.getLogger(DOMElement.class.getName());
 	
@@ -222,8 +224,6 @@ public class DOMElement extends DOMNode implements Element {
 
 			}
 
-			final HttpServletRequest request = renderContext.getRequest();
-
 			for (PropertyKey attribute : EntityContext.getPropertySet(getClass(), PropertyView.Html)) {
 
 				try {
@@ -248,27 +248,6 @@ public class DOMElement extends DOMNode implements Element {
 			
 			buffer.append(">");
 
-//			boolean whitespaceOnly = false;
-//			int lastNewline        = buffer.lastIndexOf("\n");
-//
-//			whitespaceOnly = StringUtils.isBlank((lastNewline > -1)
-//				? buffer.substring(lastNewline)
-//				: buffer.toString());
-//
-//			if (!avoidWhitespace()) {
-//
-//				if (whitespaceOnly) {
-//
-//					buffer.replace(buffer.length() - 2, buffer.length(), "");
-//
-//				} else {
-//
-//					buffer.append(indent(depth - 1, true));
-//
-//				}
-//
-//			}
-
 			// recursively render children
 			List<AbstractRelationship> rels = getChildRelationships();
 
@@ -289,22 +268,10 @@ public class DOMElement extends DOMNode implements Element {
 				buffer.append(indent(depth, true));
 
 				buffer.append("</").append(tag).append(">");
-
-//				if (!avoidWhitespace()) {
-//
-//					buffer.append(indent(depth - 1, true));
-//
-//				}
-
 			}
 
 		}
 	
-//		if (!isVoid) {
-//
-//			buffer.append(ind);
-//		}
-
 		double end = System.nanoTime();
 
 		logger.log(Level.FINE, "Render node {0} in {1} seconds", new java.lang.Object[] { getUuid(), decimalFormat.format((end - start) / 1000000000.0) });
@@ -321,105 +288,203 @@ public class DOMElement extends DOMNode implements Element {
 	
 	@Override
 	public String getTagName() {
+
+		logLine("getTagName(): " + getProperty(tag));
+
 		return getProperty(tag);
 	}
 
 	@Override
-	public String getAttribute(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public String getAttribute(String name) {
+
+		logLine("getAttribute(" + name + ")");
+		
+		PropertyKey<String> htmlProperty = EntityContext.getPropertyKeyForJSONName(getClass(), name);
+		if (htmlProperty != null) {
+
+			return getProperty(htmlProperty);
+		}
+		
+		return null;
 	}
 
 	@Override
-	public void setAttribute(String string, String string1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void setAttribute(String name, String value) throws DOMException {
+		
+		PropertyKey<String> htmlProperty = EntityContext.getPropertyKeyForJSONName(getClass(), name);
+		if (htmlProperty != null) {
+
+			try {
+				setProperty(htmlProperty, value);
+				
+			} catch (FrameworkException fex) {
+
+				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+			}
+		}
 	}
 
 	@Override
-	public void removeAttribute(String string) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void removeAttribute(String name) throws DOMException {
+		
+		PropertyKey<String> htmlProperty = EntityContext.getPropertyKeyForJSONName(getClass(), name);
+		if (htmlProperty != null) {
+
+			try {
+				setProperty(htmlProperty, null);
+				
+			} catch (FrameworkException fex) {
+
+				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+			}
+		}
 	}
 
 	@Override
-	public Attr getAttributeNode(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public Attr getAttributeNode(String name) {
+
+		logLine("getAttributeNode(" + name + ")");
+
+		throw new UnsupportedOperationException("Attribute nodes not supported in HTML5.");
 	}
 
 	@Override
 	public Attr setAttributeNode(Attr attr) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Attribute nodes not supported in HTML5.");
 	}
 
 	@Override
 	public Attr removeAttributeNode(Attr attr) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Attribute nodes not supported in HTML5.");
 	}
 
 	@Override
-	public NodeList getElementsByTagName(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public NodeList getElementsByTagName(final String tagName) {
+		
+		StructrNodeList results = new StructrNodeList();
+
+		collectNodesByPredicate(this, results, new Predicate<Node>() {
+
+			@Override
+			public boolean evaluate(SecurityContext securityContext, Node... obj) {
+				
+				if (obj[0] instanceof DOMElement) {
+
+					DOMElement elem = (DOMElement)obj[0];
+					
+					if (tagName.equals(elem.getProperty(DOMElement.tag))) {					
+						return true;
+					}
+				}
+				
+				return false;
+			}
+			
+		}, 0, false);
+		
+		return results;		
 	}
 
 	@Override
 	public String getAttributeNS(String string, String string1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		logLine("getAttributeNS(" + string1 + ")");
+
+		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
 	public void setAttributeNS(String string, String string1, String string2) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
 	public void removeAttributeNS(String string, String string1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
 	public Attr getAttributeNodeNS(String string, String string1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		logLine("getAttributeNodeNS(" + string1 + ")");
+
+		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
 	public Attr setAttributeNodeNS(Attr attr) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
 	public NodeList getElementsByTagNameNS(String string, String string1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		logLine("getElementsByTagNameNS(" + string1 + ")");
+
+		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
-	public boolean hasAttribute(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public boolean hasAttribute(String name) {
+
+		logLine("hasAttribute(" + name + ")");
+		
+		PropertyKey<String> htmlProperty = EntityContext.getPropertyKeyForJSONName(getClass(), name);
+		if (htmlProperty != null) {
+			
+			String value = getProperty(htmlProperty);
+			return value != null && !value.isEmpty();
+		}
+		
+		return false;
 	}
 
 	@Override
 	public boolean hasAttributeNS(String string, String string1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		logLine("hasAttributeNS(" + string1 + ")");
+
+		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
 	public TypeInfo getSchemaTypeInfo() {
+
+		logLine("getSchemaTypeInfo()");
+
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void setIdAttribute(String string, boolean bln) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void setIdAttribute(String idString, boolean isId) throws DOMException {
+
+		checkWriteAccess();
+
+		try {
+			setProperty(DOMElement._id, idString);
+			
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+		}
 	}
 
 	@Override
 	public void setIdAttributeNS(String string, String string1, boolean bln) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
-	public void setIdAttributeNode(Attr attr, boolean bln) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void setIdAttributeNode(Attr idAttr, boolean isId) throws DOMException {
+		throw new UnsupportedOperationException("Attribute nodes not supported in HTML5.");
 	}
 
 	// ----- interface org.w3c.dom.Node -----
+	@Override
+	public String getLocalName() {
+		return null;
+	}
+
 	@Override
 	public String getNodeName() {
 		return getTagName();
@@ -432,18 +497,117 @@ public class DOMElement extends DOMNode implements Element {
 
 	@Override
 	public void setNodeValue(String string) throws DOMException {
+		// the nodeValue of an Element cannot be set
 	}
 
 	@Override
 	public short getNodeType() {
+
 		return ELEMENT_NODE;
 	}
 
 	@Override
 	public NamedNodeMap getAttributes() {
+		return this;
+	}
+
+	@Override
+	public boolean hasAttributes() {
+		return getLength() > 0;
+	}
+
+
+	// ----- interface org.w3c.dom.NamedNodeMap -----
+	@Override
+	public Node getNamedItem(String name) {
+
+		logLine("getNamedItem(" + name + ")");
 		
-		// TODO: implement attribute operations here
+		String prefixedName = PropertyView.Html.concat(name);
+		PropertyKey<String> key = EntityContext.getPropertyKeyForJSONName(getClass(), prefixedName);
 		
+		if (key != null) {
+			
+			return new DOMAttribute(this, (HtmlProperty)key, getProperty(key));
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Node setNamedItem(Node node) throws DOMException {
+		
+		
+		String nodeName  = node.getNodeName();
+		String nodeValue = node.getNodeValue();
+		
+		String prefixedName = PropertyView.Html.concat(nodeName);
+		PropertyKey<String> key = EntityContext.getPropertyKeyForJSONName(getClass(), prefixedName);
+		
+		if (key != null) {
+			
+			try {
+				setProperty(key, nodeValue);
+				
+			} catch (FrameworkException fex) {
+
+				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+			}
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Node removeNamedItem(String string) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Node item(int i) {
+
+		int count = 0;
+		
+		for (PropertyKey<String> key : htmlView.properties()) {
+			
+			String value = getProperty(key);
+			if (value != null && count++ == i) {
+
+				return new DOMAttribute(this, (HtmlProperty)key, value);
+			}
+		}
+		
+		return null;
+	}
+
+	@Override
+	public int getLength() {
+		
+		int count = 0;
+		
+		for (PropertyKey key : htmlView.properties()) {
+			
+			if (getProperty(key) != null) {
+				
+				count++;
+			}
+		}
+		
+		return count;
+	}
+
+	@Override
+	public Node getNamedItemNS(String string, String string1) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Node setNamedItemNS(Node node) throws DOMException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Node removeNamedItemNS(String string, String string1) throws DOMException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

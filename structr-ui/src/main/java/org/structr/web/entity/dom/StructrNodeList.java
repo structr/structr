@@ -9,17 +9,15 @@ import org.w3c.dom.NodeList;
  *
  * @author Christian Morgner
  */
-public class StructrNodeList extends ArrayList<DOMNode> implements NodeList {
+public class StructrNodeList extends ArrayList<Node> implements NodeList {
 
 	public StructrNodeList() {
 		super();
 	}
 
-	public StructrNodeList(List<DOMNode> children) {
+	public StructrNodeList(List<Node> children) {
 		super(children);
 	}
-
-	//~--- methods ------------------------------------------------
 
 	@Override
 	public Node item(int i) {
@@ -27,11 +25,18 @@ public class StructrNodeList extends ArrayList<DOMNode> implements NodeList {
 		return get(i);
 	}
 
-	//~--- get methods --------------------------------------------
-
 	@Override
 	public int getLength() {
 
 		return size();
+	}
+	
+	public void addAll(NodeList nodeList) {
+		
+		int len = nodeList.getLength();
+		
+		for (int i=0; i<len; i++) {
+			add(nodeList.item(i));
+		}
 	}
 }	

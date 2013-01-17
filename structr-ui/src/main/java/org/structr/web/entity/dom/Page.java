@@ -43,6 +43,7 @@ import org.w3c.dom.Comment;
 import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.DOMStringList;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.DocumentType;
@@ -66,8 +67,6 @@ import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Condition;
@@ -80,7 +79,7 @@ import org.structr.web.entity.Condition;
  * @author Axel Morgner
  * @author Christian Morgner
  */
-public class Page extends DOMNode implements Linkable, Document, DocumentType, DOMImplementation {
+public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
 
 	public static final Property<Integer> version                           = new IntProperty("version");
 	public static final Property<Integer> position                          = new IntProperty("position");
@@ -92,6 +91,8 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version);
 	public static final org.structr.common.View publicView                  = new org.structr.common.View(Page.class, PropertyView.Public, linkingElements, contentType, owner, cacheForSeconds, version);
 
+	private Html5DocumentType docTypeNode                                   = null;
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -101,6 +102,11 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 
 	}
 
+	public Page() {
+		
+		docTypeNode = new Html5DocumentType(this);
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	/**
@@ -120,9 +126,10 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 		properties.put(AbstractNode.name, name != null ? name : "page");
 		properties.put(AbstractNode.type, Page.class.getSimpleName());
 		properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+		properties.put(AbstractNode.visibleToPublicUsers, true);
 		properties.put(Page.contentType, "text/html");
-		
-		return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Page>() {
+	
+		Page newPage = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Page>() {
 
 			@Override
 			public Page execute() throws FrameworkException {
@@ -130,6 +137,10 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 				return (Page)cmd.execute(properties);
 			}		
 		});
+		
+		//newPage.appendChild(newPage.createD)
+		
+		return newPage;
 	}
 	
 	@Override
@@ -165,7 +176,28 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 		
 		return node;
 	}
+
+	@Override
+	public boolean hasChildNodes() {
+		return true;
+	}
 	
+	@Override
+	public NodeList getChildNodes() {
+		
+		StructrNodeList _children = new StructrNodeList();
+		
+		_children.add(docTypeNode);
+		_children.addAll(super.getChildNodes());
+		
+		return _children;
+	}
+	
+	@Override
+	public Node getFirstChild() {
+		return docTypeNode;
+	}
+
 	public void increaseVersion() throws FrameworkException {
 
 		Integer _version = getProperty(Page.version);
@@ -366,16 +398,12 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 
 	@Override
 	public Element createElementNS(String string, String string1) throws DOMException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		throw new UnsupportedOperationException("Namespaces not supported");
 	}
 
 	@Override
 	public Attr createAttributeNS(String string, String string1) throws DOMException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		throw new UnsupportedOperationException("Namespaces not supported");
 	}
 
 	@Override
@@ -422,12 +450,6 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	}
 
 	@Override
-	public DocumentType getDoctype() {
-
-		return this;
-	}
-
-	@Override
 	public DOMImplementation getImplementation() {
 
 		return this;
@@ -435,21 +457,31 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 
 	@Override
 	public Element getDocumentElement() {
+
+		logLine("getDocumentElement()");
+
 		return getProperty(html);
 	}
 
 	@Override
 	public Element getElementById(final String id) {
 		
+		logLine("getElementById(" + id + ")");
+
 		StructrNodeList results = new StructrNodeList();
 
-		collectElementsByPredicate(this, results, new Predicate<DOMElement>() {
+		collectNodesByPredicate(this, results, new Predicate<Node>() {
 
 			@Override
-			public boolean evaluate(SecurityContext securityContext, DOMElement... obj) {
+			public boolean evaluate(SecurityContext securityContext, Node... obj) {
 				
-				if (id.equals(obj[0].getProperty(DOMElement._id))) {					
-					return true;
+				if (obj[0] instanceof DOMElement) {
+					
+					DOMElement elem = (DOMElement)obj[0];
+					
+					if (id.equals(elem.getProperty(DOMElement._id))) {					
+						return true;
+					}
 				}
 				
 				return false;
@@ -467,86 +499,42 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 
 	@Override
 	public String getInputEncoding() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return null;
 	}
 
 	@Override
 	public String getXmlEncoding() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return "UTF-8";
 	}
 
 	@Override
 	public boolean getXmlStandalone() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return true;
 	}
 
 	@Override
 	public String getXmlVersion() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return "1.0";
 	}
 
 	@Override
 	public boolean getStrictErrorChecking() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return true;
 	}
 
 	@Override
 	public String getDocumentURI() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return null;
 	}
 
 	@Override
 	public DOMConfiguration getDomConfig() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return null;
 	}
 
 	@Override
-	public NamedNodeMap getEntities() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public NamedNodeMap getNotations() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public String getPublicId() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public String getSystemId() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public String getInternalSubset() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+	public DocumentType getDoctype() {
+		return new Html5DocumentType(this);
 	}
 
 	@Override
@@ -556,18 +544,6 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 		Condition condition        = renderContext.getCondition();
 		
 		renderContext.setPage(this);
-
-//              if (!edit) {
-//
-//                      Date nodeLastMod = startNode.getLastModifiedDate();
-//
-//                      if ((lastModified == null) || nodeLastMod.after(lastModified)) {
-//
-//                              lastModified = nodeLastMod;
-//
-//                      }
-//
-//              }
 		
 		renderContext.getBuffer().append("<!DOCTYPE html>");
 
@@ -588,42 +564,33 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 
 	@Override
 	public boolean hasFeature(String string, String string1) {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		return false;
 	}
 
 	//~--- set methods ----------------------------------------------------
 
 	@Override
 	public void setXmlStandalone(boolean bln) throws DOMException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
 	}
 
 	@Override
 	public void setXmlVersion(String string) throws DOMException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
 	}
 
 	@Override
 	public void setStrictErrorChecking(boolean bln) {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
 	}
 
 	@Override
 	public void setDocumentURI(String string) {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
 	}
 
 	// ----- interface org.w3c.dom.Node -----
+	@Override
+	public String getLocalName() {
+		return null;
+	}
+
 	@Override
 	public String getNodeName() {
 		return "#document";
@@ -644,17 +611,29 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	}
 
 	@Override
+	public boolean hasAttributes() {
+		return false;
+	}
+
+	@Override
 	public NodeList getElementsByTagName(final String tagName) {
+		
+		logLine("getElementsByTagName(" + tagName + ")");
 		
 		StructrNodeList results = new StructrNodeList();
 
-		collectElementsByPredicate(this, results, new Predicate<DOMElement>() {
+		collectNodesByPredicate(this, results, new Predicate<Node>() {
 
 			@Override
-			public boolean evaluate(SecurityContext securityContext, DOMElement... obj) {
+			public boolean evaluate(SecurityContext securityContext, Node... obj) {
 				
-				if (tagName.equals(obj[0].getProperty(DOMElement.tag))) {					
-					return true;
+				if (obj[0] instanceof DOMElement) {
+					
+					DOMElement elem = (DOMElement)obj[0];
+
+					if (tagName.equals(elem.getProperty(DOMElement.tag))) {					
+						return true;
+					}
 				}
 				
 				return false;
@@ -666,37 +645,21 @@ public class Page extends DOMNode implements Linkable, Document, DocumentType, D
 	}
 
 	@Override
-	public NodeList getElementsByTagNameNS(String string, String string1) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
+	public NodeList getElementsByTagNameNS(String string, String tagName) {
 
-	// ----- private methods -----
-	private void collectElementsByPredicate(DOMNode startNode, StructrNodeList results, Predicate<DOMElement> predicate, int depth, boolean stopOnFirstHit) {
+		logLine("getElementsByTagNameNS(" + tagName + ")");
 		
-		if (startNode instanceof DOMNode) {
-			
-			if (startNode instanceof DOMElement) {
-				
-				if (predicate.evaluate(securityContext, (DOMElement)startNode)) {
-					
-					results.add(startNode);
-					
-					if (stopOnFirstHit) {
-						
-						return;
-					}
-				}
-			}
-			
-			NodeList _children = startNode.getChildNodes();
-			int len            = _children.getLength();
-			
-			for (int i=0; i<len; i++) {
-				
-				DOMNode child = (DOMNode)_children.item(i);
-				
-				collectElementsByPredicate(child, results, predicate, depth+1, stopOnFirstHit);
-			}
-		}
+		throw new UnsupportedOperationException("Namespaces not supported");
+	}
+	
+	
+	private static boolean debug = false;
+	
+	public boolean doDebugging() {
+		return debug;
+	}
+	
+	public void setDebugging(boolean val) {
+		this.debug = val;
 	}
 }

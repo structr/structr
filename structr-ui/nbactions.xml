@@ -25,4 +25,15 @@
                 <jpda.listen>true</jpda.listen>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-clean and build, skip tests</actionName>
+            <displayName>clean and build, skip tests</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>install</goal>
+            </goals>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </action>
     </actions>
