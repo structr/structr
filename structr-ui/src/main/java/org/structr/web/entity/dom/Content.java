@@ -372,9 +372,6 @@ public class Content extends DOMNode implements Text {
 	@Override
 	public String getWholeText() {
 		
-		
-		logLine("getWholeText()");
-		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -385,9 +382,6 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public String getData() throws DOMException {
-		
-		
-		logLine("getData(): " + getProperty(content));
 		
 		checkReadAccess();
 		
@@ -411,9 +405,6 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public int getLength() {
-		
-		
-		logLine("getLength()");
 		
 		String text = getProperty(content);
 		
@@ -454,7 +445,7 @@ public class Content extends DOMNode implements Text {
 		
 		String text = getProperty(content);
 		
-		// finally, set content to concatenated text and data
+		// set content to concatenated text and data
 		try {
 			
 			setProperty(content, text.concat(data));
@@ -551,36 +542,21 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public String getLocalName() {
-		
-		
-		logLine("getLocalName()");
-		
 		return null;
 	}
 
 	@Override
 	public short getNodeType() {
-
-		
-		logLine("getNodeType()");
-		
 		return TEXT_NODE;
 	}
 
 	@Override
 	public String getNodeName() {
-		
-		
-		logLine("getNodeName()");
-		
 		return "#text";
 	}
 
 	@Override
 	public String getNodeValue() throws DOMException {
-		
-		logLine("getNodeValue()");
-		
 		return getData();
 	}
 

@@ -1,8 +1,7 @@
 package org.structr.web.test;
 
-import java.io.File;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -66,40 +65,10 @@ public class XPathTest extends StructrUiTest {
 			// test XPath support of structr nodes..
 			XPathFactory factory            = XPathFactory.newInstance();
 			XPath xpath                     = factory.newXPath();
-			XPathExpression xpathExpression = xpath.compile("/html/body/h1/text()");
 		
 			// let xpath cache first..
-			//assertEquals("Dies ist ein Test", xpath.evaluate("/html/body/h1/text()", page, XPathConstants.STRING));
-			System.out.println("#################################################################################################################################");
-			System.out.println("#############################: " + xpathExpression.evaluate(page));
-			
-			printDocument(page);
-			System.out.println("#################################################################################################################################");
-
-			page.setDebugging(true);
-			
-//			assertEquals("Dies ist ein Test", xpath.evaluate("/html/body/h1/text()", page, XPathConstants.STRING));
-
-			try {
-				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File("/home/chrisi/test.html"));
-
-				System.out.println("#################################################################################################################################");
-				System.out.println("#############################: " + xpathExpression.evaluate(doc));
-				
-				printDocument(doc);
-				
-				System.out.println("#################################################################################################################################");
-				
-				
-				
-				
-			} catch (Throwable t) {
-				
-				t.printStackTrace();
-			}
-			
-			
-			
+			assertEquals("Page Title", xpath.evaluate("/html/body/h1/text()", page, XPathConstants.STRING));
+			assertEquals(h1, xpath.evaluate("/html/body/h1", page, XPathConstants.NODE));
 			
 			
 		} catch (FrameworkException fex) {
@@ -115,55 +84,5 @@ public class XPathTest extends StructrUiTest {
 			fail("Unexpected exception");
 
 		}
-	}
-	
-	private void printDocument(Document doc) {
-		
-		StringBuilder buf = new StringBuilder();
-		
-		buf.append(outputNode(doc.getFirstChild()));
-		buf.append("\n");
-		buf.append(outputNode(doc.getDocumentElement()));
-		buf.append("\n");
-		buf.append(outputNode(doc.getChildNodes().item(0)));
-		buf.append("\n");
-		buf.append(outputNode(doc.getChildNodes().item(1)));
-		buf.append("\n");
-
-		System.out.println(buf.toString());
-		
-		printNode(doc, 0);
-	}
-	
-	private void printNode(Node node, int depth) {
-	
-		for (int i=0; i<depth; i++) {
-			System.out.print("    ");
-		}
-		
-		System.out.println(node.getNodeName() + " (" + node.getNodeType() + ") " + node.getLocalName() + ", " + node.getPrefix());
-		
-		NodeList children = node.getChildNodes();
-		if (children != null) {
-			
-			int len = children.getLength();
-			for (int i=0; i<len; i++) {
-				printNode(children.item(i), depth+1);
-			}
-		}
-	}
-	
-	private String outputNode(Node node) {
-		
-		StringBuilder buf = new StringBuilder();
-		
-		if (node != null)  {
-			buf.append(node.getNodeName());
-			buf.append(" (");
-			buf.append(node.getNodeType());
-			buf.append(")");
-		}
-		
-		return buf.toString();
 	}
 }

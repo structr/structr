@@ -289,16 +289,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public String getTagName() {
 
-		logLine("getTagName(): " + getProperty(tag));
-
 		return getProperty(tag);
 	}
 
 	@Override
 	public String getAttribute(String name) {
 
-		logLine("getAttribute(" + name + ")");
-		
 		PropertyKey<String> htmlProperty = EntityContext.getPropertyKeyForJSONName(getClass(), name);
 		if (htmlProperty != null) {
 
@@ -343,8 +339,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public Attr getAttributeNode(String name) {
 
-		logLine("getAttributeNode(" + name + ")");
-
 		throw new UnsupportedOperationException("Attribute nodes not supported in HTML5.");
 	}
 
@@ -388,8 +382,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public String getAttributeNS(String string, String string1) throws DOMException {
 
-		logLine("getAttributeNS(" + string1 + ")");
-
 		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
@@ -406,8 +398,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public Attr getAttributeNodeNS(String string, String string1) throws DOMException {
 
-		logLine("getAttributeNodeNS(" + string1 + ")");
-
 		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
@@ -419,16 +409,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public NodeList getElementsByTagNameNS(String string, String string1) throws DOMException {
 
-		logLine("getElementsByTagNameNS(" + string1 + ")");
-
 		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
 	public boolean hasAttribute(String name) {
 
-		logLine("hasAttribute(" + name + ")");
-		
 		PropertyKey<String> htmlProperty = EntityContext.getPropertyKeyForJSONName(getClass(), name);
 		if (htmlProperty != null) {
 			
@@ -441,17 +427,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	@Override
 	public boolean hasAttributeNS(String string, String string1) throws DOMException {
-
-		logLine("hasAttributeNS(" + string1 + ")");
-
 		throw new UnsupportedOperationException("Namespaces not supported.");
 	}
 
 	@Override
 	public TypeInfo getSchemaTypeInfo() {
-
-		logLine("getSchemaTypeInfo()");
-
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -521,8 +501,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public Node getNamedItem(String name) {
 
-		logLine("getNamedItem(" + name + ")");
-		
 		String prefixedName = PropertyView.Html.concat(name);
 		PropertyKey<String> key = EntityContext.getPropertyKeyForJSONName(getClass(), prefixedName);
 		

@@ -27,17 +27,15 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.Function;
+import org.structr.web.common.OrderedTreeManager;
 import org.structr.web.common.PageHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -83,7 +81,9 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final EntityProperty<Page> page                           = new EntityProperty<Page>("page", Page.class, RelType.PAGE, Direction.OUTGOING, true);
 
+	private static OrderedTreeManager<DOMNode> treeManager                  = new OrderedTreeManager<DOMNode>(children, ChildrenRelationship.position, RelType.CONTAINS, RelType.NEXT_LIST_ENTRY);
 	private static Set<Page> resultPages                                    = new HashSet<Page>();
+		
 	
 	static {
 
@@ -239,93 +239,13 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	}
 	
 	// ----- public methods -----
-	public List<AbstractRelationship> getChildRelationships() {
-
-		// fetch all relationships
-		List<AbstractRelationship> childRels = getOutgoingRelationships(RelType.CONTAINS);
+	@Override
+	public String toString() {
 		
-		// sort relationships by position
-		Collections.sort(childRels, new Comparator<AbstractRelationship>() {
-
-			@Override
-			public int compare(AbstractRelationship o1, AbstractRelationship o2) {
-
-				Integer pos1 = o1.getProperty(ChildrenRelationship.position);
-				Integer pos2 = o2.getProperty(ChildrenRelationship.position);
-
-				if (pos1 != null && pos2 != null) {
-				
-					return pos1.compareTo(pos2);	
-				}
-				
-				return 0;
-			}
-
-		});
-
-		return childRels;
+		return getClass().getSimpleName() + " (" + getTextContent() + ", " + treeManager.getChildPosition(this) + ")";
 	}
 
-	// ----- protected methods -----
-	/**
-	 * Ensures that the position attributes of the children of this node
-	 * are correct. Please note that this method needs to run in the same
-	 * transaction as any modifiying operation that changes the order of
-	 * child nodes, and therefore this method does _not_ create its own
-	 * transaction. However, it will not raise a NotInTransactionException
-	 * when called outside of modifying operations, because each setProperty
-	 * call creates its own transaction.
-	 */
-	protected void ensureCorrectChildPositions() {
-		
-		try {
-			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					List<AbstractRelationship> childRels = getChildRelationships();
-					int position                         = 0;
-					
-					for (AbstractRelationship childRel : childRels) {
-						
-						childRel.setProperty(ChildrenRelationship.position, position++);
-					}
-					
-					return null;
-				}
-				
-			});
-			
-		} catch (FrameworkException fex) {
-			
-			fex.printStackTrace();
-		}
-	}
-	
-	protected int getPositionInParent() {
-		
-		List<AbstractRelationship> rels = getIncomingRelationships(RelType.CONTAINS);
-		if (rels != null && rels.size() == 1) {
-			
-			// node should have only one parent
-			AbstractRelationship rel = rels.get(0);
-			
-			Integer pos = rel.getProperty(ChildrenRelationship.position);
-			if (pos != null) {
-				
-				return pos.intValue();
-			}
-			
-		} else {
-			
-			logger.log(Level.WARNING, "Node with id {0} has {1} parents", new Object[] { getProperty(GraphObject.uuid), rels.size() } );
-		}
-		
-		return -1;
-	}
-	
+	// ----- protected methods -----		
 	protected void checkIsChild(Node otherNode) throws DOMException {
 		
 		if (otherNode instanceof DOMNode) {
@@ -910,6 +830,11 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 		}
 	}
 
+	// ----- public methods -----
+	public List<AbstractRelationship> getChildRelationships() {
+		return treeManager.getChildRelationships(this);
+	}
+
 	// ----- interface org.w3c.dom.Node -----
 	@Override
 	public String getTextContent() throws DOMException {
@@ -938,9 +863,9 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	public void setTextContent(String textContent) throws DOMException {
 		// TODO: implement?
 	}
+	
 	@Override
 	public Node getParentNode() {
-		
 		return getProperty(parent);
 	}
 
@@ -949,90 +874,27 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 		
 		checkReadAccess();
 		
-		StructrNodeList nodeList = new StructrNodeList();
-		
-		for (AbstractRelationship rel : getChildRelationships()) {
-			
-			AbstractNode node = rel.getEndNode();
-			
-			if (node instanceof DOMNode) {
-				nodeList.add((DOMNode)node);
-			}
-		}
-
-		return nodeList;
+		return new StructrNodeList(treeManager.getChildren(this));
 	}
 
 	@Override
 	public Node getFirstChild() {
-		
-		checkReadAccess();
-		
-		NodeList _children = getChildNodes();
-		Node firstChild    = null;
-		
-		if (_children.getLength() > 0) {
-			
-			firstChild = _children.item(0);
-		}
-
-		return firstChild;
+		return treeManager.getFirstChild(this);
 	}
 
 	@Override
 	public Node getLastChild() {
-		
-		checkReadAccess();
-		
-		NodeList _children = getChildNodes();
-		int length         = _children.getLength();
-		
-		if (length > 0) {
-			
-			return _children.item(length - 1);
-		}
-		
-		return null;
+		return treeManager.getLastChild(this);
 	}
 
 	@Override
 	public Node getPreviousSibling() {
-
-		checkReadAccess();
-		
-		Node _parent = getParentNode();
-		if (_parent != null) {
-			
-			NodeList _children = _parent.getChildNodes();
-			int pos = getPositionInParent();
-			
-			if (pos > 0 && pos < _children.getLength()) {
-				
-				return _children.item(pos - 1);
-			}
-		}
-		
-		return null;
+		return treeManager.getListManager().getPrevious(this);
 	}
 
 	@Override
 	public Node getNextSibling() {
-		
-		checkReadAccess();
-		
-		Node _parent = getParentNode();
-		if (_parent != null) {
-			
-			NodeList _children = _parent.getChildNodes();
-			int pos = getPositionInParent();
-			
-			if (pos >= 0 && pos < _children.getLength() - 1) {
-				
-				return _children.item(pos + 1);
-			}
-		}
-		
-		return null;
+		return treeManager.getListManager().getNext(this);
 	}
 
 	@Override
@@ -1051,77 +913,28 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 		checkHierarchy(newChild);
 		checkHierarchy(refChild);
 		
-		final DOMNode newNode = (DOMNode)newChild;
-		final DOMNode refNode = (DOMNode)refChild;
-		
-		// insert children from document fragment
-		final StructrNodeList nodesToAdd = new StructrNodeList();
-		
-		if (newNode instanceof DocumentFragment) {
-			
-			NodeList nodeList = ((DocumentFragment)newChild).getChildNodes();
-			int len           = nodeList.getLength();
-			
-			for (int i=0; i<len; i++) {
-				
-				DOMNode node = (DOMNode)nodeList.item(i);
-				nodesToAdd.add(node);
-			}
-			
-		} else {
-
-			nodesToAdd.add((DOMNode)newChild);
-		}
-		
-		
 		try {
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					List<AbstractRelationship> rels = getChildRelationships();
-					int position                    = 0;
-
-					for (AbstractRelationship rel : rels) {
-
-						AbstractNode node = rel.getEndNode();
-						if (node instanceof DOMNode) {
-
-							DOMNode domNode = (DOMNode)node;
-
-							if (domNode.isSameNode(refNode)) {
-
-								int addCount           = nodesToAdd.getLength();
-								PropertyMap properties = new PropertyMap();
-
-								for (int i=0; i<addCount; i++) {
-
-									Node toAdd = nodesToAdd.item(i);
-
-									if (toAdd instanceof DOMNode) {
-
-										properties.clear();
-										properties.put(ChildrenRelationship.position, position);
-										DOMNode.children.createRelationship(securityContext, DOMNode.this, (DOMNode)toAdd, properties);						
-
-										position++;
-									}
-
-								}
-							}
-							
-							rel.setProperty(ChildrenRelationship.position, position);
-
-							position++;
-						}
-					}
-					
-					return null;
+			
+			if (newChild instanceof DocumentFragment) {
+	
+				throw new UnsupportedOperationException("DocumentFragments not supported yet.");
+				
+				/*
+				DocumentFragment fragment = (DocumentFragment)newChild;
+				DOMNode currentChild      = (DOMNode)fragment.getFirstChild();
+				
+				while (currentChild != null) {
+			
+					treeManager.insertBefore(this, currentChild, (DOMNode)refChild);
+					currentChild = treeManager.getListManager().getNext(currentChild);
 				}
-
-			});
+				*/
+				
+			} else {
+			
+				treeManager.insertBefore(this, (DOMNode)newChild, (DOMNode)refChild);
+				
+			}
 
 		} catch (FrameworkException fex) {
 
@@ -1142,83 +955,32 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 		checkHierarchy(newChild);
 		checkHierarchy(oldChild);
 		
-		final DOMNode newNode = (DOMNode)newChild;
-		final DOMNode oldNode = (DOMNode)oldChild;
-		
 		try {
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					if (newChild instanceof DocumentFragment) {
-						
-						List<AbstractRelationship> rels = getChildRelationships();
-						int position                    = 0;
-						
-						for (AbstractRelationship rel : rels) {
-							
-							AbstractNode node = rel.getEndNode();
-							if (node instanceof DOMNode) {
-								
-								DOMNode domNode = (DOMNode)node;
-								
-								if (domNode.isSameNode(oldNode)) {
-
-									// remove old node
-									DOMNode.children.removeRelationship(securityContext, DOMNode.this, oldNode);
-									
-									
-									// insert children from document fragment
-									NodeList fragmentChildren = newChild.getChildNodes();
-									int len                   = fragmentChildren.getLength();
-									PropertyMap properties    = new PropertyMap();
-									
-									for (int i=0; i<len; i++) {
 			
-										Node fragmentChild = fragmentChildren.item(i);
-										
-										if (fragmentChild instanceof DOMNode) {
+			if (newChild instanceof DocumentFragment) {
 
-											properties.clear();
-											properties.put(ChildrenRelationship.position, position);
-											DOMNode.children.createRelationship(securityContext, DOMNode.this, (DOMNode)fragmentChild, properties);						
-											
-											position++;
-										}
-										
-									}
-									
-								} else {
-
-									rel.setProperty(ChildrenRelationship.position, position);
-								}
-								
-								position++;
-							}
-						}
-						
-						
-					} else {
-
-						// save old position
-						int oldPosition = oldNode.getPositionInParent();
-
-						// remove old node
-						DOMNode.children.removeRelationship(securityContext, DOMNode.this, oldNode);
-					
-						// insert new node with position from old node
-						PropertyMap properties = new PropertyMap();
-						properties.put(ChildrenRelationship.position, oldPosition);
-						DOMNode.children.createRelationship(securityContext, DOMNode.this, newNode, properties);
-						
-					}
-					
-					return null;
+				throw new UnsupportedOperationException("DocumentFragments not supported yet.");
+				
+				/*
+				// replace indirectly using insertBefore and remove
+				DocumentFragment fragment = (DocumentFragment)newChild;
+				DOMNode currentChild      = (DOMNode)fragment.getFirstChild();
+				
+				while (currentChild != null) {
+			
+					treeManager.insertBefore(this, currentChild, (DOMNode)oldChild);
+					currentChild = treeManager.getListManager().getNext(currentChild);
 				}
-
-			});
+				
+				// finally, remove reference element
+				treeManager.removeChild(this, (DOMNode)oldChild);
+				*/
+				
+			} else {
+			
+				// replace directly
+				treeManager.replaceChild(this, (DOMNode)newChild, (DOMNode)oldChild);
+			}
 
 		} catch (FrameworkException fex) {
 
@@ -1236,22 +998,9 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 		checkHierarchy(node);
 		checkIsChild(node);
 		
-		final DOMNode otherNode = (DOMNode)node;
-		
 		try {
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					DOMNode.children.removeRelationship(securityContext, DOMNode.this, otherNode);
-					ensureCorrectChildPositions();
-					
-					return null;
-				}
-
-			});
+			
+			treeManager.removeChild(this, (DOMNode)node);
 
 		} catch (FrameworkException fex) {
 
@@ -1270,25 +1019,8 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 
 		try {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					PropertyMap properties = new PropertyMap();
-					DOMNode domNode        = (DOMNode)node;
-					NodeList children      = getChildNodes();
-					int childCount         = children.getLength();
-
-					// create new relationship with position
-					properties.put(ChildrenRelationship.position, childCount);
-					DOMNode.children.createRelationship(securityContext, DOMNode.this, domNode, properties);
-
-					return null;
-				}
-
-			});
-
+			treeManager.appendChild(this, (DOMNode)node);
+			
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
@@ -1390,33 +1122,4 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	public Object getUserData(String string) {
 		return null;
 	}
-	
-	
-	protected void logLine(String method) {
-		
-		boolean doLog = false;
-		
-		if (this instanceof Page) {
-
-			if (((Page)this).doDebugging()) {
-				doLog = true;
-			}
-			
-		} else {
-			
-			Page page = (Page)getOwnerDocument();
-
-			if (page != null && page.doDebugging()) {
-				doLog = true;
-			}
-		}
-
-		if (doLog) {
-			
-			logger.log(Level.INFO, "################################################################################ {0}#{1}", new Object[] { getClass().getSimpleName(), method } );
-			
-			Thread.dumpStack();
-		}
-	}
-
 }

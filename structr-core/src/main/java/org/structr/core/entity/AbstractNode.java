@@ -173,6 +173,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		this.securityContext = securityContext;
 	}
 	
+	public SecurityContext getSecurityContext() {
+		return securityContext;
+	}
+	
 	@Override
 	public boolean equals(final Object o) {
 
@@ -1121,7 +1125,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param dir
 	 * @return
 	 */
-	public boolean hasRelationship(final RelType type, final Direction dir) {
+	public boolean hasRelationship(final RelationshipType type, final Direction dir) {
 
 		List<AbstractRelationship> rels = this.getRelationships(type, dir);
 

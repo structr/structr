@@ -458,15 +458,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public Element getDocumentElement() {
 
-		logLine("getDocumentElement()");
-
 		return getProperty(html);
 	}
 
 	@Override
 	public Element getElementById(final String id) {
-		
-		logLine("getElementById(" + id + ")");
 
 		StructrNodeList results = new StructrNodeList();
 
@@ -618,8 +614,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public NodeList getElementsByTagName(final String tagName) {
 		
-		logLine("getElementsByTagName(" + tagName + ")");
-		
 		StructrNodeList results = new StructrNodeList();
 
 		collectNodesByPredicate(this, results, new Predicate<Node>() {
@@ -646,20 +640,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public NodeList getElementsByTagNameNS(String string, String tagName) {
-
-		logLine("getElementsByTagNameNS(" + tagName + ")");
 		
 		throw new UnsupportedOperationException("Namespaces not supported");
-	}
-	
-	
-	private static boolean debug = false;
-	
-	public boolean doDebugging() {
-		return debug;
-	}
-	
-	public void setDebugging(boolean val) {
-		this.debug = val;
 	}
 }

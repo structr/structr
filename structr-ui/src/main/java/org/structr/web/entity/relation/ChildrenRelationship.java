@@ -36,7 +36,7 @@ import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
- * @author axel
+ * @author Christian Morgner
  */
 public class ChildrenRelationship extends AbstractRelationship {
 
@@ -45,14 +45,14 @@ public class ChildrenRelationship extends AbstractRelationship {
 	public static final Property<Integer>  position = new IntProperty("position");
 
 	public static final View uiView = new View(ChildrenRelationship.class, PropertyView.Ui,
-		parentId, childId
+		parentId, childId, position
 	);
 	
 	static {
 
 		EntityContext.registerNamedRelation("children", ChildrenRelationship.class, DOMNode.class, DOMNode.class, RelType.CONTAINS);
 		
-//		EntityContext.registerPropertySet(ChildrenRelationship.class, PropertyView.Ui, Key.values());
+		EntityContext.registerSearchablePropertySet(ChildrenRelationship.class, PropertyView.Ui, uiView.properties());
 
 	}
 

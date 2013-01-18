@@ -9,13 +9,13 @@ import org.w3c.dom.NodeList;
  *
  * @author Christian Morgner
  */
-public class StructrNodeList extends ArrayList<Node> implements NodeList {
+public class StructrNodeList<T extends Node> extends ArrayList<T> implements NodeList {
 
 	public StructrNodeList() {
 		super();
 	}
 
-	public StructrNodeList(List<Node> children) {
+	public StructrNodeList(List<T> children) {
 		super(children);
 	}
 
@@ -36,7 +36,7 @@ public class StructrNodeList extends ArrayList<Node> implements NodeList {
 		int len = nodeList.getLength();
 		
 		for (int i=0; i<len; i++) {
-			add(nodeList.item(i));
+			add((T)nodeList.item(i));
 		}
 	}
 }	

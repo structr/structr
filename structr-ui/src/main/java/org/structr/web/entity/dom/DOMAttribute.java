@@ -103,22 +103,22 @@ public class DOMAttribute implements Node {
 
 	@Override
 	public Node insertBefore(Node node, Node node1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public Node replaceChild(Node node, Node node1) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public Node removeChild(Node node) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public Node appendChild(Node node) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
@@ -128,17 +128,16 @@ public class DOMAttribute implements Node {
 
 	@Override
 	public Node cloneNode(boolean bln) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public void normalize() {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public boolean isSupported(String string, String string1) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return false;
 	}
 
 	@Override
@@ -148,12 +147,11 @@ public class DOMAttribute implements Node {
 
 	@Override
 	public String getPrefix() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
-	public void setPrefix(String string) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void setPrefix(String prefix) throws DOMException {
 	}
 
 	@Override
@@ -168,7 +166,7 @@ public class DOMAttribute implements Node {
 
 	@Override
 	public String getBaseURI() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
