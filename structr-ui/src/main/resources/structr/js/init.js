@@ -447,6 +447,10 @@ var Structr = {
         return parent;
     },
     
+    parent : function(id) {
+        return Structr.node(id).closest('.node');
+    },
+    
     node : function(id, parentId, componentId, pageId, position) {
         var entityElement, parentElement, componentElement, pageElement;
 

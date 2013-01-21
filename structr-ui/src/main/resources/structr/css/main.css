@@ -235,6 +235,10 @@ img.disabled {
     margin: 2px 0 12px -12px ! important;
 }
 
+.clear {
+    clear: both;
+}
+
 .props {
     /*    position: absolute;*/
     width: 776px;
@@ -659,11 +663,13 @@ button img {
 
 #confirmation, #infoBox, #errorBox {
     width: 360px;
+    min-height: 48px;
+    padding: 12px;
 }
 
 #tempErrorBox {
     width: 400px;
-    padding-bottom: 16px
+    padding-bottom: 16px;
 }
 
 #dialogBox {
@@ -701,7 +707,7 @@ button img {
     margin: 0;
 }
 
-.dialogBtn button {
+.dialogBtn button, #errorBox button {
     float: right;
     margin: 8px 0 0 12px;
 }

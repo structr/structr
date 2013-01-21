@@ -183,15 +183,20 @@ function connect() {
                     var codeStr = code.toString();
                     if (codeStr.startsWith('20')) {
                         msgClass = 'success';
+                        Structr.dialog("", true);
                         $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('30')) {
+                        Structr.dialog("", true);
                         msgClass = 'info';
                         $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('40')) {
+                        Structr.dialog("", true);
                         msgClass = 'warning';
                         $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else {
-                        Structr.error("Error", true);
+                        Structr.error("", function() {
+                            
+                        });
                         msgClass = 'error';
                         $('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     }

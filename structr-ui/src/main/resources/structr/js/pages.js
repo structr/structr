@@ -729,15 +729,15 @@ var _Pages = {
                 e.stopPropagation();
                 var self = $(this);
                 
-//                log('appendElementElement div', div);
-//                var pos = self.parent().parent().children('.node').index(self.parent());
-//                
-//                var pageId = getId(self.closest('.page')[0]);
-//                console.log('Command.removeSourceFromTarget(',entity.id, parentId, componentId, pageId, pos,')');
-//                
-//                Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
+                log('appendElementElement div', div);
+                var pos = self.parent().parent().children('.node').index(self.parent());
+                
+                var pageId = getId(self.closest('.page')[0]);
+                console.log('Command.removeSourceFromTarget(',entity.id, parentId, componentId, pageId, pos,')');
+                
+                Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
 
-                _Entities.listContainingNodes(entity, div);
+//                _Entities.listContainingNodes(entity, div);
                 
             });
         }
@@ -896,14 +896,16 @@ var _Pages = {
                             addExpandedNode(treeAddress + '_' + pos);
                             
                         }
+                        Command.createAndAppendDOMNode(getId(page), getId(self), (tag != 'content' ? tag : ''))
                         
                         
                     } else {
                         tag = cls;
+                        
+                        Command.appendDOMNode(contentId, getId(self));
                     }
                     
-                    console.log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
-                    Command.createAndAppendDOMNode(getId(page), getId(self), (tag != 'content' ? tag : ''))
+                    log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
 
                 }
                 
@@ -947,16 +949,13 @@ var _Pages = {
                 + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
-//                var self = $(this);
-//                //self.off('click');
-//                //self.off('mouseover');
-//                var component = self.closest( '.component')[0];
-//                var page = self.closest( '.page')[0];
-//                log('Command.removeSourceFromTarget', content.id, parentId, getId(component), getId(page), pos);
-//                Command.removeSourceFromTarget(content.id, parentId, getId(component), getId(page), pos)
-            //                log('Command.removeSourceFromTarget', content.id, parentId, componentId, pageId, pos);
-            //                Command.removeSourceFromTarget(content.id, parentId, componentId, pageId, pos)
-                _Entities.listContainingNodes(content, div);
+                var self = $(this);
+                //self.off('click');
+                //self.off('mouseover');
+                var component = self.closest( '.component')[0];
+                var page = self.closest( '.page')[0];
+                Command.remove(content.id);
+//                _Entities.listContainingNodes(content, div);
             });
         }
 
@@ -991,15 +990,15 @@ var _Pages = {
 
     },
 
-    removeFrom : function(entityId, parentId, componentId, pageId, pos) {
-        log('Pages.removeFrom', entityId, parentId, componentId, pageId, pos);
+    removeFrom : function(id) {
+        log('Pages.removeFrom', id);
 
-        var parent = Structr.node(parentId, null, componentId, pageId);
-        var element = Structr.node(entityId, parentId, componentId, pageId, pos);
+        var element = Structr.node(id);
+        var parent = Structr.parent(id);
 
         //var parent = $(element).parent();
 
-        log('parent', parent);
+        log('element, parent', element, parent);
         
         element.remove();
 
