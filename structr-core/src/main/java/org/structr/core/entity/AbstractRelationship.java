@@ -880,12 +880,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	public boolean isType(RelType type) {
-
-		return ((type != null) && type.equals(dbRelationship.getType()));
-
-	}
-
 	public boolean isAllowed(final Permission permission) {
 
 		if (dbRelationship.hasProperty(allowed.dbName())) {
