@@ -753,6 +753,10 @@ public class EntityContext {
 	}
 	
 	public static PropertyKey getPropertyKeyForJSONName(Class type, String jsonName) {
+		return getPropertyKeyForJSONName(type, jsonName, true);
+	}
+	
+	public static PropertyKey getPropertyKeyForJSONName(Class type, String jsonName, boolean createIfNotFound) {
 
 		Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
 		PropertyKey key                                 = classJSNamePropertyMap.get(jsonName);
@@ -761,11 +765,14 @@ public class EntityContext {
 			
 			// first try: uuid
 			if (GraphObject.uuid.dbName().equals(jsonName)) {
+				
 				return GraphObject.uuid;
 			}
 
-//			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { jsonName, type } );
-			key = new GenericProperty(jsonName);
+			if (createIfNotFound) {
+				
+				key = new GenericProperty(jsonName);
+			}
 		}
 		
 		return key;
