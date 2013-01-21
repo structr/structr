@@ -904,6 +904,12 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	@Override
 	public Node insertBefore(final Node newChild, final Node refChild) throws DOMException {
 
+		// according to DOM spec, insertBefore with null refChild equals appendChild
+		if (refChild == null) {
+			
+			return appendChild(newChild);
+		}
+		
 		checkWriteAccess();
 		
 		checkSameDocument(newChild);
