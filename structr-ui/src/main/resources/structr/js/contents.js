@@ -75,38 +75,33 @@ var _Contents = {
         return Command.list('Content');
     },
 
-    appendContentElement : function(content, parentId, componentId, pageId, treeAddress) {
-        log('Contents.appendContentElement', content, parentId, componentId, pageId, treeAddress);
+    appendContentElement : function(content, refNode) {
+        log('Contents.appendContentElement', content, refNode);
 
-        if (treeAddress) {
-            log('Contents.appendContentElement: tree address', treeAddress);
-            parent = $('#_' + treeAddress);
-        } else {
-            parent = Structr.findParent(parentId, componentId, pageId, contents);
-        }
+        var parent = Structr.node(content.parent.id);
         
         if (!parent) return false;
         
+                
         log(parent);
 
         //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
         //var nameOrContent = content.content ? content.content : content.name;
         
-        var parentPath = getElementPath(parent);
-        var id = parentPath + '_' + parent.children('.node').length;
-        
-        parent.append('<div id="_' + id + '" class="node content ' + content.id + '_">'
+        var html = '<div id="id_' + content.id + '" class="node content">'
             + '<img class="typeIcon" src="'+ _Contents.icon + '">'
             + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
             //	    + '<b class="content_">' + content.content + '</b>'
-            + '</div>');
+            + '</div>';
         
-        var pos = parent.children('.' + content.id + '_').length-1;
-        log('pos', content.id, pos);
+        if (refNode) {
+            refNode.before(html);
+        } else {
+            parent.append(html);
+        }
         
-        //var div = Structr.node(content.id, parentId, componentId, pageId, pos);
-        var div = $('#_' + id);
+        var div = Structr.node(content.id);
 
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {

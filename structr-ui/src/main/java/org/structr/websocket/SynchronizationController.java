@@ -43,6 +43,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.web.entity.dom.DOMNode;
+import org.w3c.dom.Node;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -308,25 +310,27 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			if (relationship.getRelType().equals(RelType.CONTAINS)) {
 
-				AbstractNode startNode   = relationship.getStartNode();
-				AbstractNode endNode     = relationship.getEndNode();
+				DOMNode startNode   = (DOMNode) relationship.getStartNode();
+				DOMNode endNode     = (DOMNode) relationship.getEndNode();
 				WebSocketMessage message = new WebSocketMessage();
-
-				message.setCommand("ADD");
-				message.setGraphObject(relationship);
-				message.setId(startNode.getProperty(AbstractNode.uuid));
+				
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
+				
+				message.setId(endNode.getUuid());
+				message.setNodeData("parentId", startNode.getUuid());
 
-				String pageId = relationship.getProperty(new StringProperty("pageId"));
-
-				if (pageId != null) {
-
-					Map<String, Object> props = new LinkedHashMap<String, Object>();
-
-					props.put("pageId", pageId);
-					message.setNodeData(props);
-
+				Node refNode = endNode.getNextSibling();
+				if (refNode != null) {
+					
+					message.setCommand("INSERT_BEFORE");
+					message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
+					
+				} else {
+					
+					message.setCommand("APPEND_CHILD");
 				}
+				
+				//message.setResult(Arrays.asList(new GraphObject[] { endNode }));
 
 				messageStack.add(message);
 				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getProperty(AbstractNode.uuid),
@@ -379,6 +383,12 @@ public class SynchronizationController implements StructrTransactionListener {
 		if ((obj != null) && (obj instanceof AbstractRelationship)) {
 
 			relationship = (AbstractRelationship) obj;
+			
+			if (!relationship.getRelType().equals(RelType.CONTAINS)) {
+				
+				return true;
+				
+			}
 
 			// do not access nodes of delete relationships
 			// AbstractNode startNode   = relationship.getStartNode();
@@ -390,11 +400,11 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
-				message.setCommand("REMOVE");
-				message.setGraphObject(relationship);
-				message.setId(startNodeId);
-				message.setNodeData("id", endNodeId);
-				message.setNodeData("pageId", pageId);
+				message.setCommand("REMOVE_CHILD");
+				//message.setGraphObject(relationship);
+				message.setId(endNodeId);
+				message.setNodeData("parentId", startNodeId);
+//				message.setNodeData("pageId", pageId);
 				messageStack.add(message);
 
 			}

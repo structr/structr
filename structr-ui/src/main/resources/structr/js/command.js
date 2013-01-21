@@ -140,6 +140,24 @@ var Command = {
     /**
      * Send a REMOVE command to the server.
      * 
+     * The server will remove the node with the given sourceId from the node
+     * with the given targetId and broadcast a removal notification.
+     */
+    removeSourceFromTarget : function(entityId, parentId) {
+        log('Remove ' + entityId + ' from ' + parentId);
+        var obj = {};
+        obj.command = 'REMOVE';
+        obj.id = entityId;
+        var data = {};
+        data.id = parentId;
+        obj.data = data;
+        log('removeSourceFromTarget()', obj);
+        return sendObj(obj);
+    },
+
+    /**
+     * Send a REMOVE command to the server.
+     * 
      * The server will remove the node from the
      * tree and broadcast a removal notification.
      */
@@ -191,7 +209,7 @@ var Command = {
     },
 
     /**
-     * Send an ADD_DOM_ELEMENT command to the server.
+     * Send an APPEND_CHLID command to the server.
      * 
      * The server will append the DOM node with the given id
      * as child of the node with the given parent id.
@@ -201,14 +219,37 @@ var Command = {
      * to the new one.
      * 
      */
-    appendDOMNode : function(id, parentId) {
+    appendChild : function(id, parentId) {
         var obj = {};
-        obj.command = 'APPEND_DOM_NODE';
+        obj.command = 'APPEND_CHILD';
         obj.id = id;
         var data = {};
         data.parentId = parentId;
         obj.data = data;
-        log('createAndAppendDOMNode()', obj);
+        console.log('appendChild()', obj);
+        return sendObj(obj);
+    },
+
+    /**
+     * Send an INSERT_BEFORE command to the server.
+     * 
+     * The server will insert the DOM node with the given id
+     * after the node with the given refId as child of the node
+     * with the given parentId.
+     * 
+     * If the node was in the tree before, it will be
+     * removed from the former parent before being inserted.
+     * 
+     */
+    insertBefore : function(parentId, id, refId) {
+        var obj = {};
+        obj.command = 'INSERT_BEFORE';
+        obj.id = id;
+        var data = {};
+        data.refId   = refId;
+        data.parentId = parentId;
+        obj.data = data;
+        console.log('insertBefore()', obj);
         return sendObj(obj);
     },
 
@@ -225,7 +266,7 @@ var Command = {
         obj.command = 'CREATE_DOM_NODE';
         obj.pageId = pageId;
         obj.data.tagName = tagName;
-        log('createDOMNode()', obj);
+        console.log('createDOMNode()', obj);
         return sendObj(obj);
     },
 
@@ -247,7 +288,7 @@ var Command = {
         data.parentId = parentId;
         data.tagName = tagName;
         obj.data = data;
-        log('createAndAppendDOMNode()', obj);
+        console.log('createAndAppendDOMNode()', obj);
         return sendObj(obj);
     },
 
@@ -284,27 +325,6 @@ var Command = {
         obj.data = nodeData;
         obj.relData = relData;
         log('createAndAdd()', obj);
-        return sendObj(obj);
-    },
-
-    /**
-     * Send a MOVE command to the server.
-     * 
-     * Add the node with the given id to the children of the node with the
-     * id given as 'id' property of the 'nodeData' hash. If the 'relData'
-     * contains a page id in both property fields 'sourcePageId' and 
-     * 'targetPageId', the node will be copied from the source to the
-     * target page,
-     * 
-     * When finished, the server will broadcast a MOVE notification.
-     */
-    move : function(id, nodeData) {
-        var obj = {};
-        obj.command = 'MOVE';
-        obj.id = id;
-        obj.data = nodeData;
-        //obj.relData = relData;
-        log('move()', obj);
         return sendObj(obj);
     },
 
