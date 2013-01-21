@@ -943,6 +943,12 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 				
 			} else {
 			
+				Node _parent = newChild.getParentNode();
+
+				if (_parent != null && _parent instanceof DOMNode) {
+					treeManager.removeChild((DOMNode) _parent, (DOMNode) newChild);
+				}
+
 				treeManager.insertBefore(this, (DOMNode)newChild, (DOMNode)refChild);
 				
 			}
@@ -1001,6 +1007,12 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 				
 			} else {
 			
+				Node _parent = newChild.getParentNode();
+
+				if (_parent != null && _parent instanceof DOMNode) {
+					treeManager.removeChild((DOMNode) _parent, (DOMNode) newChild);
+				}
+
 				// replace directly
 				treeManager.replaceChild(this, (DOMNode)newChild, (DOMNode)oldChild);
 			}
@@ -1073,10 +1085,10 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 				
 			} else {
 
-				Node parent = newChild.getParentNode();
+				Node _parent = newChild.getParentNode();
 
-				if (parent != null && parent instanceof DOMNode) {
-					treeManager.removeChild((DOMNode) parent, (DOMNode) newChild);
+				if (_parent != null && _parent instanceof DOMNode) {
+					treeManager.removeChild((DOMNode) _parent, (DOMNode) newChild);
 				}
 			
 				treeManager.appendChild(this, (DOMNode)newChild);
