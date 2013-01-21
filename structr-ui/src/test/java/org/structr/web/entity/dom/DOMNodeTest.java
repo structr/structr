@@ -29,11 +29,12 @@ public class DOMNodeTest extends DOMTest {
 
 		Content content1 = (Content)document.createTextNode("content1");
 		Content content2 = (Content)document.createTextNode("content2");
+		Content content3 = (Content)document.createTextNode("content3");
 
 		assertNotNull(content1);
 		assertNotNull(content2);
+		assertNotNull(content3);
 
-		
 		// first step
 		div.appendChild(content1);
 		
@@ -53,6 +54,28 @@ public class DOMNodeTest extends DOMTest {
 		assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(ChildrenRelationship.position));
 		
 		
+		// third step: test removal of old parent when appending an existing node
+		div.appendChild(content3);
+		
+		// assert that div has 3 children now
+		assertEquals(3, div.getChildNodes().getLength());
+		
+		// create new container
+		Element div2 = document.createElement("div");
+		assertNotNull(div2);
+		
+		div.appendChild(div2);
+		
+		// div should have 4 children by now
+		assertEquals(4, div.getChildNodes().getLength());
+		
+		// move text node to div2
+		div2.appendChild(content3);
+		
+		// div should have 3 children now,
+		// div2 should have content3 as a child now
+		assertEquals(3, div.getChildNodes().getLength());
+		assertEquals(content3, div2.getChildNodes().item(0));
 	}
 	
 	public void testGetParentNode() {

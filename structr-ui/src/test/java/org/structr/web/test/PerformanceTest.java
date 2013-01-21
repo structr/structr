@@ -65,7 +65,7 @@ public class PerformanceTest extends DOMTest {
 		long t1 = System.currentTimeMillis();
 		long duration = t1 - t0;
 
-		assertTrue("Iteration of 100 nodes via getNextSibling should not take longer than 50ms, took " + duration + "!", duration < 500);
+		assertTrue("Iteration of 100 nodes via getNextSibling should not take longer than 50ms, took " + duration + "!", duration < 50);
 		System.out.println(duration);
 
 

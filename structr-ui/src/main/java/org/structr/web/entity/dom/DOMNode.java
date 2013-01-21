@@ -67,7 +67,7 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	protected static final String INVALID_ACCESS_ERR_MESSAGE                = "Permission denied";
 	protected static final String INDEX_SIZE_ERR_MESSAGE                    = "Index out of range";
 	protected static final String CANNOT_SPLIT_TEXT_WITHOUT_PARENT          = "Cannot split text element without parent and/or owner document";
-	protected static final String WRONG_DOCUMENT_ERR_MESSAGE                = "Nodes are not created by the same document";
+	protected static final String WRONG_DOCUMENT_ERR_MESSAGE                = "Node does not belong to this document";
 	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE   = "A node cannot accept itself as a child";
 	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR    = "A node cannot accept its own ancestor as child";
 	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT    = "A document may only have one document element";
@@ -968,7 +968,6 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 		checkHierarchy(oldChild);
 		
 		try {
-			
 
 			if (newChild instanceof DocumentFragment) {
 
