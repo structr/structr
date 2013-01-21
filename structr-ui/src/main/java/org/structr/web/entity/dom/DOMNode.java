@@ -2,7 +2,6 @@ package org.structr.web.entity.dom;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -1019,6 +1018,14 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 
 		try {
 
+			DOMNode domNode = (DOMNode) node;
+			
+			Node parent = domNode.getParentNode();
+			
+			if (parent != null && parent instanceof DOMNode) {
+				treeManager.removeChild((DOMNode) parent, domNode);
+			}
+			
 			treeManager.appendChild(this, (DOMNode)node);
 			
 		} catch (FrameworkException fex) {
