@@ -82,7 +82,7 @@ public class LinkedListManager<T extends AbstractNode> {
 				}
 			}
 			
-			throw new IllegalStateException("Given node is not a valid list node for the given relationship type.");
+			throw new IllegalStateException("Given node is not a valid list node for the given relationship type: found " + size + " outgoing relationships of type " + relType);
 		}
 		
 		return null;

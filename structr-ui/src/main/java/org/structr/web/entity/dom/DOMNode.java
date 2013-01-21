@@ -917,18 +917,30 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 			
 			if (newChild instanceof DocumentFragment) {
 	
-				throw new UnsupportedOperationException("DocumentFragments not supported yet.");
+				// When inserting document fragments, we must take
+				// care of the special case that the nodes already
+				// have a NEXT_LIST_ENTRY relationship coming from
+				// the document fragment, so we must first remove
+				// the node from the document fragment and then
+				// add it to the new parent.
 				
-				/*
 				DocumentFragment fragment = (DocumentFragment)newChild;
 				DOMNode currentChild      = (DOMNode)fragment.getFirstChild();
 				
 				while (currentChild != null) {
 			
-					treeManager.insertBefore(this, currentChild, (DOMNode)refChild);
-					currentChild = treeManager.getListManager().getNext(currentChild);
+					// save next child in fragment list for later use
+					DOMNode savedNextChild = treeManager.getListManager().getNext(currentChild);
+
+					// remove child from document fragment
+					treeManager.removeChild((DOMNode)fragment, currentChild);
+
+					// insert child into new parent
+					treeManager.insertBefore(this, currentChild, (DOMNode)refChild);					
+
+					// next
+					currentChild = savedNextChild;
 				}
-				*/
 				
 			} else {
 			
@@ -957,24 +969,37 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 		
 		try {
 			
+
 			if (newChild instanceof DocumentFragment) {
 
-				throw new UnsupportedOperationException("DocumentFragments not supported yet.");
+				// When inserting document fragments, we must take
+				// care of the special case that the nodes already
+				// have a NEXT_LIST_ENTRY relationship coming from
+				// the document fragment, so we must first remove
+				// the node from the document fragment and then
+				// add it to the new parent.
 				
-				/*
 				// replace indirectly using insertBefore and remove
 				DocumentFragment fragment = (DocumentFragment)newChild;
 				DOMNode currentChild      = (DOMNode)fragment.getFirstChild();
 				
 				while (currentChild != null) {
 			
+					// save next child in fragment list for later use
+					DOMNode savedNextChild = treeManager.getListManager().getNext(currentChild);
+					
+					// remove child from document fragment
+					treeManager.removeChild((DOMNode)fragment, currentChild);
+					
+					// add child to new parent
 					treeManager.insertBefore(this, currentChild, (DOMNode)oldChild);
-					currentChild = treeManager.getListManager().getNext(currentChild);
+					
+					// next
+					currentChild = savedNextChild;
 				}
 				
 				// finally, remove reference element
 				treeManager.removeChild(this, (DOMNode)oldChild);
-				*/
 				
 			} else {
 			
@@ -1011,22 +1036,54 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	}
 
 	@Override
-	public Node appendChild(final Node node) throws DOMException {
+	public Node appendChild(final Node newChild) throws DOMException {
 
 		checkWriteAccess();
-		checkSameDocument(node);
-		checkHierarchy(node);
+		checkSameDocument(newChild);
+		checkHierarchy(newChild);
 
 		try {
+			
+			if (newChild instanceof DocumentFragment) {
 
-			treeManager.appendChild(this, (DOMNode)node);
+				// When inserting document fragments, we must take
+				// care of the special case that the nodes already
+				// have a NEXT_LIST_ENTRY relationship coming from
+				// the document fragment, so we must first remove
+				// the node from the document fragment and then
+				// add it to the new parent.
+				
+
+				// replace indirectly using insertBefore and remove
+				DocumentFragment fragment = (DocumentFragment)newChild;
+				DOMNode currentChild      = (DOMNode)fragment.getFirstChild();
+				
+				while (currentChild != null) {
+			
+					// save next child in fragment list for later use
+					DOMNode savedNextChild = treeManager.getListManager().getNext(currentChild);
+					
+					// remove child from document fragment
+					treeManager.removeChild((DOMNode)fragment, currentChild);
+
+					// append child to new parent
+					treeManager.appendChild(this, (DOMNode)currentChild);
+
+					// next
+					currentChild = savedNextChild;
+				}
+				
+			} else {
+
+				treeManager.appendChild(this, (DOMNode)newChild);
+			}
 			
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
 		}					
 
-		return node;
+		return newChild;
 	}
 
 	@Override
