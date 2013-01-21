@@ -140,37 +140,15 @@ var Command = {
     /**
      * Send a REMOVE command to the server.
      * 
-     * The server will remove the node with the given sourceId from the node
-     * with the given targetId and broadcast a removal notification.
-     */
-    removeSourceFromTarget : function(entityId, parentId, componentId, pageId, position) {
-        log('Remove ' + entityId + ' from ' + parentId);
-        var obj = {};
-        obj.command = 'REMOVE';
-        obj.id = entityId;
-        var data = {};
-        data.id = parentId;
-        data.componentId = componentId;
-        data.pageId = pageId;
-        data.position = position;
-        obj.data = data;
-        log('removeSourceFromTarget()', obj);
-        return sendObj(obj);
-    },
-
-    /**
-     * Send a REMOVE command to the server.
-     * 
-     * The server will remove the node at the address in the
+     * The server will remove the node from the
      * tree and broadcast a removal notification.
      */
-    remove : function(entityId, treeAddress) {
-        log('Remove ' + treeAddress);
+    remove : function(id) {
+        log('Remove ' + id);
         var obj = {};
         obj.command = 'REMOVE';
-        obj.id = entityId;
+        obj.id = id;
         var data = {};
-        data.treeAddress = treeAddress;
         obj.data = data;
         log('remove()', obj);
         return sendObj(obj);
@@ -209,6 +187,28 @@ var Command = {
         obj.id = id;
         obj.data = data;
         log('setProperties()', obj);
+        return sendObj(obj);
+    },
+
+    /**
+     * Send an ADD_DOM_ELEMENT command to the server.
+     * 
+     * The server will append the DOM node with the given id
+     * as child of the node with the given parent id.
+     * 
+     * If the node was child of a parent before, it will be
+     * removed from the former parent before being appended
+     * to the new one.
+     * 
+     */
+    appendDOMNode : function(id, parentId) {
+        var obj = {};
+        obj.command = 'APPEND_DOM_NODE';
+        obj.id = id;
+        var data = {};
+        data.parentId = parentId;
+        obj.data = data;
+        log('createAndAppendDOMNode()', obj);
         return sendObj(obj);
     },
 

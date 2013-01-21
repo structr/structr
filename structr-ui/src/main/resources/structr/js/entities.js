@@ -43,39 +43,6 @@ var _Entities = {
 
     },
 
-//    renderTree : function(parent, rootId) {
-//        log('Entities.renderTree');
-//        var children = parent.children;
-//					
-//        if (children && children.length > 0) {
-//            $(children).each(function(i,child) {
-//                log(child);
-//                if (child.type == 'Page') {
-//                    _Pages.appendPageElement(child, parent.id, rootId);
-//                } else if (child.type == 'Component') {
-//                    _Pages.appendElementElement(child, parent.id, rootId);
-//                } else if (child.type == 'Content') {
-//                    _Pages.appendContentElement(child, parent.id, rootId);
-//                } else if (child.type == 'Folder') {
-//                    var entity = child;
-//                    log('Render Tree: ' , entity);
-//                    var folderElement = _Files.appendFolderElement(child, parent.id);
-//                    var files = entity.files;
-//                    if (files && files.length > 0) {
-//                        disable($('.delete_icon', folderElement)[0]);
-//                        $(files).each(function(i, file) {
-//                            _Files.appendFileElement(file, entity.id);
-//                        });
-//                    }
-//                } else {
-//                    _Pages.appendElementElement(child, parent.id, rootId);
-//                }
-//				
-//                _Entities.renderTree(child, rootId);
-//            });
-//        }
-//    },
-
     reloadChildren : function(id, componentId, pageId) {
         var el = Structr.node(id, null, componentId, pageId);
         

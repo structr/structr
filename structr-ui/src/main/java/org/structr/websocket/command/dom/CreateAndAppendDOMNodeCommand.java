@@ -58,7 +58,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 					} else {
 
-						newNode = (DOMNode)document.createTextNode("");
+						newNode = (DOMNode)document.createTextNode("#text");
 					}
 
 					// append new node to parent
