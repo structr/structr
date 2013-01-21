@@ -1,28 +1,40 @@
 package org.structr.web.entity.dom;
 
-import org.structr.web.common.HtmlProperty;
+import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.TypeInfo;
 import org.w3c.dom.UserDataHandler;
 
 /**
  *
  * @author Christian Morgner
  */
-public class DOMAttribute implements Node {
+public class DOMAttribute implements Attr {
 
 	private DOMElement parent = null;
-	private HtmlProperty key  = null;
+	private boolean specified = false;
+	private boolean isId      = false;
+	private String name       = null;
 	private String value      = null;
+	private Page page         = null;
 	
-	public DOMAttribute(DOMElement parent, HtmlProperty key, String value) {
+	public DOMAttribute(Page page, DOMElement parent, String name, String value) {
+		this(page, parent, name, value, true, false);
+	}
+	
+	public DOMAttribute(Page page, DOMElement parent, String name, String value, boolean specified, boolean isId) {
 		
-		this.parent = parent;
-		this.value = value;
-		this.key = key;
+		this.page      = page;
+		this.specified = specified;
+		this.isId      = isId;
+		this.parent    = parent;
+		this.name      = name;
+		this.value     = value;
 	}
 	
 	@Override
@@ -38,12 +50,17 @@ public class DOMAttribute implements Node {
 	
 	@Override
 	public int hashCode() {
-		return (getNodeName().hashCode() * 31) + value.hashCode();
+		return (name.hashCode() * 31) + value.hashCode();
+	}
+	
+	@Override
+	public String toString() {
+		return value;
 	}
 	
 	@Override
 	public String getNodeName() {
-		return key.getOriginalName();
+		return name;
 	}
 
 	@Override
@@ -83,11 +100,31 @@ public class DOMAttribute implements Node {
 
 	@Override
 	public Node getPreviousSibling() {
+		
+		if (parent != null) {
+			
+			String previousAttributeName = parent.getOffsetAttributeName(name, -1);
+			if (previousAttributeName != null) {
+
+				return parent.getAttributeNode(previousAttributeName);
+			}
+		}
+		
 		return null;
 	}
 
 	@Override
 	public Node getNextSibling() {
+
+		if (parent != null) {
+			
+			String nextAttributeName = parent.getOffsetAttributeName(name, 1);
+			if (nextAttributeName != null) {
+
+				return parent.getAttributeNode(nextAttributeName);
+			}
+		}
+		
 		return null;
 	}
 
@@ -98,7 +135,7 @@ public class DOMAttribute implements Node {
 
 	@Override
 	public Document getOwnerDocument() {
-		return parent.getOwnerDocument();
+		return page;
 	}
 
 	@Override
@@ -176,12 +213,12 @@ public class DOMAttribute implements Node {
 
 	@Override
 	public String getTextContent() throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return value;
 	}
 
 	@Override
-	public void setTextContent(String string) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void setTextContent(String text) throws DOMException {
+		this.value = text;
 	}
 
 	@Override
@@ -191,17 +228,17 @@ public class DOMAttribute implements Node {
 
 	@Override
 	public String lookupPrefix(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public boolean isDefaultNamespace(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return true;
 	}
 
 	@Override
 	public String lookupNamespaceURI(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
@@ -211,17 +248,55 @@ public class DOMAttribute implements Node {
 
 	@Override
 	public Object getFeature(String string, String string1) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public Object setUserData(String string, Object o, UserDataHandler udh) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
 	}
 
 	@Override
 	public Object getUserData(String string) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return null;
+	}
+
+	@Override
+	public String getName() {
+		return getNodeName();
+	}
+
+	@Override
+	public boolean getSpecified() {
+		return specified;
+	}
+
+	@Override
+	public String getValue() {
+		return getNodeValue();
+	}
+
+	@Override
+	public void setValue(String value) throws DOMException {
+		setNodeValue(value);
+	}
+
+	@Override
+	public Element getOwnerElement() {
+		return parent;
+	}
+
+	@Override
+	public TypeInfo getSchemaTypeInfo() {
+		return null;
+	}
+
+	@Override
+	public boolean isId() {
+		return isId;
 	}
 	
+	public void setParent(DOMElement parent) {
+		this.parent = parent;
+	}
 }

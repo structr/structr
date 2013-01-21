@@ -127,6 +127,21 @@
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
         </dependency>
+	<dependency>
+		<groupId>org.apache.xmlgraphics</groupId>
+		<artifactId>fop</artifactId>
+		<version>1.1</version>
+	</dependency>
+        <dependency>
+            <groupId>org.apache.avalon.framework</groupId>
+            <artifactId>avalon-framework-api</artifactId>
+            <version>4.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avalon.framework</groupId>
+            <artifactId>avalon-framework-impl</artifactId>
+            <version>4.3.1</version>
+        </dependency>
     </dependencies>
     <build>
         <resources>

@@ -43,7 +43,6 @@ import org.w3c.dom.Comment;
 import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.DOMStringList;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.DocumentType;
@@ -376,10 +375,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public Attr createAttribute(String string) throws DOMException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+	public Attr createAttribute(String name) throws DOMException {
+		return new DOMAttribute(this, null, name, null);
 	}
 
 	@Override
