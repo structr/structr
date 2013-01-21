@@ -1,23 +1,6 @@
 package org.structr.web.test;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import javax.xml.transform.Templates;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamSource;
-import org.apache.fop.apps.FOUserAgent;
-import org.apache.fop.apps.Fop;
-import org.apache.fop.apps.FopFactory;
-import org.apache.fop.apps.MimeConstants;
-import org.structr.common.error.FrameworkException;
 import org.structr.web.common.DOMTest;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.Page;
-import org.w3c.dom.DOMException;
 
 /**
  *
@@ -25,6 +8,7 @@ import org.w3c.dom.DOMException;
  */
 public class ExportTest extends DOMTest {
 
+	/*
 	public void testPDFExport() {
 
 		String templateFileName = "src/main/resources/xslfo/test.xslfo";
@@ -92,4 +76,5 @@ public class ExportTest extends DOMTest {
 			try { out.close(); } catch (Throwable t) {}
 		}
 	}
+	*/
 }
