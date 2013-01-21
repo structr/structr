@@ -185,40 +185,31 @@ var _Elements = {
         }
     },
 
-    appendElementElement : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
-        log('_Elements.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-        log(entity.id);
-        var parent;
+    appendElementElement : function(entity, parentId, hasChildren, refNode) {
+        log('_Elements.appendElementElement', entity, parentId, hasChildren);
         
-        if (treeAddress) {
-            parent = $('#_' + treeAddress);
-        } else {
-            parent = Structr.findParent(parentId, componentId, pageId, elements);
-        }
+        var parent = Structr.node(parentId);
         
         log('appendElementElement parent', parent);
         if (!parent) return false;
         
-        var parentPath = getElementPath(parent);
-        log(parentPath);
-        
         _Entities.ensureExpanded(parent);
         
-        var pos = parent.children('.node').length;
-        log(pos);
+        var id = entity.id;
         
-        var id = parentPath + '_' + parent.children('.node').length;
-        log(id);
+        var html = '<div id="id_' + id + '" class="node element"></div>';
         
-        parent.append('<div id="_' + id + '" class="node element ' + entity.id + '_"></div>');
+        if (refNode) {
+            refNode.before(html);
+        } else {
+            parent.append(html);
+        }
         
         //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
-        var div = $('#_' + id);
+        var div = Structr.node(id);
         log('Element appended (div, parent)', div, parent);
         
         if (!div) return;
-        
-        entity.pageId = pageId;
         
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
 

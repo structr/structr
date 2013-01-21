@@ -448,103 +448,13 @@ var Structr = {
     },
     
     parent : function(id) {
-        return Structr.node(id).closest('.node');
+        return Structr.node(id).parent().closest('.node');
     },
     
-    node : function(id, parentId, componentId, pageId, position) {
-        var entityElement, parentElement, componentElement, pageElement;
-
-        log('Structr.node', id, parentId, componentId, pageId, position);
-
-        if (id && parentId && componentId && pageId && (pageId != parentId) && (pageId != componentId)) {
-
-            pageElement = $('.node.' + pageId + '_');
-            log('pageElement', pageElement);
-            
-            if (id == pageId) {
-                
-                entityElement = pageElement;
-                
-            } else {
-                
-                componentElement = $('.node.' + componentId + '_', pageElement);
-                log('componentElement', componentElement);
-                
-                if (id == componentId) {
-                    entityElement = componentElement;
-                    
-                } else {
-                    
-                    if (parentId == componentId) {
-                        parentElement = componentElement;
-                    } else {
-                        parentElement = $('.node.' + parentId + '_', componentElement);
-                    }
-                    log('parentElement', parentElement);
-                    
-                    if (id == parentId) {
-                        entityElement = parentElement;
-                    } else {
-                        entityElement = parentElement.children('.node.' + id + '_');
-                        log('entityElement', entityElement);
-                    }
-                }
-            }
-            
-
-        } else if (id && parentId && pageId && (pageId != parentId)) {
-
-            pageElement = $('.node.' + pageId + '_');
-            parentElement = $('.node.' + parentId + '_', pageElement);
-            entityElement = $('.node.' + id + '_', parentElement);
-
-        } else if (id && componentId && pageId && (pageId != componentId)) {
-            
-            pageElement = $('.node.' + pageId + '_');
-            componentElement = $('.node.' + componentId + '_', pageElement);
-
-            if (id == componentId) {
-                entityElement = componentElement;
-            } else {
-                entityElement = $('.node.' + id + '_', componentElement);
-            }
-
-        } else if (id && pageId) {
-            
-            if (id == pageId) {
-                entityElement = $('.node.' + pageId + '_');
-            }
-            else {
-                pageElement = $('.node.' + pageId + '_');
-                entityElement = $('.node.' + id + '_', pageElement);
-            }
-
-        } else if (id && parentId) {
-
-            parentElement = $('.node.' + parentId + '_');
-            entityElement = parentElement.children('.node.' + id + '_');
-
-        } else if (id) {
-
-            entityElement = $('.node.' + id + '_');
-
-        }
-
-        if (entityElement && entityElement.length>1 && position) {
-            return $(entityElement[position]);
-        } else {
-            return entityElement;
-        }
-    },
-    
-    elementFromAddress : function(treeAddress) {
-        return $('#_' + treeAddress);
-    },
-    
-    entityFromAddress : function(treeAddress) {
-        var entityElement = Structr.elementFromAddress(treeAddress);
-        var entity = Structr.entityFromElement(entityElement);
-        return entity;
+    node : function(id) {
+        var node = $('#id_' + id);
+        log('Structr.node', node);
+        return node;
     },
     
     entity : function(id, parentId) {
@@ -762,12 +672,12 @@ function plural(type) {
     }
 }
 
-function addExpandedNode(treeAddress) {
-    log('addExpandedNode', treeAddress);
+function addExpandedNode(id) {
+    log('addExpandedNode', id);
 
-    if (!treeAddress) return;
+    if (!id) return;
 
-    getExpanded()[treeAddress] = true;
+    getExpanded()[id] = true;
     $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
         expires: 7, 
         path: '/'
@@ -775,24 +685,24 @@ function addExpandedNode(treeAddress) {
 
 }
 
-function removeExpandedNode(treeAddress) {
-    log('removeExpandedNode', treeAddress);
+function removeExpandedNode(id) {
+    log('removeExpandedNode', id);
 
-    if (!treeAddress) return;
+    if (!id) return;
     
-    delete getExpanded()[treeAddress];
+    delete getExpanded()[id];
     $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
         expires: 7, 
         path: '/'
     });
 }
 
-function isExpanded(treeAddress) {
-    log('treeAddress, getExpanded()[treeAddress]', treeAddress, getExpanded()[treeAddress]);
+function isExpanded(id) {
+    log('id, getExpanded()[id]', id, getExpanded()[id]);
 
-    if (!treeAddress) return false;
+    if (!id) return false;
 
-    var isExpanded = getExpanded()[treeAddress] == true ? true : false;
+    var isExpanded = getExpanded()[id] == true ? true : false;
 
     log(isExpanded);
 
@@ -924,21 +834,13 @@ function refresh(parentId, id) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-function getIdFromClassString(classString) {
-    if (!classString) return false;
-    var classes = classString.split(' ');
-    var id;
-    $(classes).each(function(i,v) {
-        var len = v.length;
-        if (v.substring(len-1, len) == '_') {
-            id = v.substring(0,v.length-1);
-        }
-    });
-    return id;
+function getIdFromIdString(idString) {
+    if (!idString || !idString.startsWith('id_')) return false;
+    return idString.substring(3);
 }
 
 function getId(element) {
-    return getIdFromClassString($(element).prop('class')) || undefined;
+    return getIdFromIdString($(element).prop('id')) || undefined;
 }
 
 function followIds(pageId, entity) {

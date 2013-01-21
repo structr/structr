@@ -18,7 +18,7 @@
  */
 
 var pages;
-var previews, previewTabs, controls, palette;
+var previews, previewTabs, controls, palette, activeTab
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -288,7 +288,7 @@ var _Pages = {
             }
         });
 
-        if (getId(element) == activeTab) {
+        if (element.prop('id').substring(5) == activeTab) {
             _Pages.activateTab(element);
         }
     },
@@ -305,11 +305,10 @@ var _Pages = {
         $('.previewBox', previews).each(function() {
             $(this).hide();
         });
-        //var id = $(this).prop('id').substring(5);
 
-        var id = getId(element);
+        var id = element.prop('id').substring(5);
         activeTab = id;
-
+        
         _Pages.reloadIframe(id, name);
 
         element.addClass('active');
@@ -374,11 +373,8 @@ var _Pages = {
 
         log('appendPageElement', entity, hasChildren);
 
-        //pages.append('<div id="_' + pages.children('.page').length + '" class="node page ' + entity.id + '_"></div>');
-        pages.append('<div id="_' + entity.id + '" class="node page ' + entity.id + '_"></div>');
-        var div = $('.' + entity.id + '_', pages);
-
-        entity.pageId = entity.id;
+        pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
+        var div = Structr.node(entity.id);
         
         $('.button', div).on('mousedown', function(e) {
             e.stopPropagation();
@@ -392,18 +388,12 @@ var _Pages = {
         div.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            //var self = $(this);
-            //self.off('click');
-            //self.off('mouseover');
             _Entities.deleteNode(this, entity);
         });
 
         div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="' + _Pages.clone_icon + '">');
         $('.clone_icon', div).on('click', function(e) {
             e.stopPropagation();
-            //var self = $(this);
-            //self.off('click');
-            //self.off('mouseover');
             Command.clonePage(entity.id);
         });
 
@@ -417,7 +407,7 @@ var _Pages = {
             + entity.id + '"></iframe></div><div style="clear: both"></div>');
 
         _Pages.resetTab(tab, entity.name);
-
+        
         $('#preview_' + entity.id).hover(function() {
             var self = $(this);
             var elementContainer = self.contents().find('.structr-element-container');
@@ -437,7 +427,6 @@ var _Pages = {
 
             var offset = $(this).offset();
 
-            //console.log(this);
             var doc = $(this).contents();
             var head = $(doc).find('head');
             if (head) head.append('<style media="screen" type="text/css">'
@@ -703,15 +692,15 @@ var _Pages = {
 	
     },
 
-    appendElementElement : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
-        log('_Pages.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+    appendElementElement : function(entity, parentId, hasChildren, refNode) {
+        log('_Pages.appendElementElement', entity, parentId, hasChildren, refNode);
         
         var div;
-        if (entity.type == 'Component') {
-            div = _Components.appendComponentElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-        } else {
-            div = _Elements.appendElementElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-        }
+//        if (entity.type == 'Component') {
+//            div = _Components.appendComponentElement(entity, parentId,hasChildren);
+//        } else {
+            div = _Elements.appendElementElement(entity, parentId, hasChildren, refNode);
+//        }
         
         if (!div) return false;
 
@@ -750,7 +739,7 @@ var _Pages = {
                 revert: 'invalid',
                 containment: '#pages',
                 zIndex: 4,
-                helper: 'clone',
+                //helper: 'clone',
                 start: function(event, ui) {
                     $(this).draggable(disable);
                 }
@@ -758,29 +747,27 @@ var _Pages = {
         }
 
         var sorting = false;
-        var obj = {};
-        obj.command = 'SORT';
+        //var obj = {};
+        //obj.command = 'SORT';
 
         div.sortable({
             sortable: '.node',
             containment: '#pages',
             start: function(event, ui) {
                 sorting = true;
-                var pageId = getId(ui.item.closest('.page')[0]);
-                obj.id = pageId;
+                //console.log('sorting started', ui);
+                //var pageId = getId(ui.item.closest('.page')[0]);
+                //obj.id = pageId;
             },
             update: function(event, ui) {
-                log('---------')
-                log(pageId);
-                var data = {};
-                $(ui.item).parent().children('.node').each(function(i,v) {
-                    var self = $(this);
-                    log(getId(self), i);
-                    data[getId(self)] = i;
-                    _Entities.resetMouseOverState(v);
-                });
-                obj.data = data;
-                sendObj(obj);
+                var el = $(ui.item);
+                
+                var id = getId(el);
+                var refId = getId(el.next('.node'));
+                var parent = Structr.parent(id);
+                var parentId = getId(parent);
+                console.log(parentId, id, refId);
+                Command.insertBefore(parentId, id, refId);
                 sorting = false;
                 _Pages.reloadPreviews();
             },
@@ -798,11 +785,8 @@ var _Pages = {
             drop: function(event, ui) {
                 var self = $(this);
 
-                log('dropped', event, ui.draggable);
+                console.log('dropped', event, ui.draggable);
                 
-//                treeAddress = getElementPath(self);
-//                log('treeAddress', treeAddress);
-                //addExpandedNode(treeAddress);
                 _Entities.ensureExpanded(self);
                 
                 if (sorting) {
@@ -810,7 +794,6 @@ var _Pages = {
                     return;
                 }
                 var nodeData = {};
-                var pageId;
 				
                 var page = self.closest('.page')[0];
 
@@ -884,42 +867,29 @@ var _Pages = {
                     _Pages.makeMenuDroppable();
 
                 } else {  
+                    console.log(contentId);
                     if (!contentId) {
                         tag = $(ui.draggable).text();
 
                         if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title' || tag == 'b' || tag == 'span' || tag == 'th' || tag == 'td') {
+
                             nodeData.childContent = 'Initial Content for ' + tag;
                             
-                            var pos = self.children('.node').length;
-                            log('new nested child', treeAddress + '_' + pos);
                             // set as expanded in advance
-                            addExpandedNode(treeAddress + '_' + pos);
+                            addExpandedNode(contentId);
                             
                         }
-                        Command.createAndAppendDOMNode(getId(page), getId(self), (tag != 'content' ? tag : ''))
+                        Command.createAndAppendDOMNode(getId(page), elementId, (tag != 'content' ? tag : ''))
                         
                         
                     } else {
                         tag = cls;
-                        
-                        Command.appendDOMNode(contentId, getId(self));
+                        Command.appendChild(contentId, elementId);
                     }
                     
                     log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
 
                 }
-                
-//                log($(ui.draggable));
-//
-//                nodeData.tag = (tag != 'content' ? tag : '');
-//                nodeData.type = tag.capitalize();
-//                nodeData.id = contentId;
-//                nodeData.targetPageId = pageId;
-//                
-//                alert('FIXME: Linking of nodes not supported!')
-
-                //console.log('drop event in appendElementElement', elementId, nodeData, relData);
-                //Command.createAndAdd(elementId, nodeData, relData);
                 
             }
         });
@@ -927,17 +897,18 @@ var _Pages = {
         return div;
     },
 
-    appendContentElement : function(content, parentId, componentId, pageId, treeAdress) {
-        log('Pages.appendContentElement', content, parentId, componentId, pageId, treeAdress);
+    appendContentElement : function(content, refNode) {
+        log('Pages.appendContentElement', content, refNode);
+        
+        var parentId = content.parent.id;
+        var parent = Structr.node(parentId);
 		
-        var div = _Contents.appendContentElement(content, parentId, componentId, pageId, treeAdress);
+        var div = _Contents.appendContentElement(content, refNode);
         if (!div) return false;
 
         log('appendContentElement div', div);
         var pos = Structr.numberOfNodes($(div).parent())-1;
         log('pos', content.id, pos);
-
-        //var div = Structr.node(content.id, parentId, componentId, pageId, pos);
 
         if (parentId) {
             
@@ -949,25 +920,47 @@ var _Pages = {
                 + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
-                var self = $(this);
-                //self.off('click');
-                //self.off('mouseover');
-                var component = self.closest( '.component')[0];
-                var page = self.closest( '.page')[0];
                 Command.remove(content.id);
-//                _Entities.listContainingNodes(content, div);
             });
         }
 
         _Entities.setMouseOver(div);
 
-        div.draggable({
-            iframeFix: true,
-            revert: 'invalid',
-            containment: '#pages',
-            zIndex: 1,
-            helper: 'clone'
-        });
+//        div.draggable({
+//            iframeFix: true,
+//            revert: 'invalid',
+//            containment: '#pages'
+//            //zIndex: 3
+//            //helper: 'clone'
+//        });
+
+        var sorting = false;
+
+//        div.sortable({
+//            sortable: '.node',
+//            containment: '#pages',
+//            start: function(event, ui) {
+//                sorting = true;
+//            },
+//            update: function(event, ui) {
+//                var el = $(ui.item);
+//                
+//                var id = getId(el);
+//                var refId = getId(el.next('.node'));
+//                var parent = Structr.parent(id);
+//                var parentId = getId(parent);
+//                console.log(parentId, id, refId);
+//                Command.insertBefore(parentId, id, refId);
+//                sorting = false;
+//                _Pages.reloadPreviews();
+//            },
+//            stop: function(event, ui) {
+//                sorting = false;
+//                _Entities.resetMouseOverState(ui.item);
+//            }
+//        });
+//        
+        
         return div;
     },
 
@@ -991,14 +984,14 @@ var _Pages = {
     },
 
     removeFrom : function(id) {
-        log('Pages.removeFrom', id);
+        console.log('Pages.removeFrom', id);
 
         var element = Structr.node(id);
         var parent = Structr.parent(id);
 
         //var parent = $(element).parent();
 
-        log('element, parent', element, parent);
+        console.log('element, parent', element, parent);
         
         element.remove();
 

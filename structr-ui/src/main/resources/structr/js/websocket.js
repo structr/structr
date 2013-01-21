@@ -233,12 +233,28 @@ function connect() {
                 if (buttonClicked) enable(buttonClicked);
                 _Pages.reloadPreviews();
 
+            } else if (command == 'REMOVE_CHILD') { /*********************** REMOVE_CHLID ************************/
+            
+                console.log(command, data);
+                _Pages.removeFrom(data.id, data.data.parentId);
+                
+            } else if (command == 'INSERT_BEFORE') { /*********************** INSERT_BEFORE ************************/
+            
+                console.log(command, data);
+                //_Pages.removeFrom(data.id, data.data.parentId);
+                StructrModel.create(result[0], data.data.refId);
+                
+            } else if (command == 'APPEND_CHILD') { /*********************** APPEND_CHILD ************************/
+            
+                console.log(command, data);
+                StructrModel.create(result[0]);
+
             } else if (command == 'REMOVE') { /*********************** REMOVE ************************/
 
-                log(command, data);
+                console.log(command, data);
 
                 //parent = Structr.node(parentId);
-                entity = Structr.node(entityId, parentId, componentId, pageId, position);
+                entity = Structr.node(entityId);
 
                 //log(parent);
                 log(entity);
@@ -247,12 +263,12 @@ function connect() {
                 //entity.id = id;
                 if (entity.hasClass('user')) {
                     log('remove user from group');
-                    _UsersAndGroups.removeUserFromGroup(entityId, parentId, position);
+                    _UsersAndGroups.removeUserFromGroup(entityId, parentId);
 
                 } else if (entity.hasClass('element') || entity.hasClass('content') || entity.hasClass('component')) {
                     
-                    log('remove element from page', entityId, parentId, componentId, pageId, position);
-                    _Pages.removeFrom(entityId, parentId, componentId, pageId, position);
+                    log('remove element from page', entityId);
+                    _Pages.removeFrom(entityId);
                     _Pages.reloadPreviews();
 
                 } else if (entity.hasClass('file')) {
@@ -279,7 +295,7 @@ function connect() {
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
             //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                log(command, result, data, data.data);
+                console.log(command, result, data, data.data);
                 
                 //var treeAddress = data.data.treeAddress;
 				

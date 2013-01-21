@@ -28,8 +28,9 @@ var StructrModel = {
     
     /**
      * Create a new object in the model and append a UI element
+     * If refId is set, insert before this node
      */
-    create : function(data) {
+    create : function(data, refId) {
         
         log("StructrModel.create", data);
         
@@ -69,7 +70,7 @@ var StructrModel = {
         } else {
             
             obj = new StructrElement(data);
-            _Entities.appendObj(obj);
+            _Entities.appendObj(obj, refId);
             
         }
         
@@ -413,7 +414,7 @@ StructrPage.prototype.getAttribute = function(key) {
 
 function StructrElement(data) {
     this.id = data.id;
-    this.tagName = data.tagName;
+    this.tagName = data.tag;
     this.children = data.children;
     this.parent = data.parent;
     this.attributes = data;
