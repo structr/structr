@@ -36,8 +36,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.select.Elements;
 import org.structr.core.GraphObject;
-import org.structr.web.entity.dom.DOMNode;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.Element;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,12 +76,12 @@ public class CreatePageTest extends StructrUiTest {
 				// make page public
 				page.setProperty(GraphObject.visibleToPublicUsers, true);
 				
-				DOMNode html  = (DOMNode)page.createElement("html");
-				DOMNode head  = (DOMNode)page.createElement("head");
-				DOMNode body  = (DOMNode)page.createElement("body");
-				DOMNode title = (DOMNode)page.createElement("title");
-				DOMNode h1    = (DOMNode)page.createElement("h1");
-				DOMNode div   = (DOMNode)page.createElement("div");
+				Element html  = page.createElement("html");
+				Element head  = page.createElement("head");
+				Element body  = page.createElement("body");
+				Element title = page.createElement("title");
+				Element h1    = page.createElement("h1");
+				Element div   = page.createElement("div");
 				
 				try {
 					// add HTML element to page
@@ -96,9 +96,11 @@ public class CreatePageTest extends StructrUiTest {
 					
 					// add H1 element to BODY
 					body.appendChild(h1);
+					h1.setAttribute("class", h1ClassAttr);
 					
 					// add DIV element
 					body.appendChild(div);
+					div.setAttribute("class", divClassAttr);
 					
 					// add text nodes
 					title.appendChild(page.createTextNode(pageTitle));					
@@ -130,12 +132,12 @@ public class CreatePageTest extends StructrUiTest {
 				Elements h1 = doc.select("html > body > h1");
 				assertFalse(h1.isEmpty());
 				assertEquals(h1.first().text(), pageTitle);
-// FIXME later				assertEquals(h1.first().attr("class"), h1ClassAttr);
+				assertEquals(h1.first().attr("class"), h1ClassAttr);
 
 				Elements div = doc.select("html > body > div");
 				assertFalse(div.isEmpty());
 				assertEquals(div.first().text(), bodyText);
-// FIXME later				assertEquals(div.first().attr("class"), divClassAttr);
+				assertEquals(div.first().attr("class"), divClassAttr);
 				
 
 			} catch (IOException ioex) {

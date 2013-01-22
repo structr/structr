@@ -32,7 +32,6 @@ import org.structr.common.RelType;
 import org.structr.common.View;
 import org.structr.core.property.EntityProperty;
 import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.dom.Page;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -43,7 +42,6 @@ public class Html extends DOMElement {
 
 	public static final Property<String> _manifest = new HtmlProperty("manifest");
 	
-	public static final EntityProperty<Page> page = new EntityProperty<Page>("page", Page.class, RelType.ROOT, Direction.INCOMING, false);
 	public static final EntityProperty<Head> head = new EntityProperty<Head>("head", Head.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final EntityProperty<Body> body = new EntityProperty<Body>("body", Body.class, RelType.CONTAINS, Direction.OUTGOING, false);
 

@@ -1,3 +1,22 @@
+/*
+ *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ *  This file is part of structr <http://structr.org>.
+ *
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.structr.web.entity.dom;
 
 import java.util.ArrayList;
@@ -55,24 +74,26 @@ import org.w3c.dom.UserDataHandler;
  * @author Christian Morgner
  */
 
-public abstract class DOMNode extends AbstractNode implements Node, Renderable {
+public abstract class DOMNode extends AbstractNode implements Node, Renderable, DOMAdoptable, DOMImportable {
 
 	private static final Logger logger                                      = Logger.getLogger(DOMNode.class.getName());
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher      = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
 	private static final ThreadLocalMatcher threadLocalFunctionMatcher      = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.+)\\)");
 	
 	// ----- error messages for DOMExceptions -----
-	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE           = "Permission denied";
-	protected static final String INVALID_ACCESS_ERR_MESSAGE                = "Permission denied";
-	protected static final String INDEX_SIZE_ERR_MESSAGE                    = "Index out of range";
-	protected static final String CANNOT_SPLIT_TEXT_WITHOUT_PARENT          = "Cannot split text element without parent and/or owner document";
-	protected static final String WRONG_DOCUMENT_ERR_MESSAGE                = "Node does not belong to this document";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE   = "A node cannot accept itself as a child";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR    = "A node cannot accept its own ancestor as child";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT    = "A document may only have one document element";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT     = "A document may only accept an html element as its document element";
-	protected static final String NOT_SUPPORTED_ERR_MESSAGE                 = "Node type not supported";
-	protected static final String NOT_FOUND_ERR_MESSAGE                     = "Node is not a child";
+	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE           = "Permission denied.";
+	protected static final String INVALID_ACCESS_ERR_MESSAGE                = "Permission denied.";
+	protected static final String INDEX_SIZE_ERR_MESSAGE                    = "Index out of range.";
+	protected static final String CANNOT_SPLIT_TEXT_WITHOUT_PARENT          = "Cannot split text element without parent and/or owner document.";
+	protected static final String WRONG_DOCUMENT_ERR_MESSAGE                = "Node does not belong to this document.";
+	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE   = "A node cannot accept itself as a child.";
+	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR    = "A node cannot accept its own ancestor as child.";
+	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT    = "A document may only have one document element.";
+	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT     = "A document may only accept an html element as its document element.";
+	protected static final String NOT_SUPPORTED_ERR_MESSAGE                 = "Node type not supported.";
+	protected static final String NOT_FOUND_ERR_MESSAGE                     = "Node is not a child.";
+	protected static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC      = "Document nodes cannot be imported into another document.";
+	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC       = "Document nodes cannot be adopted by another document.";
 	
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
 	
@@ -838,24 +859,12 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	@Override
 	public String getTextContent() throws DOMException {
 
-		final StructrNodeList results = new StructrNodeList();
-		final StringBuilder buf       = new StringBuilder();
+		final StructrNodeList results     = new StructrNodeList();
+		final TextCollector textCollector = new TextCollector();
 		
-		collectNodesByPredicate(this, results, new Predicate<Node>() {
-
-			@Override
-			public boolean evaluate(SecurityContext securityContext, Node... obj) {
-				
-				if (obj[0] instanceof Text) {
-					buf.append(((Text)obj[0]).getTextContent());
-				}
-				
-				return false;
-			}
-			
-		}, 0, false);
+		collectNodesByPredicate(this, results, textCollector, 0, false);
 		
-		return buf.toString();
+		return textCollector.getText();
 	}
 
 	@Override
@@ -1036,7 +1045,6 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 
 		checkWriteAccess();
 		checkSameDocument(node);
-		checkHierarchy(node);
 		checkIsChild(node);
 		
 		try {
@@ -1200,5 +1208,68 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable {
 	@Override
 	public Object getUserData(String string) {
 		return null;
+	}
+
+	// ----- interface DOMAdoptable -----
+	@Override
+	public Node doAdopt(final Page _page) throws DOMException {
+		
+		if (_page != null) {
+			
+			try {
+				
+				setProperty(page, _page);
+				
+			} catch (FrameworkException fex) {
+				
+				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			}
+		}
+		
+		return this;
+	}
+
+	// ----- nested classes -----
+	protected static class TextCollector implements Predicate<Node> {
+		
+		private StringBuilder textBuffer = new StringBuilder(200);
+
+		@Override
+		public boolean evaluate(SecurityContext securityContext, Node... obj) {
+
+			if (obj[0] instanceof Text) {
+				textBuffer.append(((Text)obj[0]).getTextContent());
+			}
+
+			return false;
+		}
+		
+		public String getText() {
+			return textBuffer.toString();
+		}
+	}
+	
+	protected static class TagPredicate implements Predicate<Node> {
+
+		private String tagName = null;
+		
+		public TagPredicate(String tagName) {
+			this.tagName = tagName;
+		}
+		
+		@Override
+		public boolean evaluate(SecurityContext securityContext, Node... obj) {
+
+			if (obj[0] instanceof DOMElement) {
+
+				DOMElement elem = (DOMElement)obj[0];
+
+				if (tagName.equals(elem.getProperty(DOMElement.tag))) {					
+					return true;
+				}
+			}
+
+			return false;
+		}
 	}
 }

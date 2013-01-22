@@ -51,7 +51,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections.map.LRUMap;
-import org.structr.core.Predicate;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.IntProperty;
 import org.w3c.dom.NamedNodeMap;
@@ -433,7 +432,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		if (value != null) {
 			
-			return new DOMAttribute((Page)getOwnerDocument(), this, name, value);
+			boolean explicitlySpecified = true;
+			boolean isId                = false;
+			
+			if (value.equals(htmlProperty.defaultValue())) {
+				explicitlySpecified = false;
+			}
+			
+			return new DOMAttribute((Page)getOwnerDocument(), this, name, value, explicitlySpecified, isId);
 		}
 
 		return null;
@@ -473,24 +479,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		StructrNodeList results = new StructrNodeList();
 
-		collectNodesByPredicate(this, results, new Predicate<Node>() {
-
-			@Override
-			public boolean evaluate(SecurityContext securityContext, Node... obj) {
-				
-				if (obj[0] instanceof DOMElement) {
-
-					DOMElement elem = (DOMElement)obj[0];
-					
-					if (tagName.equals(elem.getProperty(DOMElement.tag))) {					
-						return true;
-					}
-				}
-				
-				return false;
-			}
-			
-		}, 0, false);
+		collectNodesByPredicate(this, results, new TagPredicate(tagName), 0, false);
 		
 		return results;		
 	}
@@ -659,4 +648,24 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public Node removeNamedItemNS(String string, String string1) throws DOMException {
 		return null;
 	}
+
+	// ----- interface DOMImportable -----
+	@Override
+	public Node doImport(final Page newPage) throws DOMException {
+
+		DOMElement newElement = (DOMElement)newPage.createElement(getTagName());
+
+		// copy attributes
+		for (String _name : getHtmlAttributeNames()) {
+
+			Attr attr = getAttributeNode(_name);
+			if (attr.getSpecified()) {
+
+				newElement.setAttribute(attr.getName(), attr.getValue());
+			}
+		}
+
+		return newElement;
+	}
+
 }

@@ -575,7 +575,14 @@ public class Content extends DOMNode implements Text {
 		return false;
 	}
 
-	
+	// ----- interface DOMImportable -----
+	@Override
+	public Node doImport(Page newPage) throws DOMException {
+		
+		// for #text elements, importing is basically a clone operation
+		return newPage.createTextNode(getData());
+	}
+
 	//~--- inner classes --------------------------------------------------
 
 	private static class ThreadLocalConfluenceProcessor extends ThreadLocal<MarkupParser> {

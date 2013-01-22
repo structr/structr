@@ -17,8 +17,6 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 package org.structr.web.entity.dom;
 
 
@@ -30,7 +28,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Linkable;
 import org.structr.core.graph.NodeService;
-import org.structr.core.property.EntityProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -84,7 +81,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> position                          = new IntProperty("position");
 	public static final Property<String> contentType                        = new StringProperty("contentType");
 	public static final Property<Integer> cacheForSeconds                   = new IntProperty("cacheForSeconds");
-	public static final EntityProperty<Html> html                           = new EntityProperty<Html>("html", Html.class, RelType.ROOT, true);
 	public static final CollectionProperty<DOMNode> elements                = new CollectionProperty<DOMNode>("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
 	
 	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version);
@@ -146,7 +142,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	protected void checkHierarchy(Node otherNode) throws DOMException {
 		
 		// verify that this document has only one document element
-		if (getProperty(html) != null) {
+		if (getDocumentElement() != null) {
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT);
 		}
 		
@@ -156,24 +152,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		}
 		
 		super.checkHierarchy(otherNode);
-	}
-
-	@Override
-	public Node appendChild(final Node child) throws DOMException {
-		
-		Node node = super.appendChild(child);
-
-		try {
-
-			// create additional ROOT relationship
-			Page.html.createRelationship(securityContext, this, (DOMNode)child);
-			
-		} catch (FrameworkException fex) {
-			
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
-		}
-		
-		return node;
 	}
 
 	@Override
@@ -387,13 +365,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public Node importNode(Node node, boolean bln) throws DOMException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
 	public Element createElementNS(String string, String string1) throws DOMException {
 		throw new UnsupportedOperationException("Namespaces not supported");
 	}
@@ -404,24 +375,142 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
+	public Node importNode(final Node node, final boolean deep) throws DOMException {
+		return importNode(node, deep, true);
+	}
+	
+	private Node importNode(final Node node, final boolean deep, final boolean removeParentFromSourceNode) throws DOMException {
+		
+		if (node instanceof DOMNode) {
+	
+			final DOMNode domNode = (DOMNode)node;
+
+			try {
+
+				return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Node>() {
+
+					@Override
+					public Node execute() throws FrameworkException {
+
+						// step 1: use type-specific import impl.
+						Node importedNode = domNode.doImport(Page.this);
+
+						// step 2: do recursive import?
+						if (deep && hasChildNodes()) {
+
+							// FIXME: is it really a good idea to do the
+							// recursion inside of a transaction?
+
+							Node child = domNode.getFirstChild();
+							while (child != null) {
+
+								// do not remove parent for child nodes
+								importNode(child, deep, false);
+								child = child.getNextSibling();
+							}
+							
+						}
+
+						// step 3: remove node from its current parent
+						
+						// (Note that this step needs to be done last in
+						// (order for the child to be able to find its
+						// siblings.)
+						if (removeParentFromSourceNode) {
+
+							// only do this for the actual source node, do not remove
+							// child nodes from its parents
+							Node _parent = domNode.getParentNode();
+							if (_parent != null) {
+								_parent.removeChild(domNode);
+							}
+						}
+						
+						return importedNode;
+					}
+				});
+
+			} catch (FrameworkException fex) {
+
+				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			}
+		}
+		
+		return null;	
+	}
+
+	@Override
 	public Node adoptNode(Node node) throws DOMException {
+		return adoptNode(node, true);
+	}
+	
+	private Node adoptNode(final Node node, final boolean removeParentFromSourceNode) throws DOMException {
+		
+		if (node instanceof DOMNode) {
+	
+			final DOMNode domNode = (DOMNode)node;
 
-		throw new UnsupportedOperationException("Not supported yet.");
+			try {
 
+				return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Node>() {
+
+					@Override
+					public Node execute() throws FrameworkException {
+
+						// step 1: use type-specific import impl.
+						Node adoptedNode = domNode.doAdopt(Page.this);
+
+						// step 2: do recursive import?
+						if (hasChildNodes()) {
+
+							// FIXME: is it really a good idea to do the
+							// recursion inside of a transaction?
+
+							Node child = domNode.getFirstChild();
+							while (child != null) {
+
+								// do not remove parent for child nodes
+								adoptNode(child, false);
+								child = child.getNextSibling();
+							}
+							
+						}
+						
+						// step 3: remove node from its current parent
+						
+						// (Note that this step needs to be done last in
+						// (order for the child to be able to find its
+						// siblings.)
+						if (removeParentFromSourceNode) {
+
+							// only do this for the actual source node, do not remove
+							// child nodes from its parents
+							Node _parent = domNode.getParentNode();
+							if (_parent != null) {
+								_parent.removeChild(domNode);
+							}
+						}
+
+						return adoptedNode;
+					}
+				});
+
+			} catch (FrameworkException fex) {
+
+				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			}
+		}
+		
+		return null;	
 	}
 
 	@Override
 	public void normalizeDocument() {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
 	}
 
 	@Override
 	public Node renameNode(Node node, String string, String string1) throws DOMException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
+		throw new UnsupportedOperationException("Renaming nodes is not supported.");
 	}
 
 	@Override
@@ -454,8 +543,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public Element getDocumentElement() {
-
-		return getProperty(html);
+		return (Element)super.getFirstChild();
 	}
 
 	@Override
@@ -637,7 +725,18 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public NodeList getElementsByTagNameNS(String string, String tagName) {
-		
-		throw new UnsupportedOperationException("Namespaces not supported");
+		throw new UnsupportedOperationException("Namespaces not supported.");
+	}
+
+	// ----- interface DOMAdoptable -----
+	@Override
+	public Node doAdopt(Page page) throws DOMException {
+		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC);
+	}
+
+	// ----- interface DOMImportable -----
+	@Override
+	public Node doImport(Page newPage) throws DOMException {
+		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC);
 	}
 }

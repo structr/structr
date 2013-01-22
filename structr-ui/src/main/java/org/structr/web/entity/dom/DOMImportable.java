@@ -17,17 +17,16 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.web.entity;
+package org.structr.web.entity.dom;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.web.common.RenderContext;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
 
 /**
  *
  * @author Christian Morgner
  */
-public interface Renderable {
-
-	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException;
+public interface DOMImportable {
+	
+	public Node doImport(Page newPage) throws DOMException;
 }
