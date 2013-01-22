@@ -37,6 +37,18 @@
                     <debug>false</debug>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <configuration>
+                    <header>header.txt</header>
+		    <strictCheck>true</strictCheck>
+		    <failIfMissing>false</failIfMissing>
+		    <includes>
+		      <include>**/*.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
         </plugins>
     <extensions>
       <extension>
