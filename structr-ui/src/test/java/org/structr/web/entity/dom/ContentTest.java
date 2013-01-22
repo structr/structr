@@ -73,14 +73,6 @@ public class ContentTest extends DOMTest {
 		assertEquals(true, content.isElementContentWhitespace());
 	}
 
-	public void testGetWholeText() {
-		// method is not implemented, no need for a test
-	}
-
-	public void testReplaceWholeText() {
-		// method is not implemented, no need for a test
-	}
-
 	public void testGetData() {
 		
 		Content content = getContentNode();
@@ -177,5 +169,13 @@ public class ContentTest extends DOMTest {
 		
 		content.replaceData(5, 3, "war");
 		assertEquals("Dies war ein Test", content.getData());		
+	}
+	
+	public void testGetWholeText() {
+	
+	}
+
+	public void testReplaceWholeText() {
+
 	}
 }

@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -89,6 +88,14 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 		
 	}
 
+	@Override
+	public Node doAdopt(Page newPage) throws DOMException {
+		
+		// do nothing, only children of DocumentFragments are
+		// adopted
+		return null;
+	}
+	
 	@Override
 	public Node doImport(Page newPage) throws DOMException {
 		// simply return an empty DocumentFragment, as the importing

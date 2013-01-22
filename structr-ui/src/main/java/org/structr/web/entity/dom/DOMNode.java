@@ -44,6 +44,8 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -93,6 +95,7 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 	protected static final String NOT_FOUND_ERR_MESSAGE                     = "Node is not a child.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC      = "Document nodes cannot be imported into another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC       = "Document nodes cannot be adopted by another document.";
+	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME          = "Renaming of nodes is not supported by this implementation.";
 	
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
 	
@@ -1126,10 +1129,6 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 	}
 
 	@Override
-	public void normalize() {
-	}
-
-	@Override
 	public boolean isSupported(String string, String string1) {
 		return false;
 	}
@@ -1207,6 +1206,77 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 	@Override
 	public Object getUserData(String string) {
 		return null;
+	}
+	
+	@Override
+	public final void normalize() {
+		
+		try {
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					Document document = getOwnerDocument();
+					if (document != null) {
+
+						// merge adjacent text nodes until there is only one left
+						Node child = getFirstChild();
+						while (child != null) {
+
+							if (child instanceof Text) {
+
+								Node next = child.getNextSibling();
+								if (next != null && next instanceof Text) {
+
+									String text1 = child.getNodeValue();
+									String text2 = next.getNodeValue();
+
+									// create new text node
+									Text newText = document.createTextNode(text1.concat(text2));
+
+									removeChild(child);
+									insertBefore(newText, next);
+									removeChild(next);
+
+									child = newText;
+
+								} else {
+
+									// advance to next node
+									child = next;
+								}
+
+							} else {
+
+								// advance to next node
+								child = child.getNextSibling();
+
+							}
+						}
+
+						// recursively normalize child nodes
+						if (hasChildNodes()) {
+
+							Node currentChild = getFirstChild();
+							while (currentChild != null) {
+
+								currentChild.normalize();
+								currentChild = currentChild.getNextSibling();
+							}
+						}
+					}
+					
+					return null;
+				}
+				
+			});
+			
+		} catch (FrameworkException fex) {
+			
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+		}
 	}
 
 	// ----- interface DOMAdoptable -----

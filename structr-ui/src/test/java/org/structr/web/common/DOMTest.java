@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Page;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 /**
  *
@@ -70,5 +71,20 @@ public class DOMTest extends StructrUiTest {
 
 		return null;
 	 }
+	
+	protected void printNode(Node node, int depth) {
+		
+		for (int i=0; i<depth; i++) {
+			System.out.print("    ");
+		}
+		
+		System.out.println(node.getNodeName());
+		
+		Node child = node.getFirstChild();
+		while (child != null) {
+			printNode(child, depth + 1);
+			child = child.getNextSibling();
+		}
+	}
 
 }

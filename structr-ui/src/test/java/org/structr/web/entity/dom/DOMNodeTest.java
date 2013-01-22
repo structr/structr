@@ -21,7 +21,11 @@ package org.structr.web.entity.dom;
 
 import java.util.List;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.DOMTest;
 import org.structr.web.entity.relation.ChildrenRelationship;
 import org.w3c.dom.DOMException;
@@ -633,5 +637,98 @@ public class DOMNodeTest extends DOMTest {
 		assertEquals(test8, children2.item(7));
 		assertEquals(test9, children2.item(8));
 		
+	}
+
+	public void testNormalize() {
+	
+		Document document                     = getDocument();
+		org.w3c.dom.DocumentFragment fragment = document.createDocumentFragment();
+
+		assertNotNull(document);
+		assertNotNull(fragment);
+		
+		final Text test0 = document.createTextNode("test0");
+		final Text test1 = document.createTextNode("test1");
+		final Text test2 = document.createTextNode("test2");
+		final Text test3 = document.createTextNode("test3");
+		final Text test4 = document.createTextNode("test4");
+		final Text test5 = document.createTextNode("test5");
+		final Text test6 = document.createTextNode("test6");
+		final Text test7 = document.createTextNode("test7");
+		final Text test8 = document.createTextNode("test8");
+		final Text test9 = document.createTextNode("test9");
+
+		assertNotNull(test0);
+		assertNotNull(test1);
+		assertNotNull(test2);
+		assertNotNull(test3);
+		assertNotNull(test4);
+		assertNotNull(test5);
+		assertNotNull(test6);
+		assertNotNull(test7);
+		assertNotNull(test8);
+		assertNotNull(test9);
+		
+		final Element div = document.createElement("div");
+		assertNotNull(div);
+
+		final Element p0 = document.createElement("p");
+		final Element p1 = document.createElement("p");
+		final Element p2 = document.createElement("p");
+		final Element p3 = document.createElement("p");
+		
+		assertNotNull(p0);
+		assertNotNull(p1);
+		assertNotNull(p2);
+		assertNotNull(p3);
+
+		try {
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					div.appendChild(test0);
+					div.appendChild(p0);
+					div.appendChild(test1);
+					div.appendChild(test2);
+					div.appendChild(p1);
+					div.appendChild(test3);
+					div.appendChild(test4);
+					div.appendChild(test5);
+					div.appendChild(p2);
+					div.appendChild(test6);
+					div.appendChild(test7);
+					div.appendChild(test8);
+					div.appendChild(test9);
+					div.appendChild(p3);
+
+					return null;
+				}
+
+			});
+			
+		} catch (FrameworkException fex) {
+			
+			fail("unexpected exception");
+		}
+		
+		// normalize 
+		div.normalize();
+
+		NodeList children = div.getChildNodes();
+		
+		// div should now have 8 children,
+		assertEquals(8, children.getLength());
+		
+		// check normalized children
+		assertEquals("test0",                children.item(0).getNodeValue());
+		assertEquals(p0,                     children.item(1));
+		assertEquals("test1test2",           children.item(2).getNodeValue());
+		assertEquals(p1,                     children.item(3));
+		assertEquals("test3test4test5",      children.item(4).getNodeValue());
+		assertEquals(p2,                     children.item(5));
+		assertEquals("test6test7test8test9", children.item(6).getNodeValue());
+		assertEquals(p3,                     children.item(7));
 	}
 }

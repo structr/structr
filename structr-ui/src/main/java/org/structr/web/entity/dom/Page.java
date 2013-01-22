@@ -395,7 +395,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						Node importedNode = domNode.doImport(Page.this);
 
 						// step 2: do recursive import?
-						if (deep && hasChildNodes()) {
+						if (deep && domNode.hasChildNodes()) {
 
 							// FIXME: is it really a good idea to do the
 							// recursion inside of a transaction?
@@ -411,7 +411,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						}
 
 						// step 3: remove node from its current parent
-						
 						// (Note that this step needs to be done last in
 						// (order for the child to be able to find its
 						// siblings.)
@@ -460,7 +459,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						Node adoptedNode = domNode.doAdopt(Page.this);
 
 						// step 2: do recursive import?
-						if (hasChildNodes()) {
+						if (domNode.hasChildNodes()) {
 
 							// FIXME: is it really a good idea to do the
 							// recursion inside of a transaction?
@@ -505,11 +504,12 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public void normalizeDocument() {
+		normalize();
 	}
 
 	@Override
 	public Node renameNode(Node node, String string, String string1) throws DOMException {
-		throw new UnsupportedOperationException("Renaming nodes is not supported.");
+		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE_RENAME);
 	}
 
 	@Override
