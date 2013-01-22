@@ -231,6 +231,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			}
 
+			// FIXME: this will not include arbitrary data-* attributes
 			for (PropertyKey attribute : EntityContext.getPropertySet(getClass(), PropertyView.Html)) {
 
 				try {
