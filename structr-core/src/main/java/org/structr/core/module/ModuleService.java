@@ -304,6 +304,10 @@ public class ModuleService implements SingletonService {
 
 	private void addClassesRecursively(File dir, String prefix, Set<String> classes) {
 
+		if (dir == null) {
+			return;
+		}
+		
 		int prefixLen = prefix.length();
 
 		for (File file : dir.listFiles()) {
