@@ -542,7 +542,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public Element getDocumentElement() {
-		return (Element)super.treeGetFirstChild();
+		return (Element)super.getFirstChild();
 	}
 
 	@Override
@@ -628,7 +628,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		renderContext.getBuffer().append("<!DOCTYPE html>");
 
 		// recursively render children
-		for (AbstractRelationship rel : treeGetChildRelationships()) {
+		for (AbstractRelationship rel : getChildRelationships()) {
 
 			if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
 

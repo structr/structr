@@ -360,7 +360,7 @@ public class Importer {
 
 			}
 			
-			parent.treeAppendChild(newNode);
+			parent.appendChild(newNode);
 
 			// Link new node to its parent node
 			//linkNodes(parent, newNode, page, localIndex);

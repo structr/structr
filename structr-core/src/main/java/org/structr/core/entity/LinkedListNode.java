@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.entity;
 
 import java.util.List;
@@ -12,13 +30,12 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.CollectionProperty;
 
 /**
- *
+ * Abstract base class for a linked list datastructure.
+ * 
  * @author Christian Morgner
  */
 public abstract class LinkedListNode extends AbstractNode {
 
-	public abstract CollectionProperty<? extends LinkedListNode> getListProperty();
-	
 	/**
 	 * Returns the predecessor of the given element in the list structure
 	 * defined by this LinkedListManager.
@@ -26,11 +43,10 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement
 	 * @return
 	 */
-	public LinkedListNode listGetPrevious(LinkedListNode currentElement) {
+	protected LinkedListNode listGetPrevious(final CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement) {
 
-		final CollectionProperty<? extends LinkedListNode> listProperty = getListProperty();
-		final RelationshipType relType                                  = listProperty.getRelType();
-		List<AbstractRelationship> incomingRelationships                = currentElement.getIncomingRelationships(relType);
+		final RelationshipType relType                         = listProperty.getRelType();
+		final List<AbstractRelationship> incomingRelationships = currentElement.getIncomingRelationships(relType);
 		
 		if (incomingRelationships != null && !incomingRelationships.isEmpty()) {
 
@@ -57,10 +73,9 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement
 	 * @return
 	 */
-	public LinkedListNode listGetNext(LinkedListNode currentElement) {
+	protected LinkedListNode listGetNext(final CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement) {
 		
-		final CollectionProperty<? extends LinkedListNode> listProperty = getListProperty();
-		final RelationshipType relType                                  = listProperty.getRelType();
+		final RelationshipType relType                   = listProperty.getRelType();
 		List<AbstractRelationship> outgoingRelationships = currentElement.getOutgoingRelationships(relType);
 		
 		if (outgoingRelationships != null && !outgoingRelationships.isEmpty()) {
@@ -88,15 +103,14 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	public void listInsertBefore(final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	protected void listInsertBefore(final CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final CollectionProperty<? extends LinkedListNode> listProperty = getListProperty();
-		final RelationshipType relType                                  = listProperty.getRelType();
-		final LinkedListNode previousElement                            = listGetPrevious(currentElement);
+		final RelationshipType relType       = listProperty.getRelType();
+		final LinkedListNode previousElement = listGetPrevious(listProperty, currentElement);
 
 		if (previousElement == null) {
 
@@ -130,7 +144,7 @@ public abstract class LinkedListNode extends AbstractNode {
 					if (previousNode != null && newNode != null && currentNode != null) {
 
 						// delete old relationship
-						removeRelationshipBetween(previousNode, currentNode);
+						removeRelationshipBetween(listProperty, previousNode, currentNode);
 
 						// create two new ones
 						previousNode.createRelationshipTo(newNode, relType);
@@ -150,15 +164,14 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	public void listInsertAfter(final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	protected void listInsertAfter(final CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final CollectionProperty<? extends LinkedListNode> listProperty = getListProperty();
-		final RelationshipType relType                                  = listProperty.getRelType();
-		final LinkedListNode next                                       = listGetNext(currentElement);
+		final RelationshipType relType = listProperty.getRelType();
+		final LinkedListNode next      = listGetNext(listProperty, currentElement);
 		
 		if (next == null) {
 
@@ -192,7 +205,7 @@ public abstract class LinkedListNode extends AbstractNode {
 					if (nextNode != null && newNode != null && currentNode != null) {
 
 						// delete old relationship
-						removeRelationshipBetween(currentNode, nextNode);
+						removeRelationshipBetween(listProperty, currentNode, nextNode);
 
 						// create two new ones
 						currentNode.createRelationshipTo(newNode, relType);
@@ -211,12 +224,11 @@ public abstract class LinkedListNode extends AbstractNode {
 	 *
 	 * @param currentElement the element to be removed
 	 */
-	public void listRemove(final LinkedListNode currentElement) {
+	protected void listRemove(CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement) {
 		
-		final CollectionProperty<? extends LinkedListNode> listProperty = getListProperty();
 		final RelationshipType relType                                  = listProperty.getRelType();
-		final LinkedListNode previousElement                            = listGetPrevious(currentElement);
-		final LinkedListNode nextElement                                = listGetNext(currentElement);
+		final LinkedListNode previousElement                            = listGetPrevious(listProperty, currentElement);
+		final LinkedListNode nextElement                                = listGetNext(listProperty, currentElement);
 		final Node currentNode                                          = currentElement.getNode();
 
 		if (previousElement != null) {
@@ -224,7 +236,7 @@ public abstract class LinkedListNode extends AbstractNode {
 			Node previousNode = previousElement.getNode();
 			if (previousNode != null && currentNode != null) {
 
-				removeRelationshipBetween(previousNode, currentNode);
+				removeRelationshipBetween(listProperty, previousNode, currentNode);
 			}
 		}
 
@@ -233,7 +245,7 @@ public abstract class LinkedListNode extends AbstractNode {
 			Node nextNode = nextElement.getNode();
 			if (nextNode != null && currentNode != null) {
 
-				removeRelationshipBetween(currentNode, nextNode);
+				removeRelationshipBetween(listProperty, currentNode, nextNode);
 			}
 		}
 
@@ -259,10 +271,9 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param startNode
 	 * @param endNode
 	 */
-	private void removeRelationshipBetween(Node startNode, Node endNode) {
+	protected void removeRelationshipBetween(CollectionProperty<? extends LinkedListNode> listProperty, final Node startNode, final Node endNode) {
 
-		final CollectionProperty<? extends LinkedListNode> listProperty = getListProperty();
-		final RelationshipType relType                                  = listProperty.getRelType();
+		final RelationshipType relType = listProperty.getRelType();
 
 		if (startNode != null && endNode != null) {
 

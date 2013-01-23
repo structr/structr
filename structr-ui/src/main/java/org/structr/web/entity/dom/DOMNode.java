@@ -44,7 +44,6 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.LinkedListNode;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
@@ -60,7 +59,6 @@ import org.structr.web.common.PageHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.relation.ChildrenRelationship;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -259,28 +257,16 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		});
 
 	}
-
-	// ----- abstract methods from superclasses -----
-	@Override
-	public CollectionProperty<? extends LinkedTreeNode> getTreeProperty() {
-		return DOMNode.children;
-	}
-	
-	@Override
-	public CollectionProperty<? extends LinkedListNode> getListProperty() {
-		return DOMNode.siblings;
-	}
-	
-	@Override
-	public PropertyKey<Integer> getPositionProperty() {
-		return ChildrenRelationship.position;
-	}
 	
 	// ----- public methods -----
 	@Override
 	public String toString() {
 		
-		return getClass().getSimpleName() + " (" + getTextContent() + ", " + treeGetChildPosition(this) + ")";
+		return getClass().getSimpleName() + " (" + getTextContent() + ", " + treeGetChildPosition(DOMNode.children, this) + ")";
+	}
+
+	public List<AbstractRelationship> getChildRelationships() {
+		return treeGetChildRelationships(DOMNode.children);
 	}
 
 	// ----- protected methods -----		
@@ -895,27 +881,27 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		checkReadAccess();
 		
-		return new StructrNodeList(treeGetChildren());
+		return new StructrNodeList(treeGetChildren(DOMNode.children));
 	}
 
 	@Override
 	public Node getFirstChild() {
-		return (DOMNode)treeGetFirstChild();
+		return (DOMNode)treeGetFirstChild(DOMNode.children);
 	}
 
 	@Override
 	public Node getLastChild() {
-		return (DOMNode)treeGetLastChild();
+		return (DOMNode)treeGetLastChild(DOMNode.children);
 	}
 
 	@Override
 	public Node getPreviousSibling() {
-		return (DOMNode)listGetPrevious(this);
+		return (DOMNode)listGetPrevious(DOMNode.siblings, this);
 	}
 
 	@Override
 	public Node getNextSibling() {
-		return (DOMNode)listGetNext(this);
+		return (DOMNode)listGetNext(DOMNode.siblings, this);
 	}
 
 	@Override
@@ -977,7 +963,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					_parent.removeChild(newChild);
 				}
 
-				treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
+				treeInsertBefore(DOMNode.children, DOMNode.siblings, (DOMNode)newChild, (DOMNode)refChild);
 				
 			}
 
@@ -1042,7 +1028,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// replace directly
-				treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
+				treeReplaceChild(DOMNode.children, DOMNode.siblings, (DOMNode)newChild, (DOMNode)oldChild);
 			}
 
 		} catch (FrameworkException fex) {
@@ -1062,7 +1048,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		try {
 			
-			treeRemoveChild((DOMNode)node);
+			treeRemoveChild(DOMNode.children, DOMNode.siblings, (DOMNode)node);
 
 		} catch (FrameworkException fex) {
 
@@ -1118,7 +1104,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					_parent.removeChild(newChild);
 				}
 			
-				treeAppendChild((DOMNode)newChild);
+				treeAppendChild(DOMNode.children, DOMNode.siblings, (DOMNode)newChild);
 			}
 			
 		} catch (FrameworkException fex) {

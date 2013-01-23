@@ -17,30 +17,28 @@
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-package org.structr.websocket.command.dom;
+package org.structr.websocket.command;
 
 import java.util.Map;
+import org.structr.common.error.FrameworkException;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.dom.DOMNode;
+import org.structr.core.entity.File;
+import org.structr.core.entity.Folder;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import org.w3c.dom.DOMException;
 
 /**
  *
- * @author Axel Morgner
+ * @author Christian Morgner
  */
-public class AppendChildCommand extends AbstractCommand {
+public class AppendFileCommand extends AbstractCommand {
 
 	static {
 
-		StructrWebSocket.addCommand(AppendChildCommand.class);
+		StructrWebSocket.addCommand(AppendFileCommand.class);
 	}
 
 	@Override
@@ -79,43 +77,38 @@ public class AppendChildCommand extends AbstractCommand {
 
 		}
 
-		if (parentNode instanceof DOMNode) {
+		if (parentNode instanceof Folder) {
 
-			DOMNode parentDomNode = (DOMNode)parentNode;
-			if (parentDomNode == null) {
-
-				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
-
-				return;
-
-			}
-
-			DOMNode node = getDOMNode(id);
+			Folder folder     = (Folder) parentNode;
+			AbstractNode node = getNode(id);
 
 			try {
 
-				// append node to parent
-				if (node != null) {
+				if (node instanceof Folder) {
 
-					parentDomNode.appendChild(node);
+					folder.addFolder((Folder) node);
+					
+				} else if (node instanceof File) {
+
+					folder.addFile((File) node);
 				}
-				
-			} catch (DOMException dex) {
+
+			} catch (FrameworkException fex) {
 
 				// send DOM exception
-				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+				getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
 			}
-
+			
 		} else {
 			
 			// send DOM exception
-			getWebSocket().send(MessageBuilder.status().code(422).message("Please use APPEND_FILE for File/Folder nodes.").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Please use APPEND_CHILD for DOM nodes.").build(), true);
 		}
 	}
 
 	@Override
 	public String getCommand() {
 
-		return "APPEND_CHILD";
+		return "APPEND_FILE";
 	}
 }

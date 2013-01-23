@@ -77,27 +77,27 @@ import org.w3c.dom.Text;
  */
 public class Content extends DOMNode implements Text {
 
-	private static final Logger logger                                                    = Logger.getLogger(Content.class.getName());
-	public static final Property<String> contentType                                      = new StringProperty("contentType");
-	public static final Property<String> content                                          = new DynamicContentProperty("content");
-	public static final Property<Integer> size                                            = new IntProperty("size");
-	public static final Property<String> dataKey                                          = new StringProperty("data-key");
-	
-	public static final EntityProperty<TypeDefinition> typeDefinition                     = new EntityProperty<TypeDefinition>("typeDefinition", TypeDefinition.class, RelType.IS_A, true);
-	public static final Property<String> typeDefinitionId                                 = new EntityIdProperty("typeDefinitionId", typeDefinition);
-	
-	private static final Map<String, Adapter<String, String>> contentConverters           = new LinkedHashMap<String, Adapter<String, String>>();
+	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
+	public static final Property<String> contentType                                     = new StringProperty("contentType");
+	public static final Property<String> content                                         = new DynamicContentProperty("content");
+	public static final Property<Integer> size                                           = new IntProperty("size");
+	public static final Property<String> dataKey                                         = new StringProperty("data-key");
 
-	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                   = new ThreadLocalTracWikiProcessor();
-	private static final ThreadLocalTextileProcessor textileProcessor                     = new ThreadLocalTextileProcessor();
-	private static final ThreadLocalPegDownProcessor pegDownProcessor                     = new ThreadLocalPegDownProcessor();
-	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                 = new ThreadLocalMediaWikiProcessor();
-	private static final ThreadLocalConfluenceProcessor confluenceProcessor               = new ThreadLocalConfluenceProcessor();
+	public static final EntityProperty<TypeDefinition> typeDefinition                    = new EntityProperty<TypeDefinition>("typeDefinition", TypeDefinition.class, RelType.IS_A, true);
+	public static final Property<String> typeDefinitionId                                = new EntityIdProperty("typeDefinitionId", typeDefinition);
 
-	public static final org.structr.common.View uiView                                    = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, dataKey,
-													typeDefinitionId, parent);
-	public static final org.structr.common.View publicView                                = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, dataKey,
-													typeDefinitionId, parent);
+	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<String, Adapter<String, String>>();
+
+	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                  = new ThreadLocalTracWikiProcessor();
+	private static final ThreadLocalTextileProcessor textileProcessor                    = new ThreadLocalTextileProcessor();
+	private static final ThreadLocalPegDownProcessor pegDownProcessor                    = new ThreadLocalPegDownProcessor();
+	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
+	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
+
+	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, dataKey,
+												typeDefinitionId, parent);
+	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, dataKey,
+												typeDefinitionId, parent);
 	//~--- static initializers --------------------------------------------
 
 	static {

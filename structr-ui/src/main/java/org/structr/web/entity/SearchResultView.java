@@ -81,7 +81,7 @@ public class SearchResultView extends View {
 			for (Page resultPage : getResultPages(securityContext, page)) {
 
 				// recursively render children
-				List<AbstractRelationship> rels = resultPage.treeGetChildRelationships();
+				List<AbstractRelationship> rels = resultPage.getChildRelationships();
 
 				for (AbstractRelationship rel : rels) {
 

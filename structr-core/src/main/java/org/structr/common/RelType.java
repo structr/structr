@@ -26,6 +26,7 @@ import org.neo4j.graphdb.RelationshipType;
  * @author Axel Morgner
  */
 public enum RelType implements RelationshipType {
+	
 	UNDEFINED, LINK, PAGE_LINK,
 	SECURITY,
         USE_TEMPLATE,
@@ -51,5 +52,7 @@ public enum RelType implements RelationshipType {
 	CONTAINS,
 	IS_A,
 	PAGE,
-	ROOT
+	ROOT,
+	
+	NEXT_FILE
 }

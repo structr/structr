@@ -55,18 +55,18 @@ public class XPathTest extends StructrUiTest {
 			
 			try {
 				// add HTML element to page
-				page.treeAppendChild(html);
+				page.appendChild(html);
 
 				// add HEAD and BODY elements to HTML
-				html.treeAppendChild(head);
-				html.treeAppendChild(body);
+				html.appendChild(head);
+				html.appendChild(body);
 
 				// add TITLE element to HEAD
-				head.treeAppendChild(title);
+				head.appendChild(title);
 				title.appendChild(page.createTextNode("Test Page"));
 
 				// add H1 element to BODY
-				body.treeAppendChild(h1);
+				body.appendChild(h1);
 				h1.appendChild(page.createTextNode("Page Title"));
 				
 			} catch (DOMException dex) {
@@ -124,22 +124,22 @@ public class XPathTest extends StructrUiTest {
 			
 			try {
 				// add HTML element to page
-				page.treeAppendChild(html);
+				page.appendChild(html);
 
 				// add HEAD and BODY elements to HTML
-				html.treeAppendChild(head);
-				html.treeAppendChild(body);
+				html.appendChild(head);
+				html.appendChild(body);
 
 				// add TITLE element to HEAD
-				head.treeAppendChild(title);
+				head.appendChild(title);
 				title.appendChild(page.createTextNode("Test Page"));
 
 				// add H1 element to BODY
-				body.treeAppendChild(div);
+				body.appendChild(div);
 
-				div.treeAppendChild(p1);
-				div.treeAppendChild(p2);
-				div.treeAppendChild(p3);
+				div.appendChild(p1);
+				div.appendChild(p2);
+				div.appendChild(p3);
 				
 				// test
 				p2.setAttribute("blah", "wurst");

@@ -30,7 +30,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.IntProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,13 +40,13 @@ import org.structr.core.property.EntityProperty;
  * @author Axel Morgner
  *
  */
-public class Folder extends AbstractNode {
-
-	public static final EntityProperty<Folder>     parent       = new EntityProperty<Folder>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, new PropertySetNotion(uuid, name), true);
+public class Folder extends AbstractFile {
 
 	public static final CollectionProperty<Folder> folders      = new CollectionProperty<Folder>("folders", Folder.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 	public static final CollectionProperty<File>   files        = new CollectionProperty<File>("files", File.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 	public static final CollectionProperty<Image>  images       = new CollectionProperty<Image>("images", Image.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	
+	public static final IntProperty                position     = new IntProperty("position");
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parent, folders, files, images
@@ -56,16 +56,12 @@ public class Folder extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name);
 		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name);
 	}
-
-	public void addFolder(final Folder child) throws FrameworkException {
-		folders.createRelationship(securityContext, this, child);
+	
+	public void addFolder(final Folder folder) throws FrameworkException {
+		treeAppendChild(folders, siblings, folder);
 	}
 	
-	public void addFile(final File child) throws FrameworkException {
-		files.createRelationship(securityContext, this, child);
-	}
-	
-	public void addToFolder(final Folder parentFolder) throws FrameworkException {
-		parentFolder.addFolder(this);
+	public void addFile(final File file) throws FrameworkException {
+		treeAppendChild(files, siblings, file);
 	}
 }
