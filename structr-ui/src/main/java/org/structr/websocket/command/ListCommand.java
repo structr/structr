@@ -31,7 +31,6 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.RelationshipHelper;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -40,6 +39,7 @@ import java.util.*;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.entity.Image;
+import org.structr.rest.resource.PagingHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,9 +56,7 @@ public class ListCommand extends AbstractCommand {
 		String rawType                         = (String) webSocketData.getNodeData().get("type");
 		Class type                             = EntityContext.getEntityClassForRawType(rawType);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		Set<String> nodesWithChildren          = new HashSet<String>();
 
-//              searchAttributes.addAll(Search.andExactTypeAndSubtypes(CaseHelper.toUpperCamelCase(type)));
 		searchAttributes.add(Search.andExactType(type.getSimpleName()));
 		
 		// for image lists, suppress thumbnails
@@ -75,8 +73,8 @@ public class ListCommand extends AbstractCommand {
 		try {
 
 			// do search
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder), pageSize,
-						page);
+			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
+			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
 			List<? extends GraphObject> resultList = result.getResults();
 
 			// determine which of the nodes have children
@@ -86,25 +84,25 @@ public class ListCommand extends AbstractCommand {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (node.hasRelationship(RelType.CONTAINS, Direction.OUTGOING)) {
+					if (node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
 
-						nodesWithChildren.add(node.getUuid());
+						filteredResults.add(node);
 					}
 
 				}
 
 			}
 
-			// Determine children in this resource
-			webSocketData.setNodesWithChildren(nodesWithChildren);
-
+			// save raw result count
+			int resultCountBeforePaging = filteredResults.size();
+			
 			// set full result list
-			webSocketData.setResult(resultList);
-			webSocketData.setRawResultCount(result.getRawResultCount());
+			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
+			webSocketData.setRawResultCount(resultCountBeforePaging);
 
-//                      }
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
+			
 		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
