@@ -1,16 +1,16 @@
 <!doctype html>
 <html>
   <head>
-    <title>CodeMirror 2: Pascal mode</title>
+    <meta charset="utf-8">
+    <title>CodeMirror: Pascal mode</title>
     <link rel="stylesheet" href="../../lib/codemirror.css">
     <script src="../../lib/codemirror.js"></script>
     <script src="pascal.js"></script>
-    <link rel="stylesheet" href="../../theme/default.css">
-    <link rel="stylesheet" href="../../css/docs.css">
+    <link rel="stylesheet" href="../../doc/docs.css">
     <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
   </head>
   <body>
-    <h1>CodeMirror 2: Pascal mode</h1>
+    <h1>CodeMirror: Pascal mode</h1>
 
 <div><textarea id="code" name="code">
 (* Example Pascal code *)
@@ -39,7 +39,6 @@ end;
     <script>
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
         lineNumbers: true,
-        matchBrackets: true,
         mode: "text/x-pascal"
       });
     </script>
