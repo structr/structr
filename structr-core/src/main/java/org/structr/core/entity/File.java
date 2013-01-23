@@ -59,7 +59,7 @@ import org.structr.core.property.EntityProperty;
  */
 public class File extends AbstractNode implements Linkable {
 
-	private static final Logger logger                    = Logger.getLogger(File.class.getName());
+	private static final Logger logger                          = Logger.getLogger(File.class.getName());
 
 	
 	public static final EntityProperty<Folder> parent           = new EntityProperty<Folder>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);

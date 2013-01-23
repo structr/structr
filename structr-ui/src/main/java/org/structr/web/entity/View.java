@@ -164,7 +164,7 @@ public class View extends DOMElement {
 			if (result instanceof DOMNode) {
 
 				// recursively render children
-				List<AbstractRelationship> rels = ((DOMNode)result).getChildRelationships();
+				List<AbstractRelationship> rels = ((DOMNode)result).treeGetChildRelationships();
 
 				for (AbstractRelationship rel : rels) {
 

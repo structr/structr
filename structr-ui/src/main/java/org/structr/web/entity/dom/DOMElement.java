@@ -255,7 +255,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			buffer.append(">");
 
 			// recursively render children
-			List<AbstractRelationship> rels = getChildRelationships();
+			List<AbstractRelationship> rels = treeGetChildRelationships();
 
 			for (AbstractRelationship rel : rels) {
 
