@@ -1,16 +1,17 @@
 <!doctype html>
 <html>
   <head>
-    <title>CodeMirror 2: Velocity mode</title>
+    <meta charset="utf-8">
+    <title>CodeMirror: Velocity mode</title>
     <link rel="stylesheet" href="../../lib/codemirror.css">
     <script src="../../lib/codemirror.js"></script>
     <script src="velocity.js"></script>
     <link rel="stylesheet" href="../../theme/night.css">
     <style>.CodeMirror {border: 1px solid black;}</style>
-    <link rel="stylesheet" href="../../css/docs.css">
+    <link rel="stylesheet" href="../../doc/docs.css">
   </head>
   <body>
-    <h1>CodeMirror 2: Velocity mode</h1>
+    <h1>CodeMirror: Velocity mode</h1>
     <form><textarea id="code" name="code">
 ## Velocity Code Demo
 #*
@@ -89,7 +90,6 @@ Addition: #set( $value = $foo + 1 )
     <script>
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
         tabMode: "indent",
-        matchBrackets: true,
         theme: "night",
         lineNumbers: true,
         indentUnit: 4,

@@ -1,4 +1,4 @@
-CodeMirror.defineMode("groovy", function(config, parserConfig) {
+CodeMirror.defineMode("groovy", function(config) {
   function words(str) {
     var obj = {}, words = str.split(" ");
     for (var i = 0; i < words.length; ++i) obj[words[i]] = true;
@@ -21,11 +21,11 @@ CodeMirror.defineMode("groovy", function(config, parserConfig) {
     }
     if (/[\[\]{}\(\),;\:\.]/.test(ch)) {
       curPunc = ch;
-      return null
+      return null;
     }
     if (/\d/.test(ch)) {
       stream.eatWhile(/[\w\.]/);
-      if (stream.eat(/eE/)) { stream.eat(/+\-/); stream.eatWhile(/\d/); }
+      if (stream.eat(/eE/)) { stream.eat(/\+\-/); stream.eatWhile(/\d/); }
       return "number";
     }
     if (ch == "/") {
@@ -50,7 +50,7 @@ CodeMirror.defineMode("groovy", function(config, parserConfig) {
       return "operator";
     }
     stream.eatWhile(/[\w\$_]/);
-    if (ch == "@") return "meta";
+    if (ch == "@") { stream.eatWhile(/[\w\$_\.]/); return "meta"; }
     if (state.lastToken == ".") return "property";
     if (stream.eat(":")) { curPunc = "proplabel"; return "property"; }
     var cur = stream.current();
@@ -59,7 +59,7 @@ CodeMirror.defineMode("groovy", function(config, parserConfig) {
       if (blockKeywords.propertyIsEnumerable(cur)) curPunc = "newstatement";
       return "keyword";
     }
-    return "word";
+    return "variable";
   }
   tokenBase.isBase = true;
 
