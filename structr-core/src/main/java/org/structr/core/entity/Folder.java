@@ -25,6 +25,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.notion.PropertySetNotion;
@@ -56,4 +57,15 @@ public class Folder extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name);
 	}
 
+	public void addFolder(final Folder child) throws FrameworkException {
+		folders.createRelationship(securityContext, this, child);
+	}
+	
+	public void addFile(final File child) throws FrameworkException {
+		files.createRelationship(securityContext, this, child);
+	}
+	
+	public void addToFolder(final Folder parentFolder) throws FrameworkException {
+		parentFolder.addFolder(this);
+	}
 }

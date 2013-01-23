@@ -309,8 +309,8 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			if (relationship.getRelType().equals(RelType.CONTAINS)) {
 
-				DOMNode startNode   = (DOMNode) relationship.getStartNode();
-				DOMNode endNode     = (DOMNode) relationship.getEndNode();
+				AbstractNode startNode   = (AbstractNode) relationship.getStartNode();
+				AbstractNode endNode     = (AbstractNode) relationship.getEndNode();
 				WebSocketMessage message = new WebSocketMessage();
 				
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
@@ -318,7 +318,13 @@ public class SynchronizationController implements StructrTransactionListener {
 				message.setId(endNode.getUuid());
 				message.setNodeData("parentId", startNode.getUuid());
 
-				Node refNode = endNode.getNextSibling();
+				Node refNode = null;
+				if (endNode instanceof DOMNode) {
+				
+					refNode = ((DOMNode) endNode).getNextSibling();
+					
+				}
+				
 				if (refNode != null) {
 					
 					message.setCommand("INSERT_BEFORE");

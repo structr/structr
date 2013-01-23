@@ -84,7 +84,7 @@ public class ListCommand extends AbstractCommand {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
 
 						filteredResults.add(node);
 					}

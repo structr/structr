@@ -16,10 +16,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.websocket.command.dom;
 
 import java.util.Map;
 
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.File;
+import org.structr.core.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
@@ -49,7 +56,7 @@ public class AppendChildCommand extends AbstractCommand {
 		// check node to append
 		if (id == null) {
 
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot no node to append").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node, no id is given").build(), true);
 
 			return;
 
@@ -65,7 +72,7 @@ public class AppendChildCommand extends AbstractCommand {
 		}
 
 		// check if parent node with given ID exists
-		DOMNode parentNode = getDOMNode(parentId);
+		AbstractNode parentNode = getNode(parentId);
 
 		if (parentNode == null) {
 
@@ -75,20 +82,54 @@ public class AppendChildCommand extends AbstractCommand {
 
 		}
 
-		DOMNode node = getDOMNode(id);
+		if (parentNode instanceof Folder) {
 
-		try {
+			Folder folder     = (Folder) parentNode;
+			AbstractNode node = getNode(id);
 
-			// append node to parent
-			if (node != null) {
+			try {
 
-				parentNode.appendChild(node);
-				
+				if (node instanceof Folder) {
+
+					folder.addFolder((Folder) node);
+				} else if (node instanceof File) {
+
+					folder.addFile((File) node);
+				}
+
+			} catch (FrameworkException fex) {
+
+				// send DOM exception
+				getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
 			}
-		} catch (DOMException dex) {
 
-			// send DOM exception
-			getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+		} else {
+
+			DOMNode parentDomNode = getDOMNode(parentId);
+
+			if (parentDomNode == null) {
+
+				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
+
+				return;
+
+			}
+
+			DOMNode node = getDOMNode(id);
+
+			try {
+
+				// append node to parent
+				if (node != null) {
+
+					parentDomNode.appendChild(node);
+				}
+			} catch (DOMException dex) {
+
+				// send DOM exception
+				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+			}
+
 		}
 
 	}
