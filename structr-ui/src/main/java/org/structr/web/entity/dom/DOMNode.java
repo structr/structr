@@ -44,6 +44,7 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.LinkedListNode;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
@@ -54,7 +55,7 @@ import org.structr.core.property.EntityProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.Function;
-import org.structr.web.common.OrderedTreeManager;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.web.common.PageHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -75,7 +76,7 @@ import org.w3c.dom.UserDataHandler;
  * @author Christian Morgner
  */
 
-public abstract class DOMNode extends AbstractNode implements Node, Renderable, DOMAdoptable, DOMImportable {
+public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable, DOMAdoptable, DOMImportable {
 
 	private static final Logger logger                                      = Logger.getLogger(DOMNode.class.getName());
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher      = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
@@ -100,10 +101,9 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
 	
 	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<DOMNode>("children", DOMNode.class, RelType.CONTAINS, Direction.OUTGOING, true);
+	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<DOMNode>("siblings", DOMNode.class, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING, true);
 	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final EntityProperty<Page> page                           = new EntityProperty<Page>("page", Page.class, RelType.PAGE, Direction.OUTGOING, true);
-
-	private static OrderedTreeManager<DOMNode> treeManager                  = new OrderedTreeManager<DOMNode>(children, ChildrenRelationship.position, RelType.CONTAINS, RelType.NEXT_LIST_ENTRY);
 	private static Set<Page> resultPages                                    = new HashSet<Page>();
 		
 	
@@ -259,12 +259,28 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 		});
 
 	}
+
+	// ----- abstract methods from superclasses -----
+	@Override
+	public CollectionProperty<? extends LinkedTreeNode> getTreeProperty() {
+		return DOMNode.children;
+	}
+	
+	@Override
+	public CollectionProperty<? extends LinkedListNode> getListProperty() {
+		return DOMNode.siblings;
+	}
+	
+	@Override
+	public PropertyKey<Integer> getPositionProperty() {
+		return ChildrenRelationship.position;
+	}
 	
 	// ----- public methods -----
 	@Override
 	public String toString() {
 		
-		return getClass().getSimpleName() + " (" + getTextContent() + ", " + treeManager.getChildPosition(this) + ")";
+		return getClass().getSimpleName() + " (" + getTextContent() + ", " + treeGetChildPosition(this) + ")";
 	}
 
 	// ----- protected methods -----		
@@ -852,11 +868,6 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 		}
 	}
 
-	// ----- public methods -----
-	public List<AbstractRelationship> getChildRelationships() {
-		return treeManager.getChildRelationships(this);
-	}
-
 	// ----- interface org.w3c.dom.Node -----
 	@Override
 	public String getTextContent() throws DOMException {
@@ -884,27 +895,27 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 		
 		checkReadAccess();
 		
-		return new StructrNodeList(treeManager.getChildren(this));
+		return new StructrNodeList(treeGetChildren());
 	}
 
 	@Override
 	public Node getFirstChild() {
-		return treeManager.getFirstChild(this);
+		return (DOMNode)treeGetFirstChild();
 	}
 
 	@Override
 	public Node getLastChild() {
-		return treeManager.getLastChild(this);
+		return (DOMNode)treeGetLastChild();
 	}
 
 	@Override
 	public Node getPreviousSibling() {
-		return treeManager.getListManager().getPrevious(this);
+		return (DOMNode)listGetPrevious(this);
 	}
 
 	@Override
 	public Node getNextSibling() {
-		return treeManager.getListManager().getNext(this);
+		return (DOMNode)listGetNext(this);
 	}
 
 	@Override
@@ -941,18 +952,18 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 				// add it to the new parent.
 				
 				DocumentFragment fragment = (DocumentFragment)newChild;
-				DOMNode currentChild      = (DOMNode)fragment.getFirstChild();
+				Node currentChild         = fragment.getFirstChild();
 				
 				while (currentChild != null) {
 			
 					// save next child in fragment list for later use
-					DOMNode savedNextChild = treeManager.getListManager().getNext(currentChild);
+					Node savedNextChild = currentChild.getNextSibling();
 
 					// remove child from document fragment
-					treeManager.removeChild((DOMNode)fragment, currentChild);
+					fragment.removeChild(currentChild);
 
 					// insert child into new parent
-					treeManager.insertBefore(this, currentChild, (DOMNode)refChild);					
+					insertBefore(currentChild, refChild);					
 
 					// next
 					currentChild = savedNextChild;
@@ -961,12 +972,12 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 			} else {
 			
 				Node _parent = newChild.getParentNode();
-
-				if (_parent != null && _parent instanceof DOMNode) {
-					treeManager.removeChild((DOMNode) _parent, (DOMNode) newChild);
+				if (_parent != null) {
+					
+					_parent.removeChild(newChild);
 				}
 
-				treeManager.insertBefore(this, (DOMNode)newChild, (DOMNode)refChild);
+				treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
 				
 			}
 
@@ -1002,36 +1013,36 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 				
 				// replace indirectly using insertBefore and remove
 				DocumentFragment fragment = (DocumentFragment)newChild;
-				DOMNode currentChild      = (DOMNode)fragment.getFirstChild();
+				Node currentChild         = fragment.getFirstChild();
 				
 				while (currentChild != null) {
 			
 					// save next child in fragment list for later use
-					DOMNode savedNextChild = treeManager.getListManager().getNext(currentChild);
+					Node savedNextChild = currentChild.getNextSibling();
 					
 					// remove child from document fragment
-					treeManager.removeChild((DOMNode)fragment, currentChild);
+					fragment.removeChild(currentChild);
 					
 					// add child to new parent
-					treeManager.insertBefore(this, currentChild, (DOMNode)oldChild);
+					insertBefore(currentChild, oldChild);
 					
 					// next
 					currentChild = savedNextChild;
 				}
 				
 				// finally, remove reference element
-				treeManager.removeChild(this, (DOMNode)oldChild);
+				removeChild(oldChild);
 				
 			} else {
 			
 				Node _parent = newChild.getParentNode();
-
 				if (_parent != null && _parent instanceof DOMNode) {
-					treeManager.removeChild((DOMNode) _parent, (DOMNode) newChild);
+					
+					_parent.removeChild(newChild);
 				}
 
 				// replace directly
-				treeManager.replaceChild(this, (DOMNode)newChild, (DOMNode)oldChild);
+				treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
 			}
 
 		} catch (FrameworkException fex) {
@@ -1051,7 +1062,7 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 		
 		try {
 			
-			treeManager.removeChild(this, (DOMNode)node);
+			treeRemoveChild((DOMNode)node);
 
 		} catch (FrameworkException fex) {
 
@@ -1082,18 +1093,18 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 
 				// replace indirectly using insertBefore and remove
 				DocumentFragment fragment = (DocumentFragment)newChild;
-				DOMNode currentChild      = (DOMNode)fragment.getFirstChild();
+				Node currentChild         = fragment.getFirstChild();
 				
 				while (currentChild != null) {
 			
 					// save next child in fragment list for later use
-					DOMNode savedNextChild = treeManager.getListManager().getNext(currentChild);
+					Node savedNextChild = currentChild.getNextSibling();
 					
 					// remove child from document fragment
-					treeManager.removeChild((DOMNode)fragment, currentChild);
+					fragment.removeChild(currentChild);
 
 					// append child to new parent
-					treeManager.appendChild(this, (DOMNode)currentChild);
+					appendChild(currentChild);
 
 					// next
 					currentChild = savedNextChild;
@@ -1104,10 +1115,10 @@ public abstract class DOMNode extends AbstractNode implements Node, Renderable, 
 				Node _parent = newChild.getParentNode();
 
 				if (_parent != null && _parent instanceof DOMNode) {
-					treeManager.removeChild((DOMNode) _parent, (DOMNode) newChild);
+					_parent.removeChild(newChild);
 				}
 			
-				treeManager.appendChild(this, (DOMNode)newChild);
+				treeAppendChild((DOMNode)newChild);
 			}
 			
 		} catch (FrameworkException fex) {

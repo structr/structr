@@ -56,29 +56,29 @@ public class PageTest extends StructrUiTest {
 
 			try {
 				// add HTML element to page
-				page.appendChild(html);
+				page.treeAppendChild(html);
 
 				// add HEAD and BODY elements to HTML
-				html.appendChild(head);
-				html.appendChild(body);
+				html.treeAppendChild(head);
+				html.treeAppendChild(body);
 
 				// add TITLE element to HEAD
-				head.appendChild(title);
+				head.treeAppendChild(title);
 
 				// add H1 element to BODY
-				body.appendChild(h1);
+				body.treeAppendChild(h1);
 
 				// add DIV element 1 to BODY
-				body.appendChild(div1);
-				div1.appendChild(p1);
+				body.treeAppendChild(div1);
+				div1.treeAppendChild(p1);
 				
 				// add DIV element 2 to DIV
-				div1.appendChild(div2);
-				div2.appendChild(p2);
+				div1.treeAppendChild(div2);
+				div2.treeAppendChild(p2);
 				
 				// add DIV element 3 to DIV
-				div2.appendChild(div3);
-				div3.appendChild(p3);
+				div2.treeAppendChild(div3);
+				div3.treeAppendChild(p3);
 
 			} catch (DOMException dex) {
 
