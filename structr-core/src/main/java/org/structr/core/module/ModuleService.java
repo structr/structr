@@ -309,8 +309,13 @@ public class ModuleService implements SingletonService {
 		}
 		
 		int prefixLen = prefix.length();
+		File[] files  = dir.listFiles();
 
-		for (File file : dir.listFiles()) {
+		if (files == null) {
+			return;
+		}
+		
+		for (File file : files) {
 
 			if (file.isDirectory()) {
 
