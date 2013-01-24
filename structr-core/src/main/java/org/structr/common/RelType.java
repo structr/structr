@@ -53,5 +53,8 @@ public enum RelType implements RelationshipType {
 	CONTAINS_NEXT_SIBLING,
 	IS_A,
 	PAGE,
-	ROOT
+	ROOT,
+	RENDER_NODE,
+	RENDER_LIST,
+	RENDER_TREE
 }
