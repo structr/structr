@@ -99,6 +99,7 @@ public class SynchronizationController implements StructrTransactionListener {
 		for (StructrWebSocket socket : clients) {
 
 			Connection socketConnection = socket.getConnection();
+			webSocketData.setCallback(socket.getCallback());
 
 			if ((socketConnection != null) && socket.isAuthenticated()) {
 
@@ -108,6 +109,7 @@ public class SynchronizationController implements StructrTransactionListener {
 					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
 
 					WebSocketMessage clientData     = webSocketData.copy();
+					
 					SecurityContext securityContext = socket.getSecurityContext();
 
 					clientData.setResult(filter(securityContext, result));
