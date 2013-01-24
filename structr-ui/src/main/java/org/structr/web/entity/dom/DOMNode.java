@@ -98,8 +98,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
 	
-	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<DOMNode>("children", DOMNode.class, RelType.CONTAINS, Direction.OUTGOING, true);
-	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<DOMNode>("siblings", DOMNode.class, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING, true);
+	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<DOMNode>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
+	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<DOMNode>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
 	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final EntityProperty<Page> page                           = new EntityProperty<Page>("page", Page.class, RelType.PAGE, Direction.OUTGOING, true);
 	private static Set<Page> resultPages                                    = new HashSet<Page>();
@@ -262,11 +262,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	@Override
 	public String toString() {
 		
-		return getClass().getSimpleName() + " (" + getTextContent() + ", " + treeGetChildPosition(DOMNode.children, this) + ")";
+		return getClass().getSimpleName() + " (" + getTextContent() + ", " + treeGetChildPosition(RelType.CONTAINS, this) + ")";
 	}
 
 	public List<AbstractRelationship> getChildRelationships() {
-		return treeGetChildRelationships(DOMNode.children);
+		return treeGetChildRelationships(RelType.CONTAINS);
 	}
 
 	// ----- protected methods -----		
@@ -372,18 +372,13 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected java.lang.Object getReferencedProperty(SecurityContext securityContext, RenderContext renderContext, String refKey)
 		throws FrameworkException {
 
-		AbstractNode node = null;
-		String pageId = renderContext.getPageId();
+		String pageId                    = renderContext.getPageId();
 		String[] parts                   = refKey.split("[\\.]+");
 		String referenceKey              = parts[parts.length - 1];
 		PropertyKey pageIdProperty       = new StringProperty(pageId);
 		PropertyKey referenceKeyProperty = new StringProperty(referenceKey);
-		
-		Page page = renderContext.getPage();
-		String componentId = renderContext.getComponentId();
-		AbstractNode viewComponent = renderContext.getViewComponent();
-		
-		
+		Page _page                       = renderContext.getPage();
+		GraphObject _data                = null;
 
 		// walk through template parts
 		for (int i = 0; (i < parts.length); i++) {
@@ -402,19 +397,10 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			}
 
-			// special keyword "component"
-			if ("component".equals(part.toLowerCase())) {
-
-				node = PageHelper.getNodeById(securityContext, componentId);
-
-				continue;
-
-			}
-
 			// special keyword "resource"
 			if ("resource".equals(part.toLowerCase())) {
 
-				node = PageHelper.getNodeById(securityContext, pageId);
+				_data = PageHelper.getNodeById(securityContext, pageId);
 
 				continue;
 
@@ -423,7 +409,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			// special keyword "page"
 			if ("page".equals(part.toLowerCase())) {
 
-				node = page;
+				_data = _page;
 
 				continue;
 
@@ -434,7 +420,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				for (AbstractRelationship rel : getRelationships(RelType.LINK, Direction.OUTGOING)) {
 
-					node = rel.getEndNode();
+					_data = rel.getEndNode();
 
 					break;
 
@@ -451,7 +437,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 					if (rel.getProperty(pageIdProperty) != null) {
 
-						node = rel.getStartNode();
+						_data = rel.getStartNode();
 
 						break;
 
@@ -468,7 +454,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				for (AbstractRelationship rel : getRelationships(RelType.OWNS, Direction.INCOMING)) {
 
-					node = rel.getStartNode();
+					_data = rel.getStartNode();
 
 					break;
 
@@ -481,23 +467,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			// special keyword "data"
 			if ("data".equals(part.toLowerCase())) {
 
-				node = viewComponent;
-
-				continue;
-
-			}
-
-			// special keyword "root": Find containing page
-			if ("root".equals(part.toLowerCase())) {
-
-				List<Page> pages = PageHelper.getPages(securityContext, viewComponent);
-
-				if (pages.isEmpty()) {
-
-					continue;
-				}
-
-				node = pages.get(0);
+				_data = renderContext.getCurrentDataNode();
 
 				continue;
 
@@ -506,7 +476,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			// special keyword "result_size"
 			if ("result_size".equals(part.toLowerCase())) {
 
-				Set<Page> pages = getResultPages(securityContext, (Page) page);
+				Set<Page> pages = getResultPages(securityContext, (Page) _page);
 
 				if (!pages.isEmpty()) {
 
@@ -533,9 +503,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		}
 
-		if (node != null) {
+		if (_data != null) {
 
-			return node.getProperty(referenceKeyProperty);
+			return _data.getProperty(referenceKeyProperty);
 		}
 
 		return null;
@@ -599,8 +569,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected String extractFunctions(SecurityContext securityContext, RenderContext renderContext, String source)
 		throws FrameworkException {
 
-		AbstractNode viewComponent = renderContext.getViewComponent();
-		String pageId = renderContext.getPageId();
+		GraphObject _data = renderContext.getCurrentDataNode();
+		String pageId     = renderContext.getPageId();
 		
 		// re-use matcher from previous calls
 		Matcher functionMatcher = threadLocalFunctionMatcher.get();
@@ -609,8 +579,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		if (functionMatcher.matches()) {
 
-			String viewComponentId            = viewComponent != null
-				? viewComponent.getProperty(AbstractNode.uuid)
+			String viewComponentId            = _data != null
+				? _data.getProperty(AbstractNode.uuid)
 				: null;
 			String functionGroup              = functionMatcher.group(1);
 			String parameter                  = functionMatcher.group(2);
@@ -881,27 +851,27 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		checkReadAccess();
 		
-		return new StructrNodeList(treeGetChildren(DOMNode.children));
+		return new StructrNodeList(treeGetChildren(RelType.CONTAINS));
 	}
 
 	@Override
 	public Node getFirstChild() {
-		return (DOMNode)treeGetFirstChild(DOMNode.children);
+		return (DOMNode)treeGetFirstChild(RelType.CONTAINS);
 	}
 
 	@Override
 	public Node getLastChild() {
-		return (DOMNode)treeGetLastChild(DOMNode.children);
+		return (DOMNode)treeGetLastChild(RelType.CONTAINS);
 	}
 
 	@Override
 	public Node getPreviousSibling() {
-		return (DOMNode)listGetPrevious(DOMNode.siblings, this);
+		return (DOMNode)listGetPrevious(RelType.CONTAINS_NEXT_SIBLING, this);
 	}
 
 	@Override
 	public Node getNextSibling() {
-		return (DOMNode)listGetNext(DOMNode.siblings, this);
+		return (DOMNode)listGetNext(RelType.CONTAINS_NEXT_SIBLING, this);
 	}
 
 	@Override
@@ -963,7 +933,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					_parent.removeChild(newChild);
 				}
 
-				treeInsertBefore(DOMNode.children, DOMNode.siblings, (DOMNode)newChild, (DOMNode)refChild);
+				treeInsertBefore(RelType.CONTAINS, (DOMNode)newChild, (DOMNode)refChild);
 				
 			}
 
@@ -1028,7 +998,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// replace directly
-				treeReplaceChild(DOMNode.children, DOMNode.siblings, (DOMNode)newChild, (DOMNode)oldChild);
+				treeReplaceChild(RelType.CONTAINS, (DOMNode)newChild, (DOMNode)oldChild);
 			}
 
 		} catch (FrameworkException fex) {
@@ -1048,7 +1018,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		try {
 			
-			treeRemoveChild(DOMNode.children, DOMNode.siblings, (DOMNode)node);
+			treeRemoveChild(RelType.CONTAINS, (DOMNode)node);
 
 		} catch (FrameworkException fex) {
 
@@ -1104,7 +1074,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					_parent.removeChild(newChild);
 				}
 			
-				treeAppendChild(DOMNode.children, DOMNode.siblings, (DOMNode)newChild);
+				treeAppendChild(RelType.CONTAINS, (DOMNode)newChild);
 			}
 			
 		} catch (FrameworkException fex) {

@@ -23,7 +23,6 @@ package org.structr.web.common;
 import org.structr.common.PropertyView;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.*;
-import org.structr.web.resource.DynamicTypeResource;
 
 //~--- JDK imports ------------------------------------------------------------
 

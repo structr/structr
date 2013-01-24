@@ -25,7 +25,6 @@ import java.lang.reflect.InvocationTargetException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.TypeDefinition;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -34,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
+import org.structr.web.entity.DataNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -100,10 +100,10 @@ public class DynamicConverter extends PropertyConverter {
 
 	private void instantiateConverter(final GraphObject currentObject) {
 
-		if (currentObject != null && currentObject instanceof Content) {
+		if (currentObject != null && currentObject instanceof DataNode) {
 
-			Content content               = (Content) currentObject;
-			TypeDefinition typeDefinition = content.getTypeDefinition();
+			DataNode dataNode             = (DataNode) currentObject;
+			TypeDefinition typeDefinition = dataNode.getTypeDefinition();
 
 			if (typeDefinition != null) {
 

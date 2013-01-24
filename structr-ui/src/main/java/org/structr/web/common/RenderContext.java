@@ -24,7 +24,7 @@ import java.util.Locale;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Condition;
@@ -50,7 +50,7 @@ public class RenderContext {
 	private final StringBuilder buffer = new StringBuilder(8192);
 	
 	private List<NodeAttribute> attrs;
-	private AbstractNode viewComponent;
+	private GraphObject currentDataObject;
 	private Page page;
 	private Component component;
 	
@@ -138,8 +138,12 @@ public class RenderContext {
 		return attrs;
 	}
 	
-	public AbstractNode getViewComponent() {
-		return viewComponent;
+	public GraphObject getCurrentDataNode() {
+		return currentDataObject;
+	}
+	
+	public void setCurrentDataNode(GraphObject currentDataObject) {
+		this.currentDataObject = currentDataObject;
 	}
 	
 	public void setPage(final Page page) {

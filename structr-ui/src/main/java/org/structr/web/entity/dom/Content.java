@@ -31,7 +31,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.pegdown.PegDownProcessor;
 
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
@@ -57,8 +56,6 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.EntityProperty;
 import org.structr.web.entity.TypeDefinition;
 import org.structr.web.property.DynamicContentProperty;
 import org.w3c.dom.DOMException;
@@ -81,10 +78,6 @@ public class Content extends DOMNode implements Text {
 	public static final Property<String> contentType                                     = new StringProperty("contentType");
 	public static final Property<String> content                                         = new DynamicContentProperty("content");
 	public static final Property<Integer> size                                           = new IntProperty("size");
-	public static final Property<String> dataKey                                         = new StringProperty("data-key");
-
-	public static final EntityProperty<TypeDefinition> typeDefinition                    = new EntityProperty<TypeDefinition>("typeDefinition", TypeDefinition.class, RelType.IS_A, true);
-	public static final Property<String> typeDefinitionId                                = new EntityIdProperty("typeDefinitionId", typeDefinition);
 
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<String, Adapter<String, String>>();
 
@@ -94,10 +87,8 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, dataKey,
-												typeDefinitionId, parent);
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, dataKey,
-												typeDefinitionId, parent);
+	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent);
+	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent);
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -213,7 +204,6 @@ public class Content extends DOMNode implements Text {
 		if (key.equals(Content.content)) {
 
 			String value = getProperty(Content.content);
-
 			if (value != null) {
 
 				return Search.escapeForLucene(value);
@@ -222,13 +212,6 @@ public class Content extends DOMNode implements Text {
 		}
 
 		return getProperty(key);
-
-	}
-
-
-	public TypeDefinition getTypeDefinition() {
-
-		return getProperty(Content.typeDefinition);
 
 	}
 
@@ -370,7 +353,6 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public String getWholeText() {
-		
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

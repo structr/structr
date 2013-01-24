@@ -58,10 +58,10 @@ public class Folder extends AbstractFile {
 	}
 	
 	public void addFolder(final Folder folder) throws FrameworkException {
-		treeAppendChild(folders, siblings, folder);
+		treeAppendChild(RelType.CONTAINS, folder);
 	}
 	
 	public void addFile(final File file) throws FrameworkException {
-		treeAppendChild(files, siblings, file);
+		treeAppendChild(RelType.CONTAINS, file);
 	}
 }

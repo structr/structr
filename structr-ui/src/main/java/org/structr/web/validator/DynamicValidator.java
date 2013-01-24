@@ -31,8 +31,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.Component;
-import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.DataNode;
 import org.structr.web.entity.TypeDefinition;
 import org.structr.web.error.DynamicValidationError;
 
@@ -58,21 +57,11 @@ public class DynamicValidator extends PropertyValidator {
 		
 		if (object != null) {
 			
-			if (object instanceof Content) {
+			if (object instanceof DataNode) {
 				
-				Content content = (Content) object;
+				DataNode dataNode = (DataNode) object;
 				
-				String dataKey = content.getProperty(Content.content);
-				String parentComponentId = null;
-				
-				/*
-				Component component = content.getParentComponent();
-				if (component != null) {
-					parentComponentId = component.getComponentId();
-				}
-				*/
-				
-				TypeDefinition typeDefinition = content.getTypeDefinition();
+				TypeDefinition typeDefinition = dataNode.getTypeDefinition();
 				if (typeDefinition != null) {
 					
 					String regex   = typeDefinition.getProperty(TypeDefinition.validationExpression);
@@ -86,8 +75,6 @@ public class DynamicValidator extends PropertyValidator {
 								
 								Map<String, Object> attrs = new HashMap<String, Object>();
 								
-								attrs.put("parentComponentId", parentComponentId);
-								attrs.put("data-key", dataKey);
 								attrs.put("regex", regex);
 								attrs.put("error", errorMessage);
 								attrs.put("value", value);
@@ -103,12 +90,12 @@ public class DynamicValidator extends PropertyValidator {
 					
 				} else {
 					
-					logger.log(Level.WARNING, "No type definition for Content entity {0}", object.getProperty(AbstractNode.uuid));
+					logger.log(Level.WARNING, "No type definition for DataNode entity {0}", object.getProperty(AbstractNode.uuid));
 				}
 				
 			} else {
 					
-				logger.log(Level.WARNING, "Trying to validate node of type {0} which is not Content", object.getProperty(AbstractNode.type));
+				logger.log(Level.WARNING, "Trying to validate node of type {0} which is not DataNode", object.getProperty(AbstractNode.type));
 			}
 		}
 		
