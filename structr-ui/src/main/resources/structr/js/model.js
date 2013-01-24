@@ -551,7 +551,16 @@ StructrElement.prototype.save = function() {
 }
 
 StructrElement.prototype.remove = function() {
-    _Pages.removeFrom(this.id);
+    var element = Structr.node(this.id);
+    if (this.parent) {
+        var parent = Structr.node(this.parent.id);
+    }
+        
+    if (element) element.remove();
+
+    if (parent && !Structr.containsNodes(parent)) {
+        _Entities.removeExpandIcon(parent);
+    }
     _Pages.reloadPreviews();   
 }
 
@@ -594,7 +603,6 @@ StructrContent.prototype.save = function() {
 }
 
 StructrContent.prototype.remove = function() {
-    
     var element = Structr.node(this.id);
     if (this.parent) {
         var parent = Structr.node(this.parent.id);

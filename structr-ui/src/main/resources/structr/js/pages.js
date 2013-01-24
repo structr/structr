@@ -731,12 +731,11 @@ var _Pages = {
                 var self = $(this);
                 
                 log('appendElementElement div', div);
-                var pos = self.parent().parent().children('.node').index(self.parent());
-                
-                var pageId = getId(self.closest('.page')[0]);
-                console.log('Command.removeSourceFromTarget(',entity.id, parentId, componentId, pageId, pos,')');
-                
-                Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
+                //var pos = self.parent().parent().children('.node').index(self.parent());
+                //var pageId = getId(self.closest('.page')[0]);
+                //console.log('Command.removeSourceFromTarget(',entity.id, parentId, componentId, pageId, pos,')');
+                //Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
+                Command.removeChild(entity.id);
 
 //                _Entities.listContainingNodes(entity, div);
                 
