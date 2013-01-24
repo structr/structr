@@ -223,39 +223,6 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			}
 
 		});
-		functions.put("active", new Function<String, String>() {
-
-			@Override
-			public String apply(String[] s) {
-
-				if (s.length == 0) {
-
-					return "";
-				}
-
-				String data = this.dataId.get();
-				String page = this.pageId.get();
-
-				if (data != null && page != null) {
-
-					if (data.equals(page)) {
-
-						// return first argument if condition is true
-						return s[0];
-					} else if (s.length > 1) {
-
-						// return second argument if condition is false and second argument exists
-						return s[1];
-					}
-
-				}
-
-				return "";
-
-			}
-
-		});
-
 	}
 	
 	// ----- public methods -----
@@ -397,15 +364,6 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			}
 
-			// special keyword "resource"
-			if ("resource".equals(part.toLowerCase())) {
-
-				_data = PageHelper.getNodeById(securityContext, pageId);
-
-				continue;
-
-			}
-
 			// special keyword "page"
 			if ("page".equals(part.toLowerCase())) {
 
@@ -464,13 +422,10 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			}
 
-			// special keyword "data"
-			if ("data".equals(part.toLowerCase())) {
-
-				_data = renderContext.getCurrentDataNode();
-
-				continue;
-
+			// data objects from parent elements
+			if (renderContext.hasDataForKey(part.toLowerCase())) {
+				
+				_data = renderContext.getDataNode(part.toLowerCase());
 			}
 
 			// special keyword "result_size"
@@ -569,7 +524,6 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected String extractFunctions(SecurityContext securityContext, RenderContext renderContext, String source)
 		throws FrameworkException {
 
-		GraphObject _data = renderContext.getCurrentDataNode();
 		String pageId     = renderContext.getPageId();
 		
 		// re-use matcher from previous calls
@@ -579,19 +533,12 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		if (functionMatcher.matches()) {
 
-			String viewComponentId            = _data != null
-				? _data.getProperty(AbstractNode.uuid)
-				: null;
 			String functionGroup              = functionMatcher.group(1);
 			String parameter                  = functionMatcher.group(2);
 			String functionName               = functionGroup.substring(0, functionGroup.length());
 			Function<String, String> function = functions.get(functionName);
 
 			if (function != null) {
-
-				// store thread "state" in function
-				function.setDataId(viewComponentId);
-				function.setPageId(pageId);
 
 				if (parameter.contains(",")) {
 

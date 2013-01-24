@@ -19,8 +19,10 @@
 
 package org.structr.web.common;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,8 +51,8 @@ public class RenderContext {
 	private Condition condition;
 	private final StringBuilder buffer = new StringBuilder(8192);
 	
+	private Map<String, GraphObject> dataObjects = new LinkedHashMap<String, GraphObject>();
 	private List<NodeAttribute> attrs;
-	private GraphObject currentDataObject;
 	private Page page;
 	private Component component;
 	
@@ -138,12 +140,16 @@ public class RenderContext {
 		return attrs;
 	}
 	
-	public GraphObject getCurrentDataNode() {
-		return currentDataObject;
+	public GraphObject getDataNode(String key) {
+		return dataObjects.get(key);
 	}
 	
-	public void setCurrentDataNode(GraphObject currentDataObject) {
-		this.currentDataObject = currentDataObject;
+	public void setDataNode(String key, GraphObject currentDataObject) {
+		dataObjects.put(key, currentDataObject);
+	}
+	
+	public boolean hasDataForKey(String key) {
+		return dataObjects.containsKey(key);
 	}
 	
 	public void setPage(final Page page) {

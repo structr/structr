@@ -50,10 +50,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.map.LRUMap;
+import org.structr.common.RelType;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -63,6 +63,7 @@ import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
+import org.structr.web.entity.DataNode;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -87,6 +88,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<Integer> version                 = new IntProperty("version");
 	public static final Property<String> tag                      = new StringProperty("tag");
 	public static final Property<String> path                     = new StringProperty("path");
+	public static final Property<String> dataKey                  = new StringProperty("dataKey");
 	public static final Property<String> cypherQuery              = new StringProperty("cypherQuery");
 	public static final Property<String> xpathQuery               = new StringProperty("xpathQuery");
 	
@@ -166,10 +168,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _accesskey               = new HtmlProperty("accesskey");
 	
 	public static final org.structr.common.View publicView        = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-										name, tag, path, parent
+										name, tag, path, parent, cypherQuery, xpathQuery, dataKey
 	);
 	
-	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parent, children, cypherQuery, xpathQuery,
+	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parent, children, cypherQuery, xpathQuery, dataKey,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
@@ -274,11 +276,36 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			// fetch (optional) list of external data elements
 			// or list with this DOMElement as its only entry
-			List<GraphObject> data = getExternalDataOrCurrentNode();
-			for (GraphObject dataObject : data) {
+			List<GraphObject> _data = getExternalData();
+			if (_data != null) {
 
-				// make current data object available in renderContext
-				renderContext.setCurrentDataNode(dataObject);
+				String _dataKey         = getProperty(dataKey);
+				
+				if (_dataKey == null) {
+					_dataKey = "data";
+				}
+				
+				for (GraphObject dataObject : _data) {
+
+					// make current data object available in renderContext
+					renderContext.setDataNode(_dataKey, dataObject);
+
+					// recursively render children
+					List<AbstractRelationship> rels = getChildRelationships();
+
+					for (AbstractRelationship rel : rels) {
+
+						DOMNode subNode = (DOMNode) rel.getEndNode();
+
+						if (subNode.isNotDeleted()) {
+
+							subNode.render(securityContext, renderContext, depth + 1);
+						}
+
+					}
+				}
+				
+			} else {
 				
 				// recursively render children
 				List<AbstractRelationship> rels = getChildRelationships();
@@ -407,16 +434,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 	
 	// ----- private methods -----
-	/**
-	 * Creates and returns a list of data elements. This method checks the
-	 * various source for external data, such as outgoing RENDER_TREE,
-	 * RENDER_LIST or RENDER_NODE relationships as well as the cypherQuery
-	 * and xpathQuery properties and tries to construct a list of possible
-	 * data elements. When no such data elements could be found, a list
-	 * which contains only <b>this</b> is returned.
-	 * @return 
-	 */
-	private List<GraphObject> getExternalDataOrCurrentNode() {
+	private List<GraphObject> getExternalData() {
 		
 		// try registered data sources first
 		for (GraphDataSource source : graphDataSources) {
@@ -434,11 +452,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			}
 		}
 		
-		// no data found
-		List<GraphObject> graphData = new LinkedList<GraphObject>();
-		graphData.add(this);
-		
-		return graphData;
+		return null;
 	}
 	
 	// ----- interface org.w3c.dom.Element -----
@@ -750,10 +764,30 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		@Override
 		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
 			
-			// dummy implementation
+			List<GraphObject> data = new LinkedList<GraphObject>();
+			
+			for (AbstractRelationship rel : referenceNode.getOutgoingRelationships(RelType.RENDER_TREE)) {
+				
+				AbstractNode endNode = rel.getEndNode();
+				if (endNode instanceof DataNode) {
+
+					DataNode treeNode = (DataNode)endNode;
+			
+					
+				}
+			}
+			
+			if (!data.isEmpty()) {
+				return data;
+			}
+
 			return null;
 		}
 		
+		private void collectTree(DataNode rootNode, String key, List<GraphObject> results) {
+			
+			
+		}
 	}
 
 	private static class NodeGraphDataSource implements GraphDataSource {
@@ -761,7 +795,21 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		@Override
 		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
 			
-			// dummy implementation
+			List<GraphObject> data = new LinkedList<GraphObject>();
+			
+			for (AbstractRelationship rel : referenceNode.getOutgoingRelationships(RelType.RENDER_NODE)) {
+				
+				AbstractNode endNode = rel.getEndNode();
+				if (endNode instanceof DataNode) {
+					
+					data.add(endNode);
+				}
+			}
+			
+			if (!data.isEmpty()) {
+				return data;
+			}
+			
 			return null;
 		}
 		
