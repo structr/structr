@@ -23,12 +23,14 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.PropertyMap;
 
 /**
- * Abstract base class for a linked list datastructure.
+ * Abstract base class for a multi-dimensional linked list datastructure.
  * 
  * @author Christian Morgner
  */
@@ -41,9 +43,8 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement
 	 * @return
 	 */
-	protected LinkedListNode listGetPrevious(final CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement) {
+	protected LinkedListNode listGetPrevious(final RelationshipType relType, final LinkedListNode currentElement) {
 
-		final RelationshipType relType                         = listProperty.getRelType();
 		final List<AbstractRelationship> incomingRelationships = currentElement.getIncomingRelationships(relType);
 		
 		if (incomingRelationships != null && !incomingRelationships.isEmpty()) {
@@ -71,9 +72,8 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement
 	 * @return
 	 */
-	protected LinkedListNode listGetNext(final CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement) {
+	protected LinkedListNode listGetNext(final RelationshipType relType, final LinkedListNode currentElement) {
 		
-		final RelationshipType relType                   = listProperty.getRelType();
 		List<AbstractRelationship> outgoingRelationships = currentElement.getOutgoingRelationships(relType);
 		
 		if (outgoingRelationships != null && !outgoingRelationships.isEmpty()) {
@@ -101,13 +101,13 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	protected void listInsertBefore(final CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	protected void listInsertBefore(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final LinkedListNode previousElement = listGetPrevious(listProperty, currentElement);
+		final LinkedListNode previousElement = listGetPrevious(relType, currentElement);
 		if (previousElement == null) {
 
 			// trivial: new node will become new head of existing list
@@ -115,7 +115,7 @@ public abstract class LinkedListNode extends AbstractNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					listProperty.createRelationship(securityContext, newElement, currentElement);
+					linkNodes(relType, newElement, currentElement);
 
 					return null;
 				}
@@ -129,10 +129,10 @@ public abstract class LinkedListNode extends AbstractNode {
 				public Object execute() throws FrameworkException {
 
 					// delete old relationship
-					listProperty.removeRelationship(securityContext, previousElement, currentElement);
+					unlinkNodes(relType, previousElement, currentElement);
 					
-					listProperty.createRelationship(securityContext, previousElement, newElement);
-					listProperty.createRelationship(securityContext, newElement, currentElement);
+					linkNodes(relType, previousElement, newElement);
+					linkNodes(relType, newElement, currentElement);
 
 					return null;
 				}
@@ -147,15 +147,13 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	protected void listInsertAfter(final CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	protected void listInsertAfter(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final RelationshipType relType = listProperty.getRelType();
-		final LinkedListNode next      = listGetNext(listProperty, currentElement);
-		
+		final LinkedListNode next = listGetNext(relType, currentElement);
 		if (next == null) {
 
 			// trivial: new node will become new tail of existing list
@@ -163,7 +161,7 @@ public abstract class LinkedListNode extends AbstractNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					listProperty.createRelationship(securityContext, currentElement, newElement);
+					linkNodes(relType, currentElement, newElement);
 
 					return null;
 				}
@@ -176,10 +174,10 @@ public abstract class LinkedListNode extends AbstractNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					listProperty.removeRelationship(securityContext, currentElement, next);
+					unlinkNodes(relType, currentElement, next);
 
-					listProperty.createRelationship(securityContext, currentElement, newElement);
-					listProperty.createRelationship(securityContext, newElement, next);
+					linkNodes(relType, currentElement, newElement);
+					linkNodes(relType, newElement, next);
 
 					return null;
 				}
@@ -193,22 +191,21 @@ public abstract class LinkedListNode extends AbstractNode {
 	 *
 	 * @param currentElement the element to be removed
 	 */
-	protected void listRemove(CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement) throws FrameworkException {
+	protected void listRemove(final RelationshipType relType, final LinkedListNode currentElement) throws FrameworkException {
 		
-		final RelationshipType relType                                  = listProperty.getRelType();
-		final LinkedListNode previousElement                            = listGetPrevious(listProperty, currentElement);
-		final LinkedListNode nextElement                                = listGetNext(listProperty, currentElement);
+		final LinkedListNode previousElement = listGetPrevious(relType, currentElement);
+		final LinkedListNode nextElement     = listGetNext(relType, currentElement);
 
 		if (currentElement != null) {
 			
 			if (previousElement != null) {
 
-				listProperty.removeRelationship(securityContext, previousElement, currentElement);
+				unlinkNodes(relType, previousElement, currentElement);
 			}
 
 			if (nextElement != null) {
 
-				listProperty.removeRelationship(securityContext, currentElement, nextElement);
+				unlinkNodes(relType, currentElement, nextElement);
 			}
 		}
 
@@ -219,9 +216,43 @@ public abstract class LinkedListNode extends AbstractNode {
 
 			if (previousNode != null && nextNode != null) {
 
-				listProperty.createRelationship(securityContext, previousElement, nextElement);
+				linkNodes(relType, previousElement, nextElement);
 			}
 
 		}
+	}
+	
+	protected void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode) throws FrameworkException {
+		linkNodes(relType, startNode, endNode, null);
+	}
+	
+	protected void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode, PropertyMap properties) throws FrameworkException {
+		
+		CreateRelationshipCommand cmd = Services.command(securityContext, CreateRelationshipCommand.class);
+
+		// do not check for duplicates here
+		cmd.execute(startNode, endNode, relType, properties, false);
+	}
+	
+	protected void unlinkNodes(final RelationshipType relType, final LinkedListNode startNode, final LinkedListNode endNode) throws FrameworkException {
+		
+		final DeleteRelationshipCommand cmd = Services.command(securityContext, DeleteRelationshipCommand.class);
+		
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				for (AbstractRelationship rel : startNode.getOutgoingRelationships(relType)) {
+					
+					if (rel.getEndNode().equals(endNode)) {
+						cmd.execute(rel);
+					}
+				}
+				
+				return null;
+			}
+			
+		});
 	}
 }

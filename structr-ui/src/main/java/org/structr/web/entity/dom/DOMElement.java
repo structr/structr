@@ -23,6 +23,7 @@ package org.structr.web.entity.dom;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import org.apache.commons.lang.StringUtils;
 
 
@@ -48,10 +49,19 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.map.LRUMap;
+import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.property.IntProperty;
+import org.structr.web.common.GraphDataSource;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -69,12 +79,15 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final Logger logger                            = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength                     = PropertyView.Html.length();
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(200);	// use LURMap here to avoid infinite growing
+	private static final List<GraphDataSource> graphDataSources   = new LinkedList<GraphDataSource>();
 	
 	private DecimalFormat decimalFormat                           = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));	
 	
 	public static final Property<Integer> version                 = new IntProperty("version");
 	public static final Property<String> tag                      = new StringProperty("tag");
 	public static final Property<String> path                     = new StringProperty("path");
+	public static final Property<String> cypherQuery              = new StringProperty("cypherQuery");
+	public static final Property<String> xpathQuery               = new StringProperty("xpathQuery");
 	
 	public static final Property<String> _title                   = new HtmlProperty("title");
 	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
@@ -155,11 +168,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 										name, tag, path, parent
 	);
 	
-	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parent, children, _accesskey, _class,
-										_contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style, _tabindex,
-										_title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick, _ondrag,
-										_ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied, _onended,
-										_onerror, _onfocus, _oninput, _oninvalid, _onkeydown, _onkeypress, _onkeyup, _onload, _onloadeddata,
+	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parent, children, cypherQuery, xpathQuery,
+										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
+										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
+										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
+										_onended, _onerror, _onfocus, _oninput, _oninvalid, _onkeydown, _onkeypress, _onkeyup, _onload, _onloadeddata,
 										_onloadedmetadata, _onloadstart, _onmousedown, _onmousemove, _onmouseout, _onmouseover, _onmouseup, _onmousewheel,
 										_onpause, _onplay, _onplaying, _onprogress, _onratechange, _onreadystatechange, _onreset, _onscroll, _onseeked,
 										_onseeking, _onselect, _onshow, _onstalled, _onsubmit, _onsuspend, _ontimeupdate, _onvolumechange, _onwaiting
@@ -180,6 +193,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		EntityContext.registerSearchablePropertySet(DOMElement.class, NodeIndex.fulltext.name(), publicView.properties());
 		EntityContext.registerSearchablePropertySet(DOMElement.class, NodeIndex.keyword.name(), publicView.properties());
 
+		// register data sources
+		graphDataSources.add(new IdRequestParameterGraphDataSource("nodeId"));
+		graphDataSources.add(new CypherGraphDataSource());
+		graphDataSources.add(new XPathGraphDataSource());
+		graphDataSources.add(new NodeGraphDataSource());
+		graphDataSources.add(new ListGraphDataSource());
+		graphDataSources.add(new TreeGraphDataSource());
 	}
 	//~--- methods --------------------------------------------------------
 
@@ -254,18 +274,27 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 			buffer.append(">");
 
-			// recursively render children
-			List<AbstractRelationship> rels = getChildRelationships();
+			// fetch (optional) list of external data elements
+			// or list with this DOMElement as its only entry
+			List<GraphObject> data = getExternalDataOrCurrentNode();
+			for (GraphObject dataObject : data) {
 
-			for (AbstractRelationship rel : rels) {
+				// make current data object available in renderContext
+				renderContext.setCurrentDataNode(dataObject);
+				
+				// recursively render children
+				List<AbstractRelationship> rels = getChildRelationships();
 
-				DOMNode subNode = (DOMNode) rel.getEndNode();
+				for (AbstractRelationship rel : rels) {
 
-				if (subNode.isNotDeleted()) {
+					DOMNode subNode = (DOMNode) rel.getEndNode();
 
-					subNode.render(securityContext, renderContext, depth + 1);
+					if (subNode.isNotDeleted()) {
+
+						subNode.render(securityContext, renderContext, depth + 1);
+					}
+
 				}
-
 			}
 			
 			// render end tag, if needed (= if not singleton tags)
@@ -373,6 +402,41 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 		
 		return htmlProperty;
+	}
+	
+	// ----- private methods -----
+	/**
+	 * Creates and returns a list of data elements. This method checks the
+	 * various source for external data, such as outgoing RENDER_TREE,
+	 * RENDER_LIST or RENDER_NODE relationships as well as the cypherQuery
+	 * and xpathQuery properties and tries to construct a list of possible
+	 * data elements. When no such data elements could be found, a list
+	 * which contains only <b>this</b> is returned.
+	 * @return 
+	 */
+	private List<GraphObject> getExternalDataOrCurrentNode() {
+		
+		// try registered data sources first
+		for (GraphDataSource source : graphDataSources) {
+			
+			try {
+		
+				List<GraphObject> graphData = source.getData(securityContext, this);
+				if (graphData != null) {
+					return graphData;
+				}
+				
+			} catch (FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[] { source, fex.getMessage() } );
+			}
+		}
+		
+		// no data found
+		List<GraphObject> graphData = new LinkedList<GraphObject>();
+		graphData.add(this);
+		
+		return graphData;
 	}
 	
 	// ----- interface org.w3c.dom.Element -----
@@ -667,4 +731,134 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		return newElement;
 	}
 
+	// ----- nested classes -----
+	private static class ListGraphDataSource implements GraphDataSource {
+
+		@Override
+		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+			
+			// dummy implementation
+			return null;
+		}
+		
+	}
+
+	private static class TreeGraphDataSource implements GraphDataSource {
+
+		@Override
+		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+			
+			// dummy implementation
+			return null;
+		}
+		
+	}
+
+	private static class NodeGraphDataSource implements GraphDataSource {
+
+		@Override
+		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+			
+			// dummy implementation
+			return null;
+		}
+		
+	}
+	
+	private static class CypherGraphDataSource implements GraphDataSource {
+
+		@Override
+		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+			
+			String cypherQuery = referenceNode.getProperty(DOMElement.cypherQuery);
+			if (cypherQuery != null && !cypherQuery.isEmpty()) {
+				
+				return Services.command(securityContext, CypherQueryCommand.class).execute(cypherQuery);
+			}
+			
+			return null;
+		}
+	}
+	
+	private static class XPathGraphDataSource implements GraphDataSource {
+
+		@Override
+		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+			
+			String xpathQuery = referenceNode.getProperty(DOMElement.xpathQuery);
+			if (xpathQuery != null) {
+				
+				XPathFactory factory            = XPathFactory.newInstance();
+				XPath xpath                     = factory.newXPath();
+
+				try {
+					Object result             = xpath.evaluate(xpathQuery, referenceNode);
+					List<GraphObject> results = new LinkedList<GraphObject>();
+						
+					if (result instanceof NodeList) {
+						
+						NodeList nodes = (NodeList)result;
+						int len        = nodes.getLength();
+						
+						for (int i=0; i<len; i++) {
+							
+							Node node = nodes.item(i);
+							
+							if (node instanceof GraphObject) {
+								
+								results.add((GraphObject)node);
+							}
+						}
+						
+					} else if (result instanceof GraphObject) {
+						
+						results.add((GraphObject)result);
+					} 
+					
+					return results;
+					
+				} catch (Throwable t) {
+					
+					logger.log(Level.WARNING, "Unable to execute xpath query: {0}", t.getMessage());
+				}
+
+			}
+			
+			return null;
+		}
+		
+	}
+	
+	private static class IdRequestParameterGraphDataSource implements GraphDataSource {
+
+		private String parameterName = null;
+		
+		public IdRequestParameterGraphDataSource(String parameterName) {
+			this.parameterName = parameterName;
+		}
+		
+		@Override
+		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+	
+			if (securityContext != null && securityContext.getRequest() != null) {
+				
+				String nodeId = securityContext.getRequest().getParameter(parameterName);
+				if (nodeId != null) {
+					
+					AbstractNode node = Services.command(securityContext, GetNodeByIdCommand.class).execute(nodeId);
+					
+					if (node != null) {
+	
+						List<GraphObject> graphData = new LinkedList<GraphObject>();
+						graphData.add(node);
+						
+						return graphData;
+					}
+				}
+			}
+			
+			// dummy implementation
+			return null;
+		}		
+	}
 }

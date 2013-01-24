@@ -31,8 +31,8 @@ import org.structr.core.property.EntityProperty;
 
 public class AbstractFile extends LinkedTreeNode {
 	
-	public static final CollectionProperty<AbstractFile> siblings = new CollectionProperty<AbstractFile>("siblings", AbstractFile.class, RelType.NEXT_FILE, Direction.OUTGOING, true);
-	public static final CollectionProperty<AbstractFile> children = new CollectionProperty<AbstractFile>("children", AbstractFile.class, RelType.CONTAINS, Direction.OUTGOING, true);
+	public static final CollectionProperty<AbstractFile> siblings = new CollectionProperty<AbstractFile>("siblings", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
+	public static final CollectionProperty<AbstractFile> children = new CollectionProperty<AbstractFile>("children", AbstractFile.class, RelType.CONTAINS,              Direction.OUTGOING, true);
 
 	public static final EntityProperty<Folder> parent             = new EntityProperty<Folder>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
 }
