@@ -19,9 +19,7 @@
 package org.structr.core.entity;
 
 import java.util.List;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -109,9 +107,7 @@ public abstract class LinkedListNode extends AbstractNode {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final RelationshipType relType       = listProperty.getRelType();
 		final LinkedListNode previousElement = listGetPrevious(listProperty, currentElement);
-
 		if (previousElement == null) {
 
 			// trivial: new node will become new head of existing list
@@ -119,12 +115,7 @@ public abstract class LinkedListNode extends AbstractNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Node startNode = newElement.getNode();
-					Node endNode = currentElement.getNode();
-
-					if (startNode != null && endNode != null) {
-						startNode.createRelationshipTo(endNode, relType);
-					}
+					listProperty.createRelationship(securityContext, newElement, currentElement);
 
 					return null;
 				}
@@ -137,19 +128,11 @@ public abstract class LinkedListNode extends AbstractNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Node previousNode = previousElement.getNode();
-					Node currentNode = currentElement.getNode();
-					Node newNode = newElement.getNode();
-
-					if (previousNode != null && newNode != null && currentNode != null) {
-
-						// delete old relationship
-						removeRelationshipBetween(listProperty, previousNode, currentNode);
-
-						// create two new ones
-						previousNode.createRelationshipTo(newNode, relType);
-						newNode.createRelationshipTo(currentNode, relType);
-					}
+					// delete old relationship
+					listProperty.removeRelationship(securityContext, previousElement, currentElement);
+					
+					listProperty.createRelationship(securityContext, previousElement, newElement);
+					listProperty.createRelationship(securityContext, newElement, currentElement);
 
 					return null;
 				}
@@ -180,12 +163,7 @@ public abstract class LinkedListNode extends AbstractNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Node startNode = currentElement.getNode();
-					Node endNode = newElement.getNode();
-
-					if (startNode != null && endNode != null) {
-						startNode.createRelationshipTo(endNode, relType);
-					}
+					listProperty.createRelationship(securityContext, currentElement, newElement);
 
 					return null;
 				}
@@ -198,19 +176,10 @@ public abstract class LinkedListNode extends AbstractNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Node nextNode = next.getNode();
-					Node currentNode = currentElement.getNode();
-					Node newNode = newElement.getNode();
+					listProperty.removeRelationship(securityContext, currentElement, next);
 
-					if (nextNode != null && newNode != null && currentNode != null) {
-
-						// delete old relationship
-						removeRelationshipBetween(listProperty, currentNode, nextNode);
-
-						// create two new ones
-						currentNode.createRelationshipTo(newNode, relType);
-						newNode.createRelationshipTo(nextNode, relType);
-					}
+					listProperty.createRelationship(securityContext, currentElement, newElement);
+					listProperty.createRelationship(securityContext, newElement, next);
 
 					return null;
 				}
@@ -224,28 +193,22 @@ public abstract class LinkedListNode extends AbstractNode {
 	 *
 	 * @param currentElement the element to be removed
 	 */
-	protected void listRemove(CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement) {
+	protected void listRemove(CollectionProperty<? extends LinkedListNode> listProperty, final LinkedListNode currentElement) throws FrameworkException {
 		
 		final RelationshipType relType                                  = listProperty.getRelType();
 		final LinkedListNode previousElement                            = listGetPrevious(listProperty, currentElement);
 		final LinkedListNode nextElement                                = listGetNext(listProperty, currentElement);
-		final Node currentNode                                          = currentElement.getNode();
 
-		if (previousElement != null) {
+		if (currentElement != null) {
+			
+			if (previousElement != null) {
 
-			Node previousNode = previousElement.getNode();
-			if (previousNode != null && currentNode != null) {
-
-				removeRelationshipBetween(listProperty, previousNode, currentNode);
+				listProperty.removeRelationship(securityContext, previousElement, currentElement);
 			}
-		}
 
-		if (nextElement != null) {
+			if (nextElement != null) {
 
-			Node nextNode = nextElement.getNode();
-			if (nextNode != null && currentNode != null) {
-
-				removeRelationshipBetween(listProperty, currentNode, nextNode);
+				listProperty.removeRelationship(securityContext, currentElement, nextElement);
 			}
 		}
 
@@ -256,35 +219,9 @@ public abstract class LinkedListNode extends AbstractNode {
 
 			if (previousNode != null && nextNode != null) {
 
-				previousNode.createRelationshipTo(nextNode, relType);
+				listProperty.createRelationship(securityContext, previousElement, nextElement);
 			}
 
-		}
-	}
-
-	/**
-	 * Removes the relationship of the type defined in this
-	 * LinkedListManager between the two nodes. Please note that this method
-	 * does not create its own transaction, so it needs to be wrapped into a
-	 * transaction.
-	 *
-	 * @param startNode
-	 * @param endNode
-	 */
-	protected void removeRelationshipBetween(CollectionProperty<? extends LinkedListNode> listProperty, final Node startNode, final Node endNode) {
-
-		final RelationshipType relType = listProperty.getRelType();
-
-		if (startNode != null && endNode != null) {
-
-			if (startNode.hasRelationship(relType, Direction.OUTGOING)) {
-
-				Relationship rel = startNode.getSingleRelationship(relType, Direction.OUTGOING);
-				if (rel.getEndNode().getId() == endNode.getId()) {
-
-					rel.delete();
-				}
-			}
 		}
 	}
 }
