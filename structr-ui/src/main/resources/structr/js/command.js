@@ -91,7 +91,7 @@ var Command = {
         var data = {};
         data.key = key;
         obj.data = data;
-        console.log('getProperty()', obj);
+        log('getProperty()', obj);
         return sendObj(obj);
     },
     
@@ -124,7 +124,7 @@ var Command = {
         var obj = {};
         obj.command = 'DELETE';
         obj.id = id;
-        console.log('deleteNode()', obj);
+        log('deleteNode()', obj);
         return sendObj(obj);
     },
 
