@@ -40,7 +40,7 @@ import org.structr.websocket.command.*;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateCommand;
 import org.structr.websocket.command.DeleteCommand;
-import org.structr.websocket.command.GetCommand;
+import org.structr.websocket.command.GetProperties;
 import org.structr.websocket.command.LoginCommand;
 import org.structr.websocket.command.LogoutCommand;
 import org.structr.websocket.command.UpdateCommand;
@@ -86,7 +86,10 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		addCommand(LogoutCommand.class);
 
 		// get (read) single object
-		addCommand(GetCommand.class);
+		addCommand(GetProperties.class);
+		
+		// get (read) single property
+		addCommand(GetProperty.class);
 
 		// create a new object
 		addCommand(CreateCommand.class);
