@@ -221,8 +221,7 @@ var _Pages = {
     },
 
     addTab : function(entity) {
-        previewTabs.children().last().before(''
-            + '<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
+        previewTabs.children().last().before('<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
 
         var tab = $('#show_' + entity.id, previews);
 		
@@ -437,7 +436,8 @@ var _Pages = {
             if (head) head.append('<style media="screen" type="text/css">'
                 + '* { z-index: 0}\n'
                 + '.nodeHover { border: 1px dotted red; }\n'
-                + '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
+                //+ '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
+                + '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
                 //		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
                 //		+ '.structr-element-container { }\n'
                 + '.structr-element-container-active:hover { border: 1px dotted red ! important; }\n'
@@ -454,17 +454,17 @@ var _Pages = {
             var iframeDocument = $(this).contents();
             //var iframeWindow = this.contentWindow;
 
-            var droppables = iframeDocument.find('[structr_element_id]');
+            var droppables = iframeDocument.find('[data-structr_element_id]');
 
             if (droppables.length == 0) {
 
                 //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
                 var html = iframeDocument.find('html');
-                html.attr('structr_element_id', entity.id);
+                html.attr('data-structr_element_id', entity.id);
                 html.addClass('structr-element-container');
 
             }
-            droppables = iframeDocument.find('[structr_element_id]');
+            droppables = iframeDocument.find('[data-structr_element_id]');
 
             droppables.each(function(i,element) {
                 //console.log(element);
@@ -486,7 +486,7 @@ var _Pages = {
                         var pos;
                         var nodeData = {};
                         
-//                        console.log('drop event', self, page);
+                        //                        console.log('drop event', self, page);
                         
                         if (page) {
 
@@ -497,43 +497,31 @@ var _Pages = {
                         } else {
                             
                             // we're in the iframe
-                            page = self.closest('[structr_page_id]')[0];
-                            pageId = $(page).attr('structr_page_id');
-                            pos = $('[structr_element_id]', self).length;
+                            page = self.closest('[data-structr_page_id]')[0];
+                            pageId = $(page).attr('data-structr_page_id');
+                            pos = $('[data-structr_element_id]', self).length;
                         }
                         
                         var contentId = getId(ui.draggable);
                         var elementId = getId(self);
 
-                        if (!elementId) elementId = self.attr('structr_element_id');
+                        if (!elementId) elementId = self.attr('data-structr_element_id');
 
                         if (!contentId) {
                             // create element on the fly
-                            //var el = _Elements.addElement(null, 'element', null);
                             var tag = $(ui.draggable).text();
-                            nodeData.type = tag.capitalize();
-                        }
-						
-
-                        var relData = {};
-                        
-                        if (pageId) {
-                            //relData.pageId = pageId;
-                            relData[pageId] = pos;
+                            
+                            console.log('suppress dropping anything in preview iframes for now');
+                            //Command.createAndAppendDOMNode(pageId, elementId, (tag != 'content' ? tag : ''));
+                            
                         } else {
-                            relData['*'] = pos;
+                            console.log('suppress dropping anything in preview iframes for now');
+                            //Command.appendChild(contentId, elementId);
                         }
-
-                        nodeData.tag = (tag != 'content' ? tag : '');
-                        nodeData.id = contentId;
-                        log(relData);
-                        // suppress dropping anything in prview iframes for now
-                        console.log('suppressed command', 'Command.createAndAdd(', elementId, nodeData, relData, ')');
-                        // Command.createAndAdd(elementId, nodeData, relData);
                     }
                 });
 
-                var structrId = el.attr('structr_element_id');
+                var structrId = el.attr('data-structr_element_id');
                 //var type = el.prop('structr_type');
                 //  var name = el.prop('structr_name');
                 var tag  = element.nodeName.toLowerCase();
@@ -542,44 +530,44 @@ var _Pages = {
                     $('.move_icon', el).on('mousedown', function(e) {
                         e.stopPropagation();
                         var self = $(this);
-                        var element = self.closest('[structr_element_id]');
+                        var element = self.closest('[data-structr_element_id]');
                         //var element = self.children('.structr-node');
                         log(element);
-                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-                        entity.type = element.prop('structr_type');
-                        entity.name = element.prop('structr_name');
+                        var entity = Structr.entity(structrId, element.prop('data-structr_element_id'));
+                        entity.type = element.prop('data-structr_type');
+                        entity.name = element.prop('data-structr_name');
                         log('move', entity);
                         //var parentId = element.prop('structr_element_id');
                         self.parent().children('.structr-node').show();
                     });
 
-//                    $('b', el).on('click', function(e) {
-//                        e.stopPropagation();
-//                        var self = $(this);
-//                        var element = self.closest('[structr_element_id]');
-//                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-//                        entity.type = element.prop('structr_type');
-//                        entity.name = element.prop('structr_name');
-//                        log('edit', entity);
-//                        //var parentId = element.prop('structr_element_id');
-//                        log(element);
-////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
-////                            log('save')
-////                        }, function() {
-////                            log('cancelled')
-////                        });
-//                        _Entities.showProperties(entity);
-//                    });
+                    //                    $('b', el).on('click', function(e) {
+                    //                        e.stopPropagation();
+                    //                        var self = $(this);
+                    //                        var element = self.closest('[data-structr_element_id]');
+                    //                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
+                    //                        entity.type = element.prop('structr_type');
+                    //                        entity.name = element.prop('structr_name');
+                    //                        log('edit', entity);
+                    //                        //var parentId = element.prop('structr_element_id');
+                    //                        log(element);
+                    ////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
+                    ////                            log('save')
+                    ////                        }, function() {
+                    ////                            log('cancelled')
+                    ////                        });
+                    //                        _Entities.showProperties(entity);
+                    //                    });
 
                     $('.delete_icon', el).on('click', function(e) {
                         e.stopPropagation();
                         var self = $(this);
-                        var element = self.closest('[structr_element_id]');
+                        var element = self.closest('[data-structr_element_id]');
                         var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-                        entity.type = element.prop('structr_type');
-                        entity.name = element.prop('structr_name');
+                        entity.type = element.prop('data-structr_type');
+                        entity.name = element.prop('data-structr_name');
                         log('delete', entity);
-                        var parentId = element.prop('structr_element_id');
+                        var parentId = element.prop('data-structr_element_id');
 
                         Command.removeSourceFromTarget(entity.id, parentId);
                         _Entities.deleteNode(this, entity);
@@ -637,10 +625,10 @@ var _Pages = {
                 }
             });
 
-            $(this).contents().find('[structr_content_id]').each(function(i,element) {
+            $(this).contents().find('[data-structr_content_id]').each(function(i,element) {
                 log(element);
                 var el = $(element);
-                var structrId = el.attr('structr_content_id');
+                var structrId = el.attr('data-structr_content_id');
                 if (structrId) {
                     
                     el.on({
@@ -649,7 +637,7 @@ var _Pages = {
                             var self = $(this);
                             self.addClass('structr-editable-area');
                             self.prop('contenteditable', true);
-                            //$('#hoverStatus').text('Editable content element: ' + self.attr('structr_content_id'));
+                            //$('#hoverStatus').text('Editable content element: ' + self.attr('data-structr_content_id'));
                             var node = Structr.node(structrId);
                             if (node) {
                                 node.parent().removeClass('nodeHover');
@@ -674,15 +662,20 @@ var _Pages = {
                             self.removeClass('structr-editable-area');
                             self.addClass('structr-editable-area-active');
 
+                            
+                            //textBeforeEditing = cleanText(self.contents());
+                            
+                            console.log(StructrModel.obj(structrId), 'source text', StructrModel.obj(structrId).content);
+                            self.text(StructrModel.obj(structrId).content);
                             // Store old text in global var
                             textBeforeEditing = cleanText(self.contents());
-                            log("textBeforeEditing", textBeforeEditing);
+                            console.log("textBeforeEditing", textBeforeEditing);
 
                         },
                         blur: function(e) {
                             e.stopPropagation();
                             var self = $(this);
-                            contentSourceId = self.attr('structr_content_id');
+                            contentSourceId = self.attr('data-structr_content_id');
                             var text = cleanText(self.contents());
                             log('blur contentSourceId: ' + contentSourceId);
                             //_Pages.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
@@ -691,11 +684,7 @@ var _Pages = {
                             contentSourceId = null;
                             self.attr('contenteditable', false);
                             self.removeClass('structr-editable-area-active');
-                            window.setTimeout(function() {
-                                _Pages.reloadPreviews();
-                            }, 1000);
-                            
-
+                            _Pages.reloadPreviews();
                         }
                     });
 				
@@ -737,7 +726,7 @@ var _Pages = {
                 //Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
                 Command.removeChild(entity.id);
 
-//                _Entities.listContainingNodes(entity, div);
+            //                _Entities.listContainingNodes(entity, div);
                 
             });
         }
@@ -749,7 +738,7 @@ var _Pages = {
             div.draggable({
                 revert: 'invalid',
                 containment: '#pages',
-                zIndex: 4,
+                stack: 'div',
                 //helper: 'clone',
                 start: function(event, ui) {
                     $(this).draggable(disable);
@@ -766,9 +755,9 @@ var _Pages = {
             containment: '#pages',
             start: function(event, ui) {
                 sorting = true;
-                //console.log('sorting started', ui);
-                //var pageId = getId(ui.item.closest('.page')[0]);
-                //obj.id = pageId;
+            //console.log('sorting started', ui);
+            //var pageId = getId(ui.item.closest('.page')[0]);
+            //obj.id = pageId;
             },
             update: function(event, ui) {
                 var el = $(ui.item);
@@ -889,7 +878,7 @@ var _Pages = {
                             addExpandedNode(contentId);
                             
                         }
-                        Command.createAndAppendDOMNode(getId(page), elementId, (tag != 'content' ? tag : ''))
+                        Command.createAndAppendDOMNode(getId(page), elementId, (tag != 'content' ? tag : ''));
                         
                         
                     } else {
@@ -936,40 +925,6 @@ var _Pages = {
 
         _Entities.setMouseOver(div);
 
-//        div.draggable({
-//            iframeFix: true,
-//            revert: 'invalid',
-//            containment: '#pages'
-//            //zIndex: 3
-//            //helper: 'clone'
-//        });
-
-        //var sorting = false;
-
-//        div.sortable({
-//            sortable: '.node',
-//            containment: '#pages',
-//            start: function(event, ui) {
-//                sorting = true;
-//            },
-//            update: function(event, ui) {
-//                var el = $(ui.item);
-//                
-//                var id = getId(el);
-//                var refId = getId(el.next('.node'));
-//                var parent = Structr.parent(id);
-//                var parentId = getId(parent);
-//                console.log(parentId, id, refId);
-//                Command.insertBefore(parentId, id, refId);
-//                sorting = false;
-//                _Pages.reloadPreviews();
-//            },
-//            stop: function(event, ui) {
-//                sorting = false;
-//                _Entities.resetMouseOverState(ui.item);
-//            }
-//        });
-//        
         
         return div;
     },
@@ -989,8 +944,6 @@ var _Pages = {
         if (numberOfComponents == 0) {
             enable($('.delete_icon', page)[0]);
         }
-    //Command.removeSourceFromTarget(entityId, parentId, componentId, pageId, pos);
-
     },
 
     showSubEntities : function(pageId, entity) {
@@ -1020,19 +973,21 @@ var _Pages = {
     },
 
     reloadPreviews : function() {
+        
+        // add a small delay to avoid getting old data in very fast localhost envs
+        window.setTimeout(function() {
 
-        $('iframe', $('#previews')).each(function() {
-            var self = $(this);
-            var pageId = self.prop('id').substring('preview_'.length);
+            $('iframe', $('#previews')).each(function() {
+                var self = $(this);
+                var pageId = self.prop('id').substring('preview_'.length);
 
-            if (pageId == activeTab) {
-                var name = Structr.node(pageId).children('b.name_').text();
-                var doc = this.contentDocument;
-                doc.location = name;
-                doc.location.reload(true);
-            }
+                if (pageId == activeTab) {
+                    var doc = this.contentDocument;
+                    doc.location.reload(true);
+                }
             
-        });
+            });
+        }, 100);
     },
     
     zoomPreviews : function(value) {

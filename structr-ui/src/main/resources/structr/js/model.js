@@ -128,12 +128,13 @@ var StructrModel = {
             $.each(Object.keys(data.data), function(i, key) {
                 log('update model', key, data.data[key]);
                 obj[key] = data.data[key];
+                console.log('object ', obj, 'updated with key', key, '=', obj[key]);
                 StructrModel.refreshKey(obj.id, key);
             });
         }
         
         if (data.callback) {
-            log('executing callback with id', data.callback);
+            console.log('executing callback with id', data.callback);
             StructrModel.callbacks[data.callback]();
         }
         

@@ -237,14 +237,14 @@ public class Content extends DOMNode implements Text {
 
 		String id            = getUuid();
 		boolean edit         = renderContext.getEdit();
-		boolean inBody       = true;//renderContext.inBody();
+		boolean inBody       = renderContext.inBody();
 		StringBuilder buffer = renderContext.getBuffer();
 
 		// In edit mode, add an artificial 'div' tag around content nodes within body
 		// to make them editable
 		if (edit && inBody) {
 
-			buffer.append("<span structr_content_id=\"").append(id).append("\">");
+			buffer.append("<span data-structr_content_id=\"").append(id).append("\">");
 		}
 
 		// fetch content with variable replacement

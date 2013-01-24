@@ -413,7 +413,7 @@ var Command = {
      * 
      * The server will broadcast an UPDATE notification.
      */
-    patch : function(id, text1, text2) {
+    patch : function(id, text1, text2, callback) {
         log(text1, text2);
 
         // no null values allowed
@@ -430,8 +430,8 @@ var Command = {
         var data = {};
         data.patch = strp;
         obj.data = data;
-        log('patch()', obj);
-        return sendObj(obj);
+        log('patch()', obj, callback);
+        return sendObj(obj, callback);
     },
 
     /**

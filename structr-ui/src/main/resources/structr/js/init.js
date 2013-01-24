@@ -383,6 +383,7 @@ var Structr = {
                 fadeOut: 25,
                 message: dialogBox,
                 css: {
+                    cursor: 'default',
                     border: 'none',
                     backgroundColor: 'transparent',
                     width: dw + 'px',

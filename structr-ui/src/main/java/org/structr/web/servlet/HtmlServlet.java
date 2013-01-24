@@ -484,19 +484,19 @@ public class HtmlServlet extends HttpServlet {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	private Component findComponent(HttpServletRequest request, final String path) throws FrameworkException {
-	
-		// FIXME: Take full file path into account
-		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
-		
-		for (AbstractNode node : entryPoints) {
-			if (node instanceof Component) {
-				return (Component) node;
-			}
-		}
-		
-		return null;
-	}
+//	private Component findComponent(HttpServletRequest request, final String path) throws FrameworkException {
+//	
+//		// FIXME: Take full file path into account
+//		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
+//		
+//		for (AbstractNode node : entryPoints) {
+//			if (node instanceof Component) {
+//				return (Component) node;
+//			}
+//		}
+//		
+//		return null;
+//	}
 	
 	/**
 	 * Find a file with its name matching last path part

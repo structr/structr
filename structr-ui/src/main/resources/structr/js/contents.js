@@ -85,17 +85,9 @@ var _Contents = {
         
         if (!parent) return false;
         
-                
-        log(parent);
-
-        //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
-
-        //var nameOrContent = content.content ? content.content : content.name;
-        
         var html = '<div id="id_' + content.id + '" class="node content">'
         + '<img class="typeIcon" src="'+ _Contents.icon + '">'
         + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
-        //	    + '<b class="content_">' + content.content + '</b>'
         + '</div>';
         
         if (refNode) {
@@ -122,7 +114,7 @@ var _Contents = {
             }, function() {
                 log('cancelled')
             });
-            _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
+            _Contents.editContent(this, content, text, dialogText);
         });
         
         $('.content_', div).on('click', function(e) {
@@ -134,7 +126,7 @@ var _Contents = {
             }, function() {
                 log('cancelled')
             });
-            _Contents.editContent(this, content, text, $('#dialogBox .dialogText'));
+            _Contents.editContent(this, content, text, dialogText);
         });
         
         _Entities.appendEditPropertiesIcon(div, content);
@@ -170,82 +162,68 @@ var _Contents = {
                 
                 if (!text1) text1 = '';
                 if (!text2) text2 = '';
-		
-                if (debug) {
-                    console.log('Element', contentNode);
-                    console.log('text1', text1);
-                    console.log('text2', text2);
-                }
-            
+//            
                 if (text1 == text2) return;
                 //editorCursor = cm.getCursor();
 
                 timer = window.setTimeout(function() {
-                    Command.patch(entity.id, text1, text2);
-                }, 1000);
+                    Command.patch(entity.id, text1, text2, function() {
+                        _Pages.reloadPreviews();
+                    });
+                }, 250);
 				
             });
         }
         
-        element.append('<button id="editorSave">Save</button>');
-        $('#editorSave', element).on('click', function() {
-     
-            var contentNode = Structr.node(entity.id)[0];
-                
-            text1 = $(contentNode).children('.content_').text();
-            text2 = editor.getValue();
-                
-            if (!text1) text1 = '';
-            if (!text2) text2 = '';
-		
-            if (debug) {
-                console.log('Element', contentNode);
-                console.log('text1', text1);
-                console.log('text2', text2);
-            }
-                
-            if (text1 == text2) return;
-            //            editorCursor = cm.getCursor();
-            //            log(editorCursor);
-
-            //timer = window.setTimeout(function() {
-            Command.patch(entity.id, text1, text2);
-        //}, 5000);
-            
+//        element.append('<button id="editorSave">Save</button>');
+//        $('#editorSave', element).on('click', function() {
+//     
+//            var contentNode = Structr.node(entity.id)[0];
+//                
+//            text1 = $(contentNode).children('.content_').text();
+//            text2 = editor.getValue();
+//                
+//            if (!text1) text1 = '';
+//            if (!text2) text2 = '';
+//		
+//            if (debug) {
+//                console.log('Element', contentNode);
+//                console.log('text1', text1);
+//                console.log('text2', text2);
+//            }
+//                
+//            if (text1 == text2) return;
+//            //            editorCursor = cm.getCursor();
+//            //            log(editorCursor);
+//
+//            //timer = window.setTimeout(function() {
+//            Command.patch(entity.id, text1, text2);
+//        //}, 5000);
+//            
+//        });
+        
+        var values = [ 'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'];
+        
+        dialogMeta.append('<label for="contentTypeSelect">Content-Type:</label><select class="contentType_" id="contentTypeSelect"></select>');
+        var select = $('#contentTypeSelect', dialogMeta);
+        $.each(values, function(i, type) {
+            select.append('<option ' + (type == entity.contentType ? 'selected' : '') + ' value="' + type + '">' + type + '</option>');
         });
-        
-        $('#dialogBox .dialogMeta').append('<table class="props ' + entity.id + '_"></table>');
-        var t = $('.props', $('#dialogBox .dialogMeta'));
-        
-        t.append('<tr><td><label for="contentTypeSelect">Content-Type:</label></td><td>'
-            + '<select class="contentType_" id="contentTypeSelect">'
-            + '<option value="text/plain">text/plain</option>'
-            + '<option value="text/html">text/html</option>'
-            + '<option value="text/css">text/css</option>'
-            + '<option value="text/javascript">text/javascript</option>'
-            + '<option value="text/markdown">text/markdown</option>'
-            + '<option value="text/textile">text/textile</option>'
-            + '<option value="text/mediawiki">text/mediawiki</option>'
-            + '<option value="text/tracwiki">text/tracwiki</option>'
-            + '<option value="text/confluence">text/confluence</option>'
-            + '</select>'
-            + '</td></tr>');
-        
-        Command.getProperty(entity.id, 'contentType', '#dialogBox');
-        var select = $('#contentTypeSelect', t);
         select.on('change', function() {
             contentType = select.val();
-            Command.setProperty(entity.id, 'contentType', contentType);
+            entity.setProperty('contentType', contentType, false, function() {
+                _Pages.reloadPreviews();
+            });
         });
         
-        t.append('<tr><td><label for="data-key">Data Key:</label></td><td><input id="dataKey" class="data-key_" name="data-key" size="20" value=""></td></tr>');
-        Command.getProperty(entity.id, 'data-key', '#dialogBox');
-        var dataKeyInput = $('#dataKey', t);
-        dataKeyInput.on('blur', function() {
-            Command.setProperty(entity.id, 'data-key', dataKeyInput.val());
-        });
+//        dialogMeta.append('<tr><td><label for="data-key">Data Key:</label></td><td><input id="dataKey" class="data-key_" name="data-key" size="20" value=""></td></tr>');
+//        Command.getProperty(entity.id, 'data-key', '#dialogBox');
+//        var dataKeyInput = $('#dataKey', t);
+//        dataKeyInput.on('blur', function() {
+//            entity.setProperty('data-key', dataKeyInput.val());
+//        });
 
-        _Entities.appendSimpleSelection($('#dialogBox .dialogMeta'), entity, 'type_definitions', 'Data Type', 'typeDefinitionId');
+//        _Entities.appendSimpleSelection($('#dialogBox .dialogMeta'), entity, 'type_definitions', 'Data Type', 'typeDefinitionId');
 
         editor.id = entity.id;
 

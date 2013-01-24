@@ -52,6 +52,7 @@ import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.IntProperty;
+import org.structr.web.entity.html.Body;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -201,7 +202,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		double start = System.nanoTime();
 		
 		boolean edit         = renderContext.getEdit();
-		boolean inBody       = renderContext.inBody();
 		boolean isVoid       = isVoidElement();
 		StringBuilder buffer = renderContext.getBuffer();
 		String pageId        = renderContext.getPageId();
@@ -212,20 +212,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		if (StringUtils.isNotBlank(tag)) {
 
-			renderContext.setInBody(tag.equals("body"));
-
 			buffer.append("<").append(tag);
 
 			if (edit) {
 
 				if (depth == 1) {
 
-					buffer.append(" structr_page_id='").append(pageId).append("'");
+					buffer.append(" data-structr_page_id='").append(pageId).append("'");
 				}
 
-				buffer.append(" structr_element_id=\"").append(id).append("\"");
-				buffer.append(" structr_type=\"").append(getType()).append("\"");
-				buffer.append(" structr_name=\"").append(getName()).append("\"");
+				buffer.append(" data-structr_element_id=\"").append(id).append("\"");
+				buffer.append(" data-structr_type=\"").append(getType()).append("\"");
+				buffer.append(" data-structr_name=\"").append(getName()).append("\"");
 
 			}
 
@@ -263,6 +261,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				if (subNode.isNotDeleted()) {
 
+					if (Body.class.getSimpleName().toLowerCase().equals(this.getTagName())) {
+						renderContext.setInBody(true);
+					}
 					subNode.render(securityContext, renderContext, depth + 1);
 				}
 
