@@ -138,12 +138,9 @@ var _Pages = {
         $('#import_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
 			
-            //var dialog = $('#dialogBox .dialogText');
-            var dialogMsg = $('#dialogMsg');
-			
             dialog.empty();
             dialogMsg.empty();
-
+            
             dialog.append('<table class="props">'
                 + '<tr><td><label for="address">Address:</label></td><td><input id="_address" name="address" size="20" value="http://"></td></tr>'
                 + '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
@@ -229,15 +226,16 @@ var _Pages = {
 
         var tab = $('#show_' + entity.id, previews);
 		
-        tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + entity.name + '</b>');
+        tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b>');
         tab.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
 
         $('.view_icon', tab).on('click', function(e) {
             e.stopPropagation();
             var self = $(this);
-            var name = $(self.parent().children('b.name_')[0]).text();
-            window.open(viewRootUrl + name);
+            //var name = $(self.parent().children('b.name_')[0]).text();
+            var link = $.trim(self.parent().children('b.name_').attr('title'));
+            window.open(viewRootUrl + link);
         });
 
         var deleteIcon = $('.delete_icon', tab);
@@ -295,7 +293,8 @@ var _Pages = {
 
     activateTab : function(element) {
         
-        var name = $.trim(element.children('.name_').text());
+        //var name = $.trim(element.children('.name_').text());
+        var name = $.trim(element.children('b.name_').attr('title'));
         log('activateTab', element, name);
 
         previewTabs.children('li').each(function() {
@@ -335,8 +334,12 @@ var _Pages = {
     
     makeTabEditable : function(element) {
         //element.off('dblclick');
+        
+        var id = element.prop('id').substring(5);
+        
         element.off('hover');
-        var oldName = $.trim(element.children('.name_').text());
+        //var oldName = $.trim(element.children('.name_').text());
+        var oldName = $.trim(element.children('b.name_').attr('title'));
         //console.log('oldName', oldName);
         element.children('b').hide();
         element.find('.button').hide();
@@ -350,7 +353,7 @@ var _Pages = {
             log('blur');
             var self = $(this);
             var newName = self.val();
-            Command.setProperty(getId(element), "name", newName);
+            Command.setProperty(id, "name", newName);
             _Pages.resetTab(element, newName);
         });
         
@@ -360,7 +363,7 @@ var _Pages = {
                 log('keypress');
                 var self = $(this);
                 var newName = self.val();
-                Command.setProperty(getId(element), "name", newName);
+                Command.setProperty(id, "name", newName);
                 _Pages.resetTab(element, newName);
             }
         });
@@ -369,7 +372,9 @@ var _Pages = {
 
     },
 
-    appendPageElement : function(entity, hasChildren) {
+    appendPageElement : function(entity) {
+        
+        var hasChildren = true;
 
         log('appendPageElement', entity, hasChildren);
 
@@ -381,7 +386,7 @@ var _Pages = {
         });
 
         div.append('<img class="typeIcon" src="icon/page.png">'
-            + '<b title="' + entity.name + '" class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
+            + '<b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
 
@@ -600,9 +605,11 @@ var _Pages = {
                             //                                + '</div>'
                             //                                );
 
-                            var nodes = Structr.node(structrId);
-                            nodes.parent().removeClass('nodeHover');
-                            nodes.addClass('nodeHover');
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.parent().removeClass('nodeHover');
+                                node.addClass('nodeHover');
+                            }
 
                             var pos = self.position();
                             var header = self.children('.structr-element-container-header');
@@ -620,8 +627,10 @@ var _Pages = {
                             self.removeClass('.structr-element-container');
                             var header = self.children('.structr-element-container-header');
                             header.remove();
-                            var nodes = Structr.node(structrId);
-                            nodes.removeClass('nodeHover');
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.removeClass('nodeHover');
+                            }
                         }
                     });
 
@@ -641,9 +650,11 @@ var _Pages = {
                             self.addClass('structr-editable-area');
                             self.prop('contenteditable', true);
                             //$('#hoverStatus').text('Editable content element: ' + self.attr('structr_content_id'));
-                            var nodes = Structr.node(structrId);
-                            nodes.parent().removeClass('nodeHover');
-                            nodes.addClass('nodeHover');
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.parent().removeClass('nodeHover');
+                                node.addClass('nodeHover');
+                            }
                         },
                         mouseout: function(e) {
                             e.stopPropagation();
@@ -652,8 +663,10 @@ var _Pages = {
                             self.removeClass('structr-editable-area');
                             //self.prop('contenteditable', false);
                             //$('#hoverStatus').text('-- non-editable --');
-                            var nodes = Structr.node(structrId);
-                            nodes.removeClass('nodeHover');
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.removeClass('nodeHover');
+                            }
                         },
                         click: function(e) {
                             e.stopPropagation();
@@ -678,7 +691,10 @@ var _Pages = {
                             contentSourceId = null;
                             self.attr('contenteditable', false);
                             self.removeClass('structr-editable-area-active');
-                            _Pages.reloadPreviews();
+                            window.setTimeout(function() {
+                                _Pages.reloadPreviews();
+                            }, 1000);
+                            
 
                         }
                     });
@@ -692,15 +708,11 @@ var _Pages = {
 	
     },
 
-    appendElementElement : function(entity, parentId, hasChildren, refNode) {
-        log('_Pages.appendElementElement', entity, parentId, hasChildren, refNode);
+    appendElementElement : function(entity, refNode) {
         
-        var div;
-//        if (entity.type == 'Component') {
-//            div = _Components.appendComponentElement(entity, parentId,hasChildren);
-//        } else {
-            div = _Elements.appendElementElement(entity, parentId, hasChildren, refNode);
-//        }
+        var parentId = entity.parent && entity.parent.id;
+        
+        var div = _Elements.appendElementElement(entity, refNode);
         
         if (!div) return false;
 
@@ -785,7 +797,7 @@ var _Pages = {
             drop: function(event, ui) {
                 var self = $(this);
 
-                console.log('dropped', event, ui.draggable);
+                log('dropped', event, ui.draggable);
                 
                 _Entities.ensureExpanded(self);
                 
@@ -867,7 +879,6 @@ var _Pages = {
                     _Pages.makeMenuDroppable();
 
                 } else {  
-                    console.log(contentId);
                     if (!contentId) {
                         tag = $(ui.draggable).text();
 
@@ -920,7 +931,7 @@ var _Pages = {
                 + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
-                Command.remove(content.id);
+                Command.removeChild(content.id);
             });
         }
 
@@ -934,7 +945,7 @@ var _Pages = {
 //            //helper: 'clone'
 //        });
 
-        var sorting = false;
+        //var sorting = false;
 
 //        div.sortable({
 //            sortable: '.node',
@@ -983,26 +994,6 @@ var _Pages = {
 
     },
 
-    removeFrom : function(id) {
-        console.log('Pages.removeFrom', id);
-
-        var element = Structr.node(id);
-        var parent = Structr.parent(id);
-
-        //var parent = $(element).parent();
-
-        console.log('element, parent', element, parent);
-        
-        element.remove();
-
-        if (!Structr.containsNodes(parent)) {
-            _Entities.removeExpandIcon(parent);
-        //enable('.delete_icon', parent);
-        }
-
-
-    },
-
     showSubEntities : function(pageId, entity) {
         var headers = {
             'X-StructrSessionToken' : token
@@ -1036,7 +1027,7 @@ var _Pages = {
             var pageId = self.prop('id').substring('preview_'.length);
 
             if (pageId == activeTab) {
-                var name = $(Structr.node(pageId)[0]).children('b.name_').text();
+                var name = Structr.node(pageId).children('b.name_').text();
                 var doc = this.contentDocument;
                 doc.location = name;
                 doc.location.reload(true);

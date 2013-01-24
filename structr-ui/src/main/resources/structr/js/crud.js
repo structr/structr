@@ -28,7 +28,7 @@ if (browser) {
     $(document).ready(function() {
 
         defaultType     = 'Page';
-        defaultView     = 'public';
+        defaultView     = 'ui';
         defaultSort     = '';
         defaultOrder    = '';
                 
@@ -76,6 +76,11 @@ if (browser) {
         } else {
         //_Crud.onload();
         }
+        
+        _Crud.resize();
+        $(window).on('resize', function() {
+            _Crud.resize();
+        });
         
     });
     
@@ -1479,16 +1484,83 @@ var _Crud = {
             });
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
+            
+        
+            var w = $(window).width();
+            var h = $(window).height();
+
+            var ml = 24;
+            var mt = 24;
+
+            // Calculate dimensions of dialog
+            var dw = Math.min(900, w-ml);
+            var dh = Math.min(600, h-mt);
+            //            var dw = (w-24) + 'px';
+            //            var dh = (h-24) + 'px';
+            
+            var l = parseInt((w-dw)/2);
+            var t = parseInt((h-dh)/2);
+            
+            console.log(w, h, dw, dh, l, t);
+            
+            
             $.blockUI({
                 fadeIn: 25,
                 fadeOut: 25,
                 message: dialogBox,
                 css: {
                     border: 'none',
-                    backgroundColor: 'transparent'
-                }
+                    backgroundColor: 'transparent',
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                themedCSS: { 
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
             });
+            
         }
+    },
+
+    resize : function() {
+        var w = $(window).width();
+        var h = $(window).height();
+
+        var ml = 24;
+        var mt = 24;
+
+        // Calculate dimensions of dialog
+        var dw = Math.min(900, w-ml);
+        var dh = Math.min(600, h-mt);
+        //            var dw = (w-24) + 'px';
+        //            var dh = (h-24) + 'px';
+            
+        var l = parseInt((w-dw)/2);
+        var t = parseInt((h-dh)/2);
+        
+        $('.blockPage').css({
+            width: dw + 'px',
+            height: dh + 'px',
+            top: t + 'px',
+            left: l + 'px'
+        });
+        
+        var bw = (dw-60) + 'px';
+        var bh = (dh-106) + 'px';
+
+        $('#dialogBox .dialogTextWrapper').css({
+            width: bw,
+            height: bh
+        });
     },
 
     error : function(text, callback) {

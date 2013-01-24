@@ -185,10 +185,12 @@ var _Elements = {
         }
     },
 
-    appendElementElement : function(entity, parentId, hasChildren, refNode) {
-        log('_Elements.appendElementElement', entity, parentId, hasChildren);
+    appendElementElement : function(entity, refNode) {
+        log('_Elements.appendElementElement', entity);
         
-        var parent = Structr.node(parentId);
+        var hasChildren = entity.children && entity.children.length;
+        
+        var parent = Structr.node(entity.parent.id);
         
         log('appendElementElement parent', parent);
         if (!parent) return false;

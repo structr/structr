@@ -17,7 +17,6 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 var ws;
 var token;
 var loggedIn = false;
@@ -65,7 +64,6 @@ function connect() {
 
         log('WebSocket.readyState: ' + ws.readyState, ws);
 		
-        var entityId;
         var entity;
 
         ws.onopen = function() {
@@ -117,29 +115,14 @@ function connect() {
             //var msg = $.parseJSON(message);
             var type = data.data.type;
             var command = data.command;
-            var parentId = data.id;
-            var entityId = data.data.id;
-            var componentId = data.data.componentId;
-            var pageId = data.data.pageId;
-            var position = data.data.position;
             var msg = data.message;
             var result = data.result;
             var sessionValid = data.sessionValid;
             var code = data.code;
-            var callback = data.callback;
             
             rawResultCount[type] = data.rawResultCount;
             pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
             Structr.updatePager(type);
-
-            {
-                log('command: ' + command);
-                log('type: ' + type);
-                log('code: ' + code);
-                log('callback: ' + callback);
-                log('sessionValid: ' + sessionValid);
-            }
-            log('result: ' + $.toJSON(result));
 
             if (command == 'LOGIN') { /*********************** LOGIN ************************/
                 token = data.token;
@@ -196,17 +179,26 @@ function connect() {
                     } else {
                         Structr.error("", function() {
                             
-                        });
+                            });
                         msgClass = 'error';
                         $('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     }
 
                 }
 
-            } else if (command == 'GET') { /*********************** GET ************************/
+            } else if (command == 'GET_PROPERTY') { /*********************** GET_PROPERTY ************************/
                 
-                log('GET', data);
-                StructrModel.refresh(data.id);
+                log('GET_PROPERTY', data.data['key']);
+                StructrModel.updateKey(id, key, val);
+                
+            } else if (command == 'GET_PROPERTIES' || command == 'UPDATE') { /*********************** GET_PROPERTIES / UPDATE ************************/
+                
+                log('UPDATE', data);
+                var id = data.id;
+                var key = data.data['key'];
+                var val = data.data[key];
+                log('calling StructrModel.update(id, key, val)', id, key, val);
+                StructrModel.update(data);
                 
             } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
                 
@@ -227,195 +219,38 @@ function connect() {
                 });
                 
             } else if (command == 'DELETE') { /*********************** DELETE ************************/
-                var elementSelector = '.' + data.id + '_';
-                log($(elementSelector));
-                $(elementSelector).remove();
-                if (buttonClicked) enable(buttonClicked);
-                _Pages.reloadPreviews();
-
-            } else if (command == 'REMOVE_CHILD') { /*********************** REMOVE_CHLID ************************/
-            
-                console.log(command, data);
-                _Pages.removeFrom(data.id, data.data.parentId);
+                
+                StructrModel.del(data.id);
                 
             } else if (command == 'INSERT_BEFORE') { /*********************** INSERT_BEFORE ************************/
             
-                console.log(command, data);
-                //_Pages.removeFrom(data.id, data.data.parentId);
                 StructrModel.create(result[0], data.data.refId);
                 
             } else if (command == 'APPEND_CHILD') { /*********************** APPEND_CHILD ************************/
             
-                console.log(command, data);
                 StructrModel.create(result[0]);
 
-            } else if (command == 'REMOVE') { /*********************** REMOVE ************************/
+            } else if (command == 'REMOVE' || command == 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
-                console.log(command, data);
-
-                //parent = Structr.node(parentId);
-                entity = Structr.node(entityId);
-
-                //log(parent);
-                log(entity);
-
-                //var id = getIdFromClassString(entity.prop('class'));
-                //entity.id = id;
-                if (entity.hasClass('user')) {
-                    log('remove user from group');
-                    _UsersAndGroups.removeUserFromGroup(entityId, parentId);
-
-                } else if (entity.hasClass('element') || entity.hasClass('content') || entity.hasClass('component')) {
-                    
-                    log('remove element from page', entityId);
-                    _Pages.removeFrom(entityId);
-                    _Pages.reloadPreviews();
-
-                } else if (entity.hasClass('file')) {
-                    log('remove file from folder');
-                    _Files.removeFileFromFolder(entityId, parentId, position);
-
-                } else if (entity.hasClass('image')) {
-                    log('remove image from folder');
-                    _Files.removeImageFromFolder(entityId, parentId, position);
-
-                } else if (entity.hasClass('folder')) {
-                    log('remove folder from folder');
-                    _Files.removeFolderFromFolder(entityId, parentId, position);
-
-                } else {
-                //log('remove element');
-                //entity.remove();
-                }
-
-                _Pages.reloadPreviews();
-                log('Removed ' + entityId + ' from ' + parentId);
-
-            //} else if (command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
+                StructrModel.obj(data.id).remove();
+                
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
-            //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                console.log(command, result, data, data.data);
-                
-                //var treeAddress = data.data.treeAddress;
-				
                 $(result).each(function(i, entity) {
                     
-                   log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren));
-                   
-                   StructrModel.create(entity);
-                    
-//                    //var el = Structr.node(entity.id, parentId, componentId, pageId);
-//                    var el = Structr.elementFromAddress(treeAddress);
-//                    if (el) el.remove();
-//                    
-//                    //alert(entity.id);
-//                    
-//                    _Entities.appendObj(entity);
+                    StructrModel.create(entity);
                     
                     if (command == 'CREATE' && entity.type == 'Page') {
                         var tab = $('#show_' + entity.id, previews);
-                        setTimeout(function() { _Pages.activateTab(tab) }, 200);
+                        setTimeout(function() {
+                            _Pages.activateTab(tab)
+                        }, 200);
                     }
                     
                 });
 
                 _Pages.reloadPreviews();
                 
-            //alert(command);
-
-            } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
-                
-                log('UPDATE');
-                
-                var relData = data.relData;
-                log('relData', relData);
-                
-                var removedProperties = data.removedProperties;
-                var modifiedProperties = data.modifiedProperties;
-                
-                log(removedProperties, modifiedProperties);
-                
-                var isRelOp = false;
-                
-                if (relData && relData.startNodeId && relData.endNodeId) {
-                    isRelOp = true;
-                    log('relationship', relData, relData.startNodeId, relData.endNodeId);
-                    
-                }
-                
-                if (modifiedProperties) {
-                    log('modifiedProperties.length', modifiedProperties.length);
-                    var resId = modifiedProperties[0];
-                    log('relData[resId]', relData[resId]);
-                }
-                
-                if (relData && removedProperties && removedProperties.length) {
-                    log('removedProperties', removedProperties);
-                    _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
-                    
-                } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
-                    
-                    log(data);
-                    
-                    log('modifiedProperties', modifiedProperties[0]);
-                		    
-                    var newPageId = modifiedProperties[0];
-                    //var pos = relData[newPageId];
-                		    
-                    var page;
-                        
-                    if (newPageId != '*') {
-                        page   = Structr.node(newPageId);
-                    }
-                    
-                    log('page', page);
-                		    
-                    if (page && page.length) {
-                                    
-                        var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                        log('entity', entity, pageId, newPageId);
-                        if (entity && newPageId) {
-                            
-                            parentId = relData.startNodeId;
-                            
-                            var parent = Structr.entity(parentId);
-                            log('parent type', parent, parent.type);
-                            if (!parent.type || parent.type == 'Page') return;
-                            
-                            var id = entity.id;
-                            //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
-                            //_Entities.appendObj(entity, relData.startNodeId, null, newPageId);
-                            var el = Structr.node(id, parentId, componentId, newPageId);
-                            log('node already exists?', el);
-                            
-                            if (id && (!el || !el.length)) {
-                                //el.remove();
-                            
-                                //_Entities.resetMouseOverState(el);
-                                _Entities.appendObj(entity, parentId, null, newPageId, true, true);
-                            }
-                            
-                        //_Entities.reloadChildren(relData.startNodeId, componentId, newPageId)
-                        
-                        //_Pages.refresh();
-                        
-                        }
-                    }
-                    
-                } else {
-                    StructrModel.update(data);
-                }
-//                if (input) {
-//                    input.data('changed', false);
-//                }
-                
-                _Pages.reloadPreviews();
-                
-            } else if (command == 'WRAP') { /*********************** WRAP ************************/
-
-                log('WRAP');
-
             } else {
                 log('Received unknown command: ' + command);
 
@@ -432,15 +267,20 @@ function connect() {
 
     } catch (exception) {
         log('Error in connect(): ' + exception);
-        //Structr.init();
     }
 
 }
 
-function sendObj(obj) {
+function sendObj(obj, callback) {
 
     if (token) {
         obj.token = token;
+    }
+    
+    if (callback) {
+        obj.callback = uuid.v4();
+        StructrModel.callbacks[obj.callback] = callback;
+        log('stored callback', obj.callback, callback);
     }
 
     text = $.toJSON(obj);

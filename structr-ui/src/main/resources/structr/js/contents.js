@@ -78,7 +78,10 @@ var _Contents = {
     appendContentElement : function(content, refNode) {
         log('Contents.appendContentElement', content, refNode);
 
-        var parent = Structr.node(content.parent.id);
+        var parent;
+        if (content.parent && content.parent.id) {
+            parent = Structr.node(content.parent.id);
+        }
         
         if (!parent) return false;
         
@@ -90,10 +93,10 @@ var _Contents = {
         //var nameOrContent = content.content ? content.content : content.name;
         
         var html = '<div id="id_' + content.id + '" class="node content">'
-            + '<img class="typeIcon" src="'+ _Contents.icon + '">'
-            + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
-            //	    + '<b class="content_">' + content.content + '</b>'
-            + '</div>';
+        + '<img class="typeIcon" src="'+ _Contents.icon + '">'
+        + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
+        //	    + '<b class="content_">' + content.content + '</b>'
+        + '</div>';
         
         if (refNode) {
             refNode.before(html);
@@ -109,7 +112,7 @@ var _Contents = {
             _Entities.deleteNode(this, content);
         });
 
-        div.append('<img title="Edit ' + content.name + ' [' + content.id + ']" alt="Edit ' + content.name + ' [' + content.id + ']" class="edit_icon button" src="icon/pencil.png">');
+        div.append('<img title="Edit Content" alt="Edit Content of ' + content.id + '" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function(e) {
             e.stopPropagation();
             var self = $(this);
@@ -151,39 +154,43 @@ var _Contents = {
         editor = CodeMirror(contentBox.get(0), {
             value: unescapeTags(text),
             mode:  contentType,
-            lineNumbers: true,
-            onChange: function(cm, changes) {
-                
-//                window.clearTimeout(timer);
-//                
-//                var element = $( '.' + entity.id + '_')[0];
-//                
-//                text1 = $(element).children('.content_').text();
-//                text2 = editor.getValue();
-//                
-//                if (!text1) text1 = '';
-//                if (!text2) text2 = '';
-//		
-//                log('Element', element);
-//                log(text1);
-//                log(text2);
-//                
-//                if (text1 == text2) return;
-//                editorCursor = cm.getCursor();
-//                log(editorCursor);
-//
-//                //timer = window.setTimeout(function() {
-//                Command.patch(entity.id, text1, text2);
-//            //}, 5000);
-				
-            }
+            lineNumbers: true
         });
+        editor.focus();
+        if (true) {
+        
+            editor.on('change', function(cm, changes) {
+                
+                window.clearTimeout(timer);
+                
+                var contentNode = Structr.node(entity.id)[0];
+                
+                text1 = $(contentNode).children('.content_').text();
+                text2 = editor.getValue();
+                
+                if (!text1) text1 = '';
+                if (!text2) text2 = '';
+		
+                if (debug) {
+                    console.log('Element', contentNode);
+                    console.log('text1', text1);
+                    console.log('text2', text2);
+                }
+            
+                if (text1 == text2) return;
+                //editorCursor = cm.getCursor();
+
+                timer = window.setTimeout(function() {
+                    Command.patch(entity.id, text1, text2);
+                }, 1000);
+				
+            });
+        }
         
         element.append('<button id="editorSave">Save</button>');
         $('#editorSave', element).on('click', function() {
-            window.clearTimeout(timer);
-                
-            var contentNode = $( '.' + entity.id + '_')[0];
+     
+            var contentNode = Structr.node(entity.id)[0];
                 
             text1 = $(contentNode).children('.content_').text();
             text2 = editor.getValue();
@@ -193,13 +200,13 @@ var _Contents = {
 		
             if (debug) {
                 console.log('Element', contentNode);
-                console.log(text1);
-                console.log(text2);
+                console.log('text1', text1);
+                console.log('text2', text2);
             }
                 
             if (text1 == text2) return;
-//            editorCursor = cm.getCursor();
-//            log(editorCursor);
+            //            editorCursor = cm.getCursor();
+            //            log(editorCursor);
 
             //timer = window.setTimeout(function() {
             Command.patch(entity.id, text1, text2);

@@ -421,7 +421,7 @@ ul#previewTabs {
     background-color: #fff;
     border: 1px solid #ccc;
     margin: 4px 0 8px 0;
-    /*    height: 540px;*/
+    min-height: 300px;
 }
 
 .link_icon {
@@ -650,8 +650,7 @@ button img {
 .dialog {
     display: none;
     font-size: 11pt;
-    width: 240px;
-    /*    height: 96px;*/
+    /*width: 240px;*/
     padding: 14px 0px 6px 24px;
     border-radius: 5px;
     border: 1px solid #999;
@@ -673,11 +672,12 @@ button img {
 }
 
 #dialogBox {
-    width: 800px;
-    /*max-height: 800px;*/
-    margin: -50% 0 0 -284px;
+/*    width: 80%;
+    height: 80%;
+    margin: 10%;*/
     padding-bottom: 48px;
     position: relative;
+    /*overflow: auto;*/
 }
 
 .dialogTitle {
@@ -699,8 +699,8 @@ button img {
 .dialogBtn {
     width: 300px;
     position: absolute;
-    right: 24px;
-    bottom: 24px;
+    right: 12px;
+    bottom: 12px;
     text-align: left;
     height: 36px;
     padding: 0;
@@ -715,14 +715,14 @@ button img {
 .dialogText, .dialogMeta {
     text-align: left;
     font-size: 9pt;
-    width: 776px;
-    overflow: auto;
+    /*width: 776px;*/
+    /*overflow: auto;*/
     /*overflow-x: hidden ! important;*/
 }
 
 .dialogText {
     /*height: 600px;*/
-    max-height: 800px;
+    /*max-height: 800px;*/
     
 }
 

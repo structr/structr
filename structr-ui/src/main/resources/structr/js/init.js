@@ -49,8 +49,8 @@ $(document).ready(function() {
         footer.show();
     }
     
-    dialog = $('#dialogBox .dialogText');
     dialogBox = $('#dialogBox');
+    dialog = $('.dialogText', dialogBox);
     dialogMsg = $('.dialogMsg', dialogBox);
     dialogBtn = $('.dialogBtn', dialogBox);
     dialogTitle = $('.dialogTitle', dialogBox);
@@ -175,6 +175,12 @@ $(document).ready(function() {
             dialogCancelButton.click();
         }
     });     
+    
+    Structr.resize();
+    
+    $(window).on('resize', function() {
+        Structr.resize();
+    });
 	
 });
 
@@ -290,6 +296,7 @@ var Structr = {
         if (callback) $('#confirmation .yesButton').on('click', function(e) {
             e.stopPropagation();
             callback();
+            $(this).off('click');
         });
         $('#confirmation .noButton').on('click', function(e) {
             e.stopPropagation();
@@ -333,33 +340,101 @@ var Structr = {
 
     dialog : function(text, callbackOk, callbackCancel) {
 
-        dialogMsg.empty();
-        dialogMeta.empty();
-        $(':not(.dialogCancelButton)', dialogBtn).remove();
-            
-        if (text) dialogTitle.html(text);
-        if (callbackCancel) dialogCancelButton.on('click', function(e) {
-            e.stopPropagation();
-            callbackCancel();
-            dialogText.empty();
-            _Pages.reloadPreviews();
-            $.unblockUI({
-                fadeOut: 25
-            });            
-        });
-        $.blockUI.defaults.overlayCSS.opacity = .6;
-        $.blockUI.defaults.applyPlatformOpacityRules = false;
-        $.blockUI({
-            fadeIn: 25,
-            fadeOut: 25,
-            message: dialogBox,
-            css: {
-                border: 'none',
-                backgroundColor: 'transparent'
-            }
-        });
-    //        $('.blockUI.blockMsg').center();
+        if (browser) {
 
+            dialogText.empty();
+            dialogMsg.empty();
+            dialogMeta.empty();
+            //dialogBtn.empty();
+            
+            if (text) dialogTitle.html(text);
+            if (callbackCancel) dialogCancelButton.on('click', function(e) {
+                e.stopPropagation();
+                callbackCancel();
+                dialogText.empty();
+                $.unblockUI({
+                    fadeOut: 25
+                });
+                dialogSaveButton.remove();
+                $('#saveProperties').remove();
+                if (searchField) searchField.focus();
+            });
+            $.blockUI.defaults.overlayCSS.opacity = .6;
+            $.blockUI.defaults.applyPlatformOpacityRules = false;
+            
+        
+            var w = $(window).width();
+            var h = $(window).height();
+
+            var ml = 24;
+            var mt = 24;
+
+            // Calculate dimensions of dialog
+            var dw = Math.min(900, w-ml);
+            var dh = Math.min(600, h-mt);
+            //            var dw = (w-24) + 'px';
+            //            var dh = (h-24) + 'px';
+            
+            var l = parseInt((w-dw)/2);
+            var t = parseInt((h-dh)/2);
+            
+            $.blockUI({
+                fadeIn: 25,
+                fadeOut: 25,
+                message: dialogBox,
+                css: {
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                themedCSS: { 
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
+            });
+            
+        }
+    },
+
+    resize : function() {
+        var w = $(window).width();
+        var h = $(window).height();
+
+        var ml = 24;
+        var mt = 24;
+
+        // Calculate dimensions of dialog
+        var dw = Math.min(900, w-ml);
+        var dh = Math.min(600, h-mt);
+        //            var dw = (w-24) + 'px';
+        //            var dh = (h-24) + 'px';
+            
+        var l = parseInt((w-dw)/2);
+        var t = parseInt((h-dh)/2);
+        
+        $('.blockPage').css({
+            width: dw + 'px',
+            height: dh + 'px',
+            top: t + 'px',
+            left: l + 'px'
+        });
+        
+        var bw = (dw-60) + 'px';
+        var bh = (dh-106) + 'px';
+
+        $('#dialogBox .dialogTextWrapper').css({
+            width: bw,
+            height: bh
+        });
     },
 
     error : function(text, callback) {
@@ -452,9 +527,9 @@ var Structr = {
     },
     
     node : function(id) {
-        var node = $('#id_' + id);
+        var node = $($('#id_' + id)[0]);
         log('Structr.node', node);
-        return node;
+        return node.length ? node : undefined;
     },
     
     entity : function(id, parentId) {
@@ -661,7 +736,7 @@ function swapFgBg(el) {
 }
 
 function isImage(contentType) {
-    return (contentType.indexOf('image') > -1);
+    return (contentType && contentType.indexOf('image') > -1);
 }
 
 function plural(type) {
