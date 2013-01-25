@@ -137,6 +137,13 @@ var _Pages = {
         previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
+            
+            Structr.dialog('Import Page from URL', function() {
+                return true;
+            }, function() {
+                return true;
+            });
+            
 			
             dialog.empty();
             dialogMsg.empty();
@@ -160,13 +167,7 @@ var _Pages = {
             });
 
 
-            Structr.dialog('Import Page from URL', function() {
-                return true;
-            }, function() {
-                return true;
-            });
-            
-            dialogBtn.append('<button id="startImport">Start Import</button>');
+            dialog.append('<button id="startImport">Start Import</button>');
 			
             $('#startImport').on('click', function(e) {
                 e.stopPropagation();
