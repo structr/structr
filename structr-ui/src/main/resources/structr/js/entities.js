@@ -64,6 +64,34 @@ var _Entities = {
             });
     },
 
+    showDataDialog : function(entity) {
+        
+        Structr.dialog('Edit Data Settings of ' + entity.id, function() { return true; }, function() { return true; });
+        
+        dialog.append('<div><h3>Cypher Query</h3><textarea cols="80" rows="4" id="cypherQuery">' + (entity.cypherQuery ? entity.cypherQuery : '') + '</textarea></div>');
+        dialog.append('<div><button id="applyCypherQuery">Apply</button></div>');
+        $('#applyCypherQuery', dialog).on('click', function() {
+            entity.setProperty('cypherQuery', $('#cypherQuery', dialog).val(), false, function() {
+                log('Cypher Query successfully updated!', entity.cypherQuery);
+            });
+        });
+        
+        dialog.append('<div><h3>XPath Query</h3><textarea cols="80" rows="4" id="xpathQuery">' + (entity.xpathQuery ? entity.xpathQuery : '') + '</textarea></div>');
+        dialog.append('<div><button id="applyXpathQuery">Apply</button></div>');
+        $('#applyXpathQuery', dialog).on('click', function() {
+            entity.setProperty('xpathQuery', $('#xpathQuery', dialog).val(), false, function() {
+                log('XPath Query successfully updated!', entity.xpathQuery);
+            });
+        });
+
+        dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
+        $('#saveDataKey', dialog).on('click', function() {
+            entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {
+                log('Data Key successfully updated!', entity.dataKey);
+            });
+        });
+    },
+
     showProperties : function(entity) {
 
         var views;
@@ -379,6 +407,21 @@ var _Entities = {
             e.stopPropagation();
             log('showProperties', entity);
             _Entities.showProperties(entity);
+        });
+    },
+
+    appendDataIcon : function(parent, entity) {
+
+        var dataIcon = $('.data_icon', parent);
+
+        if (!(dataIcon && dataIcon.length)) {
+            parent.append('<img title="Edit Data Settings" alt="Edit Data Settings" class="data_icon button" src="' + '/structr/icon/database_table.png' + '">');
+            dataIcon = $('.data_icon', parent)
+        }
+        dataIcon.on('click', function(e) {
+            e.stopPropagation();
+            log('showDataDialog', entity);
+            _Entities.showDataDialog(entity);
         });
     },
 
