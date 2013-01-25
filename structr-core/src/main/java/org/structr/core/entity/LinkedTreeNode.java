@@ -324,7 +324,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 	/**
 	 * Creates a list key from the give tree key by appending a fixed string
 	 */
-	private RelationshipType getListKey(RelationshipType treeRel) {
+	protected RelationshipType getListKey(RelationshipType treeRel) {
 		return DynamicRelationshipType.withName(treeRel.name().concat(LIST_KEY_SUFFIX));
 	}
 }

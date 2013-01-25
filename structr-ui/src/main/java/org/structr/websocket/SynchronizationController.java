@@ -22,8 +22,6 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 
-import org.eclipse.jetty.websocket.WebSocket.Connection;
-
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -38,6 +36,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.jetty.websocket.WebSocket.Connection;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -57,16 +56,15 @@ public class SynchronizationController implements StructrTransactionListener {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Set<StructrWebSocket> clients                     = null;
-	private Gson gson                                         = null;
-	private Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
-	private List<WebSocketMessage> messageStack;
+	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<StructrWebSocket>();
+	private final Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
+	private List<WebSocketMessage> messageStack                     = null;
+	private Gson gson                                               = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public SynchronizationController(Gson gson) {
 
-		this.clients = new LinkedHashSet<StructrWebSocket>();
 		this.gson    = gson;
 
 	}
@@ -75,13 +73,17 @@ public class SynchronizationController implements StructrTransactionListener {
 
 	public void registerClient(StructrWebSocket client) {
 
-		clients.add(client);
+		synchronized (clients) {
+			clients.add(client);
+		}
 
 	}
 
 	public void unregisterClient(StructrWebSocket client) {
 
-		clients.remove(client);
+		synchronized (clients) {
+			clients.remove(client);
+		}
 
 	}
 
@@ -95,50 +97,53 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		String message;
 
-		// create message
-		for (StructrWebSocket socket : clients) {
+		synchronized (clients) {
 
-			Connection socketConnection = socket.getConnection();
-			webSocketData.setCallback(socket.getCallback());
+			// create message
+			for (StructrWebSocket socket : clients) {
 
-			if ((socketConnection != null) && socket.isAuthenticated()) {
+				Connection socketConnection = socket.getConnection();
+				webSocketData.setCallback(socket.getCallback());
 
-				List<? extends GraphObject> result = webSocketData.getResult();
+				if ((socketConnection != null) && socket.isAuthenticated()) {
 
-				if ((result != null) && (result.size() > 0)
-					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
+					List<? extends GraphObject> result = webSocketData.getResult();
 
-					WebSocketMessage clientData     = webSocketData.copy();
-					
-					SecurityContext securityContext = socket.getSecurityContext();
+					if ((result != null) && (result.size() > 0)
+						&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
 
-					clientData.setResult(filter(securityContext, result));
+						WebSocketMessage clientData     = webSocketData.copy();
 
-					message = gson.toJson(clientData, WebSocketMessage.class);
+						SecurityContext securityContext = socket.getSecurityContext();
 
-				} else {
+						clientData.setResult(filter(securityContext, result));
 
-					message = gson.toJson(webSocketData, WebSocketMessage.class);
-				}
+						message = gson.toJson(clientData, WebSocketMessage.class);
 
-				logger.log(Level.FINE, "############################################################ SENDING \n{0}", message);
+					} else {
 
-				try {
+						message = gson.toJson(webSocketData, WebSocketMessage.class);
+					}
 
-					socketConnection.sendMessage(message);
+					logger.log(Level.FINE, "############################################################ SENDING \n{0}", message);
 
-				} catch (org.eclipse.jetty.io.EofException eof) {
+					try {
 
-					logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+						socketConnection.sendMessage(message);
 
-				} catch (Throwable t) {
+					} catch (org.eclipse.jetty.io.EofException eof) {
 
-					logger.log(Level.WARNING, "Error sending message to client.", t);
+						logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+
+					} catch (Throwable t) {
+
+						logger.log(Level.WARNING, "Error sending message to client.", t);
+
+					}
 
 				}
 
 			}
-
 		}
 
 	}

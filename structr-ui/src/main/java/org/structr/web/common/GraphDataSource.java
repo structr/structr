@@ -1,9 +1,7 @@
 package org.structr.web.common;
 
-import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -12,7 +10,7 @@ import org.structr.core.entity.AbstractNode;
  * @author Christian Morgner
  */
 
-public interface GraphDataSource {
+public interface GraphDataSource<T> {
 
-	public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException;
+	public T getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException;
 }

@@ -58,6 +58,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.LinkedListNode;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.property.IntProperty;
@@ -80,8 +82,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	private static final Logger logger                            = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength                     = PropertyView.Html.length();
-	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(200);	// use LURMap here to avoid infinite growing
-	private static final List<GraphDataSource> graphDataSources   = new LinkedList<GraphDataSource>();
+	
+	private static final Map<String, HtmlProperty> htmlProperties              = new LRUMap(200);	// use LURMap here to avoid infinite growing
+	private static final List<GraphDataSource<List<GraphObject>>> listSources  = new LinkedList<GraphDataSource<List<GraphObject>>>();
+	private static final List<GraphDataSource<LinkedTreeNode>> treeSources     = new LinkedList<GraphDataSource<LinkedTreeNode>>();
 	
 	private DecimalFormat decimalFormat                           = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));	
 	
@@ -197,12 +201,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		EntityContext.registerSearchablePropertySet(DOMElement.class, NodeIndex.keyword.name(), publicView.properties());
 
 		// register data sources
-		graphDataSources.add(new IdRequestParameterGraphDataSource("nodeId"));
-		graphDataSources.add(new CypherGraphDataSource());
-		graphDataSources.add(new XPathGraphDataSource());
-		graphDataSources.add(new NodeGraphDataSource());
-		graphDataSources.add(new ListGraphDataSource());
-		graphDataSources.add(new TreeGraphDataSource());
+		listSources.add(new IdRequestParameterGraphDataSource("nodeId"));
+		listSources.add(new CypherGraphDataSource());
+		listSources.add(new XPathGraphDataSource());
+		listSources.add(new NodeGraphDataSource());
+		listSources.add(new ListGraphDataSource());
+		
+		treeSources.add(new TreeGraphDataSource());
 	}
 	//~--- methods --------------------------------------------------------
 
@@ -274,57 +279,33 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 			buffer.append(">");
 
+			// in body?
+			if (Body.class.getSimpleName().toLowerCase().equals(this.getTagName())) {
+				renderContext.setInBody(true);
+			}
+
+			String _dataKey = getProperty(dataKey);
+			if (_dataKey == null) {
+				_dataKey = "data";
+			}
+			
 			// fetch (optional) list of external data elements
-			// or list with this DOMElement as its only entry
-			List<GraphObject> _data = getExternalData();
-			if (_data != null) {
+			LinkedTreeNode treeNode    = checkTreeSources();
+			List<GraphObject> listData = checkListSources();
 
-				String _dataKey         = getProperty(dataKey);
+			if (treeNode != null) {
 				
-				if (_dataKey == null) {
-					_dataKey = "data";
-				}
-				
-				for (GraphObject dataObject : _data) {
+				renderTreeNode(securityContext, renderContext, depth, _dataKey, treeNode);
 
-					// make current data object available in renderContext
-					renderContext.setDataNode(_dataKey, dataObject);
+			} else if (listData != null && !listData.isEmpty()) {
 
-					// recursively render children
-					List<AbstractRelationship> rels = getChildRelationships();
-
-					for (AbstractRelationship rel : rels) {
-
-						DOMNode subNode = (DOMNode) rel.getEndNode();
-
-						if (subNode.isNotDeleted()) {
-
-							subNode.render(securityContext, renderContext, depth + 1);
-						}
-
-					}
-				}
+				renderNodeList(securityContext, renderContext, depth, _dataKey, listData);
 				
 			} else {
 				
-				// recursively render children
-				List<AbstractRelationship> rels = getChildRelationships();
-
-				for (AbstractRelationship rel : rels) {
-
-					DOMNode subNode = (DOMNode) rel.getEndNode();
-
-					if (subNode.isNotDeleted()) {
-
-						if (Body.class.getSimpleName().toLowerCase().equals(this.getTagName())) {
-							renderContext.setInBody(true);
-						}
-
-						subNode.render(securityContext, renderContext, depth + 1);
-					}
-
-				}
+				renderSingleNode(securityContext, renderContext, depth);
 			}
+			
 			
 			// render end tag, if needed (= if not singleton tags)
 			if (StringUtils.isNotBlank(tag) && (!isVoid)) {
@@ -343,6 +324,66 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
+	// ----- rendering methods -----
+	private void renderTreeNode(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey, LinkedTreeNode root) throws FrameworkException {
+		
+		renderContext.setDataNode(dataKey, root);
+		
+		// recursively render children
+		List<AbstractRelationship> rels = getChildRelationships();
+
+		for (AbstractRelationship rel : rels) {
+
+			DOMNode subNode = (DOMNode) rel.getEndNode();
+
+			if (subNode.isNotDeleted()) {
+
+				subNode.render(securityContext, renderContext, depth + 1);
+			}
+
+		}
+	}
+
+	private void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey, List<GraphObject> graphData) throws FrameworkException {
+		
+		for (GraphObject dataObject : graphData) {
+
+			// make current data object available in renderContext
+			renderContext.setDataNode(dataKey, dataObject);
+
+			// recursively render children
+			List<AbstractRelationship> rels = getChildRelationships();
+
+			for (AbstractRelationship rel : rels) {
+
+				DOMNode subNode = (DOMNode) rel.getEndNode();
+
+				if (subNode.isNotDeleted()) {
+
+					subNode.render(securityContext, renderContext, depth + 1);
+				}
+
+			}
+		}
+	}
+	
+	private void renderSingleNode(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+		
+		// recursively render children
+		List<AbstractRelationship> rels = getChildRelationships();
+
+		for (AbstractRelationship rel : rels) {
+
+			DOMNode subNode = (DOMNode) rel.getEndNode();
+
+			if (subNode.isNotDeleted()) {
+
+				subNode.render(securityContext, renderContext, depth + 1);
+			}
+
+		}
+	}
+	
 	public boolean isVoidElement() {
 		return false;
 	}
@@ -434,14 +475,35 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 	
 	// ----- private methods -----
-	private List<GraphObject> getExternalData() {
+	private List<GraphObject> checkListSources() {
 		
 		// try registered data sources first
-		for (GraphDataSource source : graphDataSources) {
+		for (GraphDataSource<List<GraphObject>> source : listSources) {
 			
 			try {
 		
 				List<GraphObject> graphData = source.getData(securityContext, this);
+				if (graphData != null) {
+					return graphData;
+				}
+				
+			} catch (FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[] { source, fex.getMessage() } );
+			}
+		}
+		
+		return null;
+	}
+	
+	private LinkedTreeNode checkTreeSources() {
+		
+		// try registered data sources first
+		for (GraphDataSource<LinkedTreeNode> source : treeSources) {
+			
+			try {
+		
+				LinkedTreeNode graphData = source.getData(securityContext, this);
 				if (graphData != null) {
 					return graphData;
 				}
@@ -748,23 +810,39 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	// ----- nested classes -----
-	private static class ListGraphDataSource implements GraphDataSource {
+	private static class ListGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		@Override
 		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
-			
-			// dummy implementation
-			return null;
+
+			List<GraphObject> data = new LinkedList<GraphObject>();
+
+			for (AbstractRelationship rel : referenceNode.getOutgoingRelationships(RelType.RENDER_LIST)) {
+				
+				String key           = rel.getProperty(LinkedListNode.keyProperty);
+				AbstractNode endNode = rel.getEndNode();
+				
+				if (endNode instanceof DataNode) {
+					
+					DataNode currentNode = (DataNode)endNode;
+					while(currentNode != null) {
+						
+						data.add(currentNode);
+						currentNode = (DataNode)currentNode.next(key);
+					}
+				}
+			}
+				
+			return data;
 		}
 		
 	}
 
-	private static class TreeGraphDataSource implements GraphDataSource {
+	private static class TreeGraphDataSource implements GraphDataSource<LinkedTreeNode> {
 
 		@Override
-		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+		public LinkedTreeNode getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
 			
-			List<GraphObject> data = new LinkedList<GraphObject>();
 			
 			for (AbstractRelationship rel : referenceNode.getOutgoingRelationships(RelType.RENDER_TREE)) {
 				
@@ -777,9 +855,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				}
 			}
 			
-			if (!data.isEmpty()) {
-				return data;
-			}
+//			if (!data.isEmpty()) {
+//				return data;
+//			}
 
 			return null;
 		}
@@ -790,7 +868,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 	}
 
-	private static class NodeGraphDataSource implements GraphDataSource {
+	private static class NodeGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		@Override
 		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
@@ -815,7 +893,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 	}
 	
-	private static class CypherGraphDataSource implements GraphDataSource {
+	private static class CypherGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		@Override
 		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
@@ -830,7 +908,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 	}
 	
-	private static class XPathGraphDataSource implements GraphDataSource {
+	private static class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		@Override
 		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
@@ -879,7 +957,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 	}
 	
-	private static class IdRequestParameterGraphDataSource implements GraphDataSource {
+	private static class IdRequestParameterGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		private String parameterName = null;
 		

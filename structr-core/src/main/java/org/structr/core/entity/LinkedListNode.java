@@ -27,7 +27,9 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 
 /**
  * Abstract base class for a multi-dimensional linked list datastructure.
@@ -35,6 +37,9 @@ import org.structr.core.property.PropertyMap;
  * @author Christian Morgner
  */
 public abstract class LinkedListNode extends AbstractNode {
+	
+	// this is not used for the node itself but for the relationship(s) this node maintains
+	public static final PropertyKey<String> keyProperty = new StringProperty("key");
 
 	/**
 	 * Returns the predecessor of the given element in the list structure
