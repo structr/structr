@@ -581,7 +581,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon {
+.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -724,6 +724,16 @@ button img {
     /*height: 600px;*/
     /*max-height: 800px;*/
     
+}
+
+.dialogText input[type=text], .dialogText textarea {
+    border: 1px solid #a5a5a5;
+    padding: .25em;
+}
+
+.dialogText textarea {
+    width: 98%;
+    margin-top: 0;
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {

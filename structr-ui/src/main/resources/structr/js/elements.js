@@ -305,6 +305,7 @@ var _Elements = {
 
         _Entities.setMouseOver(div);
         _Entities.appendEditPropertiesIcon(div, entity);
+        _Entities.appendDataIcon(div, entity);
         _Entities.appendAccessControlIcon(div, entity);
         
         if (entity.tag == 'a' || entity.tag == 'link') {
