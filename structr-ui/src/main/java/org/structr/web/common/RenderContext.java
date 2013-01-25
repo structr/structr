@@ -30,6 +30,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Condition;
+import org.structr.web.entity.DataNode;
 import org.structr.web.entity.dom.Page;
 
 /**
@@ -44,22 +45,27 @@ public class RenderContext {
 	
 	private static final Logger logger                   = Logger.getLogger(RenderContext.class.getName());
 	
-	private boolean edit = false;
-	private int depth = 0;
-	private boolean inBody = false;
-	private String searchClass;
-	private Condition condition;
-	private final StringBuilder buffer = new StringBuilder(8192);
+	public enum RenderMode {
+		DEFAULT, TREE, LIST, NODE, CYPHER, XPATH
+	}
 	
 	private Map<String, GraphObject> dataObjects = new LinkedHashMap<String, GraphObject>();
-	private List<NodeAttribute> attrs;
-	private Page page;
-	private Component component;
-	
-	
-	private Locale locale = Locale.getDefault();
-	private HttpServletRequest request    = null;
-	private HttpServletResponse response  = null;
+	private final StringBuilder buffer           = new StringBuilder(8192);
+	private RenderMode renderMode                = RenderMode.DEFAULT;
+	private Locale locale                        = Locale.getDefault();
+	private boolean edit                         = false;
+	private int depth                            = 0;
+	private boolean inBody                       = false;
+	private DataNode treeSource                  = null;
+	private String treeKey                       = null;
+	private Iterable<GraphObject> listSource     = null;
+	private String searchClass                   = null;  
+	private Condition condition                  = null; 
+	private List<NodeAttribute> attrs            = null;   
+	private Page page                            = null;  
+	private Component component                  = null;  
+	private HttpServletRequest request           = null;
+	private HttpServletResponse response         = null;
 	
 	public RenderContext() {
 	}
@@ -78,6 +84,42 @@ public class RenderContext {
 
 		return new RenderContext(request, response, request.getParameter("edit") != null, locale);
 
+	}
+	
+	public void setRenderMode(RenderMode renderMode) {
+		
+		if (renderMode != null) {
+			
+			this.renderMode = renderMode;
+		}
+	}
+	
+	public void setTreeSource(DataNode treeSource) {
+		this.treeSource = treeSource;
+	}
+	
+	public DataNode getTreeSource() {
+		return treeSource;
+	}
+	
+	public void setTreeKey(String treeKey) {
+		this.treeKey = treeKey;
+	}
+	
+	public String getTreeKey() {
+		return treeKey;
+	}
+	
+	public void setListSource(Iterable<GraphObject> listSource) {
+		this.listSource = listSource;
+	}
+	
+	public Iterable<GraphObject> getListSource() {
+		return listSource;
+	}
+	
+	public RenderMode getRenderMode() {
+		return renderMode;
 	}
 	
 	public boolean getEdit() {
