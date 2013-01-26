@@ -90,6 +90,13 @@ var _Entities = {
                 log('Data Key successfully updated!', entity.dataKey);
             });
         });
+        
+        dialog.append('<div><h3>Data Tree Id</h3><input type="text" id="treeRootNodeId" value="' + (entity.treeRootNodeId ? entity.treeRootNodeId : '') + '"><button id="saveTreeRootNodeId">Save</button></div>');
+        $('#saveTreeRootNodeId', dialog).on('click', function() {
+            Command.addDataTree(entity.id, $('#treeRootNodeId', dialog).val(), false, function() {
+                log('Data Tree Node ID successfully added!', entity.dataKey);
+            });
+        });
     },
 
     showProperties : function(entity) {

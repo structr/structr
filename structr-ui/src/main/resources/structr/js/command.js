@@ -516,7 +516,26 @@ var Command = {
         log('link()', obj);
         return sendObj(obj);
     },
-    
+
+    /**
+     * Send a ADD_DATA_TREE command to the server.
+     * 
+     * The server will establish a RENDER_TREE relationship from the node with the given
+     * id to the page with the given tree id.
+     * 
+     * The server gives no feedback on a LINK command.
+     */
+    addDataTree : function(id, treeRootNodeId) {
+        var obj = {};
+        obj.command = 'ADD_DATA_TREE';
+        obj.id = id;
+        var data = {};
+        data.treeRootNodeId = treeRootNodeId;
+        obj.data = data;
+        log('addDataTree()', obj);
+        return sendObj(obj);
+    },
+        
     /**
      * Send a WRAP command to the server.
      * 

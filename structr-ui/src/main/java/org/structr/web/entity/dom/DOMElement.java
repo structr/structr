@@ -53,14 +53,17 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.map.LRUMap;
+import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.LinkedListNode;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.GetNodeByIdCommand;
+import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
@@ -82,6 +85,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	private static final Logger logger                            = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength                     = PropertyView.Html.length();
+	
+	public static final CollectionProperty<LinkedTreeNode> dataTrees = new CollectionProperty<LinkedTreeNode>("dataTrees", LinkedTreeNode.class, RelType.RENDER_TREE, Direction.OUTGOING, true);
 	
 	private static final Map<String, HtmlProperty> htmlProperties              = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources  = new LinkedList<GraphDataSource<List<GraphObject>>>();
@@ -282,9 +287,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			}
 
 			String _dataKey = getProperty(dataKey);
-			if (_dataKey == null) {
-				_dataKey = "data";
-			}
+//			if (_dataKey == null) {
+//				_dataKey = "data";
+//			}
 			
 			// fetch (optional) list of external data elements
 			List<GraphObject> listData = checkListSources();
@@ -314,6 +319,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				renderContext.setListSource(listData);
 				renderContext.setRenderMode(RenderMode.LIST);
+			} else {
+				renderContext.setRenderMode(RenderMode.DEFAULT);
 			}
 			
 			// FIXME: render modes do not work right now
