@@ -61,6 +61,10 @@ var StructrModel = {
             
             obj = new StructrFolder(data);
             
+        } else if (type == 'DataNode') {
+            
+            obj = new StructrDataNode(data);
+            
         } else if (type == 'Content') {
             
             obj = new StructrContent(data);
@@ -333,6 +337,59 @@ var StructrModel = {
 //StructrObj.prototype.setProperty = function(key, value) {
 //    this.attributes[key] = value;
 //}
+
+/**************************************
+ * Structr DataNode
+ **************************************/
+
+function StructrDataNode(data) {
+    var self = this;
+    $.each(Object.keys(data), function(i, key) {
+        self[key] = data[key];
+    });
+}
+
+StructrDataNode.prototype.save = function() {
+    StructrModel.save(this.id);
+}
+
+StructrDataNode.prototype.setProperty = function(key, value, recursive, callback) {
+    Command.setProperty(this.id, key, value, recursive, callback);
+}
+
+StructrDataNode.prototype.remove = function() {
+    var folder = this;
+    var folderEl = Structr.node(folder.id);
+    var parentFolderEl = Structr.node(folder.parent.id);
+    log('removeFolderFromFolder', folderEl);
+        
+    _Entities.resetMouseOverState(folderEl);
+
+    folderEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + folder.id + '" '
+        + 'alt="Delete folder ' + folder.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+
+    folderEl.children('.delete_icon').on('click', function(e) {
+        e.stopPropagation();
+        _Entities.deleteNode(this, folder);
+    });
+        
+    folders.append(folderEl);
+        
+    if (!Structr.containsNodes(parentFolderEl)) {
+        _Entities.removeExpandIcon(parentFolderEl);
+        enable(parentFolderEl.children('.delete_icon')[0]);
+    }
+
+    folderEl.draggable({
+        revert: 'invalid',
+        containment: '#main',
+        stack: 'div'
+    });
+}
+
+StructrDataNode.prototype.append = function(refNode) {
+    return _Trees.appendDataNode(this, refNode);    
+}
 
 
 /**************************************

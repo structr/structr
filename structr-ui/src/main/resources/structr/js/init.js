@@ -139,6 +139,13 @@ $(document).ready(function() {
         Structr.modules['files'].onload();
     });
 
+    $('#trees_').on('click', function(e) {
+        e.stopPropagation();
+        main.empty();
+        Structr.activateMenuEntry('trees');
+        Structr.modules['trees'].onload();
+    });
+
     $('#images_').on('click', function(e) {
         e.stopPropagation();
         main.empty();

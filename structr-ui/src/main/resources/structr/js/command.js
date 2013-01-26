@@ -222,7 +222,30 @@ var Command = {
     },
 
     /**
-     * Send an APPEND_CHLID command to the server.
+     * Send an APPEND_DATA command to the server.
+     * 
+     * The server will append the file or folder node with the given id
+     * as child of the folder with the given parent id.
+     * 
+     * If the node was child of a parent before, it will be
+     * removed from the former parent before being appended
+     * to the new one.
+     * 
+     */
+    appendData : function(id, parentId, key) {
+        var obj = {};
+        obj.command = 'APPEND_DATA';
+        obj.id = id;
+        var data = {};
+        data.parentId = parentId;
+        data.key = key;
+        obj.data = data;
+        log('appendData()', obj);
+        return sendObj(obj);
+    },
+
+    /**
+     * Send an APPEND_CHILD command to the server.
      * 
      * The server will append the DOM node with the given id
      * as child of the node with the given parent id.
