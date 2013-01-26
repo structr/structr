@@ -293,54 +293,51 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 			// fetch (optional) list of external data elements
 			List<GraphObject> listData = checkListSources();
-			DataNode treeNode          = null;
-			String treeKey             = null;
 			
+			// an outgoing RENDER_TREE relationship marks the beginning of a tree rendering
 			for (AbstractRelationship rel : getOutgoingRelationships(RelType.RENDER_TREE)) {
 				
 				AbstractNode endNode = rel.getEndNode();			
 				if (endNode instanceof DataNode) {
 
-					treeNode = (DataNode)endNode;
+					DataNode dataRoot = (DataNode) endNode;
 					
-					treeKey  = rel.getProperty(LinkedListNode.keyProperty);
+					// set data tree root as current tree source
+					renderContext.setTreeSource(dataRoot);
+					
+					// set tree key
+					String treeKey = rel.getProperty(LinkedListNode.keyProperty);
+					renderContext.setTreeKey(treeKey);
+					
+					// data nodes to be used as list source in this level
+					renderContext.setDataNode(treeKey, dataRoot);
+					
+					// allow only one data tree to be rendered for now
 					break;
 				}
 			}
 
-			// set render mode
-			if (treeNode != null) {
+			DataNode currentDataNode = renderContext.getTreeSource();
+			
+			if (currentDataNode != null && _dataKey != null) {
 
-				renderContext.setTreeSource(treeNode);
-				renderContext.setTreeKey(treeKey);
-				renderContext.setRenderMode(RenderMode.TREE);
+				String treeKey = renderContext.getTreeKey();
+				for (LinkedTreeNode node : currentDataNode.getChildren(treeKey)) {
+					
+					renderContext.setTreeSource((DataNode) node);
+					renderContext.setDataNode(_dataKey, node);
+					renderSingleNode(securityContext, renderContext, depth);
+					
+				}
 				
 			} else if (listData != null && !listData.isEmpty()) {
 
 				renderContext.setListSource(listData);
-				renderContext.setRenderMode(RenderMode.LIST);
+				renderNodeList(securityContext, renderContext, depth, _dataKey);
 			} else {
-				renderContext.setRenderMode(RenderMode.DEFAULT);
-			}
-			
-			// FIXME: render modes do not work right now
-						
-			switch (renderContext.getRenderMode()) {
 				
-				case NODE:
-				case DEFAULT:
-					renderSingleNode(securityContext, renderContext, depth);
-					break;
-					
-				case LIST:
-				case CYPHER:
-				case XPATH:
-					renderNodeList(securityContext, renderContext, depth, _dataKey);
-					break;
-					
-				case TREE:
-					renderTreeNode(securityContext, renderContext, depth, _dataKey);
-					
+				renderSingleNode(securityContext, renderContext, depth);
+				
 			}
 			
 			// render end tag, if needed (= if not singleton tags)
@@ -361,46 +358,43 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	// ----- rendering methods -----
-	private void renderTreeNode(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
-		
-		// rules:
-		// 1. render subtree 
-		// 2. descend 1 level if data key is found
-		// 3. ascend 1 level if no more siblings are found
-		
-		DataNode currentNode = renderContext.getTreeSource();
-		String localDataKey  = currentNode != null ? currentNode.getProperty(DOMElement.dataKey) : "";
-		String treeKey       = renderContext.getTreeKey();
-		
-		while (currentNode != null) {
-			
-			renderContext.setDataNode(dataKey, currentNode);
-
-			// recursively render children
-			List<AbstractRelationship> rels = getChildRelationships();
-
-			for (AbstractRelationship rel : rels) {
-
-				DOMNode subNode = (DOMNode) rel.getEndNode();
-
-				if (subNode.isNotDeleted()) {
-
-					subNode.render(securityContext, renderContext, depth + 1);
-				}
-
-			}
-			
-			currentNode = (DataNode)currentNode.next(treeKey);
-		}
-		
-		if (dataKey.equals(localDataKey)) {
-			
-			if (currentNode != null) {
-				renderContext.setTreeSource((DataNode)currentNode.getFirstChild(treeKey));
-			}
-		}
-		
-	}
+//	private void renderTreeNode(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
+//		
+//		String treeKey       = renderContext.getTreeKey();
+//		DataNode currentNode = (DataNode) renderContext.getDataNode(treeKey).getFirstChild(treeKey);
+//		
+//		while (currentNode != null) {
+//			
+//			// for each child node of the data tree, continue rendering
+//			
+//			renderContext.setDataNode(dataKey, currentNode);
+//
+//			// recursively render children
+//			List<AbstractRelationship> rels = getChildRelationships();
+//
+//			for (AbstractRelationship rel : rels) {
+//
+//				DOMNode subNode = (DOMNode) rel.getEndNode();
+//
+//				if (subNode.isNotDeleted()) {
+//
+//					subNode.render(securityContext, renderContext, depth + 1);
+//				}
+//
+//			}
+//
+//			currentNode = (DataNode) currentNode.next(treeKey);
+//			
+//		}
+//		
+////		if (dataKey.equals(localDataKey)) {
+////			
+////			if (currentNode != null) {
+////				renderContext.setTreeSource((DataNode)currentNode.getFirstChild(treeKey));
+////			}
+////		}
+//		
+//	}
 
 	private void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
 		

@@ -185,15 +185,19 @@ var _Files = {
     refreshFolders : function() {
         folders.empty();
         folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
-        if (Structr.addPager(folders, 'Folder')) {
+        
+        //Command.list(type, pageSize[type], page[type], sort, order);
+        Command.list('Folder', 1000, 1, 'name', 'asc');
+        
+        //if (Structr.addPager(folders, 'Folder')) {
 
-            $('.add_folder_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Folder';
-                Command.create(entity);
-            });
-        }
+        $('.add_folder_icon', main).on('click', function(e) {
+            e.stopPropagation();
+            var entity = {};
+            entity.type = 'Folder';
+            Command.create(entity);
+        });
+        //}
     },
 
     getIcon : function(file) {

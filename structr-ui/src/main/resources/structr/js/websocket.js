@@ -107,10 +107,9 @@ function connect() {
 
         ws.onmessage = function(message) {
 
-            log(message);
 
             var data = $.parseJSON(message.data);
-            //console.log(data);
+            console.log(data);
 
             //var msg = $.parseJSON(message);
             var type = data.data.type;
