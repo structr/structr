@@ -32,45 +32,47 @@ public class DataNode extends LinkedTreeNode {
 		return getProperty(DataNode.typeDefinition);
 	}
 
-	// ----- exported methods from LinkedTreeNode -----
-	public void appendChild(final String key, final LinkedTreeNode childElement) throws FrameworkException {
+	// ----- exported methods from DataNode -----
+	public void appendChild(final String key, final DataNode childElement) throws FrameworkException {
 		treeAppendChild(createTreeRelationshipType(key), childElement);
 	}
 	
-	public void insertBefore(final String key, final LinkedTreeNode newChild, final LinkedTreeNode refChild) throws FrameworkException {
+	public void insertBefore(final String key, final DataNode newChild, final DataNode refChild) throws FrameworkException {
 		treeInsertBefore(createTreeRelationshipType(key), newChild, refChild);
 	}
 	
-	public void insertAfter(final String key, final LinkedTreeNode newChild, final LinkedTreeNode refChild) throws FrameworkException {
+	public void insertAfter(final String key, final DataNode newChild, final DataNode refChild) throws FrameworkException {
 		treeInsertAfter(createTreeRelationshipType(key), newChild, refChild);
 	}
 
-	public void removeChild(final String key, final LinkedTreeNode childToRemove) throws FrameworkException {
+	public void removeChild(final String key, final DataNode childToRemove) throws FrameworkException {
 		treeRemoveChild(createTreeRelationshipType(key), childToRemove);
 	}
 	
-	public void replaceChild(final String key, final LinkedTreeNode newChild, final LinkedTreeNode oldChild) throws FrameworkException {
+	public void replaceChild(final String key, final DataNode newChild, final DataNode oldChild) throws FrameworkException {
 		treeReplaceChild(createTreeRelationshipType(key), newChild, oldChild);
 	}
 	
-	public LinkedTreeNode getFirstChild(final String key) {
-		return treeGetFirstChild(createTreeRelationshipType(key));
+	public DataNode getFirstChild(final String key) {
+		return (DataNode)treeGetFirstChild(createTreeRelationshipType(key));
 	}
 	
-	public LinkedTreeNode getLastChild(final String key) {
-		return treeGetLastChild(createTreeRelationshipType(key));
+	public DataNode getLastChild(final String key) {
+		return (DataNode)treeGetLastChild(createTreeRelationshipType(key));
 	}
 	
-	public LinkedTreeNode getChild(final String key, final int position) {
-		return treeGetChild(createTreeRelationshipType(key), position);
+	public DataNode getChild(final String key, final int position) {
+		return (DataNode)treeGetChild(createTreeRelationshipType(key), position);
 	}
 	
-	public int getChildPosition(final String key, final LinkedTreeNode child) {
+	public int getChildPosition(final String key, final DataNode child) {
 		return treeGetChildPosition(createTreeRelationshipType(key), child);
 	}
 	
-	public List<LinkedTreeNode> getChildren(final String key) {
-		return treeGetChildren(createTreeRelationshipType(key));
+	public List<DataNode> getChildren(final String key) {
+		
+		List<? extends LinkedTreeNode> dataNodes = treeGetChildren(createTreeRelationshipType(key));	
+		return (List<DataNode>)dataNodes;
 	}
 	
 	public int getChildCount(final String key) {
