@@ -253,12 +253,12 @@ public class Importer {
 
 			}
 
-			// Data and comment nodes: Just put the text into the "content" field without changes
+			// Data and comment nodes: Trim the text and put it into the "content" field without changes
 			if (type.equals("#data") || type.equals("#comment")) {
 
 				type    = "Content";
 				tag     = "";
-				content = ((DataNode) node).getWholeData();
+				content = ((DataNode) node).getWholeData().trim();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
@@ -268,12 +268,12 @@ public class Importer {
 
 			}
 
-			// Text-only nodes: Put the text content into the "content" field
+			// Text-only nodes: Trim the text and put it into the "content" field
 			if (type.equals("#text")) {
 
 //				type    = "Content";
 				tag     = "";
-				content = ((TextNode) node).toString();
+				content = ((TextNode) node).toString().trim();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
@@ -282,48 +282,6 @@ public class Importer {
 				}
 
 			}
-
-//			List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
-
-			// In case of a content node, put content into the "content" field
-//			if (content != null) {
-//
-//				attrs.add(new NodeAttribute(Content.content, content));
-//			}
-
-			// Type
-//			attrs.add(new NodeAttribute(AbstractNode.type, type));
-			//attrs.add(new NodeAttribute(AbstractNode.name.name(), "New " + type));
-
-			// Tag name
-//			attrs.add(new NodeAttribute(DOMElement.tag, tag));
-
-//			// "id" attribute: Put it into the "_html_id" field
-//			if (StringUtils.isNotBlank(id)) {
-//
-//				attrs.add(new NodeAttribute(DOMElement._id, id));
-//			}
-
-			// "class" attribute: Put it into the "_html_class" field
-//			if (StringUtils.isNotBlank(classString.toString())) {
-//
-//				attrs.add(new NodeAttribute(DOMElement._class, StringUtils.trim(classString.toString())));
-//			}
-
-			// Other attributes: Put them into the respective fields with "_html_" prefix
-//			for (Attribute nodeAttr : node.attributes()) {
-//
-//				String key = nodeAttr.getKey();
-//
-//				// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
-//				if (!key.equals("text")) {
-//
-//					attrs.add(new NodeAttribute(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue()));
-//				}
-//
-//			}
-
-//			String nodePath = getNodePath(node);
 			
 			org.structr.web.entity.dom.DOMNode newNode;
 				
@@ -396,16 +354,8 @@ public class Importer {
 
 			PropertyKey key = attr.getKey();
 
-//                      String value = Search.escapeForLucene(attr.getValue().toString());
 			String value = attr.getValue().toString();
 
-//                      if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
-//
-//                              value = Search.escapeForLucene(value);
-//
-//                              // value = Search.clean(value);
-//
-//                      }
 			// Exclude data attribute because it may contain code with special characters, too
 			if (!key.equals(DOMElement._data)) {
 
