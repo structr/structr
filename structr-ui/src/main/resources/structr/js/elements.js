@@ -72,10 +72,10 @@ var _Elements = {
     ],
 
     elementGroups : [
-    {
-        'name' : 'Components',
-        'elements' : ['Component', 'View', 'RemoteView']
-    },
+//    {
+//        'name' : 'Components',
+//        'elements' : ['Component', 'View', 'RemoteView']
+//    },
     {
         'name' : 'Root',
         'elements' : ['html', 'content']

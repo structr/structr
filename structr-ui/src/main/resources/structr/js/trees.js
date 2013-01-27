@@ -79,7 +79,7 @@ var _Trees = {
         trees.append('<button class="add_data_node_icon button"><img title="Add Data Node" alt="Add Data Node" src="' + _Trees.add_data_node_icon + '"> Add Data Node</button>');
         
         //Command.list(type, pageSize[type], page[type], sort, order);
-        Command.list('DataNode', 1000, 1, 'name', 'asc');
+        Command.listDataNodes('DataNode', 1000, 1, 'name', 'asc', 'TEST_DATA');
         
         //if (Structr.addPager(folders, 'Folder')) {
 
@@ -110,7 +110,7 @@ var _Trees = {
 
     appendDataNode : function(dataNode) {
         
-        log('appendDataNode', dataNode, dataNode.parent);
+        console.log('appendDataNode', dataNode, dataNode.parent, dataNode.children);
 
         var hasParent = dataNode.parent && dataNode.parent.id;
         
@@ -161,7 +161,7 @@ var _Trees = {
             });
         }
         
-        var hasChildren = (dataNode.folders && dataNode.folders.length) || (dataNode.files && dataNode.files.length);
+        var hasChildren = (dataNode.chilrden && dataNode.children.length);
         
         log(dataNode.name, 'has children?', hasChildren, 'is expanded?', isExpanded(dataNode.id));
         
@@ -189,7 +189,7 @@ var _Trees = {
                     nodeData.id = nodeId;
                     addExpandedNode(parentNodeId);
                     //log('addExpandedNode(folderId)', addExpandedNode(folderId));
-                    Command.appendData(nodeId, parentNodeId, null); // TODO: add key
+                    Command.appendDataNode(nodeId, parentNodeId, 'TEST_DATA');
                     $(ui.draggable).remove();
                 //Command.createAndAdd(folderId, nodeData);
                 }

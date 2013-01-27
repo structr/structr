@@ -63,6 +63,27 @@ var Command = {
     },
 
     /**
+     * Send a LIST_DATA_NODES command to the server.
+     * 
+     * The server will return a result set containing all items of the given
+     * type to the sending client (no broadcast).
+     */
+    listDataNodes : function(type, pageSize, page, sort, order, key) {
+        var obj = {};
+        obj.command = 'LIST_DATA_NODES';
+        var data = {};
+        data.type = type;
+        data.key = key;
+        obj.pageSize = pageSize;
+        obj.page = page;
+        obj.sort = sort;
+        obj.order = order;
+        obj.data = data;
+        console.log('listDataNodes()', obj);
+        return sendObj(obj);
+    },
+
+    /**
      * Send a CHILDREN command to the server.
      * 
      * The server will return a result set containing all children of the
@@ -232,7 +253,7 @@ var Command = {
      * to the new one.
      * 
      */
-    appendData : function(id, parentId, key) {
+    appendDataNode : function(id, parentId, key) {
         var obj = {};
         obj.command = 'APPEND_DATA';
         obj.id = id;
@@ -240,7 +261,7 @@ var Command = {
         data.parentId = parentId;
         data.key = key;
         obj.data = data;
-        log('appendData()', obj);
+        console.log('appendData()', obj);
         return sendObj(obj);
     },
 
@@ -548,12 +569,13 @@ var Command = {
      * 
      * The server gives no feedback on a LINK command.
      */
-    addDataTree : function(id, treeRootNodeId) {
+    addDataTree : function(id, treeRootNodeId, key) {
         var obj = {};
         obj.command = 'ADD_DATA_TREE';
         obj.id = id;
         var data = {};
         data.treeRootNodeId = treeRootNodeId;
+        data.key = key;
         obj.data = data;
         log('addDataTree()', obj);
         return sendObj(obj);
