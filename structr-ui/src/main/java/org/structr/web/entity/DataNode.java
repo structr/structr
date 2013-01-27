@@ -69,6 +69,10 @@ public class DataNode extends LinkedTreeNode {
 		return treeGetChildPosition(createTreeRelationshipType(key), child);
 	}
 	
+	public DataNode getParent(final String key) {
+		return (DataNode) treeGetParent(createTreeRelationshipType(key));
+	}
+	
 	public List<LinkedTreeNode> getChildren(final String key) {
 		return treeGetChildren(createTreeRelationshipType(key));
 	}
