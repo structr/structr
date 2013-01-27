@@ -44,6 +44,17 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 	
 	// this is not used for the node itself but for the relationship(s) this node maintains
 	public static final PropertyKey<Integer> positionProperty = new IntProperty("position");
+	
+	protected LinkedTreeNode treeGetParent(final RelationshipType relType) {
+		
+		for (AbstractRelationship rel : getIncomingRelationships(relType)) {
+			
+			return (LinkedTreeNode)rel.getStartNode();
+		}
+
+		
+		return null;
+	}
 
 	protected void treeAppendChild(final RelationshipType relType, final LinkedTreeNode childElement) throws FrameworkException {
 		
