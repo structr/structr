@@ -18,55 +18,43 @@
  */
 
 
+
 package org.structr.websocket.command;
 
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Folder;
-import org.structr.web.entity.Group;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- JDK imports ------------------------------------------------------------
 
-import java.util.*;
-
-//~--- classes ----------------------------------------------------------------
+import org.structr.web.entity.DataNode;
 
 /**
- * Websocket command to return the children of the given node
+ * Websocket command to return the parent of the given data node
  *
  * @author Axel Morgner
  */
-public class ChildrenCommand extends AbstractCommand {
+public class DataNodeParentCommand extends AbstractCommand {
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		AbstractNode node = getNode(webSocketData.getId());
+		DataNode node = (DataNode) getNode(webSocketData.getId());
+		List<DataNode> result = new LinkedList();
+		String key    = (String) webSocketData.getNodeData().get("key");
 
-		if (node == null) {
+		if (node == null || key == null) {
 
 			return;
 		}
 
-		List<AbstractRelationship> rels   = node.getOutgoingRelationships(RelType.CONTAINS);
-		List<GraphObject> result          = new LinkedList<GraphObject>();
-
-		for (AbstractRelationship rel : rels) {
-
-			AbstractNode endNode = rel.getEndNode();
-			if (endNode == null) {
-
-				continue;
-			}
-
-			result.add(endNode);
-
+		DataNode currentNode = (DataNode) node.getParent(key);
+		if (currentNode != null) {
+			result.add(currentNode);
 		}
-
+		
 		webSocketData.setView(PropertyView.Ui);
 		webSocketData.setResult(result);
 
@@ -75,12 +63,10 @@ public class ChildrenCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 
-		return "CHILDREN";
+		return "DATA_NODE_PARENT";
 
 	}
 

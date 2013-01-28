@@ -108,7 +108,13 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		
 		// list data nodes
 		addCommand(ListDataNodesCommand.class);
+
+		// children of data nodes
+		addCommand(DataNodeChildrenCommand.class);
 		
+		// parent of data nodes
+		addCommand(DataNodeParentCommand.class);
+
 		// list files
 		addCommand(ListFilesCommand.class);
 		

@@ -109,7 +109,7 @@ function connect() {
 
 
             var data = $.parseJSON(message.data);
-            console.log('ws.onmessage:', data);
+            log('ws.onmessage:', data);
 
             //var msg = $.parseJSON(message);
             var type = data.data.type;
@@ -199,22 +199,46 @@ function connect() {
                 log('calling StructrModel.update(id, key, val)', id, key, val);
                 StructrModel.update(data);
                 
-            } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
+            } else if (command == 'DATA_NODE_PARENT') { /*********************** DATA_NODE_PARENT ************************/
                 
-                log('CHILDREN', data);
+                console.log('DATA_NODE_PARENT', data.id, result);
+                var obj = StructrModel.obj(data.id);
+                obj.parentId = result.length && result[0].id;
+                if (data.callback) {
+                    console.log('executing callback with id', data.callback);
+                    StructrModel.callbacks[data.callback]();
+                }
                 
-                $(result).each(function(i, child) {
-                    StructrModel.create(child);
+            } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
+                
+                console.log('CHILDREN', data);
+                
+                $(result).each(function(i, entity) {
+                    
+                    if (entity.type == 'DataNode') {
+                        //console.log('DataNode', entity, data.nodesWithChildren, isIn(entity.id, data.nodesWithChildren));
+                        entity.hasChildren = isIn(entity.id, data.nodesWithChildren);
+                    }
+
+                    StructrModel.create(entity);
+                    
                 });
                 
-            } else if (command == 'LIST') { /*********************** LIST ************************/
+            } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
                 
                 log('LIST', result);
                 
                 $('.pageCount', $('#pager' + type)).val(pageCount[type]);
                 
                 $(result).each(function(i, entity) {
+                    
+                    if (entity.type == 'DataNode') {
+                        //console.log('DataNode', entity, data.nodesWithChildren, isIn(entity.id, data.nodesWithChildren));
+                        entity.hasChildren = isIn(entity.id, data.nodesWithChildren);
+                    }
+                    
                     StructrModel.create(entity);
+                    
                 });
                 
             } else if (command == 'DELETE') { /*********************** DELETE ************************/
@@ -236,8 +260,6 @@ function connect() {
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
                 $(result).each(function(i, entity) {
-                    
-                    StructrModel.create(entity);
                     
                     if (command == 'CREATE' && entity.type == 'Page') {
                         var tab = $('#show_' + entity.id, previews);

@@ -110,21 +110,21 @@ var _Trees = {
 
     appendDataNode : function(dataNode) {
         
-        console.log('appendDataNode', dataNode, dataNode.parent, dataNode.children);
+        console.log('appendDataNode', dataNode, dataNode.parentId);
 
-        var hasParent = dataNode.parent && dataNode.parent.id;
+        var hasParent = dataNode.parentId;
         
         log(dataNode.name, 'has parent?', hasParent);
 
         var parentId, parentNode;
-        if (dataNode.parent && dataNode.parent.id) {
-            parentId = dataNode.parent.id;
+        if (hasParent) {
+            parentId = dataNode.parentId;
             parentNode = Structr.node(parentId);
         }
 
         var parent = parentNode ? parentNode : trees;
 
-        parent.append('<div id="id_' + dataNode.id + '" structr_type="folder" class="node folder">'
+        parent.append('<div id="id_' + dataNode.id + '" structr_type="datanode" class="node datanode">'
             + '<img class="typeIcon" src="'+ _Trees.data_node_icon + '">'
             + '<b title="' + dataNode.name + '" class="name_">' + fitStringToSize(dataNode.name, 200) + '</b> <span class="id">' + dataNode.id + '</span>'
             + '</div>');
@@ -134,7 +134,7 @@ var _Trees = {
         var delIcon = div.children('.delete_icon');
         
         if (parent != trees) {
-            var newDelIcon = '<img title="Remove folder ' + dataNode.name + '\' from folder ' + dataNode.parent.id + '" alt="Remove folder ' + dataNode.name + '\' from folder ' + dataNode.parent.id + '" class="delete_icon button" src="' + _Files.delete_folder_icon + '">';
+            var newDelIcon = '<img title="Remove folder ' + dataNode.name + '\' from folder ' + parentId + '" alt="Remove folder ' + dataNode.name + '\' from folder ' + parentId + '" class="delete_icon button" src="' + _Files.delete_folder_icon + '">';
             if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
@@ -161,9 +161,9 @@ var _Trees = {
             });
         }
         
-        var hasChildren = (dataNode.chilrden && dataNode.children.length);
+        var hasChildren = dataNode.hasChildren;
         
-        log(dataNode.name, 'has children?', hasChildren, 'is expanded?', isExpanded(dataNode.id));
+        console.log(dataNode.name, 'has children?', hasChildren, 'is expanded?', isExpanded(dataNode.id));
         
         _Entities.appendExpandIcon(div, dataNode, hasChildren);
         

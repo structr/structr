@@ -52,6 +52,7 @@ public class ListDataNodesCommand extends AbstractCommand {
 		String key                             = (String) webSocketData.getNodeData().get("key");
 		Class type                             = EntityContext.getEntityClassForRawType(rawType);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		Set<String> nodesWithChildren          = new HashSet();
 
 		searchAttributes.add(Search.andExactType(type.getSimpleName()));
 
@@ -69,12 +70,18 @@ public class ListDataNodesCommand extends AbstractCommand {
 			List<AbstractNode> filteredResults  = new LinkedList<AbstractNode>();
 			List<? extends DataNode> resultList = result.getResults();
 
-			// determine which of the nodes have children
+			// add only nodes without parent (root nodes)
 			for (DataNode dataNode : resultList) {
 
-				if (!dataNode.getChildren(key).isEmpty()) {
+				if (dataNode.getParent(key) == null) {
 
 					filteredResults.add(dataNode);
+
+					if (dataNode.hasChildren(key)) {
+
+						nodesWithChildren.add(dataNode.getUuid());
+					}
+
 				}
 
 			}
@@ -85,6 +92,7 @@ public class ListDataNodesCommand extends AbstractCommand {
 			// set full result list
 			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
+			webSocketData.setNodesWithChildren(nodesWithChildren);
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

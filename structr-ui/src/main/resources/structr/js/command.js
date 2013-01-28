@@ -79,8 +79,26 @@ var Command = {
         obj.sort = sort;
         obj.order = order;
         obj.data = data;
-        console.log('listDataNodes()', obj);
+        //console.log('listDataNodes()', obj);
         return sendObj(obj);
+    },
+
+    /**
+     * Send a DATA_NODE_PARENT command to the server.
+     * 
+     * The server will return a result set containing the parent node
+     * of the data node with the given id in the tree with the
+     * given key.
+     */
+    dataNodeParent : function(id, key, callback) {
+        var obj = {};
+        obj.command = 'DATA_NODE_PARENT';
+        obj.id = id;
+        var data = {};
+        data.key = key;
+        obj.data = data;
+        console.log('dataNodeParent()', obj, callback);
+        return sendObj(obj, callback);
     },
 
     /**
@@ -91,9 +109,18 @@ var Command = {
      */
     children : function(id) {
         var obj = {};
-        obj.command = 'CHILDREN';
         obj.id = id;
         var data = {};
+        
+        var structrObj = StructrModel.obj(id);
+        if (structrObj instanceof StructrDataNode) {
+            obj.command = 'DATA_NODE_CHILDREN';
+            data.key = structrObj.key;
+            console.log('children of data node requested', structrObj);
+        } else {
+            obj.command = 'CHILDREN';
+        }
+        
         obj.data = data;
         log('children()', obj);
         return sendObj(obj);

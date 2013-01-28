@@ -57,6 +57,10 @@ public class DataNode extends LinkedTreeNode {
 		return treeGetFirstChild(createTreeRelationshipType(key));
 	}
 	
+	public boolean hasChildren(final String key) {
+		return treeGetFirstChild(createTreeRelationshipType(key)) != null;
+	}
+
 	public LinkedTreeNode getLastChild(final String key) {
 		return treeGetLastChild(createTreeRelationshipType(key));
 	}

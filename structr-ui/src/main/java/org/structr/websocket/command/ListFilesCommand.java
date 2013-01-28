@@ -77,7 +77,7 @@ public class ListFilesCommand extends AbstractCommand {
 			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
 			List<? extends GraphObject> resultList = result.getResults();
 
-			// determine which of the nodes have children
+			// add only root folders to the list
 			for (GraphObject obj : resultList) {
 
 				if (obj instanceof AbstractNode) {

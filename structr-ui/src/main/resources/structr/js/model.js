@@ -132,13 +132,13 @@ var StructrModel = {
             $.each(Object.keys(data.data), function(i, key) {
                 log('update model', key, data.data[key]);
                 obj[key] = data.data[key];
-                console.log('object ', obj, 'updated with key', key, '=', obj[key]);
+                //console.log('object ', obj, 'updated with key', key, '=', obj[key]);
                 StructrModel.refreshKey(obj.id, key);
             });
         }
         
         if (data.callback) {
-            console.log('executing callback with id', data.callback);
+            //console.log('executing callback with id', data.callback);
             StructrModel.callbacks[data.callback]();
         }
         
@@ -347,6 +347,7 @@ function StructrDataNode(data) {
     $.each(Object.keys(data), function(i, key) {
         self[key] = data[key];
     });
+    log('StructrDataNode created', self);
 }
 
 StructrDataNode.prototype.save = function() {
@@ -358,29 +359,29 @@ StructrDataNode.prototype.setProperty = function(key, value, recursive, callback
 }
 
 StructrDataNode.prototype.remove = function() {
-    var folder = this;
-    var folderEl = Structr.node(folder.id);
-    var parentFolderEl = Structr.node(folder.parent.id);
-    log('removeFolderFromFolder', folderEl);
+    var dataNode = this;
+    var dataNodeEl = Structr.node(dataNode.id);
+    var parentFolderEl = Structr.node(dataNode.parent.id);
+    log('removeFolderFromFolder', dataNodeEl);
         
-    _Entities.resetMouseOverState(folderEl);
+    _Entities.resetMouseOverState(dataNodeEl);
 
-    folderEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + folder.id + '" '
-        + 'alt="Delete folder ' + folder.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+    dataNodeEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + dataNode.id + '" '
+        + 'alt="Delete folder ' + dataNode.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 
-    folderEl.children('.delete_icon').on('click', function(e) {
+    dataNodeEl.children('.delete_icon').on('click', function(e) {
         e.stopPropagation();
-        _Entities.deleteNode(this, folder);
+        _Entities.deleteNode(this, dataNode);
     });
         
-    folders.append(folderEl);
+    trees.append(dataNodeEl);
         
     if (!Structr.containsNodes(parentFolderEl)) {
         _Entities.removeExpandIcon(parentFolderEl);
         enable(parentFolderEl.children('.delete_icon')[0]);
     }
 
-    folderEl.draggable({
+    dataNodeEl.draggable({
         revert: 'invalid',
         containment: '#main',
         stack: 'div'
@@ -388,7 +389,12 @@ StructrDataNode.prototype.remove = function() {
 }
 
 StructrDataNode.prototype.append = function(refNode) {
-    return _Trees.appendDataNode(this, refNode);    
+    
+    var self = this;
+    Command.dataNodeParent(self.id, 'TEST_DATA', function() {
+        console.log('StructrDataNode append callback', self, refNode);
+        return _Trees.appendDataNode(self, refNode);
+    });
 }
 
 
