@@ -19,7 +19,7 @@
 
 
 
-package org.structr.websocket.command.dom;
+package org.structr.websocket.command;
 
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.DataNode;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 

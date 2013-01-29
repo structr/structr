@@ -37,6 +37,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,6 +48,12 @@ import java.util.logging.Logger;
 public class UpdateCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
+	
+	static {
+		
+		StructrWebSocket.addCommand(UpdateCommand.class);
+
+	}
 
 	//~--- methods --------------------------------------------------------
 

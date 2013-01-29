@@ -46,6 +46,11 @@ import org.structr.core.entity.AbstractNode;
 public class LoginCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(LoginCommand.class.getName());
+	
+	static {
+		StructrWebSocket.addCommand(LoginCommand.class);
+
+	}
 
 	//~--- methods --------------------------------------------------------
 

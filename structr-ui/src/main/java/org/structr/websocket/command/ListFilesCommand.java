@@ -40,6 +40,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.entity.Image;
 import org.structr.rest.resource.PagingHelper;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,8 +50,15 @@ import org.structr.rest.resource.PagingHelper;
  */
 public class ListFilesCommand extends AbstractCommand {
 
+	static {
+
+		StructrWebSocket.addCommand(ListFilesCommand.class);
+
+	}
+
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
+		
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		String rawType                         = (String) webSocketData.getNodeData().get("type");

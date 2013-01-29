@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
@@ -27,6 +28,12 @@ import org.structr.websocket.message.WebSocketMessage;
  * @author Christian Morgner
  */
 public class LogoutCommand extends AbstractCommand {
+	
+	static {
+		
+		StructrWebSocket.addCommand(LogoutCommand.class);
+
+	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {

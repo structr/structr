@@ -110,7 +110,7 @@ var _Trees = {
 
     appendDataNode : function(dataNode) {
         
-        console.log('appendDataNode', dataNode, dataNode.parentId);
+        log('appendDataNode', dataNode, dataNode.parentId);
 
         var hasParent = dataNode.parentId;
         
@@ -143,7 +143,7 @@ var _Trees = {
             }
             div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
-                Command.removeChild(dataNode.id);
+                Command.removeDataNode(dataNode.id, 'TEST_DATA');
             });
             //disable($('.delete_icon', parent)[0]);
 			
@@ -163,7 +163,7 @@ var _Trees = {
         
         var hasChildren = dataNode.hasChildren;
         
-        console.log(dataNode.name, 'has children?', hasChildren, 'is expanded?', isExpanded(dataNode.id));
+        log(dataNode.name, 'has children?', hasChildren, 'is expanded?', isExpanded(dataNode.id));
         
         _Entities.appendExpandIcon(div, dataNode, hasChildren);
         
@@ -175,7 +175,7 @@ var _Trees = {
         });
         
         div.droppable({
-            accept: '.folder, .file, .image',
+            accept: '.datanode',
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',

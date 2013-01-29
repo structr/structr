@@ -93,7 +93,7 @@ var _Entities = {
         
         dialog.append('<div><h3>Data Tree Id</h3><input type="text" id="treeRootNodeId"><button id="saveTreeRootNodeId">Save</button></div>');
         $('#saveTreeRootNodeId', dialog).on('click', function() {
-            console.log('addDataTree', entity.id, $('#treeRootNodeId', dialog).val());
+            log('addDataTree', entity.id, $('#treeRootNodeId', dialog).val());
             Command.addDataTree(entity.id, $('#treeRootNodeId', dialog).val());
         });
     },
@@ -224,7 +224,7 @@ var _Entities = {
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
                                             var checked = checkbox.prop('checked');
-                                            console.log('set property', id, key, checked);
+                                            log('set property', id, key, checked);
                                             Command.setProperty(id, key, checked);
                                         });
                                         Command.getProperty(id, key, '#dialogBox');
@@ -294,7 +294,7 @@ var _Entities = {
                                     } else {
                                         
                                         // existing key
-                                        console.log('existing key: Command.setProperty(', objId, input.prop('name'), input.val());
+                                        log('existing key: Command.setProperty(', objId, input.prop('name'), input.val());
                                         Command.setProperty(objId, input.prop('name'), input.val());
                                         
                                     }
@@ -588,7 +588,7 @@ var _Entities = {
         
         var id = getId(el);
         
-        console.log(el);
+        log(el);
         
         log('toggleElement: ', id);
         

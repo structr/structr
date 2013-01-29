@@ -23,6 +23,7 @@ package org.structr.websocket.command;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
+import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -34,6 +35,12 @@ import org.structr.websocket.message.WebSocketMessage;
  * @author Axel Morgner
  */
 public class GetProperties extends AbstractCommand {
+	
+	static {
+		
+		StructrWebSocket.addCommand(GetProperties.class);
+		
+	}
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {

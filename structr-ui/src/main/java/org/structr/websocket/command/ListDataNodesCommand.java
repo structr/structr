@@ -37,12 +37,19 @@ import java.util.*;
 
 import org.structr.rest.resource.PagingHelper;
 import org.structr.web.entity.DataNode;
+import org.structr.websocket.StructrWebSocket;
 
 /**
  *
  * @author Axel Morgner
  */
 public class ListDataNodesCommand extends AbstractCommand {
+	
+	static {
+		
+		StructrWebSocket.addCommand(ListDataNodesCommand.class);
+
+	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {

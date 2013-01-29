@@ -21,15 +21,14 @@
 
 package org.structr.websocket.command;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import org.structr.common.PropertyView;
 import org.structr.websocket.message.WebSocketMessage;
 
 
 import org.structr.web.entity.DataNode;
+import org.structr.websocket.StructrWebSocket;
 
 /**
  * Websocket command to return the parent of the given data node
@@ -37,6 +36,12 @@ import org.structr.web.entity.DataNode;
  * @author Axel Morgner
  */
 public class DataNodeParentCommand extends AbstractCommand {
+	
+	static {
+		
+		StructrWebSocket.addCommand(DataNodeParentCommand.class);
+
+	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {

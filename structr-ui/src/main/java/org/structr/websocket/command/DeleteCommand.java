@@ -32,6 +32,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -42,6 +43,12 @@ import java.util.logging.Logger;
 public class DeleteCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(DeleteCommand.class.getName());
+	
+	static {
+		
+		StructrWebSocket.addCommand(DeleteCommand.class);
+
+	}
 
 	//~--- methods --------------------------------------------------------
 

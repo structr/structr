@@ -33,7 +33,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
 import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -43,6 +43,12 @@ import org.structr.web.entity.dom.DOMNode;
  * @author Axel Morgner
  */
 public class AddRenderTreeRelationship extends AbstractCommand {
+	
+	static {
+		
+		StructrWebSocket.addCommand(AddRenderTreeRelationship.class);
+
+	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {

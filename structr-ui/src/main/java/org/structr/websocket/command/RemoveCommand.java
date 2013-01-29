@@ -18,6 +18,7 @@
  */
 
 
+
 package org.structr.websocket.command;
 
 import java.util.List;
@@ -31,6 +32,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.web.entity.DataNode;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -49,6 +51,7 @@ public class RemoveCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		String id                             = webSocketData.getId();
+		String key                            = (String) webSocketData.getNodeData().get("key");
 
 		if (id != null) {
 
@@ -62,6 +65,20 @@ public class RemoveCommand extends AbstractCommand {
 					DOMNode domNode = (DOMNode) node;
 
 					domNode.getParentNode().removeChild(domNode);
+				} else if (node instanceof DataNode) {
+
+					DataNode dataNode = (DataNode) node;
+
+					try {
+
+						dataNode.getParent(key).removeChild(key, dataNode);
+
+					} catch (FrameworkException ex) {
+
+						logger.log(Level.SEVERE, "Could not remove data node from parent " + dataNode, ex);
+
+					}
+
 				} else {
 
 					// Old style: Delete all incoming CONTAINS rels

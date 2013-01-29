@@ -97,7 +97,7 @@ var Command = {
         var data = {};
         data.key = key;
         obj.data = data;
-        console.log('dataNodeParent()', obj, callback);
+        log('dataNodeParent()', obj, callback);
         return sendObj(obj, callback);
     },
 
@@ -115,8 +115,11 @@ var Command = {
         var structrObj = StructrModel.obj(id);
         if (structrObj instanceof StructrDataNode) {
             obj.command = 'DATA_NODE_CHILDREN';
-            data.key = structrObj.key;
-            console.log('children of data node requested', structrObj);
+            data.key = 'TEST_DATA';
+            log('children of data node requested', structrObj);
+        } else if (structrObj instanceof StructrElement || structrObj instanceof StructrContent) {
+            obj.command = 'DOM_NODE_CHILDREN';
+            log('children of DOM node requested', structrObj);
         } else {
             obj.command = 'CHILDREN';
         }
@@ -195,7 +198,7 @@ var Command = {
     },
 
     /**
-     * Send a REMOVE_CHILD command to the server.
+     * Send a REMOVE command to the server.
      * 
      * The server will remove the node from the
      * tree and broadcast a removal notification.
@@ -208,6 +211,24 @@ var Command = {
         var data = {};
         obj.data = data;
         log('removeChild()', obj);
+        return sendObj(obj);
+    },
+    
+    /**
+     * Send a REMOVE command to the server.
+     * 
+     * The server will remove the node from the
+     * tree with the given key and broadcast a removal notification.
+     */
+    removeDataNode : function(id, key) {
+        log('Remove ' + id);
+        var obj = {};
+        obj.command = 'REMOVE';
+        obj.id = id;
+        var data = {};
+        data.key = key;
+        obj.data = data;
+        log('removeDataNode()', obj);
         return sendObj(obj);
     },
 
@@ -228,7 +249,7 @@ var Command = {
         data[key] = value;
         if (recursive) data['recursive'] = true;
         obj.data = data;
-        console.log('setProperty()', obj, callback);
+        log('setProperty()', obj, callback);
         return sendObj(obj, callback);
     },
 
@@ -288,7 +309,7 @@ var Command = {
         data.parentId = parentId;
         data.key = key;
         obj.data = data;
-        console.log('appendData()', obj);
+        log('appendData()', obj, key);
         return sendObj(obj);
     },
 
@@ -547,7 +568,7 @@ var Command = {
         data.chunkSize = chunkSize;
         data.chunk = chunk;
         obj.data = data;
-        console.log('chunk()', obj);
+        log('chunk()', obj);
         return sendObj(obj);
     },
 

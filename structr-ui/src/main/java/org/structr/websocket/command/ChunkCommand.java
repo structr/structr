@@ -31,6 +31,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.File;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,6 +42,12 @@ import org.structr.core.entity.File;
 public class ChunkCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(ChunkCommand.class.getName());
+	
+	static {
+		
+		StructrWebSocket.addCommand(ChunkCommand.class);
+
+	}
 
 	//~--- methods --------------------------------------------------------
 

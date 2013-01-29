@@ -78,14 +78,32 @@ var StructrModel = {
         // Store a reference of this object
         StructrModel.objects[data.id] = obj;
         
+        StructrModel.append(obj, refId);
+        
+        return obj;
+    
+    },
+    
+    /**
+     * Append and check expand status
+     */
+    append : function(obj, refId) {
+
         var refNode = refId ? Structr.node(refId) : undefined;
         
         // Display in page (before refNode, if given)
-        var element = obj.append(refNode);
+        obj.append(refNode);
         
+    },
+    
+    /**
+     * Check expand status
+     */
+    expand : function(element, obj) {
         if (element) {
         
             if (isExpanded(obj.id)) {
+                log('model, _Entities.ensureExpanded', element);
                 _Entities.ensureExpanded(element);
             }
         
@@ -101,10 +119,7 @@ var StructrModel = {
                 _Entities.appendExpandIcon(parent, ent, true, true);
 
             }
-        }
-        
-        return obj;
-    
+        }       
     },
     
     /**
@@ -265,7 +280,7 @@ var StructrModel = {
         
         var obj = StructrModel.obj(id);
         
-        console.log('StructrModel.refresh', id, obj);
+        log('StructrModel.refresh', id, obj);
         
         if (obj) {
             var element = Structr.node(id);
@@ -361,7 +376,7 @@ StructrDataNode.prototype.setProperty = function(key, value, recursive, callback
 StructrDataNode.prototype.remove = function() {
     var dataNode = this;
     var dataNodeEl = Structr.node(dataNode.id);
-    var parentFolderEl = Structr.node(dataNode.parent.id);
+    var parentFolderEl = Structr.node(dataNode.parenId);
     log('removeFolderFromFolder', dataNodeEl);
         
     _Entities.resetMouseOverState(dataNodeEl);
@@ -389,11 +404,9 @@ StructrDataNode.prototype.remove = function() {
 }
 
 StructrDataNode.prototype.append = function(refNode) {
-    
     var self = this;
     Command.dataNodeParent(self.id, 'TEST_DATA', function() {
-        console.log('StructrDataNode append callback', self, refNode);
-        return _Trees.appendDataNode(self, refNode);
+        StructrModel.expand(_Trees.appendDataNode(self, refNode), self);
     });
 }
 
@@ -448,7 +461,7 @@ StructrFolder.prototype.remove = function() {
 }
 
 StructrFolder.prototype.append = function(refNode) {
-    return _Files.appendFolderElement(this, refNode);    
+    StructrModel.expand(_Files.appendFolderElement(this, refNode), this);
 }
 
 
@@ -477,7 +490,7 @@ StructrFile.prototype.remove = function() {
 
 StructrFile.prototype.append = function(refNode) {
     _Files.uploadFile(this);
-    return _Files.appendFileElement(this, refNode);    
+    StructrModel.expand(_Files.appendFileElement(this, refNode), this);
 }
 
 
@@ -506,7 +519,7 @@ StructrImage.prototype.remove = function() {
 
 StructrImage.prototype.append = function(refNode) {
     _Files.uploadFile(this);
-    return _Images.appendImageElement(this, refNode);    
+    StructrModel.expand(_Images.appendImageElement(this, refNode), this);
 }
 
 
@@ -534,7 +547,7 @@ StructrUser.prototype.remove = function() {
 }
 
 StructrUser.prototype.append = function(refNode) {
-    _UsersAndGroups.appendUserElement(this, refNode);
+    StructrModel.expand(_UsersAndGroups.appendUserElement(this, refNode), this);
 }
 
 
@@ -558,7 +571,7 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 }
 
 StructrGroup.prototype.append = function(refNode) {
-    _UsersAndGroups.appendGroupElement(this, refNode);
+    StructrModel.expand(_UsersAndGroups.appendGroupElement(this, refNode), this);
 }
 
 /**************************************
@@ -581,7 +594,7 @@ StructrPage.prototype.setProperty = function(key, value, rec, callback) {
 }
 
 StructrPage.prototype.append = function() {
-    return _Pages.appendPageElement(this);
+    StructrModel.expand(_Pages.appendPageElement(this), this);
 }
 
 
@@ -629,7 +642,7 @@ StructrElement.prototype.remove = function() {
 }
 
 StructrElement.prototype.append = function(refNode) {
-    return _Pages.appendElementElement(this, refNode);
+    StructrModel.expand(_Pages.appendElementElement(this, refNode), this);
 }
 
 
@@ -692,7 +705,7 @@ StructrContent.prototype.append = function(refNode) {
     }
 		
     var div = _Contents.appendContentElement(this, refNode);
-    if (!div) return false;
+    if (!div) return;
 
     log('appendContentElement div', div);
 
@@ -712,5 +725,4 @@ StructrContent.prototype.append = function(refNode) {
 
     _Entities.setMouseOver(div);
         
-    return div;
 }

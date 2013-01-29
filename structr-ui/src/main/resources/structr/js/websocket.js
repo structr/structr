@@ -119,6 +119,8 @@ function connect() {
             var sessionValid = data.sessionValid;
             var code = data.code;
             
+            log('####################################### ', command, ' #########################################');
+            
             rawResultCount[type] = data.rawResultCount;
             pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
             Structr.updatePager(type);
@@ -201,17 +203,17 @@ function connect() {
                 
             } else if (command == 'DATA_NODE_PARENT') { /*********************** DATA_NODE_PARENT ************************/
                 
-                console.log('DATA_NODE_PARENT', data.id, result);
+                log('DATA_NODE_PARENT', data.id, result);
                 var obj = StructrModel.obj(data.id);
                 obj.parentId = result.length && result[0].id;
                 if (data.callback) {
-                    console.log('executing callback with id', data.callback);
+                    log('executing callback with id', data.callback);
                     StructrModel.callbacks[data.callback]();
                 }
                 
             } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
                 
-                console.log('CHILDREN', data);
+                log('CHILDREN', data);
                 
                 $(result).each(function(i, entity) {
                     
@@ -261,13 +263,15 @@ function connect() {
                 
                 $(result).each(function(i, entity) {
                     
+                    StructrModel.create(entity);
+                    
                     if (command == 'CREATE' && entity.type == 'Page') {
                         var tab = $('#show_' + entity.id, previews);
                         setTimeout(function() {
                             _Pages.activateTab(tab)
                         }, 200);
                     }
-                    
+
                 });
 
                 _Pages.reloadPreviews();

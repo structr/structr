@@ -19,7 +19,7 @@
 
 
 
-package org.structr.websocket.command.dom;
+package org.structr.websocket.command;
 
 import java.util.Map;
 

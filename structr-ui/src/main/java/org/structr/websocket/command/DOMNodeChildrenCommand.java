@@ -20,50 +20,70 @@
 
 package org.structr.websocket.command;
 
-import org.structr.core.EntityContext;
+import org.structr.common.PropertyView;
+import org.structr.common.RelType;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.message.MessageBuilder;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.WebSocketMessage;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.*;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Websocket command to return the children of the given DOM node
  *
  * @author Axel Morgner
  */
-public class GetProperty extends AbstractCommand {
+public class DOMNodeChildrenCommand extends AbstractCommand {
 	
 	static {
 		
-		StructrWebSocket.addCommand(GetProperty.class);
-		
+		StructrWebSocket.addCommand(DOMNodeChildrenCommand.class);
+
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(WebSocketMessage webSocketData) {
 
-		AbstractNode node = getNode(webSocketData.getId());
-		String key        = (String) webSocketData.getNodeData().get("key");
+		DOMNode node = getDOMNode(webSocketData.getId());
 
-		if (node != null) {
+		if (node == null) {
 
-			webSocketData.setNodeData(key, node.getProperty(EntityContext.getPropertyKeyForJSONName(node.getClass(), key)));
+			return;
+		}
+		
+		List<GraphObject> result          = new LinkedList<GraphObject>();
+		DOMNode currentNode = (DOMNode) node.getFirstChild();
+		
+		while (currentNode != null) {
 
-			// send only over local connection (no broadcast)
-			getWebSocket().send(webSocketData, true);
-
-		} else {
-
-			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
+			result.add(currentNode);
+			
+			currentNode = (DOMNode) currentNode.getNextSibling();
 
 		}
+
+		webSocketData.setView(PropertyView.Ui);
+		webSocketData.setResult(result);
+
+		// send only over local connection
+		getWebSocket().send(webSocketData, true);
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
-		return "GET_PROPERTY";
+
+		return "DOM_NODE_CHILDREN";
+
 	}
+
 }

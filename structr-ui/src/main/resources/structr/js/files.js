@@ -580,7 +580,6 @@ var _Files = {
             contentType: contentType,
             headers: headers,
             success: function(data) {
-                console.log(data);
                 text = data;
                 if (isDisabled(button)) return;
                 var div = element.append('<div class="editor"></div>');

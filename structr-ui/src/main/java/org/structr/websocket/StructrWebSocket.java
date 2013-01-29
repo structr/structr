@@ -76,49 +76,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
 
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		// initialize command set
-		// login and logout
-		addCommand(LoginCommand.class);
-		addCommand(LogoutCommand.class);
-
-		// get (read) single object
-		addCommand(GetProperties.class);
-		
-		// get (read) single property
-		addCommand(GetProperty.class);
-
-		// create a new object
-		addCommand(CreateCommand.class);
-
-		// update an object
-		addCommand(UpdateCommand.class);
-
-		// delete an object
-		addCommand(DeleteCommand.class);
-
-		// get a chunk (part) of an object
-		addCommand(ChunkCommand.class);
-
-		// add a RENDER_TREE rel
-		addCommand(AddRenderTreeRelationship.class);
-		
-		// list data nodes
-		addCommand(ListDataNodesCommand.class);
-
-		// children of data nodes
-		addCommand(DataNodeChildrenCommand.class);
-		
-		// parent of data nodes
-		addCommand(DataNodeParentCommand.class);
-
-		// list files
-		addCommand(ListFilesCommand.class);
-		
-	}
 
 	//~--- fields ---------------------------------------------------------
 

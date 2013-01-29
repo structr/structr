@@ -30,6 +30,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 
 import org.structr.web.entity.DataNode;
+import org.structr.websocket.StructrWebSocket;
 
 /**
  * Websocket command to return the children of the given data node
@@ -37,6 +38,12 @@ import org.structr.web.entity.DataNode;
  * @author Axel Morgner
  */
 public class DataNodeChildrenCommand extends AbstractCommand {
+	
+	static {
+		
+		StructrWebSocket.addCommand(DataNodeChildrenCommand.class);
+
+	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {

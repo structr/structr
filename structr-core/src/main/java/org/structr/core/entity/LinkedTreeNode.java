@@ -40,7 +40,7 @@ import org.structr.core.property.PropertyMap;
 
 public abstract class LinkedTreeNode extends LinkedListNode {
 
-	private static final String LIST_KEY_SUFFIX = "_NEXT_SIBLING";
+	public static final String LIST_KEY_SUFFIX = "_NEXT_SIBLING";
 	
 	// this is not used for the node itself but for the relationship(s) this node maintains
 	public static final PropertyKey<Integer> positionProperty = new IntProperty("position");

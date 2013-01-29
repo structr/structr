@@ -1078,7 +1078,7 @@ var _Crud = {
             //async: false,
             success: function(data) {
                 var node = data.result;
-                console.log('node', node);
+                log('node', node);
                 
                 cell.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(node.name, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);

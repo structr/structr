@@ -18,6 +18,7 @@
  */
 
 
+
 package org.structr.websocket;
 
 import com.google.gson.Gson;
@@ -31,20 +32,20 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.eclipse.jetty.websocket.WebSocket.Connection;
+
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMNode;
-import org.w3c.dom.Node;
 
-//~--- classes ----------------------------------------------------------------
+import org.w3c.dom.Node;
 
 /**
  *
@@ -52,28 +53,22 @@ import org.w3c.dom.Node;
  */
 public class SynchronizationController implements StructrTransactionListener {
 
-	private static final Logger logger = Logger.getLogger(SynchronizationController.class.getName());
-
-	//~--- fields ---------------------------------------------------------
-
+	private static final Logger logger                              = Logger.getLogger(SynchronizationController.class.getName());
 	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<StructrWebSocket>();
 	private final Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
 	private List<WebSocketMessage> messageStack                     = null;
 	private Gson gson                                               = null;
 
-	//~--- constructors ---------------------------------------------------
-
 	public SynchronizationController(Gson gson) {
 
-		this.gson    = gson;
+		this.gson = gson;
 
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	public void registerClient(StructrWebSocket client) {
 
 		synchronized (clients) {
+
 			clients.add(client);
 		}
 
@@ -82,6 +77,7 @@ public class SynchronizationController implements StructrTransactionListener {
 	public void unregisterClient(StructrWebSocket client) {
 
 		synchronized (clients) {
+
 			clients.remove(client);
 		}
 
@@ -103,6 +99,7 @@ public class SynchronizationController implements StructrTransactionListener {
 			for (StructrWebSocket socket : clients) {
 
 				Connection socketConnection = socket.getConnection();
+
 				webSocketData.setCallback(socket.getCallback());
 
 				if ((socketConnection != null) && socket.isAuthenticated()) {
@@ -113,7 +110,6 @@ public class SynchronizationController implements StructrTransactionListener {
 						&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
 
 						WebSocketMessage clientData     = webSocketData.copy();
-
 						SecurityContext securityContext = socket.getSecurityContext();
 
 						clientData.setResult(filter(securityContext, result));
@@ -172,6 +168,7 @@ public class SynchronizationController implements StructrTransactionListener {
 		messageStack = new LinkedList<WebSocketMessage>();
 
 		messageStackMap.put(transactionKey, messageStack);
+
 	}
 
 	@Override
@@ -212,44 +209,53 @@ public class SynchronizationController implements StructrTransactionListener {
 		message.setCommand("UPDATE");
 
 		String uuid = graphObject.getProperty(AbstractNode.uuid);
-		
+
 		if (graphObject instanceof AbstractRelationship) {
 
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
 			AbstractNode startNode            = relationship.getStartNode();
 			AbstractNode endNode              = relationship.getEndNode();
-			
+
 			try {
-				PropertyMap relProperties         = relationship.getProperties();
+
+				PropertyMap relProperties = relationship.getProperties();
 
 				relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
 				relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
 
 				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+
 				message.setRelData(properties);
-				
-			} catch(FrameworkException fex) {
-				
+
+			} catch (FrameworkException fex) {
+
 				logger.log(Level.WARNING, "Unable to convert properties from type {0} to input type", relationship.getClass());
+
 			}
 
 		} else if (graphObject instanceof AbstractNode) {
-			
+
 			AbstractNode node = (AbstractNode) graphObject;
-			
+
 			try {
+
 				Map<String, Object> nodeProperties = new HashMap<String, Object>();
+
 				nodeProperties.put(key.dbName(), newValue);
-				nodeProperties.put(AbstractNode.type.dbName(), node.getType()); // needed for type resolution
-				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, node.getClass(), PropertyMap.databaseTypeToJavaType(securityContext, graphObject, nodeProperties));
-				properties.remove(AbstractNode.type.jsonName()); // remove type again
+				nodeProperties.put(AbstractNode.type.dbName(), node.getType());    // needed for type resolution
+
+				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, node.getClass(),
+									 PropertyMap.databaseTypeToJavaType(securityContext, graphObject, nodeProperties));
+
+				properties.remove(AbstractNode.type.jsonName());    // remove type again
 				message.setNodeData(properties);
-				
-			} catch(FrameworkException fex) {
-				
+
+			} catch (FrameworkException fex) {
+
 				logger.log(Level.WARNING, "Unable to convert properties from type {0} to input type", node.getClass());
+
 			}
-		
+
 		}
 
 		message.setId(uuid);
@@ -277,19 +283,22 @@ public class SynchronizationController implements StructrTransactionListener {
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
 			AbstractNode startNode            = relationship.getStartNode();
 			AbstractNode endNode              = relationship.getEndNode();
-			
+
 			try {
-				PropertyMap relProperties         = relationship.getProperties();
+
+				PropertyMap relProperties = relationship.getProperties();
 
 				relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
 				relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
 
 				Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+
 				message.setRelData(properties);
-				
-			} catch(FrameworkException fex) {
-				
+
+			} catch (FrameworkException fex) {
+
 				logger.log(Level.WARNING, "Unable to convert properties from type {0} to input type", relationship.getClass());
+
 			}
 
 		}
@@ -314,36 +323,34 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			relationship = (AbstractRelationship) graphObject;
 
-			if (relationship.getRelType().equals(RelType.CONTAINS)) {
+			if (!ignoreRelationship(relationship)) {
 
 				AbstractNode startNode   = (AbstractNode) relationship.getStartNode();
 				AbstractNode endNode     = (AbstractNode) relationship.getEndNode();
 				WebSocketMessage message = new WebSocketMessage();
-				
+
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
-				
 				message.setId(endNode.getUuid());
 				message.setNodeData("parentId", startNode.getUuid());
 
 				Node refNode = null;
+
 				if (endNode instanceof DOMNode) {
-				
+
 					refNode = ((DOMNode) endNode).getNextSibling();
-					
 				}
-				
+
 				if (refNode != null) {
-					
+
 					message.setCommand("INSERT_BEFORE");
 					message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
-					
+
 				} else {
-					
+
 					message.setCommand("APPEND_CHILD");
 				}
-				
-				//message.setResult(Arrays.asList(new GraphObject[] { endNode }));
 
+				// message.setResult(Arrays.asList(new GraphObject[] { endNode }));
 				messageStack.add(message);
 				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getProperty(AbstractNode.uuid),
 					endNode.getProperty(AbstractNode.uuid) });
@@ -367,6 +374,7 @@ public class SynchronizationController implements StructrTransactionListener {
 		}
 
 		return true;
+
 	}
 
 	@Override
@@ -381,7 +389,6 @@ public class SynchronizationController implements StructrTransactionListener {
 //              message.setCommand("UPDATE");
 //              message.setGraphObject(graphObject);
 //              messageStack.add(message);
-		
 		return true;
 	}
 
@@ -395,11 +402,10 @@ public class SynchronizationController implements StructrTransactionListener {
 		if ((obj != null) && (obj instanceof AbstractRelationship)) {
 
 			relationship = (AbstractRelationship) obj;
-			
-			if (!relationship.getRelType().equals(RelType.CONTAINS)) {
-				
+
+			if (ignoreRelationship(relationship)) {
+
 				return true;
-				
 			}
 
 			// do not access nodes of delete relationships
@@ -408,15 +414,17 @@ public class SynchronizationController implements StructrTransactionListener {
 			WebSocketMessage message = new WebSocketMessage();
 			String startNodeId       = relationship.getCachedStartNodeId();
 			String endNodeId         = relationship.getCachedEndNodeId();
-			String pageId	         = properties.get(new StringProperty("pageId"));
+			String pageId            = properties.get(new StringProperty("pageId"));
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
 				message.setCommand("REMOVE_CHILD");
-				//message.setGraphObject(relationship);
+
+				// message.setGraphObject(relationship);
 				message.setId(endNodeId);
 				message.setNodeData("parentId", startNodeId);
-//				message.setNodeData("pageId", pageId);
+
+//                              message.setNodeData("pageId", pageId);
 				messageStack.add(message);
 
 			}
@@ -435,5 +443,41 @@ public class SynchronizationController implements StructrTransactionListener {
 		}
 
 		return true;
+
 	}
+
+	/**
+	 * Ignore all relationships which should not trigger an UI update at all
+	 * 
+	 * @param rel
+	 * @return 
+	 */
+	private boolean ignoreRelationship(final AbstractRelationship rel) {
+
+		String relType = rel.getRelType().name();
+
+		if (relType.equals("CONTAINS")) {
+
+			return false;
+		}
+
+		if (relType.equals("OWNS")) {
+
+			return true;
+		}
+
+		if (relType.equals("SECURITY")) {
+
+			return true;
+		}
+
+		if (relType.endsWith(LinkedTreeNode.LIST_KEY_SUFFIX)) {
+
+			return true;
+		}
+
+		return false;
+
+	}
+
 }

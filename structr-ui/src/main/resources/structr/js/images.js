@@ -114,7 +114,7 @@ var _Images = {
             drop.on('drop', function(event) {
                 
                 if (!event.originalEvent.dataTransfer) {
-                    console.log(event);
+                    log(event);
                     return;
                 }
                 
@@ -124,7 +124,7 @@ var _Images = {
                 event.preventDefault();
                 
                 fileList = event.originalEvent.dataTransfer.files;
-                console.log(fileList);
+                log(fileList);
                 var filesToUpload = [];
                 var tooLargeFiles = [];
 
@@ -526,7 +526,7 @@ var _Images = {
     
     uploadFile : function(file) {
 
-        console.log(fileList);
+        log(fileList);
 
         $(fileList).each(function(i, fileObj) {
 
@@ -617,7 +617,7 @@ var _Images = {
     },
 
     editImage : function (button, image, element) {
-        console.log(image);
+        log(image);
         element.append('<img src="/' + image.id + '"><br><a href="' + image.id + '">Download</a>');
     }    
 };
