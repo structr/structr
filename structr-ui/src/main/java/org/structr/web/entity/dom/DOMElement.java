@@ -306,7 +306,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					renderContext.setTreeSource(dataRoot);
 					
 					// set tree key
-					String treeKey = dataRoot.getProperty(LinkedListNode.keyProperty);//rel.getProperty(LinkedListNode.keyProperty);
+					String treeKey = dataRoot.getProperty(LinkedListNode.keyProperty);
+					if (treeKey == null) {
+						treeKey = rel.getProperty(LinkedListNode.keyProperty);
+						dataRoot.setProperty(LinkedListNode.keyProperty, treeKey);
+					}
+					
 					renderContext.setTreeKey(treeKey);
 					
 					// data nodes to be used as list source in this level
