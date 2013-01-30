@@ -18,6 +18,8 @@
  */
 package org.structr.common;
 
+import org.neo4j.graphdb.Node;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
@@ -30,7 +32,7 @@ import org.structr.core.entity.GenericRelationship;
  *
  * @author Christian Morgner
  */
-public class DefaultGenericFactory implements GenericFactory {
+public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	@Override
 	public AbstractRelationship createGenericRelationship() {
@@ -38,8 +40,18 @@ public class DefaultGenericFactory implements GenericFactory {
 	}
 
 	@Override
+	public String getGenericRelationshiType() {
+		return GenericRelationship.class.getSimpleName();
+	}
+
+	@Override
 	public AbstractNode createGenericNode() {
 		return new GenericNode();
+	}
+
+	@Override
+	public String getGenericNodeType() {
+		return GenericNode.class.getSimpleName();
 	}
 
 	@Override
@@ -49,5 +61,20 @@ public class DefaultGenericFactory implements GenericFactory {
 		    GenericRelationship.class.isAssignableFrom(entityClass)
 		    ||
 		    GenericNode.class.isAssignableFrom(entityClass);
+	}
+
+	@Override
+	public String determineNodeType(Node node) {
+		
+		String type = GraphObject.type.dbName();
+		if (node.hasProperty(type)) {
+			
+			Object obj =  node.getProperty(type);
+			if (obj != null) {
+				return obj.toString();
+			}
+		}
+		
+		return getGenericNodeType();
 	}
 }

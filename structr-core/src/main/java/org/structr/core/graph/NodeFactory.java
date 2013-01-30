@@ -20,11 +20,9 @@
 
 package org.structr.core.graph;
 
-import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.common.RelType;
@@ -36,16 +34,16 @@ import org.structr.core.Services;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
 
-//~--- JDK imports ------------------------------------------------------------
-
 import java.lang.reflect.Constructor;
 
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.FactoryDefinition;
 import org.structr.core.EntityContext;
 import org.structr.core.module.ModuleService;
+import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,7 +64,8 @@ public class NodeFactory<T extends AbstractNode> {
 	private Map<Class, Constructor<T>> constructors = new LinkedHashMap<Class, Constructor<T>>();
 
 	// encapsulates all criteria for node creation
-	private FactoryProfile factoryProfile;
+	private FactoryDefinition factoryDefinition = EntityContext.getFactoryDefinition();
+	private FactoryProfile factoryProfile       = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -104,10 +103,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 	public T createNode(final Node node) {
 
-		String type     = AbstractNode.type.dbName();
-		String nodeType = node.hasProperty(type)
-				  ? (String) node.getProperty(type)
-				  : "GenericNode";
+		String nodeType = factoryDefinition.determineNodeType(node);
 
 		return createNodeWithType(node, nodeType, false);
 
@@ -147,7 +143,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 			if (newNode == null) {
 				// FIXME
-				newNode = (T)EntityContext.getGenericFactory().createGenericNode();
+				newNode = (T)factoryDefinition.createGenericNode();
 			}
 
 

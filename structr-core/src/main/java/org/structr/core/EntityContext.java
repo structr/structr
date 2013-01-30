@@ -104,7 +104,7 @@ public class EntityContext {
 	private static final Map<Long, TransactionChangeSet> globalChangeSets                                   = new ConcurrentHashMap<Long, TransactionChangeSet>();
 	private static final ThreadLocal<SecurityContext> securityContextMap                                    = new ThreadLocal<SecurityContext>();
 	private static final ThreadLocal<Long> transactionKeyMap                                                = new ThreadLocal<Long>();
-	private static GenericFactory genericFactory                                                            = new DefaultGenericFactory();
+	private static FactoryDefinition factoryDefinition                                                      = new DefaultFactoryDefinition();
 
 	//~--- methods --------------------------------------------------------
 
@@ -982,12 +982,12 @@ public class EntityContext {
 		return isSearchable;
 	}
 
-	public static GenericFactory getGenericFactory() {
-		return genericFactory;
+	public static FactoryDefinition getFactoryDefinition() {
+		return factoryDefinition;
 	}
 	
-	public static void registerGenericFactory(GenericFactory factory) {
-		genericFactory = factory;
+	public static void registerFactoryDefinition(FactoryDefinition factory) {
+		factoryDefinition = factory;
 	}
 
 	public static synchronized TransactionChangeSet getTransactionChangeSet(long transactionKey) {

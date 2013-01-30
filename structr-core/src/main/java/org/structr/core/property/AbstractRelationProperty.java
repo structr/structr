@@ -21,7 +21,7 @@ package org.structr.core.property;
 import java.util.List;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.*;
-import org.structr.common.GenericFactory;
+import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
@@ -117,24 +117,24 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 					if (newRel != null) {
 
-						GenericFactory genericFactory = EntityContext.getGenericFactory();
+						FactoryDefinition factoryDefinition = EntityContext.getFactoryDefinition();
 						
 						switch (getCardinality()) {
 
 							case OneToOne:
 
-								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
-								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 								
 							case ManyToOne:
 
-								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 
 							case OneToMany:
 							
-								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 
 						}
@@ -288,7 +288,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 	}
 	
 	// ----- private methods -----
-	private void ensureOneToMany(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, GenericFactory genericFactory, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+	private void ensureOneToMany(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
 		
 		Class newRelationshipClass = newRel.getClass();
 		Class sourceType           = finalSourceNode.getClass();
@@ -303,7 +303,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			}
 
 			Class relationshipClass = rel.getClass();
-			boolean isGeneric = genericFactory.isGeneric(relationshipClass);
+			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
 			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || sourceType.isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())) {
 
@@ -314,7 +314,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 	}
 	
-	private void ensureManyToOne(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, GenericFactory genericFactory, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+	private void ensureManyToOne(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
 		
 		Class newRelationshipClass = newRel.getClass();
 		Class destType             = finalTargetNode.getClass();
@@ -328,7 +328,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			}
 
 			Class relationshipClass = rel.getClass();
-			boolean isGeneric = genericFactory.isGeneric(relationshipClass);
+			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
 			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass) || destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass()))) {
 

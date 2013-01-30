@@ -91,13 +91,11 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 			Date now                            = new Date();
 
 			// Determine node type
-			PropertyMap properties = new PropertyMap(attributes);
-			Object typeObject      = properties.get(AbstractNode.type);
-			String nodeType        = (typeObject != null) ? typeObject.toString() : EntityContext.getGenericFactory().createGenericNode().getClass().getSimpleName();
-			boolean isCreation     = true;
-
+			PropertyMap properties     = new PropertyMap(attributes);
+			Object typeObject          = properties.get(AbstractNode.type);
+			String nodeType            = (typeObject != null) ? typeObject.toString() : EntityContext.getFactoryDefinition().getGenericNodeType();
 			NodeFactory<T> nodeFactory = new NodeFactory<T>(securityContext);
-//			NodeFactory<T> nodeFactory = new NodeFactory<T>(SecurityContext.getSuperUserInstance());
+			boolean isCreation         = true;
 
 			// Create node with type
 			node = nodeFactory.createNodeWithType(graphDb.createNode(), nodeType, isCreation);

@@ -18,15 +18,24 @@
  */
 package org.structr.web.entity;
 
-import org.structr.web.entity.dom.Content;
-import java.util.logging.Logger;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import org.neo4j.graphdb.Direction;
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.core.property.StringProperty;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 
 /**
  *
@@ -34,16 +43,43 @@ import org.structr.core.property.CollectionProperty;
  */
 public class TypeDefinition extends AbstractNode {
 	
-	private static final Logger logger = Logger.getLogger(TypeDefinition.class.getName());
+	public static final CollectionProperty<PropertyDefinition> properties   = new CollectionProperty<PropertyDefinition>("properties", PropertyDefinition.class, RelType.DEFINES_PROPERTY, Direction.OUTGOING, false);
+	public static final CollectionProperty<DataNode>           dataNodes    = new CollectionProperty<DataNode>("dataNodes", DataNode.class, RelType.DEFINES_TYPE, Direction.OUTGOING, false);
 	
-	public static final Property<String>            validationExpression   = new StringProperty("validationExpression");
-	public static final Property<String>            validationErrorMessage = new StringProperty("validationErrorMessage");
-	public static final Property<String>            converter              = new StringProperty("converter");
-	public static final Property<String>            converterDefaultValue  = new StringProperty("converterDefaultValue");
-
-	public static final CollectionProperty<Content> contents               = new CollectionProperty<Content>("contents", Content.class, RelType.IS_A, Direction.INCOMING, false);
+	public static final Property<String>                       kind         = new StringProperty("kind");
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(TypeDefinition.class, PropertyView.Public,
-	    type, validationExpression, validationErrorMessage, converter, converterDefaultValue
+	    kind, properties
 	);
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(TypeDefinition.class, PropertyView.Public,
+	    kind, properties
+	);
+	
+	// ----- private members -----
+	private Map<String, PropertyDefinition> propertyMap = new LinkedHashMap<String, PropertyDefinition>();
+	
+	public PropertyDefinition getPropertyDefinition(String name) {
+		
+		initializePropertyDefinitions();
+		return propertyMap.get(name);
+	}
+	
+	public Collection<PropertyDefinition> getPropertyDefinitions() {
+
+		initializePropertyDefinitions();
+		return propertyMap.values();
+	}
+	
+	// ----- private methods -----
+	private void initializePropertyDefinitions() {
+		
+		if (propertyMap.isEmpty()) {
+			
+			for (PropertyDefinition propertyDefinition : getProperty(properties)) {
+				
+				propertyMap.put(propertyDefinition.getProperty(PropertyDefinition.name), propertyDefinition);
+			}
+		}
+	}
 }

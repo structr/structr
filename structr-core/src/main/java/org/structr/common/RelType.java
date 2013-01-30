@@ -51,7 +51,8 @@ public enum RelType implements RelationshipType {
 	// web
 	CONTAINS,	
 	CONTAINS_NEXT_SIBLING,
-	IS_A,
+	DEFINES_TYPE,
+	DEFINES_PROPERTY,
 	PAGE,
 	ROOT,
 	RENDER_NODE,

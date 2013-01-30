@@ -41,7 +41,6 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.PageHelper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.validator.DynamicValidator;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -56,8 +55,6 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
-import org.structr.web.entity.TypeDefinition;
-import org.structr.web.property.DynamicContentProperty;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -76,7 +73,7 @@ public class Content extends DOMNode implements Text {
 
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType");
-	public static final Property<String> content                                         = new DynamicContentProperty("content");
+	public static final Property<String> content                                         = new StringProperty("content");
 	public static final Property<Integer> size                                           = new IntProperty("size");
 
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<String, Adapter<String, String>>();
@@ -95,7 +92,6 @@ public class Content extends DOMNode implements Text {
 
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
-		EntityContext.registerPropertyValidator(Content.class, content, new DynamicValidator(content));
 
 		contentConverters.put("text/markdown", new Adapter<String, String>() {
 
