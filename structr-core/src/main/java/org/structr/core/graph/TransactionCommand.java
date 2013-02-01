@@ -32,6 +32,7 @@ import java.util.logging.Level;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.neo4j.kernel.GraphDatabaseAPI;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -72,6 +73,11 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final ThreadLocal<Long> depths              = new ThreadLocal<Long>();
 	
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
+		
+		return execute(transaction, false);
+	}
+	
+	public <T> T execute(StructrTransaction<T> transaction, boolean unforced) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Long transactionKey          = transactionKeys.get();
@@ -81,7 +87,16 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 		if (tx == null || transactionKey == null) {
 			
-			tx = graphDb.beginTx();
+			if (unforced) {
+	
+				tx = ((GraphDatabaseAPI)graphDb).tx().unforced().begin();
+				
+			} else {
+			
+				tx = graphDb.beginTx();
+				
+			}
+			
 			transactionKey = nextLong();
 			
 			transactionKeys.set(transactionKey);

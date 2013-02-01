@@ -21,6 +21,7 @@ package org.structr.web.test;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Predicate;
+import org.structr.core.entity.Folder;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.web.common.DOMTest;
@@ -85,4 +86,34 @@ public class PerformanceTest extends DOMTest {
 
 		assertTrue("Iteration of 100 nodes via getNextSibling should not take longer than 50ms, took " + duration + "!", duration < 50);
 	}
+	
+	/*
+	public void testForcedVsUnforcedTransactions() {
+
+		try {
+			int num = 1000;
+
+			long t0 = System.currentTimeMillis();
+			
+			for (int i=0; i<num; i++) {
+				createTestNodes(Folder.class, 1, false);
+			}
+			
+			long t1 = System.currentTimeMillis();
+			
+			for (int i=0; i<num; i++) {
+				createTestNodes(Folder.class, 1, true);
+			}
+			
+			long t2 = System.currentTimeMillis();
+
+			System.out.println("Forced:   " + (t1-t0) + " ms");
+			System.out.println("Unforced: " + (t2-t1) + " ms");
+			
+		} catch (Throwable t) {
+			
+			fail("Unexpected exception: " + t.getMessage());
+		}
+	}
+	*/
 }

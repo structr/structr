@@ -48,7 +48,7 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement
 	 * @return
 	 */
-	protected LinkedListNode listGetPrevious(final RelationshipType relType, final LinkedListNode currentElement) {
+	public LinkedListNode listGetPrevious(final RelationshipType relType, final LinkedListNode currentElement) {
 
 		final List<AbstractRelationship> incomingRelationships = currentElement.getIncomingRelationships(relType);
 		
@@ -77,7 +77,7 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement
 	 * @return
 	 */
-	protected LinkedListNode listGetNext(final RelationshipType relType, final LinkedListNode currentElement) {
+	public LinkedListNode listGetNext(final RelationshipType relType, final LinkedListNode currentElement) {
 		
 		List<AbstractRelationship> outgoingRelationships = currentElement.getOutgoingRelationships(relType);
 		
@@ -106,7 +106,7 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	protected void listInsertBefore(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	public void listInsertBefore(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
@@ -152,7 +152,7 @@ public abstract class LinkedListNode extends AbstractNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	protected void listInsertAfter(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	public void listInsertAfter(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
@@ -196,7 +196,7 @@ public abstract class LinkedListNode extends AbstractNode {
 	 *
 	 * @param currentElement the element to be removed
 	 */
-	protected void listRemove(final RelationshipType relType, final LinkedListNode currentElement) throws FrameworkException {
+	public void listRemove(final RelationshipType relType, final LinkedListNode currentElement) throws FrameworkException {
 		
 		final LinkedListNode previousElement = listGetPrevious(relType, currentElement);
 		final LinkedListNode nextElement     = listGetNext(relType, currentElement);
@@ -227,11 +227,11 @@ public abstract class LinkedListNode extends AbstractNode {
 		}
 	}
 	
-	protected void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode) throws FrameworkException {
+	public void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode) throws FrameworkException {
 		linkNodes(relType, startNode, endNode, null);
 	}
 	
-	protected void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode, PropertyMap properties) throws FrameworkException {
+	public void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode, PropertyMap properties) throws FrameworkException {
 		
 		CreateRelationshipCommand cmd = Services.command(securityContext, CreateRelationshipCommand.class);
 
@@ -239,7 +239,7 @@ public abstract class LinkedListNode extends AbstractNode {
 		cmd.execute(startNode, endNode, relType, properties, false);
 	}
 	
-	protected void unlinkNodes(final RelationshipType relType, final LinkedListNode startNode, final LinkedListNode endNode) throws FrameworkException {
+	public void unlinkNodes(final RelationshipType relType, final LinkedListNode startNode, final LinkedListNode endNode) throws FrameworkException {
 		
 		final DeleteRelationshipCommand cmd = Services.command(securityContext, DeleteRelationshipCommand.class);
 		

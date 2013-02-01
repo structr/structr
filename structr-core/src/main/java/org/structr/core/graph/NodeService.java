@@ -144,7 +144,8 @@ public class NodeService implements SingletonService {
 
 			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
 
-			graphDb = new EmbeddedGraphDatabase(dbPath);
+			// thanks Michael :)
+			graphDb = new EmbeddedGraphDatabase(dbPath, MapUtil.stringMap("enable_remote_shell", "true"));
 
 		}
 

@@ -4,16 +4,21 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
+import org.structr.core.property.AbstractRelationProperty;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
@@ -33,6 +38,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	public static final Property<String>               validationExpression   = new StringProperty("validationExpression");
 	public static final Property<String>               validationErrorMessage = new StringProperty("validationErrorMessage");
 	public static final Property<String>               dataType               = new StringProperty("dataType");
+	public static final Property<String>               relType                = new StringProperty("relType");
 	
 	public static final Property<Boolean>              systemProperty         = new BooleanProperty("systemProperty");
 	public static final Property<Boolean>              readOnlyProperty       = new BooleanProperty("readOnlyProperty");
@@ -42,7 +48,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	public static final Property<String>               typeDefinitionId       = new EntityIdProperty("typeDefinitionId", typeDefinition);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(TypeDefinition.class, PropertyView.Public,
-	    name, dataType, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
+	    name, dataType, relType, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
 	);
 	
 	// ----- private members -----
@@ -53,11 +59,20 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	// ----- static initializer -----
 	static {
 		
-		delegateMap.put("String",  StringProperty.class);
-		delegateMap.put("Integer", IntProperty.class);
-		delegateMap.put("Long",    LongProperty.class);
-		delegateMap.put("Double",  DoubleProperty.class);
-		delegateMap.put("Boolean", BooleanProperty.class);
+		delegateMap.put("String",     StringProperty.class);
+		delegateMap.put("Integer",    IntProperty.class);
+		delegateMap.put("Long",       LongProperty.class);
+		delegateMap.put("Double",     DoubleProperty.class);
+		delegateMap.put("Boolean",    BooleanProperty.class);
+		delegateMap.put("Collection", CollectionProperty.class);
+		delegateMap.put("Entity",     EntityProperty.class);
+		
+	}
+	
+	// ----- overridden methods from superclass -----
+	@Override
+	public void onNodeInstantiation() {
+		initialize();
 	}
 	
 	// ----- interface PropertyKey -----
@@ -74,8 +89,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	@Override
 	public String typeName() {
 		
-		getPropertyKeyForDataType();
-		
 		if (delegate != null) {
 			return delegate.typeName();
 		}
@@ -85,8 +98,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 
 	@Override
 	public Class relatedType() {
-		
-		getPropertyKeyForDataType();
 		
 		if (delegate != null) {
 			return delegate.relatedType();
@@ -103,8 +114,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	@Override
 	public PropertyConverter databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		
-		getPropertyKeyForDataType();
-		
 		if (delegate != null) {
 			return delegate.databaseConverter(securityContext, entity);
 		}
@@ -114,8 +123,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 
 	@Override
 	public PropertyConverter inputConverter(SecurityContext securityContext) {
-		
-		getPropertyKeyForDataType();
 		
 		if (delegate != null) {
 			return delegate.inputConverter(securityContext);
@@ -137,8 +144,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	@Override
 	public SearchAttribute getSearchAttribute(SearchOperator op, Object searchValue, boolean exactMatch) {
 		
-		getPropertyKeyForDataType();
-		
 		if (delegate != null) {
 			return delegate.getSearchAttribute(op, searchValue, exactMatch);
 		}
@@ -149,8 +154,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	@Override
 	public void registerSearchableProperties(Set searchableProperties) {
 		
-		getPropertyKeyForDataType();
-		
 		if (delegate != null) {
 			delegate.registerSearchableProperties(searchableProperties);
 		}
@@ -158,8 +161,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 
 	@Override
 	public String getSearchStringValue(Object source) {
-		
-		getPropertyKeyForDataType();
 		
 		if (delegate != null) {
 			return delegate.getSearchStringValue(source);
@@ -171,8 +172,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	@Override
 	public Object getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		
-		getPropertyKeyForDataType();
-		
 		if (delegate != null) {
 			return delegate.getProperty(securityContext, obj, applyConverter);
 		}
@@ -182,8 +181,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, Object value) throws FrameworkException {
-		
-		getPropertyKeyForDataType();
 		
 		if (delegate != null) {
 			delegate.setProperty(securityContext, obj, value);
@@ -212,8 +209,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	@Override
 	public boolean isCollection() {
 		
-		getPropertyKeyForDataType();
-		
 		if (delegate != null) {
 			return delegate.isCollection();
 		}
@@ -221,12 +216,19 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		return false;
 	}
 	
+	// ----- overridden methods from superclass -----
+	@Override
+	public void afterDeletion(SecurityContext securityContext) {
+		
+	}
+	
 	// ----- private methods -----
-	private void getPropertyKeyForDataType() {
+	private void initialize() {
 		
 		if (delegate == null) {
 			
 			String _dataType = super.getProperty(PropertyDefinition.dataType);
+			String _relType  = super.getProperty(PropertyDefinition.relType);
 			String _name     = super.getName();
 
 			if (_dataType != null && _name != null) {
@@ -234,16 +236,44 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 				Class<? extends PropertyKey> keyClass = delegateMap.get(_dataType);
 				if (keyClass != null) {
 
-					try {
+					if (AbstractRelationProperty.class.isAssignableFrom(keyClass)) {
+					
+						try {
 
-						// if this call fails, a convention has been violated
-						delegate = keyClass.getConstructor(String.class).newInstance(_name);
+							// if this call fails, a convention has been violated
+							delegate = keyClass.getConstructor(String.class, Class.class, RelationshipType.class, Boolean.TYPE).newInstance(
+							                   _name,
+									   DataNode.class,
+									   DynamicRelationshipType.withName(_relType),
+									   false
+							           );
 
-					} catch (Throwable t) {
+							// register property
+							EntityContext.registerProperty(DataNode.class, delegate);
 
-						t.printStackTrace();
+						} catch (Throwable t) {
+
+							t.printStackTrace();
+						}
+
+					} else {
+
+						try {
+
+							// if this call fails, a convention has been violated
+							delegate = keyClass.getConstructor(String.class).newInstance(_name);
+
+							// register property
+							EntityContext.registerProperty(DataNode.class, delegate);
+
+						} catch (Throwable t) {
+
+							t.printStackTrace();
+						}
 					}
 				}
+				
+				delegate.setDeclaringClass(DataNode.class);
 			}
 		}
 	}

@@ -54,8 +54,7 @@ public class DataNode extends LinkedTreeNode {
 				
 				// initialize dynamic property key instance
 				def.setDeclaringClass(getClass());
-
-				def.setProperty(key, value);
+				def.setProperty(securityContext, this, value);
 			}
 			
 		}
@@ -80,7 +79,7 @@ public class DataNode extends LinkedTreeNode {
 				// initialize dynamic property key instance
 				def.setDeclaringClass(getClass());
 				
-				return def.getProperty(key);
+				return (T)def.getProperty(securityContext, this, true);
 			}
 		}
 		
