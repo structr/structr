@@ -461,6 +461,11 @@ public class SynchronizationController implements StructrTransactionListener {
 			return false;
 		}
 
+		if (relType.equals("PAGE")) {
+
+			return true;
+		}
+
 		if (relType.equals("OWNS")) {
 
 			return true;
