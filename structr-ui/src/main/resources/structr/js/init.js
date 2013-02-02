@@ -97,12 +97,12 @@ $(document).ready(function() {
         _Pages.resize();
     });
 
-    $('#components_').on('click', function(e) {
-        e.stopPropagation();
-        main.empty();
-        Structr.activateMenuEntry('components');
-        Structr.modules['components'].onload();
-    });
+//    $('#components_').on('click', function(e) {
+//        e.stopPropagation();
+//        main.empty();
+//        Structr.activateMenuEntry('components');
+//        Structr.modules['components'].onload();
+//    });
     
     $('#types_').on('click', function(e) {
         e.stopPropagation();

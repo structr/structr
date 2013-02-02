@@ -106,7 +106,8 @@ function connect() {
         }
 
         ws.onmessage = function(message) {
-
+            
+            console.log(message.data);
 
             var data = $.parseJSON(message.data);
             log('ws.onmessage:', data);
@@ -119,7 +120,7 @@ function connect() {
             var sessionValid = data.sessionValid;
             var code = data.code;
             
-            log('####################################### ', command, ' #########################################');
+            console.log('####################################### ', command, ' #########################################');
             
             rawResultCount[type] = data.rawResultCount;
             pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
@@ -269,7 +270,7 @@ function connect() {
                         var tab = $('#show_' + entity.id, previews);
                         setTimeout(function() {
                             _Pages.activateTab(tab)
-                        }, 200);
+                        }, 2000);
                     }
 
                 });

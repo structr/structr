@@ -32,8 +32,8 @@ var _Elements = {
 
     elementNames : [
 
-    // Active components
-    'Component', 'View', 'RemoteView',
+//    // Active components
+//    'Component', 'View', 'RemoteView',
 
     // The root element
     'html',
@@ -188,9 +188,9 @@ var _Elements = {
     appendElementElement : function(entity, refNode) {
         log('_Elements.appendElementElement', entity);
         
-        var hasChildren = entity.children && entity.children.length;
+        var hasChildren = entity.childrenIds && entity.childrenIds.length;
         
-        var parent = entity.parent ? Structr.node(entity.parent.id) : undefined;
+        var parent = entity.parentId ? Structr.node(entity.parentId) : undefined;
         
         log('appendElementElement parent', parent);
         if (!parent) return false;
@@ -232,75 +232,6 @@ var _Elements = {
             e.stopPropagation();
             StructrModel.remove(entity.id);
             //_Entities.deleteElement(this, entity);
-        });
-
-
-        div.append('<img title="Wrap in Component" alt="Wrap in Component" class="add_icon button" src="' + _Components.add_icon + '">');
-        $('.add_icon', div).on('click', function(e) {
-            e.stopPropagation();
-            var self = $(this);
-
-            var node = $(self.closest('.node')[0]);
-
-            var pos = node.parent().children('.node').size() - 1;
-
-            var nodeData = {};
-            nodeData.type = 'Component';
-            nodeData.parentId = getId(node.parent());
-
-            var relData = {};
-
-//            var component = node.closest('.component')[0];
-//            if (component) {
-//                var componentId = getId(component);
-//                relData[componentId] = pos;
-//                relData.componentId = componentId;
-//            }
-
-            var page = node.closest('.page')[0];
-            if (page) {
-                var pageId = getId(page);
-                relData[pageId] = pos;
-                relData.pageId = pageId;
-            }
-            log('Wrap element in component', getId(node), nodeData, relData);
-            //_Entities.createAndAdd(getId(node), nodeData, relData);
-            
-            var dialog = $('#dialogBox .dialogText');
-            var dialogMsg = $('#dialogMsg');
-			
-            dialog.empty();
-            dialogMsg.empty();
-            
-            dialog.append('<label for="kind">Component Class:</label></td><td><input id="_kind" name="kind" size="20" value="">');
-            dialog.append('<button id="startWrap">Create Component</button>');
-
-            Structr.dialog('Create Component', function() {
-                return true;
-            }, function() {
-                return true;
-            });
-			
-            $('#startWrap').on('click', function(e) {
-                e.stopPropagation();
-
-                var kind = $('#_kind', dialog).val();
-                
-                nodeData.kind = kind;
-                
-                dialog.empty();
-                dialogMsg.empty();
-                
-                $.unblockUI({
-                    fadeOut: 25
-                });
-
-                log('start');
-                return Command.wrap(getId(node), nodeData, relData);
-            });
-
-            
-
         });
 
         _Entities.setMouseOver(div);

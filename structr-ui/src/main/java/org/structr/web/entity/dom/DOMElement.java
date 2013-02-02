@@ -67,7 +67,6 @@ import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
-import org.structr.web.common.RenderContext.RenderMode;
 import org.structr.web.entity.DataNode;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -176,10 +175,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _accesskey               = new HtmlProperty("accesskey");
 	
 	public static final org.structr.common.View publicView        = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-										name, tag, path, parent, cypherQuery, xpathQuery, dataKey
+										name, tag, path, parentId, cypherQuery, xpathQuery, dataKey
 	);
 	
-	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parent, children, cypherQuery, xpathQuery, dataKey,
+	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parentId, childrenIds, cypherQuery, xpathQuery, dataKey,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,

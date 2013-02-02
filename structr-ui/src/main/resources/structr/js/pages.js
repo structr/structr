@@ -149,7 +149,7 @@ var _Pages = {
             dialogMsg.empty();
             
             dialog.append('<table class="props">'
-                + '<tr><td><label for="address">Address:</label></td><td><input id="_address" name="address" size="20" value="http://"></td></tr>'
+                + '<tr><td><label for="address">Address:</label></td><td><input id="_address" name="address" size="40" value="http://"></td></tr>'
                 + '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
                 + '<tr><td><label for="timeout">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr>'
                 + '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
@@ -159,7 +159,7 @@ var _Pages = {
             var addressField = $('#_address', dialog);
 
             log('addressField', addressField);
-
+            
             addressField.on('blur', function() {
                 var addr = $(this).val().replace(/\/+$/, "");
                 log(addr);

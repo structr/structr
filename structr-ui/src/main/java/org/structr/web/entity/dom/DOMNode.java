@@ -42,7 +42,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -55,6 +54,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.property.CollectionIdProperty;
+import org.structr.core.property.EntityIdProperty;
 import org.structr.web.common.PageHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -99,9 +100,17 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
 	
 	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<DOMNode>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
+	public static final CollectionIdProperty childrenIds                    = new CollectionIdProperty("childrenIds", children);
+
 	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<DOMNode>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
+	public static final CollectionIdProperty siblingsIds                    = new CollectionIdProperty("siblingIds", siblings);
+
 	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final EntityIdProperty parentId                           = new EntityIdProperty("parentId", parent);
+
 	public static final EntityProperty<Page> page                           = new EntityProperty<Page>("page", Page.class, RelType.PAGE, Direction.OUTGOING, true);
+	public static final EntityIdProperty pageId                             = new EntityIdProperty("pageId", page);
+
 	private static Set<Page> resultPages                                    = new HashSet<Page>();
 		
 	

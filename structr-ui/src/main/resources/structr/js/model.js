@@ -78,6 +78,13 @@ var StructrModel = {
         // Store a reference of this object
         StructrModel.objects[data.id] = obj;
         
+        // Check if the object is already contained in page
+        var el = $('#id_' + obj.id);
+        if (el && el.length) {
+            return obj;
+        }
+        
+        
         StructrModel.append(obj, refId);
         
         return obj;

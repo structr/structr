@@ -50,7 +50,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 	private static final Logger logger                   = Logger.getLogger(WebSocketDataGSONAdapter.class.getName());
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
-	private Value<String> propertyView                   = new StaticValue<String>(PropertyView.All);
+	private Value<String> propertyView                   = new StaticValue<String>(PropertyView.Public);
 
 	//~--- constructors ---------------------------------------------------
 
@@ -256,7 +256,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			} else {
 
 				try {
-					propertyView.set(null, PropertyView.All);
+					propertyView.set(null, PropertyView.Ui);
 					
 				} catch(FrameworkException fex) {
 					

@@ -396,7 +396,7 @@ var _Files = {
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
                     //log('addExpandedNode(folderId)', addExpandedNode(folderId));
-                    Command.appendFile(fileId, folderId);
+                    Command.appendChild(fileId, folderId);
                     $(ui.draggable).remove();
                 //Command.createAndAdd(folderId, nodeData);
                 }

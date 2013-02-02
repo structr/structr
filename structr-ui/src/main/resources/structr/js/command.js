@@ -269,54 +269,9 @@ var Command = {
     },
 
     /**
-     * Send an APPEND_FILE command to the server.
-     * 
-     * The server will append the file or folder node with the given id
-     * as child of the folder with the given parent id.
-     * 
-     * If the node was child of a parent before, it will be
-     * removed from the former parent before being appended
-     * to the new one.
-     * 
-     */
-    appendFile : function(id, parentId) {
-        var obj = {};
-        obj.command = 'APPEND_FILE';
-        obj.id = id;
-        var data = {};
-        data.parentId = parentId;
-        obj.data = data;
-        log('appendFile()', obj);
-        return sendObj(obj);
-    },
-
-    /**
      * Send an APPEND_DATA command to the server.
      * 
-     * The server will append the file or folder node with the given id
-     * as child of the folder with the given parent id.
-     * 
-     * If the node was child of a parent before, it will be
-     * removed from the former parent before being appended
-     * to the new one.
-     * 
-     */
-    appendDataNode : function(id, parentId, key) {
-        var obj = {};
-        obj.command = 'APPEND_DATA';
-        obj.id = id;
-        var data = {};
-        data.parentId = parentId;
-        data.key = key;
-        obj.data = data;
-        log('appendData()', obj, key);
-        return sendObj(obj);
-    },
-
-    /**
-     * Send an APPEND_CHILD command to the server.
-     * 
-     * The server will append the DOM node with the given id
+     * The server will append the node with the given id
      * as child of the node with the given parent id.
      * 
      * If the node was child of a parent before, it will be
@@ -324,14 +279,15 @@ var Command = {
      * to the new one.
      * 
      */
-    appendChild : function(id, parentId) {
+    appendChild : function(id, parentId, key) {
         var obj = {};
         obj.command = 'APPEND_CHILD';
         obj.id = id;
         var data = {};
         data.parentId = parentId;
+        data.key = key;
         obj.data = data;
-        log('appendChild()', obj);
+        log('appendChild()', obj, key);
         return sendObj(obj);
     },
 

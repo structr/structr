@@ -189,7 +189,7 @@ var _Trees = {
                     nodeData.id = nodeId;
                     addExpandedNode(parentNodeId);
                     //log('addExpandedNode(folderId)', addExpandedNode(folderId));
-                    Command.appendDataNode(nodeId, parentNodeId, 'TEST_DATA');
+                    Command.appendChild(nodeId, parentNodeId, 'TEST_DATA');
                     $(ui.draggable).remove();
                 //Command.createAndAdd(folderId, nodeData);
                 }
