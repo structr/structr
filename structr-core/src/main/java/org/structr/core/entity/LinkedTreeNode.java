@@ -45,7 +45,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 	// this is not used for the node itself but for the relationship(s) this node maintains
 	public static final PropertyKey<Integer> positionProperty = new IntProperty("position");
 	
-	protected LinkedTreeNode treeGetParent(final RelationshipType relType) {
+	public LinkedTreeNode treeGetParent(final RelationshipType relType) {
 		
 		for (AbstractRelationship rel : getIncomingRelationships(relType)) {
 			
@@ -56,7 +56,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		return null;
 	}
 
-	protected void treeAppendChild(final RelationshipType relType, final LinkedTreeNode childElement) throws FrameworkException {
+	public void treeAppendChild(final RelationshipType relType, final LinkedTreeNode childElement) throws FrameworkException {
 		
 		final LinkedTreeNode lastChild = treeGetLastChild(relType);
 		
@@ -82,7 +82,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		});
 	}
 	
-	protected void treeInsertBefore(final RelationshipType relType, final LinkedTreeNode newChild, final LinkedTreeNode refChild) throws FrameworkException {
+	public void treeInsertBefore(final RelationshipType relType, final LinkedTreeNode newChild, final LinkedTreeNode refChild) throws FrameworkException {
 		
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -122,7 +122,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		});
 	}
 	
-	protected void treeInsertAfter(final RelationshipType relType, final LinkedTreeNode newChild, final LinkedTreeNode refChild) throws FrameworkException {
+	public void treeInsertAfter(final RelationshipType relType, final LinkedTreeNode newChild, final LinkedTreeNode refChild) throws FrameworkException {
 		
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -160,7 +160,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		});
 	}
 
-	protected void treeRemoveChild(final RelationshipType relType, final LinkedTreeNode childToRemove) throws FrameworkException {
+	public void treeRemoveChild(final RelationshipType relType, final LinkedTreeNode childToRemove) throws FrameworkException {
 
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -180,7 +180,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		});
 	}
 	
-	protected void treeReplaceChild(final RelationshipType relType, final LinkedTreeNode newChild, final LinkedTreeNode oldChild) throws FrameworkException {
+	public void treeReplaceChild(final RelationshipType relType, final LinkedTreeNode newChild, final LinkedTreeNode oldChild) throws FrameworkException {
 		
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -209,11 +209,11 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		});
 	}
 	
-	protected LinkedTreeNode treeGetFirstChild(final RelationshipType relType) {
+	public LinkedTreeNode treeGetFirstChild(final RelationshipType relType) {
 		return treeGetChild(relType, 0);
 	}
 	
-	protected LinkedTreeNode treeGetLastChild(final RelationshipType relType) {
+	public LinkedTreeNode treeGetLastChild(final RelationshipType relType) {
 		
 		int last = treeGetChildCount(relType) - 1;
 		if (last >= 0) {
@@ -224,7 +224,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		return null;
 	}
 	
-	protected LinkedTreeNode treeGetChild(final RelationshipType relType, final int position) {
+	public LinkedTreeNode treeGetChild(final RelationshipType relType, final int position) {
 		
 		for (AbstractRelationship rel : getOutgoingRelationships(relType)) {
 			
@@ -240,7 +240,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		return null;
 	}
 	
-	protected int treeGetChildPosition(final RelationshipType relType, final LinkedTreeNode child) {
+	public int treeGetChildPosition(final RelationshipType relType, final LinkedTreeNode child) {
 		
 		List<AbstractRelationship> rels = child.getIncomingRelationships(relType);
 		if (rels != null && rels.size() == 1) {
@@ -258,7 +258,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		return -1;
 	}
 	
-	protected List<LinkedTreeNode> treeGetChildren(final RelationshipType relType) {
+	public List<LinkedTreeNode> treeGetChildren(final RelationshipType relType) {
 		
 		List<LinkedTreeNode> children = new ArrayList<LinkedTreeNode>();
 		
@@ -270,11 +270,11 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 		return children;
 	}
 	
-	protected int treeGetChildCount(final RelationshipType relType) {
+	public int treeGetChildCount(final RelationshipType relType) {
 		return getOutgoingRelationships(relType).size();
 	}
 	
-	protected List<AbstractRelationship> treeGetChildRelationships(final RelationshipType relType) {
+	public List<AbstractRelationship> treeGetChildRelationships(final RelationshipType relType) {
 		
 		// fetch all relationships
 		List<AbstractRelationship> childRels = getOutgoingRelationships(relType);
@@ -335,7 +335,7 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 	/**
 	 * Creates a list key from the give tree key by appending a fixed string
 	 */
-	protected RelationshipType getListKey(RelationshipType treeRel) {
+	public RelationshipType getListKey(RelationshipType treeRel) {
 		return DynamicRelationshipType.withName(treeRel.name().concat(LIST_KEY_SUFFIX));
 	}
 }

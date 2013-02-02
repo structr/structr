@@ -22,15 +22,16 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.error.FrameworkException;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.dom.DOMNode;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import org.w3c.dom.DOMException;
 
 /**
  *
@@ -49,6 +50,7 @@ public class AppendChildCommand extends AbstractCommand {
 		String id                    = webSocketData.getId();
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 		String parentId              = (String) nodeData.get("parentId");
+		String key                   = (String) nodeData.get("key");
 
 		// check node to append
 		if (id == null) {
@@ -79,37 +81,43 @@ public class AppendChildCommand extends AbstractCommand {
 
 		}
 
-		if (parentNode instanceof DOMNode) {
+		if (parentNode instanceof LinkedTreeNode) {
 
-			DOMNode parentDomNode = (DOMNode)parentNode;
-			if (parentDomNode == null) {
+			LinkedTreeNode parentLinkedTreeNode = (LinkedTreeNode)parentNode;
+			if (parentLinkedTreeNode == null) {
 
-				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
+				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no data node").build(), true);
 
 				return;
 
 			}
 
-			DOMNode node = getDOMNode(id);
+			// defaulting to CONTAINS!
+			if (key == null) {
+				key = "CONTAINS";
+			}
+			
+			LinkedTreeNode node      = (LinkedTreeNode) getNode(id);
+			RelationshipType relType = DynamicRelationshipType.withName(key);
 
 			try {
 
 				// append node to parent
 				if (node != null) {
 
-					parentDomNode.appendChild(node);
+					parentLinkedTreeNode.treeAppendChild(relType, node);
 				}
 				
-			} catch (DOMException dex) {
+			} catch (FrameworkException fex) {
 
 				// send DOM exception
-				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+				getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
 			}
 
 		} else {
 			
 			// send DOM exception
-			getWebSocket().send(MessageBuilder.status().code(422).message("Please use APPEND_FILE for File/Folder nodes.").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot use given node, not instance of LinkedTreeNode").build(), true);
 		}
 	}
 

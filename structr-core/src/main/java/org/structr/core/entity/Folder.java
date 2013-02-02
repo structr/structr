@@ -56,12 +56,4 @@ public class Folder extends AbstractFile {
 		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name);
 		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name);
 	}
-	
-	public void addFolder(final Folder folder) throws FrameworkException {
-		treeAppendChild(RelType.CONTAINS, folder);
-	}
-	
-	public void addFile(final File file) throws FrameworkException {
-		treeAppendChild(RelType.CONTAINS, file);
-	}
 }

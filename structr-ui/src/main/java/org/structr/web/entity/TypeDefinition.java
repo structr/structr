@@ -21,20 +21,12 @@ package org.structr.web.entity;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 
 /**
@@ -60,15 +52,17 @@ public class TypeDefinition extends AbstractNode {
 	private Map<String, PropertyDefinition> propertyMap = new LinkedHashMap<String, PropertyDefinition>();
 	
 	public PropertyDefinition getPropertyDefinition(String name) {
-		
-		initializePropertyDefinitions();
 		return propertyMap.get(name);
 	}
 	
 	public Collection<PropertyDefinition> getPropertyDefinitions() {
-
-		initializePropertyDefinitions();
 		return propertyMap.values();
+	}
+	
+	// ----- overridden methods from superclass -----
+	@Override
+	public void onNodeInstantiation() {
+		initializePropertyDefinitions();
 	}
 	
 	// ----- private methods -----

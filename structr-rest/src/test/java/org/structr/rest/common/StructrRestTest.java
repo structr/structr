@@ -349,7 +349,7 @@ public class StructrRestTest extends TestCase {
 
 			}
 
-		});
+		}, true);
 
 	}
 
@@ -375,7 +375,7 @@ public class StructrRestTest extends TestCase {
 
 			}
 
-		});
+		}, true);
 
 	}
 
