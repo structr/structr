@@ -24,7 +24,9 @@ import java.util.Map;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -33,20 +35,24 @@ import org.structr.core.property.StringProperty;
  *
  * @author Christian Morgner
  */
-public class TypeDefinition extends AbstractNode {
+public class Type extends AbstractNode {
 	
 	public static final CollectionProperty<PropertyDefinition> properties   = new CollectionProperty<PropertyDefinition>("properties", PropertyDefinition.class, RelType.DEFINES_PROPERTY, Direction.OUTGOING, false);
 	public static final CollectionProperty<DataNode>           dataNodes    = new CollectionProperty<DataNode>("dataNodes", DataNode.class, RelType.DEFINES_TYPE, Direction.OUTGOING, false);
 	
 	public static final Property<String>                       kind         = new StringProperty("kind");
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(TypeDefinition.class, PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(Type.class, PropertyView.Public,
 	    kind, properties
 	);
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(TypeDefinition.class, PropertyView.Public,
+	public static final org.structr.common.View uiView = new org.structr.common.View(Type.class, PropertyView.Public,
 	    kind, properties
 	);
+	
+	static {
+		EntityContext.registerSearchableProperty(Type.class, NodeIndex.keyword.name(), kind);
+	}
 	
 	// ----- private members -----
 	private Map<String, PropertyDefinition> propertyMap = new LinkedHashMap<String, PropertyDefinition>();

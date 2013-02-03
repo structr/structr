@@ -35,7 +35,7 @@ public class DataNodeTest extends StructrUiTest {
 			assertEquals(GenericNode.class, node.getClass());
 			
 			// create and link to TypeDefinition node
-			TypeDefinition def = createTestNodes(TypeDefinition.class, 1).get(0);
+			Type def = createTestNodes(Type.class, 1).get(0);
 			Services.command(securityContext, CreateRelationshipCommand.class).execute(def, node, RelType.DEFINES_TYPE);
 			
 			// search node
