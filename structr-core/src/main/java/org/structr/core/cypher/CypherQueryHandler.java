@@ -42,7 +42,7 @@ import org.structr.core.graph.RelationshipFactory;
  *
  * @author Christian Morgner
  */
-public abstract class CypherQueryHandler<T> implements Value<CypherQueryHandler> {
+public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 
 	private static final Logger logger = Logger.getLogger(CypherQueryHandler.class.getName());
 	
@@ -51,7 +51,7 @@ public abstract class CypherQueryHandler<T> implements Value<CypherQueryHandler>
 	protected SecurityContext securityContext = null;
 	protected String query                    = null;
 	
-	public abstract T handleQueryResults(Iterable<Map<String, Object>> rows) throws FrameworkException;
+	public abstract Object handleQueryResults(Iterable<Map<String, Object>> rows) throws FrameworkException;
 	
 	public CypherQueryHandler(Object... query) {
 
