@@ -33,7 +33,7 @@ import org.structr.core.graph.search.TextualSearchAttribute;
 public abstract class Property<T> implements PropertyKey<T> {
 
 	protected Class<? extends GraphObject> declaringClass  = null;
-	protected T defaultValue                        = null;
+	protected T defaultValue                               = null;
 	protected boolean isReadOnlyProperty                   = false;
 	protected boolean isWriteOnceProperty                  = false;
 	protected boolean isSystemProperty                     = false;
