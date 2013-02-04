@@ -8,14 +8,16 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.LinkedListNode;
 import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.property.EntityIdProperty;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.RelatedNodeProperty;
 import org.structr.web.entity.dom.Content;
 
 /**
@@ -24,20 +26,23 @@ import org.structr.web.entity.dom.Content;
  */
 public class DataNode extends LinkedTreeNode {
 
-	public static final EntityProperty<TypeDefinition> typeDefinition   = new EntityProperty<TypeDefinition>("typeDefinition", TypeDefinition.class, RelType.DEFINES_TYPE, Direction.INCOMING, true);
-	public static final Property<String>               typeDefinitionId = new EntityIdProperty("typeDefinitionId", typeDefinition);
+	public static final EntityProperty<Type>   typeNode   = new EntityProperty<Type>("typeNode", Type.class, RelType.DEFINES_TYPE, Direction.INCOMING, true);
+	public static final Property<String>       kind       = new EntityNotionProperty("kind", typeNode, new PropertyNotion(Type.kind));
 	
-	public static final Property<String>               kind             = new RelatedNodeProperty<String>("kind", typeDefinition, TypeDefinition.kind);
+	public static final org.structr.common.View uiView     = new org.structr.common.View(Content.class, PropertyView.Ui,     kind);
+	public static final org.structr.common.View publicView = new org.structr.common.View(Content.class, PropertyView.Public, kind);
 
-	public static final org.structr.common.View uiView     = new org.structr.common.View(Content.class, PropertyView.Ui,     typeDefinitionId, kind);
-	public static final org.structr.common.View publicView = new org.structr.common.View(Content.class, PropertyView.Public, typeDefinitionId, kind);
-
-	public TypeDefinition getTypeDefinition() {
-		return super.getProperty(DataNode.typeDefinition);
+	static {
+		
+		EntityContext.registerSearchableProperty(DataNode.class, NodeIndex.fulltext.name(), kind);
+	}
+	
+	public Type getTypeDefinition() {
+		return super.getProperty(DataNode.typeNode);
 	}
 
 	// ----- private members -----
-	private TypeDefinition cachedTypeDefinition = null;
+	private Type cachedTypeDefinition = null;
 	
 	@Override
 	public <T> void setProperty(PropertyKey<T> key, T value) throws FrameworkException {

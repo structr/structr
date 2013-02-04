@@ -16,11 +16,13 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
+import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.AbstractRelationProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -44,11 +46,12 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	public static final Property<Boolean>              readOnlyProperty       = new BooleanProperty("readOnlyProperty");
 	public static final Property<Boolean>              writeOnceProperty      = new BooleanProperty("writeOnceProperty");
 	
-	public static final EntityProperty<TypeDefinition> typeDefinition         = new EntityProperty<TypeDefinition>("typeDefinition", TypeDefinition.class, RelType.DEFINES_PROPERTY, Direction.INCOMING, true);
-	public static final Property<String>               typeDefinitionId       = new EntityIdProperty("typeDefinitionId", typeDefinition);
+	public static final EntityProperty<Type>           typeNode               = new EntityProperty<Type>("typeNode", Type.class, RelType.DEFINES_PROPERTY, Direction.INCOMING, true);
+	public static final Property<String>               kind                   = new EntityNotionProperty("kind", typeNode, new PropertyNotion(Type.kind));
+	public static final Property<String>               typeId                 = new EntityIdProperty("typeId", typeNode);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(TypeDefinition.class, PropertyView.Public,
-	    name, dataType, relType, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
+	public static final org.structr.common.View publicView = new org.structr.common.View(Type.class, PropertyView.Public,
+	    name, dataType, kind, relType, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
 	);
 	
 	// ----- private members -----
