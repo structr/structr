@@ -90,12 +90,14 @@ var _Entities = {
                 log('Data Key successfully updated!', entity.dataKey);
             });
         });
+
+        _Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
         
-        dialog.append('<div><h3>Data Tree Id</h3><input type="text" id="treeRootNodeId"><button id="saveTreeRootNodeId">Save</button></div>');
-        $('#saveTreeRootNodeId', dialog).on('click', function() {
-            log('addDataTree', entity.id, $('#treeRootNodeId', dialog).val());
-            Command.addDataTree(entity.id, $('#treeRootNodeId', dialog).val());
-        });
+//        dialog.append('<div><h3>Data Tree Id</h3><input type="text" id="treeRootNodeId"><button id="saveTreeRootNodeId">Save</button></div>');
+//        $('#saveTreeRootNodeId', dialog).on('click', function() {
+//            log('addDataTree', entity.id, $('#treeRootNodeId', dialog).val());
+//            Command.addDataTree(entity.id, $('#treeRootNodeId', dialog).val());
+//        });
     },
 
     showProperties : function(entity) {
@@ -388,7 +390,7 @@ var _Entities = {
             success: function(data) {
                 $(data.result).each(function(i, result) {
                     //log(result);
-                    selectElement.append('<option ' + (entity.ownerId == result.id ? 'selected' : '') + ' value="' + result.id + '">' + result.name + '</option>');
+                    selectElement.append('<option ' + (entity[key] == result.id ? 'selected' : '') + ' value="' + result.id + '">' + result.name + '</option>');
                 });
             }
         });                

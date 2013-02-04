@@ -32,9 +32,6 @@ var _Elements = {
 
     elementNames : [
 
-//    // Active components
-//    'Component', 'View', 'RemoteView',
-
     // The root element
     'html',
 
@@ -72,10 +69,7 @@ var _Elements = {
     ],
 
     elementGroups : [
-//    {
-//        'name' : 'Components',
-//        'elements' : ['Component', 'View', 'RemoteView']
-//    },
+
     {
         'name' : 'Root',
         'elements' : ['html', 'content']
@@ -206,7 +200,7 @@ var _Elements = {
         } else {
             parent.append(html);
         }
-        
+
         //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
         var div = Structr.node(id);
         log('Element appended (div, parent)', div, parent);
@@ -230,8 +224,7 @@ var _Elements = {
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            StructrModel.remove(entity.id);
-            //_Entities.deleteElement(this, entity);
+            _Entities.deleteNode(this, entity);
         });
 
         _Entities.setMouseOver(div);

@@ -69,7 +69,7 @@ public class AddRenderTreeRelationship extends AbstractCommand {
 					@Override
 					public Object execute() throws FrameworkException {
 
-						DOMElement.dataTrees.createRelationship(securityContext, sourceNode, treeRootNode);
+						DOMElement.dataTree.createRelationship(securityContext, sourceNode, treeRootNode);
 
 						return null;
 					}
