@@ -85,6 +85,17 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	}
 
 	/**
+	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
+	 *
+	 * @param name
+	 * @param destType
+	 * @param relType
+	 */
+	public CollectionProperty(String name, Class destType, RelationshipType relType, Notion notion, boolean oneToMany) {
+		this(name, destType, relType, Direction.OUTGOING, notion, oneToMany);
+	}
+
+	/**
 	 * Constructs a collection property with the given name, the given destination type, the given relationship type, the given direction and the given cascade delete flag.
 	 *
 	 * @param name
