@@ -92,7 +92,7 @@ public class ChunkCommand extends AbstractCommand {
 			file.setChecksum(0L);
 //			file.getChecksum();
 			
-			getWebSocket().send(MessageBuilder.status().code(200).message(size + " of " + file.getName() + " successfully saved.").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(200).message(size + " bytes of " + file.getName() + " successfully saved.").build(), true);
 
 		} catch (Throwable t) {
 
