@@ -31,7 +31,7 @@ var dmp;
 var editorCursor;
 var dialog;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, loginButton;
-
+var dialogId;
 var page = [];
 var pageSize = [];
 
@@ -461,6 +461,28 @@ var Structr = {
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
             message: $('#errorBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+    },
+
+    tempInfo : function(text, autoclose) {
+        window.clearTimeout(dialogId);
+        if (text) $('#tempInfoBox .infoHeading').html('<img src="icon/information.png"> ' + text);
+        //console.log(callback);
+        if (autoclose) {
+            dialogId = window.setTimeout(function() {
+                $.unblockUI({
+                    fadeOut: 25
+                });                
+            }, 1000);
+        }
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            message: $('#tempInfoBox'),
             css: {
                 border: 'none',
                 backgroundColor: 'transparent'

@@ -151,22 +151,22 @@ var _Files = {
                     
                 } else {
                     
-                    var dialogMsg = $('#dialogMsg');
-
-                    dialog.empty();
-                    dialogMsg.empty();
-
-                    dialog.append('<table class="props"></table>');
-                    
-                    $(filesToUpload).each(function(i, fileToUpload) {
-                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
-                    });
-
-                    Structr.dialog('Uploading Files', function() {
-                        return true;
-                    }, function() {
-                        return true;
-                    });
+//                    var dialogMsg = $('#dialogMsg');
+//
+//                    dialog.empty();
+//                    dialogMsg.empty();
+//
+//                    dialog.append('<table class="props"></table>');
+//                    
+//                    $(filesToUpload).each(function(i, fileToUpload) {
+//                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
+//                    });
+//
+//                    Structr.dialog('Uploading Files', function() {
+//                        return true;
+//                    }, function() {
+//                        return true;
+//                    });
                     
                     $(filesToUpload).each(function(i, file) {
                         if (file) Command.createFile(file);

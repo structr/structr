@@ -107,8 +107,6 @@ function connect() {
 
         ws.onmessage = function(message) {
             
-            console.log(message.data);
-
             var data = $.parseJSON(message.data);
             log('ws.onmessage:', data);
 
@@ -157,7 +155,7 @@ function connect() {
                 Structr.login();
 
             } else if (command == 'STATUS') { /*********************** STATUS ************************/
-                log('Error code: ' + code);
+                console.log('Error code: ' + code);
 				
                 if (code == 403) {
                     Structr.login('Wrong username or password!');
@@ -168,16 +166,16 @@ function connect() {
                     var codeStr = code.toString();
                     if (codeStr.startsWith('20')) {
                         msgClass = 'success';
-                        Structr.dialog("", true);
-                        $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        Structr.tempInfo('', true);
+                        $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('30')) {
-                        Structr.dialog("", true);
+                        Structr.dialog('', true);
                         msgClass = 'info';
-                        $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('40')) {
-                        Structr.dialog("", true);
+                        Structr.dialog('', true);
                         msgClass = 'warning';
-                        $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else {
                         Structr.error("", function() {
                             
