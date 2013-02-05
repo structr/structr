@@ -32,7 +32,19 @@ import org.structr.core.converter.PropertyConverter;
 public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 
 	public AbstractReadOnlyProperty(String name) {
-		super(name);
+		this(name, name);
+	}
+	
+	public AbstractReadOnlyProperty(String name, T defaultValue) {
+		this(name, name, defaultValue);
+	}
+	
+	public AbstractReadOnlyProperty(String jsonName, String dbName) {
+		this(jsonName, dbName, null);
+	}
+	
+	public AbstractReadOnlyProperty(String jsonName, String dbName, T defaultValue) {
+		super(jsonName, dbName, defaultValue);
 	}
 	
 	@Override

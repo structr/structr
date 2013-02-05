@@ -31,6 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.*;
+import org.structr.core.graph.search.Search;
 import org.structr.core.notion.Notion;
 
 /**
@@ -97,9 +98,17 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 					if (getDirection().equals(Direction.OUTGOING)) {
 
+						// set combined type
+						String tripleKey = EntityContext.createCombinedRelationshipType(declaringClass.getSimpleName(), relType.name(), destType.getSimpleName());
+						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
+
 						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, true);
 
 					} else {
+
+						// set combined type
+						String tripleKey = EntityContext.createCombinedRelationshipType(destType.getSimpleName(), relType.name(), declaringClass.getSimpleName());
+						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
 
 						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, true);
 
