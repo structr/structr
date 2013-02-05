@@ -700,7 +700,7 @@ var _Pages = {
 
     appendElementElement : function(entity, refNode) {
         
-        var parentId = entity.parent && entity.parent.id;
+        var parentId = entity.parentId;
         
         var div = _Elements.appendElementElement(entity, refNode);
         

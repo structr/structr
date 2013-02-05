@@ -476,6 +476,11 @@ public class SynchronizationController implements StructrTransactionListener {
 			return true;
 		}
 
+		if (relType.equals("RENDER_TREE")) {
+
+			return true;
+		}
+
 		if (relType.endsWith(LinkedTreeNode.LIST_KEY_SUFFIX)) {
 
 			return true;
