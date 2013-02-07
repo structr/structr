@@ -1,10 +1,9 @@
 package org.structr.web.common;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.structr.common.DefaultFactoryDefinition;
-import org.structr.common.RelType;
 import org.structr.web.entity.DataNode;
+import org.structr.web.experimental.DataNodeExtender;
 
 /**
  *
@@ -12,17 +11,27 @@ import org.structr.web.entity.DataNode;
  */
 public class UiFactoryDefinition extends DefaultFactoryDefinition {
 	
+	private static final String DATA_NODE_TYPE     = DataNode.class.getSimpleName();
+	private static final String KIND               = DataNode.kind.dbName();
+
+	public static final DataNodeExtender extender = new DataNodeExtender();
+	
 	@Override
 	public String determineNodeType(Node node) {
 
-		// instantiate nodes that have an incoming DEFINES_TYPE
-		// relationship as a DataNode
-		if (node.hasRelationship(Direction.INCOMING, RelType.DEFINES_TYPE)) {
+		String nodeType = super.determineNodeType(node);
+		
+		if (DATA_NODE_TYPE.equals(nodeType) && node.hasProperty(KIND)) {
 			
-			return DataNode.class.getSimpleName();
+			String kind = (String)node.getProperty(KIND);
+			
+			// initialize type
+			extender.getType(kind);
+			
+			// return dynamic kind instead of type
+			nodeType = kind;
 		}
 		
-		// else: default behaviour
-		return super.determineNodeType(node);
+		return nodeType;
 	}
 }

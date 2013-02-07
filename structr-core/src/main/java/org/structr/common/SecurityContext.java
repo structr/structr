@@ -60,7 +60,7 @@ public class SecurityContext {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Long, AbstractNode> cache = new ConcurrentHashMap<Long, AbstractNode>();
+	private Map<Long, AbstractNode> cache = null;
 	private AccessMode accessMode         = AccessMode.Frontend;
 	private Map<String, Object> attrs     = null;
 	private Authenticator authenticator   = null;
@@ -77,6 +77,8 @@ public class SecurityContext {
 
 		this.cachedUser = user;
 		this.accessMode = accessMode;
+
+		cache = new ConcurrentHashMap<Long, AbstractNode>();
 	}
 
 	private SecurityContext(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
@@ -96,11 +98,20 @@ public class SecurityContext {
 			logger.log(Level.SEVERE, "Could not instantiate security context!");
 
 		}
-			
-//		logger.log(Level.INFO, "######################################## Creating new security context WITH request and response: {0}", this.hashCode());
-		
-//		Thread.dumpStack();
 
+		// TEST: request-based caching
+		if (request != null) {
+			cache = (Map<Long, AbstractNode>)request.getServletContext().getAttribute("NODE_CACHE");
+		}
+		
+		if (cache == null) {
+
+			cache = new ConcurrentHashMap<Long, AbstractNode>();
+			
+			if (request != null) {
+				request.getServletContext().setAttribute("NODE_CACHE", cache);
+			}
+		}
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -194,20 +205,21 @@ public class SecurityContext {
 
 	//~--- get methods ----------------------------------------------------
 
+	public static SecurityContext getSuperUserInstance(HttpServletRequest request, HttpServletResponse response) {
+		return new SuperUserSecurityContext(request, response);
+	}
+	
 	public static SecurityContext getSuperUserInstance() {
-
 		return new SuperUserSecurityContext();
 
 	}
 
 	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
-
 		return new SecurityContext(config, request, response, accessMode);
 
 	}
 
 	public static SecurityContext getInstance(Principal user, AccessMode accessMode) throws FrameworkException {
-
 		return new SecurityContext(user, accessMode);
 
 	}
@@ -565,6 +577,10 @@ public class SecurityContext {
 	// ----- nested classes -----
 	private static class SuperUserSecurityContext extends SecurityContext {
 
+		public SuperUserSecurityContext(HttpServletRequest request, HttpServletResponse response) {
+			super(null, request, response, null);
+		}
+		
 		public SuperUserSecurityContext() {
 
 			super(null, null, null, null);

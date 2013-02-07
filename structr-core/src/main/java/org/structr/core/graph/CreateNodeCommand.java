@@ -119,7 +119,6 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.lastModifiedDate, now);
-				logger.log(Level.FINE, "Node {0} created", node.getId());
 
 				properties.remove(AbstractNode.type);
 
@@ -147,9 +146,6 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 				transformation.apply(securityContext, node);
 
 			}
-
-			// allow modification listener to examine creation
-//                      EntityContext.getGlobalModificationListener().graphObjectCreated(securityContext, node);
 		}
 
 		return node;

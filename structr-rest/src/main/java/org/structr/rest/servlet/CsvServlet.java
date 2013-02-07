@@ -150,7 +150,7 @@ public class CsvServlet extends HttpServlet {
 								defaultIdProperty), propertyView);
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), propertyView.get(securityContext));
 
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);

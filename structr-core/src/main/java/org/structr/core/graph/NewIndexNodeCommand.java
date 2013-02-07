@@ -33,8 +33,6 @@ import org.neo4j.index.lucene.ValueContext;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
-import org.structr.core.entity.Person;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 
@@ -106,6 +104,7 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 
 						addNodePropertyToIndex(dbNode, key, valueForIndexing, indexName);
 						
+						/*
 						if ((node instanceof Principal) && (key.equals(AbstractNode.name) || key.equals(Person.email))) {
 							addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeService.NodeIndex.user.name());
 						}
@@ -113,6 +112,7 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 						if (key.equals(AbstractNode.uuid)) {
 							addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeService.NodeIndex.uuid.name());
 						}
+						*/
 					}
 				}
 			}
@@ -193,6 +193,7 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 		if (value == null) {
 			return;
 		}
+
 		Index<Node> index = indices.get(indexName);
 		synchronized(index) {
 

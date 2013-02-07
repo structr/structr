@@ -307,9 +307,9 @@ public abstract class Resource {
 		}
 	}
 
-	protected ResourceAccess findGrant() throws FrameworkException {
+	protected ResourceAccess findGrant(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		final SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+		final SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(request, response), SearchNodeCommand.class);
 		final String uriPart                         = EntityContext.normalizeEntityName(this.getResourceSignature());
 		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		ResourceAccess grant                         = null;
@@ -396,8 +396,8 @@ public abstract class Resource {
 
 	public abstract String getResourceSignature();
 
-	public ResourceAccess getGrant() throws FrameworkException {
-		return findGrant();
+	public ResourceAccess getGrant(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+		return findGrant(request, response);
 	}
 
 	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request) {

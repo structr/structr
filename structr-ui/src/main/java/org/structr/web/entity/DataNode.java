@@ -2,22 +2,18 @@ package org.structr.web.entity;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.LinkedListNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeService.NodeIndex;
-import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.EntityNotionProperty;
-import org.structr.core.property.EntityProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
 
 /**
@@ -26,101 +22,44 @@ import org.structr.web.entity.dom.Content;
  */
 public class DataNode extends LinkedTreeNode {
 
-	public static final EntityProperty<Type>   typeNode   = new EntityProperty<Type>("typeNode", Type.class, RelType.DEFINES_TYPE, Direction.INCOMING, true);
-	public static final Property<String>       kind       = new EntityNotionProperty("kind", typeNode, new PropertyNotion(Type.kind));
+	public static final Property<String>        kind       = new StringProperty("kind");
 	
 	public static final org.structr.common.View uiView     = new org.structr.common.View(Content.class, PropertyView.Ui,     kind);
 	public static final org.structr.common.View publicView = new org.structr.common.View(Content.class, PropertyView.Public, kind);
 
+	private String cachedType = null;
+	
 	static {
 		
-		EntityContext.registerSearchableProperty(DataNode.class, NodeIndex.fulltext.name(), kind);
-	}
-	
-	public Type getTypeDefinition() {
-		return super.getProperty(DataNode.typeNode);
-	}
-
-	// ----- private members -----
-	private Type cachedTypeDefinition = null;
-	
-	@Override
-	public <T> void setProperty(PropertyKey<T> key, T value) throws FrameworkException {
-		
-		if (cachedTypeDefinition == null) {
-			cachedTypeDefinition = getTypeDefinition();
-		}
-		
-		if (cachedTypeDefinition != null) {
-			
-			// use dynamic property definition as property key
-			PropertyDefinition def = cachedTypeDefinition.getPropertyDefinition(key.dbName());
-			if (def != null) {
-				
-				// initialize dynamic property key instance
-				def.setDeclaringClass(getClass());
-				def.setProperty(securityContext, this, value);
-			}
-			
-		}
-		
-		// default to superclass
-		super.setProperty(key, value);
-	}
-	
-	@Override
-	public <T> T getProperty(PropertyKey<T> key) {
-		
-		if (cachedTypeDefinition == null) {
-			cachedTypeDefinition = getTypeDefinition();
-		}
-		
-		if (cachedTypeDefinition != null) {
-			
-			// use dynamic property definition as property key
-			PropertyDefinition def = cachedTypeDefinition.getPropertyDefinition(key.dbName());
-			if (def != null) {
-				
-				// initialize dynamic property key instance
-				def.setDeclaringClass(getClass());
-				
-				return (T)def.getProperty(securityContext, this, true);
-			}
-		}
-		
-		// default to superclass
-		return super.getProperty(key);
+		EntityContext.registerSearchableProperty(DataNode.class, NodeIndex.keyword.name(), kind);
 	}
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 		
-		if (cachedTypeDefinition == null) {
-			cachedTypeDefinition = getTypeDefinition();
+		List<PropertyKey> augmentedProperties = new LinkedList<PropertyKey>();
+
+		// add property keys from superclass
+		for (PropertyKey key : super.getPropertyKeys(propertyView)) {
+			augmentedProperties.add(key);
 		}
-		
-		if (cachedTypeDefinition != null) {
-			
-			List<PropertyKey> augmentedProperties = new LinkedList<PropertyKey>();
-			
-			// add property keys from superclass
-			for (PropertyKey key : super.getPropertyKeys(propertyView)) {
-				augmentedProperties.add(key);
-			}
-			
-			for (PropertyDefinition propertyDefinition : cachedTypeDefinition.getPropertyDefinitions()) {
-				
-				// initialize dynamic property key instance
-				propertyDefinition.setDeclaringClass(getClass());
-				augmentedProperties.add(propertyDefinition);
-			}
-			
-			return augmentedProperties;
+
+		for (PropertyDefinition propertyDefinition : PropertyDefinition.getPropertiesForKind(getType())) {
+			augmentedProperties.add(propertyDefinition);
 		}
-		
-		// default to superclass
-		return super.getPropertyKeys(propertyView);
+
+		return augmentedProperties;
 	}	
+	
+	@Override
+	public String getType() {
+		
+		if (cachedType == null) {
+			cachedType = super.getProperty(DataNode.kind);
+		}
+		
+		return cachedType;
+	}
 
 	// ----- exported methods from DataNode -----
 	public void appendChild(final String key, final DataNode childElement) throws FrameworkException {
@@ -248,5 +187,4 @@ public class DataNode extends LinkedTreeNode {
 	private RelationshipType createListRelationshipType(String key) {
 		return getListKey(createTreeRelationshipType(key));
 	}
-	
 }

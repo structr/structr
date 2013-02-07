@@ -172,7 +172,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
 
 			// do action
 			RestMethodResult result = resourceConstraint.doDelete();
@@ -255,7 +255,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), propertyView.get(securityContext));
 			
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
@@ -387,7 +387,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
 			
 			// do action
 			RestMethodResult result = resourceConstraint.doHead();
@@ -463,7 +463,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
 			
 			// do action
 			RestMethodResult result = resourceConstraint.doOptions();
@@ -548,7 +548,7 @@ public class JsonRestServlet extends HttpServlet {
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// let authenticator examine request again
-				securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
+				securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
 				
 				// do action
 				RestMethodResult result = resourceConstraint.doPost(properties);

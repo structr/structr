@@ -151,7 +151,7 @@ public class NodeFactory<T extends AbstractNode> {
 			newNode.onNodeInstantiation();
 
 			String newNodeType = newNode.getProperty(AbstractNode.type);
-			if (newNodeType == null || (newNodeType != null && !newNodeType.equals(nodeType))) {
+			if (newNodeType == null) { //  || (newNodeType != null && !newNodeType.equals(nodeType))) {
 				
 				try {
 

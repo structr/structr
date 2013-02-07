@@ -678,20 +678,26 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public AbstractNode getEndNode() {
 
+// FIXME:		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+
 		return (AbstractNode) nodeFactory.createNode(dbRelationship.getEndNode());
 
 	}
 
 	public AbstractNode getStartNode() {
 
+// FIXME		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+
 		return (AbstractNode) nodeFactory.createNode(dbRelationship.getStartNode());
 	}
 
 	public AbstractNode getOtherNode(final AbstractNode node) {
 
+// FIXME:		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+
 		return (AbstractNode) nodeFactory.createNode(dbRelationship.getOtherNode(node.getNode()));
 
 	}

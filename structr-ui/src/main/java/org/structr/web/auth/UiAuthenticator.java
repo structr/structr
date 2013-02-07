@@ -56,7 +56,7 @@ public class UiAuthenticator implements Authenticator {
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
 		String errorMsg = null;
-		Principal user  = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
+		Principal user  = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(request, response), userName, password);
 
 		if (errorMsg != null) {
 
@@ -86,7 +86,7 @@ public class UiAuthenticator implements Authenticator {
 			user = AuthHelper.getUserForToken(token);
 		} else if ((userName != null) && (password != null)) {
 
-			user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
+			user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(request, response), userName, password);
 		}
 
 		if (user != null) {

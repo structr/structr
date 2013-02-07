@@ -96,8 +96,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	static {
 
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
+//		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
+//		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), name, type, createdDate, lastModifiedDate, hidden, deleted);
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uuid, name, type);
+		
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), uuid);
 
 		// register transformation for automatic uuid creation

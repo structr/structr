@@ -3,32 +3,40 @@ package org.structr.web.entity;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.notion.PropertyNotion;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.AbstractRelationProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.EntityProperty;
+import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.UiFactoryDefinition;
 
 /**
  *
@@ -36,28 +44,30 @@ import org.structr.core.property.StringProperty;
  */
 
 public class PropertyDefinition extends AbstractNode implements PropertyKey {
+	
+	private static final Logger logger = Logger.getLogger(PropertyDefinition.class.getName());
 
 	public static final Property<String>               validationExpression   = new StringProperty("validationExpression");
 	public static final Property<String>               validationErrorMessage = new StringProperty("validationErrorMessage");
+	public static final Property<String>               kind                   = new StringProperty("kind");
 	public static final Property<String>               dataType               = new StringProperty("dataType");
+	public static final Property<String>               relKind                = new StringProperty("relKind");
 	public static final Property<String>               relType                = new StringProperty("relType");
-	
+	public static final Property<Boolean>              incoming               = new BooleanProperty("incoming");
+
 	public static final Property<Boolean>              systemProperty         = new BooleanProperty("systemProperty");
 	public static final Property<Boolean>              readOnlyProperty       = new BooleanProperty("readOnlyProperty");
 	public static final Property<Boolean>              writeOnceProperty      = new BooleanProperty("writeOnceProperty");
 	
-	public static final EntityProperty<Type>           typeNode               = new EntityProperty<Type>("typeNode", Type.class, RelType.DEFINES_PROPERTY, Direction.INCOMING, true);
-	public static final Property<String>               kind                   = new EntityNotionProperty("kind", typeNode, new PropertyNotion(Type.kind));
-	public static final Property<String>               typeId                 = new EntityIdProperty("typeId", typeNode);
-	
-	public static final org.structr.common.View publicView = new org.structr.common.View(Type.class, PropertyView.Public,
-	    name, dataType, kind, relType, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
+	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Public,
+	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
 	);
 	
 	// ----- private members -----
-	private static final Map<String, Class<? extends PropertyKey>> delegateMap = new LinkedHashMap<String, Class<? extends PropertyKey>>();
-	private Class declaringClass                                               = null;
-	private PropertyKey delegate                                               = null;
+	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<String, Map<String, PropertyDefinition>>();
+	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<String, Class<? extends PropertyKey>>();
+	private Class declaringClass                                                   = null;
+	private PropertyKey delegate                                                   = null;
 
 	// ----- static initializer -----
 	static {
@@ -67,12 +77,57 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		delegateMap.put("Long",       LongProperty.class);
 		delegateMap.put("Double",     DoubleProperty.class);
 		delegateMap.put("Boolean",    BooleanProperty.class);
+		delegateMap.put("Date",       ISO8601DateProperty.class);
 		delegateMap.put("Collection", CollectionProperty.class);
 		delegateMap.put("Entity",     EntityProperty.class);
 		
+		EntityContext.registerSearchablePropertySet(PropertyDefinition.class, NodeIndex.keyword.name(), dataType, kind, relKind, relType);
+		EntityContext.registerSearchablePropertySet(PropertyDefinition.class, NodeIndex.fulltext.name(), dataType, kind, relKind, relType);
 	}
 	
-	// ----- overridden methods from superclass -----
+	public static void clearPropertyDefinitions() {
+		
+		for (Map<String, PropertyDefinition> kinds : dynamicTypes.values()) {
+			kinds.clear();
+		}
+			
+		dynamicTypes.clear();
+	}
+	
+	public static boolean exists(String kind) {
+		
+		if (kind != null) {
+			
+			update();
+			return dynamicTypes.containsKey(kind);
+		}
+		
+		return false;
+	}
+	
+	public static Iterable<PropertyDefinition> getPropertiesForKind(String kind) {
+		
+		if (kind != null) {
+			
+			update();
+			return dynamicTypes.get(kind).values();
+		}
+		
+		return null;
+	}
+	
+	public static PropertyDefinition getPropertyForKind(String kind, PropertyKey key) {
+		
+		if (kind != null) {
+			
+			update();
+			return dynamicTypes.get(kind).get(key.dbName());
+		}
+		
+		return null;
+	}
+
+	// ----- overriden methods from superclass -----
 	@Override
 	public void onNodeInstantiation() {
 		initialize();
@@ -219,40 +274,50 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		return false;
 	}
 	
-	// ----- overridden methods from superclass -----
-	@Override
-	public void afterDeletion(SecurityContext securityContext) {
-		
-	}
-	
 	// ----- private methods -----
 	private void initialize() {
 		
 		if (delegate == null) {
 			
-			String _dataType = super.getProperty(PropertyDefinition.dataType);
-			String _relType  = super.getProperty(PropertyDefinition.relType);
-			String _name     = super.getName();
+			String _kind        = super.getProperty(PropertyDefinition.kind);
+			String _dataType    = super.getProperty(PropertyDefinition.dataType);
+			String _relType     = super.getProperty(PropertyDefinition.relType);
+			String _relKind     = super.getProperty(PropertyDefinition.relKind);
+			Direction direction = super.getProperty(PropertyDefinition.incoming) ? Direction.INCOMING : Direction.OUTGOING;
+			String _name        = super.getName();
 
 			if (_dataType != null && _name != null) {
 
 				Class<? extends PropertyKey> keyClass = delegateMap.get(_dataType);
+				Class<? extends DataNode> dataClass   = UiFactoryDefinition.extender.getType(_kind);
+
+				if (dataClass == null) {
+					dataClass = DataNode.class;
+				}
+				
 				if (keyClass != null) {
 
 					if (AbstractRelationProperty.class.isAssignableFrom(keyClass)) {
 					
 						try {
 
+							Class _relClass = UiFactoryDefinition.extender.getType(_relKind);
+							if (_relClass == null) {
+								_relClass = DataNode.class;
+							}
+							
 							// if this call fails, a convention has been violated
-							delegate = keyClass.getConstructor(String.class, Class.class, RelationshipType.class, Boolean.TYPE).newInstance(
+							delegate = keyClass.getConstructor(String.class, Class.class, RelationshipType.class, Direction.class, Notion.class, Boolean.TYPE).newInstance(
 							                   _name,
-									   DataNode.class,
+									   _relClass,
 									   DynamicRelationshipType.withName(_relType),
+									   direction,
+									   new PropertySetNotion(GraphObject.uuid),
 									   false
 							           );
 
 							// register property
-							EntityContext.registerProperty(DataNode.class, delegate);
+							EntityContext.registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 
@@ -267,7 +332,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 							delegate = keyClass.getConstructor(String.class).newInstance(_name);
 
 							// register property
-							EntityContext.registerProperty(DataNode.class, delegate);
+							EntityContext.registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 
@@ -276,8 +341,43 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 					}
 				}
 				
-				delegate.setDeclaringClass(DataNode.class);
+				delegate.setDeclaringClass(dataClass);
 			}
 		}
+	}
+
+	// ----- static methods -----
+	private static void update() {
+		
+		if (dynamicTypes.isEmpty()) {
+			
+			try {
+				SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
+				Result<PropertyDefinition> propertyDefinitions = Services.command(securityContext, SearchNodeCommand.class).execute(
+					Search.andExactType(PropertyDefinition.class.getSimpleName())
+				);
+
+				for (PropertyDefinition def : propertyDefinitions.getResults()) {
+					getPropertyDefinitionsForKind(def.getProperty(PropertyDefinition.kind)).put(def.dbName(), def);
+				}
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to update dynamic property types: {0}", t.getMessage());
+			}
+		}
+	}
+	
+	private static Map<String, PropertyDefinition> getPropertyDefinitionsForKind(String kind) {
+		
+		Map<String, PropertyDefinition> definitionsForKind = dynamicTypes.get(kind);
+		if (definitionsForKind == null) {
+			
+			definitionsForKind = new ConcurrentHashMap<String, PropertyDefinition>();
+			dynamicTypes.put(kind, definitionsForKind);
+		}
+		
+		return definitionsForKind;
 	}
 }
