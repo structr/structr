@@ -133,6 +133,21 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		initialize();
 	}
 	
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+		clearPropertyDefinitions();
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) {
+		clearPropertyDefinitions();
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext) {
+		clearPropertyDefinitions();
+	}
+	
 	// ----- interface PropertyKey -----
 	@Override
 	public String jsonName() {
