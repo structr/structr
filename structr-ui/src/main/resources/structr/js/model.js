@@ -731,5 +731,7 @@ StructrContent.prototype.append = function(refNode) {
     }
 
     _Entities.setMouseOver(div);
+    
+    StructrModel.expand(div, this);
         
 }
