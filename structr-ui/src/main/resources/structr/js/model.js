@@ -41,6 +41,10 @@ var StructrModel = {
             
             obj = new StructrPage(data);
             
+        } else if (type == 'Content') {
+            
+            obj = new StructrContent(data);
+            
         } else if (type == 'Group') {
             
             obj = new StructrGroup(data);
@@ -65,9 +69,9 @@ var StructrModel = {
             
             obj = new StructrDataNode(data);
             
-        } else if (type == 'Content') {
+        } else if (type == 'Type') {
             
-            obj = new StructrContent(data);
+            obj = new StructrType(data);
             
         } else {
             
@@ -732,4 +736,31 @@ StructrContent.prototype.append = function(refNode) {
 
     _Entities.setMouseOver(div);
         
+}
+
+/**************************************
+ * Structr Type
+ **************************************/
+
+function StructrType(data) {
+    var self = this;
+    $.each(Object.keys(data), function(i, key) {
+        self[key] = data[key];
+    });
+}
+
+StructrType.prototype.save = function() {
+    StructrModel.save(this.id);
+}
+
+StructrType.prototype.setProperty = function(key, value, callback) {
+    Command.setProperty(this.id, key, value, false, callback);
+}
+
+StructrType.prototype.remove = function() {
+    alert('FIXME: Implement StructrType.remove()!');
+}
+
+StructrType.prototype.append = function(refNode) {
+    _Types.appendTypeElement(this);
 }
