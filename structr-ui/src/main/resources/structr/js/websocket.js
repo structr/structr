@@ -155,7 +155,7 @@ function connect() {
                 Structr.login();
 
             } else if (command == 'STATUS') { /*********************** STATUS ************************/
-                console.log('Error code: ' + code);
+                //console.log('Error code: ' + code);
 				
                 if (code == 403) {
                     Structr.login('Wrong username or password!');
@@ -336,8 +336,7 @@ function send(text) {
 function log(messages) {
     if (debug) {
         console.log(messages);
-        $.each(messages, function(i, msg) {
-            
+        $.each(Array.prototype.slice.apply(messages), function(i, msg) {
             if (footer) {
                 var div = $('#log', footer);
                 div.append('<p>' + msg + '</p>');

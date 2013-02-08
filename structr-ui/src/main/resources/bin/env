@@ -1,5 +1,7 @@
 #!/bin/bash
 
+STRUCTR_CONF=`find ../../../.. -name structr.conf`
+
 PATH=$PATH:.
 
 HOST=`grep application.host $STRUCTR_CONF | awk '{ print $3 }' | tr -d [:cntrl:]`

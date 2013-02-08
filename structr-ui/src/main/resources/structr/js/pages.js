@@ -786,7 +786,7 @@ var _Pages = {
             drop: function(event, ui) {
                 var self = $(this);
 
-                log('dropped', event, ui.draggable);
+                console.log('dropped', event, ui.draggable);
                 
                 _Entities.ensureExpanded(self);
                 
@@ -802,8 +802,8 @@ var _Pages = {
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
                 
-                log('contentId', contentId);
-                log('elementId', elementId);
+                console.log('contentId', contentId);
+                console.log('elementId', elementId);
 
                 if (contentId == elementId) {
                     log('drop on self not allowed');

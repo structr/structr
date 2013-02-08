@@ -553,7 +553,7 @@ var _Files = {
     },
 
     editContent : function (button, file, element) {
-        debug = true;
+        //debug = true;
         var url = viewRootUrl + file.name + '?edit';
         log('editContent', button, file, element, url);
         var headers = {};
@@ -614,18 +614,18 @@ var _Files = {
                 });
 
                 editor.id = file.id;
-                
-                element.parent().children('.dialogBtn').append('<button id="saveFile"> Save </button>');
-                element.parent().children('.dialogBtn').append('<button id="saveAndClose"> Save and close</button>');
-                $(element.parent().find('button#saveFile').first()).on('click', function(e) {
+                dialogBtn.children(':not(.dialogCancelButton)').remove();
+                dialogBtn.append('<button id="saveFile"> Save </button>');
+                dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+                $('button#saveFile', dialogBtn).on('click', function(e) {
                     e.stopPropagation();
                     _Files.updateTextFile(file, editor.getValue());
                 });
-                $(element.parent().find('button#saveAndClose').first()).on('click', function(e) {
+                $('button#saveAndClose', dialogBtn).on('click', function(e) {
                     e.stopPropagation();
                     _Files.updateTextFile(file, editor.getValue());
                     setTimeout(function() {
-                        $('.dialogCancelButton', $('.dialogBtn')).click();
+                        dialogCancelButton.click();
                     }, 100);
                 });
             },

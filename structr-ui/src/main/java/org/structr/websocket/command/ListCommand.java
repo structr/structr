@@ -36,10 +36,13 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.entity.Image;
 import org.structr.rest.resource.PagingHelper;
+import org.structr.websocket.message.MessageBuilder;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,6 +51,8 @@ import org.structr.rest.resource.PagingHelper;
  * @author Christian Morgner
  */
 public class ListCommand extends AbstractCommand {
+	
+	private static final Logger logger = Logger.getLogger(ListCommand.class.getName());
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
@@ -56,6 +61,11 @@ public class ListCommand extends AbstractCommand {
 		String rawType                         = (String) webSocketData.getNodeData().get("type");
 		Class type                             = EntityContext.getEntityClassForRawType(rawType);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		
+		if (type == null) {
+			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
+			return;
+		}
 
 		searchAttributes.add(Search.andExactType(type.getSimpleName()));
 		
@@ -105,7 +115,8 @@ public class ListCommand extends AbstractCommand {
 			
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "Exception occured", fex);
+			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}
 

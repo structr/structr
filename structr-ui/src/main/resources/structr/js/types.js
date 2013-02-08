@@ -21,7 +21,7 @@ var types;
 
 $(document).ready(function() {
     Structr.registerModule('types', _Types);
-    Structr.classes.push('typeDefinition');
+    Structr.classes.push('type');
 });
 
 var _Types = {
@@ -33,7 +33,6 @@ var _Types = {
 	
     onload : function() {
         _Types.init();
-        log('onload');
         if (palette) palette.remove();
 
         main.append('<table><tr><td id="types"></td></tr></table>');
@@ -43,12 +42,12 @@ var _Types = {
     
     refreshTypes : function() {
         types.empty();
-        if (Command.list('TypeDefinition')) {
-            types.append('<button class="add_type_icon button"><img title="Add Type Definition" alt="Add Type Definition" src="' + _Types.type_icon + '"> Add Type Definition</button>');
+        if (Command.list('Type')) {
+            types.append('<button class="add_type_icon button"><img title="Add Type" alt="Add Type" src="' + _Types.type_icon + '"> Add Type</button>');
             $('.add_type_icon', main).on('click', function(e) {
                 e.stopPropagation();
                 var entity = {};
-                entity.type = 'TypeDefinition';
+                entity.type = 'Type';
                 return Command.create(entity);
             });
         }
@@ -58,7 +57,6 @@ var _Types = {
 		
         log('appendTypeElement', type);
         
-        
         types.append('<div id="_' + type.id + '" structr_type="folder" class="node folder ' + type.id + '_">'
             + '<img class="typeIcon" src="'+ _Types.type_icon + '">'
             + '<b class="name_">' + type.name + '</b> <span class="id">' + type.id + '</span>'
@@ -66,7 +64,7 @@ var _Types = {
         
         var div = $('#_' + type.id);
         
-        div.append('<img title="Delete Type Definition ' + type.id + '" alt="Delete Type Definition ' + type.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        div.append('<img title="Delete Type ' + type.id + '" alt="Delete Type ' + type.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
             _Entities.deleteNode(this, type);
