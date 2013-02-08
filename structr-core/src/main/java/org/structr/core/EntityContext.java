@@ -723,6 +723,10 @@ public class EntityContext {
 	}
 	
 	public static PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName) {
+		return getPropertyKeyForDatabaseName(type, dbName, true);
+	}
+	
+	public static PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName, boolean createGeneric) {
 
 		Map<String, PropertyKey> classDBNamePropertyMap = getClassDBNamePropertyMapForType(type);
 		PropertyKey key                                 = classDBNamePropertyMap.get(dbName);
@@ -733,15 +737,20 @@ public class EntityContext {
 			if (GraphObject.uuid.dbName().equals(dbName)) {
 				return GraphObject.uuid;
 			}
-		
-//			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { dbName, type } );
-			key = new GenericProperty(dbName);
+
+			if (createGeneric) {
+				key = new GenericProperty(dbName);
+			}
 		}
 		
 		return key;
 	}
 	
 	public static PropertyKey getPropertyKeyForJSONName(Class type, String jsonName) {
+		return getPropertyKeyForJSONName(type, jsonName, true);
+	}
+	
+	public static PropertyKey getPropertyKeyForJSONName(Class type, String jsonName, boolean createGeneric) {
 
 		Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
 		PropertyKey key                                 = classJSNamePropertyMap.get(jsonName);
@@ -753,8 +762,9 @@ public class EntityContext {
 				return GraphObject.uuid;
 			}
 
-//			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { jsonName, type } );
-			key = new GenericProperty(jsonName);
+			if (createGeneric) {
+				key = new GenericProperty(jsonName);
+			}
 		}
 		
 		return key;

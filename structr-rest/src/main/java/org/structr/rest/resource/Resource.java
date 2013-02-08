@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
 import org.structr.core.property.PropertyKey;
@@ -252,8 +253,16 @@ public abstract class Resource {
 	protected PropertyKey findPropertyKey(final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
 		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
+		String rawName       = typeResource.getRawType();
+		PropertyKey key      = EntityContext.getPropertyKeyForJSONName(sourceNodeType, rawName, false);
 		
-		return EntityContext.getPropertyKeyForJSONName(sourceNodeType, typeResource.getRawType());
+		if (key == null) {
+			
+			// try to convert raw name into lower-case variable name
+			key = EntityContext.getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
+		}
+		
+		return key;
 	}
 
 	protected String buildLocationHeader(final GraphObject newObject) {
