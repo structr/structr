@@ -1,4 +1,4 @@
-package org.structr.web.experimental;
+package org.structr.core.experimental;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

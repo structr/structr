@@ -456,9 +456,7 @@ public class HtmlServlet extends HttpServlet {
 
 					try {
 						HttpAuthenticator.writeUnauthorized(response);
-					} catch (IllegalStateException ise) {
-						;
-					}
+					} catch (IllegalStateException ise) { }
 
 				} else {
 
