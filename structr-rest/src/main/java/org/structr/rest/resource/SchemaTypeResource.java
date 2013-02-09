@@ -20,6 +20,7 @@
 
 package org.structr.rest.resource;
 
+import java.util.LinkedHashSet;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -41,6 +42,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.entity.PropertyDefinition;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,9 +97,22 @@ public class SchemaTypeResource extends Resource {
 
 		for (String view : propertyViews) {
 
+			Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
 			Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
-			Set<PropertyKey> properties              = EntityContext.getPropertySet(type, view);
 
+			// augment property set with properties from PropertyDefinition
+			if (PropertyDefinition.exists(type.getSimpleName())) {
+				
+				Iterable<PropertyDefinition> dynamicProperties = PropertyDefinition.getPropertiesForKind(type.getSimpleName());
+				if (dynamicProperties != null) {
+					
+					for (PropertyDefinition property : dynamicProperties) {
+						properties.add(property);
+					}
+				}
+				
+			}
+			
 			// ignore "all" and empty views
 //                      if (!"all".equals(view) && !properties.isEmpty()) {
 			if (!properties.isEmpty()) {

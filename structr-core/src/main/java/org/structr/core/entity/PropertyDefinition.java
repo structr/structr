@@ -107,10 +107,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 			
 			update();
 			
-			Map<String, PropertyDefinition> definitions = dynamicTypes.get(kind);
-			if (definitions != null) {
-				return definitions.containsKey(kind);
-			}
+			return dynamicTypes.containsKey(kind);
 		}
 		
 		return false;

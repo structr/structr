@@ -88,6 +88,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>("owner", Principal.class, RelType.OWNS, Direction.INCOMING, true);
 	public static final Property<String>          ownerId                     = new EntityIdProperty("ownerId", owner);
 
+	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
+	
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
 		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate
 	);
