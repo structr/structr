@@ -61,12 +61,12 @@ var _PropertyDefinitions = {
 		
         console.log('appendTypeElement', propertyDefinition);
         
-        propertyDefinitions.append('<div id="_' + propertyDefinition.id + '" structr_type="propertyDefinition" class="node propertyDefinition ' + propertyDefinition.id + '_">'
-            + '<img class="typeIcon" src="'+ _PropertyDefinitions.type_icon + '">'
-            + '<b class="name_">' + propertyDefinition.name + '</b> <span class="id">' + propertyDefinition.id + '</span>'
+        propertyDefinitions.append('<div id="id_' + propertyDefinition.id + '" class="node propertyDefinition">'
+            + '<img class="typeIcon" src="'+ propertyDefinition.type_icon + '">'
+            + '<b title="' + propertyDefinition.name + '" class="name_">' + fitStringToSize(propertyDefinition.name, 200) + '</b> <span class="id">' + propertyDefinition.id + '</span>'
             + '</div>');
         
-        var div = $('#_' + propertyDefinition.id);
+        div = Structr.node(propertyDefinition.id);
         
         div.append('<img title="Delete Type ' + propertyDefinition.id + '" alt="Delete Type ' + propertyDefinition.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {

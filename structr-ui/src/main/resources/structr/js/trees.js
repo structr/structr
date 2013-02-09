@@ -77,6 +77,7 @@ var _Trees = {
     refreshFolders : function() {
         trees.empty();
         trees.append('<button class="add_data_node_icon button"><img title="Add Data Node" alt="Add Data Node" src="' + _Trees.add_data_node_icon + '"> Add Data Node</button>');
+        trees.append('<input type="text" length="30" id="kind" name="kind">');
         
         //Command.list(type, pageSize[type], page[type], sort, order);
         Command.listDataNodes('DataNode', 1000, 1, 'name', 'asc', 'TEST_DATA');
@@ -87,6 +88,7 @@ var _Trees = {
             e.stopPropagation();
             var entity = {};
             entity.type = 'DataNode';
+            entity.kind = $('#kind', trees).val();
             Command.create(entity);
         });
         //}
