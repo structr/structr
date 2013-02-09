@@ -30,7 +30,6 @@ import org.structr.server.DefaultAuthenticator;
 import org.structr.server.DefaultResourceProvider;
 import org.structr.server.Structr;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.common.UiFactoryDefinition;
 import org.structr.web.common.UiResourceProvider;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
@@ -73,9 +72,6 @@ public class Ui implements org.structr.server.StructrServer {
 			wsServletHolder.setInitParameters(wsInitParams);
 			wsServletHolder.setInitOrder(3);
 
-			// test
-			EntityContext.registerFactoryDefinition(new UiFactoryDefinition());
-			
 			Structr.createServer(Ui.class, "structr UI", 8082)
 				
 				.addServlet("/structr/html/*", htmlServletHolder)

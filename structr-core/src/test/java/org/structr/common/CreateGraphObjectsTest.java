@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
@@ -196,8 +197,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 					assertTrue(entityList.contains(Person.class));
 					assertTrue(entityList.contains(ResourceAccess.class));
 					
-					// Don't test this one, it would fail due to violated constraints
+					// Don't test these, it would fail due to violated constraints
 					entityList.remove(TestTwo.class);
+					entityList.remove(PropertyDefinition.class);
 
 					for (Class entityClass : entityList) {
 

@@ -29,7 +29,6 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.DOMTest;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.DataNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -192,85 +191,85 @@ public class DOMElementTest extends DOMTest {
 //		}
 //		
 //	}
-	
-	public void testRenderList() {
-		
-		
-		try {
-			
-			final List<DataNode> dataNodes = this.createTestNodes(DataNode.class, 7);
-			final Page doc                 = (Page)getDocument();
-			final String key               = "TEST";
-			
-			assertEquals(7, dataNodes.size());
-			
-			DataNode rootNode = dataNodes.get(0); rootNode.setName("rootNode");
-			DataNode nodeA    = dataNodes.get(1); nodeA.setName("nodeA");
-			DataNode nodeB    = dataNodes.get(2); nodeB.setName("nodeB");
-			DataNode nodeC    = dataNodes.get(3); nodeC.setName("nodeC");
-			DataNode nodeD    = dataNodes.get(4); nodeD.setName("nodeD");
-			DataNode nodeE    = dataNodes.get(5); nodeE.setName("nodeE");
-			DataNode nodeF    = dataNodes.get(6); nodeF.setName("nodeF");
-			
-			rootNode.add(key, nodeA);
-			nodeA.add(key, nodeB);
-			nodeB.add(key, nodeC);
-			nodeC.add(key, nodeD);
-			nodeD.add(key, nodeE);
-			nodeE.add(key, nodeF);
-			
-			// create dom tree
-			Element html = doc.createElement("html");
-			Element body = doc.createElement("body");
-			Element div  = doc.createElement("div");
-			Element ul1  = doc.createElement("ul");
-			Element li1  = doc.createElement("li");
-			Element p1   = doc.createElement("p");
-			p1.appendChild(doc.createTextNode("${data.name}"));
-			Element ul2  = doc.createElement("ul");
-			Element li2  = doc.createElement("li");
-			Element p2   = doc.createElement("p");
-			p2.appendChild(doc.createTextNode("${data.name}"));
-			
-			
-			// create RENDER_LIST relationship between div and rootNode
-			PropertyMap properties = new PropertyMap();
-			properties.put(DataNode.keyProperty, key);
-			Services.command(securityContext, CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RelType.RENDER_LIST, properties, false);
-						
-			((DOMElement) div).setProperty(DOMElement.dataKey, "data");
-
-			doc.appendChild(html);
-			html.appendChild(body);
-			body.appendChild(div);
-			div.appendChild(ul1);
-			ul1.appendChild(li1);
-			li1.appendChild(p1);
-			li1.appendChild(ul2);
-			ul2.appendChild(li2);
-			li2.appendChild(p2);
-			
-			// test rendered document
-			RenderContext ctx = new RenderContext(null, null, false, Locale.GERMAN);
-			doc.render(securityContext, ctx, 0);
-			
-			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getBuffer().toString());
-			
-			assertEquals("rootNode", parsedDocument.select("html > body > div > ul > li").get(0).child(0).text());
-			assertEquals("nodeA", parsedDocument.select("html > body > div > ul > li").get(1).child(0).text());
-			assertEquals("nodeB", parsedDocument.select("html > body > div > ul > li").get(2).child(0).text());
-			assertEquals("nodeC", parsedDocument.select("html > body > div > ul > li").get(3).child(0).text());
-			assertEquals("nodeD", parsedDocument.select("html > body > div > ul > li").get(4).child(0).text());
-			assertEquals("nodeE", parsedDocument.select("html > body > div > ul > li").get(5).child(0).text());
-			assertEquals("nodeF", parsedDocument.select("html > body > div > ul > li").get(6).child(0).text());
-			
-			
-			
-			
-		} catch (FrameworkException fex) {
-			
-			fail("unexpected exception");
-		}
-		
-	}
+//	
+//	public void testRenderList() {
+//		
+//		
+//		try {
+//			
+//			final List<DataNode> dataNodes = this.createTestNodes(DataNode.class, 7);
+//			final Page doc                 = (Page)getDocument();
+//			final String key               = "TEST";
+//			
+//			assertEquals(7, dataNodes.size());
+//			
+//			DataNode rootNode = dataNodes.get(0); rootNode.setName("rootNode");
+//			DataNode nodeA    = dataNodes.get(1); nodeA.setName("nodeA");
+//			DataNode nodeB    = dataNodes.get(2); nodeB.setName("nodeB");
+//			DataNode nodeC    = dataNodes.get(3); nodeC.setName("nodeC");
+//			DataNode nodeD    = dataNodes.get(4); nodeD.setName("nodeD");
+//			DataNode nodeE    = dataNodes.get(5); nodeE.setName("nodeE");
+//			DataNode nodeF    = dataNodes.get(6); nodeF.setName("nodeF");
+//			
+//			rootNode.add(key, nodeA);
+//			nodeA.add(key, nodeB);
+//			nodeB.add(key, nodeC);
+//			nodeC.add(key, nodeD);
+//			nodeD.add(key, nodeE);
+//			nodeE.add(key, nodeF);
+//			
+//			// create dom tree
+//			Element html = doc.createElement("html");
+//			Element body = doc.createElement("body");
+//			Element div  = doc.createElement("div");
+//			Element ul1  = doc.createElement("ul");
+//			Element li1  = doc.createElement("li");
+//			Element p1   = doc.createElement("p");
+//			p1.appendChild(doc.createTextNode("${data.name}"));
+//			Element ul2  = doc.createElement("ul");
+//			Element li2  = doc.createElement("li");
+//			Element p2   = doc.createElement("p");
+//			p2.appendChild(doc.createTextNode("${data.name}"));
+//			
+//			
+//			// create RENDER_LIST relationship between div and rootNode
+//			PropertyMap properties = new PropertyMap();
+//			properties.put(DataNode.keyProperty, key);
+//			Services.command(securityContext, CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RelType.RENDER_LIST, properties, false);
+//						
+//			((DOMElement) div).setProperty(DOMElement.dataKey, "data");
+//
+//			doc.appendChild(html);
+//			html.appendChild(body);
+//			body.appendChild(div);
+//			div.appendChild(ul1);
+//			ul1.appendChild(li1);
+//			li1.appendChild(p1);
+//			li1.appendChild(ul2);
+//			ul2.appendChild(li2);
+//			li2.appendChild(p2);
+//			
+//			// test rendered document
+//			RenderContext ctx = new RenderContext(null, null, false, Locale.GERMAN);
+//			doc.render(securityContext, ctx, 0);
+//			
+//			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getBuffer().toString());
+//			
+//			assertEquals("rootNode", parsedDocument.select("html > body > div > ul > li").get(0).child(0).text());
+//			assertEquals("nodeA", parsedDocument.select("html > body > div > ul > li").get(1).child(0).text());
+//			assertEquals("nodeB", parsedDocument.select("html > body > div > ul > li").get(2).child(0).text());
+//			assertEquals("nodeC", parsedDocument.select("html > body > div > ul > li").get(3).child(0).text());
+//			assertEquals("nodeD", parsedDocument.select("html > body > div > ul > li").get(4).child(0).text());
+//			assertEquals("nodeE", parsedDocument.select("html > body > div > ul > li").get(5).child(0).text());
+//			assertEquals("nodeF", parsedDocument.select("html > body > div > ul > li").get(6).child(0).text());
+//			
+//			
+//			
+//			
+//		} catch (FrameworkException fex) {
+//			
+//			fail("unexpected exception");
+//		}
+//		
+//	}
 }

@@ -63,10 +63,9 @@ public class Services {
 	// Database-related constants
 	public static final String DATABASE_PATH = "database.path";
 	public static final String FILES_PATH    = "files.path";
-	
 	public static final String LOG_DATABASE_PATH = "log.database.path";
-
 	public static final String REST_PATH     = "application.rest.path";
+	public static final String FOREIGN_TYPE = "foreign.type.key";
 	
 	// LogService-related constants
 	public static final String LOG_SERVICE_INTERVAL  = "structr.logging.interval";

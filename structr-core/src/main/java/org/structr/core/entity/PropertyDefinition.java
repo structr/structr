@@ -1,4 +1,4 @@
-package org.structr.web.entity;
+package org.structr.core.entity;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,13 +11,15 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.experimental.NodeExtender;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -36,7 +38,6 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.web.common.UiFactoryDefinition;
 
 /**
  *
@@ -47,6 +48,8 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	
 	private static final Logger logger = Logger.getLogger(PropertyDefinition.class.getName());
 
+	public static final NodeExtender nodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
+	
 	public static final Property<String>               validationExpression   = new StringProperty("validationExpression");
 	public static final Property<String>               validationErrorMessage = new StringProperty("validationErrorMessage");
 	public static final Property<String>               kind                   = new StringProperty("kind");
@@ -103,7 +106,11 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		if (kind != null) {
 			
 			update();
-			return dynamicTypes.containsKey(kind);
+			
+			Map<String, PropertyDefinition> definitions = dynamicTypes.get(kind);
+			if (definitions != null) {
+				return definitions.containsKey(kind);
+			}
 		}
 		
 		return false;
@@ -114,7 +121,11 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		if (kind != null) {
 			
 			update();
-			return dynamicTypes.get(kind).values();
+			
+			Map<String, PropertyDefinition> definitions = dynamicTypes.get(kind);
+			if (definitions != null) {
+				return definitions.values();
+			}
 		}
 		
 		return null;
@@ -125,7 +136,11 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		if (kind != null) {
 			
 			update();
-			return dynamicTypes.get(kind).get(key.dbName());
+			
+			Map<String, PropertyDefinition> definitions = dynamicTypes.get(kind);
+			if (definitions != null) {
+				return definitions.get(key.dbName());
+			}
 		}
 		
 		return null;
@@ -150,6 +165,29 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	@Override
 	public void afterDeletion(SecurityContext securityContext) {
 		clearPropertyDefinitions();
+	}
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean error = false;
+		
+		error |= ValidationHelper.checkStringNotBlank(this, kind,     errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, dataType, errorBuffer);
+		
+		String _dataType = getProperty(PropertyDefinition.dataType);
+		if (_dataType != null) {
+			
+			if ("Entity".equals(_dataType) || "Collection".equals(_dataType)) {
+				
+				error |= ValidationHelper.checkStringNotBlank(this, relKind, errorBuffer);
+				error |= ValidationHelper.checkStringNotBlank(this, relType, errorBuffer);
+			}
+		}
+		
+		error |= !super.isValid(errorBuffer);
+		
+		return !error;
 	}
 	
 	// ----- interface PropertyKey -----
@@ -307,11 +345,11 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 
 			if (_dataType != null && _name != null) {
 
-				Class<? extends PropertyKey> keyClass = delegateMap.get(_dataType);
-				Class<? extends DataNode> dataClass   = UiFactoryDefinition.extender.getType(_kind);
+				Class<? extends PropertyKey> keyClass  = delegateMap.get(_dataType);
+				Class<? extends GenericNode> dataClass = nodeExtender.getType(_kind);
 
 				if (dataClass == null) {
-					dataClass = DataNode.class;
+					dataClass = GenericNode.class;
 				}
 				
 				if (keyClass != null) {
@@ -320,9 +358,9 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 					
 						try {
 
-							Class _relClass = UiFactoryDefinition.extender.getType(_relKind);
+							Class _relClass = nodeExtender.getType(_relKind);
 							if (_relClass == null) {
-								_relClass = DataNode.class;
+								_relClass = GenericNode.class;
 							}
 							
 							// if this call fails, a convention has been violated

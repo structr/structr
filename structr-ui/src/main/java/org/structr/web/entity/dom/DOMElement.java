@@ -53,6 +53,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.map.LRUMap;
+import org.jsoup.nodes.DataNode;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.GraphObject;
@@ -63,12 +64,12 @@ import org.structr.core.entity.LinkedListNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.GetNodeByIdCommand;
+import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
-import org.structr.web.entity.DataNode;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -210,7 +211,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		listSources.add(new CypherGraphDataSource());
 		listSources.add(new XPathGraphDataSource());
 		listSources.add(new NodeGraphDataSource());
-		listSources.add(new ListGraphDataSource());
 	}
 	//~--- methods --------------------------------------------------------
 
@@ -298,42 +298,33 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			// an outgoing RENDER_TREE relationship marks the beginning of a tree rendering
 			for (AbstractRelationship rel : getOutgoingRelationships(RelType.RENDER_TREE)) {
 				
-				AbstractNode endNode = rel.getEndNode();			
-				if (endNode instanceof DataNode) {
+				AbstractNode dataRoot = rel.getEndNode();			
 
-					DataNode dataRoot = (DataNode) endNode;
-					
-					// set data tree root as current tree source
-					renderContext.setTreeSource(dataRoot);
-					
-					// set tree key
-					String treeKey = dataRoot.getProperty(LinkedListNode.keyProperty);
-					if (treeKey == null) {
-						treeKey = rel.getProperty(LinkedListNode.keyProperty);
-						dataRoot.setProperty(LinkedListNode.keyProperty, treeKey);
-					}
-					
-					renderContext.setTreeKey(treeKey);
-					
-					// data nodes to be used as list source in this level
-					renderContext.setDataNode(treeKey, dataRoot);
-					
-					// allow only one data tree to be rendered for now
-					break;
-				}
+				// set data tree root as current tree source
+				renderContext.setTreeSource(dataRoot);
+
+				// data nodes to be used as list source in this level
+				renderContext.setDataNode(_dataKey, dataRoot);
+
+				// allow only one data tree to be rendered for now
+				break;
 			}
 
-			DataNode currentDataNode = renderContext.getTreeSource();
+			AbstractNode currentDataNode = renderContext.getTreeSource();
 			
 			if (currentDataNode != null && _dataKey != null) {
 
-				String treeKey = renderContext.getTreeKey();
-				for (LinkedTreeNode node : currentDataNode.getChildren(treeKey)) {
-					
-					renderContext.setTreeSource((DataNode) node);
-					renderContext.setDataNode(_dataKey, node);
-					renderSingleNode(securityContext, renderContext, depth);
-					
+				PropertyKey propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), _dataKey);
+				if (propertyKey instanceof CollectionProperty) {
+
+					CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
+					for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
+
+						renderContext.setTreeSource(node);
+						renderContext.setDataNode(_dataKey, node);
+						renderSingleNode(securityContext, renderContext, depth);
+
+					}
 				}
 				
 			} else if (listData != null && !listData.isEmpty()) {
@@ -852,34 +843,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	// ----- nested classes -----
-	private static class ListGraphDataSource implements GraphDataSource<List<GraphObject>> {
-
-		@Override
-		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
-
-			List<GraphObject> data = new LinkedList<GraphObject>();
-
-			for (AbstractRelationship rel : referenceNode.getOutgoingRelationships(RelType.RENDER_LIST)) {
-				
-				String key           = rel.getProperty(LinkedListNode.keyProperty);
-				AbstractNode endNode = rel.getEndNode();
-				
-				if (endNode instanceof DataNode) {
-					
-					DataNode currentNode = (DataNode)endNode;
-					while(currentNode != null) {
-						
-						data.add(currentNode);
-						currentNode = (DataNode)currentNode.next(key);
-					}
-				}
-			}
-				
-			return data;
-		}
-		
-	}
-
 	private static class NodeGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		@Override
@@ -889,11 +852,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 			for (AbstractRelationship rel : referenceNode.getOutgoingRelationships(RelType.RENDER_NODE)) {
 				
-				AbstractNode endNode = rel.getEndNode();
-				if (endNode instanceof DataNode) {
-					
-					data.add(endNode);
-				}
+				data.add(rel.getEndNode());
 			}
 			
 			if (!data.isEmpty()) {
