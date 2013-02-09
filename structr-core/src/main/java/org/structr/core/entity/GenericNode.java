@@ -20,10 +20,16 @@
 
 package org.structr.core.entity;
 
+import java.util.LinkedList;
+import java.util.List;
+import org.geotools.referencing.factory.epsg.DefaultFactory;
+import org.structr.common.DefaultFactoryDefinition;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -34,6 +40,31 @@ import org.structr.common.error.FrameworkException;
  * @author Axel Morgner
  */
 public class GenericNode extends AbstractNode {
+
+	@Override
+	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
+		
+		List<PropertyKey> augmentedProperties = new LinkedList<PropertyKey>();
+		String _type                          = getType();
+
+		// add property keys from superclass
+		for (PropertyKey key : super.getPropertyKeys(propertyView)) {
+			augmentedProperties.add(key);
+		}
+
+		if (_type != null) {
+			
+			Iterable<PropertyDefinition> defs = PropertyDefinition.getPropertiesForKind(_type);
+			if (defs != null) {
+
+				for (PropertyDefinition propertyDefinition : defs) {
+					augmentedProperties.add(propertyDefinition);
+				}
+			}
+		}
+
+		return augmentedProperties;
+	}	
 
 	@Override
 	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {

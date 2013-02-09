@@ -76,7 +76,7 @@ public class NodeExtender<T extends AbstractNode> {
 		return dynamicClass;
 	}
 	
-	private Class compile(String className) throws ClassNotFoundException {
+	private synchronized Class compile(String className) throws ClassNotFoundException {
 
 		// Here we specify the source code of the class to be compiled
 		StringBuilder src = new StringBuilder();

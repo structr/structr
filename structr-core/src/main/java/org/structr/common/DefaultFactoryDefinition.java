@@ -20,10 +20,12 @@ package org.structr.common;
 
 import org.neo4j.graphdb.Node;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
+import org.structr.core.experimental.NodeExtender;
 
 /**
  * The default factory for unknown types in structr. When structr needs to
@@ -34,6 +36,13 @@ import org.structr.core.entity.GenericRelationship;
  */
 public class DefaultFactoryDefinition implements FactoryDefinition {
 
+	public static final String GENERIC_NODE_TYPE = GenericNode.class.getSimpleName();
+	public static final String GENERIC_REL_TYPE  = GenericRelationship.class.getSimpleName();
+	
+	public static final NodeExtender genericNodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
+	
+	private String externalNodeTypeName = null;
+
 	@Override
 	public AbstractRelationship createGenericRelationship() {
 		return new GenericRelationship();
@@ -41,7 +50,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	@Override
 	public String getGenericRelationshiType() {
-		return GenericRelationship.class.getSimpleName();
+		return GENERIC_REL_TYPE;
 	}
 
 	@Override
@@ -51,7 +60,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	@Override
 	public String getGenericNodeType() {
-		return GenericNode.class.getSimpleName();
+		return GENERIC_NODE_TYPE;
 	}
 
 	@Override
@@ -73,6 +82,32 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			if (obj != null) {
 				return obj.toString();
 			}
+			
+		} else {
+			
+			if (externalNodeTypeName == null) {
+				
+				// try to determine external node
+				// type name from configuration
+				externalNodeTypeName = (String)Services.getConfigurationValue(Services.FOREIGN_TYPE);
+			}
+			
+			if (externalNodeTypeName != null && node.hasProperty(externalNodeTypeName)) {
+				
+				Object typeObj = node.getProperty(externalNodeTypeName);
+				if (typeObj != null) {
+					
+					String externalNodeType = typeObj.toString();
+					
+					// initialize dynamic type
+					genericNodeExtender.getType(externalNodeType);
+					
+					// return dynamic type
+					return typeObj.toString();
+				}
+			}
+			
+			
 		}
 		
 		return getGenericNodeType();

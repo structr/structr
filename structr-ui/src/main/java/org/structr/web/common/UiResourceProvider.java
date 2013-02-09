@@ -29,7 +29,7 @@ import org.structr.rest.resource.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.structr.web.resource.DynamicTypeResource;
+import org.structr.rest.resource.DynamicTypeResource;
 
 //~--- classes ----------------------------------------------------------------
 

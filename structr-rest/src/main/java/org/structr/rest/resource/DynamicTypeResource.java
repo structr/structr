@@ -1,4 +1,4 @@
-package org.structr.web.resource;
+package org.structr.rest.resource;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -25,13 +25,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.resource.Resource;
-import org.structr.rest.resource.TypeResource;
-import org.structr.rest.resource.TypedIdResource;
-import org.structr.rest.resource.UuidResource;
-import org.structr.web.common.UiFactoryDefinition;
-import org.structr.web.entity.DataNode;
-import org.structr.web.entity.PropertyDefinition;
+import org.structr.core.entity.PropertyDefinition;
 
 /**
  *
@@ -41,7 +35,7 @@ public class DynamicTypeResource extends TypeResource {
 
 	private static final Logger logger = Logger.getLogger(TypeResource.class.getName());
 
-	private String kind = null;
+	private String normalizedTypeName = null;
 	
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
@@ -52,11 +46,11 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (part != null) {
 
-			this.kind = EntityContext.normalizeEntityName(part);
+			this.normalizedTypeName = EntityContext.normalizeEntityName(part);
 			
-			if (PropertyDefinition.exists(this.kind)) {
+			if (PropertyDefinition.exists(this.normalizedTypeName)) {
 				
-				entityClass = UiFactoryDefinition.extender.getType(kind);
+				entityClass = PropertyDefinition.nodeExtender.getType(normalizedTypeName);
 				
 				return true;
 			}
@@ -80,8 +74,7 @@ public class DynamicTypeResource extends TypeResource {
 				throw new NotFoundException();
 			}
 
-			searchAttributes.add(Search.andExactType(DataNode.class.getSimpleName()));
-			searchAttributes.add(Search.andExactProperty(DataNode.kind, kind));
+			searchAttributes.add(Search.andExactType(normalizedTypeName));
 			searchAttributes.addAll(extractSearchableAttributesFromRequest(securityContext));
 			
 			// do search
@@ -160,8 +153,7 @@ public class DynamicTypeResource extends TypeResource {
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
 		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
-		properties.put(AbstractNode.type, DataNode.class.getSimpleName());
-		properties.put(DataNode.kind, kind);
+		properties.put(AbstractNode.type, normalizedTypeName);
 		
 		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
 	}

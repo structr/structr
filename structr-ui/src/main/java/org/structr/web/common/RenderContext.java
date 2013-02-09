@@ -27,10 +27,10 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Condition;
-import org.structr.web.entity.DataNode;
 import org.structr.web.entity.dom.Page;
 
 /**
@@ -56,8 +56,7 @@ public class RenderContext {
 	private boolean edit                         = false;
 	private int depth                            = 0;
 	private boolean inBody                       = false;
-	private DataNode treeSource                  = null;
-	private String treeKey                       = null;
+	private AbstractNode treeSource              = null;
 	private Iterable<GraphObject> listSource     = null;
 	private String searchClass                   = null;  
 	private Condition condition                  = null; 
@@ -94,20 +93,12 @@ public class RenderContext {
 		}
 	}
 	
-	public void setTreeSource(DataNode treeSource) {
+	public void setTreeSource(AbstractNode treeSource) {
 		this.treeSource = treeSource;
 	}
 	
-	public DataNode getTreeSource() {
+	public AbstractNode getTreeSource() {
 		return treeSource;
-	}
-	
-	public void setTreeKey(String treeKey) {
-		this.treeKey = treeKey;
-	}
-	
-	public String getTreeKey() {
-		return treeKey;
 	}
 	
 	public void setListSource(Iterable<GraphObject> listSource) {
