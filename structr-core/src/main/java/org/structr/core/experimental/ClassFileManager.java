@@ -1,4 +1,4 @@
-package org.structr.web.experimental;
+package org.structr.core.experimental;
 
 import java.io.IOException;
 import java.security.SecureClassLoader;

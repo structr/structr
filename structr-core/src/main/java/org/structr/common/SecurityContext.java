@@ -96,22 +96,21 @@ public class SecurityContext {
 		} catch (Throwable t) {
 
 			logger.log(Level.SEVERE, "Could not instantiate security context!");
-
 		}
 
-//		// TEST: request-based caching
-//		if (request != null) {
-//			cache = (Map<Long, AbstractNode>)request.getServletContext().getAttribute("NODE_CACHE");
-//		}
-//		
-//		if (cache == null) {
-//
-//			cache = new ConcurrentHashMap<Long, AbstractNode>();
-//			
-//			if (request != null) {
-//				request.getServletContext().setAttribute("NODE_CACHE", cache);
-//			}
-//		}
+		// TEST: request-based caching
+		if (request != null && request.getServletContext() != null) {
+			cache = (Map<Long, AbstractNode>)request.getServletContext().getAttribute("NODE_CACHE");
+		}
+		
+		if (cache == null) {
+
+			cache = new ConcurrentHashMap<Long, AbstractNode>();
+			
+			if (request != null && request.getServletContext() != null) {
+				request.getServletContext().setAttribute("NODE_CACHE", cache);
+			}
+		}
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -121,7 +120,10 @@ public class SecurityContext {
 	 * created for is finished and the resources can be freed.
 	 */
 	public void cleanUp() {
-		cache.clear();
+		
+		if (cache != null) {
+			cache.clear();
+		}
 	}
 	
 	public AbstractNode lookup(Node node) {
