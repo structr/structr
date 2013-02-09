@@ -63,6 +63,10 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
 	);
 	
+	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Ui,
+	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
+	);
+	
 	// ----- private members -----
 	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<String, Map<String, PropertyDefinition>>();
 	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<String, Class<? extends PropertyKey>>();

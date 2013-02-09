@@ -99,19 +99,19 @@ public class SecurityContext {
 
 		}
 
-		// TEST: request-based caching
-		if (request != null) {
-			cache = (Map<Long, AbstractNode>)request.getServletContext().getAttribute("NODE_CACHE");
-		}
-		
-		if (cache == null) {
-
-			cache = new ConcurrentHashMap<Long, AbstractNode>();
-			
-			if (request != null) {
-				request.getServletContext().setAttribute("NODE_CACHE", cache);
-			}
-		}
+//		// TEST: request-based caching
+//		if (request != null) {
+//			cache = (Map<Long, AbstractNode>)request.getServletContext().getAttribute("NODE_CACHE");
+//		}
+//		
+//		if (cache == null) {
+//
+//			cache = new ConcurrentHashMap<Long, AbstractNode>();
+//			
+//			if (request != null) {
+//				request.getServletContext().setAttribute("NODE_CACHE", cache);
+//			}
+//		}
 	}
 
 	//~--- methods --------------------------------------------------------

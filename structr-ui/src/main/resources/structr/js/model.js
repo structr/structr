@@ -32,7 +32,7 @@ var StructrModel = {
      */
     create : function(data, refId) {
         
-        log("StructrModel.create", data);
+        console.log("StructrModel.create", data);
         
         var type = data.type;
         var obj;
@@ -69,9 +69,9 @@ var StructrModel = {
             
             obj = new StructrDataNode(data);
             
-        } else if (type == 'Type') {
+        } else if (type == 'PropertyDefinition') {
             
-            obj = new StructrType(data);
+            obj = new StructrPropertyDefinition(data);
             
         } else {
             
@@ -741,28 +741,28 @@ StructrContent.prototype.append = function(refNode) {
 }
 
 /**************************************
- * Structr Type
+ * Structr PropertyDefinition
  **************************************/
 
-function StructrType(data) {
+function StructrPropertyDefinition(data) {
     var self = this;
     $.each(Object.keys(data), function(i, key) {
         self[key] = data[key];
     });
 }
 
-StructrType.prototype.save = function() {
+StructrPropertyDefinition.prototype.save = function() {
     StructrModel.save(this.id);
 }
 
-StructrType.prototype.setProperty = function(key, value, callback) {
+StructrPropertyDefinition.prototype.setProperty = function(key, value, callback) {
     Command.setProperty(this.id, key, value, false, callback);
 }
 
-StructrType.prototype.remove = function() {
-    alert('FIXME: Implement StructrType.remove()!');
+StructrPropertyDefinition.prototype.remove = function() {
+    alert('FIXME: Implement StructrPropertyDefinition.remove()!');
 }
 
-StructrType.prototype.append = function(refNode) {
-    _Types.appendTypeElement(this);
+StructrPropertyDefinition.prototype.append = function(refNode) {
+    _PropertyDefinitions.appendPropertyDefinitionElement(this);
 }

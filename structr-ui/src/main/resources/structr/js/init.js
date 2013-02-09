@@ -104,11 +104,11 @@ $(document).ready(function() {
 //        Structr.modules['components'].onload();
 //    });
     
-    $('#types_').on('click', function(e) {
+    $('#propertyDefinitions_').on('click', function(e) {
         e.stopPropagation();
         main.empty();
-        Structr.activateMenuEntry('types');
-        Structr.modules['types'].onload();
+        Structr.activateMenuEntry('propertyDefinitions');
+        Structr.modules['propertyDefinitions'].onload();
     });
 
     $('#elements_').on('click', function(e) {

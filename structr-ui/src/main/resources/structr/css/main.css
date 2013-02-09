@@ -151,7 +151,7 @@ img.disabled {
 }
 
 #pages,
-#types,
+#propertyDefinitions,
 #previews,
 #elements,
 #components,
@@ -443,7 +443,7 @@ ul#previewTabs {
 
 .node .id,
 .group .id,
-.types .id,
+.propertyDefinitions .id,
 .user    .id,
 .page .id,
 .element .id,
@@ -478,7 +478,7 @@ span.id {
     color: #999;
 }
 
-#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #types .node, #trees .node, .dialogText .node
+#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #propertyDefinitions .node, #trees .node, .dialogText .node
 /*#pages .page, #files .page, #users .page,  #groups .page, #types .page,
 #pages .type, #files .type, #users .type,  #groups .type, #types .type,
 #pages .component, #files .component, #users .component,  #groups .component, #types .component,
