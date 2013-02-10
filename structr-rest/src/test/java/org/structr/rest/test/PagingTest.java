@@ -20,7 +20,7 @@ package org.structr.rest.test;
 
 import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.internal.RestAssuredResponseImpl;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
 
@@ -40,6 +40,7 @@ public class PagingTest extends StructrRestTest {
 		String resource = "/test_one";
 		
 		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.body(" { 'name' : 'TestOne-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
 		
