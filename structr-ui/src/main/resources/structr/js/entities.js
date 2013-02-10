@@ -93,7 +93,7 @@ var _Entities = {
 
         //_Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
         
-        dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId"><button id="saveDataNodeId">Save</button></div>');
+        dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId" size="32" value="' + (entity.dataNodeId ? entity.dataNodeId : '') + '"><button id="saveDataNodeId">Save</button></div>');
         $('#saveDataNodeId', dialog).on('click', function() {
             log('add Data Node', entity.id, $('#dataNodeId', dialog).val());
             Command.addDataTree(entity.id, $('#dataNodeId', dialog).val());
