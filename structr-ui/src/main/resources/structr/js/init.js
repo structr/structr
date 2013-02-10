@@ -139,12 +139,12 @@ $(document).ready(function() {
         Structr.modules['files'].onload();
     });
 
-    $('#trees_').on('click', function(e) {
-        e.stopPropagation();
-        main.empty();
-        Structr.activateMenuEntry('trees');
-        Structr.modules['trees'].onload();
-    });
+//    $('#trees_').on('click', function(e) {
+//        e.stopPropagation();
+//        main.empty();
+//        Structr.activateMenuEntry('trees');
+//        Structr.modules['trees'].onload();
+//    });
 
     $('#images_').on('click', function(e) {
         e.stopPropagation();
@@ -361,9 +361,11 @@ var Structr = {
                 dialogText.empty();
                 $.unblockUI({
                     fadeOut: 25
+
                 });
-                dialogSaveButton.remove();
-                $('#saveProperties').remove();
+                dialogBtn.children(':not(.dialogCancelButton)').remove();
+                //dialogSaveButton.remove();
+                //$('#saveProperties').remove();
                 if (searchField) searchField.focus();
             });
             $.blockUI.defaults.overlayCSS.opacity = .6;

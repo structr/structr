@@ -98,7 +98,7 @@ var _Crud = {
     schemaLoading : false,
     schemaLoaded : false,
     
-    types : [ 'Page', 'User', 'Group', 'File', 'Image', 'Content', 'PropertyDefinition' ],
+    types : [ 'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition', 'Contact', 'ContactGroup' ],
     views : [ 'public', 'all', 'ui' ],
 
     schema : [],
@@ -160,7 +160,8 @@ var _Crud = {
                 
             } else if (e.keyCode == 27 || searchString == '') {
                 
-                _Crud.clearSearch(main);
+                _Crud.clearSearch(main);                
+                
             }
             
             
@@ -693,30 +694,104 @@ var _Crud = {
             data: json,
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function(data, status, xhr) {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    var location = xhr.getResponseHeader('location');
-                    var id = location.substring(location.lastIndexOf('/') + 1);
-                    _Crud.crudRead(type, id);
-                    $.unblockUI({
-                        fadeOut: 25
-                    });
-                    document.location.reload();
-                }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    //console.log(data, status, xhr);
-                    _Crud.dialog('Create new ' + type, function() {
-                        //console.log('ok')
-                        }, function() {
-                        //console.log('cancel')
+            statusCode : {
+                201 : function(xhr) {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        var location = xhr.getResponseHeader('location');
+                        var id = location.substring(location.lastIndexOf('/') + 1);
+                        _Crud.crudRead(type, id);
+                        $.unblockUI({
+                            fadeOut: 25
                         });
-                    _Crud.showDetails(null, true, type);
+                        document.location.reload();
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
                 }
             }
         });
@@ -724,7 +799,7 @@ var _Crud = {
 
     crudRefresh : function(id, key) {
         var url = rootUrl + id + '/' + _Crud.view[_Crud.type];
-        //        console.log('crudRefresh', id, key, headers, url);
+        //console.log('crudRefresh', id, key, headers, url);
         
         $.ajax({
             url: url,
@@ -753,7 +828,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                //console.log('reset', id, key, data.result[key]);
+                console.log('reset', id, key, data.result[key]);
                 _Crud.resetCell(id, key, data.result[key]);
             }
         });
@@ -769,21 +844,63 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    _Crud.crudRefresh(id);
+            statusCode : {
+                200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id);
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
                 }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    _Crud.crudReset(id);
-                }
-            //alert(data.responseText);
-            // TODO: Overlay with error info
             }
         });
     },
@@ -791,31 +908,96 @@ var _Crud = {
     crudUpdate : function(id, key, newValue, onSuccess, onError) {
         var url = rootUrl + id;
         var json = '{"' + key + '":"' + newValue + '"}';
-        //        console.log('crudUpdate', headers, url, json);
+        //console.log('crudUpdate', headers, url, json);
         $.ajax({
             url: url,
             headers: headers,
             data: json,
             type: 'PUT',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
+            //dataType: 'json',
+            //contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    _Crud.crudRefresh(id, key);
+            statusCode : {
+                200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id, key);
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
                 }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    _Crud.crudReset(id, key);
-                }
-            //alert(data.responseText);
-            // TODO: Overlay with error info
             }
+        //            success: function() {
+        //                console.log('crudUpdate success', url, headers, json);
+        //                if (onSuccess) {
+        //                    onSuccess();
+        //                } else {
+        //                    _Crud.crudRefresh(id, key);
+        //                }
+        //            },
+        //            error: function(data, status, xhr) {
+        //                console.log('crudUpdate error', url, headers, json, data, status, xhr);
+        //                // since jQuery 1.9, an empty response body is regarded as an error
+        //                // we have to react on this here
+        //                if (data.status == 200) {
+        //                } else {
+        //                    if (onError) {
+        //                        onError();
+        //                    } else {
+        //                        _Crud.crudReset(id, key);
+        //                    }
+        //                }
+        //            //alert(data.responseText);
+        //            // TODO: Overlay with error info
+        //            }
         });
     },
     
@@ -1203,9 +1385,9 @@ var _Crud = {
         el.append('<div class="searchResults"></div>');
         var searchResults = $('.searchResults', el);
         
-        $('.search').select();
+        //$('.search').select();
         
-        var view = 'public'; // _Crud.view[_Crud.type]
+        var view = _Crud.view[_Crud.type]
         
         var types = type ? [ type ] : _Crud.types;
         
@@ -1294,6 +1476,10 @@ var _Crud = {
                 });
                 
             } else if (e.keyCode == 27 || searchString == '') {
+
+                if (!searchString || searchString == '') {
+                    dialogCancelButton.click();
+                }
                 
                 if (_Crud.clearSearchResults(el)) {
                     $('.clearSearchIcon').hide().off('click');
@@ -1484,6 +1670,7 @@ var _Crud = {
             });
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
+            $.blockUI.defaults.css.cursor = 'default';
             
         
             var w = $(window).width();

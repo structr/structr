@@ -614,7 +614,7 @@ var _Files = {
                 });
 
                 editor.id = file.id;
-                dialogBtn.children(':not(.dialogCancelButton)').remove();
+                
                 dialogBtn.append('<button id="saveFile"> Save </button>');
                 dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
                 $('button#saveFile', dialogBtn).on('click', function(e) {

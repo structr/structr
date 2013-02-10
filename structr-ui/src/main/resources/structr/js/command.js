@@ -566,19 +566,19 @@ var Command = {
     },
 
     /**
-     * Send a ADD_DATA_TREE command to the server.
+     * Send a ADD_DATA_NODE_REL command to the server.
      * 
-     * The server will establish a RENDER_TREE relationship from the node with the given
-     * id to the page with the given tree id.
+     * The server will establish a RENDER_NODE relationship from the node
+     * with the given id to the data node with the given node id.
      * 
      * The server gives no feedback on a LINK command.
      */
-    addDataTree : function(id, treeRootNodeId, key) {
+    addDataTree : function(id, dataNodeId, key) {
         var obj = {};
-        obj.command = 'ADD_DATA_TREE';
+        obj.command = 'ADD_DATA_NODE_REL';
         obj.id = id;
         var data = {};
-        data.treeRootNodeId = treeRootNodeId;
+        data.dataNodeId = dataNodeId;
         data.key = key;
         obj.data = data;
         log('addDataTree()', obj);

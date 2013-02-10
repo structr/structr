@@ -316,10 +316,6 @@ h2.searchResultsTitle {
     left: 12px;
 }
 
-.dialogText h2.searchResultsTitle {
-    top: 1px;
-}
-
 .searchResults h3 {
     color: #333;
     clear: both;
@@ -344,4 +340,17 @@ h2.searchResultsTitle {
     top: 9px;
     right: 8px;
     cursor: pointer;
+}
+
+.dialogText h2.searchResultsTitle {
+    top: 0px;
+}
+
+.dialogText .searchResults {
+    margin-top: 0;
+}
+
+.dialogText .searchResultGroup {
+    position: absolute;
+    top: 42px;
 }

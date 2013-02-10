@@ -91,13 +91,13 @@ var _Entities = {
             });
         });
 
-        _Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
+        //_Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
         
-//        dialog.append('<div><h3>Data Tree Id</h3><input type="text" id="treeRootNodeId"><button id="saveTreeRootNodeId">Save</button></div>');
-//        $('#saveTreeRootNodeId', dialog).on('click', function() {
-//            log('addDataTree', entity.id, $('#treeRootNodeId', dialog).val());
-//            Command.addDataTree(entity.id, $('#treeRootNodeId', dialog).val());
-//        });
+        dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId"><button id="saveDataNodeId">Save</button></div>');
+        $('#saveDataNodeId', dialog).on('click', function() {
+            log('add Data Node', entity.id, $('#dataNodeId', dialog).val());
+            Command.addDataTree(entity.id, $('#dataNodeId', dialog).val());
+        });
     },
 
     showProperties : function(entity) {
