@@ -50,7 +50,10 @@ public class EntityMatcher extends BaseMatcher {
 	public EntityMatcher(Class type, String view, Map<String, Object> values) {
 
 		Set<PropertyKey> propertyView = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
-		propertyView.add(new StringProperty("id"));	// FIXME: this is due to the uuid/id mess in core!
+		
+		// FIXME: this is due to the uuid/id mess in core!
+		propertyView.add(new StringProperty("id"));
+		propertyView.remove(new StringProperty("uuid"));
 		
 		for (PropertyKey key : propertyView) {
 			entityValues.put(key.jsonName(), values.get(key.jsonName()));
