@@ -98,7 +98,7 @@ var _Crud = {
     schemaLoading : false,
     schemaLoaded : false,
     
-    types : [ 'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition', 'Contact', 'ContactGroup' ],
+    types : [ 'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
     views : [ 'public', 'all', 'ui' ],
 
     schema : [],

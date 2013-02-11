@@ -92,8 +92,8 @@ public class SchemaResource extends Resource {
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
 				// list property sets for all views
+				Set<String> propertyViews              = new LinkedHashSet<String>(EntityContext.getPropertyViews());
 				Map<String, Map<String, Object>> views = new TreeMap();
-				Set<String> propertyViews              = EntityContext.getPropertyViews();
 				schema.setProperty(new StringProperty("views"), views);
 
 				for (String view : propertyViews) {
