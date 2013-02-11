@@ -699,13 +699,14 @@ var _Crud = {
                     if (onSuccess) {
                         onSuccess();
                     } else {
-                        var location = xhr.getResponseHeader('location');
-                        var id = location.substring(location.lastIndexOf('/') + 1);
-                        _Crud.crudRead(type, id);
+                        //                        var location = xhr.getResponseHeader('location');
+                        //                        var id = location.substring(location.lastIndexOf('/') + 1);
+                        //                        _Crud.crudRead(type, id);
                         $.unblockUI({
                             fadeOut: 25
                         });
-                        document.location.reload();
+                        _Crud.activateList(type);
+                    //document.location.reload();
                     }
                 },
                 400 : function(data, status, xhr) {
@@ -1006,7 +1007,7 @@ var _Crud = {
         var url = rootUrl + id;
         var json = '{"' + key + '":null}';
         
-        //        console.log('crudRemoveProperty', headers, url, json);
+        //console.log('crudRemoveProperty', headers, url, json);
         
         $.ajax({
             url: url,
@@ -1018,6 +1019,13 @@ var _Crud = {
             //async: false,
             statusCode : {
                 200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id, key);
+                    }
+                },
+                204 : function() {
                     if (onSuccess) {
                         onSuccess();
                     } else {
@@ -1593,29 +1601,35 @@ var _Crud = {
                         data: json,
                         contentType: 'application/json; charset=utf-8',
                         //async: false,
-                        success: function(data) {
+                        statusCode : {
+                            200 : function(data) {
                             
-                            var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-                            //console.log('removeRelatedObject, setting new id array', headers, url, objects, json);
+                                var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
+                                //console.log('removeRelatedObject, setting new id array', headers, url, objects, json);
                             
-                            $.ajax({
-                                url: url,
-                                headers: headers,
-                                type: 'PUT',
-                                dataType: 'json',
-                                data: json,
-                                contentType: 'application/json; charset=utf-8',
-                                //async: false,
-                                success: function(data) {
-                                    var rowEl = $('#' + id);
-                                    var nodeEl = $('.' + _Crud.id(relatedObj) + '_', rowEl);
-                                    console.log(rowEl, nodeEl);
-                                    nodeEl.remove();
-                                },
-                                error: function(a,b,c) {
-                                    console.log(a,b,c);
-                                }
-                            });
+                                $.ajax({
+                                    url: url,
+                                    headers: headers,
+                                    type: 'PUT',
+                                    dataType: 'json',
+                                    data: json,
+                                    contentType: 'application/json; charset=utf-8',
+                                    //async: false,
+                                    statusCode : {
+                                        200 : function(data) {
+                                            var rowEl = $('#' + id);
+                                            var nodeEl = $('.' + _Crud.id(relatedObj) + '_', rowEl);
+                                            console.log(rowEl, nodeEl);
+                                            nodeEl.remove();
+                                        },
+                                        error: function(a,b,c) {
+                                            console.log(a,b,c);
+                                        }
+                                        
+                                    }
+                                });
+                                
+                            }
                         }
                     });
                 }
