@@ -22,16 +22,17 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
+
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.error.FrameworkException;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-
 
 /**
  *
@@ -81,49 +82,39 @@ public class AppendChildCommand extends AbstractCommand {
 
 		}
 
-		if (parentNode instanceof LinkedTreeNode) {
+		if (parentNode instanceof DOMNode) {
 
-			LinkedTreeNode parentLinkedTreeNode = (LinkedTreeNode)parentNode;
-			if (parentLinkedTreeNode == null) {
+			DOMNode parentDOMNode = getDOMNode(parentId);
 
-				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no data node").build(), true);
+			if (parentDOMNode == null) {
+
+				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
 
 				return;
 
 			}
 
-			// defaulting to CONTAINS!
-			if (key == null) {
-				key = "CONTAINS";
-			}
-			
-			LinkedTreeNode node      = (LinkedTreeNode) getNode(id);
-			RelationshipType relType = DynamicRelationshipType.withName(key);
+			DOMNode node = (DOMNode) getDOMNode(id);
 
-			try {
+			// append node to parent
+			if (node != null) {
 
-				// append node to parent
-				if (node != null) {
-
-					parentLinkedTreeNode.treeAppendChild(relType, node);
-				}
-				
-			} catch (FrameworkException fex) {
-
-				// send DOM exception
-				getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
+				parentDOMNode.appendChild(node);
 			}
 
 		} else {
-			
+
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot use given node, not instance of LinkedTreeNode").build(), true);
 		}
+
 	}
 
 	@Override
 	public String getCommand() {
 
 		return "APPEND_CHILD";
+
 	}
+
 }
