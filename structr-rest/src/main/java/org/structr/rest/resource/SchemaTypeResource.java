@@ -78,88 +78,97 @@ public class SchemaTypeResource extends Resource {
 		List<GraphObjectMap> resultList = new LinkedList<GraphObjectMap>();
 
 		// create & add schema information
-		Class type            = typeResource.getEntityClass();
-		GraphObjectMap schema = new GraphObjectMap();
+		Class type = typeResource.getEntityClass();
+		if (type == null) {
 
-		resultList.add(schema);
-
-		String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
-
-		schema.setProperty(new StringProperty("url"), url);
-		schema.setProperty(new StringProperty("type"), type.getSimpleName());
-		schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
-
-		// list property sets for all views
-		Map<String, Map<String, Object>> views = new TreeMap();
-		Set<String> propertyViews              = EntityContext.getPropertyViews();
-
-		schema.setProperty(new StringProperty("views"), views);
-
-		for (String view : propertyViews) {
-
-			Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
-			Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
-
-			// augment property set with properties from PropertyDefinition
-			if (PropertyDefinition.exists(type.getSimpleName())) {
-				
-				Iterable<PropertyDefinition> dynamicProperties = PropertyDefinition.getPropertiesForKind(type.getSimpleName());
-				if (dynamicProperties != null) {
-					
-					for (PropertyDefinition property : dynamicProperties) {
-						properties.add(property);
-					}
-				}
-				
+			if (PropertyDefinition.exists(rawType)) {
+				type = PropertyDefinition.nodeExtender.getType(rawType);
 			}
-			
-			// ignore "all" and empty views
-//                      if (!"all".equals(view) && !properties.isEmpty()) {
-			if (!properties.isEmpty()) {
+		}
 
-				for (PropertyKey property : properties) {
+		if (type != null) {
 
-					Map<String, Object> propProperties = new TreeMap();
+			GraphObjectMap schema = new GraphObjectMap();
 
-					propProperties.put("dbName", property.dbName());
-					propProperties.put("jsonName", property.jsonName());
-					propProperties.put("className", property.getClass().getName());
-					
-					propProperties.put("declaringClass", property.getDeclaringClass());
-					propProperties.put("defaultValue", property.defaultValue());
-					propProperties.put("readOnly", property.isReadOnlyProperty());
-					propProperties.put("system", property.isSystemProperty());
-					
-					Class<? extends GraphObject> relatedType = property.relatedType();
-					if (relatedType != null) {
-						propProperties.put("relatedType", relatedType.getName());
-						propProperties.put("type", relatedType.getSimpleName());
-					} else {
-						propProperties.put("type", property.typeName());
+			resultList.add(schema);
+
+			String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
+
+			schema.setProperty(new StringProperty("url"), url);
+			schema.setProperty(new StringProperty("type"), type.getSimpleName());
+			schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
+
+			// list property sets for all views
+			Map<String, Map<String, Object>> views = new TreeMap();
+			Set<String> propertyViews              = EntityContext.getPropertyViews();
+
+			schema.setProperty(new StringProperty("views"), views);
+
+			for (String view : propertyViews) {
+
+				Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
+				Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
+
+				// augment property set with properties from PropertyDefinition
+				if (PropertyDefinition.exists(type.getSimpleName())) {
+
+					Iterable<PropertyDefinition> dynamicProperties = PropertyDefinition.getPropertiesForKind(type.getSimpleName());
+					if (dynamicProperties != null) {
+
+						for (PropertyDefinition property : dynamicProperties) {
+							properties.add(property);
+						}
 					}
-					propProperties.put("isCollection", property.isCollection());
-
-					PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
-					PropertyConverter inputConverter    = property.inputConverter(securityContext);
-
-					if (databaseConverter != null) {
-
-						propProperties.put("databaseConverter", databaseConverter.getClass().getName());
-					}
-
-					if (inputConverter != null) {
-
-						propProperties.put("inputConverter", inputConverter.getClass().getName());
-					}
-
-					propertyConverterMap.put(property.jsonName(), propProperties);
 
 				}
 
-				views.put(view, propertyConverterMap);
+				// ignore "all" and empty views
+	//                      if (!"all".equals(view) && !properties.isEmpty()) {
+				if (!properties.isEmpty()) {
 
+					for (PropertyKey property : properties) {
+
+						Map<String, Object> propProperties = new TreeMap();
+
+						propProperties.put("dbName", property.dbName());
+						propProperties.put("jsonName", property.jsonName());
+						propProperties.put("className", property.getClass().getName());
+
+						propProperties.put("declaringClass", property.getDeclaringClass());
+						propProperties.put("defaultValue", property.defaultValue());
+						propProperties.put("readOnly", property.isReadOnlyProperty());
+						propProperties.put("system", property.isSystemProperty());
+
+						Class<? extends GraphObject> relatedType = property.relatedType();
+						if (relatedType != null) {
+							propProperties.put("relatedType", relatedType.getName());
+							propProperties.put("type", relatedType.getSimpleName());
+						} else {
+							propProperties.put("type", property.typeName());
+						}
+						propProperties.put("isCollection", property.isCollection());
+
+						PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
+						PropertyConverter inputConverter    = property.inputConverter(securityContext);
+
+						if (databaseConverter != null) {
+
+							propProperties.put("databaseConverter", databaseConverter.getClass().getName());
+						}
+
+						if (inputConverter != null) {
+
+							propProperties.put("inputConverter", inputConverter.getClass().getName());
+						}
+
+						propertyConverterMap.put(property.jsonName(), propProperties);
+
+					}
+
+					views.put(view, propertyConverterMap);
+
+				}
 			}
-
 		}
 
 		return new Result(resultList, resultList.size(), false, false);
