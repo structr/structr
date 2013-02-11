@@ -1016,22 +1016,64 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    _Crud.crudRefresh(id, key);
+            statusCode : {
+                200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id, key);
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
                 }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    _Crud.crudReset(id, key);
-                }
-            //alert(data.responseText);
-            // TODO: Overlay with error info
-            }
+            }            
         });
     },
 
@@ -1043,11 +1085,34 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                //alert(id + ' deleted!');
-                var row = $('#' + id);
-                row.remove();
-            }
+            statusCode : {
+                200 : function() {
+                    var row = $('#' + id);
+                    row.remove();
+                },
+                204 : function() {
+                    var row = $('#' + id);
+                    row.remove();
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                },
+                422 : function(data, status, xhr) {
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                }
+            }               
         });
     },
 
