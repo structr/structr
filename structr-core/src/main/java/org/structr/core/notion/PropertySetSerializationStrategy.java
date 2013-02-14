@@ -18,12 +18,11 @@
  */
 package org.structr.core.notion;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.property.PropertyMap;
 
 /**
  * Serializes a {@link GraphObject} using a set of properties.
@@ -42,11 +41,13 @@ public class PropertySetSerializationStrategy implements SerializationStrategy {
 	public Object serialize(SecurityContext securityContext, Class type, GraphObject source) throws FrameworkException {
 
 		if(source != null) {
-			Map<String, Object> propertySet = new LinkedHashMap<String, Object>();
+			
+			PropertyMap propertyMap = new PropertyMap();
 			for(PropertyKey key : propertyKeys) {
-				propertySet.put(key.jsonName(), source.getProperty(key));
+				propertyMap.put(key, source.getProperty(key));
 			}
-			return propertySet;
+			
+			return PropertyMap.javaTypeToInputType(securityContext, type, propertyMap);
 		}
 
 		return null;
