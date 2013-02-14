@@ -25,7 +25,6 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.notion.PropertySetNotion;

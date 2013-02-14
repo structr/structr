@@ -93,7 +93,7 @@ public class RenderContext {
 		}
 	}
 	
-	public void setTreeSource(AbstractNode treeSource) {
+	public void setStartNode(AbstractNode treeSource) {
 		this.treeSource = treeSource;
 	}
 	

@@ -22,9 +22,15 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractFile;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.dom.DOMNode;
+import org.structr.core.entity.Folder;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -33,11 +39,13 @@ import org.structr.websocket.message.WebSocketMessage;
  *
  * @author Axel Morgner
  */
-public class AppendChildCommand extends AbstractCommand {
+public class AppendFileCommand extends AbstractCommand {
+		
+	private static final Logger logger     = Logger.getLogger(AppendFileCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(AppendChildCommand.class);
+		StructrWebSocket.addCommand(AppendFileCommand.class);
 	}
 
 	@Override
@@ -77,30 +85,34 @@ public class AppendChildCommand extends AbstractCommand {
 
 		}
 
-		if (parentNode instanceof DOMNode) {
+		if (parentNode instanceof Folder) {
 
-			DOMNode parentDOMNode = getDOMNode(parentId);
+			Folder folder = (Folder) parentNode;
+			
+			AbstractFile file = (AbstractFile) getNode(id);
 
-			if (parentDOMNode == null) {
-
-				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
-
-				return;
-
+			if (file != null) {
+				try {
+					// Remove from existing parent
+					LinkedTreeNode currentParent = file.treeGetParent(RelType.CONTAINS);
+					if (currentParent != null) {
+						
+						currentParent.treeRemoveChild(RelType.CONTAINS, file);
+						
+					}
+					
+					folder.treeAppendChild(RelType.CONTAINS, file);
+				} catch (FrameworkException ex) {
+					logger.log(Level.SEVERE, null, ex);
+					getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append file").build(), true);
+				}
 			}
-
-			DOMNode node = (DOMNode) getDOMNode(id);
-
-			// append node to parent
-			if (node != null) {
-
-				parentDOMNode.appendChild(node);
-			}
+			
 
 		} else {
 
 			// send exception
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot use given node, not instance of DOMNode").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is not instance of Folder").build(), true);
 		}
 
 	}
@@ -108,7 +120,7 @@ public class AppendChildCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 
-		return "APPEND_CHILD";
+		return "APPEND_FILE";
 
 	}
 

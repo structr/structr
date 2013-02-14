@@ -487,6 +487,7 @@ var _Entities = {
     },
 
     removeExpandIcon : function(el) {
+        if (!el) return;
         log('removeExpandIcon', el);
         var button = $(el.children('.expand_icon').first());
         button.remove();

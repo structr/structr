@@ -113,11 +113,7 @@ var Command = {
         var data = {};
         
         var structrObj = StructrModel.obj(id);
-        if (structrObj instanceof StructrDataNode) {
-            obj.command = 'DATA_NODE_CHILDREN';
-            data.key = 'TEST_DATA';
-            log('children of data node requested', structrObj);
-        } else if (structrObj instanceof StructrElement || structrObj instanceof StructrContent) {
+        if (structrObj instanceof StructrElement || structrObj instanceof StructrContent) {
             obj.command = 'DOM_NODE_CHILDREN';
             log('children of DOM node requested', structrObj);
         } else {
@@ -267,9 +263,31 @@ var Command = {
         log('setProperties()', obj);
         return sendObj(obj);
     },
+    
+    /**
+     * Send an APPEND_FILE command to the server.
+     * 
+     * The server will append the file or folder node with the given id
+     * as child of the parent folder node with the given parent id.
+     * 
+     * If the node was child of another folder before, it will be
+     * removed from the former parent before being appended
+     * to the new one.
+     * 
+     */
+    appendFile : function(id, parentId) {
+        var obj = {};
+        obj.command = 'APPEND_FILE';
+        obj.id = id;
+        var data = {};
+        data.parentId = parentId;
+        obj.data = data;
+        log('appendFile()', obj);
+        return sendObj(obj);
+    },
 
     /**
-     * Send an APPEND_DATA command to the server.
+     * Send an APPEND_CHILD command to the server.
      * 
      * The server will append the node with the given id
      * as child of the node with the given parent id.

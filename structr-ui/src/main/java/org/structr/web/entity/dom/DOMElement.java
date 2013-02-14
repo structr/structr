@@ -292,13 +292,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			// fetch (optional) list of external data elements
 			List<GraphObject> listData = checkListSources();
 			
-			// an outgoing RENDER_TREE relationship marks the beginning of a tree rendering
-			for (AbstractRelationship rel : getOutgoingRelationships(RelType.RENDER_TREE)) {
+			// an outgoing RENDER_NODE relationship points to the data node where rendering starts
+			for (AbstractRelationship rel : getOutgoingRelationships(RelType.RENDER_NODE)) {
 				
 				AbstractNode dataRoot = rel.getEndNode();			
 
-				// set data tree root as current tree source
-				renderContext.setTreeSource(dataRoot);
+				// set start node of this rendering to the data root node
+				renderContext.setStartNode(dataRoot);
 
 				// data nodes to be used as list source in this level
 				renderContext.setDataNode(_dataKey, dataRoot);
@@ -317,7 +317,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
 					for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
 
-						renderContext.setTreeSource(node);
+						renderContext.setStartNode(node);
 						renderContext.setDataNode(_dataKey, node);
 						renderSingleNode(securityContext, renderContext, depth);
 
@@ -344,7 +344,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 			// remove tree source from render context
 			// to avoid that rendering of subsequent nodes doesn't default to tree rendering
-			renderContext.setTreeSource(null);
+			renderContext.setStartNode(null);
 
 		}
 	
@@ -388,7 +388,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 ////		if (dataKey.equals(localDataKey)) {
 ////			
 ////			if (currentNode != null) {
-////				renderContext.setTreeSource((DataNode)currentNode.getFirstChild(treeKey));
+////				renderContext.setStartNode((DataNode)currentNode.getFirstChild(treeKey));
 ////			}
 ////		}
 //		

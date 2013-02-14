@@ -32,7 +32,7 @@ var StructrModel = {
      */
     create : function(data, refId) {
         
-        console.log("StructrModel.create", data);
+        log("StructrModel.create", data);
         
         var type = data.type;
         var obj;
@@ -368,58 +368,58 @@ var StructrModel = {
  * Structr DataNode
  **************************************/
 
-function StructrDataNode(data) {
-    var self = this;
-    $.each(Object.keys(data), function(i, key) {
-        self[key] = data[key];
-    });
-    log('StructrDataNode created', self);
-}
-
-StructrDataNode.prototype.save = function() {
-    StructrModel.save(this.id);
-}
-
-StructrDataNode.prototype.setProperty = function(key, value, recursive, callback) {
-    Command.setProperty(this.id, key, value, recursive, callback);
-}
-
-StructrDataNode.prototype.remove = function() {
-    var dataNode = this;
-    var dataNodeEl = Structr.node(dataNode.id);
-    var parentFolderEl = Structr.node(dataNode.parenId);
-    log('removeFolderFromFolder', dataNodeEl);
-        
-    _Entities.resetMouseOverState(dataNodeEl);
-
-    dataNodeEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + dataNode.id + '" '
-        + 'alt="Delete folder ' + dataNode.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-
-    dataNodeEl.children('.delete_icon').on('click', function(e) {
-        e.stopPropagation();
-        _Entities.deleteNode(this, dataNode);
-    });
-        
-    trees.append(dataNodeEl);
-        
-    if (!Structr.containsNodes(parentFolderEl)) {
-        _Entities.removeExpandIcon(parentFolderEl);
-        enable(parentFolderEl.children('.delete_icon')[0]);
-    }
-
-    dataNodeEl.draggable({
-        revert: 'invalid',
-        containment: '#main',
-        stack: 'div'
-    });
-}
-
-StructrDataNode.prototype.append = function(refNode) {
-    var self = this;
-    Command.dataNodeParent(self.id, 'TEST_DATA', function() {
-        StructrModel.expand(_Trees.appendDataNode(self, refNode), self);
-    });
-}
+//function StructrDataNode(data) {
+//    var self = this;
+//    $.each(Object.keys(data), function(i, key) {
+//        self[key] = data[key];
+//    });
+//    log('StructrDataNode created', self);
+//}
+//
+//StructrDataNode.prototype.save = function() {
+//    StructrModel.save(this.id);
+//}
+//
+//StructrDataNode.prototype.setProperty = function(key, value, recursive, callback) {
+//    Command.setProperty(this.id, key, value, recursive, callback);
+//}
+//
+//StructrDataNode.prototype.remove = function() {
+//    var dataNode = this;
+//    var dataNodeEl = Structr.node(dataNode.id);
+//    var parentFolderEl = Structr.node(dataNode.parentId);
+//    log('removeFolderFromFolder', dataNodeEl);
+//        
+//    _Entities.resetMouseOverState(dataNodeEl);
+//
+//    dataNodeEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + dataNode.id + '" '
+//        + 'alt="Delete folder ' + dataNode.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+//
+//    dataNodeEl.children('.delete_icon').on('click', function(e) {
+//        e.stopPropagation();
+//        _Entities.deleteNode(this, dataNode);
+//    });
+//        
+//    trees.append(dataNodeEl);
+//        
+//    if (!Structr.containsNodes(parentFolderEl)) {
+//        _Entities.removeExpandIcon(parentFolderEl);
+//        enable(parentFolderEl.children('.delete_icon')[0]);
+//    }
+//
+//    dataNodeEl.draggable({
+//        revert: 'invalid',
+//        containment: '#main',
+//        stack: 'div'
+//    });
+//}
+//
+//StructrDataNode.prototype.append = function(refNode) {
+//    var self = this;
+//    Command.dataNodeParent(self.id, 'TEST_DATA', function() {
+//        StructrModel.expand(_Trees.appendDataNode(self, refNode), self);
+//    });
+//}
 
 
 /**************************************
@@ -442,11 +442,21 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 }
 
 StructrFolder.prototype.remove = function() {
+    
     var folder = this;
+    var parentFolder = StructrModel.obj(folder.parent.id);
+    var parentFolderEl = Structr.node(parentFolder.id);
+    
+    parentFolder.folders = removeFromArray(parentFolder.folders, folder);
+    
+    if (!parentFolder.files.length && !parentFolder.folders.length) {
+        _Entities.removeExpandIcon(parentFolderEl);
+        enable(parentFolderEl.children('.delete_icon')[0]);
+    }
+
     var folderEl = Structr.node(folder.id);
-    var parentFolderEl = Structr.node(folder.parent.id);
-    log('removeFolderFromFolder', folderEl);
-        
+    if (!folderEl) return;
+
     _Entities.resetMouseOverState(folderEl);
 
     folderEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + folder.id + '" '
@@ -456,18 +466,13 @@ StructrFolder.prototype.remove = function() {
         e.stopPropagation();
         _Entities.deleteNode(this, folder);
     });
-        
+
     folders.append(folderEl);
-        
-    if (!Structr.containsNodes(parentFolderEl)) {
-        _Entities.removeExpandIcon(parentFolderEl);
-        enable(parentFolderEl.children('.delete_icon')[0]);
-    }
 
     folderEl.draggable({
         revert: 'invalid',
         containment: '#main',
-        stack: 'div'
+        stack: '.folder'
     });
 }
 
@@ -496,11 +501,49 @@ StructrFile.prototype.setProperty = function(key, value, callback) {
 }
 
 StructrFile.prototype.remove = function() {
-    _Files.removeFileFromFolder(this.id);
+    var file = this;
+    var parentFolder = StructrModel.obj(file.parent.id);
+    var parentFolderEl = Structr.node(parentFolder.id);
+
+    parentFolder.files = removeFromArray(parentFolder.files, file);
+    if (!parentFolder.files.length && !parentFolder.folders.length) {
+        _Entities.removeExpandIcon(parentFolderEl);
+        enable(parentFolderEl.children('.delete_icon')[0]);
+    }
+
+    var parentElement = files;
+
+        
+    var fileEl = Structr.node(file.id);
+    if (!fileEl) return;
+        
+    _Entities.resetMouseOverState(fileEl);
+        
+    parentElement.append(fileEl);
+
+        
+    fileEl.children('.delete_icon').replaceWith('<img title="Delete File ' + file.id + '" '
+        + 'alt="Delete File ' + file.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        
+    fileEl.children('.delete_icon').on('click', function(e) {
+        e.stopPropagation();
+        _Entities.deleteNode(this, file);
+    });
+        
+    fileEl.draggable({
+        revert: 'invalid',
+        containment: '#main',
+        stack: 'div'
+    });
 }
 
 StructrFile.prototype.append = function(refNode) {
-    _Files.uploadFile(this);
+    var file = this;
+    _Files.uploadFile(file);
+    if (refNode) {
+        var parentFolder = StructrModel.obj(refNode.id);
+        parentFolder.files.push(file);
+    }
     StructrModel.expand(_Files.appendFileElement(this, refNode), this);
 }
 
@@ -765,4 +808,14 @@ StructrPropertyDefinition.prototype.remove = function() {
 
 StructrPropertyDefinition.prototype.append = function(refNode) {
     _PropertyDefinitions.appendPropertyDefinitionElement(this);
+}
+
+function removeFromArray(array, obj) {
+    var newArray = [];
+    $.each(array, function(i, el) {
+        if (el.id != obj.id) {
+            newArray.push(el);
+        }
+    });
+    return newArray;
 }

@@ -300,7 +300,7 @@ var _Files = {
             revert: 'invalid',
             helper: 'clone',
             //containment: '#main',
-            stack: 'div',
+            stack: '.node',
             stop : function(e,ui) {
                 $('#pages_').droppable('enable').removeClass('nodeHover');
             }
@@ -396,7 +396,7 @@ var _Files = {
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
                     //log('addExpandedNode(folderId)', addExpandedNode(folderId));
-                    Command.appendChild(fileId, folderId);
+                    Command.appendFile(fileId, folderId);
                     $(ui.draggable).remove();
                 //Command.createAndAdd(folderId, nodeData);
                 }
@@ -411,45 +411,7 @@ var _Files = {
     },
     
     removeFileFromFolder : function(fileId, folderId, isImage) {
-        log('removeFileFromFolder', fileId, folderId, isImage);
-        
-        var parentElement, cls;
-        if (isImage) {
-            parentElement = images;
-            cls = 'image';
-        } else {
-            parentElement = files;
-            cls = 'file';
-        }
-
-        var folder = Structr.node(folderId);
-        var file = Structr.node(fileId, folderId);
-        
-        log(file, folder);
-        
-        _Entities.resetMouseOverState(file);
-        
-        parentElement.append(file);
-        
-        file.children('.delete_icon').replaceWith('<img title="Delete ' + cls + ' ' + fileId + '" '
-            + 'alt="Delete ' + cls + ' ' + fileId + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        
-        file.children('.delete_icon').on('click', function(e) {
-            e.stopPropagation();
-            _Entities.deleteNode(this, Structr.entity(fileId));
-        });
-        
-        file.draggable({
-            revert: 'invalid',
-            containment: '#main',
-            zIndex: 1
-        });
-
-        if (!Structr.containsNodes(folder)) {
-            _Entities.removeExpandIcon(folder);
-            enable(folder.children('.delete_icon')[0]);
-        }
-        
+        alert('gone');
     },
     
     removeImageFromFolder : function(imageId, folderId) {
