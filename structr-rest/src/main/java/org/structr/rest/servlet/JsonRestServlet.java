@@ -653,7 +653,7 @@ public class JsonRestServlet extends HttpServlet {
 				Resource resource	       = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
-				securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), propertyView.get(securityContext));
+				securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(), propertyView.get(securityContext));
 				
 				// do action
 				RestMethodResult result = resource.doPut(properties);
