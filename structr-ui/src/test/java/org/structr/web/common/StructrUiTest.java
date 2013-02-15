@@ -19,6 +19,7 @@
 package org.structr.web.common;
 
 
+import com.jayway.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
 import org.apache.commons.io.FileUtils;
 
@@ -60,9 +61,12 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
+import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.context.ApplicationContextListener;
+import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.servlet.HtmlServlet;
 
 //~--- classes ----------------------------------------------------------------
@@ -95,10 +99,11 @@ public class StructrUiTest extends TestCase {
 	private String basePath;
 	
 	protected static final String prot = "http://";
-	protected static final String contextPath = "/structr";
-	protected static final String htmlUrl = "/html";
+	protected static final String contextPath = "/";
+	protected static final String restUrl = "/structr/rest";
+	protected static final String htmlUrl = "/structr/html";
 	protected static final String host = "127.0.0.1";
-	protected static final int httpPort = 8876;
+	protected static final int httpPort = 8875;
 	
 	protected static String baseUri;
 	
@@ -107,7 +112,11 @@ public class StructrUiTest extends TestCase {
 		// check character set
 		checkCharset();
 		
-		baseUri = prot  + host + ":" + httpPort + contextPath + htmlUrl + "/";
+		baseUri = prot  + host + ":" + httpPort + htmlUrl + "/";
+		// configure RestAssured
+		RestAssured.basePath = restUrl;
+		RestAssured.baseURI = prot + host + ":" + httpPort;
+		RestAssured.port = httpPort;
 		
 	}
 	
@@ -159,17 +168,30 @@ public class StructrUiTest extends TestCase {
 			servletContext.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
 			servletContext.setInitParameter("configfile.path", basePath + "/structr.conf");
 
+			// configure JSON REST servlet
+			JsonRestServlet structrRestServlet     = new JsonRestServlet(new UiResourceProvider(), PropertyView.Public, AbstractNode.uuid);
+			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
+			
+			Map<String, String> servletParams = new LinkedHashMap<String, String>();
+			servletParams.put("Authenticator", UiAuthenticator.class.getName());
+
+			structrRestServletHolder.setInitParameters(servletParams);
+			structrRestServletHolder.setInitOrder(0);
+
+			// add to servlets
+			Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
+			servlets.put(restUrl + "/*", structrRestServletHolder);
+
 			// HTML Servlet
 			HtmlServlet htmlServlet = new HtmlServlet();
 			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
 			Map<String, String> htmlInitParams = new HashMap<String, String>();
 
-			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+			htmlInitParams.put("Authenticator", UiAuthenticator.class.getName());
 			htmlServletHolder.setInitParameters(htmlInitParams);
 			htmlServletHolder.setInitOrder(1);
 
 			// add to servlets
-			Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
 			servlets.put(htmlUrl + "/*", htmlServletHolder);
 
 			// add servlet elements
@@ -497,7 +519,7 @@ public class StructrUiTest extends TestCase {
 			config.add("# REST server settings");
 			config.add("application.host = " + host);
 			config.add("application.rest.port = " + httpPort);
-			config.add("application.rest.path = " + htmlUrl);
+			config.add("application.rest.path = " + restUrl);
 			config.add("");
 			config.add("application.https.enabled = false");
 			config.add("application.https.port = ");
