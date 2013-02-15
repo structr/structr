@@ -648,12 +648,14 @@ public class JsonRestServlet extends HttpServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-				Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
+				List<Resource> chain	       = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
+				Resource resource	       = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
+				securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), propertyView.get(securityContext));
+				
 				// do action
-				RestMethodResult result = resourceConstraint.doPut(properties);
+				RestMethodResult result = resource.doPut(properties);
 
 				result.commitResponse(gson, response);
 			} else {
