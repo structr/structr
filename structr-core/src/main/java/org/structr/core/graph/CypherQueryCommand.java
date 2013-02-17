@@ -36,6 +36,7 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
@@ -82,7 +83,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 			result = engine.get().execute(query, parameters);
 			
 		} else {
-
+			
 			result = engine.get().execute(query);
 		}
 
@@ -129,7 +130,11 @@ public class CypherQueryCommand extends NodeServiceCommand {
 		
 				return new ExecutionEngine((GraphDatabaseService)Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class).execute());
 				
-			} catch (Throwable t) {}
+			} catch (Throwable t) {
+			
+				logger.log(Level.SEVERE, "Could not instantiate cypher execution engine", t);
+			
+			}
 			
 			return null;
 		}
