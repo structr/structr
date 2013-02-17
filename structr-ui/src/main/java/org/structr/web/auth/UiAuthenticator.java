@@ -34,12 +34,8 @@ import org.structr.core.entity.ResourceAccess;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.Permission;
-import org.structr.core.EntityContext;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.SuperUser;
-import org.structr.rest.exception.IllegalMethodException;
-import org.structr.rest.exception.NotFoundException;
 
 //~--- classes ----------------------------------------------------------------
 

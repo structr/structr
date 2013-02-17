@@ -129,12 +129,12 @@ public class ViewFilterResource extends WrappingResource {
 	@Override
 	public String getResourceSignature() {
 
-		StringBuilder uri = new StringBuilder();
-		String uriPart    = getUriPart();
+		StringBuilder signature = new StringBuilder();
+		String signaturePart    = wrappedResource.getResourceSignature();
 
-		if (uriPart.contains("/")) {
+		if (signaturePart.contains("/")) {
 
-			String[] parts  = StringUtils.split(uriPart, "/");
+			String[] parts  = StringUtils.split(signaturePart, "/");
 			Matcher matcher = uuidPattern.matcher("");
 
 			for (String subPart : parts) {
@@ -144,8 +144,8 @@ public class ViewFilterResource extends WrappingResource {
 				
 				if (!matcher.matches()) {
 
-					uri.append(subPart);
-					uri.append("/");
+					signature.append(subPart);
+					signature.append("/");
 
 				}
 
@@ -153,17 +153,17 @@ public class ViewFilterResource extends WrappingResource {
 
 		} else {
 
-			uri.append(uriPart);
+			signature.append(signaturePart);
 
 		}
 
 		if (propertyView != null) {
 			
 			// append view / scope part
-			uri.append("/");
-			uri.append(EntityContext.normalizeEntityName(propertyView));
+			signature.append("/_");
+			signature.append(EntityContext.normalizeEntityName(propertyView));
 		}
 
-		return uri.toString();
+		return signature.toString();
 	}
 }

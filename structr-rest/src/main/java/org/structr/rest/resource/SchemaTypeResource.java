@@ -234,7 +234,7 @@ public class SchemaTypeResource extends Resource {
 	@Override
 	public String getResourceSignature() {
 
-		return getUriPart();
+		return SchemaResource.UriPart._schema.name().concat("/").concat(EntityContext.normalizeEntityName(getUriPart()));
 
 	}
 

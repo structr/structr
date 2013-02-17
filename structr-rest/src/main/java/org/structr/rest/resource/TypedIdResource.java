@@ -148,7 +148,7 @@ public class TypedIdResource extends FilterableResource {
         
 	@Override
 	public String getResourceSignature() {
-		return typeResource.getUriPart();
+		return typeResource.getResourceSignature();
 	}
         
 	@Override

@@ -310,18 +310,22 @@ public abstract class Resource {
 	protected ResourceAccess findGrant(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
 		final SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(request, response), SearchNodeCommand.class);
-		final String uriPart                         = EntityContext.normalizeEntityName(this.getResourceSignature());
+		//final String signature                       = EntityContext.normalizeEntityName(getResourceSignature());
+		final String signature                         = getResourceSignature();
+		
+		logger.log(Level.FINE, "Trying to find resource access object for {0}", signature);
+		
 		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		ResourceAccess grant                         = null;
 
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
-		searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, uriPart));
+		searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, signature));
 
 		final Result result = search.execute(searchAttributes);
 
 		if (result.isEmpty()) {
 
-			logger.log(Level.FINE, "No resource access object found for {0}", uriPart);
+			logger.log(Level.FINE, "No resource access object found for {0}", signature);
 
 		} else {
 
@@ -333,13 +337,13 @@ public abstract class Resource {
 
 			} else {
 
-				logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { uriPart, node.getClass().getName() });
+				logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { signature, node.getClass().getName() });
 
 			}
 
 			if (result.size() > 1) {
 
-				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), uriPart });
+				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), signature });
 
 			}
 

@@ -114,6 +114,6 @@ public class RelationshipResource extends WrappingResource {
 
         @Override
         public String getResourceSignature() {
-                return getUriPart();
+                return wrappedResource.getResourceSignature();
         }
 }
