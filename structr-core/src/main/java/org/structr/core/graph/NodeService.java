@@ -48,6 +48,7 @@ import java.io.File;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -75,6 +76,7 @@ public class NodeService implements SingletonService {
 	private Index<Node> userIndex                   = null;
 	private Index<Node> caseInsensitiveUserIndex               = null;
 	private Index<Node> uuidIndex                   = null;
+	private ExecutionEngine cypherExecutionEngine   = null;
 
 	/** Dependent services */
 	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
@@ -115,6 +117,7 @@ public class NodeService implements SingletonService {
 			command.setArgument("filesPath", Services.getFilesPath());
 			command.setArgument("indices", NodeIndex.values());
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
+			command.setArgument("cypherExecutionEngine", cypherExecutionEngine);
 
 		}
 
@@ -234,7 +237,10 @@ public class NodeService implements SingletonService {
 		relationshipFactory = new RelationshipFactory();
 
 		logger.log(Level.FINE, "Relationship factory ready.");
-
+		cypherExecutionEngine = new ExecutionEngine(graphDb);
+		
+		logger.log(Level.FINE, "Cypher execution engine ready.");
+		
 		isInitialized = true;
 	}
 

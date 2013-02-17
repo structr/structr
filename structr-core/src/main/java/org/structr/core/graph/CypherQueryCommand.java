@@ -53,7 +53,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CypherQueryCommand.class.getName());
 	
-	protected static final ThreadLocalExecutionEngine engine = new ThreadLocalExecutionEngine();
+	//protected static final ThreadLocalExecutionEngine engine = new ThreadLocalExecutionEngine();
 	
 	//~--- methods --------------------------------------------------------
 
@@ -72,6 +72,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
 		RelationshipFactory relFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
+		ExecutionEngine     engine      = (ExecutionEngine) arguments.get("cypherExecutionEngine");
 		//GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
@@ -80,11 +81,11 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		if (parameters != null) {
 
-			result = engine.get().execute(query, parameters);
+			result = engine.execute(query, parameters);
 			
 		} else {
 			
-			result = engine.get().execute(query);
+			result = engine.execute(query);
 		}
 
 		for (Map<String, Object> row : result) {
@@ -121,23 +122,23 @@ public class CypherQueryCommand extends NodeServiceCommand {
 	/**
 	 * A thread local version of the neo4j cypher execution engine.
 	 */
-	protected static class ThreadLocalExecutionEngine extends ThreadLocal<ExecutionEngine> {
-		
-		@Override
-		protected ExecutionEngine initialValue() {
-			
-			try {
-		
-				return new ExecutionEngine((GraphDatabaseService)Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class).execute());
-				
-			} catch (Throwable t) {
-			
-				logger.log(Level.SEVERE, "Could not instantiate cypher execution engine", t);
-			
-			}
-			
-			return null;
-		}
-	}	
+//	protected static class ThreadLocalExecutionEngine extends ThreadLocal<ExecutionEngine> {
+//		
+//		@Override
+//		protected ExecutionEngine initialValue() {
+//			
+//			try {
+//		
+//				return new ExecutionEngine((GraphDatabaseService)Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class).execute());
+//				
+//			} catch (Throwable t) {
+//			
+//				logger.log(Level.SEVERE, "Could not instantiate cypher execution engine", t);
+//			
+//			}
+//			
+//			return null;
+//		}
+//	}	
 
 }
