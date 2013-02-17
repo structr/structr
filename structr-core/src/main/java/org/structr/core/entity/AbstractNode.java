@@ -91,7 +91,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
 	
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate
+		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 	
 	//~--- static initializers --------------------------------------------
