@@ -114,7 +114,7 @@ var _Images = {
             drop.on('drop', function(event) {
                 
                 if (!event.originalEvent.dataTransfer) {
-                    console.log(event);
+                    log(event);
                     return;
                 }
                 
@@ -124,7 +124,7 @@ var _Images = {
                 event.preventDefault();
                 
                 fileList = event.originalEvent.dataTransfer.files;
-                console.log(fileList);
+                log(fileList);
                 var filesToUpload = [];
                 var tooLargeFiles = [];
 
@@ -150,7 +150,7 @@ var _Images = {
                         });
                         $(filesToUpload).each(function(i, file) {
                             log(file);
-                            if (file) _Files.createFile(file);
+                            if (file) Command.createFile(file);
                         });
                     });
                     
@@ -175,7 +175,7 @@ var _Images = {
                     
                     $(filesToUpload).each(function(i, file) {
                         log(file);
-                        if (file) _Files.createFile(file);
+                        if (file) Command.createFile(file);
                     });
 
                 }
@@ -205,9 +205,9 @@ var _Images = {
         return icon;
     },
 
-    appendImageElement : function(img, folderId, add, hasChildren) {
-
-        log('Images.appendImageElement', img, folderId, add, hasChildren);
+    appendImageElement : function(img) {
+        
+        log('Images.appendImageElement', img);
         
         //if (!folderId && file.parentFolder) return false;
         
@@ -215,96 +215,46 @@ var _Images = {
         if (img.isThumbnail) return false;
 
         var div;
-        var parentElement, cls;
-        
-        parentElement = images;
-        cls = 'image';
-
-        var parent = Structr.findParent(folderId, null, null, parentElement);
-        
-        if (add) _Entities.ensureExpanded(parent);
-        
         var delIcon, newDelIcon;
         div = Structr.node(img.id);
         
-        if (add && div && div.length) {
+        var tn = '/structr/img/ajax-loader.gif';
             
-            var formerParent = div.parent();
-            parent.append(div.css({
-                top: 0,
-                left: 0
-            }));
+        //var tn = '/' + img.tnSmall.id;
+        images.append('<div id="id_' + img.id + '" class="node image">'
+            + '<div class="wrap"><img class="thumbnail" src="'+ tn + '"></div>'
+            + '<b title="' + img.name + '" class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
+            + '<div class="icons"></div></div>');
+        div = Structr.node(img.id);
             
-            if (!Structr.containsNodes(formerParent)) {
-                _Entities.removeExpandIcon(formerParent);
-                enable($('.delete_icon', formerParent)[0]);
-            }            
-            
-            log('appended existing div to parent', div, parent);
-            
+        var tnSmall = img.tnSmall;
+        if (tnSmall) {
+            _Images.showThumbnails(img, div);
         } else {
-        
-            var tn = '/structr/img/ajax-loader.gif';
-            
-            //var tn = '/' + img.tnSmall.id;
-            parent.append('<div class="node ' + cls + ' ' + img.id + '_">'
-                + '<div class="wrap"><img class="thumbnail" src="'+ tn + '"></div>'
-                + '<b title="' + img.name + '" class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
-                + '<div class="icons"></div></div>');
-            div = Structr.node(img.id, folderId);
-            
-            log('appended new div to parent', div, parent);
-            
-            var tnSmall = img.tnSmall;
-            if (tnSmall) {
-                _Images.showThumbnails(img, div);
-            } else {
-                _Images.reloadThumbnail(img.id, div);
-            }
+            _Images.reloadThumbnail(img.id, div);
         }
         
         var iconArea = $('.icons', div);
 
-        
-        log(folderId, add);
-        
         delIcon = $('.delete_icon', div);
 
-        if (folderId) {
-            newDelIcon = '<img title="Remove '+  cls + ' \'' + img.name + '\' from folder ' + folderId + '" alt="Remove '+  cls + ' \'' + img.name + '\' from folder" class="delete_icon button" src="' + _Images.delete_file_icon + '">';
-            if (delIcon && delIcon.length) {
-                delIcon.replaceWith(newDelIcon);
-            } else {
-                iconArea.append(newDelIcon);
-                delIcon = $('.delete_icon', div);
-            }
-            $('.delete_icon', div).on('click', function(e) {
-                e.stopPropagation();
-                //_Images.removeFileFromFolder(file.id, folderId, isImage);
-                Command.removeSourceFromTarget(img.id, folderId);
-            });
-            disable($('.delete_icon', parent)[0]);
-			
+        newDelIcon = '<img title="Delete ' + img.name + ' \'' + img.name + '\'" alt="Delete ' + img.name + ' \'' + img.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+        if (delIcon && delIcon.length) {
+            delIcon.replaceWith(newDelIcon);
         } else {
-            newDelIcon = '<img title="Delete ' + img.name + ' \'' + img.name + '\'" alt="Delete ' + img.name + ' \'' + img.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
-            if (add && delIcon && delIcon.length) {
-                delIcon.replaceWith(newDelIcon);
-            } else {
-                iconArea.append(newDelIcon);
-                delIcon = $('.delete_icon', div);
-            } 
-            $('.delete_icon', div).on('click', function(e) {
-                e.stopPropagation();
-                _Entities.deleteNode(this, img);
-            });
-		
-        }
+            iconArea.append(newDelIcon);
+            delIcon = $('.delete_icon', div);
+        } 
+        $('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            _Entities.deleteNode(this, img);
+        });
         
         div.draggable({
             revert: 'invalid',
             helper: 'clone',
             //containment: '#main',
-            zIndex: 4,
+            stack: 'div',
             stop : function(e,ui) {
                 $('#pages_').removeClass('nodeHover').droppable('enable');
             }
@@ -667,7 +617,7 @@ var _Images = {
     },
 
     editImage : function (button, image, element) {
-        console.log(image);
+        log(image);
         element.append('<img src="/' + image.id + '"><br><a href="' + image.id + '">Download</a>');
     }    
 };

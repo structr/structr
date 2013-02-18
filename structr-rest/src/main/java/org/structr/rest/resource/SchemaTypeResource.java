@@ -1,26 +1,26 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.rest.resource;
 
+import java.util.LinkedHashSet;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.entity.PropertyDefinition;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,75 +78,97 @@ public class SchemaTypeResource extends Resource {
 		List<GraphObjectMap> resultList = new LinkedList<GraphObjectMap>();
 
 		// create & add schema information
-		Class type            = typeResource.getEntityClass();
-		GraphObjectMap schema = new GraphObjectMap();
+		Class type = typeResource.getEntityClass();
+		if (type == null) {
 
-		resultList.add(schema);
+			if (PropertyDefinition.exists(rawType)) {
+				type = PropertyDefinition.nodeExtender.getType(rawType);
+			}
+		}
 
-		String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
+		if (type != null) {
 
-		schema.setProperty(new StringProperty("url"), url);
-		schema.setProperty(new StringProperty("type"), type.getSimpleName());
-		schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
+			GraphObjectMap schema = new GraphObjectMap();
 
-		// list property sets for all views
-		Map<String, Map<String, Object>> views = new TreeMap();
-		Set<String> propertyViews              = EntityContext.getPropertyViews();
+			resultList.add(schema);
 
-		schema.setProperty(new StringProperty("views"), views);
+			String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
 
-		for (String view : propertyViews) {
+			schema.setProperty(new StringProperty("url"), url);
+			schema.setProperty(new StringProperty("type"), type.getSimpleName());
+			schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
-			Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
-			Set<PropertyKey> properties              = EntityContext.getPropertySet(type, view);
+			// list property sets for all views
+			Set<String> propertyViews              = new LinkedHashSet<String>(EntityContext.getPropertyViews());
+			Map<String, Map<String, Object>> views = new TreeMap();
 
-			// ignore "all" and empty views
-//                      if (!"all".equals(view) && !properties.isEmpty()) {
-			if (!properties.isEmpty()) {
+			schema.setProperty(new StringProperty("views"), views);
 
-				for (PropertyKey property : properties) {
+			for (String view : propertyViews) {
 
-					Map<String, Object> propProperties = new TreeMap();
+				Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
+				Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
 
-					propProperties.put("dbName", property.dbName());
-					propProperties.put("jsonName", property.jsonName());
-					propProperties.put("className", property.getClass().getName());
-					
-					propProperties.put("declaringClass", property.getDeclaringClass());
-					propProperties.put("defaultValue", property.defaultValue());
-					propProperties.put("readOnly", property.isReadOnlyProperty());
-					propProperties.put("system", property.isSystemProperty());
-					
-					Class<? extends GraphObject> relatedType = property.relatedType();
-					if (relatedType != null) {
-						propProperties.put("relatedType", relatedType.getName());
-						propProperties.put("type", relatedType.getSimpleName());
-					} else {
-						propProperties.put("type", property.typeName());
+				// augment property set with properties from PropertyDefinition
+				if (PropertyDefinition.exists(type.getSimpleName())) {
+
+					Iterable<PropertyDefinition> dynamicProperties = PropertyDefinition.getPropertiesForKind(type.getSimpleName());
+					if (dynamicProperties != null) {
+
+						for (PropertyDefinition property : dynamicProperties) {
+							properties.add(property);
+						}
 					}
-					propProperties.put("isCollection", property.isCollection());
-
-					PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
-					PropertyConverter inputConverter    = property.inputConverter(securityContext);
-
-					if (databaseConverter != null) {
-
-						propProperties.put("databaseConverter", databaseConverter.getClass().getName());
-					}
-
-					if (inputConverter != null) {
-
-						propProperties.put("inputConverter", inputConverter.getClass().getName());
-					}
-
-					propertyConverterMap.put(property.jsonName(), propProperties);
 
 				}
 
-				views.put(view, propertyConverterMap);
+				// ignore "all" and empty views
+	//                      if (!"all".equals(view) && !properties.isEmpty()) {
+				if (!properties.isEmpty()) {
 
+					for (PropertyKey property : properties) {
+
+						Map<String, Object> propProperties = new TreeMap();
+
+						propProperties.put("dbName", property.dbName());
+						propProperties.put("jsonName", property.jsonName());
+						propProperties.put("className", property.getClass().getName());
+
+						propProperties.put("declaringClass", property.getDeclaringClass());
+						propProperties.put("defaultValue", property.defaultValue());
+						propProperties.put("readOnly", property.isReadOnlyProperty());
+						propProperties.put("system", property.isSystemProperty());
+
+						Class<? extends GraphObject> relatedType = property.relatedType();
+						if (relatedType != null) {
+							propProperties.put("relatedType", relatedType.getName());
+							propProperties.put("type", relatedType.getSimpleName());
+						} else {
+							propProperties.put("type", property.typeName());
+						}
+						propProperties.put("isCollection", property.isCollection());
+
+						PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
+						PropertyConverter inputConverter    = property.inputConverter(securityContext);
+
+						if (databaseConverter != null) {
+
+							propProperties.put("databaseConverter", databaseConverter.getClass().getName());
+						}
+
+						if (inputConverter != null) {
+
+							propProperties.put("inputConverter", inputConverter.getClass().getName());
+						}
+
+						propertyConverterMap.put(property.jsonName(), propProperties);
+
+					}
+
+					views.put(view, propertyConverterMap);
+
+				}
 			}
-
 		}
 
 		return new Result(resultList, resultList.size(), false, false);
@@ -211,7 +234,7 @@ public class SchemaTypeResource extends Resource {
 	@Override
 	public String getResourceSignature() {
 
-		return getUriPart();
+		return SchemaResource.UriPart._schema.name().concat("/").concat(EntityContext.normalizeEntityName(getUriPart()));
 
 	}
 

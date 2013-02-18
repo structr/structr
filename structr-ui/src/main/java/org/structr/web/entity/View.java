@@ -1,47 +1,55 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or License, or (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Affero General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.web.entity;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import org.apache.commons.lang.StringUtils;
 
-
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,22 +57,21 @@ import org.structr.core.graph.NodeService.NodeIndex;
  *
  * @author Christian Morgner
  */
-public class View extends AbstractNode implements Element {
+public class View extends DOMElement {
 
-	public static final Property<String> query = new StringProperty("query");
+	private static final Logger logger = Logger.getLogger(View.class.getName());
+	private DecimalFormat decimalFormat                                            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(View.class, PropertyView.Ui,
-		type, name, query, paths
-	);
-	
-	public static final org.structr.common.View publicView = new org.structr.common.View(View.class, PropertyView.Public,
-		type, name, query, paths
-	);
-	
+	public static final Property<String> query             = new StringProperty("query");
+	public static final org.structr.common.View uiView     = new org.structr.common.View(View.class, PropertyView.Ui, query);
+	public static final org.structr.common.View publicView = new org.structr.common.View(View.class, PropertyView.Public, query);
+
+	//~--- static initializers --------------------------------------------
+
 	static {
-			
+
 		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.fulltext.name(), publicView.properties());
-		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(),  publicView.properties());
+		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(), publicView.properties());
 
 	}
 
@@ -75,7 +82,7 @@ public class View extends AbstractNode implements Element {
 		try {
 
 			return (List<GraphObject>) Services.command(securityContext, CypherQueryCommand.class).execute(getQuery(request));
-			
+
 		} catch (Throwable t) {
 
 			t.printStackTrace();
@@ -87,7 +94,7 @@ public class View extends AbstractNode implements Element {
 	}
 
 	protected String getQuery(HttpServletRequest request) {
-		
+
 		String rawQuery = getProperty(query);
 		String query    = rawQuery;
 
@@ -98,8 +105,7 @@ public class View extends AbstractNode implements Element {
 
 			while (matcher.find()) {
 
-				String key = matcher.group(1);
-
+				String key   = matcher.group(1);
 				String value = request.getParameter(key);
 
 				if (StringUtils.isNotEmpty(value)) {
@@ -110,10 +116,11 @@ public class View extends AbstractNode implements Element {
 			}
 
 		}
-		
+
 		return query;
+
 	}
-	
+
 //      public static void main(String[] args) throws Exception {
 //              
 //              String rawQuery = "START n=node:keywordAllNodes(type='Page') MATCH n-[:CONTAINS*]->child WHERE (child.type = 'Content' AND child.content =~ /.*${request.search}.*/) RETURN DISTINCT n";
@@ -131,5 +138,50 @@ public class View extends AbstractNode implements Element {
 //                      }       
 //              
 //      }
+	@Override
+	public short getNodeType() {
+
+		return ELEMENT_NODE;
+
+	}
+
+	@Override
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+
+		double startView = System.nanoTime();
+		
+		HttpServletRequest request = renderContext.getRequest();
+		Condition condition = renderContext.getCondition();
+
+		// fetch query results
+		List<GraphObject> results = getGraphObjects(request);
+		double endView            = System.nanoTime();
+
+		logger.log(Level.FINE, "Get graph objects for {0} in {1} seconds", new java.lang.Object[] { getUuid(), decimalFormat.format((endView - startView) / 1000000000.0) });
+
+		for (GraphObject result : results) {
+
+			if (result instanceof DOMNode) {
+
+				// recursively render children
+				List<AbstractRelationship> rels = ((DOMNode)result).getChildRelationships();
+
+				for (AbstractRelationship rel : rels) {
+
+					if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+
+						DOMElement subNode = (DOMElement) rel.getEndNode();
+
+						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
+
+							subNode.render(securityContext, renderContext, depth + 1);
+
+						}
+					}
+				}
+			}
+		}
+
+	}
 
 }

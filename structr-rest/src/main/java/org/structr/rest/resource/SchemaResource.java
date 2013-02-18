@@ -1,23 +1,24 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.resource;
 
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.*;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.module.ModuleService;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -74,54 +76,77 @@ public class SchemaResource extends Resource {
 			GraphObjectMap schema = new GraphObjectMap();
 			resultList.add(schema);
 			
-			String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
-			
-			schema.setProperty(new StringProperty("url"),   url);
-			schema.setProperty(new StringProperty("type"),  rawType);
-			schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
-			
-			// list property sets for all views
-			Map<String, Map<String, Object>> views = new TreeMap();
-			Set<String> propertyViews              = EntityContext.getPropertyViews();
-			schema.setProperty(new StringProperty("views"), views);
-			
-			for (String view : propertyViews) {
+			if (type == null) {
 				
-				Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
-				Set<PropertyKey> properties              = EntityContext.getPropertySet(type, view);
+				if (PropertyDefinition.exists(rawType)) {
+					type = PropertyDefinition.nodeExtender.getType(rawType);
+				}
+			}
+			
+			if (type != null) {
 				
-				// ignore "all" and empty views
-//				if (!"all".equals(view) && !properties.isEmpty()) {
-				if (!properties.isEmpty()) {
-					
-					for (PropertyKey property : properties) {
+				String url = "/".concat(CaseHelper.toUnderscore(rawType, true));
 
-						Map<String, Object> propProperties    = new TreeMap();
-						
-						propProperties.put("dbName", property.dbName());
-						propProperties.put("jsonName", property.jsonName());
-						propProperties.put("className", property.getClass().getName());
-						propProperties.put("defaultValue", property.defaultValue());
-						
-						propProperties.put("readOnly", property.isReadOnlyProperty());
-						propProperties.put("system", property.isSystemProperty());
-						
-						PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
-						PropertyConverter inputConverter    = property.inputConverter(securityContext);
+				schema.setProperty(new StringProperty("url"),   url);
+				schema.setProperty(new StringProperty("type"),  rawType);
+				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
-						if (databaseConverter != null) {
-							propProperties.put("databaseConverter", databaseConverter.getClass().getName());
+				// list property sets for all views
+				Set<String> propertyViews              = new LinkedHashSet<String>(EntityContext.getPropertyViews());
+				Map<String, Map<String, Object>> views = new TreeMap();
+				schema.setProperty(new StringProperty("views"), views);
+
+				for (String view : propertyViews) {
+
+					Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
+					Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
+
+					// augment property set with properties from PropertyDefinition
+					if (PropertyDefinition.exists(type.getSimpleName())) {
+
+						Iterable<PropertyDefinition> dynamicProperties = PropertyDefinition.getPropertiesForKind(type.getSimpleName());
+						if (dynamicProperties != null) {
+
+							for (PropertyDefinition property : dynamicProperties) {
+								properties.add(property);
+							}
 						}
 
-						if (inputConverter != null) {
-							propProperties.put("inputConverter", inputConverter.getClass().getName());
-						}
-						
-
-						propertyConverterMap.put(property.jsonName(), propProperties);
 					}
-					
-					views.put(view, propertyConverterMap);
+
+					// ignore "all" and empty views
+	//				if (!"all".equals(view) && !properties.isEmpty()) {
+					if (!properties.isEmpty()) {
+
+						for (PropertyKey property : properties) {
+
+							Map<String, Object> propProperties    = new TreeMap();
+
+							propProperties.put("dbName", property.dbName());
+							propProperties.put("jsonName", property.jsonName());
+							propProperties.put("className", property.getClass().getName());
+							propProperties.put("defaultValue", property.defaultValue());
+
+							propProperties.put("readOnly", property.isReadOnlyProperty());
+							propProperties.put("system", property.isSystemProperty());
+
+							PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
+							PropertyConverter inputConverter    = property.inputConverter(securityContext);
+
+							if (databaseConverter != null) {
+								propProperties.put("databaseConverter", databaseConverter.getClass().getName());
+							}
+
+							if (inputConverter != null) {
+								propProperties.put("inputConverter", inputConverter.getClass().getName());
+							}
+
+
+							propertyConverterMap.put(property.jsonName(), propProperties);
+						}
+
+						views.put(view, propertyConverterMap);
+					}
 				}
 			}
 			

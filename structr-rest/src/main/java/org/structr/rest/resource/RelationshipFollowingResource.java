@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.rest.resource;
@@ -220,80 +219,6 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		}
 
 		throw new NotFoundException();
-
-		/*
-		Path path = getValidatedPath();
-		if (path != null) {
-
-			NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
-			List<GraphObject> nodeList     = new LinkedList<GraphObject>();
-
-			// traverse path to force evaluation, add nodes in reverse order
-			for (Node node : path.nodes()) {
-
-				AbstractNode traversedNode = nodeFactory.createNodeWithType(securityContext, node);
-
-				nodeList.add(0, traversedNode);
-
-			}
-
-			// remove relationship between last and second-last node
-			if (nodeList.size() >= 2) {
-
-				// fetch the property name that connects the two nodes
-				// => "owner" in "teams/<id>/owner/<id>"
-				// => "users" in "teams/<id>/users/<id>"
-				final String property        = lastConstraint.getTypeResource().getRawType();
-				final AbstractNode startNode = (AbstractNode) nodeList.get(1);
-				final AbstractNode endNode   = (AbstractNode) nodeList.get(0);
-				
-				if ((startNode != null) && (endNode != null)) {
-
-					final RelationClass RelationClass = EntityContext.getDirectedRelation(startNode.getClass(), property);
-					if(RelationClass != null) {
-
-						// relationship found!
-						StructrTransaction transaction = new StructrTransaction() {
-
-							@Override
-							public Object execute() throws FrameworkException {
-
-								for (StructrRelationship rel : startNode.getRelationships(RelationClass.getRelType(), RelationClass.getDirection())) {
-
-									switch(RelationClass.getDirection()) {
-										
-										case INCOMING:
-											if (rel.getStartNodeId().equals(endNode.getUuid()) && rel.getEndNodeId().equals(startNode.getUuid())) {
-												rel.delete(securityContext);
-											}
-											break;
-											
-										case OUTGOING:
-											if (rel.getStartNodeId().equals(startNode.getUuid()) && rel.getEndNodeId().equals(endNode.getUuid())) {
-												rel.delete(securityContext);
-											}
-											break;
-									}
-								}
-
-								return null;
-							}
-						};
-
-						// execute transaction
-						Services.command(securityContext, TransactionCommand.class).execute(transaction);
-					}
-
-				}
-
-			}
-
-			return new RestMethodResult(HttpServletResponse.SC_OK);
-
-		}
-
-		throw new NotFoundException();
-		*/
 	}
 
 	@Override

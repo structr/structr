@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.common;
@@ -47,6 +46,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
@@ -197,8 +197,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 					assertTrue(entityList.contains(Person.class));
 					assertTrue(entityList.contains(ResourceAccess.class));
 					
-					// Don't test this one, it would fail due to violated constraints
+					// Don't test these, it would fail due to violated constraints
 					entityList.remove(TestTwo.class);
+					entityList.remove(PropertyDefinition.class);
 
 					for (Class entityClass : entityList) {
 

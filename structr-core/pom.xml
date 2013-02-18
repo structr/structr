@@ -19,7 +19,7 @@
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <structr.version>0.6</structr.version>
+        <structr.version>0.7-SNAPSHOT</structr.version>
         <neo4j.version>1.8.1</neo4j.version>
     </properties>
 
@@ -159,6 +159,11 @@
             <groupId>org.fusesource.hawtdb</groupId>
             <artifactId>hawtdb</artifactId>
             <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-shell</artifactId>
+            <version>1.8.1</version>
         </dependency>
     </dependencies>
 

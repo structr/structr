@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.core;
@@ -105,7 +104,7 @@ public class EntityContext {
 	private static final Map<Long, TransactionChangeSet> globalChangeSets                                   = new ConcurrentHashMap<Long, TransactionChangeSet>();
 	private static final ThreadLocal<SecurityContext> securityContextMap                                    = new ThreadLocal<SecurityContext>();
 	private static final ThreadLocal<Long> transactionKeyMap                                                = new ThreadLocal<Long>();
-	private static GenericFactory genericFactory                                                            = new DefaultGenericFactory();
+	private static FactoryDefinition factoryDefinition                                                      = new DefaultFactoryDefinition();
 
 	//~--- methods --------------------------------------------------------
 
@@ -492,7 +491,13 @@ public class EntityContext {
 	}
 
 	public static String createCombinedRelationshipType(Class sourceType, RelationshipType relType, Class destType) {
-		return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+		
+		if (sourceType != null && relType != null && destType != null) {
+			
+			return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+		}
+		
+		return "";
 	}
 
 	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
@@ -568,12 +573,17 @@ public class EntityContext {
 
 	public static Class getNamedRelationClass(String combinedRelationshipType) {
 
-		Class sourceType         = getSourceType(combinedRelationshipType);
-		Class destType           = getDestType(combinedRelationshipType);
-		RelationshipType relType = getRelType(combinedRelationshipType);
-		
-		return getNamedRelationClass(sourceType, destType, relType);
+		Class relEntity = globalRelationshipClassMap.get(combinedRelationshipType);
+		if (relEntity == null) {
 
+			Class sourceType         = getSourceType(combinedRelationshipType);
+			Class destType           = getDestType(combinedRelationshipType);
+			RelationshipType relType = getRelType(combinedRelationshipType);
+
+			relEntity = getNamedRelationClass(sourceType, destType, relType);
+		}
+		
+		return relEntity;
 	}
 
 	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
@@ -582,7 +592,7 @@ public class EntityContext {
 		Class sourceSuperClass   = sourceType;
 		Class destSuperClass     = destType;
 
-		while ((namedRelationClass == null) &&!sourceSuperClass.equals(Object.class) &&!destSuperClass.equals(Object.class)) {
+		while ((namedRelationClass == null) && sourceSuperClass != null && destSuperClass != null && !Object.class.equals(sourceSuperClass) && !Object.class.equals(destSuperClass)) {
 
 			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
 
@@ -750,7 +760,11 @@ public class EntityContext {
 		return getPropertyKeyForJSONName(type, jsonName, true);
 	}
 	
-	public static PropertyKey getPropertyKeyForJSONName(Class type, String jsonName, boolean createGeneric) {
+	public static PropertyKey getPropertyKeyForJSONName(Class type, String jsonName, boolean createIfNotFound) {
+
+		if (jsonName == null) {
+			return null;
+		}
 
 		Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
 		PropertyKey key                                 = classJSNamePropertyMap.get(jsonName);
@@ -759,10 +773,12 @@ public class EntityContext {
 			
 			// first try: uuid
 			if (GraphObject.uuid.dbName().equals(jsonName)) {
+				
 				return GraphObject.uuid;
 			}
 
-			if (createGeneric) {
+			if (createIfNotFound) {
+				
 				key = new GenericProperty(jsonName);
 			}
 		}
@@ -971,12 +987,12 @@ public class EntityContext {
 		return isSearchable;
 	}
 
-	public static GenericFactory getGenericFactory() {
-		return genericFactory;
+	public static FactoryDefinition getFactoryDefinition() {
+		return factoryDefinition;
 	}
 	
-	public static void registerGenericFactory(GenericFactory factory) {
-		genericFactory = factory;
+	public static void registerFactoryDefinition(FactoryDefinition factory) {
+		factoryDefinition = factory;
 	}
 
 	public static synchronized TransactionChangeSet getTransactionChangeSet(long transactionKey) {

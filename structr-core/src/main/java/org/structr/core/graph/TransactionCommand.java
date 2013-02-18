@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.core.graph;
@@ -33,6 +32,7 @@ import java.util.logging.Level;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.neo4j.kernel.GraphDatabaseAPI;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -73,6 +73,11 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final ThreadLocal<Long> depths              = new ThreadLocal<Long>();
 	
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
+		
+		return execute(transaction, false);
+	}
+	
+	public <T> T execute(StructrTransaction<T> transaction, boolean unforced) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Long transactionKey          = transactionKeys.get();
@@ -82,7 +87,16 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 		if (tx == null || transactionKey == null) {
 			
-			tx = graphDb.beginTx();
+			if (unforced) {
+	
+				tx = ((GraphDatabaseAPI)graphDb).tx().unforced().begin();
+				
+			} else {
+			
+				tx = graphDb.beginTx();
+				
+			}
+			
 			transactionKey = nextLong();
 			
 			transactionKeys.set(transactionKey);

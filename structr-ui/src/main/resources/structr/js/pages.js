@@ -18,7 +18,7 @@
  */
 
 var pages;
-var previews, previewTabs, controls, palette;
+var previews, previewTabs, controls, palette, activeTab
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -137,15 +137,19 @@ var _Pages = {
         previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
-			
-            //var dialog = $('#dialogBox .dialogText');
-            var dialogMsg = $('#dialogMsg');
+            
+            Structr.dialog('Import Page from URL', function() {
+                return true;
+            }, function() {
+                return true;
+            });
+            
 			
             dialog.empty();
             dialogMsg.empty();
-
+            
             dialog.append('<table class="props">'
-                + '<tr><td><label for="address">Address:</label></td><td><input id="_address" name="address" size="20" value="http://"></td></tr>'
+                + '<tr><td><label for="address">Address:</label></td><td><input id="_address" name="address" size="40" value="http://"></td></tr>'
                 + '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
                 + '<tr><td><label for="timeout">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr>'
                 + '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
@@ -155,7 +159,7 @@ var _Pages = {
             var addressField = $('#_address', dialog);
 
             log('addressField', addressField);
-
+            
             addressField.on('blur', function() {
                 var addr = $(this).val().replace(/\/+$/, "");
                 log(addr);
@@ -163,13 +167,7 @@ var _Pages = {
             });
 
 
-            Structr.dialog('Import Page from URL', function() {
-                return true;
-            }, function() {
-                return true;
-            });
-            
-            dialogBtn.append('<button id="startImport">Start Import</button>');
+            dialog.append('<button id="startImport">Start Import</button>');
 			
             $('#startImport').on('click', function(e) {
                 e.stopPropagation();
@@ -224,20 +222,20 @@ var _Pages = {
     },
 
     addTab : function(entity) {
-        previewTabs.children().last().before(''
-            + '<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
+        previewTabs.children().last().before('<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
 
         var tab = $('#show_' + entity.id, previews);
 		
-        tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + entity.name + '</b>');
+        tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b>');
         tab.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
 
         $('.view_icon', tab).on('click', function(e) {
             e.stopPropagation();
             var self = $(this);
-            var name = $(self.parent().children('b.name_')[0]).text();
-            window.open(viewRootUrl + name);
+            //var name = $(self.parent().children('b.name_')[0]).text();
+            var link = $.trim(self.parent().children('b.name_').attr('title'));
+            window.open(viewRootUrl + link);
         });
 
         var deleteIcon = $('.delete_icon', tab);
@@ -288,14 +286,15 @@ var _Pages = {
             }
         });
 
-        if (getId(element) == activeTab) {
+        if (element.prop('id').substring(5) == activeTab) {
             _Pages.activateTab(element);
         }
     },
 
     activateTab : function(element) {
         
-        var name = $.trim(element.children('.name_').text());
+        //var name = $.trim(element.children('.name_').text());
+        var name = $.trim(element.children('b.name_').attr('title'));
         log('activateTab', element, name);
 
         previewTabs.children('li').each(function() {
@@ -305,11 +304,10 @@ var _Pages = {
         $('.previewBox', previews).each(function() {
             $(this).hide();
         });
-        //var id = $(this).prop('id').substring(5);
 
-        var id = getId(element);
+        var id = element.prop('id').substring(5);
         activeTab = id;
-
+        
         _Pages.reloadIframe(id, name);
 
         element.addClass('active');
@@ -336,8 +334,12 @@ var _Pages = {
     
     makeTabEditable : function(element) {
         //element.off('dblclick');
+        
+        var id = element.prop('id').substring(5);
+        
         element.off('hover');
-        var oldName = $.trim(element.children('.name_').text());
+        //var oldName = $.trim(element.children('.name_').text());
+        var oldName = $.trim(element.children('b.name_').attr('title'));
         //console.log('oldName', oldName);
         element.children('b').hide();
         element.find('.button').hide();
@@ -351,7 +353,7 @@ var _Pages = {
             log('blur');
             var self = $(this);
             var newName = self.val();
-            Command.setProperty(getId(element), "name", newName);
+            Command.setProperty(id, "name", newName);
             _Pages.resetTab(element, newName);
         });
         
@@ -361,7 +363,7 @@ var _Pages = {
                 log('keypress');
                 var self = $(this);
                 var newName = self.val();
-                Command.setProperty(getId(element), "name", newName);
+                Command.setProperty(id, "name", newName);
                 _Pages.resetTab(element, newName);
             }
         });
@@ -370,40 +372,33 @@ var _Pages = {
 
     },
 
-    appendPageElement : function(entity, hasChildren) {
+    appendPageElement : function(entity) {
+        
+        var hasChildren = true;
 
         log('appendPageElement', entity, hasChildren);
 
-        //pages.append('<div id="_' + pages.children('.page').length + '" class="node page ' + entity.id + '_"></div>');
-        pages.append('<div id="_' + entity.id + '" class="node page ' + entity.id + '_"></div>');
-        var div = $('.' + entity.id + '_', pages);
-
-        entity.pageId = entity.id;
+        pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
+        var div = Structr.node(entity.id);
         
         $('.button', div).on('mousedown', function(e) {
             e.stopPropagation();
         });
 
         div.append('<img class="typeIcon" src="icon/page.png">'
-            + '<b title="' + entity.name + '" class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
+            + '<b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
 
         div.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            //var self = $(this);
-            //self.off('click');
-            //self.off('mouseover');
             _Entities.deleteNode(this, entity);
         });
 
         div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="' + _Pages.clone_icon + '">');
         $('.clone_icon', div).on('click', function(e) {
             e.stopPropagation();
-            //var self = $(this);
-            //self.off('click');
-            //self.off('mouseover');
             Command.clonePage(entity.id);
         });
 
@@ -417,7 +412,7 @@ var _Pages = {
             + entity.id + '"></iframe></div><div style="clear: both"></div>');
 
         _Pages.resetTab(tab, entity.name);
-
+        
         $('#preview_' + entity.id).hover(function() {
             var self = $(this);
             var elementContainer = self.contents().find('.structr-element-container');
@@ -437,13 +432,13 @@ var _Pages = {
 
             var offset = $(this).offset();
 
-            //console.log(this);
             var doc = $(this).contents();
             var head = $(doc).find('head');
             if (head) head.append('<style media="screen" type="text/css">'
                 + '* { z-index: 0}\n'
                 + '.nodeHover { border: 1px dotted red; }\n'
-                + '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
+                //+ '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
+                + '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
                 //		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
                 //		+ '.structr-element-container { }\n'
                 + '.structr-element-container-active:hover { border: 1px dotted red ! important; }\n'
@@ -460,17 +455,17 @@ var _Pages = {
             var iframeDocument = $(this).contents();
             //var iframeWindow = this.contentWindow;
 
-            var droppables = iframeDocument.find('[structr_element_id]');
+            var droppables = iframeDocument.find('[data-structr_element_id]');
 
             if (droppables.length == 0) {
 
                 //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
                 var html = iframeDocument.find('html');
-                html.attr('structr_element_id', entity.id);
+                html.attr('data-structr_element_id', entity.id);
                 html.addClass('structr-element-container');
 
             }
-            droppables = iframeDocument.find('[structr_element_id]');
+            droppables = iframeDocument.find('[data-structr_element_id]');
 
             droppables.each(function(i,element) {
                 //console.log(element);
@@ -492,7 +487,7 @@ var _Pages = {
                         var pos;
                         var nodeData = {};
                         
-//                        console.log('drop event', self, page);
+                        //                        console.log('drop event', self, page);
                         
                         if (page) {
 
@@ -503,43 +498,31 @@ var _Pages = {
                         } else {
                             
                             // we're in the iframe
-                            page = self.closest('[structr_page_id]')[0];
-                            pageId = $(page).attr('structr_page_id');
-                            pos = $('[structr_element_id]', self).length;
+                            page = self.closest('[data-structr_page_id]')[0];
+                            pageId = $(page).attr('data-structr_page_id');
+                            pos = $('[data-structr_element_id]', self).length;
                         }
                         
                         var contentId = getId(ui.draggable);
                         var elementId = getId(self);
 
-                        if (!elementId) elementId = self.attr('structr_element_id');
+                        if (!elementId) elementId = self.attr('data-structr_element_id');
 
                         if (!contentId) {
                             // create element on the fly
-                            //var el = _Elements.addElement(null, 'element', null);
                             var tag = $(ui.draggable).text();
-                            nodeData.type = tag.capitalize();
-                        }
-						
-
-                        var relData = {};
-                        
-                        if (pageId) {
-                            //relData.pageId = pageId;
-                            relData[pageId] = pos;
+                            
+                            console.log('suppress dropping anything in preview iframes for now');
+                            //Command.createAndAppendDOMNode(pageId, elementId, (tag != 'content' ? tag : ''));
+                            
                         } else {
-                            relData['*'] = pos;
+                            console.log('suppress dropping anything in preview iframes for now');
+                            //Command.appendChild(contentId, elementId);
                         }
-
-                        nodeData.tag = (tag != 'content' ? tag : '');
-                        nodeData.id = contentId;
-                        log(relData);
-                        // suppress dropping anything in prview iframes for now
-                        console.log('suppressed command', 'Command.createAndAdd(', elementId, nodeData, relData, ')');
-                        // Command.createAndAdd(elementId, nodeData, relData);
                     }
                 });
 
-                var structrId = el.attr('structr_element_id');
+                var structrId = el.attr('data-structr_element_id');
                 //var type = el.prop('structr_type');
                 //  var name = el.prop('structr_name');
                 var tag  = element.nodeName.toLowerCase();
@@ -548,44 +531,44 @@ var _Pages = {
                     $('.move_icon', el).on('mousedown', function(e) {
                         e.stopPropagation();
                         var self = $(this);
-                        var element = self.closest('[structr_element_id]');
+                        var element = self.closest('[data-structr_element_id]');
                         //var element = self.children('.structr-node');
                         log(element);
-                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-                        entity.type = element.prop('structr_type');
-                        entity.name = element.prop('structr_name');
+                        var entity = Structr.entity(structrId, element.prop('data-structr_element_id'));
+                        entity.type = element.prop('data-structr_type');
+                        entity.name = element.prop('data-structr_name');
                         log('move', entity);
                         //var parentId = element.prop('structr_element_id');
                         self.parent().children('.structr-node').show();
                     });
 
-//                    $('b', el).on('click', function(e) {
-//                        e.stopPropagation();
-//                        var self = $(this);
-//                        var element = self.closest('[structr_element_id]');
-//                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-//                        entity.type = element.prop('structr_type');
-//                        entity.name = element.prop('structr_name');
-//                        log('edit', entity);
-//                        //var parentId = element.prop('structr_element_id');
-//                        log(element);
-////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
-////                            log('save')
-////                        }, function() {
-////                            log('cancelled')
-////                        });
-//                        _Entities.showProperties(entity);
-//                    });
+                    //                    $('b', el).on('click', function(e) {
+                    //                        e.stopPropagation();
+                    //                        var self = $(this);
+                    //                        var element = self.closest('[data-structr_element_id]');
+                    //                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
+                    //                        entity.type = element.prop('structr_type');
+                    //                        entity.name = element.prop('structr_name');
+                    //                        log('edit', entity);
+                    //                        //var parentId = element.prop('structr_element_id');
+                    //                        log(element);
+                    ////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
+                    ////                            log('save')
+                    ////                        }, function() {
+                    ////                            log('cancelled')
+                    ////                        });
+                    //                        _Entities.showProperties(entity);
+                    //                    });
 
                     $('.delete_icon', el).on('click', function(e) {
                         e.stopPropagation();
                         var self = $(this);
-                        var element = self.closest('[structr_element_id]');
+                        var element = self.closest('[data-structr_element_id]');
                         var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-                        entity.type = element.prop('structr_type');
-                        entity.name = element.prop('structr_name');
+                        entity.type = element.prop('data-structr_type');
+                        entity.name = element.prop('data-structr_name');
                         log('delete', entity);
-                        var parentId = element.prop('structr_element_id');
+                        var parentId = element.prop('data-structr_element_id');
 
                         Command.removeSourceFromTarget(entity.id, parentId);
                         _Entities.deleteNode(this, entity);
@@ -611,9 +594,11 @@ var _Pages = {
                             //                                + '</div>'
                             //                                );
 
-                            var nodes = Structr.node(structrId);
-                            nodes.parent().removeClass('nodeHover');
-                            nodes.addClass('nodeHover');
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.parent().removeClass('nodeHover');
+                                node.addClass('nodeHover');
+                            }
 
                             var pos = self.position();
                             var header = self.children('.structr-element-container-header');
@@ -631,18 +616,20 @@ var _Pages = {
                             self.removeClass('.structr-element-container');
                             var header = self.children('.structr-element-container-header');
                             header.remove();
-                            var nodes = Structr.node(structrId);
-                            nodes.removeClass('nodeHover');
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.removeClass('nodeHover');
+                            }
                         }
                     });
 
                 }
             });
 
-            $(this).contents().find('[structr_content_id]').each(function(i,element) {
+            $(this).contents().find('[data-structr_content_id]').each(function(i,element) {
                 log(element);
                 var el = $(element);
-                var structrId = el.attr('structr_content_id');
+                var structrId = el.attr('data-structr_content_id');
                 if (structrId) {
                     
                     el.on({
@@ -651,10 +638,12 @@ var _Pages = {
                             var self = $(this);
                             self.addClass('structr-editable-area');
                             self.prop('contenteditable', true);
-                            //$('#hoverStatus').text('Editable content element: ' + self.attr('structr_content_id'));
-                            var nodes = Structr.node(structrId);
-                            nodes.parent().removeClass('nodeHover');
-                            nodes.addClass('nodeHover');
+                            //$('#hoverStatus').text('Editable content element: ' + self.attr('data-structr_content_id'));
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.parent().removeClass('nodeHover');
+                                node.addClass('nodeHover');
+                            }
                         },
                         mouseout: function(e) {
                             e.stopPropagation();
@@ -663,8 +652,10 @@ var _Pages = {
                             self.removeClass('structr-editable-area');
                             //self.prop('contenteditable', false);
                             //$('#hoverStatus').text('-- non-editable --');
-                            var nodes = Structr.node(structrId);
-                            nodes.removeClass('nodeHover');
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.removeClass('nodeHover');
+                            }
                         },
                         click: function(e) {
                             e.stopPropagation();
@@ -672,15 +663,20 @@ var _Pages = {
                             self.removeClass('structr-editable-area');
                             self.addClass('structr-editable-area-active');
 
+                            
+                            //textBeforeEditing = cleanText(self.contents());
+                            
+                            console.log(StructrModel.obj(structrId), 'source text', StructrModel.obj(structrId).content);
+                            self.text(StructrModel.obj(structrId).content);
                             // Store old text in global var
                             textBeforeEditing = cleanText(self.contents());
-                            log("textBeforeEditing", textBeforeEditing);
+                            console.log("textBeforeEditing", textBeforeEditing);
 
                         },
                         blur: function(e) {
                             e.stopPropagation();
                             var self = $(this);
-                            contentSourceId = self.attr('structr_content_id');
+                            contentSourceId = self.attr('data-structr_content_id');
                             var text = cleanText(self.contents());
                             log('blur contentSourceId: ' + contentSourceId);
                             //_Pages.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
@@ -690,7 +686,6 @@ var _Pages = {
                             self.attr('contenteditable', false);
                             self.removeClass('structr-editable-area-active');
                             _Pages.reloadPreviews();
-
                         }
                     });
 				
@@ -703,15 +698,11 @@ var _Pages = {
 	
     },
 
-    appendElementElement : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
-        log('_Pages.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+    appendElementElement : function(entity, refNode) {
         
-        var div;
-        if (entity.type == 'Component') {
-            div = _Components.appendComponentElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-        } else {
-            div = _Elements.appendElementElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-        }
+        var parentId = entity.parentId;
+        
+        var div = _Elements.appendElementElement(entity, refNode);
         
         if (!div) return false;
 
@@ -729,15 +720,14 @@ var _Pages = {
                 e.stopPropagation();
                 var self = $(this);
                 
-//                log('appendElementElement div', div);
-//                var pos = self.parent().parent().children('.node').index(self.parent());
-//                
-//                var pageId = getId(self.closest('.page')[0]);
-//                console.log('Command.removeSourceFromTarget(',entity.id, parentId, componentId, pageId, pos,')');
-//                
-//                Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
+                log('appendElementElement div', div);
+                //var pos = self.parent().parent().children('.node').index(self.parent());
+                //var pageId = getId(self.closest('.page')[0]);
+                //console.log('Command.removeSourceFromTarget(',entity.id, parentId, componentId, pageId, pos,')');
+                //Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
+                Command.removeChild(entity.id);
 
-                _Entities.listContainingNodes(entity, div);
+            //                _Entities.listContainingNodes(entity, div);
                 
             });
         }
@@ -749,8 +739,8 @@ var _Pages = {
             div.draggable({
                 revert: 'invalid',
                 containment: '#pages',
-                zIndex: 4,
-                helper: 'clone',
+                stack: 'div',
+                //helper: 'clone',
                 start: function(event, ui) {
                     $(this).draggable(disable);
                 }
@@ -758,29 +748,27 @@ var _Pages = {
         }
 
         var sorting = false;
-        var obj = {};
-        obj.command = 'SORT';
+        //var obj = {};
+        //obj.command = 'SORT';
 
         div.sortable({
             sortable: '.node',
             containment: '#pages',
             start: function(event, ui) {
                 sorting = true;
-                var pageId = getId(ui.item.closest('.page')[0]);
-                obj.id = pageId;
+            //console.log('sorting started', ui);
+            //var pageId = getId(ui.item.closest('.page')[0]);
+            //obj.id = pageId;
             },
             update: function(event, ui) {
-                log('---------')
-                log(pageId);
-                var data = {};
-                $(ui.item).parent().children('.node').each(function(i,v) {
-                    var self = $(this);
-                    log(getId(self), i);
-                    data[getId(self)] = i;
-                    _Entities.resetMouseOverState(v);
-                });
-                obj.data = data;
-                sendObj(obj);
+                var el = $(ui.item);
+                
+                var id = getId(el);
+                var refId = getId(el.next('.node'));
+                var parent = Structr.parent(id);
+                var parentId = getId(parent);
+                console.log(parentId, id, refId);
+                Command.insertBefore(parentId, id, refId);
                 sorting = false;
                 _Pages.reloadPreviews();
             },
@@ -798,11 +786,8 @@ var _Pages = {
             drop: function(event, ui) {
                 var self = $(this);
 
-                log('dropped', event, ui.draggable);
+                console.log('dropped', event, ui.draggable);
                 
-                treeAddress = getElementPath(self);
-                log('treeAddress', treeAddress);
-                //addExpandedNode(treeAddress);
                 _Entities.ensureExpanded(self);
                 
                 if (sorting) {
@@ -810,8 +795,6 @@ var _Pages = {
                     return;
                 }
                 var nodeData = {};
-                var pageId;
-                var relData = {};
 				
                 var page = self.closest('.page')[0];
 
@@ -819,8 +802,8 @@ var _Pages = {
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
                 
-                log('contentId', contentId);
-                log('elementId', elementId);
+                console.log('contentId', contentId);
+                console.log('elementId', elementId);
 
                 if (contentId == elementId) {
                     log('drop on self not allowed');
@@ -889,74 +872,43 @@ var _Pages = {
                         tag = $(ui.draggable).text();
 
                         if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title' || tag == 'b' || tag == 'span' || tag == 'th' || tag == 'td') {
+
                             nodeData.childContent = 'Initial Content for ' + tag;
                             
-                            var pos = self.children('.node').length;
-                            log('new nested child', treeAddress + '_' + pos);
                             // set as expanded in advance
-                            addExpandedNode(treeAddress + '_' + pos);
+                            addExpandedNode(contentId);
                             
                         }
+                        Command.createAndAppendDOMNode(getId(page), elementId, (tag != 'content' ? tag : ''));
                         
                         
                     } else {
                         tag = cls;
+                        Command.appendChild(contentId, elementId);
                     }
+                    
+                    log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
+
                 }
                 
-                log($(ui.draggable));
-                var p = Structr.numberOfNodes(self, contentId);
-                log(p);
-
-                if (page) {
-                    pageId = getId(page);
-                    //relData.pageId = pageId;
-                    relData[pageId] = p;
-                } else {
-                    relData['*'] = p;
-                }
-				
-                //if (!isExpanded(treeAddress)) {
-                //    _Entities.toggleElement(self);
-                //}
-
-//                var component = self.closest( '.component')[0];
-//                if (component) {
-//                    var componentId = getId(component);
-//                    relData.componentId = componentId;
-//                    relData[componentId] = pos;
-//                }
-
-                nodeData.tag = (tag != 'content' ? tag : '');
-                nodeData.type = tag.capitalize();
-                nodeData.id = contentId;
-                nodeData.targetPageId = pageId;
-
-                var sourcePage = ui.draggable.closest('.page')[0];
-                if (sourcePage) {
-                    var sourcePageId = getId(sourcePage);
-                    nodeData.sourcePageId = sourcePageId;
-                }
-
-                console.log('drop event in appendElementElement', elementId, nodeData, relData);
-                Command.createAndAdd(elementId, nodeData, relData);
             }
         });
 
         return div;
     },
 
-    appendContentElement : function(content, parentId, componentId, pageId, treeAdress) {
-        log('Pages.appendContentElement', content, parentId, componentId, pageId, treeAdress);
+    appendContentElement : function(content, refNode) {
+        log('Pages.appendContentElement', content, refNode);
+        
+        var parentId = content.parent.id;
+        var parent = Structr.node(parentId);
 		
-        var div = _Contents.appendContentElement(content, parentId, componentId, pageId, treeAdress);
+        var div = _Contents.appendContentElement(content, refNode);
         if (!div) return false;
 
         log('appendContentElement div', div);
         var pos = Structr.numberOfNodes($(div).parent())-1;
         log('pos', content.id, pos);
-
-        //var div = Structr.node(content.id, parentId, componentId, pageId, pos);
 
         if (parentId) {
             
@@ -968,28 +920,13 @@ var _Pages = {
                 + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
-//                var self = $(this);
-//                //self.off('click');
-//                //self.off('mouseover');
-//                var component = self.closest( '.component')[0];
-//                var page = self.closest( '.page')[0];
-//                log('Command.removeSourceFromTarget', content.id, parentId, getId(component), getId(page), pos);
-//                Command.removeSourceFromTarget(content.id, parentId, getId(component), getId(page), pos)
-            //                log('Command.removeSourceFromTarget', content.id, parentId, componentId, pageId, pos);
-            //                Command.removeSourceFromTarget(content.id, parentId, componentId, pageId, pos)
-                _Entities.listContainingNodes(content, div);
+                Command.removeChild(content.id);
             });
         }
 
         _Entities.setMouseOver(div);
 
-        div.draggable({
-            iframeFix: true,
-            revert: 'invalid',
-            containment: '#pages',
-            zIndex: 1,
-            helper: 'clone'
-        });
+        
         return div;
     },
 
@@ -1008,28 +945,6 @@ var _Pages = {
         if (numberOfComponents == 0) {
             enable($('.delete_icon', page)[0]);
         }
-    //Command.removeSourceFromTarget(entityId, parentId, componentId, pageId, pos);
-
-    },
-
-    removeFrom : function(entityId, parentId, componentId, pageId, pos) {
-        log('Pages.removeFrom', entityId, parentId, componentId, pageId, pos);
-
-        var parent = Structr.node(parentId, null, componentId, pageId);
-        var element = Structr.node(entityId, parentId, componentId, pageId, pos);
-
-        //var parent = $(element).parent();
-
-        log('parent', parent);
-        
-        element.remove();
-
-        if (!Structr.containsNodes(parent)) {
-            _Entities.removeExpandIcon(parent);
-        //enable('.delete_icon', parent);
-        }
-
-
     },
 
     showSubEntities : function(pageId, entity) {
@@ -1059,19 +974,21 @@ var _Pages = {
     },
 
     reloadPreviews : function() {
+        
+        // add a small delay to avoid getting old data in very fast localhost envs
+        window.setTimeout(function() {
 
-        $('iframe', $('#previews')).each(function() {
-            var self = $(this);
-            var pageId = self.prop('id').substring('preview_'.length);
+            $('iframe', $('#previews')).each(function() {
+                var self = $(this);
+                var pageId = self.prop('id').substring('preview_'.length);
 
-            if (pageId == activeTab) {
-                var name = $(Structr.node(pageId)[0]).children('b.name_').text();
-                var doc = this.contentDocument;
-                doc.location = name;
-                doc.location.reload(true);
-            }
+                if (pageId == activeTab) {
+                    var doc = this.contentDocument;
+                    doc.location.reload(true);
+                }
             
-        });
+            });
+        }, 100);
     },
     
     zoomPreviews : function(value) {

@@ -29,246 +29,75 @@ var _Entities = {
     
     changeBooleanAttribute : function(attrElement, value) {
 
-        log('Change boolean attribute ', attrElement, ' to ', value);
+        //console.log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value == true) {
-            attrElement.removeClass('disabled');
-            attrElement.addClass('enabled');
-            attrElement.prop('checked', 'checked');
+            attrElement.removeClass('disabled').addClass('enabled').prop('checked', true);
         } else {
-            attrElement.removeClass('enabled');
-            attrElement.addClass('disabled');
-            attrElement.prop('checked', '');
+            attrElement.removeClass('enabled').addClass('disabled').prop('checked', false);
         }
 
     },
 
-    renderTree : function(parent, rootId) {
-        log('Entities.renderTree');
-        var children = parent.children;
-					
-        if (children && children.length > 0) {
-            $(children).each(function(i,child) {
-                log(child);
-                if (child.type == 'Page') {
-                    _Pages.appendPageElement(child, parent.id, rootId);
-                } else if (child.type == 'Component') {
-                    _Pages.appendElementElement(child, parent.id, rootId);
-                } else if (child.type == 'Content') {
-                    _Pages.appendContentElement(child, parent.id, rootId);
-                } else if (child.type == 'Folder') {
-                    var entity = child;
-                    log('Render Tree: ' , entity);
-                    var folderElement = _Files.appendFolderElement(child, parent.id);
-                    var files = entity.files;
-                    if (files && files.length > 0) {
-                        disable($('.delete_icon', folderElement)[0]);
-                        $(files).each(function(i, file) {
-                            _Files.appendFileElement(file, entity.id);
-                        });
-                    }
-                } else {
-                    _Pages.appendElementElement(child, parent.id, rootId);
-                }
-				
-                _Entities.renderTree(child, rootId);
-            });
-        }
-    },
-
-    reloadChildren : function(id, componentId, pageId) {
-        var el = Structr.node(id, null, componentId, pageId);
+    reloadChildren : function(id) {
+        var el = Structr.node(id);
         
         log('reloadChildren', el);
         
         $(el).children('.node').remove();
         _Entities.resetMouseOverState(el);
         
-        Command.children(id, componentId, pageId);
+        Command.children(id);
         
-    },
-
-    appendObj : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
-
-        log('_Entities.appendObj: ', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-
-        var lastAppendedObj;
-        var expand = false;
-
-        if (entity.type == 'User') {
-
-            lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, add);
-            
-        } else if (entity.type == 'Group') {
-            
-            lastAppendedObj = _UsersAndGroups.appendGroupElement(entity, hasChildren);
-            expand = isExpanded(entity.id);
-
-        } else if (entity.type == 'Page') {
-            
-            lastAppendedObj = _Pages.appendPageElement(entity, hasChildren);
-            expand = isExpanded(entity.id);
-
-        } else if (entity.type == 'Component') {
-
-            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, true, true, treeAddress);
-            expand = isExpanded(getElementPath(lastAppendedObj));
-
-        } else if (entity.type == 'Content') {
-
-            log('appending content element', entity, parentId, componentId, pageId, treeAddress);
-            lastAppendedObj = _Pages.appendContentElement(entity, parentId, componentId, pageId, treeAddress);
-
-        } else if (entity.type == 'Folder') {
-
-            lastAppendedObj = _Files.appendFolderElement(entity, parentId, hasChildren);
-            expand = isExpanded(entity.id);
-
-        } else if (entity.type == 'Image') {
-            
-            log('Image:', entity);
-            _Images.uploadFile(entity);
-            
-            lastAppendedObj = _Images.appendImageElement(entity, parentId, add, hasChildren);
-            
-        } else if (entity.type == 'File') {
-            
-            log('File: ', entity);
-            _Files.uploadFile(entity);
-            
-            lastAppendedObj = _Files.appendFileElement(entity, parentId, add, hasChildren, false);
-            
-        } else if (entity.type == 'TypeDefinition') {
-            
-            log('TypeDefinition: ', entity);
-            lastAppendedObj = _Types.appendTypeElement(entity);
-            
-        } else {
-
-            log('Entity: ', entity);
-            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-            expand = isExpanded(getElementPath(lastAppendedObj));
-        }
-
-        log('lastAppendedObj', lastAppendedObj);
-
-        if (lastAppendedObj) {
-            
-            var t = getElementPath(lastAppendedObj);
-            log(t);
-            
-            if (expand) {
-                log('expand', lastAppendedObj);
-                _Entities.ensureExpanded(lastAppendedObj);
-            }
-
-            var parent = lastAppendedObj.parent();
-            log('lastAppendedObj.parent()', parent);
-            if (parent.children('.node') && parent.children('.node').length==1) {
-                
-                log('parent of last appended object has children');
-
-                //addExpandedNode(treeAddress);
-                var ent = Structr.entityFromElement(parent);
-                log('entity', ent);
-                ent.pageId = pageId;
-                _Entities.appendExpandIcon(parent, ent, true, true);
-
-            }
-        }
-
     },
 
     deleteNode : function(button, entity) {
         buttonClicked = button;
         if (isDisabled(button)) return;
-        log('deleteNode');
-        Structr.confirmation('<p>Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\'?</p>',
+        
+        Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + '] ?</p>',
             function() {
-                if (Command.deleteNode(entity.id)) {
-                    $.unblockUI({
-                        fadeOut: 25
-                    });
-                }
+                Command.deleteNode(entity.id);
+                $.unblockUI({
+                    fadeOut: 25
+                });
             });
     },
 
-    listContainingNodes : function(entity, node) {
-
-        log('listContainingNodes', entity, getElementPath(node));
-
-        dialog.empty();
-        Structr.dialog('Click on element to remove it from the page tree',
-            function() {
-                return true;
-            },
-            function() {
-                return true;
+    showDataDialog : function(entity) {
+        
+        Structr.dialog('Edit Data Settings of ' + entity.id, function() { return true; }, function() { return true; });
+        
+        dialog.append('<div><h3>Cypher Query</h3><textarea cols="80" rows="4" id="cypherQuery">' + (entity.cypherQuery ? entity.cypherQuery : '') + '</textarea></div>');
+        dialog.append('<div><button id="applyCypherQuery">Apply</button></div>');
+        $('#applyCypherQuery', dialog).on('click', function() {
+            entity.setProperty('cypherQuery', $('#cypherQuery', dialog).val(), false, function() {
+                log('Cypher Query successfully updated!', entity.cypherQuery);
             });
-               
-        dialog.append('<p>Hover your mouse over the element instance to detect which node is being removed.</p>')
-        var headers = {};
-        headers['X-StructrSessionToken'] = token;
-        log('headers', headers);
-        log('showProperties URL: ' + rootUrl + entity.id, headers);
-            
-        $.ajax({
-            url: rootUrl + entity.id,
-            async: true,
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            headers: headers,
-            success: function(data) {
-                if (data.result) {
-                    dialog.append('<table class="props containingNodes ' + entity.id + '_"></table>');
-                    var cont = $('.' + entity.id + '_', dialog);
+        });
+        
+        dialog.append('<div><h3>XPath Query</h3><textarea cols="80" rows="4" id="xpathQuery">' + (entity.xpathQuery ? entity.xpathQuery : '') + '</textarea></div>');
+        dialog.append('<div><button id="applyXpathQuery">Apply</button></div>');
+        $('#applyXpathQuery', dialog).on('click', function() {
+            entity.setProperty('xpathQuery', $('#xpathQuery', dialog).val(), false, function() {
+                log('XPath Query successfully updated!', entity.xpathQuery);
+            });
+        });
 
-                    $(data.result.paths).each(function(i, path) {
-                        log(path);
+        dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
+        $('#saveDataKey', dialog).on('click', function() {
+            entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {
+                log('Data Key successfully updated!', entity.dataKey);
+            });
+        });
 
-                        //                        var pageId = path.substring(32);
-                        
-                        var displayName = entity.tag ? entity.tag : '[' + entity.type + ']';
-                        
-                        cont.append('<tr><td class="' + path + '">'
-                            + '<div style="display: inline-block" class="node ' + entity.id + '_">'
-                            + '<img style="float: left" class="remove_icon" src="' + Structr.delete_icon +  '"><b title="' + displayName + '" class="tag_">' + displayName + '</b></div></td>'
-                            + '</tr>');
-                                    
-                        //Command.getProperty(parentId, 'tag', '.parent_' + n + '_'+ parentId);
-                        //Command.getProperty(entity.id, 'name', '.'+ path);
-                                    
-                                    
-                        var node = $('div.' + entity.id + '_', $('.' + path));
-                                    
-                        node.hover(function() {
-                            $('#_' + path).addClass('nodeHover')
-                        },
-                        function() {
-                            $('#_' + path).removeClass('nodeHover')
-                        }
-                        );
-                                    
-                        //_Entities.setMouseOver(parent);
-                        //_Entities.setMouseOver(node, parentElement);
-                                    
-                        node.css({
-                            'cursor': 'pointer'
-                        }).on('click', function(e) {
-                            //console.log('Command.removeSourceFromTarget(entity.id, startNodeId, null, key, pos)', entity.id, parentId, null, key, pos);
-                            log(path);
-                            Command.remove(entity.id, path);
-                                        
-                            $('.' + path).parent('tr').remove();
-                                        
-                        });
-
-                    });
-                                  
-                }
-
-            }
-        });        
+        //_Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
+        
+        dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId" size="32" value="' + (entity.dataNodeId ? entity.dataNodeId : '') + '"><button id="saveDataNodeId">Save</button></div>');
+        $('#saveDataNodeId', dialog).on('click', function() {
+            log('add Data Node', entity.id, $('#dataNodeId', dialog).val());
+            Command.addDataTree(entity.id, $('#dataNodeId', dialog).val());
+        });
     },
 
     showProperties : function(entity) {
@@ -396,8 +225,9 @@ var _Entities = {
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
-                                            log('set property', id, key, checkbox.attr('checked') == 'checked');
-                                            Command.setProperty(id, key, checkbox.attr('checked') == 'checked');
+                                            var checked = checkbox.prop('checked');
+                                            log('set property', id, key, checked);
+                                            Command.setProperty(id, key, checked);
                                         });
                                         Command.getProperty(id, key, '#dialogBox');
                                 
@@ -502,35 +332,30 @@ var _Entities = {
             keyIcon.on('click', function(e) {
                 e.stopPropagation();
                 Structr.dialog('Access Control and Visibility', function() {}, function() {});
-                var dt = $('#dialogBox .dialogText');
 
-                _Entities.appendSimpleSelection(dt, entity, 'users', 'Owner', 'ownerId');
+                _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'ownerId');
                 
-                dt.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
-                
-                dt.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
+                dialogText.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
+                dialogText.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
                 
                 var publicSwitch = $('.visibleToPublicUsers_');
                 var authSwitch = $('.visibleToAuthenticatedUsers_');
-
-                Command.getProperty(entity.id, 'visibleToPublicUsers', '#dialogBox');
-                Command.getProperty(entity.id, 'visibleToAuthenticatedUsers', '#dialogBox');
-
-                log(publicSwitch);
-                log(authSwitch);
+                
+                _Entities.changeBooleanAttribute(publicSwitch, entity.visibleToPublicUsers);
+                _Entities.changeBooleanAttribute(authSwitch, entity.visibleToAuthenticatedUsers);
                 
                 publicSwitch.on('click', function(e) {
                     e.stopPropagation();
-                    var rec = $('#recursive', dt).is(':checked');
-                    log('Toggle switch', publicSwitch.hasClass('disabled'))
-                    Command.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'), rec);
+                    entity.setProperty('visibleToPublicUsers', publicSwitch.hasClass('disabled'), $('#recursive', dialogText).is(':checked'), function() {
+                        _Entities.changeBooleanAttribute(publicSwitch, entity.visibleToPublicUsers);
+                    });
                 });
 
                 authSwitch.on('click', function(e) {
                     e.stopPropagation();
-                    var rec = $('#recursive', dt).is(':checked');
-                    log('Toggle switch', authSwitch.hasClass('disabled'))
-                    Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'), rec);
+                    entity.setProperty('visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'), $('#recursive', dialogText).is(':checked'), function() {
+                        _Entities.changeBooleanAttribute(authSwitch, entity.visibleToAuthenticatedUsers);
+                    });
                 });
 
             });
@@ -559,25 +384,22 @@ var _Entities = {
         headers['X-StructrSessionToken'] = token;
         $.ajax({
             url: rootUrl + type + '/all?pageSize=100',
-            async: false,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             headers: headers,
             success: function(data) {
                 $(data.result).each(function(i, result) {
-                    log(result);
-                    selectElement.append('<option value="' + result.id + '">' + result.name + '</option>');
+                    //log(result);
+                    selectElement.append('<option ' + (entity[key] == result.id ? 'selected' : '') + ' value="' + result.id + '">' + result.name + '</option>');
                 });
             }
         });                
                 
         element.append('</select></span>');
 
-        log('Command.getProperty(', entity.id, key, '#' + key + 'Box', ')');
-        Command.getProperty(entity.id, key, '#' + key + 'Box');
         var select = $('#' + key + 'Select', element);
         select.on('change', function() {
-            Command.setProperty(entity.id, key, select.val());
+            entity.setProperty(key, select.val(), false);
         });          
     },
 
@@ -596,7 +418,24 @@ var _Entities = {
         });
     },
 
+    appendDataIcon : function(parent, entity) {
+
+        var dataIcon = $('.data_icon', parent);
+
+        if (!(dataIcon && dataIcon.length)) {
+            parent.append('<img title="Edit Data Settings" alt="Edit Data Settings" class="data_icon button" src="' + '/structr/icon/database_table.png' + '">');
+            dataIcon = $('.data_icon', parent)
+        }
+        dataIcon.on('click', function(e) {
+            e.stopPropagation();
+            log('showDataDialog', entity);
+            _Entities.showDataDialog(entity);
+        });
+    },
+
     appendExpandIcon : function(el, entity, hasChildren, expand) {
+        
+        log('_Entities.appendExpandIcon', el, entity, hasChildren, expand);
 
         var button = $(el.children('.expand_icon').first());
         if (button && button.length) {
@@ -607,10 +446,7 @@ var _Entities = {
         if (hasChildren) {
 
             var typeIcon = $(el.children('.typeIcon').first());
-
             var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
-            //var icon = Structr.expand_icon;
-            log(icon);
             
             typeIcon.css({
                 paddingRight: 0 + 'px'
@@ -622,29 +458,20 @@ var _Entities = {
             if (button) {
                 
                 button.on('click', function(e) {
-                    
                     log('expand icon clicked');
-                    
                     e.stopPropagation();
                     _Entities.toggleElement($(this).parent('.node'));
-                    
                 });
                 
                 $(el).on('click', function(e) {
-                    
                     log('node clicked');
                     _Entities.toggleElement(this);
-                    
                 });
 
                 // Prevent expand icon from being draggable
                 button.on('mousedown', function(e) {
                     e.stopPropagation();
                 });
-                
-                var elId = $(el).attr('id');
-                
-                //var treeAddress = elId ? elId.substring(1) : undefined;
                 
                 if (expand) {
                     _Entities.ensureExpanded(el);
@@ -660,6 +487,8 @@ var _Entities = {
     },
 
     removeExpandIcon : function(el) {
+        if (!el) return;
+        log('removeExpandIcon', el);
         var button = $(el.children('.expand_icon').first());
         button.remove();
         el.children('.typeIcon').css({
@@ -667,7 +496,7 @@ var _Entities = {
         });
     },
 
-    setMouseOver : function(el, parentElement) {
+    setMouseOver : function(el) {
         if (!el || !el.children) return;
 
         el.on('click', function(e) {
@@ -684,14 +513,6 @@ var _Entities = {
                 e.stopPropagation();
                 var self = $(this);
                 var nodeId = getId(el);
-                //window.clearTimeout(timer[nodeId]);
-                //		console.log('setMouseOver', nodeId);
-                var nodes;
-                if (parentElement) {
-                    nodes = $('.' + nodeId + '_', parentElement);
-                } else {
-                    nodes = $('.' + nodeId + '_');
-                }
                 var page = $(el).closest('.page');
                 if (page.length) {
                     var pageId = getId(page);
@@ -703,12 +524,8 @@ var _Entities = {
                             self.addClass('nodeHover');
                         }
                     });
-
-                //		    _Entities.children(nodeId, resId);
-
                 }
-                nodes.addClass('nodeHover');
-                self.children('img.button').show();
+                self.addClass('nodeHover').children('img.button').show();
             },
             mouseout: function(e) {
                 e.stopPropagation();
@@ -723,14 +540,10 @@ var _Entities = {
         el.children('img.button').hide();
         var nodeId = getId(el);
         var nodes = $('.' + nodeId + '_');
-        //	timer[nodeId] = window.setTimeout(function() {
-        //	    el.children('.node').remove();
-        //	}, 1000);
         nodes.removeClass('nodeHover');
         var page = $(el).closest('.page');
         if (page.length) {
             var resId = getId(page);
-            //		    console.log('setMouseOver pageId', resId);
             var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
             previewNodes.each(function(i,v) {
                 var self = $(v);
@@ -750,14 +563,10 @@ var _Entities = {
         var b;
         var src = el.prop('src');
         
-        var elId = el.attr('id');
+        var id = getId(element);
         
-        log(el);
-        
-        var treeAddress = elId ? elId.substring(1) : undefined;
-        
-        log('ensureExpanded: elId, treeAddress', elId, treeAddress);
-        addExpandedNode(treeAddress);
+        log('ensureExpanded: ', el, id);
+        addExpandedNode(id);
         
         b = el.children('.expand_icon').first();
         src = b.prop('src');
@@ -768,16 +577,10 @@ var _Entities = {
             return;
         } else {
             
-            var id = getId(el);
-            var compId = getId(el.closest('.component'));
-            var pageId = getId(el.closest('.page'));
-
-            Command.children(id, compId, pageId, treeAddress);
+            Command.children(id);
             b.prop('src', 'icon/tree_arrow_down.png');
             
         }
-      
-        
     },
 
     toggleElement : function(element, expanded) {
@@ -786,13 +589,11 @@ var _Entities = {
         var b;
         var src = el.prop('src');
         
-        var elId = el.attr('id');
+        var id = getId(el);
         
         log(el);
         
-        var treeAddress = elId ? elId.substring(1) : undefined;
-        
-        log('toggleElement: treeAddress', treeAddress);
+        log('toggleElement: ', id);
         
         b = el.children('.expand_icon').first();
         src = b.prop('src');
@@ -800,20 +601,20 @@ var _Entities = {
         if (!src) return;
         
         if (src.endsWith('icon/tree_arrow_down.png')) {
-            el.children('.node').remove();
+            
+            $.each(el.children('.node'), function(i, child) {
+               $(child).remove();
+            });
+            
             b.prop('src', 'icon/tree_arrow_right.png');
 
-            removeExpandedNode(treeAddress);
+            removeExpandedNode(id);
         } else {
             
-            var id = getId(el);
-            var compId = getId(el.closest('.component'));
-            var pageId = getId(el.closest('.page'));
-
-            if (!expanded) Command.children(id, compId, pageId, treeAddress);
+            if (!expanded) Command.children(id);
             b.prop('src', 'icon/tree_arrow_down.png');
 
-            addExpandedNode(treeAddress);
+            addExpandedNode(id);
         }
 
     },
@@ -846,6 +647,7 @@ var _Entities = {
             if (e.keyCode == 13) {
                 var self = $(this);
                 var newName = self.val();
+                Command.setProperty(getId(element), "name", newName);
                 self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToSize(newName, 200) + '</b>');
                 $('.name_', element).on('click', function(e) {
                     e.stopPropagation();

@@ -28,7 +28,7 @@ if (browser) {
     $(document).ready(function() {
 
         defaultType     = 'Page';
-        defaultView     = 'public';
+        defaultView     = 'ui';
         defaultSort     = '';
         defaultOrder    = '';
                 
@@ -77,6 +77,11 @@ if (browser) {
         //_Crud.onload();
         }
         
+        _Crud.resize();
+        $(window).on('resize', function() {
+            _Crud.resize();
+        });
+        
     });
     
 } else {
@@ -93,7 +98,7 @@ var _Crud = {
     schemaLoading : false,
     schemaLoaded : false,
     
-    types : [ 'Page', 'User', 'Group', 'File', 'Image', 'Content' ],
+    types : [ 'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
     views : [ 'public', 'all', 'ui' ],
 
     schema : [],
@@ -155,7 +160,8 @@ var _Crud = {
                 
             } else if (e.keyCode == 27 || searchString == '') {
                 
-                _Crud.clearSearch(main);
+                _Crud.clearSearch(main);                
+                
             }
             
             
@@ -688,30 +694,105 @@ var _Crud = {
             data: json,
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function(data, status, xhr) {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    var location = xhr.getResponseHeader('location');
-                    var id = location.substring(location.lastIndexOf('/') + 1);
-                    _Crud.crudRead(type, id);
-                    $.unblockUI({
-                        fadeOut: 25
-                    });
-                    document.location.reload();
-                }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    //console.log(data, status, xhr);
-                    _Crud.dialog('Create new ' + type, function() {
-                        //console.log('ok')
-                        }, function() {
-                        //console.log('cancel')
+            statusCode : {
+                201 : function(xhr) {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        //                        var location = xhr.getResponseHeader('location');
+                        //                        var id = location.substring(location.lastIndexOf('/') + 1);
+                        //                        _Crud.crudRead(type, id);
+                        $.unblockUI({
+                            fadeOut: 25
                         });
-                    _Crud.showDetails(null, true, type);
+                        _Crud.activateList(type);
+                    //document.location.reload();
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
                 }
             }
         });
@@ -719,7 +800,7 @@ var _Crud = {
 
     crudRefresh : function(id, key) {
         var url = rootUrl + id + '/' + _Crud.view[_Crud.type];
-        //        console.log('crudRefresh', id, key, headers, url);
+        //console.log('crudRefresh', id, key, headers, url);
         
         $.ajax({
             url: url,
@@ -748,7 +829,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                //console.log('reset', id, key, data.result[key]);
+                console.log('reset', id, key, data.result[key]);
                 _Crud.resetCell(id, key, data.result[key]);
             }
         });
@@ -764,21 +845,63 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    _Crud.crudRefresh(id);
+            statusCode : {
+                200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id);
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
                 }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    _Crud.crudReset(id);
-                }
-            //alert(data.responseText);
-            // TODO: Overlay with error info
             }
         });
     },
@@ -786,31 +909,96 @@ var _Crud = {
     crudUpdate : function(id, key, newValue, onSuccess, onError) {
         var url = rootUrl + id;
         var json = '{"' + key + '":"' + newValue + '"}';
-        //        console.log('crudUpdate', headers, url, json);
+        //console.log('crudUpdate', headers, url, json);
         $.ajax({
             url: url,
             headers: headers,
             data: json,
             type: 'PUT',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
+            //dataType: 'json',
+            //contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    _Crud.crudRefresh(id, key);
+            statusCode : {
+                200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id, key);
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
                 }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    _Crud.crudReset(id, key);
-                }
-            //alert(data.responseText);
-            // TODO: Overlay with error info
             }
+        //            success: function() {
+        //                console.log('crudUpdate success', url, headers, json);
+        //                if (onSuccess) {
+        //                    onSuccess();
+        //                } else {
+        //                    _Crud.crudRefresh(id, key);
+        //                }
+        //            },
+        //            error: function(data, status, xhr) {
+        //                console.log('crudUpdate error', url, headers, json, data, status, xhr);
+        //                // since jQuery 1.9, an empty response body is regarded as an error
+        //                // we have to react on this here
+        //                if (data.status == 200) {
+        //                } else {
+        //                    if (onError) {
+        //                        onError();
+        //                    } else {
+        //                        _Crud.crudReset(id, key);
+        //                    }
+        //                }
+        //            //alert(data.responseText);
+        //            // TODO: Overlay with error info
+        //            }
         });
     },
     
@@ -819,7 +1007,7 @@ var _Crud = {
         var url = rootUrl + id;
         var json = '{"' + key + '":null}';
         
-        //        console.log('crudRemoveProperty', headers, url, json);
+        //console.log('crudRemoveProperty', headers, url, json);
         
         $.ajax({
             url: url,
@@ -829,22 +1017,71 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    _Crud.crudRefresh(id, key);
+            statusCode : {
+                200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id, key);
+                    }
+                },
+                204 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id, key);
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
                 }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    _Crud.crudReset(id, key);
-                }
-            //alert(data.responseText);
-            // TODO: Overlay with error info
-            }
+            }            
         });
     },
 
@@ -856,11 +1093,34 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                //alert(id + ' deleted!');
-                var row = $('#' + id);
-                row.remove();
-            }
+            statusCode : {
+                200 : function() {
+                    var row = $('#' + id);
+                    row.remove();
+                },
+                204 : function() {
+                    var row = $('#' + id);
+                    row.remove();
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                },
+                422 : function(data, status, xhr) {
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                }
+            }               
         });
     },
 
@@ -1073,7 +1333,7 @@ var _Crud = {
             //async: false,
             success: function(data) {
                 var node = data.result;
-                console.log('node', node);
+                log('node', node);
                 
                 cell.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(node.name, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
@@ -1198,9 +1458,9 @@ var _Crud = {
         el.append('<div class="searchResults"></div>');
         var searchResults = $('.searchResults', el);
         
-        $('.search').select();
+        //$('.search').select();
         
-        var view = 'public'; // _Crud.view[_Crud.type]
+        var view = _Crud.view[_Crud.type]
         
         var types = type ? [ type ] : _Crud.types;
         
@@ -1289,6 +1549,10 @@ var _Crud = {
                 });
                 
             } else if (e.keyCode == 27 || searchString == '') {
+
+                if (!searchString || searchString == '') {
+                    dialogCancelButton.click();
+                }
                 
                 if (_Crud.clearSearchResults(el)) {
                     $('.clearSearchIcon').hide().off('click');
@@ -1337,29 +1601,35 @@ var _Crud = {
                         data: json,
                         contentType: 'application/json; charset=utf-8',
                         //async: false,
-                        success: function(data) {
+                        statusCode : {
+                            200 : function(data) {
                             
-                            var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-                            //console.log('removeRelatedObject, setting new id array', headers, url, objects, json);
+                                var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
+                                //console.log('removeRelatedObject, setting new id array', headers, url, objects, json);
                             
-                            $.ajax({
-                                url: url,
-                                headers: headers,
-                                type: 'PUT',
-                                dataType: 'json',
-                                data: json,
-                                contentType: 'application/json; charset=utf-8',
-                                //async: false,
-                                success: function(data) {
-                                    var rowEl = $('#' + id);
-                                    var nodeEl = $('.' + _Crud.id(relatedObj) + '_', rowEl);
-                                    console.log(rowEl, nodeEl);
-                                    nodeEl.remove();
-                                },
-                                error: function(a,b,c) {
-                                    console.log(a,b,c);
-                                }
-                            });
+                                $.ajax({
+                                    url: url,
+                                    headers: headers,
+                                    type: 'PUT',
+                                    dataType: 'json',
+                                    data: json,
+                                    contentType: 'application/json; charset=utf-8',
+                                    //async: false,
+                                    statusCode : {
+                                        200 : function(data) {
+                                            var rowEl = $('#' + id);
+                                            var nodeEl = $('.' + _Crud.id(relatedObj) + '_', rowEl);
+                                            console.log(rowEl, nodeEl);
+                                            nodeEl.remove();
+                                        },
+                                        error: function(a,b,c) {
+                                            console.log(a,b,c);
+                                        }
+                                        
+                                    }
+                                });
+                                
+                            }
                         }
                     });
                 }
@@ -1479,16 +1749,84 @@ var _Crud = {
             });
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
+            $.blockUI.defaults.css.cursor = 'default';
+            
+        
+            var w = $(window).width();
+            var h = $(window).height();
+
+            var ml = 24;
+            var mt = 24;
+
+            // Calculate dimensions of dialog
+            var dw = Math.min(900, w-ml);
+            var dh = Math.min(600, h-mt);
+            //            var dw = (w-24) + 'px';
+            //            var dh = (h-24) + 'px';
+            
+            var l = parseInt((w-dw)/2);
+            var t = parseInt((h-dh)/2);
+            
+            console.log(w, h, dw, dh, l, t);
+            
+            
             $.blockUI({
                 fadeIn: 25,
                 fadeOut: 25,
                 message: dialogBox,
                 css: {
                     border: 'none',
-                    backgroundColor: 'transparent'
-                }
+                    backgroundColor: 'transparent',
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                themedCSS: { 
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
             });
+            
         }
+    },
+
+    resize : function() {
+        var w = $(window).width();
+        var h = $(window).height();
+
+        var ml = 24;
+        var mt = 24;
+
+        // Calculate dimensions of dialog
+        var dw = Math.min(900, w-ml);
+        var dh = Math.min(600, h-mt);
+        //            var dw = (w-24) + 'px';
+        //            var dh = (h-24) + 'px';
+            
+        var l = parseInt((w-dw)/2);
+        var t = parseInt((h-dh)/2);
+        
+        $('.blockPage').css({
+            width: dw + 'px',
+            height: dh + 'px',
+            top: t + 'px',
+            left: l + 'px'
+        });
+        
+        var bw = (dw-60) + 'px';
+        var bh = (dh-106) + 'px';
+
+        $('#dialogBox .dialogTextWrapper').css({
+            width: bw,
+            height: bh
+        });
     },
 
     error : function(text, callback) {

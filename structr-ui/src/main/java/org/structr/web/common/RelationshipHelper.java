@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.web.common;
@@ -37,14 +36,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Folder;
 import org.structr.web.entity.Component;
-import org.structr.web.entity.Group;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
@@ -108,7 +104,7 @@ public class RelationshipHelper {
 			// only set componentId if set and avoid setting the component id of the clone node itself
 			if ((componentId != null) &&!(cloneNode.getProperty(AbstractNode.uuid).equals(componentId))) {
 
-				newInRel.setProperty(Component.componentId, componentId);
+//				newInRel.setProperty(Component.componentId, componentId);
 
 			}
 
@@ -118,6 +114,8 @@ public class RelationshipHelper {
 	}
 
 	private static void setPositions(final AbstractNode cloneNode, AbstractRelationship rel, boolean increasePosition) throws FrameworkException {
+		
+		/* FIXME
 		
 			Set<String> paths = (Set<String>) cloneNode.getProperty(Component.paths);
 			
@@ -133,7 +131,7 @@ public class RelationshipHelper {
 				rel.setProperty(new LongProperty(pageId), position);
 				
 			}
-		
+		*/
 	}
 	
 	public static void copyOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode cloneNode, RelType relType, String componentId)
@@ -157,11 +155,10 @@ public class RelationshipHelper {
 
 			AbstractRelationship newOutRel = createRel.execute(cloneNode, endNode, relType, props, false);
 
-			if (componentId != null) {
-
-				newOutRel.setProperty(Component.componentId, componentId);
-
-			}
+//			if (componentId != null) {
+//
+//				newOutRel.setProperty(Component.componentId, componentId);
+//			}
 
 			setPositions(cloneNode, newOutRel, false);
 
@@ -325,83 +322,5 @@ public class RelationshipHelper {
 			}
 
 		}
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	public static Set<String> getChildrenInPage(final AbstractNode parentNode, final String pageId) {
-
-		Set<String> nodesWithChildren        = new HashSet<String>();
-		List<AbstractRelationship> childRels = parentNode.getOutgoingRelationships(RelType.CONTAINS);
-
-		for (AbstractRelationship childRel : childRels) {
-
-			String parentId = parentNode.getUuid();
-
-			if ((pageId == null) || (parentNode instanceof Group) || (parentNode instanceof Folder)) {
-
-				nodesWithChildren.add(parentId);
-				continue;
-
-			}
-
-			Property pageIdProperty = new LongProperty(pageId);
-			Long childPos = null;
-
-			if (childRel.getLongProperty(pageIdProperty) != null) {
-
-				childPos = childRel.getLongProperty(pageIdProperty);
-
-			} else {
-
-				// Try "*"
-				childPos = childRel.getLongProperty(new LongProperty("*"));
-			}
-
-			if (childPos != null) {
-
-				nodesWithChildren.add(parentId);
-
-			}
-
-		}
-
-		return nodesWithChildren;
-	}
-
-	public static boolean hasChildren(final AbstractNode node, final String pageId) {
-
-		List<AbstractRelationship> childRels = node.getOutgoingRelationships(RelType.CONTAINS);
-		Property pageIdProperty              = new LongProperty(pageId);
-
-		if ((node instanceof Group) || (node instanceof Folder)) {
-
-			return !childRels.isEmpty();
-
-		}
-
-		for (AbstractRelationship childRel : childRels) {
-
-			Long childPos = null;
-
-			if (childRel.getLongProperty(pageIdProperty) != null) {
-
-				childPos = childRel.getLongProperty(pageIdProperty);
-
-			} else {
-
-				// Try "*"
-				childPos = childRel.getLongProperty(new LongProperty("*"));
-			}
-
-			if (childPos != null) {
-
-				return true;
-
-			}
-
-		}
-
-		return false;
 	}
 }

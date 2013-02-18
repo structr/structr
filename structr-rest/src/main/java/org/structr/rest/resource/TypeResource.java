@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.rest.resource;
 
 import org.structr.core.graph.search.SearchOperator;
@@ -260,10 +259,16 @@ public class TypeResource extends SortableResource {
 
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
-		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
-		properties.put(AbstractNode.type, entityClass.getSimpleName());
+		if (entityClass != null) {
+
+			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+			properties.put(AbstractNode.type, entityClass.getSimpleName());
+
+			return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+			
+		}
 		
-		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+		throw new NotFoundException();
 	}
 
 	@Override
@@ -311,7 +316,7 @@ public class TypeResource extends SortableResource {
 	@Override
 	public String getResourceSignature() {
 
-		return getUriPart();
+		return EntityContext.normalizeEntityName(getUriPart());
 
 	}
 

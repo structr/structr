@@ -31,7 +31,7 @@ var dmp;
 var editorCursor;
 var dialog;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, loginButton;
-
+var dialogId;
 var page = [];
 var pageSize = [];
 
@@ -49,8 +49,8 @@ $(document).ready(function() {
         footer.show();
     }
     
-    dialog = $('#dialogBox .dialogText');
     dialogBox = $('#dialogBox');
+    dialog = $('.dialogText', dialogBox);
     dialogMsg = $('.dialogMsg', dialogBox);
     dialogBtn = $('.dialogBtn', dialogBox);
     dialogTitle = $('.dialogTitle', dialogBox);
@@ -97,18 +97,18 @@ $(document).ready(function() {
         _Pages.resize();
     });
 
-    $('#components_').on('click', function(e) {
-        e.stopPropagation();
-        main.empty();
-        Structr.activateMenuEntry('components');
-        Structr.modules['components'].onload();
-    });
+//    $('#components_').on('click', function(e) {
+//        e.stopPropagation();
+//        main.empty();
+//        Structr.activateMenuEntry('components');
+//        Structr.modules['components'].onload();
+//    });
     
-    $('#types_').on('click', function(e) {
+    $('#propertyDefinitions_').on('click', function(e) {
         e.stopPropagation();
         main.empty();
-        Structr.activateMenuEntry('types');
-        Structr.modules['types'].onload();
+        Structr.activateMenuEntry('propertyDefinitions');
+        Structr.modules['propertyDefinitions'].onload();
     });
 
     $('#elements_').on('click', function(e) {
@@ -138,6 +138,13 @@ $(document).ready(function() {
         Structr.activateMenuEntry('files');
         Structr.modules['files'].onload();
     });
+
+//    $('#trees_').on('click', function(e) {
+//        e.stopPropagation();
+//        main.empty();
+//        Structr.activateMenuEntry('trees');
+//        Structr.modules['trees'].onload();
+//    });
 
     $('#images_').on('click', function(e) {
         e.stopPropagation();
@@ -175,6 +182,12 @@ $(document).ready(function() {
             dialogCancelButton.click();
         }
     });     
+    
+    Structr.resize();
+    
+    $(window).on('resize', function() {
+        Structr.resize();
+    });
 	
 });
 
@@ -290,6 +303,7 @@ var Structr = {
         if (callback) $('#confirmation .yesButton').on('click', function(e) {
             e.stopPropagation();
             callback();
+            $(this).off('click');
         });
         $('#confirmation .noButton').on('click', function(e) {
             e.stopPropagation();
@@ -333,33 +347,104 @@ var Structr = {
 
     dialog : function(text, callbackOk, callbackCancel) {
 
-        dialogMsg.empty();
-        dialogMeta.empty();
-        $(':not(.dialogCancelButton)', dialogBtn).remove();
-            
-        if (text) dialogTitle.html(text);
-        if (callbackCancel) dialogCancelButton.on('click', function(e) {
-            e.stopPropagation();
-            callbackCancel();
-            dialogText.empty();
-            _Pages.reloadPreviews();
-            $.unblockUI({
-                fadeOut: 25
-            });            
-        });
-        $.blockUI.defaults.overlayCSS.opacity = .6;
-        $.blockUI.defaults.applyPlatformOpacityRules = false;
-        $.blockUI({
-            fadeIn: 25,
-            fadeOut: 25,
-            message: dialogBox,
-            css: {
-                border: 'none',
-                backgroundColor: 'transparent'
-            }
-        });
-    //        $('.blockUI.blockMsg').center();
+        if (browser) {
 
+            dialogText.empty();
+            dialogMsg.empty();
+            dialogMeta.empty();
+            //dialogBtn.empty();
+            
+            if (text) dialogTitle.html(text);
+            if (callbackCancel) dialogCancelButton.on('click', function(e) {
+                e.stopPropagation();
+                callbackCancel();
+                dialogText.empty();
+                $.unblockUI({
+                    fadeOut: 25
+
+                });
+                dialogBtn.children(':not(.dialogCancelButton)').remove();
+                //dialogSaveButton.remove();
+                //$('#saveProperties').remove();
+                if (searchField) searchField.focus();
+            });
+            $.blockUI.defaults.overlayCSS.opacity = .6;
+            $.blockUI.defaults.applyPlatformOpacityRules = false;
+            
+        
+            var w = $(window).width();
+            var h = $(window).height();
+
+            var ml = 24;
+            var mt = 24;
+
+            // Calculate dimensions of dialog
+            var dw = Math.min(900, w-ml);
+            var dh = Math.min(600, h-mt);
+            //            var dw = (w-24) + 'px';
+            //            var dh = (h-24) + 'px';
+            
+            var l = parseInt((w-dw)/2);
+            var t = parseInt((h-dh)/2);
+            
+            $.blockUI({
+                fadeIn: 25,
+                fadeOut: 25,
+                message: dialogBox,
+                css: {
+                    cursor: 'default',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                themedCSS: { 
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
+            });
+            
+        }
+    },
+
+    resize : function() {
+        var w = $(window).width();
+        var h = $(window).height();
+
+        var ml = 24;
+        var mt = 24;
+
+        // Calculate dimensions of dialog
+        var dw = Math.min(900, w-ml);
+        var dh = Math.min(600, h-mt);
+        //            var dw = (w-24) + 'px';
+        //            var dh = (h-24) + 'px';
+            
+        var l = parseInt((w-dw)/2);
+        var t = parseInt((h-dh)/2);
+        
+        $('.blockPage').css({
+            width: dw + 'px',
+            height: dh + 'px',
+            top: t + 'px',
+            left: l + 'px'
+        });
+        
+        var bw = (dw-60) + 'px';
+        var bh = (dh-106) + 'px';
+
+        $('#dialogBox .dialogTextWrapper').css({
+            width: bw,
+            height: bh
+        });
     },
 
     error : function(text, callback) {
@@ -378,6 +463,28 @@ var Structr = {
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
             message: $('#errorBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+    },
+
+    tempInfo : function(text, autoclose) {
+        window.clearTimeout(dialogId);
+        if (text) $('#tempInfoBox .infoHeading').html('<img src="icon/information.png"> ' + text);
+        //console.log(callback);
+        if (autoclose) {
+            dialogId = window.setTimeout(function() {
+                $.unblockUI({
+                    fadeOut: 25
+                });                
+            }, 1000);
+        }
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            message: $('#tempInfoBox'),
             css: {
                 border: 'none',
                 backgroundColor: 'transparent'
@@ -447,100 +554,14 @@ var Structr = {
         return parent;
     },
     
-    node : function(id, parentId, componentId, pageId, position) {
-        var entityElement, parentElement, componentElement, pageElement;
-
-        log('Structr.node', id, parentId, componentId, pageId, position);
-
-        if (id && parentId && componentId && pageId && (pageId != parentId) && (pageId != componentId)) {
-
-            pageElement = $('.node.' + pageId + '_');
-            log('pageElement', pageElement);
-            
-            if (id == pageId) {
-                
-                entityElement = pageElement;
-                
-            } else {
-                
-                componentElement = $('.node.' + componentId + '_', pageElement);
-                log('componentElement', componentElement);
-                
-                if (id == componentId) {
-                    entityElement = componentElement;
-                    
-                } else {
-                    
-                    if (parentId == componentId) {
-                        parentElement = componentElement;
-                    } else {
-                        parentElement = $('.node.' + parentId + '_', componentElement);
-                    }
-                    log('parentElement', parentElement);
-                    
-                    if (id == parentId) {
-                        entityElement = parentElement;
-                    } else {
-                        entityElement = parentElement.children('.node.' + id + '_');
-                        log('entityElement', entityElement);
-                    }
-                }
-            }
-            
-
-        } else if (id && parentId && pageId && (pageId != parentId)) {
-
-            pageElement = $('.node.' + pageId + '_');
-            parentElement = $('.node.' + parentId + '_', pageElement);
-            entityElement = $('.node.' + id + '_', parentElement);
-
-        } else if (id && componentId && pageId && (pageId != componentId)) {
-            
-            pageElement = $('.node.' + pageId + '_');
-            componentElement = $('.node.' + componentId + '_', pageElement);
-
-            if (id == componentId) {
-                entityElement = componentElement;
-            } else {
-                entityElement = $('.node.' + id + '_', componentElement);
-            }
-
-        } else if (id && pageId) {
-            
-            if (id == pageId) {
-                entityElement = $('.node.' + pageId + '_');
-            }
-            else {
-                pageElement = $('.node.' + pageId + '_');
-                entityElement = $('.node.' + id + '_', pageElement);
-            }
-
-        } else if (id && parentId) {
-
-            parentElement = $('.node.' + parentId + '_');
-            entityElement = parentElement.children('.node.' + id + '_');
-
-        } else if (id) {
-
-            entityElement = $('.node.' + id + '_');
-
-        }
-
-        if (entityElement && entityElement.length>1 && position) {
-            return $(entityElement[position]);
-        } else {
-            return entityElement;
-        }
+    parent : function(id) {
+        return Structr.node(id).parent().closest('.node');
     },
     
-    elementFromAddress : function(treeAddress) {
-        return $('#_' + treeAddress);
-    },
-    
-    entityFromAddress : function(treeAddress) {
-        var entityElement = Structr.elementFromAddress(treeAddress);
-        var entity = Structr.entityFromElement(entityElement);
-        return entity;
+    node : function(id) {
+        var node = $($('#id_' + id)[0]);
+        log('Structr.node', node);
+        return node.length ? node : undefined;
     },
     
     entity : function(id, parentId) {
@@ -747,7 +768,7 @@ function swapFgBg(el) {
 }
 
 function isImage(contentType) {
-    return (contentType.indexOf('image') > -1);
+    return (contentType && contentType.indexOf('image') > -1);
 }
 
 function plural(type) {
@@ -758,12 +779,12 @@ function plural(type) {
     }
 }
 
-function addExpandedNode(treeAddress) {
-    log('addExpandedNode', treeAddress);
+function addExpandedNode(id) {
+    log('addExpandedNode', id);
 
-    if (!treeAddress) return;
+    if (!id) return;
 
-    getExpanded()[treeAddress] = true;
+    getExpanded()[id] = true;
     $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
         expires: 7, 
         path: '/'
@@ -771,24 +792,24 @@ function addExpandedNode(treeAddress) {
 
 }
 
-function removeExpandedNode(treeAddress) {
-    log('removeExpandedNode', treeAddress);
+function removeExpandedNode(id) {
+    log('removeExpandedNode', id);
 
-    if (!treeAddress) return;
+    if (!id) return;
     
-    delete getExpanded()[treeAddress];
+    delete getExpanded()[id];
     $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
         expires: 7, 
         path: '/'
     });
 }
 
-function isExpanded(treeAddress) {
-    log('treeAddress, getExpanded()[treeAddress]', treeAddress, getExpanded()[treeAddress]);
+function isExpanded(id) {
+    log('id, getExpanded()[id]', id, getExpanded()[id]);
 
-    if (!treeAddress) return false;
+    if (!id) return false;
 
-    var isExpanded = getExpanded()[treeAddress] == true ? true : false;
+    var isExpanded = getExpanded()[id] == true ? true : false;
 
     log(isExpanded);
 
@@ -920,21 +941,13 @@ function refresh(parentId, id) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-function getIdFromClassString(classString) {
-    if (!classString) return false;
-    var classes = classString.split(' ');
-    var id;
-    $(classes).each(function(i,v) {
-        var len = v.length;
-        if (v.substring(len-1, len) == '_') {
-            id = v.substring(0,v.length-1);
-        }
-    });
-    return id;
+function getIdFromIdString(idString) {
+    if (!idString || !idString.startsWith('id_')) return false;
+    return idString.substring(3);
 }
 
 function getId(element) {
-    return getIdFromClassString($(element).prop('class')) || undefined;
+    return getIdFromIdString($(element).prop('id')) || undefined;
 }
 
 function followIds(pageId, entity) {

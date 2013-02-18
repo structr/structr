@@ -1,30 +1,26 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 
 
 package org.structr.web;
 
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.IndexNodeCommand;
-import org.structr.core.property.PropertyKey;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -41,6 +37,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -49,12 +46,20 @@ import org.structr.core.entity.Folder;
 import org.structr.core.entity.Image;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.web.entity.Page;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -69,10 +74,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.Result;
-import org.structr.core.property.StringProperty;
-import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -93,7 +94,7 @@ public class Importer {
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
 	private static CreateNodeCommand createNode;
 	private static CreateRelationshipCommand createRel;
-	private static IndexNodeCommand indexNode;
+	private static NewIndexNodeCommand indexNode;
 	private static SearchNodeCommand searchNode;
 
 	//~--- static initializers --------------------------------------------
@@ -154,7 +155,7 @@ public class Importer {
 		searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		createNode = Services.command(securityContext, CreateNodeCommand.class);
 		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
-		indexNode  = Services.command(securityContext, IndexNodeCommand.class);
+		indexNode  = Services.command(securityContext, NewIndexNodeCommand.class);
 
 	}
 
@@ -179,41 +180,33 @@ public class Importer {
 
 	public String readPage() throws FrameworkException {
 
-		final URL baseUrl;
-
 		try {
 
-			baseUrl = new URL(address);
+			final URL baseUrl = new URL(address);
 
-			AbstractNode res = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<String>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public String execute() throws FrameworkException {
 
-					List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
+					// AbstractNode page = findOrCreateNode(attrs, "/");
+					Page page = Page.createNewPage(securityContext, name);
 
-					attrs.add(new NodeAttribute(AbstractNode.type, Page.class.getSimpleName()));
-					attrs.add(new NodeAttribute(AbstractNode.name, name));
-					attrs.add(new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible));
-					attrs.add(new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
+					if (page != null) {
 
-					AbstractNode page = findOrCreateNode(attrs, "/");
+						page.setVisibleToAuthenticatedUsers(authVisible);
+						page.setVisibleToPublicUsers(publicVisible);
+						createChildNodes(parsedDocument, page, page, baseUrl);
+						logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
-					createChildNodes(parsedDocument, page, page.getProperty(AbstractNode.uuid), baseUrl);
+						return page.getProperty(AbstractNode.uuid);
 
-					return page;
+					}
 
+					return null;
 				}
 
 			});
-
-			if (res != null) {
-
-				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
-
-				return res.getProperty(AbstractNode.uuid);
-
-			}
 
 		} catch (MalformedURLException ex) {
 
@@ -225,7 +218,7 @@ public class Importer {
 
 	}
 
-	public void createChildNodes(final Node startNode, final AbstractNode parent, String pageId, final URL baseUrl) throws FrameworkException {
+	public void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 
 		List<Node> children = startNode.childNodes();
 		int localIndex      = 0;
@@ -271,12 +264,12 @@ public class Importer {
 
 			}
 
-			// Data and comment nodes: Just put the text into the "content" field without changes
+			// Data and comment nodes: Trim the text and put it into the "content" field without changes
 			if (type.equals("#data") || type.equals("#comment")) {
 
 				type    = "Content";
 				tag     = "";
-				content = ((DataNode) node).getWholeData();
+				content = ((DataNode) node).getWholeData().trim();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
@@ -286,49 +279,42 @@ public class Importer {
 
 			}
 
-			// Text-only nodes: Put the text content into the "content" field
+			// Text-only nodes: Trim the text and put it into the "content" field
 			if (type.equals("#text")) {
 
-				type    = "Content";
+//                              type    = "Content";
 				tag     = "";
-				content = ((TextNode) node).toString();
+				content = ((TextNode) node).toString().trim();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
 
 					continue;
 				}
-
 			}
 
-			List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
+			org.structr.web.entity.dom.DOMNode newNode;
 
-			// In case of a content node, put content into the "content" field
-			if (content != null) {
+			// create node
+			if (StringUtils.isBlank(tag)) {
 
-				attrs.add(new NodeAttribute(Content.content, content));
+				newNode = (Content) page.createTextNode(content);
+			} else {
+
+				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
 			}
-
-			// Type
-			attrs.add(new NodeAttribute(AbstractNode.type, type));
-			//attrs.add(new NodeAttribute(AbstractNode.name.name(), "New " + type));
-
-			// Tag name
-			attrs.add(new NodeAttribute(HtmlElement.tag, tag));
 
 			// "id" attribute: Put it into the "_html_id" field
 			if (StringUtils.isNotBlank(id)) {
 
-				attrs.add(new NodeAttribute(HtmlElement._id, id));
+				newNode.setProperty(DOMElement._id, id);
 			}
 
-			// "class" attribute: Put it into the "_html_class" field
 			if (StringUtils.isNotBlank(classString.toString())) {
 
-				attrs.add(new NodeAttribute(HtmlElement._class, StringUtils.trim(classString.toString())));
+				newNode.setProperty(DOMElement._class, StringUtils.trim(classString.toString()));
 			}
 
-			// Other attributes: Put them into the respective fields with "_html_" prefix
 			for (Attribute nodeAttr : node.attributes()) {
 
 				String key = nodeAttr.getKey();
@@ -336,22 +322,17 @@ public class Importer {
 				// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 				if (!key.equals("text")) {
 
-					attrs.add(new NodeAttribute(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue()));
+					newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
 				}
 
 			}
 
-			String nodePath = getNodePath(node);
-
-			// create node
-			// TODO: Do we need the name here?
-			AbstractNode newNode = findOrCreateNode(attrs, nodePath);
+			parent.appendChild(newNode);
 
 			// Link new node to its parent node
-			linkNodes(parent, newNode, pageId, localIndex);
-
+			// linkNodes(parent, newNode, page, localIndex);
 			// Step down and process child nodes
-			createChildNodes(node, newNode, pageId, baseUrl);
+			createChildNodes(node, newNode, page, baseUrl);
 
 			// Count up position index
 			localIndex++;
@@ -373,33 +354,24 @@ public class Importer {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private AbstractNode findExistingNode(final List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
+	private DOMNode findExistingNode(final List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
 		for (NodeAttribute attr : attrs) {
 
 			PropertyKey key = attr.getKey();
+			String value    = attr.getValue().toString();
 
-//                      String value = Search.escapeForLucene(attr.getValue().toString());
-			String value = attr.getValue().toString();
-
-//                      if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
-//
-//                              value = Search.escapeForLucene(value);
-//
-//                              // value = Search.clean(value);
-//
-//                      }
 			// Exclude data attribute because it may contain code with special characters, too
-			if (!key.equals(HtmlElement._data)) {
+			if (!key.equals(DOMElement._data)) {
 
 				searchAttrs.add(Search.andExactProperty(key, value));
 			}
 
 		}
 
-		Result<AbstractNode> result = searchNode.execute(searchAttrs);
+		Result<DOMNode> result = searchNode.execute(searchAttrs);
 
 		if (result.size() > 1) {
 
@@ -411,9 +383,9 @@ public class Importer {
 			return null;
 		}
 
-		for (AbstractNode foundNode : result.getResults()) {
-			
-			String foundNodePath = foundNode.getProperty(HtmlElement.path);
+		for (DOMNode foundNode : result.getResults()) {
+
+			String foundNodePath = foundNode.getProperty(DOMElement.path);
 
 			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
 
@@ -434,18 +406,18 @@ public class Importer {
 
 	}
 
-	private AbstractNode findOrCreateNode(final List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
+	private DOMNode findOrCreateNode(final List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
 
-		AbstractNode node = findExistingNode(attributes, nodePath);
+		DOMNode node = findExistingNode(attributes, nodePath);
 
 		if (node != null) {
 
 			return node;
 		}
 
-		node = (AbstractNode) createNode.execute(attributes);
+		node = (DOMNode) createNode.execute(attributes);
 
-		node.setProperty(HtmlElement.path, nodePath);
+		node.setProperty(DOMElement.path, nodePath);
 
 		if (node != null) {
 
@@ -634,7 +606,7 @@ public class Importer {
 				createRel.execute(parent, folder, RelType.CONTAINS);
 			}
 
-			indexNode.update(folder);
+			indexNode.updateNode(folder);
 
 		}
 
@@ -646,12 +618,12 @@ public class Importer {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
 		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
-					new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
-					new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-					new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
+						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
+						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
-//		fileNode.getChecksum();
-		indexNode.add(fileNode);
+//              fileNode.getChecksum();
+		indexNode.addNode(fileNode);
 
 		return fileNode;
 
@@ -661,12 +633,12 @@ public class Importer {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
 		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
-					  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
-					  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-					  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
+						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
+						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
-//		imageNode.getChecksum();
-		indexNode.add(imageNode);
+//              imageNode.getChecksum();
+		indexNode.addNode(imageNode);
 
 		return imageNode;
 

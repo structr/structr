@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.rest.resource;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -317,21 +316,25 @@ public abstract class Resource {
 		}
 	}
 
-	protected ResourceAccess findGrant() throws FrameworkException {
+	protected ResourceAccess findGrant(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		final SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
-		final String uriPart                         = EntityContext.normalizeEntityName(this.getResourceSignature());
+		final SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(request, response), SearchNodeCommand.class);
+		//final String signature                       = EntityContext.normalizeEntityName(getResourceSignature());
+		final String signature                         = getResourceSignature();
+		
+		logger.log(Level.FINE, "Trying to find resource access object for {0}", signature);
+		
 		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		ResourceAccess grant                         = null;
 
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
-		searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, uriPart));
+		searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, signature));
 
 		final Result result = search.execute(searchAttributes);
 
 		if (result.isEmpty()) {
 
-			logger.log(Level.FINE, "No resource access object found for {0}", uriPart);
+			logger.log(Level.FINE, "No resource access object found for {0}", signature);
 
 		} else {
 
@@ -343,13 +346,13 @@ public abstract class Resource {
 
 			} else {
 
-				logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { uriPart, node.getClass().getName() });
+				logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { signature, node.getClass().getName() });
 
 			}
 
 			if (result.size() > 1) {
 
-				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), uriPart });
+				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), signature });
 
 			}
 
@@ -406,8 +409,8 @@ public abstract class Resource {
 
 	public abstract String getResourceSignature();
 
-	public ResourceAccess getGrant() throws FrameworkException {
-		return findGrant();
+	public ResourceAccess getGrant(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+		return findGrant(request, response);
 	}
 
 	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request) {

@@ -1,20 +1,20 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.common;
 
@@ -50,7 +50,10 @@ public class EntityMatcher extends BaseMatcher {
 	public EntityMatcher(Class type, String view, Map<String, Object> values) {
 
 		Set<PropertyKey> propertyView = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
-		propertyView.add(new StringProperty("id"));	// FIXME: this is due to the uuid/id mess in core!
+		
+		// FIXME: this is due to the uuid/id mess in core!
+		propertyView.add(new StringProperty("id"));
+		propertyView.remove(new StringProperty("uuid"));
 		
 		for (PropertyKey key : propertyView) {
 			entityValues.put(key.jsonName(), values.get(key.jsonName()));
