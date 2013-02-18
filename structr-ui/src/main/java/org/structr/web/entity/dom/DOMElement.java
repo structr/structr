@@ -95,6 +95,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<Integer> version                 = new IntProperty("version");
 	public static final Property<String> tag                      = new StringProperty("tag");
 	public static final Property<String> path                     = new StringProperty("path");
+	public static final Property<String> refKey                   = new StringProperty("refKey");
 	public static final Property<String> dataKey                  = new StringProperty("dataKey");
 	public static final Property<String> cypherQuery              = new StringProperty("cypherQuery");
 	public static final Property<String> xpathQuery               = new StringProperty("xpathQuery");
@@ -284,7 +285,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				renderContext.setInBody(true);
 			}
 
-			String _dataKey = getProperty(dataKey);
+			String _refKey  = getProperty(refKey);
 //			if (_dataKey == null) {
 //				_dataKey = "data";
 //			}
@@ -301,33 +302,38 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				renderContext.setStartNode(dataRoot);
 
 				// data nodes to be used as list source in this level
-				renderContext.setDataNode(_dataKey, dataRoot);
+				renderContext.setDataNode(_refKey, dataRoot);
 
 				// allow only one data tree to be rendered for now
 				break;
 			}
 
-			AbstractNode currentDataNode = renderContext.getTreeSource();
+			GraphObject currentDataNode = renderContext.getDataNode(_refKey);
 			
-			if (currentDataNode != null && _dataKey != null) {
+			if (currentDataNode != null && _refKey != null) {
+				
+				String _dataKey = getProperty(dataKey);
+				
+				if (_dataKey != null) {
 
-				PropertyKey propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), _dataKey);
-				if (propertyKey instanceof CollectionProperty) {
+					PropertyKey propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), _dataKey);
+					if (propertyKey instanceof CollectionProperty) {
 
-					CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
-					for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
+						CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
+						for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
 
-						renderContext.setStartNode(node);
-						renderContext.setDataNode(_dataKey, node);
-						renderSingleNode(securityContext, renderContext, depth);
+							//renderContext.setStartNode(node);
+							renderContext.setDataNode(_refKey, node);
+							renderSingleNode(securityContext, renderContext, depth);
 
+						}
 					}
 				}
 				
 			} else if (listData != null && !listData.isEmpty()) {
 
 				renderContext.setListSource(listData);
-				renderNodeList(securityContext, renderContext, depth, _dataKey);
+				renderNodeList(securityContext, renderContext, depth, _refKey);
 			} else {
 				
 				renderSingleNode(securityContext, renderContext, depth);

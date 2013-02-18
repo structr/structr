@@ -84,6 +84,13 @@ var _Entities = {
             });
         });
 
+        dialog.append('<div><h3>Reference Key</h3><input type="text" id="refKey" value="' + (entity.refKey ? entity.refKey : '') + '"><button id="saveRefKey">Save</button></div>');
+        $('#saveRefKey', dialog).on('click', function() {
+            entity.setProperty('refKey', $('#refKey', dialog).val(), false, function() {
+                log('Reference Key successfully updated!', entity.refKey);
+            });
+        });
+
         dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
         $('#saveDataKey', dialog).on('click', function() {
             entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {

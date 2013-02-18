@@ -230,6 +230,6 @@ public class NamedRelationResource extends WrappingResource {
 
         @Override
         public String getResourceSignature() {
-                return getUriPart();
+                return EntityContext.normalizeEntityName(getUriPart());
         }
 }
