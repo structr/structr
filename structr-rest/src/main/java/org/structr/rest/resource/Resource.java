@@ -334,7 +334,7 @@ public abstract class Resource {
 
 		if (result.isEmpty()) {
 
-			logger.log(Level.FINE, "No resource access object found for {0}", signature);
+			logger.log(Level.WARNING, "No resource access object found for {0}", signature);
 
 		} else {
 
