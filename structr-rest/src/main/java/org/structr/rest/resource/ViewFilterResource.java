@@ -164,6 +164,6 @@ public class ViewFilterResource extends WrappingResource {
 			signature.append(EntityContext.normalizeEntityName(propertyView));
 		}
 
-		return EntityContext.normalizeEntityName(signature.toString());
+		return StringUtils.stripEnd(signature.toString(), "/");
 	}
 }
