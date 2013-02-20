@@ -176,10 +176,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _accesskey               = new HtmlProperty("accesskey");
 	
 	public static final org.structr.common.View publicView        = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-										name, tag, path, parentId, cypherQuery, xpathQuery, dataKey, dataNodeId
+										name, tag, path, parentId, cypherQuery, xpathQuery, refKey, dataKey, dataNodeId
 	);
 	
-	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parentId, childrenIds, cypherQuery, xpathQuery, dataKey, dataNodeId,
+	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parentId, childrenIds, cypherQuery, xpathQuery, refKey, dataKey, dataNodeId,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
@@ -285,61 +285,100 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				renderContext.setInBody(true);
 			}
 
-			String _refKey  = getProperty(refKey);
-//			if (_dataKey == null) {
-//				_dataKey = "data";
-//			}
+			//String _refKey  = getProperty(refKey);
+			String _dataKey = getProperty(dataKey);
 			
 			// fetch (optional) list of external data elements
 			List<GraphObject> listData = checkListSources();
 			
-			// an outgoing RENDER_NODE relationship points to the data node where rendering starts
-			for (AbstractRelationship rel : getOutgoingRelationships(RelType.RENDER_NODE)) {
+
+			// fetch children
+			List<AbstractRelationship> rels = getChildRelationships();
+
+			for (AbstractRelationship rel : rels) {
+
+				DOMNode subNode = (DOMNode) rel.getEndNode();
+
+				String subKey = subNode.getProperty(dataKey);
+				if (subKey != null) {
+					
+					setDataRoot(renderContext, subNode, subKey);
+					
+					GraphObject currentDataNode = renderContext.getDataObject();
+					
+					PropertyKey propertyKey = null;
+					if (currentDataNode != null) {
 				
-				AbstractNode dataRoot = rel.getEndNode();			
-
-				// set start node of this rendering to the data root node
-				renderContext.setStartNode(dataRoot);
-
-				// data nodes to be used as list source in this level
-				renderContext.setDataNode(_refKey, dataRoot);
-
-				// allow only one data tree to be rendered for now
-				break;
-			}
-
-			GraphObject currentDataNode = renderContext.getDataNode(_refKey);
-			
-			if (currentDataNode != null && _refKey != null) {
+						propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
 				
-				String _dataKey = getProperty(dataKey);
-				
-				if (_dataKey != null) {
+						if (propertyKey != null && propertyKey instanceof CollectionProperty) {
 
-					PropertyKey propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), _dataKey);
-					if (propertyKey instanceof CollectionProperty) {
+							CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
+							for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
 
-						CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
-						for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
+								//renderContext.setStartNode(node);
+								renderContext.putDataObject(subKey, node);
+								subNode.render(securityContext, renderContext, depth + 1);
 
-							//renderContext.setStartNode(node);
-							renderContext.setDataNode(_refKey, node);
-							renderSingleNode(securityContext, renderContext, depth);
+							}
+							
+							//renderContext.setDataObject(currentDataNode);
 
+						} else {
+							subNode.render(securityContext, renderContext, depth + 1);
 						}
+						
+						// reset data node in render context
+						renderContext.setDataObject(currentDataNode);
 					}
+				} else {
+					subNode.render(securityContext, renderContext, depth + 1);
 				}
-				
-			} else if (listData != null && !listData.isEmpty()) {
 
-				renderContext.setListSource(listData);
-				renderNodeList(securityContext, renderContext, depth, _refKey);
-			} else {
-				
-				renderSingleNode(securityContext, renderContext, depth);
-				
 			}
-			
+//			
+//			
+//			
+//			
+//			
+//			
+//			
+//			
+//			
+//			
+//			
+//			
+//			PropertyKey propertyKey = null;
+//			if (currentDataNode != null && _dataKey != null) {
+//				
+//				 propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), _dataKey, false);
+//				
+//			}
+//			
+//			if (propertyKey != null && propertyKey instanceof CollectionProperty) {
+//
+//				CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
+//				renderCollection(securityContext, renderContext, depth, currentDataNode.getProperty(collectionProperty), _dataKey);
+////				for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
+////
+////					//renderContext.setStartNode(node);
+////					renderContext.putDataObject(_dataKey, node);
+////
+////					//render(securityContext, renderContext, depth + 1);
+////					renderChildren(securityContext, renderContext, depth);
+////
+////				}
+//				
+////			} else if (listData != null && !listData.isEmpty()) {
+////
+////				renderContext.setListSource(listData);
+////				renderNodeList(securityContext, renderContext, depth, _dataKey);
+//			} else {
+//				
+//				renderChildren(securityContext, renderContext, depth);
+//				
+//			}
+//			
 			// render end tag, if needed (= if not singleton tags)
 			if (StringUtils.isNotBlank(tag) && (!isVoid)) {
 				
@@ -348,10 +387,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				buffer.append("</").append(tag).append(">");
 			}
 			
-			// remove tree source from render context
-			// to avoid that rendering of subsequent nodes doesn't default to tree rendering
-			renderContext.setStartNode(null);
-
 		}
 	
 		double end = System.nanoTime();
@@ -361,6 +396,20 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
+	private void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
+		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
+		for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.RENDER_NODE)) {
+
+			AbstractNode dataRoot = rel.getEndNode();			
+
+			// set start node of this rendering to the data root node
+			renderContext.putDataObject(dataKey, dataRoot);
+
+			// allow only one data tree to be rendered for now
+			break;
+		}
+	}
+	
 	// ----- rendering methods -----
 //	private void renderTreeNode(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
 //		
@@ -406,7 +455,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		for (GraphObject dataObject : listSource) {
 
 			// make current data object available in renderContext
-			renderContext.setDataNode(dataKey, dataObject);
+			renderContext.putDataObject(dataKey, dataObject);
 
 			// recursively render children
 			List<AbstractRelationship> rels = getChildRelationships();
@@ -424,7 +473,17 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 	}
 	
-	private void renderSingleNode(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	private void renderCollection(SecurityContext securityContext, RenderContext renderContext, int depth, List<AbstractNode> collection, final String dataKey) throws FrameworkException {
+		
+		for (GraphObject obj : collection) {
+
+			renderContext.putDataObject(dataKey, obj);
+			render(securityContext, renderContext, depth);
+			
+		}
+	}
+
+	private void renderChildren(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 		
 		// recursively render children
 		List<AbstractRelationship> rels = getChildRelationships();

@@ -56,7 +56,7 @@ public class RenderContext {
 	private boolean edit                         = false;
 	private int depth                            = 0;
 	private boolean inBody                       = false;
-	private AbstractNode treeSource              = null;
+	private GraphObject   dataObject              = null;
 	private Iterable<GraphObject> listSource     = null;
 	private String searchClass                   = null;  
 	private Condition condition                  = null; 
@@ -93,12 +93,12 @@ public class RenderContext {
 		}
 	}
 	
-	public void setStartNode(AbstractNode treeSource) {
-		this.treeSource = treeSource;
+	public void setDataObject(GraphObject dataObject) {
+		this.dataObject = dataObject;
 	}
 	
-	public AbstractNode getTreeSource() {
-		return treeSource;
+	public GraphObject getDataObject() {
+		return dataObject;
 	}
 	
 	public void setListSource(Iterable<GraphObject> listSource) {
@@ -177,8 +177,10 @@ public class RenderContext {
 		return dataObjects.get(key);
 	}
 	
-	public void setDataNode(String key, GraphObject currentDataObject) {
+	public void putDataObject(String key, GraphObject currentDataObject) {
 		dataObjects.put(key, currentDataObject);
+		setDataObject(currentDataObject);
+		
 	}
 	
 	public boolean hasDataForKey(String key) {
