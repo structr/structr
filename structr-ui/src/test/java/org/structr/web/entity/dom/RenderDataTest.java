@@ -118,17 +118,23 @@ public class RenderDataTest extends DOMTest {
 			
 			System.out.println(ctx.getBuffer().toString());
 
-			// TODO: fix assertions
-			//org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getBuffer().toString());
+			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getBuffer().toString());
 			
-			//assertEquals("rootNode", parsedDocument.select("html > body > div").get(0).child(0).text());
-			//assertEquals("folderA", parsedDocument.select("html > body > div > ul > li").get(1).child(0).text());
-			//assertEquals("folderB", parsedDocument.select("html > body > div > ul > li").get(2).child(0).text());
-			//assertEquals("file1", parsedDocument.select("html > body > div > ul > li").get(3).child(0).text());
-			//assertEquals("file2", parsedDocument.select("html > body > div > ul > li").get(4).child(0).text());
-			//assertEquals("nodeE", parsedDocument.select("html > body > div > ul > li").get(5).child(0).text());
-			//assertEquals("nodeF", parsedDocument.select("html > body > div > ul > li").get(6).child(0).text());
-			
+			assertEquals("rootNode", parsedDocument.select("html > body > div").get(0).ownText());
+			assertEquals("folderA", parsedDocument.select("html > body > div > ul > li").get(0).ownText());
+			assertEquals("folderB", parsedDocument.select("html > body > div > ul > li").get(1).ownText());
+			assertEquals("file1", parsedDocument.select("html > body > div > ul > li").get(2).ownText());
+			assertEquals("file2", parsedDocument.select("html > body > div > ul > li").get(3).ownText());
+			assertEquals("file3", parsedDocument.select("html > body > div > ul > li > ul > li").get(0).ownText());
+			assertEquals("file4", parsedDocument.select("html > body > div > ul > li > ul > li").get(1).ownText());
+			assertEquals("folderC", parsedDocument.select("html > body > div > ul > li > ul > li").get(2).ownText());
+			assertEquals("folderD", parsedDocument.select("html > body > div > ul > li > ul > li").get(3).ownText());
+
+			assertEquals("file5", parsedDocument.select("html > body > div > ul > li").get(1).child(0).child(0).ownText());
+			assertEquals("file6", parsedDocument.select("html > body > div > ul > li").get(1).child(0).child(1).ownText());
+			assertEquals("folderE", parsedDocument.select("html > body > div > ul > li").get(1).child(0).child(2).ownText());
+			assertEquals("folderF", parsedDocument.select("html > body > div > ul > li").get(1).child(0).child(3).ownText());
+
 			
 			
 		} catch (FrameworkException fex) {
