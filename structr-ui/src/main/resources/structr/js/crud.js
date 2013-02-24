@@ -1269,14 +1269,24 @@ var _Crud = {
 
         if (!relatedType) {
             
-            cell.text(nvl(formatValue(value),'')).on('mouseup', function(event) {
-                event.preventDefault();
-                var self = $(this);
-                var oldValue = self.text();
-                self.off('mouseup');
-                self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
-                _Crud.activateTextInputField($('input', self), id, key);
-            });
+            if (value != null && value.constructor === Boolean) {
+                cell.append('<input type="checkbox" ' + (value?'checked="checked"':'') + '>');
+                $('input', cell).on('change', function() {
+                   //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
+                   _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                });
+                
+        
+            } else {
+                cell.text(nvl(formatValue(value),'')).on('mouseup', function(event) {
+                    event.preventDefault();
+                    var self = $(this);
+                    var oldValue = self.text();
+                    self.off('mouseup');
+                    self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
+                    _Crud.activateTextInputField($('input', self), id, key);
+                });
+            }
         //console.log('single value, no related type');
 
         } else if (isCollection) {
