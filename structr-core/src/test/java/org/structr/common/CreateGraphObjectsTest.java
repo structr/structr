@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.property.IntProperty;
@@ -196,6 +197,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 					assertTrue(entityList.contains(PlainText.class));
 					assertTrue(entityList.contains(Person.class));
 					assertTrue(entityList.contains(ResourceAccess.class));
+					assertTrue(entityList.contains(PropertyAccess.class));
 					
 					// Don't test these, it would fail due to violated constraints
 					entityList.remove(TestTwo.class);
@@ -221,6 +223,13 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 								props.put(ResourceAccess.signature, "/");
 								props.put(ResourceAccess.flags, 6);
+
+							}
+
+							// For PropertyAccess, fill mandatory fields
+							if (type.equals(PropertyAccess.class.getSimpleName())) {
+
+								props.put(PropertyAccess.flags, 6);
 
 							}
 

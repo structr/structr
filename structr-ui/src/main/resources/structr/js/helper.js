@@ -259,3 +259,9 @@ function formatValue(value, key, type, id) {
 
     }
 }
+
+function getTypeFromResourceSignature(signature) {
+    var i = signature.indexOf('/');
+    if (i==-1) return signature;
+    return signature.substring(0,i);
+}

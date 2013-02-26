@@ -98,7 +98,9 @@ var _Crud = {
     schemaLoading : false,
     schemaLoaded : false,
     
-    types : [ 'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
+    //allTypes : [],
+    
+    types : [],//'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
     views : [ 'public', 'all', 'ui' ],
 
     schema : [],
@@ -168,6 +170,10 @@ var _Crud = {
         });
         
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
+//        $('#resourceTabsMenu').append('<li id="addResourceTab" class="ui-state-default ui-corner-top" role="tab"><span><img src="icon/add.png"></span></li>');
+//        $('#addResourceTab', $('#resourceTabsMenu')).on('click', function() {
+//           _Crud.addResource();
+//        });
         
         $(document).keyup(function(e) {
             if (e.keyCode == 27) {
@@ -240,14 +246,72 @@ var _Crud = {
      * after the complete schema is loaded.
      */
     loadSchema : function(callback) {
+        
+//        // Load all types from Schema resource one-time
+//        var url = rootUrl + '_schema';
+//        $.ajax({
+//            url: url,
+//            headers: headers,
+//            dataType: 'json',
+//            contentType: 'application/json; charset=utf-8',
+//            success: function(data) {
+//                var types = [];
+//                $.each(data.result, function(i, res) {
+//                    if (res.type && res.views && !res.views._html_) {
+//                        _Crud.allTypes.push(res.type);
+//                    }
+//                });
+//                _Crud.allTypes.sort();
+//            }
+//        });        
+        
         // Avoid duplicate loading of schema
         if (_Crud.schemaLoading) {
             return;
         }
         _Crud.schemaLoading = true;
-        $.each(_Crud.types, function(t, type) {
-            //console.log('Loading type definition for ' + type + '...');
-            _Crud.loadTypeDefinition(type, callback);
+        
+        _Crud.loadAccessibleResources(function() {
+            $.each(_Crud.types, function(t, type) {
+                console.log('Loading type definition for ' + type + '...');
+                _Crud.loadTypeDefinition(type, callback);
+            });
+        });
+        
+    },
+
+    loadAccessibleResources : function(callback) {
+        var url = rootUrl + 'resource_access/ui';
+        $.ajax({
+            url: url,
+            headers: headers,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            //async: false,
+            success: function(data) {
+                console.log(data);
+                var types = [];
+                $.each(data.result, function(i, res) {
+                    var type = getTypeFromResourceSignature(res.signature);
+                    console.log(res);
+                    if (!isIn(type, _Crud.types)) {
+                        types.push({'type': type, 'position': res.position});
+                    }
+                });
+                console.log(types);
+                types.sort(function(a, b) {
+                    return a.position - b.position;
+                });
+
+                $.each(types, function(i, typeObj) {
+                    _Crud.types.push(typeObj.type);
+                })
+
+                if (callback) {
+                    callback();
+                }
+                
+            }
         });
     },
 
@@ -517,6 +581,32 @@ var _Crud = {
             }
         });
     },
+
+//    addResource : function() {
+//        _Crud.dialog('Add another Type', function() {
+//            }, function() {
+//            });
+//        dialogText.append('Select Types');
+//        $.each(_Crud.allTypes, function(i, type) {
+//            dialogText.append('<div id="add-resource-' + type + '" class="button">' + type + '</div>');
+//            $('#add-resource-' + type, dialogText).on('click', function() {
+//                $.ajax({
+//                    url: rootUrl + 'resource_access?signature=' + type,
+//                    headers: headers,
+//                    data : '{visibleToAuthenticatedUsers:true}',
+//                    dataType: 'json',
+//                    contentType: 'application/json; charset=utf-8',
+//                    method: 'PUT',
+//                    success: function(data) {
+//                        console.log('success');
+//                    },
+//                    error : function(a,b,c) {
+//                        console.log(a,b,c);
+//                    }
+//                });                
+//            });
+//        });
+//    },
 
     crudExport : function(type) {
         var url  = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
