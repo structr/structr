@@ -106,7 +106,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 			}
 			
 			if (value instanceof Number) {
-				return ((Number)value).intValue();
+				return ((Number)value).doubleValue();
 			}
 			
 			try {
