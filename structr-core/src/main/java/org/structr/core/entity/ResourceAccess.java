@@ -35,6 +35,7 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.IntProperty;
+import org.structr.core.validator.TypeUniquenessValidator;
 
 /**
  * Controls access to REST resources.
@@ -78,6 +79,8 @@ public class ResourceAccess extends AbstractNode {
 
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
+		
+		EntityContext.registerPropertyValidator(ResourceAccess.class, signature, new TypeUniquenessValidator(ResourceAccess.class));
 		
 		// signature and type must be scanEntity-only
 //		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.type);
