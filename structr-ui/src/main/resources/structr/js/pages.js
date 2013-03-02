@@ -513,11 +513,11 @@ var _Pages = {
                             var tag = $(ui.draggable).text();
                             
                             console.log('suppress dropping anything in preview iframes for now');
-                            //Command.createAndAppendDOMNode(pageId, elementId, (tag != 'content' ? tag : ''));
+                        //Command.createAndAppendDOMNode(pageId, elementId, (tag != 'content' ? tag : ''));
                             
                         } else {
                             console.log('suppress dropping anything in preview iframes for now');
-                            //Command.appendChild(contentId, elementId);
+                        //Command.appendChild(contentId, elementId);
                         }
                     }
                 });
@@ -817,14 +817,18 @@ var _Pages = {
                     contentId = undefined;
                     name = $(ui.draggable).find('.name_').attr('title');
                     log('Image dropped, creating <img> node', name);
-                    nodeData._html_src = name;
+                    nodeData._html_src = '/' + name;
                     nodeData.name = name;
                     tag = 'img';
                     
                     Structr.modules['files'].unload();
                     _Pages.makeMenuDroppable();
                     
-                } else if (cls == 'file') {
+                    Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
+                    return div;
+                }
+                
+                if (cls == 'file') {
                     name = $(ui.draggable).children('.name_').attr('title');
                     
                     var parentTag = self.children('.tag_').text();
@@ -845,7 +849,6 @@ var _Pages = {
                             nodeData._html_rel = 'stylesheet';
                             nodeData._html_media = 'screen';
                             
-                            Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
                             
                         } else if (name.endsWith('.js')) {
                             
@@ -865,35 +868,44 @@ var _Pages = {
                         tag = 'a';
                     }
                     contentId = undefined;
+
                     
                     Structr.modules['files'].unload();
                     _Pages.makeMenuDroppable();
-
-                } else {  
-                    if (!contentId) {
-                        tag = $(ui.draggable).text();
-
-                        if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title' || tag == 'b' || tag == 'span' || tag == 'th' || tag == 'td') {
-
-                            nodeData.childContent = 'Initial Content for ' + tag;
-                            
-                            // set as expanded in advance
-                            addExpandedNode(contentId);
-                            
-                        }
-                        Command.createAndAppendDOMNode(getId(page), elementId, (tag != 'content' ? tag : ''));
-                        
-                        
-                    } else {
-                        tag = cls;
-                        Command.appendChild(contentId, elementId);
-                    }
-                    
-                    log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
+    
+                    Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
+                    return div;
 
                 }
                 
+                
+                if (!contentId) {
+                    tag = $(ui.draggable).text();
+
+                    if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title' || tag == 'b' || tag == 'span' || tag == 'th' || tag == 'td') {
+
+                        nodeData.childContent = 'Initial Content for ' + tag;
+                            
+                        // set as expanded in advance
+                        addExpandedNode(contentId);
+                            
+                    }
+                    Command.createAndAppendDOMNode(getId(page), elementId, (tag != 'content' ? tag : ''), nodeData);
+                    return div;
+
+                        
+                        
+                } else {
+                    tag = cls;
+                    Command.appendChild(contentId, elementId);
+                    return div;
+                }
+                    
+                log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
+
             }
+
+            
         });
 
         return div;
