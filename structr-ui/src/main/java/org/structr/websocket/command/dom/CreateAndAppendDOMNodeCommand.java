@@ -19,6 +19,14 @@
 package org.structr.websocket.command.dom;
 
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
@@ -30,8 +38,11 @@ import org.w3c.dom.Document;
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
+
+	private static final Logger logger = Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName());
 
 	static {
 		
@@ -43,6 +54,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 		String parentId              = (String) nodeData.get("parentId");
+		nodeData.remove("parentId");
 		String pageId                = webSocketData.getPageId();
 		
 		if (pageId != null) {
@@ -66,6 +78,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			if (document != null) {
 
 				String tagName  = (String) nodeData.get("tagName");
+				nodeData.remove("tagName");
+				
 				DOMNode newNode = null;
 				
 				try {
@@ -83,6 +97,36 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					if (newNode != null) {
 
 						parentNode.appendChild(newNode);
+						
+						for (Entry entry : nodeData.entrySet()) {
+
+							String key = (String) entry.getKey();
+							Object val = entry.getValue();
+
+							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(newNode.getClass(), key);
+							if (propertyKey != null) {
+
+								try {
+									Object convertedValue = val;
+									
+									PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
+									if (inputConverter != null) {
+										
+										convertedValue = inputConverter.convert(val);
+									}
+									
+									//newNode.unlockReadOnlyPropertiesOnce();
+									newNode.setProperty(propertyKey, convertedValue);
+									
+								} catch (FrameworkException fex) {
+
+									logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
+									
+								}
+							}
+
+						}
+						
 					}
 					
 				} catch (DOMException dex) {

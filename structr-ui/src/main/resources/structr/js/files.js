@@ -151,25 +151,25 @@ var _Files = {
                     
                 } else {
                     
-//                    var dialogMsg = $('#dialogMsg');
-//
-//                    dialog.empty();
-//                    dialogMsg.empty();
-//
-//                    dialog.append('<table class="props"></table>');
-//                    
-//                    $(filesToUpload).each(function(i, fileToUpload) {
-//                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
-//                    });
-//
-//                    Structr.dialog('Uploading Files', function() {
-//                        return true;
-//                    }, function() {
-//                        return true;
-//                    });
+                    //                    var dialogMsg = $('#dialogMsg');
+                    //
+                    //                    dialog.empty();
+                    //                    dialogMsg.empty();
+                    //
+                    //                    dialog.append('<table class="props"></table>');
+                    //                    
+                    //                    $(filesToUpload).each(function(i, fileToUpload) {
+                    //                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
+                    //                    });
+                    //
+                    //                    Structr.dialog('Uploading Files', function() {
+                    //                        return true;
+                    //                    }, function() {
+                    //                        return true;
+                    //                    });
                     
                     $(filesToUpload).each(function(i, file) {
-                        if (file) Command.createFile(file);
+                        Command.createFile(file);
                     });
 
                 }
@@ -197,7 +197,7 @@ var _Files = {
             entity.type = 'Folder';
             Command.create(entity);
         });
-        //}
+    //}
     },
 
     getIcon : function(file) {
@@ -238,10 +238,10 @@ var _Files = {
         if (div && div.length) {
             
             var formerParent = div.parent();
-//            parent.append(div.css({
-//                top: 0,
-//                left: 0
-//            }));
+            //            parent.append(div.css({
+            //                top: 0,
+            //                left: 0
+            //            }));
             
             if (!Structr.containsNodes(formerParent)) {
                 _Entities.removeExpandIcon(formerParent);
@@ -346,13 +346,13 @@ var _Files = {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);
-                //delIcon = $('.delete_icon', div);
+            //delIcon = $('.delete_icon', div);
             }
             div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
                 Command.removeChild(folder.id);
             });
-            //disable($('.delete_icon', parent)[0]);
+        //disable($('.delete_icon', parent)[0]);
 			
         } else {
             newDelIcon = '<img title="Delete folder \'' + folder.name + '\'" alt="Delete folder \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
@@ -360,7 +360,7 @@ var _Files = {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);
-                //delIcon = $('.delete_icon', div);
+            //delIcon = $('.delete_icon', div);
             } 
             div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
@@ -471,6 +471,7 @@ var _Files = {
                         Command.chunk(file.id, c, chunkSize, chunk);
 
                     }
+                    
                     var typeIcon = Structr.node(file.id).find('.typeIcon');
                     var iconSrc = typeIcon.prop('src');
                     log('Icon src: ', iconSrc);

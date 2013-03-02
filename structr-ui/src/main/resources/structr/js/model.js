@@ -539,7 +539,6 @@ StructrFile.prototype.remove = function() {
 
 StructrFile.prototype.append = function(refNode) {
     var file = this;
-    //_Files.uploadFile(file);
     if (refNode) {
         var parentFolder = StructrModel.obj(refNode.id);
         parentFolder.files.push(file);
@@ -572,7 +571,6 @@ StructrImage.prototype.remove = function() {
 }
 
 StructrImage.prototype.append = function(refNode) {
-    _Files.uploadFile(this);
     StructrModel.expand(_Images.appendImageElement(this, refNode), this);
 }
 

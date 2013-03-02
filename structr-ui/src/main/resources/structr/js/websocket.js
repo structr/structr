@@ -269,6 +269,8 @@ function connect() {
                         setTimeout(function() {
                             _Pages.activateTab(tab)
                         }, 2000);
+                    } else if (command == 'CREATE' && (entity.type == 'File' || entity.type == 'Image')) {
+                        _Files.uploadFile(entity);
                     }
 
                 });

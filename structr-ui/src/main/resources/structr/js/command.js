@@ -359,15 +359,18 @@ var Command = {
      * will create a content (#text) node.
      * 
      */
-    createAndAppendDOMNode : function(pageId, parentId, tagName) {
+    createAndAppendDOMNode : function(pageId, parentId, tagName, attributes) {
         var obj = {};
         obj.command = 'CREATE_AND_APPEND_DOM_NODE';
         obj.pageId = pageId;
         var data = {};
         data.parentId = parentId;
         data.tagName = tagName;
+        $.each(Object.keys(attributes), function(i, key) {
+            data[key] = attributes[key];
+        });
         obj.data = data;
-        log('createAndAppendDOMNode()', obj);
+        console.log('createAndAppendDOMNode()', obj);
         return sendObj(obj);
     },
 
@@ -551,7 +554,7 @@ var Command = {
      * 
      * This will create a file with the given properties.
      */
-    createFile : function(file) {
+    createFile : function(file, callback) {
         var obj = {};
         obj.command = 'CREATE'
         var data = {};
@@ -561,7 +564,7 @@ var Command = {
         data.type = isImage(file.type) ? 'Image' : 'File';
         obj.data = data;
         log('createFile()', obj);
-        return sendObj(obj);
+        return sendObj(obj, callback);
     },
         
     /**

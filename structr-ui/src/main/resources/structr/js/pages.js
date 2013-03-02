@@ -837,13 +837,15 @@ var _Pages = {
                         
                         if (name.endsWith('.css')) {
                             
-                            log('CSS file dropped in <head>, creating <link>');
+                            console.log('CSS file dropped in <head>, creating <link>');
                             
                             tag = 'link';
                             nodeData._html_href = '/${link.name}';
                             nodeData._html_type = 'text/css';
                             nodeData._html_rel = 'stylesheet';
                             nodeData._html_media = 'screen';
+                            
+                            Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
                             
                         } else if (name.endsWith('.js')) {
                             
