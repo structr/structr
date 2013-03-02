@@ -20,7 +20,7 @@
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <structr.version>0.7-SNAPSHOT</structr.version>
-        <neo4j.version>1.8.1</neo4j.version>
+        <neo4j.version>1.9.M04</neo4j.version>
     </properties>
 
     <repositories>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-spatial</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>0.10.1</version>
             <exclusions>
             </exclusions>
         </dependency>
@@ -163,7 +163,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-shell</artifactId>
-            <version>1.8.2</version>
+            <version>${neo4j.version}</version>
         </dependency>
     </dependencies>
 
