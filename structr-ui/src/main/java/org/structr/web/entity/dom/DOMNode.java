@@ -348,11 +348,27 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected java.lang.Object getReferencedProperty(SecurityContext securityContext, RenderContext renderContext, String refKey)
 		throws FrameworkException {
 
+		final String DEFAULT_VALUE_SEP   = "!";
 		String pageId                    = renderContext.getPageId();
 		String[] parts                   = refKey.split("[\\.]+");
 		String referenceKey              = parts[parts.length - 1];
+		String defaultValue              = null;
+		
+		PropertyKey referenceKeyProperty;
+		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
+			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
+			referenceKeyProperty = new StringProperty(ref[0]);
+			if (ref.length > 1) {
+				defaultValue         = ref[1];
+			} else {
+				defaultValue         = "";
+			}
+		} else {
+			referenceKeyProperty = new StringProperty(referenceKey);
+		}
+		
 		PropertyKey pageIdProperty       = new StringProperty(pageId);
-		PropertyKey referenceKeyProperty = new StringProperty(referenceKey);
+		
 		Page _page                       = renderContext.getPage();
 		GraphObject _data                = null;
 
@@ -364,11 +380,20 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			// special keyword "request"
 			if ("request".equals(part.toLowerCase())) {
 
-				HttpServletRequest request = securityContext.getRequest();
+				HttpServletRequest request = renderContext.getRequest(); //securityContext.getRequest();
 
 				if (request != null) {
-
-					return StringUtils.defaultString(request.getParameter(referenceKey));
+					
+					
+					if (StringUtils.contains(referenceKey, "!")) {
+						
+						String[] ref = StringUtils.split(referenceKey, "!");
+						return StringUtils.defaultString(request.getParameter(ref[0]), ref.length > 1 ? ref[1] : "");
+						
+					} else {
+						
+						return StringUtils.defaultString(request.getParameter(referenceKey));
+					}
 				}
 
 			}
@@ -469,7 +494,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		if (_data != null) {
 
-			return _data.getProperty(referenceKeyProperty);
+			Object value = _data.getProperty(referenceKeyProperty);
+			return value != null ? value : defaultValue;
 		}
 
 		return null;

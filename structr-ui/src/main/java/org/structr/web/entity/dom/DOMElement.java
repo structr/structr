@@ -288,9 +288,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			//String _refKey  = getProperty(refKey);
 			String _dataKey = getProperty(dataKey);
 			
-			// fetch (optional) list of external data elements
-			List<GraphObject> listData = checkListSources();
-			
 
 			// fetch children
 			List<AbstractRelationship> rels = getChildRelationships();
@@ -301,16 +298,19 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				String subKey = subNode.getProperty(dataKey);
 				if (subKey != null) {
-					
+
 					setDataRoot(renderContext, subNode, subKey);
-					
+
 					GraphObject currentDataNode = renderContext.getDataObject();
 					
+					// fetch (optional) list of external data elements
+					List<GraphObject> listData = ((DOMElement) subNode).checkListSources(renderContext);
+
 					PropertyKey propertyKey = null;
 					if (currentDataNode != null) {
-				
+
 						propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
-				
+
 						if (propertyKey != null && propertyKey instanceof CollectionProperty) {
 
 							CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
@@ -321,16 +321,21 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 								subNode.render(securityContext, renderContext, depth + 1);
 
 							}
-							
-							//renderContext.setDataObject(currentDataNode);
 
 						} else {
 							subNode.render(securityContext, renderContext, depth + 1);
 						}
-						
+
 						// reset data node in render context
 						renderContext.setDataObject(currentDataNode);
+						
+					} else {
+						
+						renderContext.setListSource(listData);
+						renderNodeList(securityContext, renderContext, depth, subKey);
+						
 					}
+
 				} else {
 					subNode.render(securityContext, renderContext, depth + 1);
 				}
@@ -591,14 +596,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 	
 	// ----- private methods -----
-	private List<GraphObject> checkListSources() {
+	private List<GraphObject> checkListSources(RenderContext renderContext) {
 		
 		// try registered data sources first
 		for (GraphDataSource<List<GraphObject>> source : listSources) {
 			
 			try {
 		
-				List<GraphObject> graphData = source.getData(securityContext, this);
+				List<GraphObject> graphData = source.getData(securityContext, renderContext, this);
 				if (graphData != null) {
 					return graphData;
 				}
@@ -908,7 +913,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static class NodeGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		@Override
-		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+		public List<GraphObject> getData(SecurityContext securityContext, RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
 			
 			List<GraphObject> data = new LinkedList<GraphObject>();
 			
@@ -929,9 +934,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static class CypherGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		@Override
-		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+		public List<GraphObject> getData(SecurityContext securityContext, RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
 			
-			String cypherQuery = referenceNode.getProperty(DOMElement.cypherQuery);
+			String cypherQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.cypherQuery);
 			if (cypherQuery != null && !cypherQuery.isEmpty()) {
 				
 				return Services.command(securityContext, CypherQueryCommand.class).execute(cypherQuery);
@@ -944,7 +949,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
 		@Override
-		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+		public List<GraphObject> getData(SecurityContext securityContext, RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
 			
 			String xpathQuery = referenceNode.getProperty(DOMElement.xpathQuery);
 			if (xpathQuery != null) {
@@ -999,7 +1004,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 		
 		@Override
-		public List<GraphObject> getData(SecurityContext securityContext, AbstractNode referenceNode) throws FrameworkException {
+		public List<GraphObject> getData(SecurityContext securityContext, RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
 	
 			if (securityContext != null && securityContext.getRequest() != null) {
 				
