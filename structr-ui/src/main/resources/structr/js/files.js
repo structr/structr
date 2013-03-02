@@ -420,6 +420,8 @@ var _Files = {
     },
 
     uploadFile : function(file) {
+        
+        console.log('upload file', file);
 
         $(fileList).each(function(i, fileObj) {
 

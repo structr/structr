@@ -539,7 +539,7 @@ StructrFile.prototype.remove = function() {
 
 StructrFile.prototype.append = function(refNode) {
     var file = this;
-    _Files.uploadFile(file);
+    //_Files.uploadFile(file);
     if (refNode) {
         var parentFolder = StructrModel.obj(refNode.id);
         parentFolder.files.push(file);
