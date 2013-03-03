@@ -20,7 +20,7 @@
 var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
 var searchField;
 
-var browser = (typeof document == 'object');
+var browser = (typeof document === 'object');
 var headers;
 
 if (browser) {
@@ -58,7 +58,7 @@ if (browser) {
         }
 
         // check for single edit mode
-        var id = urlParam('id')
+        var id = urlParam('id');
         if (id) {
             console.log('edit mode, editing ', id);
             headers = {
@@ -145,7 +145,7 @@ var _Crud = {
         
         searchField.keyup(function(e) {
             var searchString = $(this).val();
-            if (searchString && searchString.length && e.keyCode == 13) {
+            if (searchString && searchString.length && e.keyCode === 13) {
                 
                 $('.clearSearchIcon').show().on('click', function() {
                     _Crud.clearSearch(main);
@@ -160,7 +160,7 @@ var _Crud = {
                 $('#resourceTabs', main).remove();
                 $('#resourceBox', main).remove();
                 
-            } else if (e.keyCode == 27 || searchString == '') {
+            } else if (e.keyCode === 27 || searchString === '') {
                 
                 _Crud.clearSearch(main);                
                 
@@ -176,7 +176,7 @@ var _Crud = {
 //        });
         
         $(document).keyup(function(e) {
-            if (e.keyCode == 27) {
+            if (e.keyCode === 27) {
                 dialogCancelButton.click();
             }
         });
@@ -221,7 +221,7 @@ var _Crud = {
             //console.log('schema not loaded completely, checking all types ...');
             $.each(_Crud.types, function(t, type) {
                 //console.log('checking type ' + type, (_Crud.schema[type] && _Crud.schema[type] != null));
-                all &= (_Crud.schema[type] && _Crud.schema[type] != null);
+                all &= (_Crud.schema[type] && _Crud.schema[type] !== null);
             });
         }
         _Crud.schemaLoaded = all;
@@ -305,7 +305,7 @@ var _Crud = {
 
                 $.each(types, function(i, typeObj) {
                     _Crud.types.push(typeObj.type);
-                })
+                });
 
                 if (callback) {
                     callback();
@@ -412,7 +412,7 @@ var _Crud = {
             _Crud.crudExport(type);
         });
 
-        if (type == _Crud.type) {
+        if (type === _Crud.type) {
             _Crud.activateList(_Crud.type);
             _Crud.activatePagerElements(_Crud.type, pagerNode);
         }
@@ -504,18 +504,18 @@ var _Crud = {
 
     replaceSortHeader : function(type) {
         var table = _Crud.getTable(type);
-        var newOrder = (_Crud.order[type] && _Crud.order[type] == 'desc' ? 'asc' : 'desc');
+        var newOrder = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
         $('th', table).each(function(i, t) {
             var th = $(t);
             var key = th.attr('class');
-            if (key != 'Actions') {
+            if (key !== 'Actions') {
                 $('a', th).off('click');
                 th.empty();
                 th.append('<a href="' + _Crud.sortAndPagingParameters(type, key, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
                 $('a', th).on('click', function(event) {
                     event.preventDefault();
                     _Crud.sort[type] = key;
-                    _Crud.order[type] = (_Crud.order[type] && _Crud.order[type] == 'desc' ? 'asc' : 'desc');
+                    _Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
                     _Crud.activateList(type);
                     _Crud.updateUrl(type);
                     return false;
@@ -569,7 +569,7 @@ var _Crud = {
             success: function(data) {
                 //console.log(data);
                 $.each(data.result, function(i, item) {
-                    if (item.type == type) {
+                    if (item.type === type) {
                         _Crud.appendRow(type, item);
                     }
                 });
@@ -669,7 +669,7 @@ var _Crud = {
             pageLeft.removeAttr('disabled').removeClass('disabled');
         }
         
-        if (!_Crud.pageCount || _Crud.pageCount == 0 || (_Crud.page[type] == _Crud.pageCount)) {
+        if (!_Crud.pageCount || _Crud.pageCount === 0 || (_Crud.page[type] === _Crud.pageCount)) {
             pageRight.attr('disabled', 'disabled').addClass('disabled');
         } else {
             pageRight.removeAttr('disabled').removeClass('disabled');
@@ -682,14 +682,14 @@ var _Crud = {
         //console.log('activatePagerElements', type);
         //        var typeNode = $('#' + type);
         $('.page', pagerNode).on('keypress', function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 _Crud.page[type] = $(this).val();
                 _Crud.activateList(type);
             }
         });
                 
         $('.pageSize', pagerNode).on('keypress', function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 _Crud.pageSize[type] = $(this).val();
                 // set page no to 1
                 _Crud.page[type] = 1;
@@ -858,7 +858,6 @@ var _Crud = {
                     }
                 },
                 422 : function(data, status, xhr) {
-                    _Crud.error('Error: ' + data.responseText, true);
                     if (onError) {
                         onError();
                     } else {
@@ -869,6 +868,17 @@ var _Crud = {
                             //console.log('cancel')
                             });
                         _Crud.showDetails(null, true, type);
+                        var resp = JSON.parse(data.responseText);
+                        console.log(resp);
+                        $.each(Object.keys(resp.errors[type]), function(i, key) {
+                            var errorMsg = resp.errors[type][key][0];
+                           console.log(key, errorMsg); 
+                           $('td.' + key + ' input', dialogText).prop('placeholder', errorMsg).css({
+                               backgroundColor: '#fee',
+                               borderColor: '#933'
+                           });
+                        });
+                        //_Crud.error('Error: ' + data.responseText, true);
                     }
                 },
                 500 : function(data, status, xhr) {
@@ -1310,7 +1320,7 @@ var _Crud = {
             _Crud.crudUpdate(id, key, newValue);
         });
         input.keypress(function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 var newValue = input.val();
                 _Crud.crudUpdate(id, key, newValue);
             }
@@ -1346,7 +1356,7 @@ var _Crud = {
             $('.actions .delete', row).on('mouseup', function(event) {
                 event.preventDefault();
                 var c = confirm('Are you sure to delete ' + type + ' ' + id + ' ?');
-                if (c == true) {
+                if (c === true) {
                     _Crud.crudDelete(id);
                 }
             });
@@ -1360,7 +1370,7 @@ var _Crud = {
 
         if (!relatedType) {
             
-            if (value != null && value.constructor === Boolean) {
+            if (value !== null && value.constructor === Boolean) {
                 cell.append('<input type="checkbox" ' + (value?'checked="checked"':'') + '>');
                 $('input', cell).on('change', function() {
                    //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
@@ -1419,7 +1429,7 @@ var _Crud = {
         //console.log('headers', headers);
         if (!obj) return;
         var id;
-        if ((typeof obj) == 'object') {
+        if ((typeof obj) === 'object') {
             id = obj.id;
         } else {
             id = obj;
@@ -1439,7 +1449,7 @@ var _Crud = {
                 cell.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(node.name, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
                 //console.log(node);
-                if (node.type == 'Image') {
+                if (node.type === 'Image') {
                     
                     if (node.isThumbnail) {
                         nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
@@ -1586,14 +1596,14 @@ var _Crud = {
                 
                     $.each(data.result, function(i, node) {
                         
-                        if (node.type == type) {
+                        if (node.type === type) {
                             
                             //console.log('node', node);
                             $('#resultsFor' + type, searchResults).append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
                 
                             var nodeEl = $('#_' + node.id, searchResults);
                             //console.log(node);
-                            if (node.type == 'Image') {
+                            if (node.type === 'Image') {
                                 nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
                             }
                     
@@ -1631,7 +1641,7 @@ var _Crud = {
             e.preventDefault();
                 
             var searchString = $(this).val();
-            if (searchString && searchString.length && e.keyCode == 13) {
+            if (searchString && searchString.length && e.keyCode === 13) {
                 
                 $('.clearSearchIcon', searchBox).show().on('click', function() {
                     if (_Crud.clearSearchResults(el)) {
@@ -1649,9 +1659,9 @@ var _Crud = {
                     return false;
                 });
                 
-            } else if (e.keyCode == 27 || searchString == '') {
+            } else if (e.keyCode === 27 || searchString === '') {
 
-                if (!searchString || searchString == '') {
+                if (!searchString || searchString === '') {
                     dialogCancelButton.click();
                 }
                 
@@ -2003,6 +2013,7 @@ var _Crud = {
         if (create) {
             dialogBox.append('<button class="save" id="saveProperties">Save</button>');
             $('.save', $('#dialogBox')).on('click', function() {
+                $(this).remove();
                 var form = $('#entityForm');
                 var json = JSON.stringify(_Crud.serializeObject(form));
                 //console.log(json);
@@ -2017,7 +2028,7 @@ var _Crud = {
             });
         }
         
-        if (node && node.type == 'Image') {
+        if (node && node.type === 'Image') {
             dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
         }
         
@@ -2028,10 +2039,10 @@ var _Crud = {
         var result = '';
         for (var i=0; i<text.length; i++) {
             var c = text.charAt(i);
-            if (c == c.toUpperCase()) {
+            if (c === c.toUpperCase()) {
                 result += ' ' + c;
             } else {
-                result += (i==0 ? c.toUpperCase() : c);
+                result += (i===0 ? c.toUpperCase() : c);
             }
         }
         return result;
@@ -2041,7 +2052,7 @@ var _Crud = {
         var o = {};
         var a = obj.serializeArray();
         $.each(a, function() {
-            if (this.value && this.value != '') {
+            if (this.value && this.value !== '') {
                 if (o[this.name]) {
                     if (!o[this.name].push) {
                         o[this.name] = [o[this.name]];
@@ -2075,7 +2086,7 @@ var _Crud = {
      * Return the id of the given object.
      */
     id : function(objectOrId) {
-        if (typeof objectOrId == 'object') {
+        if (typeof objectOrId === 'object') {
             return objectOrId.id;
         } else {
             return objectOrId;
@@ -2089,14 +2100,14 @@ var _Crud = {
      * in any other case, compare values directly.
      */
     equal : function(obj1, obj2) {
-        if (typeof obj1 == 'object' && typeof obj2 == 'object') {
+        if (typeof obj1 === 'object' && typeof obj2 === 'object') {
             var id1 = obj1.id;
             var id2 = obj2.id;
             if (id1 && id2) {
-                return id1 == id2;
+                return id1 === id2;
             }
         } else {
-            return obj1 == obj2;
+            return obj1 === obj2;
         }
         
         // default
@@ -2106,7 +2117,7 @@ var _Crud = {
 }
 
 // Hook for nodejs
-if (typeof module == 'object') {
+if (typeof module === 'object') {
     var $ = require('jquery');
     var token = '';
     var rootUrl = 'http://localhost:8180/structr/rest/';

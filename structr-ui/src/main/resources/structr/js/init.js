@@ -60,7 +60,7 @@ $(document).ready(function() {
     dialogSaveButton = $('.save', dialogBox);
     loginButton = $('#loginButton');
 
-    dmp = new diff_match_patch()
+    dmp = new diff_match_patch();
         
     $('#import_json').on('click', function(e) {
         e.stopPropagation();
