@@ -133,6 +133,10 @@ public class RenderContext {
 		return request;
 	}
 	
+	public HttpServletResponse getResponse() {
+		return response;
+	}
+
 	public void increaseDepth() {
 		this.depth++;
 	}

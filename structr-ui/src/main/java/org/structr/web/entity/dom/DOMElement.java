@@ -23,6 +23,11 @@ package org.structr.web.entity.dom;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import org.apache.commons.lang.StringUtils;
 
@@ -49,24 +54,44 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
+import org.apache.commons.collections.iterators.IteratorEnumeration;
 
 import org.apache.commons.collections.map.LRUMap;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.GetNodeByIdCommand;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.IntProperty;
+import org.structr.rest.ResourceProvider;
+import org.structr.rest.resource.NamedRelationResource;
+import org.structr.rest.resource.PagingHelper;
+import org.structr.rest.resource.Resource;
+import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID;
+import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER;
+import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE;
+import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_SORT_KEY;
+import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER;
+import org.structr.rest.servlet.ResourceHelper;
 import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
+import org.structr.web.common.UiResourceProvider;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -99,6 +124,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> dataKey                  = new StringProperty("dataKey");
 	public static final Property<String> cypherQuery              = new StringProperty("cypherQuery");
 	public static final Property<String> xpathQuery               = new StringProperty("xpathQuery");
+	public static final Property<String> restQuery                = new StringProperty("restQuery");
 	
 	public static final Property<String> _title                   = new HtmlProperty("title");
 	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
@@ -176,10 +202,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _accesskey               = new HtmlProperty("accesskey");
 	
 	public static final org.structr.common.View publicView        = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-										name, tag, path, parentId, cypherQuery, xpathQuery, refKey, dataKey, dataNodeId
+										name, tag, path, parentId, restQuery, cypherQuery, xpathQuery, refKey, dataKey, dataNodeId
 	);
 	
-	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parentId, childrenIds, cypherQuery, xpathQuery, refKey, dataKey, dataNodeId,
+	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parentId, childrenIds, restQuery, cypherQuery, xpathQuery, refKey, dataKey, dataNodeId,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
@@ -209,6 +235,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		listSources.add(new CypherGraphDataSource());
 		listSources.add(new XPathGraphDataSource());
 		listSources.add(new NodeGraphDataSource());
+		listSources.add(new RestDataSource());
 	}
 	//~--- methods --------------------------------------------------------
 
@@ -308,7 +335,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					GraphObject currentDataNode = renderContext.getDataObject();
 					
 					// fetch (optional) list of external data elements
-					List<GraphObject> listData = ((DOMElement) subNode).checkListSources(renderContext);
+					List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
 
 					PropertyKey propertyKey = null;
 					if (currentDataNode != null) {
@@ -461,26 +488,28 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
 		
 		Iterable<GraphObject> listSource = renderContext.getListSource();
-		for (GraphObject dataObject : listSource) {
+		if (listSource != null) {
+			for (GraphObject dataObject : listSource) {
 
-			// make current data object available in renderContext
-			renderContext.putDataObject(dataKey, dataObject);
-			
-			render(securityContext, renderContext, depth + 1);
+				// make current data object available in renderContext
+				renderContext.putDataObject(dataKey, dataObject);
 
-//			// recursively render children
-//			List<AbstractRelationship> rels = getChildRelationships();
-//
-//			for (AbstractRelationship rel : rels) {
-//
-//				DOMNode subNode = (DOMNode) rel.getEndNode();
-//
-//				if (subNode.isNotDeleted()) {
-//
-//					subNode.render(securityContext, renderContext, depth + 1);
-//				}
-//
-//			}
+				render(securityContext, renderContext, depth + 1);
+
+	//			// recursively render children
+	//			List<AbstractRelationship> rels = getChildRelationships();
+	//
+	//			for (AbstractRelationship rel : rels) {
+	//
+	//				DOMNode subNode = (DOMNode) rel.getEndNode();
+	//
+	//				if (subNode.isNotDeleted()) {
+	//
+	//					subNode.render(securityContext, renderContext, depth + 1);
+	//				}
+	//
+	//			}
+			}
 		}
 	}
 	
@@ -602,7 +631,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 	
 	// ----- private methods -----
-	private List<GraphObject> checkListSources(RenderContext renderContext) {
+	private List<GraphObject> checkListSources(SecurityContext securityContext, RenderContext renderContext) {
 		
 		// try registered data sources first
 		for (GraphDataSource<List<GraphObject>> source : listSources) {
@@ -936,6 +965,163 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 		
 	}
+
+	/**
+	 * Tries to parse the given String to an int value, returning
+	 * defaultValue on error.
+	 *
+	 * @param value the source String to parse
+	 * @param defaultValue the default value that will be returned when parsing fails
+	 * @return the parsed value or the given default value when parsing fails
+	 */
+	private static int parseInt(String value, int defaultValue) {
+
+		if (value == null) {
+
+			return defaultValue;
+
+		}
+
+		try {
+			return Integer.parseInt(value);
+		} catch (Throwable ignore) {}
+
+		return defaultValue;
+	}
+	private static class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {
+
+		@Override
+		protected String initialValue() {
+			return PropertyView.Ui;
+		}
+
+		@Override
+		public void set(SecurityContext securityContext, String value) {
+			set(value);
+		}
+
+		@Override
+		public String get(SecurityContext securityContext) {
+			return get();
+		}
+	}
+	
+	private static class RestDataSource implements GraphDataSource<List<GraphObject>> {
+
+		@Override
+		public List<GraphObject> getData(SecurityContext securityContext, RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
+			
+			final String restQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.restQuery);
+			if (restQuery != null && !restQuery.isEmpty()) {
+				
+				Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();				
+				// initialize internal resources with exact matching from EntityContext
+				for(RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
+					resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
+				}
+
+				ResourceProvider resourceProvider = null;
+				try {
+					resourceProvider = UiResourceProvider.class.newInstance();
+					// inject resources
+					resourceMap.putAll(resourceProvider.getResources());
+				} catch (InstantiationException ex) {
+					Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
+				} catch (IllegalAccessException ex) {
+					Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
+				}
+				
+				Value<String> propertyView = new ThreadLocalPropertyView();
+				propertyView.set(securityContext, PropertyView.Ui);
+
+				// initialize variables
+				
+				// overwrite request URL
+				HttpServletRequest request = new HttpServletRequestWrapper(renderContext.getRequest()) {
+
+					@Override
+					public Enumeration<String> getParameterNames() {
+						return new IteratorEnumeration(getParameterMap().keySet().iterator());
+					}
+					
+					@Override
+					public String getParameter(String key) {
+						String[] p = getParameterMap().get(key);
+						return p != null ? p[0] : null;
+					}
+					
+					@Override
+					public Map<String, String[]> getParameterMap() {
+						String[] parts = StringUtils.split(getQueryString(), "&");
+						Map<String, String[]> parameterMap = new HashMap();
+						for (String p : parts) {
+							String[] kv = StringUtils.split(p, "=");
+							if (kv.length>1) {
+								parameterMap.put(kv[0], new String[]{ kv[1] });
+							}
+						}
+						return parameterMap;
+					}
+					
+					@Override
+					public String getQueryString() {
+						return StringUtils.substringAfter(restQuery, "?");
+					}
+					
+					@Override
+					public String getPathInfo() {
+						return StringUtils.substringBefore(restQuery, "?");
+					}
+					
+					@Override
+					public StringBuffer getRequestURL() {
+					    return new StringBuffer(restQuery);
+					}
+				    };
+				HttpServletResponse response = renderContext.getResponse();
+				
+				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.uuid), AbstractNode.uuid), propertyView);
+
+				// let authenticator examine request again
+				securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
+
+				// add sorting & paging
+				String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+				String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+				String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
+				String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+				String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+				boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
+				int pageSize		 = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+				int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+				PropertyKey sortKey      = null;
+
+				// set sort key
+				if (sortKeyName != null) {
+
+					Class<? extends GraphObject> type = resource.getEntityClass();
+					sortKey = EntityContext.getPropertyKeyForDatabaseName(type, sortKeyName);
+				}
+
+				// do action
+				Result result            = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+				result.setIsCollection(resource.isCollectionResource());
+				result.setIsPrimitiveArray(resource.isPrimitiveArray());
+
+				//Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
+
+				PagingHelper.addPagingParameter(result, pageSize, page);	
+				
+				List<GraphObject> res = result.getResults();
+				
+				return res != null ? res : Collections.EMPTY_LIST;
+				
+			}
+			
+			return Collections.EMPTY_LIST;
+		}
+	}
+	
 	
 	private static class CypherGraphDataSource implements GraphDataSource<List<GraphObject>> {
 

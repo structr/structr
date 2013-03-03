@@ -67,6 +67,14 @@ var _Entities = {
     showDataDialog : function(entity) {
         
         Structr.dialog('Edit Data Settings of ' + entity.id, function() { return true; }, function() { return true; });
+
+        dialog.append('<div><h3>REST Query</h3><textarea cols="80" rows="4" id="restQuery">' + (entity.restQuery ? entity.restQuery : '') + '</textarea></div>');
+        dialog.append('<div><button id="applyRestQuery">Apply</button></div>');
+        $('#applyRestQuery', dialog).on('click', function() {
+            entity.setProperty('restQuery', $('#restQuery', dialog).val(), false, function() {
+                log('REST Query successfully updated!', entity.restQuery);
+            });
+        });
         
         dialog.append('<div><h3>Cypher Query</h3><textarea cols="80" rows="4" id="cypherQuery">' + (entity.cypherQuery ? entity.cypherQuery : '') + '</textarea></div>');
         dialog.append('<div><button id="applyCypherQuery">Apply</button></div>');
@@ -84,12 +92,12 @@ var _Entities = {
             });
         });
 
-        dialog.append('<div><h3>Reference Key</h3><input type="text" id="refKey" value="' + (entity.refKey ? entity.refKey : '') + '"><button id="saveRefKey">Save</button></div>');
-        $('#saveRefKey', dialog).on('click', function() {
-            entity.setProperty('refKey', $('#refKey', dialog).val(), false, function() {
-                log('Reference Key successfully updated!', entity.refKey);
-            });
-        });
+//        dialog.append('<div><h3>Reference Key</h3><input type="text" id="refKey" value="' + (entity.refKey ? entity.refKey : '') + '"><button id="saveRefKey">Save</button></div>');
+//        $('#saveRefKey', dialog).on('click', function() {
+//            entity.setProperty('refKey', $('#refKey', dialog).val(), false, function() {
+//                log('Reference Key successfully updated!', entity.refKey);
+//            });
+//        });
 
         dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
         $('#saveDataKey', dialog).on('click', function() {

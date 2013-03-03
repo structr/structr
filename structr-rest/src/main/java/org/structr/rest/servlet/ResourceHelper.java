@@ -74,7 +74,7 @@ public class ResourceHelper {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	protected static List<Resource> parsePath(final SecurityContext securityContext, final HttpServletRequest request, final Map<Pattern, Class<? extends Resource>> resourceMap,
+	public static List<Resource> parsePath(final SecurityContext securityContext, final HttpServletRequest request, final Map<Pattern, Class<? extends Resource>> resourceMap,
 		final Value<String> propertyView, final PropertyKey defaultIdProperty)
 		throws FrameworkException {
 
@@ -186,7 +186,7 @@ public class ResourceHelper {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	protected static Resource optimizeConstraintChain(final List<Resource> constraintChain, final PropertyKey defaultIdProperty) throws FrameworkException {
+	public static Resource optimizeConstraintChain(final List<Resource> constraintChain, final PropertyKey defaultIdProperty) throws FrameworkException {
 
 		ViewFilterResource view = null;
 		int num                 = constraintChain.size();
@@ -300,7 +300,7 @@ public class ResourceHelper {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	protected static Resource applyViewTransformation(final HttpServletRequest request, final SecurityContext securityContext, final Resource finalResource, final Value<String> propertyView) throws FrameworkException {
+	public static Resource applyViewTransformation(final HttpServletRequest request, final SecurityContext securityContext, final Resource finalResource, final Value<String> propertyView) throws FrameworkException {
 
 		Resource transformedResource = finalResource;
 
