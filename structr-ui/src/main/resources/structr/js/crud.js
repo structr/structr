@@ -406,7 +406,7 @@ var _Crud = {
         typeNode.append('<button id="export' + type + '"><img src="icon/database_table.png"> Export as CSV</button>');
                     
         $('#create' + type, typeNode).on('click', function() {
-            _Crud.crudCreate(type, res.url);
+            _Crud.crudCreate(type, res.url.substring(1));
         });
         $('#export' + type, typeNode).on('click', function() {
             _Crud.crudExport(type);
@@ -776,6 +776,7 @@ var _Crud = {
     },
 
     crudCreate : function(type, url, json, onSuccess, onError) {
+        //console.log('crudCreate', type, url, json);
         $.ajax({
             url: rootUrl + url,
             headers: headers,
@@ -1957,7 +1958,7 @@ var _Crud = {
 
     showDetails : function(node, create, typeParam) {
 
-        var type = node.type;
+        var type = typeParam || node.type;
         if (!type) {
             Structr.error('Missing type', function() {}, function() {});
             return;
