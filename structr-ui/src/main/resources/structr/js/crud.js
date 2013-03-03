@@ -1560,7 +1560,7 @@ var _Crud = {
         
         //$('.search').select();
         
-        var view = _Crud.view[_Crud.type]
+        var view = _Crud.view[_Crud.type];
         
         var types = type ? [ type ] : _Crud.types;
         
@@ -1668,8 +1668,10 @@ var _Crud = {
     },
 
     removeRelatedObject : function(type, id, key, relatedObj) {
+        var view = _Crud.view[_Crud.type];
         var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
-        var url = rootUrl + urlType + '/' + id;
+        var url = rootUrl + urlType + '/' + id + '/' + view;
+        console.log(url);
         if (_Crud.isCollection(key, type)) {
             var objects = [];
             $.ajax({
@@ -1680,7 +1682,7 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 //async: false,
                 success: function(data) {
-                    //console.log(data.result[key]);
+                    //console.log(key, data.result, data.result[key]);
                     $.each(data.result[key], function(i, obj) {
                         //console.log(obj, ' equals ', relatedObj);
                         if (!_Crud.equal(obj, relatedObj)) {
@@ -1753,8 +1755,9 @@ var _Crud = {
     },
     
     addRelatedObject : function(type, id, key, relatedObj, callback) {
+        var view = _Crud.view[_Crud.type];
         var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
-        var url = rootUrl + urlType + '/' + id;
+        var url = rootUrl + urlType + '/' + id + '/' + view;
         //console.log('headers', headers);
         if (_Crud.isCollection(key, type)) {
             var objects = [];
