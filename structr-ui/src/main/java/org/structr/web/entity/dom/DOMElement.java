@@ -227,6 +227,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
+		if (isDeleted() || isHidden()) {
+			return;
+		}
+		
 		double start = System.nanoTime();
 		
 		boolean edit         = renderContext.getEdit();
@@ -286,7 +290,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			}
 
 			//String _refKey  = getProperty(refKey);
-			String _dataKey = getProperty(dataKey);
+			//String _dataKey = getProperty(dataKey);
 			
 
 			// fetch children
@@ -332,7 +336,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					} else {
 						
 						renderContext.setListSource(listData);
-						renderNodeList(securityContext, renderContext, depth, subKey);
+						((DOMElement) subNode).renderNodeList(securityContext, renderContext, depth, subKey);
 						
 					}
 
@@ -461,49 +465,51 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			// make current data object available in renderContext
 			renderContext.putDataObject(dataKey, dataObject);
+			
+			render(securityContext, renderContext, depth + 1);
 
-			// recursively render children
-			List<AbstractRelationship> rels = getChildRelationships();
-
-			for (AbstractRelationship rel : rels) {
-
-				DOMNode subNode = (DOMNode) rel.getEndNode();
-
-				if (subNode.isNotDeleted()) {
-
-					subNode.render(securityContext, renderContext, depth + 1);
-				}
-
-			}
+//			// recursively render children
+//			List<AbstractRelationship> rels = getChildRelationships();
+//
+//			for (AbstractRelationship rel : rels) {
+//
+//				DOMNode subNode = (DOMNode) rel.getEndNode();
+//
+//				if (subNode.isNotDeleted()) {
+//
+//					subNode.render(securityContext, renderContext, depth + 1);
+//				}
+//
+//			}
 		}
 	}
 	
-	private void renderCollection(SecurityContext securityContext, RenderContext renderContext, int depth, List<AbstractNode> collection, final String dataKey) throws FrameworkException {
-		
-		for (GraphObject obj : collection) {
-
-			renderContext.putDataObject(dataKey, obj);
-			render(securityContext, renderContext, depth);
-			
-		}
-	}
-
-	private void renderChildren(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
-		
-		// recursively render children
-		List<AbstractRelationship> rels = getChildRelationships();
-
-		for (AbstractRelationship rel : rels) {
-
-			DOMNode subNode = (DOMNode) rel.getEndNode();
-
-			if (subNode.isNotDeleted()) {
-
-				subNode.render(securityContext, renderContext, depth + 1);
-			}
-
-		}
-	}
+//	private void renderCollection(SecurityContext securityContext, RenderContext renderContext, int depth, List<AbstractNode> collection, final String dataKey) throws FrameworkException {
+//		
+//		for (GraphObject obj : collection) {
+//
+//			renderContext.putDataObject(dataKey, obj);
+//			render(securityContext, renderContext, depth);
+//			
+//		}
+//	}
+//
+//	private void renderChildren(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+//		
+//		// recursively render children
+//		List<AbstractRelationship> rels = getChildRelationships();
+//
+//		for (AbstractRelationship rel : rels) {
+//
+//			DOMNode subNode = (DOMNode) rel.getEndNode();
+//
+//			if (subNode.isNotDeleted()) {
+//
+//				subNode.render(securityContext, renderContext, depth + 1);
+//			}
+//
+//		}
+//	}
 	
 	public boolean isVoidElement() {
 		return false;
