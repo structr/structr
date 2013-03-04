@@ -20,6 +20,8 @@ package org.structr.web.entity.dom;
 
 import java.util.List;
 import java.util.Locale;
+import javax.servlet.http.HttpServletRequest;
+import static junit.framework.TestCase.assertEquals;
 import org.jsoup.Jsoup;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
@@ -31,6 +33,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.web.common.DOMTest;
 import org.structr.web.common.RenderContext;
 import org.w3c.dom.Element;
+import static org.mockito.Mockito.*;
+import org.structr.web.entity.User;
 
 /**
  * Test to render data mixed with markup
@@ -143,85 +147,84 @@ public class RenderDataTest extends DOMTest {
 		}
 		
 	}
-//	
-//	public void testRenderList() {
-//		
-//		
-//		try {
-//			
-//			final List<DataNode> dataNodes = this.createTestNodes(DataNode.class, 7);
-//			final Page doc                 = (Page)getDocument();
-//			final String key               = "TEST";
-//			
-//			assertEquals(7, dataNodes.size());
-//			
-//			DataNode rootNode = dataNodes.get(0); rootNode.setName("rootNode");
-//			DataNode nodeA    = dataNodes.get(1); nodeA.setName("nodeA");
-//			DataNode nodeB    = dataNodes.get(2); nodeB.setName("nodeB");
-//			DataNode nodeC    = dataNodes.get(3); nodeC.setName("nodeC");
-//			DataNode nodeD    = dataNodes.get(4); nodeD.setName("nodeD");
-//			DataNode nodeE    = dataNodes.get(5); nodeE.setName("nodeE");
-//			DataNode nodeF    = dataNodes.get(6); nodeF.setName("nodeF");
-//			
-//			rootNode.add(key, nodeA);
-//			nodeA.add(key, nodeB);
-//			nodeB.add(key, nodeC);
-//			nodeC.add(key, nodeD);
-//			nodeD.add(key, nodeE);
-//			nodeE.add(key, nodeF);
-//			
-//			// create dom tree
-//			Element html = doc.createElement("html");
-//			Element body = doc.createElement("body");
-//			Element div  = doc.createElement("div");
-//			Element ul1  = doc.createElement("ul");
-//			Element li1  = doc.createElement("li");
-//			Element p1   = doc.createElement("p");
-//			p1.appendChild(doc.createTextNode("${data.name}"));
-//			Element ul2  = doc.createElement("ul");
-//			Element li2  = doc.createElement("li");
-//			Element p2   = doc.createElement("p");
-//			p2.appendChild(doc.createTextNode("${data.name}"));
-//			
-//			
-//			// create RENDER_LIST relationship between div and rootNode
-//			PropertyMap properties = new PropertyMap();
-//			properties.put(DataNode.keyProperty, key);
-//			Services.command(securityContext, CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RelType.RENDER_LIST, properties, false);
-//						
-//			((DOMElement) div).setProperty(DOMElement.dataKey, "data");
-//
-//			doc.appendChild(html);
-//			html.appendChild(body);
-//			body.appendChild(div);
-//			div.appendChild(ul1);
-//			ul1.appendChild(li1);
-//			li1.appendChild(p1);
-//			li1.appendChild(ul2);
-//			ul2.appendChild(li2);
-//			li2.appendChild(p2);
-//			
-//			// test rendered document
-//			RenderContext ctx = new RenderContext(null, null, false, Locale.GERMAN);
-//			doc.render(securityContext, ctx, 0);
-//			
-//			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getBuffer().toString());
-//			
-//			assertEquals("rootNode", parsedDocument.select("html > body > div > ul > li").get(0).child(0).text());
-//			assertEquals("nodeA", parsedDocument.select("html > body > div > ul > li").get(1).child(0).text());
-//			assertEquals("nodeB", parsedDocument.select("html > body > div > ul > li").get(2).child(0).text());
-//			assertEquals("nodeC", parsedDocument.select("html > body > div > ul > li").get(3).child(0).text());
-//			assertEquals("nodeD", parsedDocument.select("html > body > div > ul > li").get(4).child(0).text());
-//			assertEquals("nodeE", parsedDocument.select("html > body > div > ul > li").get(5).child(0).text());
-//			assertEquals("nodeF", parsedDocument.select("html > body > div > ul > li").get(6).child(0).text());
-//			
-//			
-//			
-//			
-//		} catch (FrameworkException fex) {
-//			
-//			fail("unexpected exception");
-//		}
-//		
-//	}	
+	
+	public void testRenderListFromRestQuery() {
+		
+		
+		try {
+
+			final List<User> users = this.createTestNodes(User.class, 3);
+			final Page doc                 = (Page)getDocument();
+			
+			assertEquals(3, users.size());
+			
+			User user1    = users.get(0); user1.setName("user1");
+			User user2    = users.get(1); user2.setName("user2");
+			User user3    = users.get(2); user3.setName("user3");
+			
+			final List<File> files = this.createTestNodes(File.class, 6);
+			
+			assertEquals(6, files.size());
+			
+			File nodeA    = files.get(0); nodeA.setName("fileA");
+			File nodeB    = files.get(1); nodeB.setName("fileB");
+			File nodeC    = files.get(2); nodeC.setName("fileC");
+			File nodeD    = files.get(3); nodeD.setName("fileD");
+			File nodeE    = files.get(4); nodeE.setName("fileE");
+			File nodeF    = files.get(5); nodeF.setName("fileF");
+			
+			// create dom tree
+			Element html = doc.createElement("html");
+			Element body = doc.createElement("body");
+			Element b  = doc.createElement("b");
+			Element p1   = doc.createElement("p");
+			((DOMElement) p1).setProperty(DOMElement.restQuery, "users?sort=name");
+			((DOMElement) p1).setProperty(DOMElement.dataKey, "user");
+			
+			p1.appendChild(doc.createTextNode("${user.name}"));
+			
+			Element div  = doc.createElement("div");
+			Element p2   = doc.createElement("p");
+			((DOMElement) p2).setProperty(DOMElement.restQuery, "files?sort=name");
+			((DOMElement) p2).setProperty(DOMElement.dataKey, "file");
+			
+			p2.appendChild(doc.createTextNode("${file.name}"));
+			
+			doc.appendChild(html);
+			html.appendChild(body);
+			body.appendChild(b);
+			body.appendChild(div);
+			b.appendChild(p1);
+			div.appendChild(p2);
+			
+			HttpServletRequest request = mock(HttpServletRequest.class);
+			
+			// test rendered document
+			RenderContext ctx = new RenderContext(request, null, false, Locale.GERMAN);
+			doc.render(securityContext, ctx, 0);
+			
+			System.out.println(ctx.getBuffer().toString());
+			
+			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getBuffer().toString());
+
+			assertEquals("user1", parsedDocument.select("html > body > b > p").get(0).ownText());
+			assertEquals("user2", parsedDocument.select("html > body > b > p").get(1).ownText());
+			assertEquals("user3", parsedDocument.select("html > body > b > p").get(2).ownText());
+			
+			assertEquals("fileA", parsedDocument.select("html > body > div > p").get(0).ownText());
+			assertEquals("fileB", parsedDocument.select("html > body > div > p").get(1).ownText());
+			assertEquals("fileC", parsedDocument.select("html > body > div > p").get(2).ownText());
+			assertEquals("fileD", parsedDocument.select("html > body > div > p").get(3).ownText());
+			assertEquals("fileE", parsedDocument.select("html > body > div > p").get(4).ownText());
+			assertEquals("fileF", parsedDocument.select("html > body > div > p").get(5).ownText());
+			
+			
+			
+			
+		} catch (FrameworkException fex) {
+			
+			fail("unexpected exception");
+		}
+		
+	}	
 }
