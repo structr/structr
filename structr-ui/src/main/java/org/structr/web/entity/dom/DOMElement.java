@@ -1020,23 +1020,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
 				}
 
-				ResourceProvider resourceProvider = null;
-				try {
-					resourceProvider = UiResourceProvider.class.newInstance();
-					// inject resources
-					resourceMap.putAll(resourceProvider.getResources());
-				} catch (InstantiationException ex) {
-					Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
-				} catch (IllegalAccessException ex) {
-					Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
-				}
+				ResourceProvider resourceProvider = renderContext.getResourceProvider();
+				
+				
+				// inject resources
+				resourceMap.putAll(resourceProvider.getResources());
 				
 				Value<String> propertyView = new ThreadLocalPropertyView();
 				propertyView.set(securityContext, PropertyView.Ui);
 
 				// initialize variables
 				
-				// overwrite request URL
+				// mimic HTTP request
 				HttpServletRequest request = new HttpServletRequestWrapper(renderContext.getRequest()) {
 
 					@Override
@@ -1078,7 +1073,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					    return new StringBuffer(restQuery);
 					}
 				    };
+				
+				// update request in security context
+				securityContext.setRequest(request);
+
 				HttpServletResponse response = renderContext.getResponse();
+				
 				
 				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.uuid), AbstractNode.uuid), propertyView);
 

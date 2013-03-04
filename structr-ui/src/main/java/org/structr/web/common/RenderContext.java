@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.rest.ResourceProvider;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Condition;
 import org.structr.web.entity.dom.Page;
@@ -65,6 +66,7 @@ public class RenderContext {
 	private Component component                  = null;  
 	private HttpServletRequest request           = null;
 	private HttpServletResponse response         = null;
+	private ResourceProvider resourceProvider    = null;
 	
 	public RenderContext() {
 	}
@@ -136,7 +138,15 @@ public class RenderContext {
 	public HttpServletResponse getResponse() {
 		return response;
 	}
-
+	
+	public void setResourceProvider(final ResourceProvider resourceProvider) {
+		this.resourceProvider = resourceProvider;
+	}
+	
+	public ResourceProvider getResourceProvider() {
+		return resourceProvider;
+	}
+	
 	public void increaseDepth() {
 		this.depth++;
 	}

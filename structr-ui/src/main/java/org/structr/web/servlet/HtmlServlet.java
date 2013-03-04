@@ -70,6 +70,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.structr.core.property.GenericProperty;
+import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -89,6 +90,8 @@ public class HtmlServlet extends HttpServlet {
 	public static final String REDIRECT = "redirect";
 	public static final String LAST_GET_URL = "lastGetUrl";
 	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
+	
+	private ResourceProvider resourceProvider                   = null;
 
 	
 	public static SearchNodeCommand searchNodesAsSuperuser;
@@ -230,6 +233,8 @@ public class HtmlServlet extends HttpServlet {
 			
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 			RenderContext renderContext = RenderContext.getInstance(request, response, Locale.getDefault());
+			
+			renderContext.setResourceProvider(resourceProvider);
 			
 			edit = renderContext.getEdit();
 			
@@ -795,4 +800,9 @@ public class HtmlServlet extends HttpServlet {
 
 		return notModified;
 	}
+
+	public void setResourceProvider(final ResourceProvider resourceProvider) {
+		this.resourceProvider = resourceProvider;
+	}
+	
 }
