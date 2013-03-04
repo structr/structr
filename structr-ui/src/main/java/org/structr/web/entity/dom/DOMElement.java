@@ -25,7 +25,6 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -1011,9 +1010,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			final String restQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.restQuery);
 			if (restQuery != null && !restQuery.isEmpty()) {
 				
-				Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();				
+				Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
+				
 				// initialize internal resources with exact matching from EntityContext
-				for(RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
+				for (RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
 					resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
 				}
 
@@ -1021,15 +1021,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				if (resourceProvider == null) {
 					try {
 						resourceProvider = UiResourceProvider.class.newInstance();
-						// inject resources
-						resourceMap.putAll(resourceProvider.getResources());
-					} catch (InstantiationException ex) {
-						Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
-					} catch (IllegalAccessException ex) {
-						Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
+					} catch (Throwable t) {
+						logger.log(Level.SEVERE, "Couldn't establish a resource provider", t);
+						return Collections.EMPTY_LIST;
 					}
 				}
 				
+				// inject resources
+				resourceMap.putAll(resourceProvider.getResources());
 				
 				Value<String> propertyView = new ThreadLocalPropertyView();
 				propertyView.set(securityContext, PropertyView.Ui);
