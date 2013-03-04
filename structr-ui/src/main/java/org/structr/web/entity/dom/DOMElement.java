@@ -316,10 +316,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				renderContext.setInBody(true);
 			}
 
-			//String _refKey  = getProperty(refKey);
-			//String _dataKey = getProperty(dataKey);
-			
-
 			// fetch children
 			List<AbstractRelationship> rels = getChildRelationships();
 
@@ -510,6 +506,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	//
 	//			}
 			}
+			renderContext.clearDataObject(dataKey);
 		}
 	}
 	
@@ -1021,10 +1018,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				}
 
 				ResourceProvider resourceProvider = renderContext.getResourceProvider();
+				if (resourceProvider == null) {
+					try {
+						resourceProvider = UiResourceProvider.class.newInstance();
+						// inject resources
+						resourceMap.putAll(resourceProvider.getResources());
+					} catch (InstantiationException ex) {
+						Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
+					} catch (IllegalAccessException ex) {
+						Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
+					}
+				}
 				
-				
-				// inject resources
-				resourceMap.putAll(resourceProvider.getResources());
 				
 				Value<String> propertyView = new ThreadLocalPropertyView();
 				propertyView.set(securityContext, PropertyView.Ui);
@@ -1082,8 +1087,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				
 				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.uuid), AbstractNode.uuid), propertyView);
 
-				// let authenticator examine request again
-				securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
+				// TODO: decide if we need to rest the REST request here
+				//securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 
 				// add sorting & paging
 				String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);

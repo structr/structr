@@ -197,6 +197,11 @@ public class RenderContext {
 		
 	}
 	
+	public void clearDataObject(String key) {
+		dataObjects.remove(key);
+		setDataObject(null);
+	}
+	
 	public boolean hasDataForKey(String key) {
 		return dataObjects.containsKey(key);
 	}
