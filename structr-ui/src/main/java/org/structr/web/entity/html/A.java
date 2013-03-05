@@ -21,7 +21,6 @@
 package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
-import java.util.List;
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
@@ -29,13 +28,8 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.StringProperty;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Linkable;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;

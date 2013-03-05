@@ -20,10 +20,14 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  * @author Axel Morgner
  */
 public class Label extends DOMElement {
-}
+	public static final Property<String>            _for   = new HtmlProperty("for");
+	public static final Property<String>            _form  = new HtmlProperty("form");
+  }
