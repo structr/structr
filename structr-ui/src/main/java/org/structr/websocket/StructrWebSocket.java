@@ -20,7 +20,6 @@
 
 package org.structr.websocket;
 
-import org.structr.websocket.command.ChunkCommand;
 import org.structr.websocket.command.FileUploadHandler;
 import com.google.gson.Gson;
 
@@ -36,14 +35,8 @@ import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.Principal;
-import org.structr.websocket.command.*;
 import org.structr.websocket.command.AbstractCommand;
-import org.structr.websocket.command.CreateCommand;
-import org.structr.websocket.command.DeleteCommand;
-import org.structr.websocket.command.GetProperties;
 import org.structr.websocket.command.LoginCommand;
-import org.structr.websocket.command.LogoutCommand;
-import org.structr.websocket.command.UpdateCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
