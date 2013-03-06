@@ -68,16 +68,18 @@ function connect() {
 
         ws.onopen = function() {
             
-            $.unblockUI({
-                fadeOut: 25
-            });
+	    if ($.unblockUI) {
+		$.unblockUI({
+		    fadeOut: 25
+		});
+	    }
             
             log('de-activating reconnect loop', reconn);
             window.clearInterval(reconn);
 
             log('logged in? ' + loggedIn);
             if (!loggedIn) {
-                log('no');
+                //log('no');
                 $('#logout_').html('Login');
                 Structr.login();
             } else {

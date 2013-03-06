@@ -246,9 +246,9 @@ public class SecurityContext {
 
 				cachedUser = authenticator.getUser(this, request, response);
 
-			} catch (FrameworkException ex) {
+			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "No user found", ex);
+				logger.log(Level.WARNING, "No user found");
 
 			}
 

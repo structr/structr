@@ -23,7 +23,6 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
@@ -37,6 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
+import org.structr.common.AccessMode;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.LinkedTreeNode;
@@ -102,7 +102,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 				webSocketData.setCallback(socket.getCallback());
 
-				if ((socketConnection != null) && socket.isAuthenticated()) {
+				if ((socketConnection != null)) { //&& socket.isAuthenticated()) {
 
 					List<? extends GraphObject> result = webSocketData.getResult();
 
@@ -111,6 +111,15 @@ public class SynchronizationController implements StructrTransactionListener {
 
 						WebSocketMessage clientData     = webSocketData.copy();
 						SecurityContext securityContext = socket.getSecurityContext();
+						
+						// For non-authenticated clients, construct a security context without user
+						if (securityContext == null) {
+							try {
+								securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
+							} catch (FrameworkException ex) {
+								continue;
+							}
+						}
 
 						clientData.setResult(filter(securityContext, result));
 
@@ -149,7 +158,7 @@ public class SynchronizationController implements StructrTransactionListener {
 		List<GraphObject> filteredResult = new LinkedList<GraphObject>();
 
 		for (GraphObject obj : all) {
-
+			
 			if (securityContext.isVisible((AbstractNode) obj)) {
 
 				filteredResult.add(obj);
