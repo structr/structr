@@ -120,6 +120,11 @@ function connect() {
             } else if (command == 'GET_PROPERTIES' || command == 'UPDATE') { /*********************** GET_PROPERTIES / UPDATE ************************/
 
                 console.log('UPDATE', data);
+            } else if (command == 'PARTIAL') { /*********************** PARTIAL ************************/
+
+                console.log(data.message);
+                $('body').empty();
+                $('body').append(data.message);
 
             } else if (command == 'DATA_NODE_PARENT') { /*********************** DATA_NODE_PARENT ************************/
             } else if (command == 'DELETE') { /*********************** DELETE ************************/
