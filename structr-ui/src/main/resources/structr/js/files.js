@@ -551,7 +551,8 @@ var _Files = {
                 log(div);
                 var contentBox = $('.editor', element);
                 editor = CodeMirror(contentBox.get(0), {
-                    value: unescapeTags(text),
+                    //value: unescapeTags(text),
+                    value: text,
                     mode:  contentType,
                     lineNumbers: true
                 //            ,

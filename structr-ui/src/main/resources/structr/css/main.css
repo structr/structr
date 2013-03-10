@@ -418,13 +418,6 @@ ul#previewTabs {
     -webkit-transform-origin: 0 0;
 }
 
-.CodeMirror {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    margin: 4px 0 8px 0;
-    /*height: 600px;*/
-}
-
 .link_icon {
     display: none;
 }
