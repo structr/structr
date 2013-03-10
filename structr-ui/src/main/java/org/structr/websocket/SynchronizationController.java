@@ -34,26 +34,15 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
-import static org.mockito.Mockito.mock;
 import org.structr.common.AccessMode;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 
 import org.w3c.dom.Node;
@@ -69,6 +58,7 @@ public class SynchronizationController implements StructrTransactionListener {
 	private final Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
 	private List<WebSocketMessage> messageStack                     = null;
 	private Gson gson                                               = null;
+	private PartialUpdateController partialController               = new PartialUpdateController(this);
 
 	public SynchronizationController(Gson gson) {
 
@@ -94,8 +84,12 @@ public class SynchronizationController implements StructrTransactionListener {
 
 	}
 
+	public PartialUpdateController getPartialsNotifier() {
+		return partialController;
+	}
+	
 	// ----- private methods -----
-	private void broadcast(final WebSocketMessage webSocketData) {
+	protected void broadcast(final WebSocketMessage webSocketData) {
 
 		logger.log(Level.FINE, "Broadcasting message to {0} clients..", clients.size());
 
@@ -104,7 +98,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		String message;
 
-		synchronized (clients) {
+		//synchronized (clients) {
 
 			// create message
 			for (StructrWebSocket socket : clients) {
@@ -160,7 +154,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				}
 
 			}
-		}
+		//}
 
 	}
 
@@ -388,8 +382,6 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			list.add(graphObject);
 			
-			addPartialUpdates(messageStack, securityContext, graphObject);
-			
 			message.setResult(list);
 			messageStack.add(message);
 			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getProperty(AbstractNode.uuid));
@@ -416,15 +408,15 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, PropertyMap properties) {
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyMap properties) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
 		AbstractRelationship relationship;
 
-		if ((obj != null) && (obj instanceof AbstractRelationship)) {
+		if ((graphObject != null) && (graphObject instanceof AbstractRelationship)) {
 
-			relationship = (AbstractRelationship) obj;
+			relationship = (AbstractRelationship) graphObject;
 
 			if (ignoreRelationship(relationship)) {
 
@@ -461,6 +453,9 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			message.setId(uuid);
 			message.setCommand("DELETE");
+			
+			partialController.sendPartial(securityContext, properties.get(AbstractNode.type));
+			
 			messageStack.add(message);
 
 		}
@@ -511,71 +506,6 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		return false;
 
-	}
-	
-	private void addPartialUpdates(List<WebSocketMessage> messageStack, SecurityContext securityContext, GraphObject obj) {
-		
-		List<DOMElement> dynamicElements = null;
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		// Find all DOMElements which render data of the type of the obj
-		attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
-		attrs.add(Search.andExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(obj.getType())));
-
-		try {
-			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
-			
-			dynamicElements = results.getResults();
-			
-		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, "Something went wrong while searching for dynamic elements of type " + obj.getType(), ex);
-		}
-		
-		for (DOMElement el : dynamicElements) {
-			
-			logger.log(Level.INFO, "Found dynamic element for type {0}: {1}", new Object[]{obj.getType(), el});
-			
-			try {
-				
-				HttpServletRequest request = mock(HttpServletRequest.class);
-				RenderContext ctx = new RenderContext(request, null, false, Locale.GERMAN);
-				
-				String pageId = (String) el.getProperty(DOMNode.pageId);
-				
-				// render only when contained in a page
-				if (pageId != null) {
-					
-					DOMElement parent = (DOMElement) el.getParentNode();
-				
-					if (parent != null) {
-						parent.render(securityContext, ctx, 0);
-					}
-				
-					String partialContent = ctx.getBuffer().toString();
-					
-					logger.log(Level.INFO, "Partial output:\n{0}", partialContent);
-					
-					WebSocketMessage message = new WebSocketMessage();
-
-					message.setCommand("PARTIAL");
-
-					message.setNodeData("pageId", pageId);
-					message.setMessage(StringUtils.remove(partialContent, "\n"));
-					messageStack.add(message);
-					
-					
-				}
-				
-				
-			} catch (FrameworkException ex) {
-				Logger.getLogger(SynchronizationController.class.getName()).log(Level.SEVERE, null, ex);
-			}
-			
-			
-		}
-		
-		
-		
 	}
 
 }

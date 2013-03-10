@@ -79,6 +79,7 @@ public class WebSocketServlet extends HttpServlet {
 
 		syncController = new SynchronizationController(gson);
 		EntityContext.registerTransactionListener(syncController);
+		EntityContext.registerTransactionNotifier(syncController.getPartialsNotifier());
 
 		// create web socket factory
 		factory = new WebSocketFactory(new Acceptor() {
