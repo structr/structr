@@ -93,6 +93,7 @@ public class EntityContext {
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
 	private static final Map<String, String> normalizedEntityNameCache                                      = new LinkedHashMap<String, String>();
 	private static final Set<StructrTransactionListener> transactionListeners                               = new LinkedHashSet<StructrTransactionListener>();
+	private static final Set<TransactionNotifier> transactionNotifiers                                      = new LinkedHashSet();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap                         = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                                      = new LinkedHashMap<String, Class>();
 	private static final EntityContextModificationListener globalModificationListener                       = new EntityContextModificationListener();
@@ -223,6 +224,24 @@ public class EntityContext {
 		transactionListeners.remove(listener);
 	}
 
+	/**
+	 * Register a notifier to receive notifications about modified entities after commit
+	 * 
+	 * @param notifier the notifier to register
+	 */
+	public static void registerTransactionNotifier(TransactionNotifier notifier) {
+		transactionNotifiers.add(notifier);
+	}
+
+	/**
+	 * Unregister a transaction notifier
+	 * 
+	 * @param notifier the notifier to unregister
+	 */
+	public static void unregisterTransactionNotifier(TransactionNotifier notifier) {
+		transactionNotifiers.remove(notifier);
+	}
+	
 	/**
 	 * Register a transformation that will be applied to every newly created entity of a given type.
 	 * 
@@ -629,6 +648,10 @@ public class EntityContext {
 
 	public static Set<StructrTransactionListener> getTransactionListeners() {
 		return transactionListeners;
+	}
+	
+	public static Set<TransactionNotifier> getTransactionNotifiers() {
+		return transactionNotifiers;
 	}
 
 	public static Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
@@ -1226,7 +1249,14 @@ public class EntityContext {
 		}
 
 		@Override
-		public void afterCommit(TransactionData data, Long transactionKey) {}
+		public void afterCommit(TransactionData data, Long transactionKey) {
+		
+			for (TransactionNotifier notifier : EntityContext.getTransactionNotifiers()) {
+				notifier.notify(data);
+			}
+		
+		
+		}
 
 		@Override
 		public void afterRollback(TransactionData data, Long transactionKey) {
