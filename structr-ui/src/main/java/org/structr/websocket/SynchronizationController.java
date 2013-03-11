@@ -34,6 +34,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.jetty.util.URIUtil;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 import org.structr.common.AccessMode;
@@ -97,12 +98,18 @@ public class SynchronizationController implements StructrTransactionListener {
 		webSocketData.setSessionValid(true);
 
 		String message;
+		String pagePath = (String) webSocketData.getNodeData().get("pagePath");
 
 		//synchronized (clients) {
 
 			// create message
 			for (StructrWebSocket socket : clients) {
-
+				
+				String clientPagePath = socket.getPathPath();
+				if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
+					continue;
+				}
+				
 				Connection socketConnection = socket.getConnection();
 
 				webSocketData.setCallback(socket.getCallback());

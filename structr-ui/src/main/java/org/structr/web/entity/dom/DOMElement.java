@@ -323,7 +323,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				DOMNode subNode = (DOMNode) rel.getEndNode();
 
 				String subKey = subNode.getProperty(dataKey);
-				if (subKey != null) {
+				if (StringUtils.isNotBlank(subKey)) {
 
 					setDataRoot(renderContext, subNode, subKey);
 

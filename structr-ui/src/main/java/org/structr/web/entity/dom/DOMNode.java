@@ -245,6 +245,26 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		return treeGetChildRelationships(RelType.CONTAINS);
 	}
 
+	
+	public String getPositionPath() {
+		
+		String path = "";
+		
+		DOMNode currentNode = this;
+		while (currentNode.getParentNode() != null) {
+			
+			DOMNode parentNode = (DOMNode) currentNode.getParentNode();
+			
+			path = "/" + parentNode.treeGetChildPosition(RelType.CONTAINS, currentNode) + path;
+			
+			currentNode = parentNode;
+			
+		}
+		
+		return path;
+		
+	}
+	
 	// ----- protected methods -----		
 	protected void checkIsChild(Node otherNode) throws DOMException {
 		

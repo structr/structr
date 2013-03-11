@@ -82,6 +82,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private SynchronizationController syncController = null;
 	private String token                             = null;
 	private Map<String, FileUploadHandler> uploads   = null;
+	private String pagePath                           = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -107,7 +108,9 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		this.token      = null;
 
 		syncController.registerClient(this);
-		syncController.getPartialsNotifier();
+		
+		pagePath = this.getRequest().getQueryString();
+		
 		connection.setMaxTextMessageSize(1024 * 1024 * 1024);
 		connection.setMaxBinaryMessageSize(1024 * 1024 * 1024);
 
@@ -381,6 +384,12 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	public String getCallback() {
 
 		return callback;
+
+	}
+
+	public String getPathPath() {
+
+		return pagePath;
 
 	}
 

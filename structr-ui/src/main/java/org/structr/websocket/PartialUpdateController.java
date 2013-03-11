@@ -29,11 +29,11 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 
 import static org.mockito.Mockito.mock;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 
 import org.structr.common.error.FrameworkException;
@@ -47,6 +47,7 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 
 
 /**
@@ -92,36 +93,41 @@ public class PartialUpdateController implements TransactionNotifier {
 		
 		for (DOMElement el : dynamicElements) {
 			
-			logger.log(Level.INFO, "Found dynamic element for type {0}: {1}", new Object[]{type, el});
+			logger.log(Level.FINE, "Found dynamic element for type {0}: {1}", new Object[]{type, el});
 			
 			try {
 				
 				HttpServletRequest request = mock(HttpServletRequest.class);
 				RenderContext ctx = new RenderContext(request, null, false, Locale.GERMAN);
 				
-				String pageId = (String) el.getProperty(DOMNode.pageId);
+				Page page = el.getProperty(DOMNode.page);
 				
 				// render only when contained in a page
-				if (pageId != null) {
+				if (page != null) {
 					
 					DOMElement parent = (DOMElement) el.getParentNode();
 				
 					if (parent != null) {
 						parent.render(securityContext, ctx, 0);
-					}
 				
-					String partialContent = ctx.getBuffer().toString();
-					
-					logger.log(Level.INFO, "Partial output:\n{0}", partialContent);
-					
-					WebSocketMessage message = new WebSocketMessage();
+						String partialContent = ctx.getBuffer().toString();
 
-					message.setCommand("PARTIAL");
+						logger.log(Level.FINE, "Partial output:\n{0}", partialContent);
 
-					message.setNodeData("pageId", pageId);
-					message.setMessage(StringUtils.remove(partialContent, "\n"));
-					
-					syncController.broadcast(message);
+						WebSocketMessage message = new WebSocketMessage();
+
+						message.setCommand("PARTIAL");
+
+						message.setNodeData("pageId", page.getUuid());
+
+						String pageName = page.getName();
+
+						message.setNodeData("pagePath", "/" + pageName);
+						message.setMessage(StringUtils.remove(partialContent, "\n"));
+						message.setNodeData("parentPositionPath", parent.getPositionPath());
+
+						syncController.broadcast(message);
+					}
 					
 				}
 				
@@ -136,6 +142,7 @@ public class PartialUpdateController implements TransactionNotifier {
 		
 		
 	}
+	
 	// ----- interface TransactionNotifier -----
 
 	/**
@@ -148,14 +155,26 @@ public class PartialUpdateController implements TransactionNotifier {
 	 */
 	@Override
 	public void notify(TransactionData data) {
+
+		// Collect all nodes to be taken into account
+		Set<Node> nodes = new HashSet();
 		
 		for (Node node : data.createdNodes()) {
-			
-			String type = (String) node.getProperty("type");
-			sendPartial(securityContext, type);
-			
+			nodes.add(node);
 		}
 		
+		for (PropertyEntry<Node> prop : data.assignedNodeProperties()) {
+			nodes.add(prop.entity());
+		}
+
+		for (PropertyEntry<Node> prop : data.removedNodeProperties()) {
+			nodes.add(prop.entity());
+		}
+
+		for (Node node : nodes) {
+			String type = (String) node.getProperty("type");
+			sendPartial(securityContext, type);
+		}
 	}
 
 

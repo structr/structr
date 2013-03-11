@@ -22,16 +22,6 @@ var reconn, loggedIn;
 var token = '';
 var rawResultCount = [], pageCount = [];
 
-$().ready(function() {
-
-    console.log('init');
-
-    connect();
-
-});
-
-
-
 function connect() {
 
     if (token) {
@@ -44,7 +34,7 @@ function connect() {
 
         var isEnc = (window.location.protocol == 'https:');
         var host = document.location.host;
-        var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
+        var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot + '?' + location.pathname;
 
         console.log(wsUrl);
         if ('WebSocket' in window) {
@@ -62,25 +52,12 @@ function connect() {
 
         }
 
-        console.log('WebSocket.readyState: ' + ws.readyState, ws);
-
-        var entity;
+        //console.log('WebSocket.readyState: ' + ws.readyState, ws);
 
         ws.onopen = function() {
 
-            console.log('de-activating reconnect loop', reconn);
+            //console.log('de-activating reconnect loop', reconn);
             window.clearInterval(reconn);
-
-//            log('logged in? ' + loggedIn);
-//            if (!loggedIn) {
-//                //log('no');
-//                $('#logout_').html('Login');
-//                Structr.login();
-//            } else {
-//                log('Current user: ' + user);
-//                $('#logout_').html(' Logout <span class="username">' + (user ? user : '') + '</span>');
-//				
-//            }
         }
 
         ws.onclose = function() {
@@ -99,41 +76,25 @@ function connect() {
 
         ws.onmessage = function(message) {
 
-            var data = $.parseJSON(message.data);
-            console.log('ws.onmessage:', message);
-
-            //var msg = $.parseJSON(message);
-            var type = data.data.type;
+            var data = JSON.parse(message.data);
+            console.log('ws.onmessage:', data);
             var command = data.command;
-            var msg = data.message;
-            var result = data.result;
-            var sessionValid = data.sessionValid;
-            var code = data.code;
 
-            console.log('####################################### ', command, ' #########################################');
+            //console.log('####################################### ', command, ' #########################################');
 
-
-            if (command == 'LOGIN') { /*********************** LOGIN ************************/
-            } else if (command == 'LOGOUT') { /*********************** LOGOUT ************************/
-            } else if (command == 'STATUS') { /*********************** STATUS ************************/
-            } else if (command == 'GET_PROPERTY') { /*********************** GET_PROPERTY ************************/
-            } else if (command == 'GET_PROPERTIES' || command == 'UPDATE') { /*********************** GET_PROPERTIES / UPDATE ************************/
-
-                console.log('UPDATE', data);
-            } else if (command == 'PARTIAL') { /*********************** PARTIAL ************************/
+            if (command == 'PARTIAL') {
 
                 console.log(data.message);
-                $('body').empty();
-                $('body').append(data.message);
-
-            } else if (command == 'DATA_NODE_PARENT') { /*********************** DATA_NODE_PARENT ************************/
-            } else if (command == 'DELETE') { /*********************** DELETE ************************/
-            } else if (command == 'INSERT_BEFORE') { /*********************** INSERT_BEFORE ************************/
-            } else if (command == 'APPEND_CHILD') { /*********************** APPEND_CHILD ************************/
-            } else if (command == 'REMOVE' || command == 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
-            } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
-            } else {
-                console.log('Received unknown command: ' + command);
+                var pos = data.data.parentPositionPath.split('/');
+                var el = document.childNodes[1]; // start with html
+                pos.forEach(function(p) {
+                  var n = parseInt(p);
+                  if (n) {
+                    el = getChildElements(el)[n];
+                    console.log(el);
+                  }
+                });
+                el.innerHTML = data.message;
             }
         }
 
@@ -143,48 +104,14 @@ function connect() {
 
 }
 
+function getChildElements(el) {
+  if (!el) return;
+  var children = [];
+  for (var i=0; i<el.childNodes.length; i++) {
+    var c = el.childNodes[i];
+    if (c.nodeType === 1) children.push(c);
+  }
+  return children;
+}
 
-var Structr = function(restBaseUrl, username, password) {
-    this.restBaseUrl = restBaseUrl;
-    this.headers = {
-        'X-User': username,
-        'X-Password': password
-    };
-};
-
-Structr.prototype.get = function(req, callback) {
-    $.ajax({
-        url: this.restBaseUrl + '/' + req,
-        headers: this.headers,
-        type: 'GET',
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        statusCode: {
-            200: function(data) {
-                if (callback) {
-                    callback(data.result);
-                }
-            },
-            204: function() {
-            },
-            400: function(data, status, xhr) {
-                console.log('Bad request: ' + data.responseText);
-            },
-            401: function(data, status, xhr) {
-                console.log('Authentication required: ' + data.responseText);
-            },
-            403: function(data, status, xhr) {
-                console.log('Forbidden: ' + data.responseText);
-            },
-            404: function(data, status, xhr) {
-                _Crud.error('Not found: ' + data.responseText);
-            },
-            422: function(data, status, xhr) {
-                console.log('Syntax error: ' + data.responseText);
-            },
-            500: function(data, status, xhr) {
-                console.log('Internal error: ' + data.responseText);
-            }
-        }
-    });
-};
+connect();
