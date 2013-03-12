@@ -164,12 +164,19 @@ function connect() {
                 } else if (code == 401) {
                     Structr.login('Session invalid');
                 } else {
+                    
                     var msgClass;
                     var codeStr = code.toString();
+                    
                     if (codeStr.startsWith('20')) {
                         msgClass = 'success';
-                        Structr.tempInfo('', true);
-                        $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        if (dialogBox.is(':visible')){
+                            dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                        } else {
+                            Structr.tempInfo('', true);
+                            $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        }
                     } else if (codeStr.startsWith('30')) {
                         Structr.dialog('', true);
                         msgClass = 'info';
@@ -179,9 +186,7 @@ function connect() {
                         msgClass = 'warning';
                         dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else {
-                        Structr.error("", function() {
-                            
-                            });
+                        Structr.error("", function() {});
                         msgClass = 'error';
                         $('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     }
@@ -363,11 +368,11 @@ function getAnchorFromUrl(url) {
 
 
 function utf8_to_b64( str ) {
-    //return window.btoa(unescape(encodeURIComponent( str )));
-    return window.btoa(str);
+    return window.btoa(unescape(encodeURIComponent( str )));
+    //return window.btoa(str);
 }
 
 function b64_to_utf8( str ) {
-    //return decodeURIComponent(escape(window.atob( str )));
-    return window.atob(str);
+    return decodeURIComponent(escape(window.atob( str )));
+    //return window.atob(str);
 }
