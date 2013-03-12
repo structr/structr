@@ -688,7 +688,7 @@ button img {
     width: 300px;
     position: absolute;
     left: 24px;
-    bottom: 24px;
+    bottom: 6px;
 }
 
 .dialogBtn {
@@ -831,7 +831,7 @@ button img {
 
 div.infoBox {
     position: absolute;
-    width: 240px;
+    width: 300px;
     min-height: 12px;
     /*margin: 12px 0 12px 60px;*/
     text-align: left;

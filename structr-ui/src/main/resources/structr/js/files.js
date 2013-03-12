@@ -490,9 +490,9 @@ var _Files = {
         for (var c=0; c<chunks; c++) {
             var start = c*chunkSize;
             var end = (c+1)*chunkSize;
-            console.log(text.substring(start,end));
+            //console.log(text.substring(start,end));
             var chunk = utf8_to_b64(text.substring(start,end));
-            console.log(chunk);
+            //console.log(chunk);
             // TODO: check if we can send binary data directly
             Command.chunk(file.id, c, chunkSize, chunk);
         }
@@ -537,8 +537,7 @@ var _Files = {
         } else {
             contentType = 'text/plain';
         }
-        contentType += ';charset=UTF-8';
-        console.log('contentType, dataType', contentType, dataType);
+        //console.log('contentType, dataType', contentType, dataType);
         
         $.ajax({
             url: url,
