@@ -465,7 +465,7 @@ var _Files = {
                         var start = c*chunkSize;
                         var end = (c+1)*chunkSize;
                         
-                        var chunk = utf8_to_b64(binaryContent.substring(start,end));
+                        var chunk = window.btoa(binaryContent.substring(start,end));
                         // TODO: check if we can send binary data directly
 
                         Command.chunk(file.id, c, chunkSize, chunk);
