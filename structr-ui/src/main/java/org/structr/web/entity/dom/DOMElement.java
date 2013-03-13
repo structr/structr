@@ -119,7 +119,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<Integer> version                 = new IntProperty("version");
 	public static final Property<String> tag                      = new StringProperty("tag");
 	public static final Property<String> path                     = new StringProperty("path");
-	public static final Property<String> refKey                   = new StringProperty("refKey");
+	public static final Property<String> partialUpdateKey         = new StringProperty("partialUpdateKey");
 	public static final Property<String> dataKey                  = new StringProperty("dataKey");
 	public static final Property<String> cypherQuery              = new StringProperty("cypherQuery");
 	public static final Property<String> xpathQuery               = new StringProperty("xpathQuery");
@@ -201,10 +201,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _accesskey               = new HtmlProperty("accesskey");
 	
 	public static final org.structr.common.View publicView        = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-										name, tag, path, parentId, restQuery, cypherQuery, xpathQuery, refKey, dataKey, dataNodeId
+										name, tag, path, parentId, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId
 	);
 	
-	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parentId, childrenIds, restQuery, cypherQuery, xpathQuery, refKey, dataKey, dataNodeId,
+	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, path, parentId, childrenIds, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
@@ -331,9 +331,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					
 					// fetch (optional) list of external data elements
 					List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
-
+					
 					PropertyKey propertyKey = null;
-					if (currentDataNode != null) {
+					if (listData.isEmpty() && currentDataNode != null) {
 
 						propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
 
@@ -641,11 +641,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				
 			} catch (FrameworkException fex) {
 				
-				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[] { source, fex.getMessage() } );
+				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[] { source, fex } );
 			}
 		}
 		
-		return null;
+		return Collections.EMPTY_LIST;
 	}
 	
 	// ----- interface org.w3c.dom.Element -----
@@ -1002,6 +1002,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 	}
 	
+	/**
+	 * List data source equivalent to a rest resource.
+	 * 
+	 * TODO: This method uses code from the {@link JsonRestServlet} which should be
+	 * encapsulated and re-used here
+	 * 
+	 */
 	private static class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
 		@Override
@@ -1081,7 +1088,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				// update request in security context
 				securityContext.setRequest(request);
 
-				HttpServletResponse response = renderContext.getResponse();
+				//HttpServletResponse response = renderContext.getResponse();
 				
 				
 				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.uuid), AbstractNode.uuid), propertyView);

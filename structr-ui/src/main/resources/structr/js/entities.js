@@ -92,12 +92,12 @@ var _Entities = {
             });
         });
 
-//        dialog.append('<div><h3>Reference Key</h3><input type="text" id="refKey" value="' + (entity.refKey ? entity.refKey : '') + '"><button id="saveRefKey">Save</button></div>');
-//        $('#saveRefKey', dialog).on('click', function() {
-//            entity.setProperty('refKey', $('#refKey', dialog).val(), false, function() {
-//                log('Reference Key successfully updated!', entity.refKey);
-//            });
-//        });
+        dialog.append('<div><h3>Types to trigger partial update</h3><input type="text" id="partialUpdateKey" value="' + (entity.partialUpdateKey ? entity.partialUpdateKey : '') + '"><button id="savePartialUpdateKey">Save</button></div>');
+        $('#savePartialUpdateKey', dialog).on('click', function() {
+            entity.setProperty('partialUpdateKey', $('#partialUpdateKey', dialog).val(), false, function() {
+                log('Partial update key successfully updated!', entity.partialUpdateKey);
+            });
+        });
 
         dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
         $('#saveDataKey', dialog).on('click', function() {

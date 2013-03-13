@@ -43,7 +43,10 @@ import org.structr.core.Services;
 import org.structr.core.TransactionNotifier;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SearchOperator;
+import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -60,6 +63,7 @@ public class PartialUpdateController implements TransactionNotifier {
 	private List<WebSocketMessage> partials                         = new LinkedList();
 	private SecurityContext securityContext                         = SecurityContext.getSuperUserInstance();
 	private SynchronizationController syncController                = null;
+	private ResourceProvider resourceProvider                       = null;
 
 	public PartialUpdateController(SynchronizationController syncController) {
 		this.syncController = syncController;
@@ -72,6 +76,10 @@ public class PartialUpdateController implements TransactionNotifier {
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
+
+	public void setResourceProvider(final ResourceProvider resourceProvider) {
+		this.resourceProvider = resourceProvider;
+	}
 	
 	protected void sendPartial(SecurityContext securityContext, String type) {
 		
@@ -80,7 +88,10 @@ public class PartialUpdateController implements TransactionNotifier {
 
 		// Find all DOMElements which render data of the type of the obj
 		attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
-		attrs.add(Search.andExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(type)));
+		SearchAttributeGroup g = new SearchAttributeGroup(SearchOperator.AND);
+		g.add(Search.orExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(type)));
+		g.add(Search.orExactProperty(DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type)));
+		attrs.add(g);
 
 		try {
 			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
@@ -91,14 +102,15 @@ public class PartialUpdateController implements TransactionNotifier {
 			logger.log(Level.SEVERE, "Something went wrong while searching for dynamic elements of type " + type, ex);
 		}
 		
+		HttpServletRequest request = mock(HttpServletRequest.class);
+		RenderContext ctx = new RenderContext(request, null, false, Locale.GERMAN);
+		ctx.setResourceProvider(resourceProvider);
+		
 		for (DOMElement el : dynamicElements) {
 			
 			logger.log(Level.FINE, "Found dynamic element for type {0}: {1}", new Object[]{type, el});
 			
 			try {
-				
-				HttpServletRequest request = mock(HttpServletRequest.class);
-				RenderContext ctx = new RenderContext(request, null, false, Locale.GERMAN);
 				
 				Page page = el.getProperty(DOMNode.page);
 				
@@ -108,6 +120,7 @@ public class PartialUpdateController implements TransactionNotifier {
 					DOMElement parent = (DOMElement) el.getParentNode();
 				
 					if (parent != null) {
+						
 						parent.render(securityContext, ctx, 0);
 				
 						String partialContent = ctx.getBuffer().toString();

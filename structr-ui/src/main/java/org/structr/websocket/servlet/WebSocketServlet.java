@@ -44,6 +44,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.EntityContext;
+import org.structr.rest.ResourceProvider;
+import org.structr.websocket.PartialUpdateController;
 import org.structr.websocket.SynchronizationController;
 
 //~--- classes ----------------------------------------------------------------
@@ -61,6 +63,7 @@ public class WebSocketServlet extends HttpServlet {
 
 	private SynchronizationController syncController          = null;
 	private PropertyKey idProperty                            = null;
+	private ResourceProvider resourceProvider                 = null;
 	
 	public WebSocketServlet(PropertyKey idProperty) {
 		this.idProperty = idProperty;
@@ -78,8 +81,12 @@ public class WebSocketServlet extends HttpServlet {
 		final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(idProperty)).create();
 
 		syncController = new SynchronizationController(gson);
+		PartialUpdateController partialsController = syncController.getPartialsNotifier();
+		
+		partialsController.setResourceProvider(resourceProvider);
+		
 		EntityContext.registerTransactionListener(syncController);
-		EntityContext.registerTransactionNotifier(syncController.getPartialsNotifier());
+		EntityContext.registerTransactionNotifier(partialsController);
 
 		// create web socket factory
 		factory = new WebSocketFactory(new Acceptor() {
@@ -129,4 +136,9 @@ public class WebSocketServlet extends HttpServlet {
 
 		}
 	}
+
+	public void setResourceProvider(final ResourceProvider resourceProvider) {
+		this.resourceProvider = resourceProvider;
+	}
+	
 }
