@@ -34,6 +34,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -43,6 +44,12 @@ import org.structr.websocket.message.WebSocketMessage;
  * @author Axel Morgner
  */
 public class RemoveCommand extends AbstractCommand {
+
+	static {
+
+		StructrWebSocket.addCommand(RemoveCommand.class);
+
+	}
 
 	Logger logger = Logger.getLogger(RemoveCommand.class.getName());
 

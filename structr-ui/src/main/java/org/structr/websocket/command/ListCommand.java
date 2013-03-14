@@ -42,6 +42,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.entity.Image;
 import org.structr.rest.resource.PagingHelper;
+import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 
 //~--- classes ----------------------------------------------------------------
@@ -53,6 +54,12 @@ import org.structr.websocket.message.MessageBuilder;
 public class ListCommand extends AbstractCommand {
 	
 	private static final Logger logger = Logger.getLogger(ListCommand.class.getName());
+
+	static {
+
+		StructrWebSocket.addCommand(ListCommand.class);
+
+	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {

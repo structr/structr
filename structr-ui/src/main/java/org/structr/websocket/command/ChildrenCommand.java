@@ -30,6 +30,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,6 +41,12 @@ import java.util.*;
  */
 public class ChildrenCommand extends AbstractCommand {
 
+	static {
+
+		StructrWebSocket.addCommand(ChildrenCommand.class);
+
+	}
+	
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 

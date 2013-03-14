@@ -44,6 +44,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.relation.ChildrenRelationship;
+import org.structr.websocket.StructrWebSocket;
 
 /**
  *
@@ -53,6 +54,12 @@ import org.structr.web.entity.relation.ChildrenRelationship;
 public class AddCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(AddCommand.class.getName());
+
+	static {
+
+		StructrWebSocket.addCommand(AddCommand.class);
+
+	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {

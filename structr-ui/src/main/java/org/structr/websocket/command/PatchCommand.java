@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -44,6 +45,10 @@ import java.util.logging.Logger;
 public class PatchCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(PatchCommand.class.getName());
+	
+	static {
+		StructrWebSocket.addCommand(PatchCommand.class);
+	}
 
 	//~--- methods --------------------------------------------------------
 

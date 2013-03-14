@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,6 +58,12 @@ public class ClonePageCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
 
+	static {
+
+		StructrWebSocket.addCommand(ClonePageCommand.class);
+
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override

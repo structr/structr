@@ -30,6 +30,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.websocket.StructrWebSocket;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 
@@ -43,6 +44,12 @@ import org.w3c.dom.Element;
 public class CreateSimplePage extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
+
+	static {
+
+		StructrWebSocket.addCommand(CreateSimplePage.class);
+
+	}
 	
 	//~--- methods --------------------------------------------------------
 

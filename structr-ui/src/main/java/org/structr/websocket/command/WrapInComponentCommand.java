@@ -42,6 +42,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,6 +53,12 @@ import org.structr.web.entity.dom.DOMElement;
 public class WrapInComponentCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
+
+	static {
+
+		StructrWebSocket.addCommand(WrapInComponentCommand.class);
+
+	}
 
 	//~--- methods --------------------------------------------------------
 

@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,6 +48,10 @@ import org.structr.core.property.PropertyKey;
 public class SortCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(SortCommand.class.getName());
+	
+	static {
+		StructrWebSocket.addCommand(SortCommand.class);
+	}
 
 	//~--- methods --------------------------------------------------------
 

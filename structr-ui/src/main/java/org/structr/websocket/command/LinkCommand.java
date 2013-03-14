@@ -34,6 +34,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
 import org.structr.web.entity.html.Link;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -43,6 +44,11 @@ import org.structr.web.entity.html.Link;
  */
 public class LinkCommand extends AbstractCommand {
 
+	static {
+
+		StructrWebSocket.addCommand(LinkCommand.class);
+	}
+	
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
