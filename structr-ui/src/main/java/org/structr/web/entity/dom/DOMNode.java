@@ -38,6 +38,7 @@ import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
 import org.structr.core.Result;
@@ -513,8 +514,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 
 		if (_data != null) {
-
-			Object value = _data.getProperty(referenceKeyProperty);
+			
+			Object value = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKeyProperty.jsonName()));
 			return value != null ? value : defaultValue;
 		}
 
