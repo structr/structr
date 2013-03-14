@@ -29,7 +29,7 @@ import org.structr.core.entity.PropertyDefinition;
 
 /**
  *
- * @author Christian Morgner (christian@morgner.de)
+ * @author Christian Morgner
  */
 public class DynamicTypeResource extends TypeResource {
 
@@ -195,7 +195,7 @@ public class DynamicTypeResource extends TypeResource {
 	@Override
 	public String getResourceSignature() {
 
-		return getUriPart();
+		return EntityContext.normalizeEntityName(rawType);
 
 	}
 
