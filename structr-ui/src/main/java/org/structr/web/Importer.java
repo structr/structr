@@ -165,7 +165,7 @@ public class Importer {
 
 		init();
 		
-		if (code != null) {
+		if (StringUtils.isNotBlank(code)) {
 
 			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[] { name });
 			parsedDocument = Jsoup.parse(code);
@@ -195,8 +195,8 @@ public class Importer {
 	public String readPage() throws FrameworkException {
 
 		try {
-
-			final URL baseUrl = new URL(address);
+			
+			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
 
 			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<String>() {
 
@@ -268,7 +268,7 @@ public class Importer {
 								? "href"
 								: null);
 
-				if ((downloadAddressAttr != null) && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
+				if (baseUrl != null && downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
 					String downloadAddress = node.attr(downloadAddressAttr);
 
