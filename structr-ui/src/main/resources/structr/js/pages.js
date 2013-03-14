@@ -138,7 +138,7 @@ var _Pages = {
         $('#import_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
             
-            Structr.dialog('Import Page from URL', function() {
+            Structr.dialog('Import Page', function() {
                 return true;
             }, function() {
                 return true;
@@ -148,8 +148,10 @@ var _Pages = {
             dialog.empty();
             dialogMsg.empty();
             
-            dialog.append('<table class="props">'
-                + '<tr><td><label for="address">Address:</label></td><td><input id="_address" name="address" size="40" value="http://"></td></tr>'
+            dialog.append('<h3>Create page from source code ...</h3>'
+                + '<textarea id="_code" name="code" cols="40" rows="10" placeholder="Paste HTML code here"></textarea>');
+            
+            dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
                 + '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
                 + '<tr><td><label for="timeout">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr>'
                 + '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
@@ -172,6 +174,7 @@ var _Pages = {
             $('#startImport').on('click', function(e) {
                 e.stopPropagation();
 
+                var code    = $('#_code', dialog).val();
                 var address = $('#_address', dialog).val();
                 var name    = $('#_name', dialog).val();
                 var timeout = $('#_timeout', dialog).val();
@@ -179,7 +182,7 @@ var _Pages = {
                 var authVisible = $('#_authVisible:checked', dialog).val() == 'on';
 
                 log('start');
-                return Command.importPage(address, name, timeout, publicVisible, authVisible);
+                return Command.importPage(code, address, name, timeout, publicVisible, authVisible);
             });
             
         });

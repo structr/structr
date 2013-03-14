@@ -110,6 +110,7 @@ public class Importer {
 
 	//~--- fields ---------------------------------------------------------
 
+	private String code;
 	private String address;
 	private boolean authVisible;
 	private String name;
@@ -137,8 +138,9 @@ public class Importer {
 //              }
 //              
 //      }
-	public Importer(final SecurityContext securityContext, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
+	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
 
+		this.code            = code;
 		this.address         = address;
 		this.name            = name;
 		this.timeout         = timeout;
@@ -161,20 +163,32 @@ public class Importer {
 
 	public boolean parse() throws FrameworkException {
 
-		logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[] { address, name });
 		init();
+		
+		if (code != null) {
 
-		try {
+			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[] { name });
+			parsedDocument = Jsoup.parse(code);
 
-			parsedDocument = Jsoup.parse(new URL(address), timeout);
 
-			return true;
+		} else {
 
-		} catch (IOException ioe) {
+			logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[] { address, name });
 
-			throw new FrameworkException(500, "Error while importing content from " + address);
+			try {
+
+				parsedDocument = Jsoup.parse(new URL(address), timeout);
+
+
+			} catch (IOException ioe) {
+
+				throw new FrameworkException(500, "Error while parsing content from " + address);
+
+			}
 
 		}
+
+		return true;
 
 	}
 

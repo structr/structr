@@ -52,16 +52,16 @@ public class ImportCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(ImportCommand.class);
-		StructrWebSocket.addCommand(PatchCommand.class);
-		StructrWebSocket.addCommand(SortCommand.class);
-		StructrWebSocket.addCommand(WrapInComponentCommand.class);
-		StructrWebSocket.addCommand(ClonePageCommand.class);
-		StructrWebSocket.addCommand(ChildrenCommand.class);
-		StructrWebSocket.addCommand(ListCommand.class);
-		StructrWebSocket.addCommand(AddCommand.class);
-		StructrWebSocket.addCommand(RemoveCommand.class);
-		StructrWebSocket.addCommand(LinkCommand.class);
-		StructrWebSocket.addCommand(CreateSimplePage.class);
+//		StructrWebSocket.addCommand(PatchCommand.class);
+//		StructrWebSocket.addCommand(SortCommand.class);
+//		StructrWebSocket.addCommand(WrapInComponentCommand.class);
+//		StructrWebSocket.addCommand(ClonePageCommand.class);
+//		StructrWebSocket.addCommand(ChildrenCommand.class);
+//		StructrWebSocket.addCommand(ListCommand.class);
+//		StructrWebSocket.addCommand(AddCommand.class);
+//		StructrWebSocket.addCommand(RemoveCommand.class);
+//		StructrWebSocket.addCommand(LinkCommand.class);
+//		StructrWebSocket.addCommand(CreateSimplePage.class);
 
 	}
 
@@ -72,6 +72,7 @@ public class ImportCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		Map<String, Object> properties        = webSocketData.getNodeData();
+		final String code                     = (String) properties.get("code");
 		final String address                  = (String) properties.get("address");
 		final String name                     = (String) properties.get("name");
 		final int timeout                     = Integer.parseInt((String) properties.get("timeout"));
@@ -82,7 +83,7 @@ public class ImportCommand extends AbstractCommand {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Importer pageImporter = new Importer(securityContext, address, name, timeout, publicVisible, authVisible);
+				Importer pageImporter = new Importer(securityContext, code, address, name, timeout, publicVisible, authVisible);
 				boolean parseOk       = pageImporter.parse();
 
 				if (parseOk) {

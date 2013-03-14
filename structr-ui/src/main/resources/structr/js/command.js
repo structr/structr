@@ -452,17 +452,18 @@ var Command = {
      * Send an IMPORT command to the server.
      * 
      * This command will trigger the server-side importer to start with
-     * parsing and importing the page data from the given address.
+     * parsing the given source code or importing the page data from the given address.
      * If successful, the server will add a new page with the given name
      * and make it visible for public or authenticated users.
      * 
      * The server will broadcast CREATE and ADD notifications for each
      * node respective relationship created.
      */
-    importPage : function(address, name, timeout, publicVisible, authVisible) {
+    importPage : function(code, address, name, timeout, publicVisible, authVisible) {
         var obj = {};
         var data = {};
         obj.command = 'IMPORT';
+        data.code = code;
         data.address = address;
         data.name = name;
         data.timeout = timeout;
