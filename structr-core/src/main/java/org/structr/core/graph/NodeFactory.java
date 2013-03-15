@@ -604,7 +604,7 @@ public class NodeFactory<T extends AbstractNode> {
 	//~--- get methods ----------------------------------------------------
 
 	/**
-	 * Return all nodes which are connected by an incoming IS_AT relationship
+	 * Return all nodes which are connected by an incoming IS_AT relationships
 	 *
 	 * @param locationNode
 	 * @return
@@ -615,7 +615,12 @@ public class NodeFactory<T extends AbstractNode> {
 
 		for (AbstractRelationship rel : locationNode.getRelationships(RelType.IS_AT, Direction.INCOMING)) {
 
-			nodes.add(rel.getStartNode());
+			AbstractNode startNode = rel.getStartNode();
+			
+			nodes.add(startNode);
+			
+			// add more nodes which are "at" this one
+			nodes.addAll(getNodesAt(startNode));
 		}
 
 		return nodes;
