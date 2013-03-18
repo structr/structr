@@ -358,7 +358,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 						if (op.equals(SearchOperator.NOT)) {
 
-							if ((nodeValue != null) && !(nodeValue.equals(searchValue))) {
+							if ((nodeValue != null) && !(nodeValue.equals(decodeExactMatch(searchValue)))) {
 
 								attr.addToResult(node);
 							}
@@ -370,7 +370,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 								attr.addToResult(node);
 							}
 
-							if ((nodeValue != null) && nodeValue.equals(searchValue)) {
+							if ((nodeValue != null) && nodeValue.equals(decodeExactMatch(searchValue))) {
 
 								attr.addToResult(node);
 							}
@@ -513,12 +513,6 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 	}
 
-	private String decodeExactMatch(final String value) {
-
-		return StringUtils.strip(value, "\"");
-
-	}
-
 	private void handleAttributeGroup(final SearchAttributeGroup attributeGroup, StringBuilder queryString, List<TextualSearchAttribute> textualAttributes, boolean allExactMatch) {
 
 		List<SearchAttribute> groupedAttributes = attributeGroup.getSearchAttributes();
@@ -586,4 +580,22 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 	}
 
+	private String decodeExactMatch(final String value) {
+
+		return StringUtils.strip(value, "\"");
+
+	}
+	
+	private Object decodeExactMatch(final Object value) {
+		
+		if (value instanceof String) {
+
+			return decodeExactMatch((String) value);
+			
+		} else {
+			return value;
+		}
+
+	}
+	
 }

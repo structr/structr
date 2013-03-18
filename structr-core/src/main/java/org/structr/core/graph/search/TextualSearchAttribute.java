@@ -28,29 +28,14 @@ import org.structr.core.graph.NodeAttribute;
  */
 public class TextualSearchAttribute extends SearchAttribute {
 
-    private NodeAttribute nodeAttribute;
-
     public TextualSearchAttribute(final PropertyKey key, final String value, final SearchOperator searchOp) {
         nodeAttribute = new NodeAttribute(key, value);
         setSearchOperator(searchOp);
     }
 
     @Override
-    public Object getAttribute() {
-        return nodeAttribute;
-    }
-
-    @Override
-    public void setAttribute(Object attribute) {
-        this.nodeAttribute = (NodeAttribute) attribute;
-    }
-
-    public PropertyKey getKey() {
-        return nodeAttribute.getKey();
-    }
-
     public String getValue() {
-        return (String) nodeAttribute.getValue();
+        return (String) super.getValue();
     }
 
 }

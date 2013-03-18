@@ -50,10 +50,12 @@ public class RangeSearchAttribute extends SearchAttribute {
 	public void setAttribute(Object attribute) {
 	}
 
+	@Override
 	public PropertyKey getKey() {
 		return searchKey;
 	}
 
+	@Override
 	public String getValue() {
 		
 		StringBuilder buf = new StringBuilder();

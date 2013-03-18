@@ -56,6 +56,7 @@ import org.structr.core.Result;
 public abstract class Search {
 
 	public static final String DISTANCE_SEARCH_KEYWORD    = "distance";
+	public static final String LOCATION_SEARCH_KEYWORD    = "location";
 	private static final Logger logger                    = Logger.getLogger(Search.class.getName());
 	private static final Set<Character> specialCharsExact = new LinkedHashSet<Character>();
 	private static final Set<Character> specialChars      = new LinkedHashSet<Character>();

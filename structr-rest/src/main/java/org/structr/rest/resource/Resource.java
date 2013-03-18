@@ -100,6 +100,10 @@ public abstract class Resource {
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+
+		NON_SEARCH_FIELDS.add(Search.DISTANCE_SEARCH_KEYWORD);
+		NON_SEARCH_FIELDS.add(Search.LOCATION_SEARCH_KEYWORD);
+
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -413,21 +417,21 @@ public abstract class Resource {
 		return findGrant(request, response);
 	}
 
-	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request) {
+	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request, final Set<String> validAttrs) {
 
 		final String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
 
-		if (request != null &&!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
+		if (request != null && !request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
 			final Double dist				= Double.parseDouble(distance);
-			final StringBuilder searchKey	= new StringBuilder();
-			final Enumeration names			= request.getParameterNames();
+			final StringBuilder searchKey			= new StringBuilder();
+			final Enumeration names				= request.getParameterNames();
 
 			while (names.hasMoreElements()) {
 
 				final String name = (String) names.nextElement();
 
-				if (!name.equals(Search.DISTANCE_SEARCH_KEYWORD)
+				if (!name.equals(Search.DISTANCE_SEARCH_KEYWORD) && !validAttrs.contains(name)
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE)
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER)

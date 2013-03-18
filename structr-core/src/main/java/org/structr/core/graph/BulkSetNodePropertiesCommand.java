@@ -41,6 +41,8 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.EntityContext;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.module.ModuleService;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -64,16 +66,20 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
 		final SearchNodeCommand searchNode     = Services.command(superUserContext, SearchNodeCommand.class);
-
+		
+		
+		String type                      = null;
+		
 		if (graphDb != null) {
 
 			Result<AbstractNode> nodes = null;
 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
+				type = (String) properties.get(AbstractNode.type.dbName());
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-				attrs.add(Search.andExactType((String) properties.get(AbstractNode.type.dbName())));
+				attrs.add(Search.andExactType(type));
 
 				nodes = searchNode.execute(attrs);
 
@@ -84,11 +90,14 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 				nodes = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 			}
 
-
+			final Class cls = Services.getService(ModuleService.class).getNodeEntityClass(type);
+			
 			long nodeCount = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+					
+					
 
 					// Treat only "our" nodes
 					if (node.getProperty(AbstractNode.uuid) != null) {
@@ -96,7 +105,21 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 						for (Entry entry : properties.entrySet()) {
 
 							String key = (String) entry.getKey();
-							Object val = entry.getValue();
+							Object val = null;
+
+							PropertyConverter inputConverter = EntityContext.getPropertyKeyForJSONName(cls, key).inputConverter(securityContext);
+
+							
+							if (inputConverter != null) {
+								try {
+									val = inputConverter.convert(entry.getValue());
+								} catch (FrameworkException ex) {
+									logger.log(Level.SEVERE, null, ex);
+								}
+								
+							} else {
+								val = entry.getValue();
+							}
 
 							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(node.getClass(), key);
 							if (propertyKey != null) {

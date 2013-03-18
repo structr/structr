@@ -35,27 +35,12 @@ import org.structr.core.graph.NodeAttribute;
  */
 public class DistanceSearchAttribute extends SearchAttribute {
 
-    private NodeAttribute nodeAttribute;
-
     public DistanceSearchAttribute(final String searchString, final Double distance, final SearchOperator searchOp) {
         nodeAttribute = new NodeAttribute(new StringProperty(searchString), distance);
         setSearchOperator(searchOp);
     }
 
     @Override
-    public Object getAttribute() {
-        return nodeAttribute;
-    }
-
-    @Override
-    public void setAttribute(Object attribute) {
-        this.nodeAttribute = (NodeAttribute) attribute;
-    }
-
-    public PropertyKey getKey() {
-        return nodeAttribute.getKey();
-    }
-
     public Double getValue() {
         return (Double) nodeAttribute.getValue();
     }

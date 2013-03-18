@@ -59,13 +59,27 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 
-		if (propertyContainer != null && propertyContainer.hasProperty(dbName())) {
+		boolean hasProperty = false;
+		
+		
+		try {
+			// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
+			hasProperty = propertyContainer.hasProperty(dbName());
+
+		} catch (IllegalStateException ise) {
+			
+			logger.log(Level.WARNING, "Could not determine property " + dbName + " of the requested graph object", ise);
+			
+		}
+			
+		if (propertyContainer != null && hasProperty) {
 
 			value = propertyContainer.getProperty(dbName());
 
 		}
 
-		if(applyConverter) {
+
+		if (applyConverter) {
 
 			// apply property converters
 			PropertyConverter converter = databaseConverter(securityContext, obj);

@@ -21,6 +21,8 @@ package org.structr.core.graph.search;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.property.PropertyKey;
 
 /**
  * Wrapper representing a part of a search query. All parts of a search query
@@ -32,6 +34,8 @@ import org.structr.core.GraphObject;
 public abstract class SearchAttribute {
 
     public static final String WILDCARD = "*";
+
+    protected NodeAttribute nodeAttribute;
 
     private SearchOperator searchOp = null;
     private List<GraphObject> result = new LinkedList<GraphObject>();
@@ -56,8 +60,21 @@ public abstract class SearchAttribute {
         result.add(graphObject);
     }
 
-    public abstract Object getAttribute();
+    public Object getAttribute() {
+        return nodeAttribute;
+    }
 
-    public abstract void setAttribute(Object attribute);
+    public void setAttribute(Object attribute) {
+	    this.nodeAttribute = (NodeAttribute) attribute;
+    };
+    
+    public PropertyKey getKey() {
+        return nodeAttribute.getKey();
+    }
+
+    public Object getValue() {
+        return nodeAttribute.getValue();
+    }
+    
     
 }
