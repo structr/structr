@@ -109,8 +109,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final EntityIdProperty parentId                           = new EntityIdProperty("parentId", parent);
 
-	public static final EntityProperty<Page> page                           = new EntityProperty<Page>("page", Page.class, RelType.PAGE, Direction.OUTGOING, true);
-	public static final EntityIdProperty pageId                             = new EntityIdProperty("pageId", page);
+	public static final EntityProperty<Page> ownerDocument                  = new EntityProperty<Page>("ownerDocument", Page.class, RelType.PAGE, Direction.OUTGOING, true);
+	public static final EntityIdProperty pageId                             = new EntityIdProperty("pageId", ownerDocument);
 
 	private static Set<Page> resultPages                                    = new HashSet<Page>();
 		
@@ -398,6 +398,28 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			String part = parts[i];
 
+			
+			if (_data != null) {
+
+				Object value = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), part));
+
+				if (value instanceof GraphObject) {
+					_data = (GraphObject) value;
+
+					continue;
+
+				}
+			}
+			
+			// data objects from parent elements
+			if (renderContext.hasDataForKey(part.toLowerCase())) {
+				
+				_data = renderContext.getDataNode(part.toLowerCase());
+				
+				continue;
+			}
+
+
 			// special keyword "request"
 			if ("request".equals(part.toLowerCase())) {
 
@@ -419,36 +441,57 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			}
 
-			// special keyword "page"
-			if ("page".equals(part.toLowerCase())) {
+			// the following keywords work only on root level
+			// so that they can be used as property keys for data objects
+			if (_data == null) {
+			
+				// special keyword "ownerDocument", works only on root level
+				if ("page".equals(part.toLowerCase())) {
 
-				_data = _page;
+					_data = _page;
 
-				continue;
-
-			}
-
-			// special keyword "link"
-			if ("link".equals(part.toLowerCase())) {
-
-				for (AbstractRelationship rel : getRelationships(RelType.LINK, Direction.OUTGOING)) {
-
-					_data = rel.getEndNode();
-
-					break;
+					continue;
 
 				}
 
-				continue;
+				// special keyword "link", works only on root level
+				if (_data == null && "link".equals(part.toLowerCase())) {
 
-			}
+					for (AbstractRelationship rel : getRelationships(RelType.LINK, Direction.OUTGOING)) {
 
-			// special keyword "parent"
-			if ("parent".equals(part.toLowerCase())) {
+						_data = rel.getEndNode();
 
-				for (AbstractRelationship rel : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
+						break;
 
-					if (rel.getProperty(pageIdProperty) != null) {
+					}
+
+					continue;
+
+				}
+
+				// special keyword "parent"
+				if ("parent".equals(part.toLowerCase())) {
+
+					for (AbstractRelationship rel : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
+
+						if (rel.getProperty(pageIdProperty) != null) {
+
+							_data = rel.getStartNode();
+
+							break;
+
+						}
+
+					}
+
+					continue;
+
+				}
+
+				// special keyword "owner"
+				if ("owner".equals(part.toLowerCase())) {
+
+					for (AbstractRelationship rel : getRelationships(RelType.OWNS, Direction.INCOMING)) {
 
 						_data = rel.getStartNode();
 
@@ -456,59 +499,38 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 					}
 
-				}
-
-				continue;
-
-			}
-
-			// special keyword "owner"
-			if ("owner".equals(part.toLowerCase())) {
-
-				for (AbstractRelationship rel : getRelationships(RelType.OWNS, Direction.INCOMING)) {
-
-					_data = rel.getStartNode();
-
-					break;
+					continue;
 
 				}
 
-				continue;
+				// special keyword "result_size"
+				if ("result_size".equals(part.toLowerCase())) {
 
-			}
+					Set<Page> pages = getResultPages(securityContext, (Page) _page);
 
-			// data objects from parent elements
-			if (renderContext.hasDataForKey(part.toLowerCase())) {
+					if (!pages.isEmpty()) {
+
+						return pages.size();
+					}
+
+					return 0;
+
+				}
+
+				// special keyword "rest_result"
+				if ("rest_result".equals(part.toLowerCase())) {
+
+					HttpServletRequest request = securityContext.getRequest();
+
+					if (request != null) {
+
+						return StringEscapeUtils.escapeJavaScript(StringUtils.replace(StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE)), "\n", ""));
+					}
+
+					return 0;
+
+				}
 				
-				_data = renderContext.getDataNode(part.toLowerCase());
-			}
-
-			// special keyword "result_size"
-			if ("result_size".equals(part.toLowerCase())) {
-
-				Set<Page> pages = getResultPages(securityContext, (Page) _page);
-
-				if (!pages.isEmpty()) {
-
-					return pages.size();
-				}
-
-				return 0;
-
-			}
-
-			// special keyword "rest_result"
-			if ("rest_result".equals(part.toLowerCase())) {
-
-				HttpServletRequest request = securityContext.getRequest();
-
-				if (request != null) {
-
-					return StringEscapeUtils.escapeJavaScript(StringUtils.replace(StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE)), "\n", ""));
-				}
-
-				return 0;
-
 			}
 
 		}
@@ -642,7 +664,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	 * Return (cached) result pages
 	 *
 	 * Search string is taken from SecurityContext's http request
-	 * Given displayPage is substracted from search result (we don't want to return search result page in search results)
+	 * Given displayPage is substracted from search result (we don't want to return search result ownerDocument in search results)
 	 *
 	 * @param securityContext
 	 * @param displayPage
@@ -689,7 +711,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				resultPages.addAll(PageHelper.getPages(securityContext, content));
 			}
 
-			// Remove result page itself
+			// Remove result ownerDocument itself
 			resultPages.remove((Page) displayPage);
 
 		} catch (FrameworkException fe) {
@@ -879,7 +901,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	@Override
 	public Document getOwnerDocument() {
-		return getProperty(page);
+		return getProperty(ownerDocument);
 	}
 
 	@Override
@@ -1257,7 +1279,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			
 			try {
 				
-				setProperty(page, _page);
+				setProperty(ownerDocument, _page);
 				
 			} catch (FrameworkException fex) {
 				

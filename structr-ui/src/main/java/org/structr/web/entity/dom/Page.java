@@ -69,7 +69,7 @@ import org.structr.web.entity.Condition;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Represents a page resource
+ * Represents a ownerDocument resource
  *
  * @author Axel Morgner
  * @author Christian Morgner
@@ -107,9 +107,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 * Creates a new Page entity with the given name in the database.
 	 * 
 	 * @param securityContext the security context to use
-	 * @param name the name of the new page, defaults to "page" if not set
+	 * @param name the name of the new ownerDocument, defaults to "ownerDocument" if not set
 	 * 
-	 * @return the new page
+	 * @return the new ownerDocument
 	 * @throws FrameworkException 
 	 */
 	public static Page createNewPage(SecurityContext securityContext, String name) throws FrameworkException {
@@ -206,7 +206,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						new NodeAttribute(DOMElement.tag, tag)
 					);
 					
-					// create relationship from page to new text element
+					// create relationship from ownerDocument to new text element
 					Page.elements.createRelationship(securityContext, Page.this, element);
 					
 					return element;
@@ -236,7 +236,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.DocumentFragment.class.getSimpleName())
 					);
 					
-					// create relationship from page to new text element
+					// create relationship from ownerDocument to new text element
 					Page.elements.createRelationship(securityContext, Page.this, fragment);
 					
 					return fragment;
@@ -268,7 +268,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						new NodeAttribute(Content.content,   text)
 					);
 					
-					// create relationship from page to new text element
+					// create relationship from ownerDocument to new text element
 					Page.elements.createRelationship(securityContext, Page.this, content);
 					
 					return content;
@@ -298,7 +298,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.Comment.class.getSimpleName())
 					);
 					
-					// create relationship from page to new text element
+					// create relationship from ownerDocument to new text element
 					Page.elements.createRelationship(securityContext, Page.this, content);
 					
 					return content;
@@ -328,7 +328,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						new NodeAttribute(AbstractNode.type, Cdata.class.getSimpleName())
 					);
 					
-					// create relationship from page to new text element
+					// create relationship from ownerDocument to new text element
 					Page.elements.createRelationship(securityContext, Page.this, content);
 					
 					return content;

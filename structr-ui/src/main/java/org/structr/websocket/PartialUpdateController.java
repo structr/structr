@@ -112,7 +112,7 @@ public class PartialUpdateController implements TransactionNotifier {
 			
 			try {
 				
-				Page page = el.getProperty(DOMNode.page);
+				Page page = el.getProperty(DOMNode.ownerDocument);
 				
 				// render only when contained in a page
 				if (page != null) {
