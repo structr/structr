@@ -96,8 +96,6 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
-					
-					
 
 					// Treat only "our" nodes
 					if (node.getProperty(AbstractNode.uuid) != null) {
