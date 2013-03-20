@@ -66,11 +66,6 @@ if (browser) {
     
 } else {
     defaultView = 'public';
-    // default header fields
-    headers = {
-        'X-User' : 'admin',
-        'X-Password' : 'admin'
-    };   
 }
 
 var _Crud = {
@@ -102,12 +97,6 @@ var _Crud = {
             headers = {
                 'X-StructrSessionToken' : token
             };
-        } else {
-            headers = {
-                'X-User' : 'admin',
-                'X-Password' : 'admin'
-            };   
-            
         }
 
         _Crud.schemaLoading = false;
@@ -170,12 +159,7 @@ var _Crud = {
         // check for single edit mode
         var id = urlParam('id');
         if (id) {
-            console.log('edit mode, editing ', id);
-            headers = {
-                'X-User' : 'admin',
-                'X-Password' : 'admin'
-            };   
-            
+            //console.log('edit mode, editing ', id);
             _Crud.loadSchema(function() {
                 _Crud.crudRead(null, id, function(node) {
                     //console.log(node, _Crud.view[node.type]);
