@@ -178,8 +178,8 @@ var _Crud = {
             
             _Crud.loadSchema(function() {
                 _Crud.crudRead(null, id, function(node) {
-                    console.log(node, _Crud.view[node.type]);
-                    _Crud.showDetails(node, false, _Crud.type);
+                    //console.log(node, _Crud.view[node.type]);
+                    _Crud.showDetails(node, false, node.type);
                 });
             });
             
