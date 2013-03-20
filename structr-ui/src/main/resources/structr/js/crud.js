@@ -92,13 +92,6 @@ var _Crud = {
     
     init : function() {
 
-        if (token) {
-
-            headers = {
-                'X-StructrSessionToken' : token
-            };
-        }
-
         _Crud.schemaLoading = false;
         _Crud.schemaLoaded = false;
         _Crud.schema = [];
@@ -155,6 +148,13 @@ var _Crud = {
         
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
+
+        if (token) {
+
+            headers = {
+                'X-StructrSessionToken' : token
+            };
+        }
 
         // check for single edit mode
         var id = urlParam('id');
@@ -695,8 +695,8 @@ var _Crud = {
         // use 'ui' view as default to make the 'edit by id' feature work
         var view = (type && _Crud.view[type] ? _Crud.view[type] : 'ui');
         var url = rootUrl + id + '/' + view;
-        //console.log('headers', headers);
-        //console.log('url', url);
+        console.log('headers', headers);
+        console.log('url', url);
         $.ajax({
             url: url,
             headers: headers,
