@@ -56,26 +56,6 @@ if (browser) {
             _Crud.type = defaultType;
         //            console.log(_Crud.type);
         }
-
-        // check for single edit mode
-        var id = urlParam('id');
-        if (id) {
-            console.log('edit mode, editing ', id);
-            headers = {
-                'X-User' : 'admin',
-                'X-Password' : 'admin'
-            };   
-            
-            _Crud.loadSchema(function() {
-                _Crud.crudRead(null, id, function(node) {
-                    //console.log(node);
-                    _Crud.showDetails(node, false, _Crud.type);
-                });
-            });
-            
-        } else {
-        //_Crud.onload();
-        }
         
         _Crud.resize();
         $(window).on('resize', function() {
@@ -186,9 +166,26 @@ var _Crud = {
         
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
-        
-        _Crud.init();
 
+        // check for single edit mode
+        var id = urlParam('id');
+        if (id) {
+            console.log('edit mode, editing ', id);
+            headers = {
+                'X-User' : 'admin',
+                'X-Password' : 'admin'
+            };   
+            
+            _Crud.loadSchema(function() {
+                _Crud.crudRead(null, id, function(node) {
+                    console.log(node, _Crud.view[node.type]);
+                    _Crud.showDetails(node, false, _Crud.type);
+                });
+            });
+            
+        } else {
+            _Crud.init();
+        }
     
     },
 
@@ -247,24 +244,6 @@ var _Crud = {
      */
     loadSchema : function(callback) {
         
-//        // Load all types from Schema resource one-time
-//        var url = rootUrl + '_schema';
-//        $.ajax({
-//            url: url,
-//            headers: headers,
-//            dataType: 'json',
-//            contentType: 'application/json; charset=utf-8',
-//            success: function(data) {
-//                var types = [];
-//                $.each(data.result, function(i, res) {
-//                    if (res.type && res.views && !res.views._html_) {
-//                        _Crud.allTypes.push(res.type);
-//                    }
-//                });
-//                _Crud.allTypes.sort();
-//            }
-//        });        
-        
         // Avoid duplicate loading of schema
         if (_Crud.schemaLoading) {
             return;
@@ -289,16 +268,16 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                console.log(data);
+                //console.log(data);
                 var types = [];
                 $.each(data.result, function(i, res) {
                     var type = getTypeFromResourceSignature(res.signature);
-                    console.log(res);
+                    //console.log(res);
                     if (!isIn(type, _Crud.types)) {
                         types.push({'type': type, 'position': res.position});
                     }
                 });
-                console.log(types);
+                //console.log(types);
                 types.sort(function(a, b) {
                     return a.position - b.position;
                 });
@@ -729,9 +708,13 @@ var _Crud = {
     },
 
     crudRead : function(type, id, callback) {
-        console.log('headers', headers);
+        // use 'ui' view as default to make the 'edit by id' feature work
+        var view = (type && _Crud.view[type] ? _Crud.view[type] : 'ui');
+        var url = rootUrl + id + '/' + view;
+        //console.log('headers', headers);
+        //console.log('url', url);
         $.ajax({
-            url: rootUrl + id + (type && _Crud.view[type] ? '/' + _Crud.view[type] : ''),
+            url: url,
             headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -1370,7 +1353,7 @@ var _Crud = {
 
         if (!relatedType) {
             
-            if (value !== null && value.constructor === Boolean) {
+            if (value && value.constructor === Boolean) {
                 cell.append('<input type="checkbox" ' + (value?'checked="checked"':'') + '>');
                 $('input', cell).on('change', function() {
                    //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
@@ -1393,11 +1376,15 @@ var _Crud = {
         } else if (isCollection) {
                     
             simpleType = lastPart(relatedType, '.');
+            
+            if (value && value.length) {
                     
-            $.each(value, function(v, relatedId) {
-                _Crud.getAndAppendNode(type, id, key, relatedId, cell);
-            });
-            //cells.append('<div style="clear:both"><img class="add" src="icon/add_grey.png"></div>');
+                $.each(value, function(v, relatedId) {
+                    _Crud.getAndAppendNode(type, id, key, relatedId, cell);
+                });
+                //cells.append('<div style="clear:both"><img class="add" src="icon/add_grey.png"></div>');
+            }
+
             cell.append('<img class="add" src="icon/add_grey.png">');
             $('.add', cell).on('click', function() {
                 _Crud.dialog('Add ' + simpleType, function() {}, function() {});
@@ -1881,8 +1868,7 @@ var _Crud = {
             var l = parseInt((w-dw)/2);
             var t = parseInt((h-dh)/2);
             
-            console.log(w, h, dw, dh, l, t);
-            
+            //console.log(w, h, dw, dh, l, t);
             
             $.blockUI({
                 fadeIn: 25,
