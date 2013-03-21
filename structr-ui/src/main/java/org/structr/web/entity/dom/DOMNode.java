@@ -589,6 +589,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				if (partValue != null) {
 
 					value = value.replace(group, partValue);
+				} else {
+					value = value.replace(group, "");
 				}
 
 			}

@@ -349,7 +349,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							}
 
 						} else {
-							subNode.render(securityContext, renderContext, depth + 1);
+							//subNode.render(securityContext, renderContext, depth + 1);
 						}
 
 						// reset data node in render context
