@@ -126,7 +126,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 //			assertNotNull(rel);
 //
 //			GraphDatabaseService graphDb      = graphDbCommand.execute();
-//			ExecutionEngine engine            = (ExecutionEngine) new ExecutionEngine(graphDb);
+//			ExecutionEngine engine            = new ExecutionEngine(graphDb);
 //			ExecutionResult result            = engine.execute("start n = node(*) match (n)<-[r:ONE_TO_ONE]-() return r");
 //
 //			final Iterator<Relationship> rels = result.columnAs("r");
@@ -175,7 +175,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 //			assertTrue(testNodes.size() == 1);
 //
 //			GraphDatabaseService graphDb      = graphDbCommand.execute();
-//			ExecutionEngine engine            = (ExecutionEngine) new ExecutionEngine(graphDb);
+//			ExecutionEngine engine            = new ExecutionEngine(graphDb);
 //			ExecutionResult result            = engine.execute("start n = node:keywordAllNodes(type = 'UnknownTestType') return n");
 //
 //			final Iterator<Node> nodes = result.columnAs("n");
