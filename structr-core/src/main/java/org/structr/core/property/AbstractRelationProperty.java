@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.*;
 import org.structr.common.FactoryDefinition;
@@ -162,7 +163,15 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 			}
 
-			throw new FrameworkException(type, new IdNotFoundToken(targetNode));
+			if (sourceNode == null) {
+				logger.log(Level.WARNING, "No source node!");
+				throw new FrameworkException(type, new IdNotFoundToken(sourceNode));
+			}
+			
+			if (targetNode == null) {
+				logger.log(Level.WARNING, "No target node!");
+				throw new FrameworkException(type, new IdNotFoundToken(targetNode));
+			}
 
 		}
 	}

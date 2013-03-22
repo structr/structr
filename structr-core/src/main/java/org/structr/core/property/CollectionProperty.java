@@ -243,7 +243,9 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 				
 				for (GraphObject targetNode : collection) {
 
-					createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
+					if (targetNode != null) {
+						createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
+					}
 				}
 
 			} else {
