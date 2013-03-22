@@ -77,6 +77,11 @@
             <version>${neo4j.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-shell</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.tinkerpop.gremlin</groupId>
             <artifactId>gremlin-groovy</artifactId>
             <version>1.5</version>
@@ -159,11 +164,6 @@
             <groupId>org.fusesource.hawtdb</groupId>
             <artifactId>hawtdb</artifactId>
             <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-shell</artifactId>
-            <version>${neo4j.version}</version>
         </dependency>
     </dependencies>
 

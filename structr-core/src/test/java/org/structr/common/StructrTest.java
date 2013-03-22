@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import org.structr.core.graph.DeleteRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -79,6 +80,7 @@ public class StructrTest extends TestCase {
 	protected CreateNodeCommand createNodeCommand;
 	protected CreateRelationshipCommand createRelationshipCommand;
 	protected DeleteNodeCommand deleteNodeCommand;
+	protected DeleteRelationshipCommand deleteRelationshipCommand;
 	protected FindNodeCommand findNodeCommand;
 	protected GraphDatabaseCommand graphDbCommand;
 	protected ReadLogCommand readLogCommand;
@@ -341,6 +343,7 @@ public class StructrTest extends TestCase {
 		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
 		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
 		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
+		deleteRelationshipCommand = Services.command(securityContext, DeleteRelationshipCommand.class);
 		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
 		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
 		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
