@@ -14,6 +14,8 @@ var graph;
 var canvas;
 var relBox;
 
+var hiddenRelTypes = [ "OWNS", "SECURITY" ];
+
 //$(document).ready(function() {
 //  drawGraph(startNodeId);
 //});
@@ -42,7 +44,7 @@ function drawGraph(id) {
     graph = new Graph($('#graph'));
     canvas = new Canvas(graph.element);
     context = canvas.element.getContext("2d");
-    relBox = $('.relBox', canvas.element);
+    relBox = $('.relBox', graph.element);
 
     resizeCanvas();
 
@@ -60,7 +62,7 @@ function drawGraph(id) {
 
 
 function Graph(element) {
-    
+
     this.element = element;
 
     this.nodes = [];
@@ -68,20 +70,68 @@ function Graph(element) {
 
     this.nodeIds = [];
     this.relationshipIds = [];
-    
+
     this.relationshipTypes = [];
+    this.hiddenRelationshipTypes = hiddenRelTypes; 
 
     var self = this;
 
     this.updateRelBox = function() {
-        
+
+        relBox.empty();
+
         $.each(this.relationshipTypes, function(i, type) {
-            relBox.append('<li>' + type + '</li>');
+
+            console.log(type, 'relationships', graph.relationships);
+
+            relBox.append('<li><input type="checkbox" id="toggle_' + type + '" ' + (isIn(type, hiddenRelTypes) ? '' : 'checked="checked"') + '>' + type + '</li>');
+            //relBox.append('<li><input type="checkbox" id="toggle_' + type + '" ' +                                                         '>' + type + '</li>');
+
+            $('#toggle_' + type).change(function() {
+
+                if (!isIn(type, graph.hiddenRelationshipTypes)) {
+                    //console.log('added', type, ' to hidden relationship types');
+                    graph.hiddenRelationshipTypes.push(type);
+                    
+                    console.log('graph.relationships',  graph.relationships);
+
+                    $.each(Object.keys(graph.relationships), function(k, relId) {
+                        if (graph.relationships[relId].type === type) {
+                            graph.relationshipIds = without(relId, graph.relationshipIds);
+                            console.log('hide', relId);
+                        }
+                    });
+
+                    console.log('(added) relationships overall', graph.relationships);
+
+                } else {
+
+                    //console.log('removed', type, ' from  hidden relationship types');
+                    graph.hiddenRelationshipTypes = without(type, graph.hiddenRelationshipTypes);
+
+                    $.each(Object.keys(graph.relationships), function(k, relId) {
+                        if (graph.relationships[relId].type === type) {
+                            graph.relationshipIds.push(relId);
+                            console.log('show', relId);
+                        }
+                    });
+
+                    console.log('(removed) relationships overall', graph.relationships);
+
+                }
+                //console.log('Hidden relationship types', graph.hiddenRelationshipTypes);
+                graph.redrawRelationships();
+            });
+
         });
-        
+
     };
 
     this.render = function(nodeId, depth, pos) {
+        
+        if (!nodeId) {
+            return;
+        }
 
         if (depth > maxDepth)
             return;
@@ -110,7 +160,7 @@ function Graph(element) {
                 var node = new Node(graph, nodeId, size, pos);
 
                 console.log('Node added to graph', graph, nodeId, size, pos);
-                
+
                 var entity = data.result;
 //                var props = Object.keys(data.result);
 
@@ -208,25 +258,25 @@ function Graph(element) {
                             return;
                         var results = data.result;
 
-                        for (var i = 0; i < Math.min(10, results.length); i++) {
+                        for (var i = 0; i < Math.min(100, results.length); i++) {
 
                             var r = results[i];
 
-                            var type = r.combinedType;
-                            
+                            var type = simpleType(r.combinedType);
+
                             if (!isIn(type, graph.relationshipTypes)) {
                                 graph.relationshipTypes.push(type);
                                 graph.updateRelBox();
                             }
 
-                            if (graph.hasRelationship(r.id) || type.contains('OWNS') || type.contains('SECURITY'))
+                            if (graph.hasRelationship(r.id) || isIn(type, graph.hiddenRelationshipTypes))
                                 continue;
 
                             if (!(graph.hasNode(r.endNodeId))) {
                                 graph.render(r.endNodeId, depth + 1, nextPos(pos, canvas.h / (depth + 3)));
                             }
 
-                            var rel = new Relationship(graph, r.id, r.combinedType, node.id, r.endNodeId);
+                            var rel = new Relationship(graph, r.id, type, node.id, r.endNodeId);
                             graph.addRelationship(rel);
 
                         }
@@ -243,25 +293,25 @@ function Graph(element) {
                         if (!data || data.length == 0 || !data.result)
                             return;
                         var results = data.result;
-                        for (var i = 0; i < Math.min(10, results.length); i++) {
+                        for (var i = 0; i < Math.min(100, results.length); i++) {
 
                             var r = results[i];
-                            
-                            var type = r.combinedType;
+
+                            var type = simpleType(r.combinedType);
 
                             if (!isIn(type, graph.relationshipTypes)) {
                                 graph.relationshipTypes.push(type);
                                 graph.updateRelBox();
                             }
 
-                            if (graph.hasRelationship(r.id) || type.contains('OWNS') || type.contains('SECURITY'))
+                            if (graph.hasRelationship(r.id) || isIn(type, graph.hiddenRelationshipTypes))
                                 continue;
 
                             if (!(graph.hasNode(r.startNodeId))) {
                                 graph.render(r.startNodeId, depth + 1, nextPos(pos, canvas.h / (depth + 3)));
                             }
 
-                            var rel = new Relationship(graph, r.id, r.combinedType, r.startNodeId, node.id);
+                            var rel = new Relationship(graph, r.id, type, r.startNodeId, node.id);
                             graph.addRelationship(rel);
 
                         }
@@ -308,11 +358,15 @@ function resizeCanvas() {
 
     var w = $(window).width() - 48;
     var h = $(window).height() - $('#header').height() - 72;
-    
+
     canvas.parent.width(w);
     canvas.parent.height(h);
 
-    canvas.setSize(w+24, h+24);
+    canvas.setSize(w + 24, h + 24);
 
     graph.redrawRelationships();
+}
+
+function simpleType(combinedType) {
+    return combinedType.split(' ')[1];
 }

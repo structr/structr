@@ -34,8 +34,24 @@ function sortArray(arrayIn, sortBy) {
     return arrayOut;
 }
 
-function isIn(id, ids) {
-    return ($.inArray(id, ids) > -1);
+function without(s, array) {
+    if (!isIn(s, array)) {
+        return;
+    }
+    
+    var res = [];
+    $.each(array, function(i, el) {
+       if (!(el === s)) {
+           res.push(el);
+       } 
+    });
+    
+    return res;
+    
+}
+
+function isIn(s, array) {
+    return ($.inArray(s, array) > -1);
 }
 
 function escapeTags(str) {
