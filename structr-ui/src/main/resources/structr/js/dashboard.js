@@ -18,9 +18,11 @@
  */
 
 var win = $(window);
+var canvas;
 
 $(document).ready(function() {
     Structr.registerModule('dashboard', _Dashboard);
+
 
 //    win.resize(function() {
 //        _Dashboard.resize();
@@ -47,26 +49,72 @@ var _Dashboard = {
 
         log('onload');
         
-        main.append('<div class="callToAction button">Create a new Page <img src="img/go.gif" alt="Create a new Page"></div>');
+        main.append('<div class="searchBox"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+        //main.append('<div class="canvas"></div>');
+        //canvas = $('.canvas', main);
         
-        $(main.children('.callToAction')).on('click', function(e) {
-            e.stopPropagation();
-            main.empty();
-            Structr.activateMenuEntry('pages');
-            Structr.modules['pages'].onload();
+        main.append('<div class="canvas" id="graph"></div>');
+        
+        
+        searchField = $('.search', main);
+        searchField.focus();
+        
+        searchField.keyup(function(e) {
+            var searchString = $(this).val();
+            if (searchString && searchString.length && e.keyCode === 13) {
+                
+                $('.clearSearchIcon').show().on('click', function() {
+                    _Crud.clearSearch(main);
+                });
+               
+               Command.search(searchString);
+               
+                
+            } else if (e.keyCode === 27 || searchString === '') {
+                
+                _Dashboard.clearSearch();
+                
+            }
             
-            document.location = '/structr/#pages'
             
-            Command.createSimplePage();
-
-            _Pages.resize();
-
         });
+        
+        drawGraph();
 
     },
 
-    refresh : function() {
-        dashboard.empty();
-    }
+    appendNode : function(node) {
+        
+        graph.render(node.id, 0, [canvas.w / 2, canvas.h / 2]);
+//        var hasChildren = node.children && node.children.length;
+//        console.log('appendNode', node, hasChildren);
+//        canvas.append('<div id="id_' + node.id + '" class="node">'
+//            + '<b title="' + node.name + '" class="name_">' + fitStringToSize(node.name, 200) + '</b> <span class="id">' + node.id + '</span>'
+//            + '</div>');
+//        var div = Structr.node(node.id);
+//
+//        div.append('<img title="Delete node ' + node.id + '" alt="Delete node ' + node.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+//        $('.delete_icon', div).on('click', function(e) {
+//            e.stopPropagation();
+//            _Entities.deleteNode(this, node)
+//        });
+//
+//        div.draggable();
+//        
+//        _Entities.appendEditPropertiesIcon(div, node);
+//        _Entities.setMouseOver(div);
+//        
+//        return div;
+    },
 
+    clearSearch : function() {
+        _Dashboard.clearSearchResults();
+         $('.clearSearchIcon').hide().off('click');
+         $('.search').val('');
+    },
+    
+    clearSearchResults : function() {
+        canvas.empty();
+    },
+   
 };

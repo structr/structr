@@ -560,7 +560,7 @@ var Structr = {
     
     node : function(id) {
         var node = $($('#id_' + id)[0]);
-        log('Structr.node', node);
+        console.log('Structr.node', node);
         return node.length ? node : undefined;
     },
     

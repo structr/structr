@@ -296,7 +296,7 @@ img.thumbnail {
 .searchBox {
      position: absolute;
      right: 12px;
-     top: 16px;
+     top: 15px;
      z-index: 5;
      line-height: 1em;
 }

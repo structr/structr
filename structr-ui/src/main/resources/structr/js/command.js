@@ -24,14 +24,13 @@
  * 
  */
 var Command = {
-
     /**
      * Send a single GET command to the server.
      * 
      * The server will return a single item with all properties
      * of the node with the given id to the sending client (no broadcast).
      */
-    get : function(id) {
+    get: function(id) {
         var obj = {};
         obj.command = 'GET_PROPERTIES';
         obj.id = id;
@@ -41,14 +40,13 @@ var Command = {
         log('get()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a LIST command to the server.
      * 
      * The server will return a result set containing all items of the given
      * type to the sending client (no broadcast).
      */
-    list : function(type, pageSize, page, sort, order) {
+    list: function(type, pageSize, page, sort, order) {
         var obj = {};
         obj.command = 'LIST';
         var data = {};
@@ -61,14 +59,13 @@ var Command = {
         log('list()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a LIST_DATA_NODES command to the server.
      * 
      * The server will return a result set containing all items of the given
      * type to the sending client (no broadcast).
      */
-    listDataNodes : function(type, pageSize, page, sort, order, key) {
+    listDataNodes: function(type, pageSize, page, sort, order, key) {
         var obj = {};
         obj.command = 'LIST_DATA_NODES';
         var data = {};
@@ -82,7 +79,6 @@ var Command = {
         //console.log('listDataNodes()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a DATA_NODE_PARENT command to the server.
      * 
@@ -90,7 +86,7 @@ var Command = {
      * of the data node with the given id in the tree with the
      * given key.
      */
-    dataNodeParent : function(id, key, callback) {
+    dataNodeParent: function(id, key, callback) {
         var obj = {};
         obj.command = 'DATA_NODE_PARENT';
         obj.id = id;
@@ -100,18 +96,17 @@ var Command = {
         log('dataNodeParent()', obj, callback);
         return sendObj(obj, callback);
     },
-
     /**
      * Send a CHILDREN command to the server.
      * 
      * The server will return a result set containing all children of the
      * node with the given id to the sending client (no broadcast).
      */
-    children : function(id) {
+    children: function(id) {
         var obj = {};
         obj.id = id;
         var data = {};
-        
+
         var structrObj = StructrModel.obj(id);
         if (structrObj instanceof StructrElement || structrObj instanceof StructrContent) {
             obj.command = 'DOM_NODE_CHILDREN';
@@ -119,19 +114,18 @@ var Command = {
         } else {
             obj.command = 'CHILDREN';
         }
-        
+
         obj.data = data;
         log('children()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a GET command to the server.
      * 
      * The server will return the value of the property with the given key
      * of the node with the given id to the sending client (no broadcast).
      */
-    getProperty : function(id, key) {
+    getProperty: function(id, key) {
         var obj = {};
         obj.command = 'GET_PROPERTY';
         obj.id = id;
@@ -141,47 +135,42 @@ var Command = {
         log('getProperty()', obj);
         return sendObj(obj);
     },
-    
     /**
-     * Send an INSERT command to the server.
+     * Send an SEARCH command to the server.
      * 
-     * The server will parse the 'html' text and create nodes and relationships
-     * according to the HTML structure contained. 
+     * The server will search for nodes containing the
+     * search string in their name, or being their id
      * 
-     * The server will broadcast CREATE and ADD notifications.
      */
-    //    insert : function(id, html) {
-    //        var obj = {};
-    //        obj.command = 'INSERT';
-    //        obj.id = id;
-    //        var data = {};
-    //        data.html = html;
-    //        obj.data = data;
-    //        log('insert()', obj);
-    //        return sendObj(obj);
-    //    },
-
+    search: function(searchString) {
+        var obj = {};
+        obj.command = 'SEARCH';
+        var data = {};
+        data.searchString = searchString
+        obj.data = data;
+        console.log('search()', obj);
+        return sendObj(obj);
+    },
     /**
      * Send a DELETE command to the server.
      * 
      * The server will delete the node with the given id and broadcast
      * a deletion notification.
      */
-    deleteNode : function(id) {
+    deleteNode: function(id) {
         var obj = {};
         obj.command = 'DELETE';
         obj.id = id;
         log('deleteNode()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a REMOVE command to the server.
      * 
      * The server will remove the node with the given sourceId from the node
      * with the given targetId and broadcast a removal notification.
      */
-    removeSourceFromTarget : function(entityId, parentId) {
+    removeSourceFromTarget: function(entityId, parentId) {
         log('Remove ' + entityId + ' from ' + parentId);
         var obj = {};
         obj.command = 'REMOVE';
@@ -192,14 +181,13 @@ var Command = {
         log('removeSourceFromTarget()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a REMOVE command to the server.
      * 
      * The server will remove the node from the
      * tree and broadcast a removal notification.
      */
-    removeChild : function(id) {
+    removeChild: function(id) {
         log('Remove ' + id);
         var obj = {};
         obj.command = 'REMOVE';
@@ -209,14 +197,13 @@ var Command = {
         log('removeChild()', obj);
         return sendObj(obj);
     },
-    
     /**
      * Send a REMOVE command to the server.
      * 
      * The server will remove the node from the
      * tree with the given key and broadcast a removal notification.
      */
-    removeDataNode : function(id, key) {
+    removeDataNode: function(id, key) {
         log('Remove ' + id);
         var obj = {};
         obj.command = 'REMOVE';
@@ -227,7 +214,6 @@ var Command = {
         log('removeDataNode()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send an UPDATE command to the server.
      * 
@@ -237,25 +223,25 @@ var Command = {
      * 
      * If recursive is set and true, the property will be set on all subnodes, too.
      */
-    setProperty : function(id, key, value, recursive, callback) {
+    setProperty: function(id, key, value, recursive, callback) {
         var obj = {};
         obj.command = 'UPDATE';
         obj.id = id;
         var data = {};
         data[key] = value;
-        if (recursive) data['recursive'] = true;
+        if (recursive)
+            data['recursive'] = true;
         obj.data = data;
         log('setProperty()', obj, callback);
         return sendObj(obj, callback);
     },
-
     /**
      * Send an UPDATE command to the server.
      * 
      * The server will set the properties contained in the 'data' on the node
      * with the given id and broadcast an update notification.
      */
-    setProperties : function(id, data) {
+    setProperties: function(id, data) {
         var obj = {};
         obj.command = 'UPDATE';
         obj.id = id;
@@ -263,7 +249,6 @@ var Command = {
         log('setProperties()', obj);
         return sendObj(obj);
     },
-    
     /**
      * Send an APPEND_FILE command to the server.
      * 
@@ -275,7 +260,7 @@ var Command = {
      * to the new one.
      * 
      */
-    appendFile : function(id, parentId) {
+    appendFile: function(id, parentId) {
         var obj = {};
         obj.command = 'APPEND_FILE';
         obj.id = id;
@@ -285,7 +270,6 @@ var Command = {
         log('appendFile()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send an APPEND_CHILD command to the server.
      * 
@@ -297,7 +281,7 @@ var Command = {
      * to the new one.
      * 
      */
-    appendChild : function(id, parentId, key) {
+    appendChild: function(id, parentId, key) {
         var obj = {};
         obj.command = 'APPEND_CHILD';
         obj.id = id;
@@ -308,7 +292,6 @@ var Command = {
         log('appendChild()', obj, key);
         return sendObj(obj);
     },
-
     /**
      * Send an INSERT_BEFORE command to the server.
      * 
@@ -320,18 +303,17 @@ var Command = {
      * removed from the former parent before being inserted.
      * 
      */
-    insertBefore : function(parentId, id, refId) {
+    insertBefore: function(parentId, id, refId) {
         var obj = {};
         obj.command = 'INSERT_BEFORE';
         obj.id = id;
         var data = {};
-        data.refId   = refId;
+        data.refId = refId;
         data.parentId = parentId;
         obj.data = data;
         log('insertBefore()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a CREATE_DOM_NODE command to the server.
      * 
@@ -340,7 +322,7 @@ var Command = {
      * will create a content (#text) node.
      * 
      */
-    createDOMNode : function(pageId, tagName) {
+    createDOMNode: function(pageId, tagName) {
         var obj = {};
         obj.command = 'CREATE_DOM_NODE';
         obj.pageId = pageId;
@@ -348,7 +330,6 @@ var Command = {
         log('createDOMNode()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a CREATE_AND_ADD_DOM_ELEMENT command to the server.
      * 
@@ -359,7 +340,7 @@ var Command = {
      * will create a content (#text) node.
      * 
      */
-    createAndAppendDOMNode : function(pageId, parentId, tagName, attributes) {
+    createAndAppendDOMNode: function(pageId, parentId, tagName, attributes) {
         var obj = {};
         obj.command = 'CREATE_AND_APPEND_DOM_NODE';
         obj.pageId = pageId;
@@ -373,7 +354,6 @@ var Command = {
         console.log('createAndAppendDOMNode()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send an ADD command to the server.
      * 
@@ -394,7 +374,7 @@ var Command = {
      * When finished, the server will broadcast an ADD and eventually
      * a CREATE notification.
      */
-    createAndAdd : function(id, nodeData, relData) {
+    createAndAdd: function(id, nodeData, relData) {
         var obj = {};
         obj.command = 'ADD';
         if (!nodeData.name) {
@@ -409,14 +389,13 @@ var Command = {
         log('createAndAdd()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a CREATE command to the server.
      * 
      * The server will create a new node with the given properties contained
      * in the 'nodeData' hash and broadcast a CREATE notification.
      */
-    create : function(nodeData) {
+    create: function(nodeData) {
         var obj = {};
         obj.command = 'CREATE';
         if (!nodeData.name) {
@@ -429,14 +408,13 @@ var Command = {
         log('create()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a CREATE_SIMPLE_PAGE command to the server.
      * 
      * The server will create a simple HTML page with head, body
      * and title element and broadcast a CREATE notification.
      */
-    createSimplePage : function() {
+    createSimplePage: function() {
         var obj = {};
         obj.command = 'CREATE_SIMPLE_PAGE';
         var nodeData = {};
@@ -447,7 +425,6 @@ var Command = {
         log('createSimplePage()', obj);
         return sendObj(obj);
     },
-    
     /**
      * Send an IMPORT command to the server.
      * 
@@ -459,7 +436,7 @@ var Command = {
      * The server will broadcast CREATE and ADD notifications for each
      * node respective relationship created.
      */
-    importPage : function(code, address, name, timeout, publicVisible, authVisible) {
+    importPage: function(code, address, name, timeout, publicVisible, authVisible) {
         var obj = {};
         var data = {};
         obj.command = 'IMPORT';
@@ -473,7 +450,6 @@ var Command = {
         log('importPage()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a PATCH command to the server.
      * 
@@ -483,12 +459,14 @@ var Command = {
      * 
      * The server will broadcast an UPDATE notification.
      */
-    patch : function(id, text1, text2, callback) {
+    patch: function(id, text1, text2, callback) {
         log(text1, text2);
 
         // no null values allowed
-        if (!text1) text1 = '';
-        if (!text2) text2 = '';
+        if (!text1)
+            text1 = '';
+        if (!text2)
+            text2 = '';
 
         var p = dmp.patch_make(text1, text2);
         var strp = dmp.patch_toText(p);
@@ -503,7 +481,6 @@ var Command = {
         log('patch()', obj, callback);
         return sendObj(obj, callback);
     },
-
     /**
      * Send a CLONE command to the server.
      * 
@@ -513,7 +490,7 @@ var Command = {
      * 
      * The server will broadcast a CREATE and an ADD notification.
      */
-    clonePage : function(id) {
+    clonePage: function(id) {
         var nodeData = {};
         if (!nodeData.name) {
             nodeData.name = 'New Page ' + Math.floor(Math.random() * (999999 - 1));
@@ -525,7 +502,6 @@ var Command = {
         log('clonePage()', obj);
         return sendObj(obj);
     },
-    
     /**
      * Send a CHUNK command to the server.
      * 
@@ -537,7 +513,7 @@ var Command = {
      * 
      * The server gives no feedback on a CHUNK command.
      */
-    chunk : function(id, chunkId, chunkSize, chunk) {
+    chunk: function(id, chunkId, chunkSize, chunk) {
         var obj = {};
         obj.command = 'CHUNK';
         obj.id = id;
@@ -549,13 +525,12 @@ var Command = {
         log('chunk()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a CREATE command to the server.
      * 
      * This will create a file with the given properties.
      */
-    createFile : function(file, callback) {
+    createFile: function(file, callback) {
         var obj = {};
         obj.command = 'CREATE'
         var data = {};
@@ -567,7 +542,6 @@ var Command = {
         log('createFile()', obj);
         return sendObj(obj, callback);
     },
-        
     /**
      * Send a LINK command to the server.
      * 
@@ -576,7 +550,7 @@ var Command = {
      * 
      * The server gives no feedback on a LINK command.
      */
-    link : function(id, targetId) {
+    link: function(id, targetId) {
         var obj = {};
         obj.command = 'LINK';
         obj.id = id;
@@ -586,7 +560,6 @@ var Command = {
         log('link()', obj);
         return sendObj(obj);
     },
-
     /**
      * Send a ADD_DATA_NODE_REL command to the server.
      * 
@@ -595,7 +568,7 @@ var Command = {
      * 
      * The server gives no feedback on a LINK command.
      */
-    addDataTree : function(id, dataNodeId, key) {
+    addDataTree: function(id, dataNodeId, key) {
         var obj = {};
         obj.command = 'ADD_DATA_NODE_REL';
         obj.id = id;
@@ -606,7 +579,6 @@ var Command = {
         log('addDataTree()', obj);
         return sendObj(obj);
     },
-        
     /**
      * Send a WRAP command to the server.
      * 
@@ -615,7 +587,7 @@ var Command = {
      * 
      * The server will broadcast CREATE and ADD notifications.
      */
-    wrap : function(id, nodeData, relData) {
+    wrap: function(id, nodeData, relData) {
         var obj = {};
         obj.command = 'WRAP';
         obj.id = id;
@@ -623,7 +595,7 @@ var Command = {
         obj.relData = relData;
         log('wrap()', obj);
         return sendObj(obj);
-        
+
     }
 
 }

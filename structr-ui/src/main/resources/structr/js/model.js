@@ -26,6 +26,25 @@ var StructrModel = {
         return StructrModel.objects[id];
     },
     
+    createSearchResult : function(data) {
+
+        var obj = new StructrSearchResult(data);
+        
+        // Store a reference of this object
+        StructrModel.objects[data.id] = obj;
+        
+        // Check if the object is already contained in page
+        var el = $('#id_' + obj.id);
+        if (el && el.length) {
+            return obj;
+        }
+        
+        StructrModel.append(obj);
+        
+        return obj;
+
+    },
+    
     /**
      * Create a new object in the model and append a UI element
      * If refId is set, insert before this node
@@ -807,6 +826,34 @@ StructrPropertyDefinition.prototype.remove = function() {
 StructrPropertyDefinition.prototype.append = function(refNode) {
     _PropertyDefinitions.appendPropertyDefinitionElement(this);
 }
+
+
+/**************************************
+ * Search result
+ **************************************/
+
+function StructrSearchResult(data) {
+    var self = this;
+    $.each(Object.keys(data), function(i, key) {
+        self[key] = data[key];
+    });
+}
+
+StructrSearchResult.prototype.save = function() {
+    StructrModel.save(this.id);
+}
+
+StructrSearchResult.prototype.setProperty = function(key, value, recursive, callback) {
+    Command.setProperty(this.id, key, value, recursive, callback);
+}
+
+StructrSearchResult.prototype.append = function() {
+    _Dashboard.appendNode(this);
+}
+
+
+
+
 
 function removeFromArray(array, obj) {
     var newArray = [];

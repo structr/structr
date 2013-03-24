@@ -74,7 +74,7 @@ button {
 
 #header .logo {
     position: absolute;
-    top: 15px;
+    top: 16px;
     left: 16px;
 }
 
@@ -471,7 +471,7 @@ span.id {
     color: #999;
 }
 
-#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #propertyDefinitions .node, #trees .node, .dialogText .node
+#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #propertyDefinitions .node, #graph .node, .dialogText .node
 /*#pages .page, #files .page, #users .page,  #groups .page, #types .page,
 #pages .type, #files .type, #users .type,  #groups .type, #types .type,
 #pages .component, #files .component, #users .component,  #groups .component, #types .component,
@@ -979,4 +979,17 @@ button.enabled {
     width: 100%;
     text-align: center;
     padding-top: 11px;*/
+}
+
+/*
+ * Graph editor
+ */
+
+.canvas {
+    background: #fff;
+    border-radius: 5px;
+    border: 1px solid #999;
+    min-height: 600px;
+    margin: 12px;
+    padding: 12px;
 }

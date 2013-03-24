@@ -232,6 +232,18 @@ function connect() {
                     
                 });
                 
+            } else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
+                
+                console.log('SEARCH', result);
+                
+                $('.pageCount', $('#pager' + type)).val(pageCount[type]);
+                
+                $(result).each(function(i, entity) {
+                    
+                    StructrModel.createSearchResult(entity);
+                    
+                });
+                
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
                 
                 log('LIST', result);
@@ -239,11 +251,6 @@ function connect() {
                 $('.pageCount', $('#pager' + type)).val(pageCount[type]);
                 
                 $(result).each(function(i, entity) {
-                    
-                    if (entity.type == 'DataNode') {
-                        //console.log('DataNode', entity, data.nodesWithChildren, isIn(entity.id, data.nodesWithChildren));
-                        entity.hasChildren = isIn(entity.id, data.nodesWithChildren);
-                    }
                     
                     StructrModel.create(entity);
                     
