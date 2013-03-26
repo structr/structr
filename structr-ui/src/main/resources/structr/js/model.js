@@ -160,6 +160,9 @@ var StructrModel = {
         Structr.node(id).remove();
         $('#show_' + id, previews).remove();
         _Pages.reloadPreviews();
+        if (graph) {
+            graph.redrawRelationships();
+        }
 
     },
 

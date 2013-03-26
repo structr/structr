@@ -511,12 +511,14 @@ var _Entities = {
         });
     },
 
-    setMouseOver : function(el) {
+    setMouseOver : function(el, allowClick) {
         if (!el || !el.children) return;
 
-        el.on('click', function(e) {
-            e.stopPropagation();
-        });
+        if (!allowClick) {
+            el.on('click', function(e) {
+                e.stopPropagation();
+            });
+        }
 
         el.children('b.name_').on('click', function(e) {
             e.stopPropagation();

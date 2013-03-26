@@ -144,7 +144,7 @@ var _UsersAndGroups = {
         div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            _UsersAndGroups.deleteGroup(this, group)
+            _UsersAndGroups.deleteGroup(this, group);
         });
         
         _Entities.appendExpandIcon(div, group, hasChildren);

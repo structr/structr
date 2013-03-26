@@ -23,7 +23,7 @@
  ****************************************************************************************************/
 
 function nodeHtml(id, size, x, y) {
-    return ('<div class="' + size + ' node" id="node_' + id + '" style="left: ' + x + 'px; top: ' + y + 'px"><b class="label"></b></div>');
+    return ('<div class="' + size + ' node" id="id_' + id + '" style="left: ' + x + 'px; top: ' + y + 'px"><b class="label"></b></div>');
 }
 //
 //function propertyTableHeader() {

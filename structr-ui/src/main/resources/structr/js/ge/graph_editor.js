@@ -132,8 +132,9 @@ function Graph(element) {
                 if (!data || data.length === 0 || !data.result) {
                     return;
                 }
-                var node = new Node(graph, nodeId, size, pos, depth);
                 var entity = data.result;
+                var node = new Node(graph, entity, size, pos, depth);
+                //console.log(entity);
                 graph.addNode(node);
                 $('.label', node.element).html(entity.name ? entity.name : (entity.tag ? entity.tag : entity.type));
                 graph.renderRelationships(nodeId, 'out', depth, pos);
@@ -163,7 +164,7 @@ function Graph(element) {
     };
 
     this.expand = function(node) {
-        var el = $('#node_' + node.id);
+        var el = Structr.node(node.id);
         var pos = [el.position().left, el.position().top];
         el.remove();
         var i = graph.nodeIds.indexOf(node.id);
@@ -187,8 +188,8 @@ function Graph(element) {
                 rel.redraw();
             }
         });
-        $('#noOfRels').val(graph.relationships.size);
-        $('#noOfNodes').val(graph.nodes.size);
+        $('#noOfRels').val(Object.keys(graph.relationships).length);
+        $('#noOfNodes').val(Object.keys(graph.nodes).length);
     };
 
     this.renderRelationships = function(nodeId, direction, depth, pos) {
@@ -201,7 +202,6 @@ function Graph(element) {
                     return;
                 }
                 var results = data.result;
-                console.log(maxRels);
                 for (var i = 0; i < Math.min(maxRels, results.length); i++) {
                     var r = results[i];
                     var type = simpleType(r.combinedType);
@@ -227,6 +227,7 @@ function Graph(element) {
                     graph.addRelationship(rel);
 
                 }
+                graph.redrawRelationships();
             }
         });
     };

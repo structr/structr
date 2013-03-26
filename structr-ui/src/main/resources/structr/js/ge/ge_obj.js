@@ -18,38 +18,57 @@
  */
 
 
-function Node(g, id, size, pos, depth) {
+function Node(g, entity, size, pos, depth) {
 
     var self = this;
 
-    this.id = id;
+    this.id = entity.id;
     this.pos = pos;
     this.size = size;
     this.depth = depth;
-    
-    this.element = $(nodeHtml(id, size, pos[0], pos[1]))[0];
+
+    this.element = $(nodeHtml(entity.id, size, pos[0], pos[1]))[0];
+
+    var div = $(this.element);
+
+    div.append('<img title="Delete node ' + entity.id + '" alt="Delete node ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+    $('.delete_icon', div).on('click', function(e) {
+        e.stopPropagation();
+        _Entities.deleteNode(this, entity);
+    });
+
+    _Entities.appendEditPropertiesIcon(div, entity);
 
     this.relIds = [];
 
     $(g.element).append(this.element);
 
-    $(this.element).dblclick(function() {
+//    $(this.element).on('mouseover', function(event) {
+//        $(this).addClass('nodeActive');
+//    });
+//
+//    $(this.element).on('mouseout', function(event) {
+//        $(this).removeClass('nodeActive');
+//    });
+
+    $(this.element).dblclick(function(event, ui) {
         g.expand(self);
     });
+
+    _Entities.setMouseOver(div, true);
 
     $(this.element).draggable({
         containment: 'parent',
         stack: '.node',
         distance: 0,
         start: function(event, ui) {
-
         },
         drag: function(event, ui) {
             g.redrawRelationships();
         },
         stop: function(event, ui) {
             var n = $(this);
-            self.pos = [ n.position().left, n.position().top ];
+            self.pos = [n.position().left, n.position().top];
             g.redrawRelationships();
         }
     });
@@ -145,9 +164,9 @@ function Relationship(g, id, type, startNodeId, endNodeId) {
 
     this.redraw = function() {
 
-        var startNodeElement = $('#node_' + self.startNodeId);
-        var endNodeElement = $('#node_' + self.endNodeId);
-
+        var startNodeElement = Structr.node(self.startNodeId);
+        var endNodeElement = Structr.node(self.endNodeId);
+        
         if (startNodeElement && startNodeElement.size() > 0 && endNodeElement && endNodeElement.size() > 0) {
 
             var w1 = startNodeElement.width();
