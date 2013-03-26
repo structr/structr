@@ -104,6 +104,11 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 							String key = (String) entry.getKey();
 							Object val = null;
+							
+							// allow to set new type
+							if (key.equals("newType")) {
+								key = "type";
+							}
 
 							PropertyConverter inputConverter = EntityContext.getPropertyKeyForJSONName(cls, key).inputConverter(securityContext);
 
