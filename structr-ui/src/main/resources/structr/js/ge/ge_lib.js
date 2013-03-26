@@ -1,3 +1,23 @@
+/*
+ *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ *  This file is part of structr <http://structr.org>.
+ *
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 /****************************************************************************************************
  * Templates
  ****************************************************************************************************/
@@ -5,42 +25,42 @@
 function nodeHtml(id, size, x, y) {
     return ('<div class="' + size + ' node" id="node_' + id + '" style="left: ' + x + 'px; top: ' + y + 'px"><b class="label"></b></div>');
 }
-
-function propertyTableHeader() {
-    return '<table class="props"><tr><th>Key</th><th>Value</th><th>Type</th></tr>';
-}
-
-function propertyTableFooter() {
-    return '</table>';
-}
-
-function propertyTableRow(key, value, type) {
-    if (value && type) {
-        switch (type) {
-            case "String" :
-                if (value.length < 40) {
-                    return '<tr><td class="key">' + key + '</td><td class="value"><input type="text" size="40" maxlength="40" name="' + key + '" value="' + value + '"></td><td class="type">' + type + '</td></tr>';
-                } else {
-                    return '<tr><td class="key">' + key + '</td><td class="value"><textarea cols="40" rows="4" name="' + key + '">' + value + '</textarea></td><td class="type">' + type + '</td></tr>';
-                }
-                break;
-            case "Long" :
-                return '<tr><td class="key">' + key + '</td><td class="value"><input type="text" size="40" maxlength="40" name="' + key + '" value="' + value + '"></td><td class="type">' + type + '</td></tr>';
-                break;
-            case "Boolean" :
-                var output = '<tr><td class="key">' + key + '</td><td class="value"><input type="checkbox" name="' + key + '"';
-                if (value == "true") {
-                    output += ' checked="checked"';
-                }
-                return output + '></td><td class="type">' + type + '</td></tr>';
-                break;
-            default :
-                return '<tr><td class="key">' + key + '</td><td class="value">' + $('<div/>').text(value).html() + '</td><td class="type">' + type + '</td></tr>';
-                break;
-        }
-    }
-
-}
+//
+//function propertyTableHeader() {
+//    return '<table class="props"><tr><th>Key</th><th>Value</th><th>Type</th></tr>';
+//}
+//
+//function propertyTableFooter() {
+//    return '</table>';
+//}
+//
+//function propertyTableRow(key, value, type) {
+//    if (value && type) {
+//        switch (type) {
+//            case "String" :
+//                if (value.length < 40) {
+//                    return '<tr><td class="key">' + key + '</td><td class="value"><input type="text" size="40" maxlength="40" name="' + key + '" value="' + value + '"></td><td class="type">' + type + '</td></tr>';
+//                } else {
+//                    return '<tr><td class="key">' + key + '</td><td class="value"><textarea cols="40" rows="4" name="' + key + '">' + value + '</textarea></td><td class="type">' + type + '</td></tr>';
+//                }
+//                break;
+//            case "Long" :
+//                return '<tr><td class="key">' + key + '</td><td class="value"><input type="text" size="40" maxlength="40" name="' + key + '" value="' + value + '"></td><td class="type">' + type + '</td></tr>';
+//                break;
+//            case "Boolean" :
+//                var output = '<tr><td class="key">' + key + '</td><td class="value"><input type="checkbox" name="' + key + '"';
+//                if (value == "true") {
+//                    output += ' checked="checked"';
+//                }
+//                return output + '></td><td class="type">' + type + '</td></tr>';
+//                break;
+//            default :
+//                return '<tr><td class="key">' + key + '</td><td class="value">' + $('<div/>').text(value).html() + '</td><td class="type">' + type + '</td></tr>';
+//                break;
+//        }
+//    }
+//
+//}
 
 /****************************************************************************************************
  * Helper

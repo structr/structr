@@ -234,7 +234,7 @@ function connect() {
                 
             } else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
                 
-                console.log('SEARCH', result);
+                //console.log('SEARCH', result);
                 
                 $('.pageCount', $('#pager' + type)).val(pageCount[type]);
                 

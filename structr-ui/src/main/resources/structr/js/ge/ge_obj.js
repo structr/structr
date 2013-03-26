@@ -1,10 +1,32 @@
-function Node(g, id, size, pos) {
+/*
+ *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ *  This file is part of structr <http://structr.org>.
+ *
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+function Node(g, id, size, pos, depth) {
 
     var self = this;
 
     this.id = id;
     this.pos = pos;
     this.size = size;
+    this.depth = depth;
+    
     this.element = $(nodeHtml(id, size, pos[0], pos[1]))[0];
 
     this.relIds = [];
@@ -12,7 +34,7 @@ function Node(g, id, size, pos) {
     $(g.element).append(this.element);
 
     $(this.element).dblclick(function() {
-        reload(self.id);
+        g.expand(self);
     });
 
     $(this.element).draggable({
@@ -23,10 +45,12 @@ function Node(g, id, size, pos) {
 
         },
         drag: function(event, ui) {
-            graph.redrawRelationships();
+            g.redrawRelationships();
         },
         stop: function(event, ui) {
-            graph.redrawRelationships();
+            var n = $(this);
+            self.pos = [ n.position().left, n.position().top ];
+            g.redrawRelationships();
         }
     });
 
@@ -37,6 +61,16 @@ function Node(g, id, size, pos) {
             self.zoomOut();
         }
     });
+
+//    this.redrawRelationships = function() {
+//        console.log(self.relIds);
+//        for (var i=0; i<self.relIds.length; i++) {
+//            var id = self.relIds[i];
+//            var rel = g.relationships[id];
+//            console.log(id, rel);
+//            if (rel) rel.redraw();
+//        }
+//    };
 
     $(this.element).resize(function() {
         g.redrawRelationships();
@@ -60,7 +94,7 @@ function Node(g, id, size, pos) {
                 self.changeSize("medium", "large");
                 break;
         }
-    }
+    };
 
     this.zoomOut = function() {
 
@@ -80,14 +114,14 @@ function Node(g, id, size, pos) {
                 self.changeSize("tiny", "dot");
                 break;
         }
-    }
+    };
 
     this.changeSize = function(oldSize, newSize) {
         self.size = newSize;
         $(self.element).removeClass(oldSize);
         $(self.element).addClass(newSize);
         g.redrawRelationships();
-    }
+    };
 
 }
 
@@ -99,6 +133,15 @@ function Relationship(g, id, type, startNodeId, endNodeId) {
     this.type = type;
     this.startNodeId = startNodeId;
     this.endNodeId = endNodeId;
+
+    var startNode = g.nodes[startNodeId];
+    if (startNode) {
+        startNode.relIds.push(id);
+    }
+    var endNode = g.nodes[endNodeId];
+    if (endNode) {
+        endNode.relIds.push(id);
+    }
 
     this.redraw = function() {
 
@@ -116,6 +159,8 @@ function Relationship(g, id, type, startNodeId, endNodeId) {
             var fromY = startNodeElement.position().top + h1 / 2;
             var toX = endNodeElement.position().left + w2 / 2;
             var toY = endNodeElement.position().top + h2 / 2;
+
+            //console.log('drawing rel', context, self.type, self.id, fromX, fromY, toX, toY, w1, h1, w2, h2);
 
             drawRel(context, self.type, self.id, fromX, fromY, toX, toY, w1, h1, w2, h2);
 

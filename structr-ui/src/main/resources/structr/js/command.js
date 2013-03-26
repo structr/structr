@@ -148,7 +148,7 @@ var Command = {
         var data = {};
         data.searchString = searchString
         obj.data = data;
-        console.log('search()', obj);
+        //console.log('search()', obj);
         return sendObj(obj);
     },
     /**

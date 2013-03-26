@@ -179,19 +179,38 @@ canvas {
     position: absolute;
 }
 
-.relBox {
+#settings {
     position: absolute;
     top: 12px;
     right: 12px;
     min-width: 120px;
-    min-height: 12s0px;
+    min-height: 120px;
     margin: 0;
     padding: 12px;
     border: 1px solid #ccc;
     background: #f5f5f5;
 }
 
-.relBox li {
+#settings input {
+    text-align: right;
+}
+
+#settings table {
+    width: 100%;
+}
+
+#settings td:nth-child(evenss) {
+    text-align: right;
+}
+
+ul.relBox {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+ul.relBox li {
+    width: 100%;
     list-style-type: none;
     padding: 0;
     margin: 0 0 6px 0s;
