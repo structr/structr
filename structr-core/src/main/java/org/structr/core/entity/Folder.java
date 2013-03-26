@@ -26,6 +26,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
 import org.structr.core.EntityContext;
+import static org.structr.core.GraphObject.type;
+import static org.structr.core.GraphObject.uuid;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
@@ -47,6 +49,8 @@ public class Folder extends AbstractFile {
 	
 	public static final IntProperty                position     = new IntProperty("position");
 
+	public static final View defaultView = new View(Folder.class, PropertyView.Public, uuid, type, name);
+	
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parent, folders, files, images
 	);
