@@ -321,7 +321,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			// check for read-only properties
 			if (key.isReadOnlyProperty()) {
 
-				if (readOnlyPropertiesUnlocked) {
+				// allow super user to set read-only properties
+				if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
 					// permit write operation once and
 					// lock scanEntity-only properties again
@@ -1468,7 +1469,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// check for read-only properties
 		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
 
-			if (readOnlyPropertiesUnlocked) {
+			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
 				// permit write operation once and
 				// lock read-only properties again

@@ -68,7 +68,7 @@ public class Image extends File {
 	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall", new ThumbnailParameters(100, 100, false));
 	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid", new ThumbnailParameters(300, 300, false));
 	
-	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").systemProperty();
+	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").systemProperty().readOnly();
 	
 //	public static final CollectionProperty<Image> thumbnails = new CollectionProperty("thumbnails", Image.class, RelType.THUMBNAIL, Direction.OUTGOING, true, Relation.DELETE_OUTGOING);
 

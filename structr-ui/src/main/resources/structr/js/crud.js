@@ -1340,7 +1340,7 @@ var _Crud = {
             if (value !== null && value.constructor === Boolean) {
                 cell.append('<input type="checkbox" ' + (value?'checked="checked"':'') + '>');
                 $('input', cell).on('change', function() {
-                   console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
+                   //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
                    _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
                 });
                 
