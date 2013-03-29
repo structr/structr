@@ -36,11 +36,11 @@
         </repository>
         <repository>
             <id>snapshots.maven.structr.org</id>
-            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
+            <url>http://maven.structr.org/artifactory/snapshot</url>
         </repository>
         <repository>
             <id>releases.maven.structr.org</id>
-            <url>http://maven.structr.org:8082/artifactory/release</url>
+            <url>http://maven.structr.org/artifactory/release</url>
         </repository> 
         <repository>
             <id>jboss</id>

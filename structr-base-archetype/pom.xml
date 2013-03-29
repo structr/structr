@@ -38,12 +38,12 @@
         <repository>
             <id>releases.maven.structr.org</id>
             <name>maven.structr.org-releases</name>
-            <url>http://maven.structr.org:8082/artifactory/release</url>
+            <url>http://maven.structr.org/artifactory/release</url>
         </repository>
         <snapshotRepository>
             <id>snapshots.maven.structr.org</id>
             <name>maven.structr.org-snapshots</name>
-            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
+            <url>http://maven.structr.org/artifactory/snapshot</url>
         </snapshotRepository>
     </distributionManagement>
 
