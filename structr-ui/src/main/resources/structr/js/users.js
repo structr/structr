@@ -133,7 +133,7 @@ var _UsersAndGroups = {
     },
 
     appendGroupElement : function(group) {
-        var hasChildren = group.children && group.children.length;
+        var hasChildren = group.users && group.users.length;
         log('appendGroupElement', group, hasChildren);
         groups.append('<div id="id_' + group.id + '" class="node group">'
             + '<img class="typeIcon" src="icon/group.png">'
@@ -162,7 +162,8 @@ var _UsersAndGroups = {
                 nodeData.id = userId;
                 //console.log('addExpandedNode(groupId)', groupId);
                 addExpandedNode(groupId);
-                Command.createAndAdd(groupId, nodeData);
+                Command.appendUser(userId, groupId);
+                //Command.createAndAdd(groupId, nodeData);
             }
         });
         
@@ -172,7 +173,7 @@ var _UsersAndGroups = {
         return div;
     },
 
-    appendUserElement : function(user) {
+    appendUserElement : function(user, group) {
         log('appendUserElement', user);
 
         var div;
@@ -181,9 +182,11 @@ var _UsersAndGroups = {
         var delIcon;
         div = Structr.node(user.id);
         
+        console.log(user.groups);
+        
         if (user.groups && user.groups.length) {
             
-            var groupId = user.groups[0].id;
+            var groupId = user.groups;
             //div = Structr.node(user.id, groupId);
 
             var parent = Structr.node(groupId);
@@ -204,7 +207,6 @@ var _UsersAndGroups = {
             } else {
                 
                 log('### new user, appending to ', parent);
-                
                 
                 parent.append('<div id="id_' + user.id + '" class="node user">'
                     + '<img class="typeIcon" src="icon/user.png">'

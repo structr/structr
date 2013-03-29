@@ -236,7 +236,7 @@ var _Crud = {
         
         _Crud.loadAccessibleResources(function() {
             $.each(_Crud.types, function(t, type) {
-                console.log('Loading type definition for ' + type + '...');
+                //console.log('Loading type definition for ' + type + '...');
                 _Crud.loadTypeDefinition(type, callback);
             });
         });
@@ -1334,7 +1334,7 @@ var _Crud = {
         var isCollection = _Crud.isCollection(key, type);
         var relatedType  = _Crud.relatedType(key, type);
         var simpleType;
-
+        
         if (!relatedType) {
             
             if (value !== null && value.constructor === Boolean) {
@@ -1355,7 +1355,6 @@ var _Crud = {
                     _Crud.activateTextInputField($('input', self), id, key);
                 });
             }
-        //console.log('single value, no related type');
 
         } else if (isCollection) {
                     
@@ -1378,7 +1377,7 @@ var _Crud = {
         } else {
                     
             simpleType = lastPart(relatedType, '.');
-                    
+            
             if (value) {
                     
                 _Crud.getAndAppendNode(type, id, key, value, cell);
@@ -1415,7 +1414,7 @@ var _Crud = {
             //async: false,
             success: function(data) {
                 var node = data.result;
-                log('node', node);
+                //console.log('node', node);
                 
                 cell.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(node.name, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
@@ -1432,7 +1431,7 @@ var _Crud = {
                     $('.thumbnail', nodeEl).on('click', function(e) {
                         e.stopPropagation();
                         e.preventDefault();
-                        _Crud.showDetails(node, false, _Crud.type);
+                        _Crud.showDetails(node, false, node.type);
                         return false;
                     });
 
@@ -1460,7 +1459,7 @@ var _Crud = {
                 });
                 nodeEl.on('click', function(e) {
                     e.preventDefault();
-                    _Crud.showDetails(node, false, _Crud.type);
+                    _Crud.showDetails(node, false, node.type);
                     return false;
                 });                    
 

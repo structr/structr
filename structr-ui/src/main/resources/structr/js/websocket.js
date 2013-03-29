@@ -268,6 +268,10 @@ function connect() {
             
                 StructrModel.create(result[0]);
 
+            } else if (command == 'APPEND_USER') { /*********************** APPEND_USER ************************/
+            
+                StructrModel.create(result[0]);
+
             } else if (command == 'REMOVE' || command == 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
                 StructrModel.obj(data.id).remove();

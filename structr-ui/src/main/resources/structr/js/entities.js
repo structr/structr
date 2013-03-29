@@ -451,7 +451,7 @@ var _Entities = {
     appendExpandIcon : function(el, entity, hasChildren, expand) {
         
         log('_Entities.appendExpandIcon', el, entity, hasChildren, expand);
-
+        
         var button = $(el.children('.expand_icon').first());
         if (button && button.length) {
             log('Expand icon already existing');

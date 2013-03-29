@@ -39,6 +39,7 @@ import org.structr.core.graph.NodeService.NodeIndex;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -53,10 +54,10 @@ public class User extends Person implements Principal {
 	public static final Property<String>          confirmationKey = new StringProperty("confirmationKey");
 	public static final Property<Boolean>         backendUser     = new BooleanProperty("backendUser");
 	public static final Property<Boolean>         frontendUser    = new BooleanProperty("frontendUser");
-	public static final CollectionProperty<Group> groups          = new CollectionProperty<Group>("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final CollectionProperty<Group> groups          = new CollectionProperty<Group>("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, new PropertyNotion(uuid), false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
+		type, name, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,

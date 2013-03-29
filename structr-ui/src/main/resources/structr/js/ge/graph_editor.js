@@ -243,5 +243,8 @@ function resizeCanvas() {
 }
 
 function simpleType(combinedType) {
+    if (!combinedType || !combinedType.contains(' ')) {
+        return combinedType;
+    }
     return combinedType.split(' ')[1];
 }

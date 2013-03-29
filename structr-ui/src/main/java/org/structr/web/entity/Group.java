@@ -129,4 +129,22 @@ public class Group extends AbstractNode implements Principal {
 
 	}
 
+	public void addUser(final User user) throws FrameworkException {
+		
+		List<User> _users = getProperty(users);
+		_users.add(user);
+		
+		setProperty(users, _users);
+		
+	}
+	
+	public void removeUser(final User user) throws FrameworkException {
+		
+		List<User> _users = getProperty(users);
+		_users.remove(user);
+		
+		setProperty(users, _users);
+		
+	}
+
 }

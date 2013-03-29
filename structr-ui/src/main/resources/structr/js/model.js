@@ -621,9 +621,14 @@ StructrUser.prototype.remove = function() {
 }
 
 StructrUser.prototype.append = function(refNode) {
+    console.log(refNode);
+    var user = this;
+    if (refNode) {
+        var group = StructrModel.obj(refNode.id);
+        group.users.push(user);
+    }
     StructrModel.expand(_UsersAndGroups.appendUserElement(this, refNode), this);
 }
-
 
 /**************************************
  * Structr Group

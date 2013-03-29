@@ -271,6 +271,23 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send an APPEND_USER command to the server.
+     * 
+     * The server will append the user node with the given id
+     * as child of the parent group node with the given group id.
+     * 
+     */
+    appendUser: function(id, groupId) {
+        var obj = {};
+        obj.command = 'APPEND_USER';
+        obj.id = id;
+        var data = {};
+        data.parentId = groupId;
+        obj.data = data;
+        console.log('appendUser()', obj);
+        return sendObj(obj);
+    },
+    /**
      * Send an APPEND_CHILD command to the server.
      * 
      * The server will append the node with the given id
