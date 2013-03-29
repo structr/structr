@@ -37,7 +37,7 @@ var _UsersAndGroups = {
         page['User'] = 1;
     
     },
-	
+
     onload : function() {
         _UsersAndGroups.init();
         //Structr.activateMenuEntry('usersAndGroups');
@@ -77,49 +77,6 @@ var _UsersAndGroups = {
             });
         }
         Structr.addPager(users, 'User');
-    },
-
-    removeUserFromGroup : function(userId, groupId) {
-
-        var group = Structr.node(groupId);
-
-        var user = Structr.node(userId, groupId);
-
-        if ($('.' + userId + '_', users).length) {
-            user.remove();
-        } else {
-            users.append(user);//.animate();
-        }
-
-        _Entities.resetMouseOverState(user);
-        
-        log('removeUserFromGroup, containesNodes?', group, Structr.containsNodes(group));
-
-        if (!Structr.containsNodes(group)) {
-            _Entities.removeExpandIcon(group);
-        }
-
-        $('.delete_icon', user).replaceWith('<img title="Delete user ' + user.name + '" '
-            + 'alt="Delete user ' + user.name + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', user).on('click', function(e) {
-            e.stopPropagation();
-            _UsersAndGroups.deleteUser(this, Structr.entity(userId));
-        });
-        
-        user.draggable({
-            revert: 'invalid',
-            containment: '#main',
-            zIndex: 1
-        });
-
-        var numberOfUsers = $('.user', group).size();
-        log(numberOfUsers);
-        if (numberOfUsers == 0) {
-            enable($('.delete_icon', group)[0]);
-        }
-
-        log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
-        
     },
 
     deleteUser : function(button, user) {

@@ -102,10 +102,10 @@ var StructrModel = {
         StructrModel.objects[data.id] = obj;
         
         // Check if the object is already contained in page
-        var el = $('#id_' + obj.id);
-        if (el && el.length) {
-            return obj;
-        }
+//        var el = $('#id_' + obj.id);
+//        if (el && el.length) {
+//            return obj;
+//        }
         
         
         StructrModel.append(obj, refId);
@@ -366,85 +366,6 @@ var StructrModel = {
 
 
 /**************************************
- * Structr Object
- **************************************/
-//
-//function StructrObj(data) {
-//    this.id = data.id;
-//    this.attributes = data;
-//}
-//
-//StructrObj.prototype.getId = function() {
-//    return this.id;
-//}
-//
-//StructrObj.prototype.save = function() {
-//    StructrModel.save(this.id);
-//}
-//
-//StructrObj.prototype.setProperty = function(key, value) {
-//    this.attributes[key] = value;
-//}
-
-/**************************************
- * Structr DataNode
- **************************************/
-
-//function StructrDataNode(data) {
-//    var self = this;
-//    $.each(Object.keys(data), function(i, key) {
-//        self[key] = data[key];
-//    });
-//    log('StructrDataNode created', self);
-//}
-//
-//StructrDataNode.prototype.save = function() {
-//    StructrModel.save(this.id);
-//}
-//
-//StructrDataNode.prototype.setProperty = function(key, value, recursive, callback) {
-//    Command.setProperty(this.id, key, value, recursive, callback);
-//}
-//
-//StructrDataNode.prototype.remove = function() {
-//    var dataNode = this;
-//    var dataNodeEl = Structr.node(dataNode.id);
-//    var parentFolderEl = Structr.node(dataNode.parentId);
-//    log('removeFolderFromFolder', dataNodeEl);
-//        
-//    _Entities.resetMouseOverState(dataNodeEl);
-//
-//    dataNodeEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + dataNode.id + '" '
-//        + 'alt="Delete folder ' + dataNode.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-//
-//    dataNodeEl.children('.delete_icon').on('click', function(e) {
-//        e.stopPropagation();
-//        _Entities.deleteNode(this, dataNode);
-//    });
-//        
-//    trees.append(dataNodeEl);
-//        
-//    if (!Structr.containsNodes(parentFolderEl)) {
-//        _Entities.removeExpandIcon(parentFolderEl);
-//        enable(parentFolderEl.children('.delete_icon')[0]);
-//    }
-//
-//    dataNodeEl.draggable({
-//        revert: 'invalid',
-//        containment: '#main',
-//        stack: 'div'
-//    });
-//}
-//
-//StructrDataNode.prototype.append = function(refNode) {
-//    var self = this;
-//    Command.dataNodeParent(self.id, 'TEST_DATA', function() {
-//        StructrModel.expand(_Trees.appendDataNode(self, refNode), self);
-//    });
-//}
-
-
-/**************************************
  * Structr Folder
  **************************************/
 
@@ -617,11 +538,42 @@ StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 }
 
 StructrUser.prototype.remove = function() {
-    _UsersAndGroups.removeUserFromGroup(this.id);
+    var user = this;
+    var group = StructrModel.obj(user.groups[0]);
+    var groupEl = Structr.node(group.id);
+
+    group.users = removeFromArray(group.users, user);
+    if (!group.users.length) {
+        _Entities.removeExpandIcon(groupEl);
+        enable(groupEl.children('.delete_icon')[0]);
+    }
+
+    var parentElement = users;
+        
+    var userEl = Structr.node(user.id);
+    if (!userEl) return;
+        
+    _Entities.resetMouseOverState(userEl);
+        
+    parentElement.append(userEl);
+        
+    userEl.children('.delete_icon').replaceWith('<img title="Delete User ' + user.id + '" '
+        + 'alt="Delete User ' + user.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        
+    userEl.children('.delete_icon').on('click', function(e) {
+        e.stopPropagation();
+        _Entities.deleteNode(this, user);
+    });
+        
+    userEl.draggable({
+        revert: 'invalid',
+        containment: '#main',
+        stack: 'div'
+    });
 }
 
 StructrUser.prototype.append = function(refNode) {
-    console.log(refNode);
+    console.log('appendUser', refNode);
     var user = this;
     if (refNode) {
         var group = StructrModel.obj(refNode.id);

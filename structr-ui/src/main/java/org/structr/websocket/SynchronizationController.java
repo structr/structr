@@ -44,6 +44,7 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 
 import org.w3c.dom.Node;
@@ -356,19 +357,22 @@ public class SynchronizationController implements StructrTransactionListener {
 
 				Node refNode = null;
 
+				message.setCommand("APPEND_CHILD");
+
 				if (endNode instanceof DOMNode) {
 
 					refNode = ((DOMNode) endNode).getNextSibling();
-				}
-
-				if (refNode != null) {
-
-					message.setCommand("INSERT_BEFORE");
-					message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
-
-				} else {
-
-					message.setCommand("APPEND_CHILD");
+					if (refNode != null) {
+						message.setCommand("INSERT_BEFORE");
+						message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
+					} else {
+					}
+				
+				} else if (endNode instanceof User) {
+					
+					message.setCommand("APPEND_USER");
+					message.setNodeData("refId", startNode.getUuid());
+					
 				}
 
 				// message.setResult(Arrays.asList(new GraphObject[] { endNode }));

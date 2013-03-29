@@ -410,10 +410,6 @@ var _Files = {
         return div;
     },
     
-    removeFileFromFolder : function(fileId, folderId, isImage) {
-        alert('gone');
-    },
-    
     removeImageFromFolder : function(imageId, folderId) {
         log('removeImageFromFolder', imageId, folderId);
         _Files.removeFileFromFolder(imageId, folderId, true);
