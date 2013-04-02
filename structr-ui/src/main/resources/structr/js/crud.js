@@ -115,7 +115,7 @@ var _Crud = {
                
                 _Crud.search(searchString, main, null, function(e, node) {
                     e.preventDefault();
-                    _Crud.showDetails(node, false);
+                    _Crud.showDetails(node, false, node.type);
                     return false;
                 });
                 
@@ -1305,14 +1305,12 @@ var _Crud = {
         var type = item.type;
         var row = $('#' + id);
         if (_Crud.keys[type]) {
-            //console.log(type);
             $.each(_Crud.keys[type], function(k, key) {
                 row.append('<td class="' + key + '"></td>');
                 var cells = _Crud.cells(id, key);
                 $.each(cells, function(i, cell) {
                     _Crud.populateCell(id, key, type, item[key], cell);
                 });
-                
             });
             row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button></td>');
             $('.actions .edit', row).on('mouseup', function(event) {
@@ -1336,6 +1334,8 @@ var _Crud = {
         var simpleType;
         
         if (!relatedType) {
+            
+            //console.log(key, value, typeof value);
             
             if (typeof value === 'boolean') {
                 cell.append('<input type="checkbox" ' + (value?'checked="checked"':'') + '>');
@@ -1839,7 +1839,7 @@ var _Crud = {
             var w = $(window).width();
             var h = $(window).height();
 
-            var ml = 24;
+            var ml = 0;
             var mt = 24;
 
             // Calculate dimensions of dialog
@@ -1884,7 +1884,7 @@ var _Crud = {
         var w = $(window).width();
         var h = $(window).height();
 
-        var ml = 24;
+        var ml = 0;
         var mt = 24;
 
         // Calculate dimensions of dialog
@@ -1903,7 +1903,7 @@ var _Crud = {
             left: l + 'px'
         });
         
-        var bw = (dw-60) + 'px';
+        var bw = (dw-28) + 'px';
         var bh = (dh-106) + 'px';
 
         $('#dialogBox .dialogTextWrapper').css({
@@ -1956,18 +1956,18 @@ var _Crud = {
         
         if (create) {
             //console.log('edit mode, appending form');
-            dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th><th>Type</th><th>Read Only</th></table></form>');
+            dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table></form>');
         } else {
-            dialogText.append('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th><th>Type</th><th>Read Only</th></table>');
+            dialogText.append('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table>');
         }
         
         var table = $('table', dialogText);
-        
-        $.each(typeDef.views[_Crud.view[type]], function(i, property) {
+        $.each(_Crud.keys[type], function(i, key) {
+        //$.each(typeDef.views[_Crud.view[type]], function(i, property) {
             //console.log(property);
-            var type = property.className.substring(property.className.lastIndexOf('.') + 1);
-            var key = property.jsonName;
-            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td><td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+            //var type = property.className.substring(property.className.lastIndexOf('.') + 1);
+            //var key = property.jsonName;
+            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
             var cell = $('.' + key, table);
             if (node && node.id) {
                 //console.log(node.id, key, type, node[key], cell);

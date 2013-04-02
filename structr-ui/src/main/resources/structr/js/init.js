@@ -438,7 +438,7 @@ var Structr = {
             left: l + 'px'
         });
         
-        var bw = (dw-60) + 'px';
+        var bw = (dw-28) + 'px';
         var bh = (dh-106) + 'px';
 
         $('#dialogBox .dialogTextWrapper').css({
