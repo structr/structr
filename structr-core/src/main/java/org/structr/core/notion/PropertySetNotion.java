@@ -31,9 +31,13 @@ import org.structr.core.property.PropertyKey;
 public class PropertySetNotion<S extends GraphObject> extends Notion<S, Map<String, Object>> {
 
 	public PropertySetNotion(PropertyKey... propertyKeys) {
+		this(false, propertyKeys);
+	}
+	
+	public PropertySetNotion(boolean createIfNotExisting, PropertyKey... propertyKeys) {
 		this(
 			new PropertySetSerializationStrategy(propertyKeys),
-			new TypeAndPropertySetDeserializationStrategy(propertyKeys)
+			new TypeAndPropertySetDeserializationStrategy(createIfNotExisting, propertyKeys)
 		);
 
 	}
