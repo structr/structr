@@ -47,7 +47,7 @@ import org.structr.core.Result;
  *
  * @author Christian Morgner
  */
-public class TypeUniquenessValidator extends PropertyValidator<Object> {
+public class TypeUniquenessValidator<T> extends PropertyValidator<T> {
 
 	private static final Logger logger = Logger.getLogger(TypeUniquenessValidator.class.getName());
 
@@ -66,7 +66,7 @@ public class TypeUniquenessValidator extends PropertyValidator<Object> {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public boolean isValid(GraphObject object, PropertyKey<Object> key, Object value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer) {
 
 		if (value == null) {
 
