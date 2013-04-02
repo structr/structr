@@ -263,7 +263,7 @@ img.thumbnail {
 
 #dialogBox .dialogText div.img {
     clear: both;
-    height: 492px;
+    /*height: 492px;*/
 }
 
 #dialogBox .dialogText div.wrap,
