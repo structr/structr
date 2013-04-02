@@ -358,8 +358,7 @@ var _Crud = {
             if (k && k.length) {
                 _Crud.keys[type] = k;
                 $.each(_Crud.keys[type], function(k, key) {
-                    tableHeader.append('<th class="' + view[key].jsonName + '">' + _Crud.formatKey(view[key].jsonName) + '</th>');
-                //tableHeader.append('<th>' + key + '</th>');
+                    tableHeader.append('<th class="' + key + '">' + _Crud.formatKey(key) + '</th>');
                 });
                 tableHeader.append('<th>Actions</th>');
             }
@@ -468,21 +467,26 @@ var _Crud = {
     replaceSortHeader : function(type) {
         var table = _Crud.getTable(type);
         var newOrder = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
+        var res = _Crud.schema[type];
+        var view = res.views[_Crud.view[type]];
         $('th', table).each(function(i, t) {
             var th = $(t);
             var key = th.attr('class');
             if (key !== 'Actions') {
                 $('a', th).off('click');
                 th.empty();
-                th.append('<a href="' + _Crud.sortAndPagingParameters(type, key, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
-                $('a', th).on('click', function(event) {
-                    event.preventDefault();
-                    _Crud.sort[type] = key;
-                    _Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
-                    _Crud.activateList(type);
-                    _Crud.updateUrl(type);
-                    return false;
-                });
+                if (view[key]) {
+                    var sortKey = view[key].jsonName;
+                    th.append('<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
+                    $('a', th).on('click', function(event) {
+                        event.preventDefault();
+                        _Crud.sort[type] = key;
+                        _Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
+                        _Crud.activateList(type);
+                        _Crud.updateUrl(type);
+                        return false;
+                    });
+                }
             }
         });
     },
