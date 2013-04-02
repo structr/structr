@@ -125,8 +125,11 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
 					Object value = attr.getValue();
-					
-					node.setProperty(attr.getKey(), value);
+					PropertyKey key = attr.getKey();
+					if (key.isReadOnlyProperty()) {
+						node.unlockReadOnlyPropertiesOnce();
+					}
+					node.setProperty(key, value);
 
 				}
 
