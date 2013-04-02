@@ -1337,7 +1337,7 @@ var _Crud = {
         
         if (!relatedType) {
             
-            if (value !== null && value.constructor === Boolean) {
+            if (typeof value === 'boolean') {
                 cell.append('<input type="checkbox" ' + (value?'checked="checked"':'') + '>');
                 $('input', cell).on('change', function() {
                    //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
