@@ -127,7 +127,7 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 
 							if (propsEqual) {
 
-								logger.log(Level.WARNING, "Creation of duplicate relationship was blocked");
+								// logger.log(Level.WARNING, "Creation of duplicate relationship was blocked");
 
 								return null;
 

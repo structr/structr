@@ -173,18 +173,6 @@ public abstract class Resource {
 
 							}
 
-//                                                      // 2: delete relationships
-//                                                      if (obj instanceof AbstractNode) {
-//
-//                                                              List<AbstractRelationship> rels = ((AbstractNode) obj).getRelationships();
-//
-//                                                              for (AbstractRelationship rel : rels) {
-//
-//                                                                      deleteRel.execute(rel);
-//
-//                                                              }
-//
-//                                                      }
 							// delete cascading
 							deleteNode.execute((AbstractNode)obj, true);
 						}
@@ -209,13 +197,14 @@ public abstract class Resource {
 		if (results != null && !results.isEmpty()) {
 
 			final Class type = results.get(0).getClass();
-			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 			
 			final StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
+					PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
+					
 					for (final GraphObject obj : results) {
 
 						for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
