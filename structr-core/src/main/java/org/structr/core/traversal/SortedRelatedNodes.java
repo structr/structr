@@ -43,6 +43,10 @@ public class SortedRelatedNodes<T extends AbstractNode> extends AbstractNodeColl
 		this(null, relType, direction, resultType, maxDepth, count);
 	}
 	
+	public SortedRelatedNodes(RelationshipType relType, Direction direction, Class resultType, Notion notion, int maxDepth, int count) {
+		this(null, relType, direction, resultType, notion, maxDepth, count);
+	}
+
 	public SortedRelatedNodes(Comparator<T> comparator, RelationshipType relType, Direction direction, Class resultType, int maxDepth, int count) {
 		this(comparator, relType, direction, resultType, new ObjectNotion(), maxDepth, count);
 	}
