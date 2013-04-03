@@ -52,11 +52,11 @@ $(document).ready(function() {
     dialogBox = $('#dialogBox');
     dialog = $('.dialogText', dialogBox);
     dialogMsg = $('.dialogMsg', dialogBox);
-    dialogBtn = $('.dialogBtn', dialogBox);
+    dialogBtn = $('.dialogBtn');
     dialogTitle = $('.dialogTitle', dialogBox);
     dialogMeta = $('.dialogMeta', dialogBox);
     dialogText = $('.dialogText', dialogBox);
-    dialogCancelButton = $('.dialogCancelButton', dialogBtn);
+    dialogCancelButton = $('.closeButton', dialogBtn);
     dialogSaveButton = $('.save', dialogBox);
     loginButton = $('#loginButton');
 
@@ -138,13 +138,6 @@ $(document).ready(function() {
         Structr.activateMenuEntry('files');
         Structr.modules['files'].onload();
     });
-
-//    $('#trees_').on('click', function(e) {
-//        e.stopPropagation();
-//        main.empty();
-//        Structr.activateMenuEntry('trees');
-//        Structr.modules['trees'].onload();
-//    });
 
     $('#images_').on('click', function(e) {
         e.stopPropagation();
@@ -363,7 +356,7 @@ var Structr = {
                     fadeOut: 25
 
                 });
-                dialogBtn.children(':not(.dialogCancelButton)').remove();
+                dialogBtn.children(':not(.closeButton)').remove();
                 //dialogSaveButton.remove();
                 //$('#saveProperties').remove();
                 if (searchField) searchField.focus();
@@ -450,7 +443,7 @@ var Structr = {
     error : function(text, callback) {
         if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
         //console.log(callback);
-        if (callback) $('#errorBox .okButton').on('click', function(e) {
+        if (callback) $('#errorBox .closeButton').on('click', function(e) {
             e.stopPropagation();
             //callback();
             //console.log(callback);
@@ -473,14 +466,22 @@ var Structr = {
     tempInfo : function(text, autoclose) {
         window.clearTimeout(dialogId);
         if (text) $('#tempInfoBox .infoHeading').html('<img src="icon/information.png"> ' + text);
-        //console.log(callback);
         if (autoclose) {
             dialogId = window.setTimeout(function() {
                 $.unblockUI({
                     fadeOut: 25
                 });                
-            }, 1000);
+            }, 3000);
         }
+        $('#tempInfoBox .closeButton').on('click', function(e) {
+            e.stopPropagation();
+            window.clearTimeout(dialogId);
+            $.unblockUI({
+                fadeOut: 25
+            });
+            dialogBtn.children(':not(.closeButton)').remove();
+            if (searchField) searchField.focus();
+        });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({

@@ -759,9 +759,6 @@ var _Pages = {
             containment: '#pages',
             start: function(event, ui) {
                 sorting = true;
-            //console.log('sorting started', ui);
-            //var pageId = getId(ui.item.closest('.page')[0]);
-            //obj.id = pageId;
             },
             update: function(event, ui) {
                 var el = $(ui.item);
@@ -770,7 +767,6 @@ var _Pages = {
                 var refId = getId(el.next('.node'));
                 var parent = Structr.parent(id);
                 var parentId = getId(parent);
-                console.log(parentId, id, refId);
                 Command.insertBefore(parentId, id, refId);
                 sorting = false;
                 _Pages.reloadPreviews();
@@ -789,8 +785,6 @@ var _Pages = {
             drop: function(event, ui) {
                 var self = $(this);
 
-                console.log('dropped', event, ui.draggable);
-                
                 _Entities.ensureExpanded(self);
                 
                 if (sorting) {
@@ -805,9 +799,6 @@ var _Pages = {
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
                 
-                console.log('contentId', contentId);
-                console.log('elementId', elementId);
-
                 if (contentId == elementId) {
                     log('drop on self not allowed');
                     return;
@@ -871,16 +862,13 @@ var _Pages = {
                         tag = 'a';
                     }
                     contentId = undefined;
-
                     
                     Structr.modules['files'].unload();
                     _Pages.makeMenuDroppable();
     
                     Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
                     return div;
-
                 }
-                
                 
                 if (!contentId) {
                     tag = $(ui.draggable).text();
@@ -895,22 +883,15 @@ var _Pages = {
                     }
                     Command.createAndAppendDOMNode(getId(page), elementId, (tag != 'content' ? tag : ''), nodeData);
                     return div;
-
-                        
                         
                 } else {
                     tag = cls;
                     Command.appendChild(contentId, elementId);
                     return div;
                 }
-                    
                 log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
-
             }
-
-            
         });
-
         return div;
     },
 
@@ -940,10 +921,7 @@ var _Pages = {
                 Command.removeChild(content.id);
             });
         }
-
         _Entities.setMouseOver(div);
-
-        
         return div;
     },
 

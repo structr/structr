@@ -178,15 +178,16 @@ function connect() {
                             $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                         }
                     } else if (codeStr.startsWith('30')) {
-                        Structr.dialog('', true);
+                        Structr.dialog('', function() {}, function() {});
                         msgClass = 'info';
                         dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('40')) {
-                        Structr.dialog('', true);
+                        //Structr.dialog('', function() {}, function() {});
+                        Structr.tempInfo('', true);
                         msgClass = 'warning';
-                        dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else {
-                        Structr.error("", function() {});
+                        Structr.error('', function() {}, function() {});
                         msgClass = 'error';
                         $('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     }

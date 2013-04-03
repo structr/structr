@@ -512,20 +512,21 @@ var _Entities = {
     },
 
     setMouseOver : function(el, allowClick) {
-        if (!el || !el.children) return;
+        var node = $(el).closest('.node');
+        if (!node || !node.children) return;
 
         if (!allowClick) {
-            el.on('click', function(e) {
+            node.on('click', function(e) {
                 e.stopPropagation();
             });
         }
 
-        el.children('b.name_').on('click', function(e) {
+        node.children('b.name_').on('click', function(e) {
             e.stopPropagation();
-            _Entities.makeNameEditable(el);
+            _Entities.makeNameEditable(node);
         });
 
-        el.on({
+        node.on({
             mouseover: function(e) {
                 e.stopPropagation();
                 var self = $(this);
@@ -537,12 +538,13 @@ var _Entities = {
                     previewNodes.each(function(i,v) {
                         var self = $(v);
                         var sid = self.attr('structr_element_id');
-                        if (sid == nodeId) {
+                        if (sid === nodeId) {
                             self.addClass('nodeHover');
                         }
                     });
                 }
                 self.addClass('nodeHover').children('img.button').show();
+                self.children('.icons').children('img.button').show();
             },
             mouseout: function(e) {
                 e.stopPropagation();
@@ -553,19 +555,19 @@ var _Entities = {
 
     resetMouseOverState : function(element) {
         var el = $(element);
-        el.removeClass('nodeHover');
-        el.children('img.button').hide();
-        var nodeId = getId(el);
-        var nodes = $('.' + nodeId + '_');
-        nodes.removeClass('nodeHover');
-        var page = $(el).closest('.page');
+        var node = el.closest('.node')
+        if (node) {
+            node.removeClass('nodeHover');
+            node.find('img.button').hide();
+        }
+        var page = node.closest('.page');
         if (page.length) {
             var resId = getId(page);
             var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
             previewNodes.each(function(i,v) {
                 var self = $(v);
                 var sid = self.attr('structr_element_id');
-                if (sid == nodeId) {
+                if (sid === nodeId) {
                     log(sid);
                     self.removeClass('nodeHover');
                     log(self);
