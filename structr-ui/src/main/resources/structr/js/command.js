@@ -372,6 +372,23 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send an CLONE_NODE command to the server.
+     * 
+     * The server will clone the DOM node with the given id
+     * and append it to the node with the given parent id.
+     * 
+     */
+    cloneDOMNode: function(id, parentId) {
+        var obj = {};
+        obj.command = 'CLONE_NODE';
+        obj.id = id;
+        var data = {};
+        data.parentId = parentId;
+        obj.data = data;
+        log('cloneDOMNode()', obj);
+        return sendObj(obj);
+    },
+    /**
      * Send an ADD command to the server.
      * 
      * The server will do one of the following:

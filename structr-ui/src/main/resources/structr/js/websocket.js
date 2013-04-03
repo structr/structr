@@ -120,7 +120,7 @@ function connect() {
             var sessionValid = data.sessionValid;
             var code = data.code;
             
-            console.log('####################################### ', command, ' #########################################');
+            log('####################################### ', command, ' #########################################');
             
             rawResultCount[type] = data.rawResultCount;
             pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);

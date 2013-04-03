@@ -460,7 +460,7 @@ var _Pages = {
 
             var droppables = iframeDocument.find('[data-structr_element_id]');
 
-            if (droppables.length == 0) {
+            if (droppables.length === 0) {
 
                 //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
                 var html = iframeDocument.find('html');
@@ -488,9 +488,6 @@ var _Pages = {
                         var page = self.closest( '.page')[0];
                         var pageId;
                         var pos;
-                        var nodeData = {};
-                        
-                        //                        console.log('drop event', self, page);
                         
                         if (page) {
 
@@ -506,29 +503,29 @@ var _Pages = {
                             pos = $('[data-structr_element_id]', self).length;
                         }
                         
-                        var contentId = getId(ui.draggable);
+//                        var contentId = getId(ui.draggable);
                         var elementId = getId(self);
 
                         if (!elementId) elementId = self.attr('data-structr_element_id');
 
-                        if (!contentId) {
-                            // create element on the fly
-                            var tag = $(ui.draggable).text();
-                            
-                            console.log('suppress dropping anything in preview iframes for now');
-                        //Command.createAndAppendDOMNode(pageId, elementId, (tag != 'content' ? tag : ''));
-                            
-                        } else {
-                            console.log('suppress dropping anything in preview iframes for now');
-                        //Command.appendChild(contentId, elementId);
-                        }
+//                        if (!contentId) {
+//                            // create element on the fly
+//                            var tag = $(ui.draggable).text();
+//                            
+//                            console.log('suppress dropping anything in preview iframes for now');
+//                        //Command.createAndAppendDOMNode(pageId, elementId, (tag != 'content' ? tag : ''));
+//                            
+//                        } else {
+//                            console.log('suppress dropping anything in preview iframes for now');
+//                        //Command.appendChild(contentId, elementId);
+//                        }
                     }
                 });
 
                 var structrId = el.attr('data-structr_element_id');
                 //var type = el.prop('structr_type');
                 //  var name = el.prop('structr_name');
-                var tag  = element.nodeName.toLowerCase();
+//                var tag  = element.nodeName.toLowerCase();
                 if (structrId) {
 
                     $('.move_icon', el).on('mousedown', function(e) {
@@ -702,41 +699,21 @@ var _Pages = {
     },
 
     appendElementElement : function(entity, refNode) {
-        
         var parentId = entity.parentId;
-        
         var div = _Elements.appendElementElement(entity, refNode);
-        
         if (!div) return false;
-
         if (parentId) {
-
             $('.delete_icon', div).replaceWith('<img title="Remove ' + entity.type + ' \'' + entity.name + '\' from parent ' + parentId + '" '
                 + 'alt="Remove ' + entity.type + ' ' + entity.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
-            
             $('.button', div).on('mousedown', function(e) {
                 e.stopPropagation();
             });
-            
             $('.delete_icon', div).on('click', function(e) {
-                
                 e.stopPropagation();
-                var self = $(this);
-                
-                log('appendElementElement div', div);
-                //var pos = self.parent().parent().children('.node').index(self.parent());
-                //var pageId = getId(self.closest('.page')[0]);
-                //console.log('Command.removeSourceFromTarget(',entity.id, parentId, componentId, pageId, pos,')');
-                //Command.removeSourceFromTarget(entity.id, parentId, componentId, pageId, pos);
                 Command.removeChild(entity.id);
-
-            //                _Entities.listContainingNodes(entity, div);
-                
             });
         }
-
         _Entities.setMouseOver(div);
-
         var page = div.closest( '.page')[0];
         if (!page && pages) {
             div.draggable({
@@ -749,11 +726,7 @@ var _Pages = {
                 }
             });
         }
-
         var sorting = false;
-        //var obj = {};
-        //obj.command = 'SORT';
-
         div.sortable({
             sortable: '.node',
             containment: '#pages',
@@ -762,7 +735,6 @@ var _Pages = {
             },
             update: function(event, ui) {
                 var el = $(ui.item);
-                
                 var id = getId(el);
                 var refId = getId(el.next('.node'));
                 var parent = Structr.parent(id);
@@ -795,11 +767,19 @@ var _Pages = {
 				
                 var page = self.closest('.page')[0];
 
-                log(page);
+                
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
+
+                var ownDoc = StructrModel.obj(contentId);
+                console.log(getId(page), ownDoc.pageId);
+                if (getId(page) !== ownDoc.pageId) {
+                    console.log('clone node');
+                    Command.cloneDOMNode(getId(page), contentId);
+                    return div;
+                }
                 
-                if (contentId == elementId) {
+                if (contentId === elementId) {
                     log('drop on self not allowed');
                     return;
                 }
@@ -807,7 +787,7 @@ var _Pages = {
                 var tag, name;
                 var cls = Structr.getClass($(ui.draggable));
                 
-                if (cls == 'image') {
+                if (cls === 'image') {
                     contentId = undefined;
                     name = $(ui.draggable).find('.name_').attr('title');
                     log('Image dropped, creating <img> node', name);
@@ -822,14 +802,14 @@ var _Pages = {
                     return div;
                 }
                 
-                if (cls == 'file') {
+                if (cls === 'file') {
                     name = $(ui.draggable).children('.name_').attr('title');
                     
                     var parentTag = self.children('.tag_').text();
                     log(parentTag);
                     nodeData.linkableId = contentId;
                     
-                    if (parentTag == 'head') {
+                    if (parentTag === 'head') {
                         
                         log('File dropped in <head>');
                         
@@ -873,7 +853,7 @@ var _Pages = {
                 if (!contentId) {
                     tag = $(ui.draggable).text();
 
-                    if (tag == 'p' || tag == 'h1' || tag == 'h2' || tag == 'h3' || tag == 'h4' || tag == 'h5' || tag == 'h5' || tag == 'li' || tag == 'em' || tag == 'title' || tag == 'b' || tag == 'span' || tag == 'th' || tag == 'td') {
+                    if (tag === 'p' || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5' || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td') {
 
                         nodeData.childContent = 'Initial Content for ' + tag;
                             
