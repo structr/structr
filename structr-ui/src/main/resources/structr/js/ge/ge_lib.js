@@ -22,45 +22,14 @@
  * Templates
  ****************************************************************************************************/
 
-function nodeHtml(id, size, x, y) {
-    return ('<div class="' + size + ' node" id="id_' + id + '" style="left: ' + x + 'px; top: ' + y + 'px"><b class="label"></b></div>');
+function nodeHtml(entity) {
+    var id = entity.id;
+    var type = entity.type;
+    var size = entity.size;
+    var x = entity.pos[0]
+    var y = entity.pos[1];
+    return ('<div class="' + size + ' node" id="id_' + id + '" style="left: ' + x + 'px; top: ' + y + 'px"><b class="label"></b> [' + type + ']</div>');
 }
-//
-//function propertyTableHeader() {
-//    return '<table class="props"><tr><th>Key</th><th>Value</th><th>Type</th></tr>';
-//}
-//
-//function propertyTableFooter() {
-//    return '</table>';
-//}
-//
-//function propertyTableRow(key, value, type) {
-//    if (value && type) {
-//        switch (type) {
-//            case "String" :
-//                if (value.length < 40) {
-//                    return '<tr><td class="key">' + key + '</td><td class="value"><input type="text" size="40" maxlength="40" name="' + key + '" value="' + value + '"></td><td class="type">' + type + '</td></tr>';
-//                } else {
-//                    return '<tr><td class="key">' + key + '</td><td class="value"><textarea cols="40" rows="4" name="' + key + '">' + value + '</textarea></td><td class="type">' + type + '</td></tr>';
-//                }
-//                break;
-//            case "Long" :
-//                return '<tr><td class="key">' + key + '</td><td class="value"><input type="text" size="40" maxlength="40" name="' + key + '" value="' + value + '"></td><td class="type">' + type + '</td></tr>';
-//                break;
-//            case "Boolean" :
-//                var output = '<tr><td class="key">' + key + '</td><td class="value"><input type="checkbox" name="' + key + '"';
-//                if (value == "true") {
-//                    output += ' checked="checked"';
-//                }
-//                return output + '></td><td class="type">' + type + '</td></tr>';
-//                break;
-//            default :
-//                return '<tr><td class="key">' + key + '</td><td class="value">' + $('<div/>').text(value).html() + '</td><td class="type">' + type + '</td></tr>';
-//                break;
-//        }
-//    }
-//
-//}
 
 /****************************************************************************************************
  * Helper

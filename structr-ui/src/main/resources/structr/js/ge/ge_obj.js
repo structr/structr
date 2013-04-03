@@ -23,11 +23,12 @@ function Node(g, entity, size, pos, depth) {
     var self = this;
 
     this.id = entity.id;
+    this.type = entity.type;
     this.pos = pos;
     this.size = size;
     this.depth = depth;
 
-    this.element = $(nodeHtml(entity.id, size, pos[0], pos[1]))[0];
+    this.element = $(nodeHtml(self))[0];
 
     var div = $(this.element);
 
