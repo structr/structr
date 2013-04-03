@@ -352,7 +352,6 @@ var _Crud = {
         table.append('<tr></tr>');
         var tableHeader = $('tr:first-child', table);
         var view = res.views[_Crud.view[type]];
-                    
         if (view) {
             var k = Object.keys(view);
             if (k && k.length) {
@@ -699,8 +698,6 @@ var _Crud = {
         // use 'ui' view as default to make the 'edit by id' feature work
         var view = (type && _Crud.view[type] ? _Crud.view[type] : 'ui');
         var url = rootUrl + id + '/' + view;
-        console.log('headers', headers);
-        console.log('url', url);
         $.ajax({
             url: url,
             headers: headers,
@@ -1950,7 +1947,7 @@ var _Crud = {
         
         if (node) {
             //console.log('Edit node', node);
-            _Crud.dialog('Details of ' + type + ' ' + node.name + '<span class="id"> [' + node.id + ']</span>', function() {}, function() {});
+            _Crud.dialog('Details of ' + type + ' ' + (node.name ? node.name : node.id) + '<span class="id"> [' + node.id + ']</span>', function() {}, function() {});
         } else {
             //console.log('Create new node of type', typeOnCreate);
             _Crud.dialog('Create new ' + type, function() {}, function() {});
@@ -1966,7 +1963,14 @@ var _Crud = {
         }
         
         var table = $('table', dialogText);
-        $.each(_Crud.keys[type], function(i, key) {
+        
+        
+        var keys = _Crud.keys[type];
+        if (!keys) {
+            keys = Object.keys(typeDef.views[_Crud.view[type]]);
+        }
+        
+        $.each(keys, function(i, key) {
         //$.each(typeDef.views[_Crud.view[type]], function(i, property) {
             //console.log(property);
             //var type = property.className.substring(property.className.lastIndexOf('.') + 1);
@@ -1981,7 +1985,6 @@ var _Crud = {
                 cell.append(formatValueInputField(key, ''));
             }
         });
-        
         dialogSaveButton.remove();
         if (create) {
             dialogBox.append('<button class="save" id="saveProperties">Save</button>');
