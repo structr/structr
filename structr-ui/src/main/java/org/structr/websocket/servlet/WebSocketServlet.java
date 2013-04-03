@@ -65,8 +65,17 @@ public class WebSocketServlet extends HttpServlet {
 	private PropertyKey idProperty                            = null;
 	private ResourceProvider resourceProvider                 = null;
 	
-	public WebSocketServlet(PropertyKey idProperty) {
+	public WebSocketServlet(final PropertyKey idProperty) {
 		this.idProperty = idProperty;
+	}
+
+	public WebSocketServlet(final ResourceProvider resourceProvider) {
+		this.resourceProvider    = resourceProvider;
+	}
+
+	public WebSocketServlet(final ResourceProvider resourceProvider, final PropertyKey idProperty) {
+		this.idProperty = idProperty;
+		this.resourceProvider    = resourceProvider;
 	}
 
 	//~--- methods --------------------------------------------------------

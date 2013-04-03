@@ -102,7 +102,16 @@ public class HtmlServlet extends HttpServlet {
 	private boolean edit;
 	private Gson gson;
 
+	public HtmlServlet() {}
+	
+	public HtmlServlet(final ResourceProvider resourceProvider) {
+
+		this.resourceProvider    = resourceProvider;
+
+	}
+
 	//~--- methods --------------------------------------------------------
+	
 	@Override
 	public void init() {
 		
