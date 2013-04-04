@@ -22,7 +22,6 @@ package org.structr.core.graph;
 
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
@@ -36,10 +35,7 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
-import org.structr.core.Services;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -118,27 +114,5 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		return resultList;
 	}
-	
-	/**
-	 * A thread local version of the neo4j cypher execution engine.
-	 */
-//	protected static class ThreadLocalExecutionEngine extends ThreadLocal<ExecutionEngine> {
-//		
-//		@Override
-//		protected ExecutionEngine initialValue() {
-//			
-//			try {
-//		
-//				return new ExecutionEngine((GraphDatabaseService)Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class).execute());
-//				
-//			} catch (Throwable t) {
-//			
-//				logger.log(Level.SEVERE, "Could not instantiate cypher execution engine", t);
-//			
-//			}
-//			
-//			return null;
-//		}
-//	}	
 
 }
