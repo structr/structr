@@ -18,10 +18,17 @@
  */
 package org.structr.web.entity.dom;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StructrUiTest;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -227,7 +234,7 @@ public class PageTest extends StructrUiTest {
 			Page dstPage = Page.createNewPage(securityContext, "dstPage");
 			assertNotNull(dstPage);
 
-			// test adopt method
+			// test import method
 			dstPage.importNode(html, true);
 			
 			// has parent been removed for the source element?
@@ -266,4 +273,81 @@ public class PageTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 	}
+	
+	public void testCloneNode() {
+		
+
+		try {
+			Page page = Page.createNewPage(securityContext, "srcPage");
+
+			assertTrue(page != null);
+			assertTrue(page instanceof Page);
+
+			Node html   = page.createElement("html");
+			Node head   = page.createElement("head");
+			Node body   = page.createElement("body");
+			Node title  = page.createElement("title");
+			Node h1     = page.createElement("h1");
+			Node div   = page.createElement("div");
+			Node p     = page.createElement("p");
+
+			try {
+				// add HTML element to page
+				page.appendChild(html);
+
+				// add HEAD and BODY elements to HTML
+				html.appendChild(head);
+				html.appendChild(body);
+
+				// add TITLE element to HEAD
+				head.appendChild(title);
+
+				// add H1 element to BODY
+				body.appendChild(h1);
+
+				// add DIV element to BODY
+				body.appendChild(div);
+				div.appendChild(p);
+
+				// add text element to P
+				p.appendChild(page.createTextNode("First Paragraph"));
+				
+				Node clone = body.cloneNode(false);
+				
+				assertTrue(isClone(clone, body));
+				
+
+			} catch (DOMException dex) {
+
+				throw new FrameworkException(422, dex.getMessage());
+			}
+
+			
+		} catch (FrameworkException ex) {
+
+			fail("Unexpected exception");
+		}
+	}
+	
+	private boolean isClone(final Node n1, final Node n2) {
+
+		boolean isClone = true;
+		
+		isClone &= StringUtils.equals(n1.getNodeName(), n2.getNodeName());
+		isClone &= n1.getNodeType() == n2.getNodeType();
+		isClone &= StringUtils.equals(n1.getNodeValue(), n2.getNodeValue());
+		
+		NamedNodeMap attrs1 = n1.getAttributes();
+		NamedNodeMap attrs2 = n2.getAttributes();
+		
+		for (int i=0; i< attrs1.getLength(); i++) {
+			
+			Node a1 = attrs1.item(i);
+			isClone &= isClone(a1, attrs2.item(i));
+			
+		}
+		
+		return isClone;
+	}
+	
 }
