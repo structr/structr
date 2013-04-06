@@ -79,17 +79,22 @@ public class Services {
 	public static final String SMTP_USER              = "smtp.user";
 	public static final String SMTP_PASSWORD          = "smtp.password";
 
-//      public static final String ENTITY_PACKAGES = "entity.packages";
 	public static final String RESOURCES              = "resources";
-	public static final String SUPERUSER_PASSWORD     = "superuser.password";
 
 	// Security-related constants
 	public static final String SUPERUSER_USERNAME = "superuser.username";
+	public static final String SUPERUSER_PASSWORD = "superuser.password";
+
 	public static final String TCP_PORT           = "tcp.port";
 	public static final String TMP_PATH           = "tmp.path";
 	public static final String UDP_PORT           = "udp.port";
 	
 	public static final String JSON_OUTPUT_DEPTH  = "json.depth";
+	
+	// geocoding
+	public static final String GEOCODING_PROVIDER = "geocoding.provider";
+	public static final String GEOCODING_LANGUAGE = "geocoding.language";
+	public static final String GEOCODING_APIKEY   = "geocoding.apikey";
 	
 	private static Map<String, String> context    = null;
 	private static final Logger logger            = Logger.getLogger(Services.class.getName());

@@ -412,10 +412,29 @@ public abstract class Resource {
 
 		if (request != null && !request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-			final Double dist				= Double.parseDouble(distance);
-			final StringBuilder searchKey			= new StringBuilder();
-			final Enumeration names				= request.getParameterNames();
+			final Double dist       = Double.parseDouble(distance);
+			final Enumeration names = request.getParameterNames();
+			final String location   = request.getParameter(Search.LOCATION_SEARCH_KEYWORD);
+			final String street     = request.getParameter(Search.STREET_SEARCH_KEYWORD);
+			final String house      = request.getParameter(Search.HOUSE_SEARCH_KEYWORD);
+			final String postalCode = request.getParameter(Search.POSTAL_CODE_SEARCH_KEYWORD);
+			final String city       = request.getParameter(Search.CITY_SEARCH_KEYWORD);
+			final String state      = request.getParameter(Search.STATE_SEARCH_KEYWORD);
+			final String country    = request.getParameter(Search.COUNTRY_SEARCH_KEYWORD);
+		
+			if location, use city and street, else use all fields that are there!
+			
 
+			/*
+			 * search fields for geocoding:
+			 * 0: street
+			 * 1: house
+			 * 2: postalCode
+			 * 3: city
+			 * 4: state
+			 * 5: country
+			*/
+			
 			while (names.hasMoreElements()) {
 
 				final String name = (String) names.nextElement();
@@ -435,7 +454,7 @@ public abstract class Resource {
 
 			}
 
-			return new DistanceSearchAttribute(searchKey.toString(), dist, SearchOperator.AND);
+			return new DistanceSearchAttribute(fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], dist, SearchOperator.AND);
 
 		}
 
