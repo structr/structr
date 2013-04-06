@@ -531,8 +531,8 @@ public abstract class Resource {
 						}
 						
 						// let property key determine exact search value (might be a numeric value..)
-						rangeStartConverted = key.getSearchStringValue(rangeStartConverted);
-						rangeEndConverted   = key.getSearchStringValue(rangeEndConverted);
+						rangeStartConverted = key.getSearchValue(rangeStartConverted);
+						rangeEndConverted   = key.getSearchValue(rangeEndConverted);
 						
 						return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, SearchOperator.AND);
 						

@@ -197,15 +197,15 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 		Index<Node> index = indices.get(indexName);
 		synchronized(index) {
 
-			if (value instanceof Number) {
-				
-				index.add(node, key.dbName(), ValueContext.numeric((Number) value));
-				
-			} else {
+//			if (value instanceof Number) {
+//				
+//				index.add(node, key.dbName(), ValueContext.numeric((Number) value));
+//				
+//			} else {
 				
 				index.add(node, key.dbName(), value);
 				
-			}
+//			}
 		}
 	}
 }

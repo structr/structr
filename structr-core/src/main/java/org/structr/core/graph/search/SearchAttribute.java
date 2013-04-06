@@ -69,11 +69,11 @@ public abstract class SearchAttribute {
     };
     
     public PropertyKey getKey() {
-        return nodeAttribute.getKey();
+        return nodeAttribute == null ? null : nodeAttribute.getKey();
     }
 
     public Object getValue() {
-        return nodeAttribute.getValue();
+        return nodeAttribute == null ? null : nodeAttribute.getValue();
     }
     
     

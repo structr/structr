@@ -33,6 +33,12 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public class RelationshipStartNodeConverter extends PropertyConverter {
 
+	public RelationshipStartNodeConverter(SecurityContext securityContext) {
+
+		super(securityContext);
+
+	}
+
 	public RelationshipStartNodeConverter(SecurityContext securityContext, GraphObject entity) {
 
 		super(securityContext, entity);

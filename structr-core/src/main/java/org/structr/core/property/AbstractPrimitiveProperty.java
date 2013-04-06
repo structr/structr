@@ -61,23 +61,24 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 		boolean hasProperty = false;
 		
-		
-		try {
-			// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
-			hasProperty = propertyContainer.hasProperty(dbName());
+		if (propertyContainer != null) {
+			
+			try {
+				// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
+				hasProperty = propertyContainer.hasProperty(dbName());
 
-		} catch (IllegalStateException ise) {
-			
-			logger.log(Level.WARNING, "Could not determine property " + dbName + " of the requested graph object", ise);
-			
+			} catch (IllegalStateException ise) {
+
+				logger.log(Level.WARNING, "Could not determine property " + dbName + " of the requested graph object", ise);
+
+			}
+
+			if (hasProperty) {
+
+				value = propertyContainer.getProperty(dbName());
+
+			}
 		}
-			
-		if (propertyContainer != null && hasProperty) {
-
-			value = propertyContainer.getProperty(dbName());
-
-		}
-
 
 		if (applyConverter) {
 
@@ -125,15 +126,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			convertedValue = value;
 		}
 
-		final Object oldValue = getProperty(securityContext, obj, true);
-
-		// don't make any changes if
-		// - old and new value both are null
-		// - old and new value are not null but equal
-		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
-
-			return;
-		}
+//		final Object oldValue = getProperty(securityContext, obj, true);
+//		// don't make any changes if
+//		// - old and new value both are null
+//		// - old and new value are not null but equal
+//		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
+//
+//			return;
+//		}
 
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 		if (propertyContainer != null) {

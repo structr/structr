@@ -42,6 +42,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	}
 	
 	@Override
+	public PropertyConverter<Double, ?> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<Double, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
@@ -122,8 +127,8 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 		return null;
 	}
 	
-	@Override
-	public String getSearchStringValue(Double source) {
-		return source != null ? NumericUtils.doubleToPrefixCoded(source) : "";
-	}
+//	@Override
+//	public Object getSearchValue(Double source) {
+//		return source != null ? NumericUtils.doubleToPrefixCoded(source) : "";
+//	}
 }

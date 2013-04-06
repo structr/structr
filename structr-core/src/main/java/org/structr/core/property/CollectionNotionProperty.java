@@ -60,7 +60,12 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 	}
 
 	@Override
-	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
+	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 

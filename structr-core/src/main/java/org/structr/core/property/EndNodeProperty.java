@@ -43,6 +43,13 @@ public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	//~--- methods --------------------------------------------------------
 
 	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+
+		return databaseConverter(securityContext, null);
+
+	}
+
+	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 
 		return new RelationshipEndNodeConverter(securityContext, entity);

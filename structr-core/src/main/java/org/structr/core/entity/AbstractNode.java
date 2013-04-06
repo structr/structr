@@ -101,7 +101,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 //		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
 //		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), name, type, createdDate, lastModifiedDate, hidden, deleted);
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uuid, name, type);
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uuid, name, type, createdDate, lastModifiedDate, hidden, deleted);
 		
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), uuid);
 
@@ -128,26 +128,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	// reference to database node
 	protected Node dbNode;
 
-	// dirty flag, true means that some changes are not yet written to the database
-	protected PropertyMap properties;
 	protected String cachedUuid = null;
-	protected boolean isDirty;
 
 	//~--- constructors ---------------------------------------------------
 
-	public AbstractNode() {
-
-		this.properties = new PropertyMap();
-		isDirty         = true;
-
-	}
-
-	public AbstractNode(final PropertyMap properties) {
-
-		this.properties = properties;
-		isDirty         = true;
-
-	}
+	public AbstractNode() {}
 
 	public AbstractNode(SecurityContext securityContext, final Node dbNode) {
 
@@ -169,7 +154,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public final void init(final SecurityContext securityContext, final Node dbNode) {
 
 		this.dbNode          = dbNode;
-		this.isDirty         = false;
 		this.securityContext = securityContext;
 	}
 
@@ -398,7 +382,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public long getId() {
 
-		if (isDirty) {
+		if (dbNode == null) {
 
 			return -1;
 		}
@@ -570,11 +554,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 	
 	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
-
-		if (isDirty) {
-
-			return (T)properties.get(key);
-		}
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {

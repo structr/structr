@@ -51,6 +51,11 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	}
 	
 	@Override
+	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+	
+	@Override
 	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
@@ -135,8 +140,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 		return null;
 	}
 	
-	@Override
-	public String getSearchStringValue(Integer source) {
-		return source != null ? NumericUtils.intToPrefixCoded(source) : "";
-	}
+//	@Override
+//	public Object getSearchValue(Integer source) {
+//		return source != null ? NumericUtils.intToPrefixCoded(source) : "";
+//	}
 }

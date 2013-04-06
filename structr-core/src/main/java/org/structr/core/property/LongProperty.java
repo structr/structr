@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.NumericUtils;
 import org.structr.common.SecurityContext;
@@ -32,6 +34,8 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	
+	private static final Logger logger = Logger.getLogger(LongProperty.class.getName());
+	
 	public LongProperty(String name) {
 		super(name);
 	}
@@ -41,6 +45,11 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		return "Long";
 	}
 	
+	@Override
+	public PropertyConverter<Long, Long> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+
 	@Override
 	public PropertyConverter<Long, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
@@ -122,8 +131,18 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		return null;
 	}
 	
-	@Override
-	public String getSearchStringValue(Long source) {
-		return source != null ? NumericUtils.longToPrefixCoded(source) : "";
-	}
+//	@Override
+//	public Object getSearchValue(Long source) {
+//
+//		return source;
+////		if (source == null) {
+////			return "";
+////		}
+////		
+////		String prefixCoded = NumericUtils.longToPrefixCoded(source);
+////		
+////		logger.log(Level.INFO, "Search value for long {0}, prefixCoded: {1}", new Object[]{source, prefixCoded});
+////		
+////		return prefixCoded;
+//	}
 }

@@ -19,7 +19,12 @@
 package org.structr.core.property;
 
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
@@ -32,6 +37,8 @@ import org.structr.core.graph.search.TextualSearchAttribute;
  */
 public abstract class Property<T> implements PropertyKey<T> {
 
+	private static final Logger logger = Logger.getLogger(Property.class.getName());
+	
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean isReadOnlyProperty                   = false;
@@ -156,8 +163,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
 		
 		// return empty string on null value here to enable searching for empty values
-		String searchString = getSearchStringValue(searchValue);
-		String search       = exactMatch ? Search.exactMatch(searchString) : searchString;
+		
+		String search = "";
+		
+		if (searchValue != null) {
+		
+			Object convertedValue = getSearchValue(searchValue);
+			String searchString = convertedValue == null ? "" : convertedValue.toString();
+			search       = exactMatch ? Search.exactMatch(searchString) : searchString;
+
+		}
 		
 		return new TextualSearchAttribute(this, search, op);
 	}
@@ -168,7 +183,22 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public String getSearchStringValue(T source) {
-		return source != null ? source.toString() : "";
+	public Object getSearchValue(T source) {
+		
+		PropertyConverter databaseConverter = databaseConverter(SecurityContext.getSuperUserInstance());
+		Object convertedSearchValue      = source;
+
+		if (databaseConverter != null) {
+
+			try {
+				convertedSearchValue = databaseConverter.convert(source);
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to convert search value {0} for key {1}", new Object[] { source, this });
+			}
+		}
+		
+		return convertedSearchValue;
 	}
 }

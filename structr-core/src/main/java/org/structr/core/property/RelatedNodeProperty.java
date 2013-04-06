@@ -51,6 +51,11 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 	
 	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+		return databaseConverter(securityContext, null);
+	}
+	
+	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject currentObject) {
 		return new RelatedNodePropertyMapper(securityContext, currentObject, sourceKey, targetKey);
 	}

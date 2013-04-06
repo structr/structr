@@ -45,6 +45,11 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 	
 	@Override
+	public PropertyConverter<Boolean, Boolean> databaseConverter(SecurityContext securityContext) {
+		return databaseConverter(securityContext, null);
+	}
+
+	@Override
 	public PropertyConverter<Boolean, Boolean> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new DatabaseConverter(securityContext);
 	}

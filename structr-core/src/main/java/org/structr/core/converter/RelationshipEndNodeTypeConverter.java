@@ -37,13 +37,13 @@ public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, 
 	@Override
 	public Object revert(String source) {
 		
-		if(currentObject instanceof AbstractRelationship) {
+		if (currentObject instanceof AbstractRelationship) {
 			
-			AbstractRelationship rel = (AbstractRelationship)currentObject;
-			if(rel != null) {
+			AbstractRelationship rel = (AbstractRelationship) currentObject;
+			if (rel != null) {
 				
 				AbstractNode endNode = rel.getEndNode();
-				if(endNode != null) {
+				if (endNode != null) {
 					
 					return endNode.getType();
 				}
@@ -55,6 +55,6 @@ public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, 
 
 	@Override
 	public String convert(Object source) {
-		return null;
+		return source != null ? source.toString() : null;
 	}
 }

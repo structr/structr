@@ -54,6 +54,11 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	}
 	
 	@Override
+	public PropertyConverter<T, String> databaseConverter(SecurityContext securityContext) {
+		return databaseConverter(securityContext, null);
+	}
+	
+	@Override
 	public PropertyConverter<T, String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new DatabaseConverter(securityContext, entity);
 	}

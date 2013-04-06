@@ -37,6 +37,10 @@ public abstract class PropertyConverter<S, T> {
 	protected boolean rawMode                 = false;
 	protected Integer sortType                = null;
 
+	public PropertyConverter(SecurityContext securityContext) {
+		this(securityContext, null, null);
+	}
+
 	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject) {
 		this(securityContext, currentObject, null);
 	}

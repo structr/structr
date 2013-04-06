@@ -57,5 +57,6 @@ public enum RelType implements RelationshipType {
 	ROOT,
 	RENDER_NODE,
 	RENDER_LIST,
-	RENDER_TREE
+	RENDER_TREE,
+	SYNC
 }

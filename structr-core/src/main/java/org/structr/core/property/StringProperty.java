@@ -62,7 +62,12 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
+	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 

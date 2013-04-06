@@ -25,15 +25,15 @@ import static org.hamcrest.Matchers.*;
 
 /**
  *
- * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class IntegerPropertyRestTest extends StructrRestTest {
+public class DatePropertyRestTest extends StructrRestTest {
 	
 	public void testBasics() {
 		
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.body(" { 'integerProperty' : 2345 } ")
+			.body(" { 'dateProperty' : '2013-04-05T10:43:40+0200' } ")
 		.expect()
 			.statusCode(201)
 		.when()
@@ -48,17 +48,17 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
-			.body("result[0].integerProperty", equalTo(2345))
+			.body("result[0].dateProperty", equalTo("2013-04-05T10:43:40+0200"))
 		.when()
 			.get("/test_threes");
-		
+			
 	}
 	
 	public void testSearch() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T12:34:56+0200' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T10:43:40+0200' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T10:43:40+0200' } ").expect().statusCode(201).when().post("/test_threes");
 		
 		// test for three elements
 		RestAssured.given()
@@ -84,16 +84,17 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
-			.body("result[0].integerProperty", equalTo(2))
+			.body("result[0].dateProperty", equalTo("2013-04-03T12:34:56+0200"))
 		.when()
-			.get("/test_threes?integerProperty=2");
+			.get("/test_threes?dateProperty=2013-04-03T12:34:56+0200");
 	
 	}
-	public void testRangeSearch() {
+	
+	public void testRangeSearch1() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T12:34:56+0200' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T10:43:40+0200' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T10:43:40+0200' } ").expect().statusCode(201).when().post("/test_threes");
 		
 		// test range query
 		RestAssured.given()
@@ -107,7 +108,28 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.statusCode(200)
 			.body("result_count", equalTo(2))
 		.when()
-			.get("/test_threes?integerProperty=[1 TO 2]");
+			.get("/test_threes?dateProperty=[2013-04-03T12:34:56+0200 TO 2013-04-06T23:59:59+0200]");
 	
-	}
+	}	
+	public void testRangeSearch2() {
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T12:34:56+0200' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T10:43:40+0200' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T10:43:40+0200' } ").expect().statusCode(201).when().post("/test_threes");
+
+		// test range query
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(2))
+		.when()
+			.get("/test_threes?dateProperty=[2013-04-01T00:00:00+0200 TO 2013-04-06T23:59:59+0200]");
+	
+	}	
 }

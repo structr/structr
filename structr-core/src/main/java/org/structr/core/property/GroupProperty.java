@@ -72,6 +72,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 	
 	@Override
+	public PropertyConverter<PropertyMap, ?> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<PropertyMap, ?> databaseConverter(SecurityContext securityContext, GraphObject currentObject) {
 		return null;
 	}
@@ -333,8 +338,13 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		@Override
-		public PropertyConverter databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
-			return wrappedKey.databaseConverter(securityContext, entitiy);
+		public PropertyConverter databaseConverter(SecurityContext securityContext) {
+			return databaseConverter(securityContext, null);
+		}
+
+		@Override
+		public PropertyConverter databaseConverter(SecurityContext securityContext, GraphObject entity) {
+			return wrappedKey.databaseConverter(securityContext, entity);
 		}
 
 		@Override

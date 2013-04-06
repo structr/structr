@@ -25,7 +25,6 @@ package org.structr.core.property;
 
 import java.lang.reflect.ParameterizedType;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
@@ -83,7 +82,12 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entitiy) {
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 

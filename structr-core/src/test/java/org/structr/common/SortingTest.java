@@ -412,7 +412,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 5;
 			int page            = 1;
 
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.INT);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null);//, SortField.INT);
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -486,7 +486,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 20;
 			int page            = 1;
 
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null);//, SortField.LONG);
 
 			for (AbstractNode obj : result.getResults()) {
 

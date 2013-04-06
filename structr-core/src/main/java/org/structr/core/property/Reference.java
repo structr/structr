@@ -100,6 +100,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+		return databaseConverter(securityContext, null);
+	}
+
+	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return propertyKey.databaseConverter(securityContext, entity);
 	}
@@ -159,8 +164,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public String getSearchStringValue(T source) {
-		return propertyKey.getSearchStringValue(source);
+	public Object getSearchValue(T source) {
+		return propertyKey.getSearchValue(source);
 	}
 
 	@Override

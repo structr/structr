@@ -18,14 +18,25 @@
  */
 package org.structr.core.graph.search;
 
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.NumericRangeQuery;
+import org.apache.lucene.search.TermRangeQuery;
+
 import org.structr.core.property.PropertyKey;
 
 /**
  * Search attribute for range queries
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class RangeSearchAttribute extends SearchAttribute {
+	
+	private static final Logger logger                    = Logger.getLogger(RangeSearchAttribute.class.getName());
 
 	private PropertyKey searchKey = null;
 	private Object rangeStart = null;
@@ -56,16 +67,36 @@ public class RangeSearchAttribute extends SearchAttribute {
 
 	@Override
 	public String getValue() {
+
+		Query q;
+		if (rangeStart instanceof Date && rangeEnd instanceof Date) {
+			
+			q = NumericRangeQuery.newLongRange(searchKey.dbName(), ((Date) rangeStart).getTime(), ((Date) rangeEnd).getTime(), true, true);
+			
+		} else if (rangeStart instanceof Long && rangeEnd instanceof Long) {
+			
+			q = NumericRangeQuery.newLongRange(searchKey.dbName(), (Long) rangeStart, (Long) rangeEnd, true, true);
+			
+		} else if (rangeStart instanceof Float && rangeEnd instanceof Float) {
+			
+			q = NumericRangeQuery.newFloatRange(searchKey.dbName(), (Float) rangeStart, (Float) rangeEnd, true, true);
+			
+		} else if (rangeStart instanceof Double && rangeEnd instanceof Double) {
+			
+			q = NumericRangeQuery.newDoubleRange(searchKey.dbName(), (Double) rangeStart, (Double) rangeEnd, true, true);
+			
+		} else if (rangeStart instanceof Integer && rangeEnd instanceof Integer) {
+			
+			q = NumericRangeQuery.newIntRange(searchKey.dbName(), (Integer) rangeStart, (Integer) rangeEnd, true, true);
+			
+		} else {
+			
+			q = new TermRangeQuery(searchKey.dbName(), rangeStart.toString(), rangeEnd.toString(), true, true);
+			
+		}
+		logger.log(Level.INFO, "Range query: {0}", q);
 		
-		StringBuilder buf = new StringBuilder();
-	
-		buf.append(searchKey.dbName());
-		buf.append(":[\"");
-		buf.append(rangeStart.toString());
-		buf.append("\" TO \"");
-		buf.append(rangeEnd.toString());
-		buf.append("\"]");
+		return q.toString();
 		
-		return buf.toString();
 	}
 }

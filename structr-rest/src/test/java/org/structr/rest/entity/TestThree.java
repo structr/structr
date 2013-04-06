@@ -18,6 +18,7 @@
  */
 package org.structr.rest.entity;
 
+import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.EntityContext;
@@ -38,9 +39,10 @@ public class TestThree extends AbstractNode {
 	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty");
 	public static final Property<Long>          longProperty        = new LongProperty("longProperty");
 	public static final Property<String>        stringProperty      = new StringProperty("stringProperty");
+	public static final Property<Date>          dateProperty        = new ISO8601DateProperty("dateProperty");
 	
 	public static final View publicView = new View(TestThree.class, PropertyView.Public,
-		stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty
+		stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty, dateProperty
 	);
 	
 	static {

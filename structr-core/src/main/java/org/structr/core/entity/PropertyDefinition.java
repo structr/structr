@@ -222,6 +222,13 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	public Object defaultValue() {
 		return null;
 	}
+	
+	@Override
+	public PropertyConverter databaseConverter(SecurityContext securityContext) {
+
+		return databaseConverter(securityContext, null);
+
+	}
 
 	@Override
 	public PropertyConverter databaseConverter(SecurityContext securityContext, GraphObject entity) {
@@ -272,10 +279,10 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public String getSearchStringValue(Object source) {
+	public Object getSearchValue(Object source) {
 		
 		if (delegate != null) {
-			return delegate.getSearchStringValue(source);
+			return delegate.getSearchValue(source);
 		}
 		
 		return null;
@@ -434,4 +441,5 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		
 		return definitionsForKind;
 	}
+
 }

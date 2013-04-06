@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.lang.reflect.Constructor;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
@@ -66,6 +67,11 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
+	}
+
+	@Override
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+		return databaseConverter(securityContext, null);
 	}
 
 	@Override

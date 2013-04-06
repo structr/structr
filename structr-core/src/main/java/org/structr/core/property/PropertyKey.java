@@ -45,6 +45,7 @@ public interface PropertyKey<T> {
 	
 	public T defaultValue();
 	
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext);
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity);
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext);
 	
@@ -53,7 +54,7 @@ public interface PropertyKey<T> {
 
 	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch);
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
-	public String getSearchStringValue(T source);
+	public Object getSearchValue(T source);
 	
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
