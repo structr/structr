@@ -42,7 +42,7 @@ function connect() {
         
         ws = null;
         
-        var isEnc = (window.location.protocol == 'https:');
+        var isEnc = (window.location.protocol === 'https:');
         var host = document.location.host;
         var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
 
@@ -120,13 +120,13 @@ function connect() {
             var sessionValid = data.sessionValid;
             var code = data.code;
             
-            log('####################################### ', command, ' #########################################');
+            console.log('####################################### ', command, ' #########################################');
             
             rawResultCount[type] = data.rawResultCount;
             pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
             Structr.updatePager(type);
 
-            if (command == 'LOGIN') { /*********************** LOGIN ************************/
+            if (command === 'LOGIN') { /*********************** LOGIN ************************/
                 token = data.token;
                 user = data.data.username;
                 log('token', token);
@@ -149,19 +149,19 @@ function connect() {
                     Structr.login();
                 }
 
-            } else if (command == 'LOGOUT') { /*********************** LOGOUT ************************/
+            } else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
                 $.cookie('structrSessionToken', '');
                 $.cookie('structrUser', '');
                 clearMain();
                 Structr.login();
 
-            } else if (command == 'STATUS') { /*********************** STATUS ************************/
+            } else if (command === 'STATUS') { /*********************** STATUS ************************/
                 //console.log('Error code: ' + code);
 				
-                if (code == 403) {
+                if (code === 403) {
                     Structr.login('Wrong username or password!');
-                } else if (code == 401) {
+                } else if (code === 401) {
                     Structr.login('Session invalid');
                 } else {
                     
@@ -194,12 +194,12 @@ function connect() {
 
                 }
 
-            } else if (command == 'GET_PROPERTY') { /*********************** GET_PROPERTY ************************/
+            } else if (command === 'GET_PROPERTY') { /*********************** GET_PROPERTY ************************/
                 
                 log('GET_PROPERTY', data.data['key']);
                 StructrModel.updateKey(id, key, val);
                 
-            } else if (command == 'GET_PROPERTIES' || command == 'UPDATE') { /*********************** GET_PROPERTIES / UPDATE ************************/
+            } else if (command === 'GET_PROPERTIES' || command === 'UPDATE') { /*********************** GET_PROPERTIES / UPDATE ************************/
                 
                 log('UPDATE', data);
                 var id = data.id;
@@ -208,26 +208,26 @@ function connect() {
                 log('calling StructrModel.update(id, key, val)', id, key, val);
                 StructrModel.update(data);
                 
-            } else if (command == 'DATA_NODE_PARENT') { /*********************** DATA_NODE_PARENT ************************/
-                
-                log('DATA_NODE_PARENT', data.id, result);
-                var obj = StructrModel.obj(data.id);
-                obj.parentId = result.length && result[0].id;
-                if (data.callback) {
-                    log('executing callback with id', data.callback);
-                    StructrModel.callbacks[data.callback]();
-                }
-                
+//            } else if (command === 'DATA_NODE_PARENT') { /*********************** DATA_NODE_PARENT ************************/
+//                
+//                log('DATA_NODE_PARENT', data.id, result);
+//                var obj = StructrModel.obj(data.id);
+//                obj.parentId = result.length && result[0].id;
+//                if (data.callback) {
+//                    log('executing callback with id', data.callback);
+//                    StructrModel.callbacks[data.callback]();
+//                }
+//                
             } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
                 
                 log('CHILDREN', data);
                 
                 $(result).each(function(i, entity) {
                     
-                    if (entity.type == 'DataNode') {
-                        //console.log('DataNode', entity, data.nodesWithChildren, isIn(entity.id, data.nodesWithChildren));
-                        entity.hasChildren = isIn(entity.id, data.nodesWithChildren);
-                    }
+//                    if (entity.type === 'DataNode') {
+//                        //console.log('DataNode', entity, data.nodesWithChildren, isIn(entity.id, data.nodesWithChildren));
+//                        entity.hasChildren = isIn(entity.id, data.nodesWithChildren);
+//                    }
 
                     StructrModel.create(entity);
                     
@@ -257,38 +257,40 @@ function connect() {
                     
                 });
                 
-            } else if (command == 'DELETE') { /*********************** DELETE ************************/
+            } else if (command === 'DELETE') { /*********************** DELETE ************************/
                 
                 StructrModel.del(data.id);
                 
-            } else if (command == 'INSERT_BEFORE') { /*********************** INSERT_BEFORE ************************/
+            } else if (command === 'INSERT_BEFORE') { /*********************** INSERT_BEFORE ************************/
             
                 StructrModel.create(result[0], data.data.refId);
                 
-            } else if (command == 'APPEND_CHILD') { /*********************** APPEND_CHILD ************************/
+            } else if (command === 'APPEND_CHILD') { /*********************** APPEND_CHILD ************************/
             
                 StructrModel.create(result[0]);
 
-            } else if (command == 'APPEND_USER') { /*********************** APPEND_USER ************************/
+            } else if (command === 'APPEND_USER') { /*********************** APPEND_USER ************************/
             
                 StructrModel.create(result[0]);
 
-            } else if (command == 'REMOVE' || command == 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
+            } else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
                 StructrModel.obj(data.id).remove();
                 
-            } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
+            } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
                 $(result).each(function(i, entity) {
                     
-                    StructrModel.create(entity);
+                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'PropertyDefinition')) {
+                        StructrModel.create(entity);
+                    }
                     
-                    if (command == 'CREATE' && entity.type == 'Page') {
+                    if (command === 'CREATE' && entity.type === 'Page') {
                         var tab = $('#show_' + entity.id, previews);
                         setTimeout(function() {
                             _Pages.activateTab(tab)
                         }, 2000);
-                    } else if (command == 'CREATE' && (entity.type == 'File' || entity.type == 'Image')) {
+                    } else if (command === 'CREATE' && (entity.type === 'File' || entity.type === 'Image')) {
                         _Files.uploadFile(entity);
                     }
 
@@ -299,7 +301,7 @@ function connect() {
             } else {
                 log('Received unknown command: ' + command);
 
-                if (sessionValid == false) {
+                if (sessionValid === false) {
                     log('invalid session');
                     $.cookie('structrSessionToken', '');
                     $.cookie('structrUser', '');

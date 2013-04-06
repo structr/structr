@@ -84,8 +84,8 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, ownerDocument);
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent);
+	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, pageId);
+	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent, pageId);
 	//~--- static initializers --------------------------------------------
 
 	static {

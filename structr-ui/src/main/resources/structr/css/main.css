@@ -655,14 +655,14 @@ button img {
 }
 
 #confirmation, #infoBox, #tempInfoBox, #errorBox {
-    width: 300px;
+    /*width: 300px;*/
     min-height: 24px;
     padding: 12px 0 12px 12px;
     overflow: auto;
 }
 
 #tempErrorBox, #tempInfoBox {
-    width: 400px;
+    /*width: 400px;*/
     padding-bottom: 18px;
 }
 

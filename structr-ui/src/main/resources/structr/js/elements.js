@@ -184,7 +184,7 @@ var _Elements = {
         
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
         
-        var parent = entity.parentId ? Structr.node(entity.parentId) : undefined;
+        var parent = entity.parent.id ? Structr.node(entity.parent.id) : undefined;
         
         log('appendElementElement parent', parent);
         if (!parent) return false;

@@ -18,37 +18,35 @@
  */
 
 
+
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Linkable;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
-import org.structr.web.entity.html.Link;
-import org.structr.websocket.StructrWebSocket;
 
-//~--- classes ----------------------------------------------------------------
+import org.structr.common.RelType;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.websocket.StructrWebSocket;
 
 /**
  *
  * @author Axel Morgner
  */
-public class LinkCommand extends AbstractCommand {
+public class SyncModeCommand extends AbstractCommand {
 
 	static {
 
-		StructrWebSocket.addCommand(LinkCommand.class);
+		StructrWebSocket.addCommand(SyncModeCommand.class);
 	}
-	
+
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
@@ -56,6 +54,7 @@ public class LinkCommand extends AbstractCommand {
 		String sourceId                       = webSocketData.getId();
 		Map<String, Object> properties        = webSocketData.getNodeData();
 		String targetId                       = (String) properties.get("targetId");
+		final String syncMode                 = (String) properties.get("syncMode");
 		final AbstractNode sourceNode         = getNode(sourceId);
 		final AbstractNode targetNode         = getNode(targetId);
 
@@ -63,14 +62,21 @@ public class LinkCommand extends AbstractCommand {
 
 			try {
 
-				StructrTransaction transaction = new StructrTransaction() {
+				final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+				StructrTransaction transaction               = new StructrTransaction() {
 
 					@Override
 					public Object execute() throws FrameworkException {
 
-						Link.linkable.createRelationship(securityContext, sourceNode, targetNode);
+						createRel.execute(sourceNode, targetNode, RelType.SYNC, true);
+
+						if (syncMode.equals("bidir")) {
+
+							createRel.execute(targetNode, sourceNode, RelType.SYNC, true);
+						}
 
 						return null;
+
 					}
 
 				};
@@ -85,17 +91,15 @@ public class LinkCommand extends AbstractCommand {
 
 		} else {
 
-			getWebSocket().send(MessageBuilder.status().code(400).message("The LINK command needs id and targetId!").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(400).message("The SYNC_MODE command needs id and targetId!").build(), true);
 		}
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 
-		return "LINK";
+		return "SYNC_MODE";
 
 	}
 

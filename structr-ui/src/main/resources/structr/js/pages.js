@@ -178,8 +178,8 @@ var _Pages = {
                 var address = $('#_address', dialog).val();
                 var name    = $('#_name', dialog).val();
                 var timeout = $('#_timeout', dialog).val();
-                var publicVisible = $('#_publicVisible:checked', dialog).val() == 'on';
-                var authVisible = $('#_authVisible:checked', dialog).val() == 'on';
+                var publicVisible = $('#_publicVisible:checked', dialog).val() === 'on';
+                var authVisible = $('#_authVisible:checked', dialog).val() === 'on';
 
                 log('start');
                 return Command.importPage(code, address, name, timeout, publicVisible, authVisible);
@@ -289,7 +289,7 @@ var _Pages = {
             }
         });
 
-        if (element.prop('id').substring(5) == activeTab) {
+        if (element.prop('id').substring(5) === activeTab) {
             _Pages.activateTab(element);
         }
     },
@@ -361,7 +361,7 @@ var _Pages = {
         });
         
         input.keypress(function(e) {
-            if (e.keyCode == 13 || e.keyCode == 9) {
+            if (e.keyCode === 13 || e.keyCode === 9) {
                 e.preventDefault(); 
                 log('keypress');
                 var self = $(this);
@@ -699,7 +699,7 @@ var _Pages = {
     },
 
     appendElementElement : function(entity, refNode) {
-        var parentId = entity.parentId;
+        var parentId = entity.parent.id;
         var div = _Elements.appendElementElement(entity, refNode);
         if (!div) return false;
         if (parentId) {
@@ -771,13 +771,22 @@ var _Pages = {
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
 
-                var ownDoc = StructrModel.obj(contentId);
-                console.log(getId(page), ownDoc.pageId);
-                if (getId(page) !== ownDoc.pageId) {
-                    console.log('clone node');
-                    Command.cloneDOMNode(getId(page), contentId);
-                    return div;
+                var source = StructrModel.obj(contentId);
+                var target = StructrModel.obj(elementId);
+
+                
+                console.log(source, getId(page), source ? source.pageId : 'source null')
+                
+                if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
+                    console.log('copy node')
+                    Command.copyDOMNode(source.id, target.id);
+                    _Entities.showSyncDialog(source, target);
+                    return;
+                } else {
+                    console.log('not copying node');
                 }
+                
+                
                 
                 if (contentId === elementId) {
                     log('drop on self not allowed');
@@ -799,7 +808,7 @@ var _Pages = {
                     _Pages.makeMenuDroppable();
                     
                     Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
-                    return div;
+                    return;
                 }
                 
                 if (cls === 'file') {
@@ -847,7 +856,7 @@ var _Pages = {
                     _Pages.makeMenuDroppable();
     
                     Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
-                    return div;
+                    return;
                 }
                 
                 if (!contentId) {
@@ -862,12 +871,12 @@ var _Pages = {
                             
                     }
                     Command.createAndAppendDOMNode(getId(page), elementId, (tag != 'content' ? tag : ''), nodeData);
-                    return div;
+                    return;
                         
                 } else {
                     tag = cls;
                     Command.appendChild(contentId, elementId);
-                    return div;
+                    return;
                 }
                 log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
             }
@@ -879,7 +888,6 @@ var _Pages = {
         log('Pages.appendContentElement', content, refNode);
         
         var parentId = content.parent.id;
-        var parent = Structr.node(parentId);
 		
         var div = _Contents.appendContentElement(content, refNode);
         if (!div) return false;

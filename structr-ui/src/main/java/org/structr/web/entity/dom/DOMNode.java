@@ -21,6 +21,7 @@ package org.structr.web.entity.dom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -55,8 +57,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.common.PageHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -324,7 +328,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		if (doc != null) {
 
-			if (!doc.equals(otherNode.getOwnerDocument())) {
+			Document otherDoc = otherNode.getOwnerDocument();
+			
+			if (otherDoc != null && !doc.equals(otherDoc)) {
 
 				throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, WRONG_DOCUMENT_ERR_MESSAGE);
 			}
@@ -826,7 +832,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	}
 
-	protected void collectNodesByPredicate(Node startNode, StructrNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
+	protected void collectNodesByPredicate(Node startNode, DOMNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
 		
 		if (predicate.evaluate(securityContext, startNode)) {
 
@@ -855,7 +861,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	@Override
 	public String getTextContent() throws DOMException {
 
-		final StructrNodeList results     = new StructrNodeList();
+		final DOMNodeList results     = new DOMNodeList();
 		final TextCollector textCollector = new TextCollector();
 		
 		collectNodesByPredicate(this, results, textCollector, 0, false);
@@ -878,7 +884,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		checkReadAccess();
 		
-		return new StructrNodeList(treeGetChildren(RelType.CONTAINS));
+		return new DOMNodeList(treeGetChildren(RelType.CONTAINS));
 	}
 
 	@Override
@@ -1119,7 +1125,47 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	@Override
 	public Node cloneNode(boolean deep) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		
+		if (deep) {
+		
+			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
+			
+		} else {
+			
+			final PropertyMap properties = new PropertyMap();
+			
+			for (Iterator<PropertyKey> it = getPropertyKeys(uiView.name()).iterator(); it.hasNext();) {
+				
+				PropertyKey key = it.next();
+				
+				// omit system properties, parent/children and page relationships
+				if (!key.isSystemProperty()
+					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
+					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
+					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds)) {
+					properties.put(key, getProperty(key));
+				}
+			}
+			
+			try {
+				
+				return (DOMNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DOMNode>() {
+
+					@Override
+					public DOMNode execute() throws FrameworkException {
+
+						return (DOMNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+					}
+
+				});
+				
+			} catch (FrameworkException ex) {
+				
+				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
+				
+			}
+			
+		}
 	}
 
 	@Override
@@ -1334,5 +1380,31 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			return false;
 		}
+	}
+	
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+		
+		for (AbstractRelationship rel : getRelationships(RelType.SYNC, Direction.OUTGOING)) {
+			
+			DOMNode syncedNode = (DOMNode) rel.getEndNode();
+			
+			for (Iterator<PropertyKey> it = syncedNode.getPropertyKeys(uiView.name()).iterator(); it.hasNext();) {
+				
+				PropertyKey key = it.next();
+				
+				try {
+					syncedNode.setProperty(key, getProperty(key));
+				} catch (FrameworkException ex) {
+					logger.log(Level.SEVERE, "Could not sync property", ex);
+				}
+			
+			}
+			
+			
+		}
+		
+		return true;
+		
 	}
 }

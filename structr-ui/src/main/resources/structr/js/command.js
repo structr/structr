@@ -368,24 +368,45 @@ var Command = {
             data[key] = attributes[key];
         });
         obj.data = data;
-        console.log('createAndAppendDOMNode()', obj);
+        log('createAndAppendDOMNode()', obj);
         return sendObj(obj);
     },
     /**
-     * Send an CLONE_NODE command to the server.
+     * Send an COPY_NODE command to the server.
      * 
      * The server will clone the DOM node with the given id
      * and append it to the node with the given parent id.
      * 
      */
-    cloneDOMNode: function(id, parentId) {
+    copyDOMNode: function(id, parentId) {
         var obj = {};
-        obj.command = 'CLONE_NODE';
+        obj.command = 'COPY_NODE';
         obj.id = id;
         var data = {};
         data.parentId = parentId;
         obj.data = data;
-        log('cloneDOMNode()', obj);
+        log('copyDOMNode()', obj);
+        return sendObj(obj);
+    },
+    /**
+     * Send an SYNC_MODE command to the server.
+     * 
+     * The server set the mode for synchronization
+     * between source and target node to the
+     * given value.
+     * 
+     * Internally, SYNC relationships will be created.
+     * 
+     */
+    setSyncMode: function(id, targetId, mode) {
+        var obj = {};
+        obj.command = 'SYNC_MODE';
+        obj.id = id;
+        var data = {};
+        data.targetId = targetId;
+        data.syncMode = mode;
+        obj.data = data;
+        log('setSyncMode()', obj);
         return sendObj(obj);
     },
     /**

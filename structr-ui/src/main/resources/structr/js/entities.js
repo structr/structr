@@ -64,6 +64,19 @@ var _Entities = {
             });
     },
 
+    showSyncDialog : function(source, target) {
+        Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() { return true; }, function() { return true; });
+        
+        dialog.append('<div><input type="radio" name="syncMode" value="none"><label for="unidir">None</label></div>');
+        dialog.append('<div><input type="radio" name="syncMode" value="unidir"><label for="unidir">Uni-directional (master/slave)</label></div>');
+        dialog.append('<div><input type="radio" name="syncMode" value="bidir"><label for="unidir">Bi-directional</label></div>');
+        
+        $('input[name=syncMode]:radio', dialog).on('change', function() {
+           Command.setSyncMode(source.id, target.id, $(this).val());
+        });
+        
+    },
+
     showDataDialog : function(entity) {
         
         Structr.dialog('Edit Data Settings of ' + entity.id, function() { return true; }, function() { return true; });

@@ -161,7 +161,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public NodeList getChildNodes() {
 		
-		StructrNodeList _children = new StructrNodeList();
+		DOMNodeList _children = new DOMNodeList();
 		
 		_children.add(docTypeNode);
 		_children.addAll(super.getChildNodes());
@@ -455,7 +455,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					@Override
 					public Node execute() throws FrameworkException {
 
-						// step 1: use type-specific import impl.
+						// step 1: use type-specific adopt impl.
 						Node adoptedNode = domNode.doAdopt(Page.this);
 
 						// step 2: do recursive import?
@@ -548,7 +548,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public Element getElementById(final String id) {
 
-		StructrNodeList results = new StructrNodeList();
+		DOMNodeList results = new DOMNodeList();
 
 		collectNodesByPredicate(this, results, new Predicate<Node>() {
 
@@ -698,7 +698,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public NodeList getElementsByTagName(final String tagName) {
 		
-		StructrNodeList results = new StructrNodeList();
+		DOMNodeList results = new DOMNodeList();
 
 		collectNodesByPredicate(this, results, new Predicate<Node>() {
 

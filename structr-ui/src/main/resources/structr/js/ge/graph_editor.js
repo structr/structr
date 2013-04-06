@@ -126,7 +126,7 @@ function Graph(element) {
         graph.nodeIds.push(nodeId);
         $.ajax({
             headers: headers,
-            url: rootUrl + nodeId,
+            url: rootUrl + nodeId + '/ui',
             dataType: "json",
             success: function(data) {
                 if (!data || data.length === 0 || !data.result) {
@@ -134,7 +134,6 @@ function Graph(element) {
                 }
                 var entity = data.result;
                 var node = new Node(graph, entity, size, pos, depth);
-                //console.log(entity);
                 graph.addNode(node);
                 $('.label', node.element).html(entity.name ? entity.name : (entity.tag ? entity.tag : entity.type));
                 graph.renderRelationships(nodeId, 'out', depth, pos);

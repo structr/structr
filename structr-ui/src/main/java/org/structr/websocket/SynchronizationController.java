@@ -488,35 +488,12 @@ public class SynchronizationController implements StructrTransactionListener {
 		if (relType.equals("CONTAINS")) {
 
 			return false;
-		}
-
-		if (relType.equals("PAGE")) {
-
+			
+		} else {
+			
 			return true;
+			
 		}
-
-		if (relType.equals("OWNS")) {
-
-			return true;
-		}
-
-		if (relType.equals("SECURITY")) {
-
-			return true;
-		}
-
-		if (relType.equals("RENDER_TREE")) {
-
-			return true;
-		}
-
-		if (relType.endsWith(LinkedTreeNode.LIST_KEY_SUFFIX)) {
-
-			return true;
-		}
-
-		return false;
-
 	}
 
 }

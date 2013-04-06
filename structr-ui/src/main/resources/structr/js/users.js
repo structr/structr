@@ -139,8 +139,6 @@ var _UsersAndGroups = {
         var delIcon;
         div = Structr.node(user.id);
         
-        console.log(user.groups);
-        
         if (user.groups && user.groups.length) {
             
             var groupId = user.groups;

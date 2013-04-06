@@ -90,7 +90,7 @@ public class CreateSimplePage extends AbstractCommand {
 					
 					// add text nodes
 					title.appendChild(newPage.createTextNode("Page Title"));					
-					h1.appendChild(newPage.createTextNode("Page Title"));
+					h1.appendChild(newPage.createTextNode("Page Heading"));
 					div.appendChild(newPage.createTextNode("Body Text"));
 					
 				} catch (DOMException dex) {

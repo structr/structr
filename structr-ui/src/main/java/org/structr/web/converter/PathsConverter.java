@@ -50,6 +50,10 @@ public class PathsConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(PathsConverter.class.getName());
 
+	public PathsConverter(SecurityContext securityContext) {
+		super(securityContext);
+	}
+
 	public PathsConverter(SecurityContext securityContext, GraphObject entity) {
 		super(securityContext, entity);
 	}

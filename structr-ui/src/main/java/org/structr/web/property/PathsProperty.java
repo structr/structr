@@ -41,6 +41,11 @@ public class PathsProperty extends AbstractPrimitiveProperty<Set<String>> {
 	}
 	
 	@Override
+	public PropertyConverter<Set<String>, ?> databaseConverter(SecurityContext securityContext) {
+		return new PathsConverter(securityContext);
+	}
+	
+	@Override
 	public PropertyConverter<Set<String>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new PathsConverter(securityContext, entity);
 	}
