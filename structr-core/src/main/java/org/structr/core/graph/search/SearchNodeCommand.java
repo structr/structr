@@ -31,8 +31,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
 
-import org.structr.common.GeoHelper;
-import org.structr.common.GeoHelper.GeoCodingResult;
+import org.structr.common.geo.GeoHelper;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -48,6 +47,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.geo.GeoCodingResult;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -194,7 +194,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 				} else if (attr instanceof DistanceSearchAttribute) {
 
 					distanceSearch = (DistanceSearchAttribute) attr;
-					coords         = GeoHelper.geocode(distanceSearch.getKey().dbName());
+					coords         = GeoHelper.geocode(distanceSearch);
 					dist           = distanceSearch.getValue();
 
 				} else if (attr instanceof SearchAttributeGroup) {

@@ -1,49 +1,13 @@
-/**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
- *
- * This file is part of structr <http://structr.org>.
- *
- * structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
- */
-package org.structr.common;
-
-import org.structr.core.property.PropertyMap;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Location;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-
-//~--- JDK imports ------------------------------------------------------------
+package org.structr.common.geo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
-
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -51,50 +15,35 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.GeoHelper.GeoCodingResult.Type;
-
-//~--- classes ----------------------------------------------------------------
+import org.apache.commons.lang.StringUtils;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.geo.GeoCodingResult.Type;
 
 /**
- * Helper class to create location nodes from coordinates or by using
- * online geocoding service.
  *
- * @author Axel Morgner
+ * @author Christian Morgner
  */
-public class GeoHelper {
+public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
-	private static final Logger logger = Logger.getLogger(GeoHelper.class.getName());
+	private static final Logger logger = Logger.getLogger(GoogleGeoCodingProvider.class.getName());
 
-	//~--- methods --------------------------------------------------------
+	@Override
+	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, final String language) throws FrameworkException {
 
-	public static Location createLocation(final GeoCodingResult coords) throws FrameworkException {
-
-		final PropertyMap props = new PropertyMap();
-		double latitude         = coords.getLatitude();
-		double longitude        = coords.getLongitude();
-		String type             = Location.class.getSimpleName();
-
-		props.put(AbstractNode.type,  type);
-		props.put(Location.latitude,  latitude);
-		props.put(Location.longitude, longitude);
-
-		StructrTransaction transaction = new StructrTransaction<AbstractNode>() {
-
-			@Override
-			public AbstractNode execute() throws FrameworkException {
-				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
-			}
-		};
-
-		return (Location) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
-	}
-
-	public static GeoCodingResult geocode(final String address) throws FrameworkException {
-		return geocode(address, "de");
-	}
-	
-	public static GeoCodingResult geocode(final String address, final String language) throws FrameworkException {
-
+		String address =
+			
+			(StringUtils.isNotBlank(street) ? street : "") + " " +
+			(StringUtils.isNotBlank(house) ? house : "") + " " +
+			(StringUtils.isNotBlank(postalCode) ? postalCode : "" +
+			(StringUtils.isNotBlank(city) ? city : "") + " " +
+			(StringUtils.isNotBlank(state) ? state : "") + " " +
+			(StringUtils.isNotBlank(country) ? country : "") + " "
+		);
+		
 		String encodedAddress;
 
 		try {
@@ -144,7 +93,7 @@ public class GeoHelper {
 		if ("OK".equals(status)) {
 			
 			try {
-				return new GeoCodingResult(address, root);
+				return new GoogleGeoCodingResult(address, root);
 				
 			} catch(Throwable t) {
 				
@@ -158,82 +107,19 @@ public class GeoHelper {
 
 		return null;
 	}
-	
-	public static void main(String[] args) {
-
-		String address = "Hanauer Landstr. 291a";
-
-		try {
-			
-			GeoCodingResult res = geocode(address);
-			logger.log(Level.INFO, "result for address {0}: {1} ({2})", new Object[] {
-				address,
-				res.getLatitude(),
-				res.getAddressComponent(Type.administrative_area_level_1).getLongValue()
-			} );
-			
-			
-		} catch (Exception ex) {
-			logger.log(Level.SEVERE, null, ex);
-		}
-	}
-
-//	public static List<AbstractNode> filterByDistance(final List<AbstractNode> nodes, final GeoCodingResult coords, final Double distance) throws FrameworkException {
-//
-//		List<AbstractNode> filteredList = new LinkedList<AbstractNode>();
-//
-//		Command graphDbCommand = Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class);
-//		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
-//
-//		SpatialDatabaseService db = new SpatialDatabaseService(graphDb);
-//		SimplePointLayer layer = (SimplePointLayer) db.createSimplePointLayer("temporaryLayer", "Longitude", "Latitude");
-//
-//		for (AbstractNode node : nodes) {
-//			Double lat = node.getDoubleProperty(Location.Key.latitude);
-//			Double lon = node.getDoubleProperty(Location.Key.longitude);
-//
-//			layer.add(lat, lon);
-//		}
-//
-//		// TODO: finish implementation here??
-//
-//		return filteredList;
-//
-//	}
 
 	//~--- inner classes --------------------------------------------------
 
-	public static class GeoCodingResult {
+	public static class GoogleGeoCodingResult implements GeoCodingResult {
 
 		private List<AddressComponent> addressComponents = new LinkedList<AddressComponent>();
 		private String address = null;
 		private double latitude;
 		private double longitude;
-
-		public enum Type {
-			
-			street_number,
-			route,
-			sublocality,
-			locality,
-			
-			/** Bundesland */
-			administrative_area_level_1,
-			
-			/** Regierungsbezirk */
-			administrative_area_level_2,
-			
-			/** Stadt */
-			administrative_area_level_3,
-			
-			postal_code,
-			country,
-			political
-		}
 		
 		//~--- constructors -------------------------------------------
 
-		public GeoCodingResult(String address, Element root) {
+		public GoogleGeoCodingResult(String address, Element root) {
 			
 			this.address = address;
 			
@@ -243,14 +129,14 @@ public class GeoHelper {
 			Iterator<Element> addressComponentsElement = root.element("result").elementIterator("address_component");
 			for(;addressComponentsElement.hasNext();) {
 
-				addressComponents.add(new AddressComponent(addressComponentsElement.next()));
+				addressComponents.add(new GoogleAddressComponent(addressComponentsElement.next()));
 			}
 			
 			this.latitude     = Double.parseDouble(latString);
 			this.longitude    = Double.parseDouble(lonString);
 		}
 		
-		public GeoCodingResult(final double latitude, final double longitude) {
+		public GoogleGeoCodingResult(final double latitude, final double longitude) {
 
 			this.latitude  = latitude;
 			this.longitude = longitude;
@@ -261,6 +147,7 @@ public class GeoHelper {
 		/**
 		 * @return the latitude
 		 */
+		@Override
 		public double getLatitude() {
 			return latitude;
 		}
@@ -268,6 +155,7 @@ public class GeoHelper {
 		/**
 		 * @return the longitude
 		 */
+		@Override
 		public double getLongitude() {
 			return longitude;
 		}
@@ -277,6 +165,7 @@ public class GeoHelper {
 		/**
 		 * @param latitude the latitude to set
 		 */
+		@Override
 		public void setLatitude(double latitude) {
 			this.latitude = latitude;
 		}
@@ -284,22 +173,27 @@ public class GeoHelper {
 		/**
 		 * @param longitude the longitude to set
 		 */
+		@Override
 		public void setLongitude(double longitude) {
 			this.longitude = longitude;
 		}
 
+		@Override
 		public Double[] toArray() {
 			return new Double[]{ latitude, longitude };
 		}
 
+		@Override
 		public String getAddress() {
 			return address;
 		}
 
+		@Override
 		public void setAddress(String address) {
 			this.address = address;
 		}
 
+		@Override
 		public AddressComponent getAddressComponent(Type... types) {
 			
 			for(AddressComponent addressComponent : addressComponents) {
@@ -312,18 +206,19 @@ public class GeoHelper {
 			return null;
 		}
 		
+		@Override
 		public List<AddressComponent> getAddressComponents() {
 			return addressComponents;
 		}
 	}
 	
-	public static class AddressComponent {
+	public static class GoogleAddressComponent implements AddressComponent {
 		
 		private Set<Type> types = new LinkedHashSet<Type>();
 		private String shortValue = null;
 		private String longValue = null;
 		
-		public AddressComponent(Element addressComponent) {
+		public GoogleAddressComponent(Element addressComponent) {
 			
 			this.shortValue = addressComponent.element("short_name").getTextTrim();
 			this.longValue = addressComponent.element("long_name").getTextTrim();
@@ -345,16 +240,20 @@ public class GeoHelper {
 			}
 		}
 
+		@Override
 		public Set<Type> getTypes() {
 			return types;
 		}
 
+		@Override
 		public String getShortValue() {
 			return shortValue;
 		}
 
+		@Override
 		public String getLongValue() {
 			return longValue;
 		}
 	}
+
 }

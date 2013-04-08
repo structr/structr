@@ -412,31 +412,38 @@ public abstract class Resource {
 
 		if (request != null && !request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-			final Double dist				= Double.parseDouble(distance);
-			final StringBuilder searchKey			= new StringBuilder();
-			final Enumeration names				= request.getParameterNames();
+			final Double dist       = Double.parseDouble(distance);
+			final String location   = request.getParameter(Search.LOCATION_SEARCH_KEYWORD);
+			
+			String street     = request.getParameter(Search.STREET_SEARCH_KEYWORD);
+			String house      = request.getParameter(Search.HOUSE_SEARCH_KEYWORD);
+			String postalCode = request.getParameter(Search.POSTAL_CODE_SEARCH_KEYWORD);
+			String city       = request.getParameter(Search.CITY_SEARCH_KEYWORD);
+			String state      = request.getParameter(Search.STATE_SEARCH_KEYWORD);
+			String country    = request.getParameter(Search.COUNTRY_SEARCH_KEYWORD);
+		
+			// if location, use city and street, else use all fields that are there!
+			if (location != null) {
 
-			while (names.hasMoreElements()) {
+				String[] parts = location.split("[,]+");
+				switch (parts.length) {
 
-				final String name = (String) names.nextElement();
-
-				if (!name.equals(Search.DISTANCE_SEARCH_KEYWORD) && !validAttrs.contains(name)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID)
-					) {
-
-					searchKey.append(request.getParameter(name)).append(" ");
-
+					case 3:
+						country = parts[2];	// no break here intentionally
+						
+					case 2:
+						city = parts[1];	// no break here intentionally
+						
+					case 1:
+						street = parts[0];
+						break;
+						
+					default:
+						break;
 				}
-
 			}
 
-			return new DistanceSearchAttribute(searchKey.toString(), dist, SearchOperator.AND);
-
+			return new DistanceSearchAttribute(street, house, postalCode, city, state, country, dist, SearchOperator.AND);
 		}
 
 		return null;
