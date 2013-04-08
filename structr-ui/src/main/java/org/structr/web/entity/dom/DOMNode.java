@@ -1382,29 +1382,4 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 	}
 	
-	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
-		
-		for (AbstractRelationship rel : getRelationships(RelType.SYNC, Direction.OUTGOING)) {
-			
-			DOMNode syncedNode = (DOMNode) rel.getEndNode();
-			
-			for (Iterator<PropertyKey> it = syncedNode.getPropertyKeys(uiView.name()).iterator(); it.hasNext();) {
-				
-				PropertyKey key = it.next();
-				
-				try {
-					syncedNode.setProperty(key, getProperty(key));
-				} catch (FrameworkException ex) {
-					logger.log(Level.SEVERE, "Could not sync property", ex);
-				}
-			
-			}
-			
-			
-		}
-		
-		return true;
-		
-	}
 }

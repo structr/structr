@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import org.apache.commons.lang.StringUtils;
@@ -64,6 +65,7 @@ import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.collections.map.LRUMap;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
@@ -317,6 +319,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			// fetch children
 			List<AbstractRelationship> rels = getChildRelationships();
+			
+			if (rels.isEmpty()) {
+				
+				// No child relationships, maybe this node is in sync with another node
+				List <AbstractRelationship> syncRels = getRelationships(RelType.SYNC, Direction.INCOMING);
+				if (!syncRels.isEmpty()) {
+
+					DOMElement syncedNode = (DOMElement) syncRels.get(0).getStartNode();
+					rels = syncedNode.getChildRelationships();
+				}
+				
+			}
 
 			for (AbstractRelationship rel : rels) {
 
@@ -1229,4 +1243,32 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			return null;
 		}		
 	}
+
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+		
+		for (AbstractRelationship rel : getRelationships(RelType.SYNC, Direction.OUTGOING)) {
+			
+			DOMElement syncedNode = (DOMElement) rel.getEndNode();
+			
+			// sync HTML properties only
+			for (Property htmlProp : syncedNode.getHtmlAttributes()) {
+				
+				try {
+					
+					syncedNode.setProperty(htmlProp, getProperty(htmlProp));
+					
+				} catch (FrameworkException ex) {
+					logger.log(Level.SEVERE, "Could not sync property", ex);
+				}
+			
+			}
+			
+			
+		}
+		
+		return true;
+		
+	}
+
 }
