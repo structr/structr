@@ -237,6 +237,24 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			}
 
 		});
+		functions.put("not", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] b) {
+				
+				return b[0].equals("true") ? "false" : "true";
+			}
+
+		});
+		functions.put("and", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] b) {
+				
+				return b[0].equals("true") && b[1].equals("true") ? "true" : "false";
+			}
+
+		});
 	}
 	
 	// ----- public methods -----
