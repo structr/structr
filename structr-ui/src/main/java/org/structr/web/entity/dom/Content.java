@@ -260,7 +260,8 @@ public class Content extends DOMNode implements Text {
 
 		if (_content != null) {
 
-			buffer.append(indent(depth, true)).append(_content);
+			//buffer.append(indent(depth, true)).append(_content);
+			buffer.append(_content);
 		}
 		
 		if (edit && inBody) {
