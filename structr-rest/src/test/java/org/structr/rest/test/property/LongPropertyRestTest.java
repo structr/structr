@@ -88,47 +88,6 @@ public class LongPropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes?longProperty=1365151420000");
 		
-		// test range query
-		RestAssured.given()
-			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-		.expect()
-			.statusCode(200)
-			.body("result_count", equalTo(1))
-		.when()
-			.get("/test_threes?longProperty=[1364000000000 TO 1365285599000]");
-				
-		// test range query
-		RestAssured.given()
-			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-		.expect()
-			.statusCode(200)
-			.body("result_count", equalTo(1))
-		.when()
-			.get("/test_threes?longProperty=[1365000000000 TO 1365285599000]");
-		
-		// test range query
-		RestAssured.given()
-			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-		.expect()
-			.statusCode(200)
-			.body("result_count", equalTo(1))
-		.when()
-			.get("/test_threes?longProperty=[1364985296000 TO 1365285599000]");
 	
 	}
 
@@ -172,20 +131,6 @@ public class LongPropertyRestTest extends StructrRestTest {
 			.statusCode(200)
 			.body("result_count", equalTo(1))
 		.when()
-			.get("/test_threes?longProperty=[1364000000000 TO 1365285599000]");
-				
-		// test range query
-		RestAssured.given()
-			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-		.expect()
-			.statusCode(200)
-			.body("result_count", equalTo(1))
-		.when()
 			.get("/test_threes?longProperty=[1365000000000 TO 1365285599000]");
 	
 	}	
@@ -211,4 +156,28 @@ public class LongPropertyRestTest extends StructrRestTest {
 			.get("/test_threes?longProperty=[1364985296000 TO 1365285599000]");
 	
 	}	
+	
+
+	public void testRangeSearchLargeInterval1() {
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/test_threes");
+		
+		// test range query
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+		.when()
+			.get("/test_threes?longProperty=[123 TO 1365285599000]");
+	
+	}
+
 }
