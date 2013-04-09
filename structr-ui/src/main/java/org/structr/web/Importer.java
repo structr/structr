@@ -637,7 +637,7 @@ public class Importer {
 						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 //              fileNode.getChecksum();
-		indexNode.addNode(fileNode);
+//		indexNode.addNode(fileNode);
 
 		return fileNode;
 
@@ -652,7 +652,7 @@ public class Importer {
 						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 //              imageNode.getChecksum();
-		indexNode.addNode(imageNode);
+//		indexNode.addNode(imageNode);
 
 		return imageNode;
 
