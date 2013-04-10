@@ -427,7 +427,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			// render end tag, if needed (= if not singleton tags)
 			if (StringUtils.isNotBlank(tag) && (!isVoid)) {
 				
-				buffer.append(indent(depth, true));
+				buffer.append(indent(depth, !avoidWhitespace()));
 
 				buffer.append("</").append(tag).append(">");
 			}

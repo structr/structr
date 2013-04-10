@@ -379,12 +379,12 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			indent.append("\n");
 
-		}
 
-		for (int d = 0; d < depth; d++) {
+			for (int d = 0; d < depth; d++) {
 
-			indent.append("  ");
+				indent.append("  ");
 
+			}
 		}
 
 		return indent.toString();
