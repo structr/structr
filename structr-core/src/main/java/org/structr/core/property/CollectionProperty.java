@@ -202,20 +202,16 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 				Class destinationType   = getDestType();
 				List<T> nodes           = new LinkedList<T>();
 				Node dbNode             = node.getNode();
-				//AbstractNode value      = null;
-				String destTypeString   = destinationType.getSimpleName();
-				String typeString       = AbstractNode.type.dbName();
+				AbstractNode value      = null;
 
 				try {
 
 					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
 
-						//value = nodeFactory.createNode(rel.getOtherNode(dbNode));
-						//if (value != null && destinationType.isInstance(value)) {
-						Node otherNode = rel.getOtherNode(dbNode);
-						if (otherNode.hasProperty(typeString) && ((String) otherNode.getProperty(typeString)).equals(destTypeString)) {
+						value = nodeFactory.createNode(rel.getOtherNode(dbNode));
+						if (value != null && destinationType.isInstance(value)) {
 
-							nodes.add((T) nodeFactory.createNode(otherNode));
+							nodes.add((T)value);
 						}
 					}
 
