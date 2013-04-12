@@ -69,29 +69,35 @@ public class RangeSearchAttribute extends SearchAttribute {
 	public String getValue() {
 
 		Query q;
-		if (rangeStart instanceof Date && rangeEnd instanceof Date) {
+		
+		if (rangeStart == null && rangeEnd == null) {
+			return null;
+		}
+		
+		
+		if ((rangeStart != null && rangeStart instanceof Date) || (rangeEnd != null && rangeEnd instanceof Date)) {
 			
-			q = NumericRangeQuery.newLongRange(searchKey.dbName(), ((Date) rangeStart).getTime(), ((Date) rangeEnd).getTime(), true, true);
+			q = NumericRangeQuery.newLongRange(searchKey.dbName(), rangeStart == null ? null : ((Date) rangeStart).getTime(), rangeEnd == null ? null : ((Date) rangeEnd).getTime(), true, true);
 			
-		} else if (rangeStart instanceof Long && rangeEnd instanceof Long) {
+		} else if ((rangeStart != null && rangeStart instanceof Long) || (rangeEnd != null && rangeEnd instanceof Long)) {
 			
-			q = NumericRangeQuery.newLongRange(searchKey.dbName(), (Long) rangeStart, (Long) rangeEnd, true, true);
+			q = NumericRangeQuery.newLongRange(searchKey.dbName(), rangeStart == null ? null : (Long) rangeStart, rangeEnd == null ? null : (Long) rangeEnd, true, true);
 			
-		} else if (rangeStart instanceof Float && rangeEnd instanceof Float) {
+		} else if ((rangeStart != null && rangeStart instanceof Float) || (rangeEnd != null && rangeEnd instanceof Float)) {
 			
-			q = NumericRangeQuery.newFloatRange(searchKey.dbName(), (Float) rangeStart, (Float) rangeEnd, true, true);
+			q = NumericRangeQuery.newFloatRange(searchKey.dbName(), rangeStart == null ? null : (Float) rangeStart, rangeEnd == null ? null : (Float) rangeEnd, true, true);
 			
-		} else if (rangeStart instanceof Double && rangeEnd instanceof Double) {
+		} else if ((rangeStart != null && rangeStart instanceof Double) || (rangeEnd != null && rangeEnd instanceof Double)) {
 			
-			q = NumericRangeQuery.newDoubleRange(searchKey.dbName(), (Double) rangeStart, (Double) rangeEnd, true, true);
+			q = NumericRangeQuery.newDoubleRange(searchKey.dbName(), rangeStart == null ? null : (Double) rangeStart, rangeEnd == null ? null : (Double) rangeEnd, true, true);
 			
-		} else if (rangeStart instanceof Integer && rangeEnd instanceof Integer) {
+		} else if ((rangeStart != null && rangeStart instanceof Integer) || (rangeEnd != null && rangeEnd instanceof Integer)) {
 			
-			q = NumericRangeQuery.newIntRange(searchKey.dbName(), (Integer) rangeStart, (Integer) rangeEnd, true, true);
+			q = NumericRangeQuery.newIntRange(searchKey.dbName(), rangeStart == null ? null : (Integer) rangeStart, rangeEnd == null ? null : (Integer) rangeEnd, true, true);
 			
 		} else {
 			
-			q = new TermRangeQuery(searchKey.dbName(), rangeStart.toString(), rangeEnd.toString(), true, true);
+			q = new TermRangeQuery(searchKey.dbName(), rangeStart == null ? null : rangeStart.toString(), rangeEnd == null ? null : rangeEnd.toString(), true, true);
 			
 		}
 		logger.log(Level.INFO, "Range query: {0}", q);
@@ -99,4 +105,5 @@ public class RangeSearchAttribute extends SearchAttribute {
 		return q.toString();
 		
 	}
+	
 }
