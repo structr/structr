@@ -131,12 +131,20 @@ var _Entities = {
     showProperties : function(entity) {
 
         var views;
-	    
-        if (entity.type == 'Content') {
+	var startView = '_html_';
+        
+        if (entity.type === 'Content') {
             views = ['all', 'in', 'out' ];
+            startView = 'all';
         } else {
-            views = ['all', 'in', 'out', '_html_'];
+            views = ['_html_', 'all', 'in', 'out'];
         }
+
+        var tabTexts = [];
+        tabTexts._html_ = 'HTML';
+        tabTexts.all = 'Node';
+        tabTexts.in = 'Incoming';
+        tabTexts.out = 'Outgoing';
 
         //dialog.empty();
         Structr.dialog('Edit Properties of ' + entity.id,
@@ -152,21 +160,9 @@ var _Entities = {
 
         $(views).each(function(i, view) {
             var tabs = $('#tabs', dialog);
-
-            var tabText;
-            if (view == 'all') {
-                tabText = 'Node';
-            } else if (view == '_html_') {
-                tabText = 'HTML';
-            } else if (view == 'in') {
-                tabText = 'Incoming';
-            } else if (view == 'out') {
-                tabText = 'Outgoing';
-            } else {
-                tabText = 'Other';
-            }
-
-            $('ul', tabs).append('<li class="' + (view == 'all' ? 'active' : '') + '" id="tab-' + view + '">' + tabText + '</li>');
+            var tabText = tabTexts[view];
+            
+            $('ul', tabs).append('<li class="' + (view === startView ? 'active' : '') + '" id="tab-' + view + '">' + tabText + '</li>');
 
             tabs.append('<div id="tabView-' + view + '"><br></div>');
 
@@ -182,7 +178,9 @@ var _Entities = {
             });
 
             var tabView = $('#tabView-' + view);
-            if (view != 'all') tabView.hide();
+            if (view !== startView) {
+                tabView.hide();
+            }
 
             var headers = {};
             headers['X-StructrSessionToken'] = token;
@@ -222,17 +220,17 @@ var _Entities = {
 				
                         $(keys).each(function(i, key) {
 
-                            if (view == '_html_') {
+                            if (view === '_html_') {
                                 
-                                if (key != 'id') {
+                                if (key !== 'id') {
                                 
                                     props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
                                 
                                 }
                                 
-                            } else if (view == 'in' || view == 'out') {
+                            } else if (view === 'in' || view === 'out') {
                                 
-                                if (key == 'id') {
+                                if (key === 'id') {
                                     // set ID to rel ID
                                     id = res[key];
                                 //console.log('Set ID to relationship ID', id);
