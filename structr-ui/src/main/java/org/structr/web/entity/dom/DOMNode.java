@@ -287,6 +287,39 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		return path;
 		
 	}
+
+	/**
+	 * Do necessary updates on all containing pages
+	 *
+	 * @throws FrameworkException
+	 */
+	private void updatePages(SecurityContext securityContext) throws FrameworkException {
+
+		Page page = (Page) getOwnerDocument();
+		
+		if (page != null) {
+		
+			page.unlockReadOnlyPropertiesOnce();
+			page.increaseVersion();
+			
+		}
+
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) {
+
+		try {
+
+			updatePages(securityContext);
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "Updating page version failed", ex);
+
+		}
+
+	}
 	
 	// ----- protected methods -----		
 	protected void checkIsChild(Node otherNode) throws DOMException {

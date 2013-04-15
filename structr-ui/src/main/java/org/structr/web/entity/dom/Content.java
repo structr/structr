@@ -158,39 +158,6 @@ public class Content extends DOMNode implements Text {
 
 	//~--- methods --------------------------------------------------------
 
-	/**
-	 * Do necessary updates on all containing pages
-	 *
-	 * @throws FrameworkException
-	 */
-	private void updatePages(SecurityContext securityContext) throws FrameworkException {
-
-		List<Page> pages = PageHelper.getPages(securityContext, this);
-
-		for (Page page : pages) {
-
-			page.unlockReadOnlyPropertiesOnce();
-			page.increaseVersion();
-
-		}
-
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) {
-
-		try {
-
-			updatePages(securityContext);
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.WARNING, "Updating page versions failed", ex);
-
-		}
-
-	}
-
 
 	//~--- get methods ----------------------------------------------------
 
