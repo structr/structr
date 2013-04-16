@@ -40,8 +40,9 @@ public enum RelType implements RelationshipType {
 	SYNC,
 	LINK,
 	
-	// images
+	// picture
 	THUMBNAIL,
+	PICTURE_OF,
 	
 	// blog
 	AUTHOR,
