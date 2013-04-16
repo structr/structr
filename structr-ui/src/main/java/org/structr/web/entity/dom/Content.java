@@ -39,13 +39,11 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.Search;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.PageHelper;
 import org.structr.web.common.RenderContext;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -157,39 +155,6 @@ public class Content extends DOMNode implements Text {
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	/**
-	 * Do necessary updates on all containing pages
-	 *
-	 * @throws FrameworkException
-	 */
-	private void updatePages(SecurityContext securityContext) throws FrameworkException {
-
-		List<Page> pages = PageHelper.getPages(securityContext, this);
-
-		for (Page page : pages) {
-
-			page.unlockReadOnlyPropertiesOnce();
-			page.increaseVersion();
-
-		}
-
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) {
-
-		try {
-
-			updatePages(securityContext);
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.WARNING, "Updating page versions failed", ex);
-
-		}
-
-	}
 
 
 	//~--- get methods ----------------------------------------------------

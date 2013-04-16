@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import org.apache.commons.lang.StringUtils;
@@ -57,7 +56,6 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
@@ -76,6 +74,7 @@ import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
@@ -84,6 +83,7 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.NamedRelationResource;
 import org.structr.rest.resource.PagingHelper;
 import org.structr.rest.resource.Resource;
+import org.structr.rest.servlet.JsonRestServlet;
 import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID;
 import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER;
 import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE;
@@ -110,7 +110,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final Logger logger                            = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength                     = PropertyView.Html.length();
 	
-	public static final EntityProperty<AbstractNode> dataNode   = new EntityProperty("dataNode", AbstractNode.class, RelType.RENDER_NODE, Direction.OUTGOING, false);
+	public static final EntityProperty<AbstractNode> dataNode     = new EntityProperty("dataNode", AbstractNode.class, RelType.RENDER_NODE, Direction.OUTGOING, false);
 	public static final Property<String> dataNodeId               = new EntityIdProperty("dataNodeId", dataNode);
 	
 	private static final Map<String, HtmlProperty> htmlProperties              = new LRUMap(200);	// use LURMap here to avoid infinite growing
@@ -126,6 +126,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> cypherQuery              = new StringProperty("cypherQuery");
 	public static final Property<String> xpathQuery               = new StringProperty("xpathQuery");
 	public static final Property<String> restQuery                = new StringProperty("restQuery");
+	public static final Property<Boolean> renderDetails           = new BooleanProperty("renderDetails");
+	public static final Property<Boolean> renderOnIndex           = new BooleanProperty("renderOnIndex");
 	
 	public static final Property<String> _title                   = new HtmlProperty("title");
 	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
@@ -206,7 +208,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 										name, tag, pageId, path, parent, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId
 	);
 	
-	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId,
+	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds,
+										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId, renderDetails, renderOnIndex,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
@@ -335,6 +338,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			for (AbstractRelationship rel : rels) {
 
 				DOMNode subNode = (DOMNode) rel.getEndNode();
+				
+				GraphObject details = renderContext.getDetailsDataObject();
+				boolean detailMode = details != null;
+
+				if (!detailMode && subNode.getProperty(renderOnIndex)) {
+					continue;
+				}
 
 				String subKey = subNode.getProperty(dataKey);
 				if (StringUtils.isNotBlank(subKey)) {
@@ -347,32 +357,43 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
 					
 					PropertyKey propertyKey = null;
-					if (listData.isEmpty() && currentDataNode != null) {
-
-						propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
-
-						if (propertyKey != null && propertyKey instanceof CollectionProperty) {
-
-							CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
-							for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
-
-								//renderContext.setStartNode(node);
-								renderContext.putDataObject(subKey, node);
-								subNode.render(securityContext, renderContext, depth + 1);
-
-							}
-
-						} else {
-							//subNode.render(securityContext, renderContext, depth + 1);
-						}
-
-						// reset data node in render context
-						renderContext.setDataObject(currentDataNode);
+					
+					if (subNode.getProperty(renderDetails) && detailMode) {
 						
+						renderContext.setDataObject(details);
+						renderContext.putDataObject(subKey, details);
+						subNode.render(securityContext, renderContext, depth + 1);
+					
 					} else {
 						
-						renderContext.setListSource(listData);
-						((DOMElement) subNode).renderNodeList(securityContext, renderContext, depth, subKey);
+						if (listData.isEmpty() && currentDataNode != null) {
+						
+							propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+
+							if (propertyKey != null && propertyKey instanceof CollectionProperty) {
+
+								CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
+								for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
+
+									//renderContext.setStartNode(node);
+									renderContext.putDataObject(subKey, node);
+									subNode.render(securityContext, renderContext, depth + 1);
+
+								}
+
+							} else {
+								//subNode.render(securityContext, renderContext, depth + 1);
+							}
+
+							// reset data node in render context
+							renderContext.setDataObject(currentDataNode);
+						
+						} else {
+
+							renderContext.setListSource(listData);
+							((DOMElement) subNode).renderNodeList(securityContext, renderContext, depth, subKey);
+
+						}
 						
 					}
 
@@ -381,49 +402,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				}
 
 			}
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			PropertyKey propertyKey = null;
-//			if (currentDataNode != null && _dataKey != null) {
-//				
-//				 propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), _dataKey, false);
-//				
-//			}
-//			
-//			if (propertyKey != null && propertyKey instanceof CollectionProperty) {
-//
-//				CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
-//				renderCollection(securityContext, renderContext, depth, currentDataNode.getProperty(collectionProperty), _dataKey);
-////				for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
-////
-////					//renderContext.setStartNode(node);
-////					renderContext.putDataObject(_dataKey, node);
-////
-////					//render(securityContext, renderContext, depth + 1);
-////					renderChildren(securityContext, renderContext, depth);
-////
-////				}
-//				
-////			} else if (listData != null && !listData.isEmpty()) {
-////
-////				renderContext.setListSource(listData);
-////				renderNodeList(securityContext, renderContext, depth, _dataKey);
-//			} else {
-//				
-//				renderChildren(securityContext, renderContext, depth);
-//				
-//			}
-//			
+
 			// render end tag, if needed (= if not singleton tags)
 			if (StringUtils.isNotBlank(tag) && (!isVoid)) {
 				
@@ -455,44 +434,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 	}
 	
-	// ----- rendering methods -----
-//	private void renderTreeNode(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
-//		
-//		String treeKey       = renderContext.getTreeKey();
-//		DataNode currentNode = (DataNode) renderContext.getDataNode(treeKey).getFirstChild(treeKey);
-//		
-//		while (currentNode != null) {
-//			
-//			// for each child node of the data tree, continue rendering
-//			
-//			renderContext.setDataNode(dataKey, currentNode);
-//
-//			// recursively render children
-//			List<AbstractRelationship> rels = getChildRelationships();
-//
-//			for (AbstractRelationship rel : rels) {
-//
-//				DOMNode subNode = (DOMNode) rel.getEndNode();
-//
-//				if (subNode.isNotDeleted()) {
-//
-//					subNode.render(securityContext, renderContext, depth + 1);
-//				}
-//
-//			}
-//
-//			currentNode = (DataNode) currentNode.next(treeKey);
-//			
-//		}
-//		
-////		if (dataKey.equals(localDataKey)) {
-////			
-////			if (currentNode != null) {
-////				renderContext.setStartNode((DataNode)currentNode.getFirstChild(treeKey));
-////			}
-////		}
-//		
-//	}
 
 	private void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
 		
@@ -505,50 +446,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				render(securityContext, renderContext, depth + 1);
 
-	//			// recursively render children
-	//			List<AbstractRelationship> rels = getChildRelationships();
-	//
-	//			for (AbstractRelationship rel : rels) {
-	//
-	//				DOMNode subNode = (DOMNode) rel.getEndNode();
-	//
-	//				if (subNode.isNotDeleted()) {
-	//
-	//					subNode.render(securityContext, renderContext, depth + 1);
-	//				}
-	//
-	//			}
 			}
 			renderContext.clearDataObject(dataKey);
 		}
 	}
-	
-//	private void renderCollection(SecurityContext securityContext, RenderContext renderContext, int depth, List<AbstractNode> collection, final String dataKey) throws FrameworkException {
-//		
-//		for (GraphObject obj : collection) {
-//
-//			renderContext.putDataObject(dataKey, obj);
-//			render(securityContext, renderContext, depth);
-//			
-//		}
-//	}
-//
-//	private void renderChildren(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
-//		
-//		// recursively render children
-//		List<AbstractRelationship> rels = getChildRelationships();
-//
-//		for (AbstractRelationship rel : rels) {
-//
-//			DOMNode subNode = (DOMNode) rel.getEndNode();
-//
-//			if (subNode.isNotDeleted()) {
-//
-//				subNode.render(securityContext, renderContext, depth + 1);
-//			}
-//
-//		}
-//	}
 	
 	public boolean isVoidElement() {
 		return false;
@@ -1027,7 +928,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		@Override
 		public List<GraphObject> getData(SecurityContext securityContext, RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
-			
+
 			final String restQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.restQuery);
 			if (restQuery != null && !restQuery.isEmpty()) {
 				

@@ -46,18 +46,14 @@ public class RenderContext {
 	
 	private static final Logger logger                   = Logger.getLogger(RenderContext.class.getName());
 	
-	public enum RenderMode {
-		DEFAULT, TREE, LIST, NODE, CYPHER, XPATH
-	}
-	
 	private Map<String, GraphObject> dataObjects = new LinkedHashMap<String, GraphObject>();
 	private final StringBuilder buffer           = new StringBuilder(8192);
-	private RenderMode renderMode                = RenderMode.DEFAULT;
 	private Locale locale                        = Locale.getDefault();
 	private boolean edit                         = false;
 	private int depth                            = 0;
 	private boolean inBody                       = false;
-	private GraphObject   dataObject              = null;
+	private GraphObject detailsDataObject        = null;
+	private GraphObject currentDataObject        = null;
 	private Iterable<GraphObject> listSource     = null;
 	private String searchClass                   = null;  
 	private Condition condition                  = null; 
@@ -87,20 +83,20 @@ public class RenderContext {
 
 	}
 	
-	public void setRenderMode(RenderMode renderMode) {
-		
-		if (renderMode != null) {
-			
-			this.renderMode = renderMode;
-		}
+	public void setDetailsDataObject(GraphObject detailsDataObject) {
+		this.detailsDataObject = detailsDataObject;
 	}
 	
-	public void setDataObject(GraphObject dataObject) {
-		this.dataObject = dataObject;
+	public GraphObject getDetailsDataObject() {
+		return detailsDataObject;
+	}
+	
+	public void setDataObject(GraphObject currentDataObject) {
+		this.currentDataObject = currentDataObject;
 	}
 	
 	public GraphObject getDataObject() {
-		return dataObject;
+		return currentDataObject;
 	}
 	
 	public void setListSource(Iterable<GraphObject> listSource) {
@@ -109,10 +105,6 @@ public class RenderContext {
 	
 	public Iterable<GraphObject> getListSource() {
 		return listSource;
-	}
-	
-	public RenderMode getRenderMode() {
-		return renderMode;
 	}
 	
 	public boolean getEdit() {

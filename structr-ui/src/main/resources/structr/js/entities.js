@@ -78,8 +78,40 @@ var _Entities = {
     },
 
     showDataDialog : function(entity) {
-        
+
         Structr.dialog('Edit Data Settings of ' + entity.id, function() { return true; }, function() { return true; });
+
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled renderDetails_">Render single object only in details mode</button></div>');
+        var detailsSwitch = $('.renderDetails_');
+
+        _Entities.changeBooleanAttribute(detailsSwitch, entity.renderDetails);
+
+        detailsSwitch.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty('renderDetails', detailsSwitch.hasClass('disabled'), $('#renderDetails', dialogText).is(':checked'), function() {
+                _Entities.changeBooleanAttribute(detailsSwitch, entity.renderDetails);
+            });
+        });
+        
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled renderOnIndex_">Render in index mode</button></div>');
+        var indexSwitch = $('.renderOnIndex_');
+
+        _Entities.changeBooleanAttribute(indexSwitch, entity.renderOnIndex);
+
+        indexSwitch.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty('renderOnIndex', indexSwitch.hasClass('disabled'), $('#renderOnIndex', dialogText).is(':checked'), function() {
+                _Entities.changeBooleanAttribute(indexSwitch, entity.renderOnIndex);
+            });
+        });
+
+        dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
+        $('#saveDataKey', dialog).on('click', function() {
+            entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {
+                log('Data Key successfully updated!', entity.dataKey);
+            });
+        });
+
 
         dialog.append('<div><h3>REST Query</h3><textarea cols="80" rows="4" id="restQuery">' + (entity.restQuery ? entity.restQuery : '') + '</textarea></div>');
         dialog.append('<div><button id="applyRestQuery">Apply</button></div>');
@@ -112,13 +144,6 @@ var _Entities = {
             });
         });
 
-        dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
-        $('#saveDataKey', dialog).on('click', function() {
-            entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {
-                log('Data Key successfully updated!', entity.dataKey);
-            });
-        });
-
         //_Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
         
         dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId" size="32" value="' + (entity.dataNodeId ? entity.dataNodeId : '') + '"><button id="saveDataNodeId">Save</button></div>');
@@ -131,12 +156,20 @@ var _Entities = {
     showProperties : function(entity) {
 
         var views;
-	    
-        if (entity.type == 'Content') {
+	var startView = '_html_';
+        
+        if (entity.type === 'Content' || entity.type === 'Page') {
             views = ['all', 'in', 'out' ];
+            startView = 'all';
         } else {
-            views = ['all', 'in', 'out', '_html_'];
+            views = ['_html_', 'all', 'in', 'out'];
         }
+
+        var tabTexts = [];
+        tabTexts._html_ = 'HTML';
+        tabTexts.all = 'Node';
+        tabTexts.in = 'Incoming';
+        tabTexts.out = 'Outgoing';
 
         //dialog.empty();
         Structr.dialog('Edit Properties of ' + entity.id,
@@ -152,21 +185,9 @@ var _Entities = {
 
         $(views).each(function(i, view) {
             var tabs = $('#tabs', dialog);
-
-            var tabText;
-            if (view == 'all') {
-                tabText = 'Node';
-            } else if (view == '_html_') {
-                tabText = 'HTML';
-            } else if (view == 'in') {
-                tabText = 'Incoming';
-            } else if (view == 'out') {
-                tabText = 'Outgoing';
-            } else {
-                tabText = 'Other';
-            }
-
-            $('ul', tabs).append('<li class="' + (view == 'all' ? 'active' : '') + '" id="tab-' + view + '">' + tabText + '</li>');
+            var tabText = tabTexts[view];
+            
+            $('ul', tabs).append('<li class="' + (view === startView ? 'active' : '') + '" id="tab-' + view + '">' + tabText + '</li>');
 
             tabs.append('<div id="tabView-' + view + '"><br></div>');
 
@@ -182,7 +203,9 @@ var _Entities = {
             });
 
             var tabView = $('#tabView-' + view);
-            if (view != 'all') tabView.hide();
+            if (view !== startView) {
+                tabView.hide();
+            }
 
             var headers = {};
             headers['X-StructrSessionToken'] = token;
@@ -222,17 +245,17 @@ var _Entities = {
 				
                         $(keys).each(function(i, key) {
 
-                            if (view == '_html_') {
+                            if (view === '_html_') {
                                 
-                                if (key != 'id') {
+                                if (key !== 'id') {
                                 
                                     props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
                                 
                                 }
                                 
-                            } else if (view == 'in' || view == 'out') {
+                            } else if (view === 'in' || view === 'out') {
                                 
-                                if (key == 'id') {
+                                if (key === 'id') {
                                     // set ID to rel ID
                                     id = res[key];
                                 //console.log('Set ID to relationship ID', id);
