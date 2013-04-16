@@ -169,6 +169,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		
 		boolean error = false;
 		
+		error |= ValidationHelper.checkStringNotBlank(this, name,     errorBuffer);
 		error |= ValidationHelper.checkStringNotBlank(this, kind,     errorBuffer);
 		error |= ValidationHelper.checkStringNotBlank(this, dataType, errorBuffer);
 		
