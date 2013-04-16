@@ -88,7 +88,7 @@ var _Entities = {
 
         detailsSwitch.on('click', function(e) {
             e.stopPropagation();
-            entity.setProperty('renderDetails', detailsSwitch.hasClass('disabled'), $('#renderDetails', dialogText).is(':checked'), function() {
+            entity.setProperty('renderDetails', detailsSwitch.hasClass('disabled'), false, function() {
                 _Entities.changeBooleanAttribute(detailsSwitch, entity.renderDetails);
             });
         });
@@ -96,12 +96,12 @@ var _Entities = {
         dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnIndex_">Hide in index mode</button></div>');
         var indexSwitch = $('.hideOnIndex_');
 
-        _Entities.changeBooleanAttribute(indexSwitch, entity.renderOnIndex);
+        _Entities.changeBooleanAttribute(indexSwitch, entity.hideOnIndex);
 
         indexSwitch.on('click', function(e) {
             e.stopPropagation();
-            entity.setProperty('hideOnIndex_', indexSwitch.hasClass('disabled'), $('#hideOnIndex_', dialogText).is(':checked'), function() {
-                _Entities.changeBooleanAttribute(indexSwitch, entity.hideOnIndex_);
+            entity.setProperty('hideOnIndex', indexSwitch.hasClass('disabled'), false, function() {
+                _Entities.changeBooleanAttribute(indexSwitch, entity.hideOnIndex);
             });
         });
 
