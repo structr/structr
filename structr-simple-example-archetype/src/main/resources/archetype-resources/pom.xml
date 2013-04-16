@@ -107,7 +107,7 @@
 		<dependency>
 			<groupId>org.structr</groupId>
 			<artifactId>structr-server</artifactId>
-			<version>0.6-SNAPSHOT</version>
+			<version>0.7-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
@@ -115,12 +115,12 @@
 		<repository>
 			<id>releases.maven.structr.org</id>
 			<name>maven.structr.org-releases</name>
-			<url>http://maven.structr.org:8082/artifactory/release</url>
+			<url>http://maven.structr.org/artifactory/release</url>
 		</repository>
 		<repository>
 			<id>snapshots.maven.structr.org</id>
 			<name>maven.structr.org-snapshots</name>
-			<url>http://maven.structr.org:8082/artifactory/snapshot</url>
+			<url>http://maven.structr.org/artifactory/snapshot</url>
 		</repository>
 	</repositories>
 

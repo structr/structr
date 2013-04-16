@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.6</version>
+        <version>0.7-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-base-archetype</artifactId>
-    <version>0.6</version>
+    <version>0.7-SNAPSHOT</version>
     <packaging>maven-archetype</packaging>
     <url>http://structr.org</url>
     <name>structr-base-archetype</name>
@@ -38,12 +38,12 @@
         <repository>
             <id>releases.maven.structr.org</id>
             <name>maven.structr.org-releases</name>
-            <url>http://maven.structr.org:8082/artifactory/release</url>
+            <url>http://maven.structr.org/artifactory/release</url>
         </repository>
         <snapshotRepository>
             <id>snapshots.maven.structr.org</id>
             <name>maven.structr.org-snapshots</name>
-            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
+            <url>http://maven.structr.org/artifactory/snapshot</url>
         </snapshotRepository>
     </distributionManagement>
 

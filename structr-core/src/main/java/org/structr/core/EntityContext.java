@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.core;
@@ -94,6 +93,7 @@ public class EntityContext {
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
 	private static final Map<String, String> normalizedEntityNameCache                                      = new LinkedHashMap<String, String>();
 	private static final Set<StructrTransactionListener> transactionListeners                               = new LinkedHashSet<StructrTransactionListener>();
+	private static final Set<TransactionNotifier> transactionNotifiers                                      = new LinkedHashSet();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap                         = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                                      = new LinkedHashMap<String, Class>();
 	private static final EntityContextModificationListener globalModificationListener                       = new EntityContextModificationListener();
@@ -105,7 +105,7 @@ public class EntityContext {
 	private static final Map<Long, TransactionChangeSet> globalChangeSets                                   = new ConcurrentHashMap<Long, TransactionChangeSet>();
 	private static final ThreadLocal<SecurityContext> securityContextMap                                    = new ThreadLocal<SecurityContext>();
 	private static final ThreadLocal<Long> transactionKeyMap                                                = new ThreadLocal<Long>();
-	private static GenericFactory genericFactory                                                            = new DefaultGenericFactory();
+	private static FactoryDefinition factoryDefinition                                                      = new DefaultFactoryDefinition();
 
 	//~--- methods --------------------------------------------------------
 
@@ -225,6 +225,24 @@ public class EntityContext {
 	}
 
 	/**
+	 * Register a notifier to receive notifications about modified entities after commit
+	 * 
+	 * @param notifier the notifier to register
+	 */
+	public static void registerTransactionNotifier(TransactionNotifier notifier) {
+		transactionNotifiers.add(notifier);
+	}
+
+	/**
+	 * Unregister a transaction notifier
+	 * 
+	 * @param notifier the notifier to unregister
+	 */
+	public static void unregisterTransactionNotifier(TransactionNotifier notifier) {
+		transactionNotifiers.remove(notifier);
+	}
+	
+	/**
 	 * Register a transformation that will be applied to every newly created entity of a given type.
 	 * 
 	 * @param type the type of the entities for which the transformation should be applied
@@ -297,7 +315,7 @@ public class EntityContext {
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param validatorClass the type of the validator to register
 	 */
-	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, PropertyValidator validator) {
+	public static <T> void registerPropertyValidator(Class type, PropertyKey<T> propertyKey, PropertyValidator<T> validator) {
 
 		Map<PropertyKey, Set<PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
 
@@ -492,7 +510,13 @@ public class EntityContext {
 	}
 
 	public static String createCombinedRelationshipType(Class sourceType, RelationshipType relType, Class destType) {
-		return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+		
+		if (sourceType != null && relType != null && destType != null) {
+			
+			return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+		}
+		
+		return "";
 	}
 
 	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
@@ -568,12 +592,17 @@ public class EntityContext {
 
 	public static Class getNamedRelationClass(String combinedRelationshipType) {
 
-		Class sourceType         = getSourceType(combinedRelationshipType);
-		Class destType           = getDestType(combinedRelationshipType);
-		RelationshipType relType = getRelType(combinedRelationshipType);
-		
-		return getNamedRelationClass(sourceType, destType, relType);
+		Class relEntity = globalRelationshipClassMap.get(combinedRelationshipType);
+		if (relEntity == null) {
 
+			Class sourceType         = getSourceType(combinedRelationshipType);
+			Class destType           = getDestType(combinedRelationshipType);
+			RelationshipType relType = getRelType(combinedRelationshipType);
+
+			relEntity = getNamedRelationClass(sourceType, destType, relType);
+		}
+		
+		return relEntity;
 	}
 
 	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
@@ -582,7 +611,7 @@ public class EntityContext {
 		Class sourceSuperClass   = sourceType;
 		Class destSuperClass     = destType;
 
-		while ((namedRelationClass == null) &&!sourceSuperClass.equals(Object.class) &&!destSuperClass.equals(Object.class)) {
+		while ((namedRelationClass == null) && sourceSuperClass != null && destSuperClass != null && !Object.class.equals(sourceSuperClass) && !Object.class.equals(destSuperClass)) {
 
 			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
 
@@ -619,6 +648,10 @@ public class EntityContext {
 
 	public static Set<StructrTransactionListener> getTransactionListeners() {
 		return transactionListeners;
+	}
+	
+	public static Set<TransactionNotifier> getTransactionNotifiers() {
+		return transactionNotifiers;
 	}
 
 	public static Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
@@ -723,6 +756,10 @@ public class EntityContext {
 	}
 	
 	public static PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName) {
+		return getPropertyKeyForDatabaseName(type, dbName, true);
+	}
+	
+	public static PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName, boolean createGeneric) {
 
 		Map<String, PropertyKey> classDBNamePropertyMap = getClassDBNamePropertyMapForType(type);
 		PropertyKey key                                 = classDBNamePropertyMap.get(dbName);
@@ -733,15 +770,24 @@ public class EntityContext {
 			if (GraphObject.uuid.dbName().equals(dbName)) {
 				return GraphObject.uuid;
 			}
-		
-//			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { dbName, type } );
-			key = new GenericProperty(dbName);
+
+			if (createGeneric) {
+				key = new GenericProperty(dbName);
+			}
 		}
 		
 		return key;
 	}
 	
 	public static PropertyKey getPropertyKeyForJSONName(Class type, String jsonName) {
+		return getPropertyKeyForJSONName(type, jsonName, true);
+	}
+	
+	public static PropertyKey getPropertyKeyForJSONName(Class type, String jsonName, boolean createIfNotFound) {
+
+		if (jsonName == null) {
+			return null;
+		}
 
 		Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
 		PropertyKey key                                 = classJSNamePropertyMap.get(jsonName);
@@ -750,11 +796,14 @@ public class EntityContext {
 			
 			// first try: uuid
 			if (GraphObject.uuid.dbName().equals(jsonName)) {
+				
 				return GraphObject.uuid;
 			}
 
-//			logger.log(Level.WARNING, "Unable to determine property key for {0} of {1}, generic property key created!", new Object[] { jsonName, type } );
-			key = new GenericProperty(jsonName);
+			if (createIfNotFound) {
+				
+				key = new GenericProperty(jsonName);
+			}
 		}
 		
 		return key;
@@ -961,12 +1010,12 @@ public class EntityContext {
 		return isSearchable;
 	}
 
-	public static GenericFactory getGenericFactory() {
-		return genericFactory;
+	public static FactoryDefinition getFactoryDefinition() {
+		return factoryDefinition;
 	}
 	
-	public static void registerGenericFactory(GenericFactory factory) {
-		genericFactory = factory;
+	public static void registerFactoryDefinition(FactoryDefinition factory) {
+		factoryDefinition = factory;
 	}
 
 	public static synchronized TransactionChangeSet getTransactionChangeSet(long transactionKey) {
@@ -1200,7 +1249,14 @@ public class EntityContext {
 		}
 
 		@Override
-		public void afterCommit(TransactionData data, Long transactionKey) {}
+		public void afterCommit(TransactionData data, Long transactionKey) {
+		
+			for (TransactionNotifier notifier : EntityContext.getTransactionNotifiers()) {
+				notifier.notify(data);
+			}
+		
+		
+		}
 
 		@Override
 		public void afterRollback(TransactionData data, Long transactionKey) {

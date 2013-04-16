@@ -1,6 +1,6 @@
 #!/bin/bash
 #export MAVEN_OPTS="-Xms2g -Xmx2g -XX:+UseNUMA -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=n $MAVEN_OPTS"
-export MAVEN_OPTS="-Xms1g -Xmx1g -XX:+UseNUMA$MAVEN_OPTS"
+export MAVEN_OPTS="-Xms1g -Xmx1g -XX:+UseNUMA $MAVEN_OPTS"
 mvn exec:exec 
 #sleep 10
 #xdg-open http://localhost:8082/structr/ &

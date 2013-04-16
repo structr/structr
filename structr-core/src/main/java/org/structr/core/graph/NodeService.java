@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.core.graph;
@@ -49,6 +48,7 @@ import java.io.File;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,6 +76,7 @@ public class NodeService implements SingletonService {
 	private Index<Node> userIndex                   = null;
 	private Index<Node> caseInsensitiveUserIndex               = null;
 	private Index<Node> uuidIndex                   = null;
+	private ExecutionEngine cypherExecutionEngine   = null;
 
 	/** Dependent services */
 	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
@@ -116,6 +117,7 @@ public class NodeService implements SingletonService {
 			command.setArgument("filesPath", Services.getFilesPath());
 			command.setArgument("indices", NodeIndex.values());
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
+			command.setArgument("cypherExecutionEngine", cypherExecutionEngine);
 
 		}
 
@@ -145,7 +147,8 @@ public class NodeService implements SingletonService {
 
 			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
 
-			graphDb = new EmbeddedGraphDatabase(dbPath);
+			// thanks Michael :)
+			graphDb = new EmbeddedGraphDatabase(dbPath, MapUtil.stringMap("enable_remote_shell", "true"));
 
 		}
 
@@ -234,7 +237,10 @@ public class NodeService implements SingletonService {
 		relationshipFactory = new RelationshipFactory();
 
 		logger.log(Level.FINE, "Relationship factory ready.");
-
+		cypherExecutionEngine = new ExecutionEngine(graphDb);
+		
+		logger.log(Level.FINE, "Cypher execution engine ready.");
+		
 		isInitialized = true;
 	}
 

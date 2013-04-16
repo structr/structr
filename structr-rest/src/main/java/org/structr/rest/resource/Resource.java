@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.rest.resource;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -43,6 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
 import org.structr.core.property.PropertyKey;
@@ -51,7 +51,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSearchField;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -101,6 +100,10 @@ public abstract class Resource {
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+
+		NON_SEARCH_FIELDS.add(Search.DISTANCE_SEARCH_KEYWORD);
+		NON_SEARCH_FIELDS.add(Search.LOCATION_SEARCH_KEYWORD);
+
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -170,18 +173,6 @@ public abstract class Resource {
 
 							}
 
-//                                                      // 2: delete relationships
-//                                                      if (obj instanceof AbstractNode) {
-//
-//                                                              List<AbstractRelationship> rels = ((AbstractNode) obj).getRelationships();
-//
-//                                                              for (AbstractRelationship rel : rels) {
-//
-//                                                                      deleteRel.execute(rel);
-//
-//                                                              }
-//
-//                                                      }
 							// delete cascading
 							deleteNode.execute((AbstractNode)obj, true);
 						}
@@ -206,13 +197,14 @@ public abstract class Resource {
 		if (results != null && !results.isEmpty()) {
 
 			final Class type = results.get(0).getClass();
-			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 			
 			final StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
+					PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
+					
 					for (final GraphObject obj : results) {
 
 						for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
@@ -253,8 +245,16 @@ public abstract class Resource {
 	protected PropertyKey findPropertyKey(final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
 		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
+		String rawName       = typeResource.getRawType();
+		PropertyKey key      = EntityContext.getPropertyKeyForJSONName(sourceNodeType, rawName, false);
 		
-		return EntityContext.getPropertyKeyForJSONName(sourceNodeType, typeResource.getRawType());
+		if (key == null) {
+			
+			// try to convert raw name into lower-case variable name
+			key = EntityContext.getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
+		}
+		
+		return key;
 	}
 
 	protected String buildLocationHeader(final GraphObject newObject) {
@@ -309,21 +309,25 @@ public abstract class Resource {
 		}
 	}
 
-	protected ResourceAccess findGrant() throws FrameworkException {
+	protected ResourceAccess findGrant(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		final SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
-		final String uriPart                         = EntityContext.normalizeEntityName(this.getResourceSignature());
+		final SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(request, response), SearchNodeCommand.class);
+		//final String signature                       = EntityContext.normalizeEntityName(getResourceSignature());
+		final String signature                         = getResourceSignature();
+		
+		logger.log(Level.FINE, "Trying to find resource access object for {0}", signature);
+		
 		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		ResourceAccess grant                         = null;
 
 		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
-		searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, uriPart));
+		searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, signature));
 
 		final Result result = search.execute(searchAttributes);
 
 		if (result.isEmpty()) {
 
-			logger.log(Level.FINE, "No resource access object found for {0}", uriPart);
+			logger.log(Level.WARNING, "No resource access object found for {0}", signature);
 
 		} else {
 
@@ -335,13 +339,13 @@ public abstract class Resource {
 
 			} else {
 
-				logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { uriPart, node.getClass().getName() });
+				logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { signature, node.getClass().getName() });
 
 			}
 
 			if (result.size() > 1) {
 
-				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), uriPart });
+				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), signature });
 
 			}
 
@@ -398,41 +402,48 @@ public abstract class Resource {
 
 	public abstract String getResourceSignature();
 
-	public ResourceAccess getGrant() throws FrameworkException {
-		return findGrant();
+	public ResourceAccess getGrant(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+		return findGrant(request, response);
 	}
 
-	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request) {
+	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request, final Set<String> validAttrs) {
 
 		final String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
 
-		if (request != null &&!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
+		if (request != null && !request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-			final Double dist				= Double.parseDouble(distance);
-			final StringBuilder searchKey	= new StringBuilder();
-			final Enumeration names			= request.getParameterNames();
+			final Double dist       = Double.parseDouble(distance);
+			final String location   = request.getParameter(Search.LOCATION_SEARCH_KEYWORD);
+			
+			String street     = request.getParameter(Search.STREET_SEARCH_KEYWORD);
+			String house      = request.getParameter(Search.HOUSE_SEARCH_KEYWORD);
+			String postalCode = request.getParameter(Search.POSTAL_CODE_SEARCH_KEYWORD);
+			String city       = request.getParameter(Search.CITY_SEARCH_KEYWORD);
+			String state      = request.getParameter(Search.STATE_SEARCH_KEYWORD);
+			String country    = request.getParameter(Search.COUNTRY_SEARCH_KEYWORD);
+		
+			// if location, use city and street, else use all fields that are there!
+			if (location != null) {
 
-			while (names.hasMoreElements()) {
+				String[] parts = location.split("[,]+");
+				switch (parts.length) {
 
-				final String name = (String) names.nextElement();
-
-				if (!name.equals(Search.DISTANCE_SEARCH_KEYWORD)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER)
-					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID)
-					) {
-
-					searchKey.append(request.getParameter(name)).append(" ");
-
+					case 3:
+						country = parts[2];	// no break here intentionally
+						
+					case 2:
+						city = parts[1];	// no break here intentionally
+						
+					case 1:
+						street = parts[0];
+						break;
+						
+					default:
+						break;
 				}
-
 			}
 
-			return new DistanceSearchAttribute(searchKey.toString(), dist, SearchOperator.AND);
-
+			return new DistanceSearchAttribute(street, house, postalCode, city, state, country, dist, SearchOperator.AND);
 		}
 
 		return null;
@@ -517,7 +528,6 @@ public abstract class Resource {
 					try {
 					
 						PropertyConverter inputConverter = key.inputConverter(securityContext);
-						PropertyConverter databaseConverter  = key.databaseConverter(securityContext, null);
 						Object rangeStartConverted       = rangeStart;
 						Object rangeEndConverted         = rangeEnd;
 						
@@ -527,11 +537,9 @@ public abstract class Resource {
 							rangeEndConverted   = inputConverter.convert(rangeEndConverted);
 						}
 						
-						if (databaseConverter != null) {
-							
-							rangeStartConverted = databaseConverter.convert(rangeStartConverted);
-							rangeEndConverted   = databaseConverter.convert(rangeEndConverted);
-						}
+						// let property key determine exact search value (might be a numeric value..)
+						rangeStartConverted = key.getSearchValue(rangeStartConverted);
+						rangeEndConverted   = key.getSearchValue(rangeEndConverted);
 						
 						return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, SearchOperator.AND);
 						
@@ -556,7 +564,22 @@ public abstract class Resource {
 			return Search.andMatchExactValues(key, strippedValue, SearchOperator.AND);
 
 		} else {
-			return Search.andExactProperty(key, searchValue);
+			
+			PropertyConverter inputConverter = key.inputConverter(securityContext);
+			Object convertedSearchValue      = searchValue;
+			
+			if (inputConverter != null) {
+			
+				try {
+					convertedSearchValue = inputConverter.convert(searchValue);
+					
+				} catch (Throwable t) {
+					
+					logger.log(Level.WARNING, "Unable to convert search value for key {0}", key);
+				}
+			}
+			
+			return Search.andExactProperty(key, convertedSearchValue);
 		}
 	}
 

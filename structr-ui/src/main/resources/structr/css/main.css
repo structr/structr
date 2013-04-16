@@ -74,7 +74,7 @@ button {
 
 #header .logo {
     position: absolute;
-    top: 15px;
+    top: 16px;
     left: 16px;
 }
 
@@ -151,13 +151,14 @@ img.disabled {
 }
 
 #pages,
-#types,
+#propertyDefinitions,
 #previews,
 #elements,
 #components,
 #contents,
 #folders,
 #files,
+#trees,
 #groups,
 #images,
 #users,
@@ -233,6 +234,10 @@ img.disabled {
     /*	width: 105%;*/
     /*border-bottom: 1px solid #ccc;*/
     margin: 2px 0 12px -12px ! important;
+}
+
+.clear {
+    clear: both;
 }
 
 .props {
@@ -413,13 +418,6 @@ ul#previewTabs {
     -webkit-transform-origin: 0 0;
 }
 
-.CodeMirror {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    margin: 4px 0 8px 0;
-    /*    height: 540px;*/
-}
-
 .link_icon {
     display: none;
 }
@@ -438,7 +436,7 @@ ul#previewTabs {
 
 .node .id,
 .group .id,
-.types .id,
+.propertyDefinitions .id,
 .user    .id,
 .page .id,
 .element .id,
@@ -473,7 +471,7 @@ span.id {
     color: #999;
 }
 
-#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #types .node, .dialogText .node
+#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #propertyDefinitions .node, #graph .node, .dialogText .node
 /*#pages .page, #files .page, #users .page,  #groups .page, #types .page,
 #pages .type, #files .type, #users .type,  #groups .type, #types .type,
 #pages .component, #files .component, #users .component,  #groups .component, #types .component,
@@ -577,7 +575,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon {
+.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -646,9 +644,8 @@ button img {
 .dialog {
     display: none;
     font-size: 11pt;
-    width: 240px;
-    /*    height: 96px;*/
-    padding: 14px 0px 6px 24px;
+    /*width: 240px;*/
+    padding: 4px 0px 6px 12px;
     border-radius: 5px;
     border: 1px solid #999;
     background-color: #f3f3f3;
@@ -657,21 +654,25 @@ button img {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f3f3f3', EndColorStr='#e5e5e5', GradientType=0);
 }
 
-#confirmation, #infoBox, #errorBox {
-    width: 360px;
+#confirmation, #infoBox, #tempInfoBox, #errorBox {
+    /*width: 300px;*/
+    min-height: 24px;
+    padding: 12px 0 12px 12px;
+    overflow: auto;
 }
 
-#tempErrorBox {
-    width: 400px;
-    padding-bottom: 16px
+#tempErrorBox, #tempInfoBox {
+    /*width: 400px;*/
+    padding-bottom: 18px;
 }
 
 #dialogBox {
-    width: 800px;
-    /*max-height: 800px;*/
-    margin: -300px 0 0 -284px;
+/*    width: 80%;
+    height: 80%;
+    margin: 10%;*/
     padding-bottom: 48px;
     position: relative;
+    /*overflow: auto;*/
 }
 
 .dialogTitle {
@@ -687,21 +688,21 @@ button img {
     width: 300px;
     position: absolute;
     left: 24px;
-    bottom: 24px;
+    bottom: 6px;
 }
 
 .dialogBtn {
     width: 300px;
     position: absolute;
-    right: 24px;
-    bottom: 24px;
+    right: 12px;
+    bottom: 12px;
     text-align: left;
     height: 36px;
     padding: 0;
     margin: 0;
 }
 
-.dialogBtn button {
+.dialogBtn button, #errorBox button {
     float: right;
     margin: 8px 0 0 12px;
 }
@@ -709,26 +710,31 @@ button img {
 .dialogText, .dialogMeta {
     text-align: left;
     font-size: 9pt;
-    width: 776px;
-    overflow: auto;
+    /*width: 776px;*/
+    /*overflow: auto;*/
     /*overflow-x: hidden ! important;*/
 }
 
 .dialogText {
     /*height: 600px;*/
-    max-height: 800px;
+    /*max-height: 800px;*/
     
+}
+
+.dialogText input[type=text], .dialogText textarea {
+    border: 1px solid #a5a5a5;
+    padding: .25em;
+}
+
+.dialogText textarea {
+    width: 98%;
+    margin-top: 0;
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {
     margin-bottom: 12px;
     vertical-align: top;
 }
-
-/*.okButton, .dialogOkButton, .dialogCancelButton {
-    float: right;
-    padding-left: 8px ! important;
-}*/
 
 #login {
     padding-top: 16px;
@@ -818,14 +824,16 @@ button img {
     float: right;
 }
 
-div.infoBox {
+.infoBox {
     position: absolute;
-    width: 240px;
+    min-width: 240px;
     min-height: 12px;
     /*margin: 12px 0 12px 60px;*/
     text-align: left;
-    padding: 6px 28px;
+    padding: 6px 4px 6px 28px;
     font-size: 10pt;
+    clear: both;
+    overflow: auto;
 }
 
 .warning {
@@ -968,4 +976,17 @@ button.enabled {
     width: 100%;
     text-align: center;
     padding-top: 11px;*/
+}
+
+/*
+ * Graph editor
+ */
+
+.canvas {
+    background: #fff;
+    border-radius: 5px;
+    border: 1px solid #999;
+    min-height: 600px;
+    margin: 12px;
+    padding: 12px;
 }

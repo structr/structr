@@ -1,27 +1,28 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.*;
-import org.structr.common.GenericFactory;
+import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
@@ -31,6 +32,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.*;
+import org.structr.core.graph.search.Search;
 import org.structr.core.notion.Notion;
 
 /**
@@ -94,12 +96,21 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 						props.put(AbstractRelationship.cascadeDelete, new Integer(getCascadeDelete()));
 
 					}
-
+					
+					
 					if (getDirection().equals(Direction.OUTGOING)) {
+
+						// set combined type
+						String tripleKey = EntityContext.createCombinedRelationshipType(declaringClass.getSimpleName(), relType.name(), destType.getSimpleName());
+						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
 
 						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, true);
 
 					} else {
+
+						// set combined type
+						String tripleKey = EntityContext.createCombinedRelationshipType(destType.getSimpleName(), relType.name(), declaringClass.getSimpleName());
+						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
 
 						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, true);
 
@@ -107,24 +118,24 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 					if (newRel != null) {
 
-						GenericFactory genericFactory = EntityContext.getGenericFactory();
+						FactoryDefinition factoryDefinition = EntityContext.getFactoryDefinition();
 						
 						switch (getCardinality()) {
 
 							case OneToOne:
 
-								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
-								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 								
 							case ManyToOne:
 
-								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 
 							case OneToMany:
 							
-								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, genericFactory, deleteRel);
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 
 						}
@@ -152,7 +163,15 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 			}
 
-			throw new FrameworkException(type, new IdNotFoundToken(targetNode));
+			if (sourceNode == null) {
+				logger.log(Level.WARNING, "No source node!");
+				throw new FrameworkException(type, new IdNotFoundToken(sourceNode));
+			}
+			
+			if (targetNode == null) {
+				logger.log(Level.WARNING, "No target node!");
+				throw new FrameworkException(type, new IdNotFoundToken(targetNode));
+			}
 
 		}
 	}
@@ -278,7 +297,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 	}
 	
 	// ----- private methods -----
-	private void ensureOneToMany(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, GenericFactory genericFactory, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+	private void ensureOneToMany(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
 		
 		Class newRelationshipClass = newRel.getClass();
 		Class sourceType           = finalSourceNode.getClass();
@@ -293,7 +312,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			}
 
 			Class relationshipClass = rel.getClass();
-			boolean isGeneric = genericFactory.isGeneric(relationshipClass);
+			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
 			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || sourceType.isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())) {
 
@@ -304,7 +323,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 	}
 	
-	private void ensureManyToOne(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, GenericFactory genericFactory, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+	private void ensureManyToOne(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
 		
 		Class newRelationshipClass = newRel.getClass();
 		Class destType             = finalTargetNode.getClass();
@@ -318,7 +337,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			}
 
 			Class relationshipClass = rel.getClass();
-			boolean isGeneric = genericFactory.isGeneric(relationshipClass);
+			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
 			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass) || destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass()))) {
 

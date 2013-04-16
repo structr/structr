@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.web.entity;
@@ -28,19 +27,19 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import static org.structr.core.GraphObject.uuid;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
+import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EntityProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -54,10 +53,11 @@ public class User extends Person implements Principal {
 	public static final Property<String>          confirmationKey = new StringProperty("confirmationKey");
 	public static final Property<Boolean>         backendUser     = new BooleanProperty("backendUser");
 	public static final Property<Boolean>         frontendUser    = new BooleanProperty("frontendUser");
-	public static final CollectionProperty<Group> groups          = new CollectionProperty<Group>("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Property<Image>           img             = new EntityProperty("img", Image.class, RelType.PICTURE_OF, Direction.INCOMING, false);
+	public static final CollectionProperty<Group> groups          = new CollectionProperty<Group>("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, new PropertyNotion(uuid), false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
+		type, name, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups, img
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
@@ -72,28 +72,6 @@ public class User extends Person implements Principal {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
-	/**
-	 * Return user's personal root node
-	 *
-	 * @return
-	 */
-	public AbstractNode getRootNode() {
-
-		List<AbstractRelationship> outRels = getRelationships(RelType.ROOT_NODE, Direction.OUTGOING);
-
-		if (outRels != null) {
-
-			for (AbstractRelationship r : outRels) {
-
-				return r.getEndNode();
-			}
-
-		}
-
-		return null;
-
-	}
 
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {

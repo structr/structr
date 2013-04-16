@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.core.entity;
@@ -89,16 +88,21 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>("owner", Principal.class, RelType.OWNS, Direction.INCOMING, true);
 	public static final Property<String>          ownerId                     = new EntityIdProperty("ownerId", owner);
 
+	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
+	
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibilityStartDate, visibilityEndDate
+		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 	
 	//~--- static initializers --------------------------------------------
 
 	static {
 
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
+//		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
+//		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), name, type, createdDate, lastModifiedDate, hidden, deleted);
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uuid, name, type, createdDate, lastModifiedDate, hidden, deleted);
+		
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), uuid);
 
 		// register transformation for automatic uuid creation
@@ -124,26 +128,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	// reference to database node
 	protected Node dbNode;
 
-	// dirty flag, true means that some changes are not yet written to the database
-	protected PropertyMap properties;
 	protected String cachedUuid = null;
-	protected boolean isDirty;
 
 	//~--- constructors ---------------------------------------------------
 
-	public AbstractNode() {
-
-		this.properties = new PropertyMap();
-		isDirty         = true;
-
-	}
-
-	public AbstractNode(final PropertyMap properties) {
-
-		this.properties = properties;
-		isDirty         = true;
-
-	}
+	public AbstractNode() {}
 
 	public AbstractNode(SecurityContext securityContext, final Node dbNode) {
 
@@ -165,12 +154,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public final void init(final SecurityContext securityContext, final Node dbNode) {
 
 		this.dbNode          = dbNode;
-		this.isDirty         = false;
 		this.securityContext = securityContext;
 	}
 
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
+	}
+	
+	public SecurityContext getSecurityContext() {
+		return securityContext;
 	}
 	
 	@Override
@@ -249,7 +241,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				      ? (String) dbNode.getProperty(AbstractNode.uuid.dbName())
 				      : Long.toString(dbNode.getId());
 
-			return type + " (" + name + "," + type + "," + id + ")";
+			return name + " (" + type + "," + id + ")";
 
 		} catch (Throwable ignore) {
 			logger.log(Level.WARNING, ignore.getMessage());
@@ -313,7 +305,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			// check for read-only properties
 			if (key.isReadOnlyProperty()) {
 
-				if (readOnlyPropertiesUnlocked) {
+				// allow super user to set read-only properties
+				if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
 					// permit write operation once and
 					// lock scanEntity-only properties again
@@ -389,7 +382,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public long getId() {
 
-		if (isDirty) {
+		if (dbNode == null) {
 
 			return -1;
 		}
@@ -561,11 +554,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 	
 	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
-
-		if (isDirty) {
-
-			return (T)properties.get(key);
-		}
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
@@ -1121,7 +1109,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param dir
 	 * @return
 	 */
-	public boolean hasRelationship(final RelType type, final Direction dir) {
+	public boolean hasRelationship(final RelationshipType type, final Direction dir) {
 
 		List<AbstractRelationship> rels = this.getRelationships(type, dir);
 
@@ -1460,7 +1448,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// check for read-only properties
 		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
 
-			if (readOnlyPropertiesUnlocked) {
+			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
 				// permit write operation once and
 				// lock read-only properties again

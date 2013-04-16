@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.core.graph.search;
@@ -32,8 +31,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
 
-import org.structr.common.GeoHelper;
-import org.structr.common.GeoHelper.GeoCodingResult;
+import org.structr.common.geo.GeoHelper;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -49,6 +47,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.geo.GeoCodingResult;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -195,7 +194,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 				} else if (attr instanceof DistanceSearchAttribute) {
 
 					distanceSearch = (DistanceSearchAttribute) attr;
-					coords         = GeoHelper.geocode(distanceSearch.getKey().dbName());
+					coords         = GeoHelper.geocode(distanceSearch);
 					dist           = distanceSearch.getValue();
 
 				} else if (attr instanceof SearchAttributeGroup) {
@@ -359,7 +358,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 						if (op.equals(SearchOperator.NOT)) {
 
-							if ((nodeValue != null) && !(nodeValue.equals(searchValue))) {
+							if ((nodeValue != null) && !(nodeValue.equals(decodeExactMatch(searchValue)))) {
 
 								attr.addToResult(node);
 							}
@@ -371,7 +370,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 								attr.addToResult(node);
 							}
 
-							if ((nodeValue != null) && nodeValue.equals(searchValue)) {
+							if ((nodeValue != null) && nodeValue.equals(decodeExactMatch(searchValue))) {
 
 								attr.addToResult(node);
 							}
@@ -514,12 +513,6 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 	}
 
-	private String decodeExactMatch(final String value) {
-
-		return StringUtils.strip(value, "\"");
-
-	}
-
 	private void handleAttributeGroup(final SearchAttributeGroup attributeGroup, StringBuilder queryString, List<TextualSearchAttribute> textualAttributes, boolean allExactMatch) {
 
 		List<SearchAttribute> groupedAttributes = attributeGroup.getSearchAttributes();
@@ -587,4 +580,22 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 	}
 
+	private String decodeExactMatch(final String value) {
+
+		return StringUtils.strip(value, "\"");
+
+	}
+	
+	private Object decodeExactMatch(final Object value) {
+		
+		if (value instanceof String) {
+
+			return decodeExactMatch((String) value);
+			
+		} else {
+			return value;
+		}
+
+	}
+	
 }

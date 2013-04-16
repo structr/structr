@@ -1,16 +1,16 @@
 <!doctype html>
 <html>
   <head>
-    <title>CodeMirror 2: sTeX mode</title>
+    <meta charset="utf-8">
+    <title>CodeMirror: sTeX mode</title>
     <link rel="stylesheet" href="../../lib/codemirror.css">
     <script src="../../lib/codemirror.js"></script>
     <script src="stex.js"></script>
-    <link rel="stylesheet" href="../../theme/default.css">
     <style>.CodeMirror {background: #f8f8f8;}</style>
-    <link rel="stylesheet" href="../../css/docs.css">
+    <link rel="stylesheet" href="../../doc/docs.css">
   </head>
   <body>
-    <h1>CodeMirror 2: sTeX mode</h1>
+    <h1>CodeMirror: sTeX mode</h1>
      <form><textarea id="code" name="code">
 \begin{module}[id=bbt-size]
 \importmodule[balanced-binary-trees]{balanced-binary-trees}
@@ -90,7 +90,9 @@
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {});
     </script>
 
-    <p><strong>MIME types defined:</strong> <code>text/stex</code>.</p>
+    <p><strong>MIME types defined:</strong> <code>text/x-stex</code>.</p>
+
+    <p><strong>Parsing/Highlighting Tests:</strong> <a href="../../test/index.html#stex_*">normal</a>,  <a href="../../test/index.html#verbose,stex_*">verbose</a>.</p>
 
   </body>
 </html>

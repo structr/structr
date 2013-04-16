@@ -1,20 +1,20 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
@@ -59,13 +59,28 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 
-		if (propertyContainer != null && propertyContainer.hasProperty(dbName())) {
+		boolean hasProperty = false;
+		
+		if (propertyContainer != null) {
+			
+			try {
+				// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
+				hasProperty = propertyContainer.hasProperty(dbName());
 
-			value = propertyContainer.getProperty(dbName());
+			} catch (IllegalStateException ise) {
 
+				logger.log(Level.WARNING, "Could not determine property " + dbName + " of the requested graph object", ise);
+
+			}
+
+			if (hasProperty) {
+
+				value = propertyContainer.getProperty(dbName());
+
+			}
 		}
 
-		if(applyConverter) {
+		if (applyConverter) {
 
 			// apply property converters
 			PropertyConverter converter = databaseConverter(securityContext, obj);
@@ -111,15 +126,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			convertedValue = value;
 		}
 
-		final Object oldValue = getProperty(securityContext, obj, true);
-
-		// don't make any changes if
-		// - old and new value both are null
-		// - old and new value are not null but equal
-		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
-
-			return;
-		}
+//		final Object oldValue = getProperty(securityContext, obj, true);
+//		// don't make any changes if
+//		// - old and new value both are null
+//		// - old and new value are not null but equal
+//		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
+//
+//			return;
+//		}
 
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 		if (propertyContainer != null) {

@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.rest.resource;
 
 import org.structr.core.graph.search.SearchOperator;
@@ -51,6 +50,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.TextualSearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -104,7 +104,9 @@ public class TypeResource extends SortableResource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList();
+		List<SearchAttribute> validAttributes;
+		
 		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
 
@@ -115,20 +117,23 @@ public class TypeResource extends SortableResource {
 				throw new NotFoundException();
 			}
 
+			validAttributes = extractSearchableAttributesFromRequest(securityContext);
+	
 			// distance search?
-			DistanceSearchAttribute distanceSearch = getDistanceSearch(request);
+			DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
 
 			if (distanceSearch != null) {
 
 				searchAttributes.add(distanceSearch);
 				searchAttributes.add(new FilterSearchAttribute(AbstractNode.type, EntityContext.normalizeEntityName(rawType), SearchOperator.AND));
+				searchAttributes.addAll(toFilters(validAttributes));
 
 			} else {
 
 				searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 				// searchable attributes from EntityContext
-                                searchAttributes.addAll(extractSearchableAttributesFromRequest(securityContext));
+                                searchAttributes.addAll(validAttributes);
 
 			}
 			
@@ -260,10 +265,16 @@ public class TypeResource extends SortableResource {
 
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
-		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
-		properties.put(AbstractNode.type, entityClass.getSimpleName());
+		if (entityClass != null) {
+
+			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+			properties.put(AbstractNode.type, entityClass.getSimpleName());
+
+			return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+			
+		}
 		
-		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+		throw new NotFoundException();
 	}
 
 	@Override
@@ -311,7 +322,7 @@ public class TypeResource extends SortableResource {
 	@Override
 	public String getResourceSignature() {
 
-		return getUriPart();
+		return EntityContext.normalizeEntityName(getUriPart());
 
 	}
 
@@ -326,4 +337,27 @@ public class TypeResource extends SortableResource {
 
 	}
 
+	private List<FilterSearchAttribute> toFilters(final List<SearchAttribute> attrs) {
+		
+		List<FilterSearchAttribute> filters = new LinkedList();
+		
+		for (SearchAttribute attr : attrs) {
+			filters.add(new FilterSearchAttribute(attr.getKey(), attr.getValue(), attr.getSearchOperator()));
+		}
+		
+		return filters;
+	}
+	
+	private Set<String> keys(final List<SearchAttribute> attrs) {
+
+		Set<String> keys = new HashSet();
+		
+		for (SearchAttribute attr : attrs) {
+			keys.add(attr.getKey().jsonName());
+		}
+		
+		return keys;
+		
+	}
+	
 }

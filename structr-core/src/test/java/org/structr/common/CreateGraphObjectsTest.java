@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.common;
@@ -28,13 +27,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Cache;
-import org.structr.core.entity.File;
-import org.structr.core.entity.Folder;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.Image;
 import org.structr.core.entity.Location;
-import org.structr.core.entity.NodeList;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.ResourceAccess;
@@ -47,6 +42,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.PropertyAccess;
+import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
@@ -126,7 +123,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
 			final AbstractNode startNode   = nodes.get(0);
 			final AbstractNode endNode     = nodes.get(1);
-			final RelationshipType relType = RelType.CONTAINS;
+			final RelationshipType relType = RelType.IS_AT;
 
 			assertTrue(startNode != null);
 			assertTrue(endNode != null);
@@ -187,18 +184,16 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 					assertTrue(entityList.contains(AbstractNode.class));
 					assertTrue(entityList.contains(Cache.class));
-					assertTrue(entityList.contains(File.class));
 					assertTrue(entityList.contains(GenericNode.class));
-					assertTrue(entityList.contains(Image.class));
 					assertTrue(entityList.contains(Location.class));
-					assertTrue(entityList.contains(NodeList.class));
-					assertTrue(entityList.contains(Folder.class));
 					assertTrue(entityList.contains(PlainText.class));
 					assertTrue(entityList.contains(Person.class));
 					assertTrue(entityList.contains(ResourceAccess.class));
+					assertTrue(entityList.contains(PropertyAccess.class));
 					
-					// Don't test this one, it would fail due to violated constraints
+					// Don't test these, it would fail due to violated constraints
 					entityList.remove(TestTwo.class);
+					entityList.remove(PropertyDefinition.class);
 
 					for (Class entityClass : entityList) {
 
@@ -220,6 +215,13 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 								props.put(ResourceAccess.signature, "/");
 								props.put(ResourceAccess.flags, 6);
+
+							}
+
+							// For PropertyAccess, fill mandatory fields
+							if (type.equals(PropertyAccess.class.getSimpleName())) {
+
+								props.put(PropertyAccess.flags, 6);
 
 							}
 
@@ -309,7 +311,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 							List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
 							final AbstractNode startNode   = nodes.get(0);
 							final AbstractNode endNode     = nodes.get(1);
-							final RelationshipType relType = RelType.LINK;
+							final RelationshipType relType = RelType.IS_AT;
 							AbstractRelationship rel       = (AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType);
 
 							assertTrue(rel != null);
@@ -351,7 +353,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
 			final AbstractNode startNode   = nodes.get(0);
 			final AbstractNode endNode     = nodes.get(1);
-			final RelationshipType relType = RelType.UNDEFINED;
+			final RelationshipType relType = RelType.IS_AT;
 			final PropertyMap props        = new PropertyMap();
 
 			props.put(new StringProperty("foo"), "bar");

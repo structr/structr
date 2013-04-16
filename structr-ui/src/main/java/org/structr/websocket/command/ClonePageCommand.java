@@ -1,30 +1,28 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.websocket.command;
 
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -32,8 +30,7 @@ import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.web.common.RelationshipHelper;
-import org.structr.web.entity.Page;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Html;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -46,8 +43,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.AbstractRelationProperty;
-import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,8 +55,14 @@ import org.structr.core.property.PropertyKey;
  */
 public class ClonePageCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(ClonePageCommand.class.getName());
 
+	static {
+
+		StructrWebSocket.addCommand(ClonePageCommand.class);
+
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
@@ -121,15 +124,13 @@ public class ClonePageCommand extends AbstractCommand {
 
 							try {
 
-								Page.elements.createRelationship(securityContext, newPage, htmlNode, relProps);
+								DOMElement.children.createRelationship(securityContext, newPage, htmlNode, relProps);
 
 							} catch (Throwable t) {
 
 								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
 							}
-
-							RelationshipHelper.tagOutgoingRelsWithPageId(newPage, newPage, originalPageId, pageId);
 
 						}
 

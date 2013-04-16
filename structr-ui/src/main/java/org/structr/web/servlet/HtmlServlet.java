@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.web.servlet;
@@ -30,14 +29,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
-import net.java.textilej.parser.MarkupParser;
-import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
-import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
-import net.java.textilej.parser.markup.textile.TextileDialect;
-import net.java.textilej.parser.markup.trac.TracWikiDialect;
 
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.eclipse.jetty.client.ContentExchange;
@@ -45,18 +38,13 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 
-import org.pegdown.PegDownProcessor;
 
 import org.structr.common.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
-import org.structr.core.Adapter;
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -64,16 +52,8 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.auth.HttpAuthenticator;
-import org.structr.web.common.ThreadLocalMatcher;
-import org.structr.web.entity.*;
-import org.structr.web.entity.Component;
-import org.structr.web.entity.Condition;
-import org.structr.web.entity.Content;
-import org.structr.web.entity.Element;
-import org.structr.web.entity.Page;
-import org.structr.web.entity.View;
-import org.structr.web.entity.html.HtmlElement;
-import org.structr.core.entity.File;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.File;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -89,9 +69,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.graph.GetNodeByIdCommand;
-import org.structr.web.common.PageHelper;
+import org.structr.core.property.GenericProperty;
+import org.structr.rest.ResourceProvider;
+import org.structr.web.common.RenderContext;
+import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -103,87 +86,41 @@ import org.structr.web.common.PageHelper;
  */
 public class HtmlServlet extends HttpServlet {
 
-	private static final Map<String, Adapter<String, String>> contentConverters = new LinkedHashMap<String, Adapter<String, String>>();
-	private static final ThreadLocalPegDownProcessor pegDownProcessor           = new ThreadLocalPegDownProcessor();
-	private static final ThreadLocalTextileProcessor textileProcessor           = new ThreadLocalTextileProcessor();
-	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor       = new ThreadLocalMediaWikiProcessor();
-	private static final ThreadLocalTracWikiProcessor tracWikiProcessor         = new ThreadLocalTracWikiProcessor();
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher              = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
-	private static Set<Page> resultPages                                        = new HashSet<Page>();
 	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
-	private static final ThreadLocalConfluenceProcessor confluenceProcessor     = new ThreadLocalConfluenceProcessor();
 	private static Date lastModified;
 	public static final String REST_RESPONSE = "restResponse";
 	public static final String REDIRECT = "redirect";
 	public static final String LAST_GET_URL = "lastGetUrl";
 	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
+	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	
-	public static final DecimalFormat decimalFormat     = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private ResourceProvider resourceProvider                   = null;
+
+	private static final ThreadLocalMatcher threadLocalUUIDMatcher              = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 	
 	public static SearchNodeCommand searchNodesAsSuperuser;
-
-	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		contentConverters.put("text/markdown", new Adapter<String, String>() {
-
-			@Override
-			public String adapt(String s) throws FrameworkException {
-				return pegDownProcessor.get().markdownToHtml(s);
-			}
-
-		});
-		contentConverters.put("text/textile", new Adapter<String, String>() {
-
-			@Override
-			public String adapt(String s) throws FrameworkException {
-				return textileProcessor.get().parseToHtml(s);
-			}
-
-		});
-		contentConverters.put("text/mediawiki", new Adapter<String, String>() {
-
-			@Override
-			public String adapt(String s) throws FrameworkException {
-				return mediaWikiProcessor.get().parseToHtml(s);
-			}
-
-		});
-		contentConverters.put("text/tracwiki", new Adapter<String, String>() {
-
-			@Override
-			public String adapt(String s) throws FrameworkException {
-				return tracWikiProcessor.get().parseToHtml(s);
-			}
-
-		});
-		contentConverters.put("text/confluence", new Adapter<String, String>() {
-
-			@Override
-			public String adapt(String s) throws FrameworkException {
-				return confluenceProcessor.get().parseToHtml(s);
-			}
-
-		});
-		contentConverters.put("text/plain", new Adapter<String, String>() {
-
-			@Override
-			public String adapt(String s) throws FrameworkException {
-				return StringEscapeUtils.escapeHtml(s);
-			}
-
-		});
-
-	}
-
 	//~--- fields ---------------------------------------------------------
 
+
+	private DecimalFormat decimalFormat                                         = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private boolean edit;
 	private Gson gson;
 
+	public HtmlServlet() {}
+	
+	public HtmlServlet(final ResourceProvider resourceProvider) {
+
+		this.resourceProvider    = resourceProvider;
+
+	}
+
 	//~--- methods --------------------------------------------------------
+	
+	@Override
+	public void init() {
+		
+		 searchNodesAsSuperuser = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+	}
 
 	private String postToRestUrl(HttpServletRequest request, final String pagePath, final Map<String, Object> parameters) {
 
@@ -232,12 +169,6 @@ public class HtmlServlet extends HttpServlet {
 
 			return null;
 		}
-	}
-
-	@Override
-	public void init() {
-		
-		 searchNodesAsSuperuser = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
 	}
 
 	@Override
@@ -294,7 +225,6 @@ public class HtmlServlet extends HttpServlet {
 			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
 			response.setCharacterEncoding("UTF-8");
 			
-
 			boolean dontCache = false;
 			
 			String resp = (String) request.getSession().getAttribute(REST_RESPONSE);
@@ -315,18 +245,23 @@ public class HtmlServlet extends HttpServlet {
 			logger.log(Level.FINE, "Path info {0}", path);
 			
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
+			RenderContext renderContext = RenderContext.getInstance(request, response, Locale.getDefault());
 			
-			org.structr.core.entity.File file = findFile(request, path);
-			Page page = null;
-			Component comp = null;
-			String searchFor  = null;
+			renderContext.setResourceProvider(resourceProvider);
+			
+			edit = renderContext.getEdit();
+			
+			org.structr.web.entity.File file = findFile(request, path);
+			DOMNode rootElement               = null;
+			AbstractNode dataNode             = null;
+			String searchFor                  = null;
 			
 			if (file == null) {
 			
 				String[] urlParts = PathHelper.getParts(path);
 				
 
-				if (urlParts.length > 1) {
+				if ((urlParts == null) || urlParts.length > 1) {
 
 					searchFor = StringUtils.substringBefore(urlParts[1], "?");
 
@@ -335,16 +270,16 @@ public class HtmlServlet extends HttpServlet {
 				if ((urlParts == null) || (urlParts.length == 0)) {
 
 					// try to find a page with position==0
-					page = findIndexPage();
+					rootElement = findIndexPage();
 
 					logger.log(Level.INFO, "No path supplied, trying to find index page");
 
 				} else {
 
-					page = findPage(request, path);
-
+					rootElement = findPage(request, path);
 				}
 
+				
 				// store remaining path parts in request
 				Matcher matcher                 = threadLocalUUIDMatcher.get();
 				boolean requestUriContainsUuids = false;
@@ -360,15 +295,14 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 				
-				
 				if (!requestUriContainsUuids) {
 
-					// Try to find a component by name
-					comp = findComponent(request, path);
+					// Try to find a data ndoe by name
+					dataNode = findFirstNodeByPath(request, path);
 
-					if (comp != null) {
+					if (dataNode != null) {
 
-						request.setAttribute(comp.getUuid(), 0);
+						request.setAttribute(dataNode.getUuid(), 0);
 
 						// set to "true" if part matches UUID pattern
 						requestUriContainsUuids = true;
@@ -378,42 +312,37 @@ public class HtmlServlet extends HttpServlet {
 				} else {
 					
 					AbstractNode n = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(PathHelper.getName(path));
-					if (n != null && n instanceof Component) {
-						comp = (Component) n;
+					if (n != null) {
+						dataNode = n;
 					}
 					
 				}
 
 				// store information about UUIDs in path in request for later use in Component
-				request.setAttribute(Component.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
+				request.setAttribute(REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
 			}
 			
-			edit = false;
-
-			if (request.getParameter("edit") != null) {
-
-				edit = true;
-
-			}
-
-			if (page == null && file == null) {
+			
+			if (rootElement == null && file == null) {
 				
-				if (comp != null) {
+				if (dataNode != null) {
 					
-					// Last path part matches a component
+					// Last path part matches a data node
 					// Remove last path part and try again searching for a page
 					
 					// clear possible entry points
 					request.removeAttribute(POSSIBLE_ENTRY_POINTS);
 					
-					page = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
+					rootElement = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
+					
+					renderContext.setDetailsDataObject(dataNode);
 					
 				}
 				
 			}
 			
 			
-			AbstractNode node = file != null ? file : page != null ? page : null;
+			AbstractNode node = file != null ? file : rootElement != null ? rootElement : null;
 			
 			if (edit || dontCache) {
 
@@ -427,14 +356,15 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			if ((page != null) && securityContext.isVisible(page)) {
+			if ((rootElement != null) && securityContext.isVisible(rootElement)) {
 				
 				// Store last page GET URL in session
 				request.getSession().setAttribute(LAST_GET_URL, request.getPathInfo());
 
 				PrintWriter out            = response.getWriter();
-				String uuid                = page.getProperty(AbstractNode.uuid);
-				final StringBuilder buffer = new StringBuilder(8192);
+				String uuid                = rootElement.getProperty(AbstractNode.uuid);
+				
+				
 				
 				List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
 				Map<String, String[]> parameterMap = request.getParameterMap();
@@ -455,13 +385,14 @@ public class HtmlServlet extends HttpServlet {
 
 				} else {
 					
-					getContent(securityContext, uuid, null, buffer, page, page, 0, false, searchFor, attrs, null, null);
+					rootElement.render(securityContext, renderContext, 0);
 
-					String content = buffer.toString();
+					String content = renderContext.getBuffer().toString();
 					double end     = System.nanoTime();
 					logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
 
-					String contentType = page.getProperty(Page.contentType);
+					// FIXME: where to get content type
+					String contentType = rootElement.getProperty(Page.contentType);
 
 					if (contentType != null) {
 
@@ -480,7 +411,6 @@ public class HtmlServlet extends HttpServlet {
 					}
 
 					// 3: output content
-					out.append("<!DOCTYPE html>\n");
 					HttpAuthenticator.writeContent(content, response);
 
 				}
@@ -543,9 +473,7 @@ public class HtmlServlet extends HttpServlet {
 
 					try {
 						HttpAuthenticator.writeUnauthorized(response);
-					} catch (IllegalStateException ise) {
-						;
-					}
+					} catch (IllegalStateException ise) { }
 
 				} else {
 
@@ -564,24 +492,30 @@ public class HtmlServlet extends HttpServlet {
 	
 
 	/**
-	 * Find a component with its name matching last path part
+	 * Find first node whose name matches the given path
 	 * 
 	 * @param request
 	 * @param path
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	private Component findComponent(HttpServletRequest request, final String path) throws FrameworkException {
-	
-		// FIXME: Take full file path into account
-		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
+	private AbstractNode findFirstNodeByPath(HttpServletRequest request, final String path) throws FrameworkException {
 		
-		for (AbstractNode node : entryPoints) {
-			if (node instanceof Component) {
-				return (Component) node;
-			}
+		// FIXME: Take full path into account
+		String name = PathHelper.getName(path);
+		
+		if (name.length() > 0) {
+
+			logger.log(Level.FINE, "Requested name: {0}", name);
+
+			Result results = searchNodesAsSuperuser.execute(Search.andExactName(name));
+			
+			logger.log(Level.FINE, "{0} results", results.size());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
+			
+			return (results.size() > 0 ? (AbstractNode) results.get(0) : null);
 		}
-		
+
 		return null;
 	}
 	
@@ -593,7 +527,7 @@ public class HtmlServlet extends HttpServlet {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	private org.structr.core.entity.File findFile(HttpServletRequest request, final String path) throws FrameworkException {
+	private org.structr.web.entity.File findFile(HttpServletRequest request, final String path) throws FrameworkException {
 	
 		// FIXME: Take full page path into account
 		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
@@ -609,8 +543,8 @@ public class HtmlServlet extends HttpServlet {
 		}
 		
 		for (AbstractNode node : entryPoints) {
-			if (node instanceof org.structr.core.entity.File) {
-				return (org.structr.core.entity.File) node;
+			if (node instanceof org.structr.web.entity.File) {
+				return (org.structr.web.entity.File) node;
 			}
 		}
 		
@@ -747,7 +681,6 @@ public class HtmlServlet extends HttpServlet {
 			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
 
 			group.add(Search.orExactType(Page.class.getSimpleName()));
-			group.add(Search.orExactType(Component.class.getSimpleName()));
 			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
 //			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
 			searchAttrs.add(group);
@@ -783,7 +716,6 @@ public class HtmlServlet extends HttpServlet {
 			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
 
 			group.add(Search.orExactType(Page.class.getSimpleName()));
-			group.add(Search.orExactType(Component.class.getSimpleName()));
 			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
 //			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
 			searchAttrs.add(group);
@@ -822,442 +754,6 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return Collections.EMPTY_LIST;
-	}
-
-//	private static void clearPossibleEntryPoints(HttpServletRequest request) {
-//		request.removeAttribute(POSSIBLE_ENTRY_POINTS);
-//	}
-	
-	private static String indent(final int depth, final boolean newline) {
-
-		StringBuilder indent = new StringBuilder();
-
-		if (newline) {
-
-			indent.append("\n");
-
-		}
-
-		for (int d = 0; d < depth; d++) {
-
-			indent.append("  ");
-
-		}
-
-		return indent.toString();
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	private void getContent(SecurityContext securityContext, final String pageId, final String componentId, final StringBuilder buffer, final AbstractNode page, final AbstractNode startNode,
-				int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) throws FrameworkException {
-
-		String localComponentId    = componentId;
-		String content             = null;
-		String tag                 = null;
-		String ind                 = "";
-		HttpServletRequest request = securityContext.getRequest();
-		HtmlElement el             = null;
-		boolean isVoid             = (startNode instanceof HtmlElement) && ((HtmlElement) startNode).isVoidElement();
-
-		if (startNode instanceof Component) {
-			depth--;
-		}
-
-		if (startNode instanceof HtmlElement) {
-
-			el = (HtmlElement) startNode;
-
-			if (!el.avoidWhitespace()) {
-				
-				ind = indent(depth, true);
-
-			}
-
-		}
-
-		if (startNode != null) {
-
-//			if (!edit) {
-//
-//				Date nodeLastMod = startNode.getLastModifiedDate();
-//
-//				if ((lastModified == null) || nodeLastMod.after(lastModified)) {
-//
-//					lastModified = nodeLastMod;
-//
-//				}
-//
-//			}
-			
-			String id   = startNode.getUuid();
-			tag = startNode.getProperty(Element.tag);
-
-			if (startNode instanceof Component && searchClass != null) {
-			
-				// If a search class is given, respect search attributes
-				// Filters work with AND
-				String kind = startNode.getProperty(Component.kind);
-
-				if ((kind != null) && kind.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
-
-					for (NodeAttribute attr : attrs) {
-
-						PropertyKey key = attr.getKey();
-						Object val      = attr.getValue();
-
-						if (!val.equals(startNode.getProperty(key))) {
-
-							return;
-
-						}
-
-					}
-
-				}
-			}
-			
-			// this is the place where the "content" property is evaluated
-			if (startNode instanceof Content) {
-
-				Content contentNode = (Content) startNode;
-
-				// fetch content with variable replacement
-				content = contentNode.getPropertyWithVariableReplacement(request, page, pageId, componentId, viewComponent, Content.content);
-
-				// examine content type and apply converter
-				String contentType = contentNode.getProperty(Content.contentType);
-
-				if (contentType != null) {
-
-					Adapter<String, String> converter = contentConverters.get(contentType);
-
-					if (converter != null) {
-
-						try {
-
-							// apply adapter
-							content = converter.adapt(content);
-						} catch (FrameworkException fex) {
-							logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
-						}
-
-					}
-
-				}
-
-				// replace newlines with <br /> for rendering
-				if (((contentType == null) || contentType.equals("text/plain")) && (content != null) &&!content.isEmpty()) {
-
-					content = content.replaceAll("[\\n]{1}", "<br>");
-
-				}
-
-			}
-
-			// check for component
-			if (startNode instanceof Component) {
-
-				localComponentId = startNode.getProperty(AbstractNode.uuid);
-
-			}
-
-			// In edit mode, add an artificial 'div' tag around content nodes within body
-			// to make them editable
-			if (edit && inBody && (startNode instanceof Content)) {
-
-				tag = "span";
-
-			}
-
-			if (StringUtils.isNotBlank(tag)) {
-
-				if (tag.equals("body")) {
-
-					inBody = true;
-
-				}
-
-				if ((startNode instanceof Content) || (startNode instanceof HtmlElement)) {
-
-					double start     = System.nanoTime();
-					
-					buffer.append("<").append(tag);
-
-					if (edit && (id != null)) {
-
-						if (depth == 1) {
-
-							buffer.append(" structr_page_id='").append(pageId).append("'");
-
-						}
-
-						if (el != null) {
-
-							buffer.append(" structr_element_id=\"").append(id).append("\"");
-							buffer.append(" structr_type=\"").append(startNode.getType()).append("\"");
-							buffer.append(" structr_name=\"").append(startNode.getName()).append("\"");
-
-						} else {
-
-							buffer.append(" structr_content_id=\"").append(id).append("\"");
-
-						}
-
-					}
-
-					if (el != null) {
-
-						for (PropertyKey attribute : EntityContext.getPropertySet(startNode.getClass(), PropertyView.Html)) {
-
-							try {
-
-								String value = el.getPropertyWithVariableReplacement(page, pageId, localComponentId, viewComponent, attribute);
-
-								if ((value != null) && StringUtils.isNotBlank(value)) {
-
-									String key = attribute.jsonName().substring(PropertyView.Html.length());
-
-									buffer.append(" ").append(key).append("=\"").append(value).append("\"");
-
-								}
-
-							} catch (Throwable t) {
-								t.printStackTrace();
-							}
-
-						}
-
-					}
-
-					buffer.append(">");
-
-					if (!isVoid) {
-
-						buffer.append(ind);
-
-					}
-
-					double end     = System.nanoTime();
-					logger.log(Level.FINE, "Render node {0} in {1} seconds", new Object[] { startNode.getUuid(), decimalFormat.format((end - start) / 1000000000.0)});
-
-				}
-
-			}
-
-			if (content != null) {
-
-				buffer.append(content);
-
-			}
-
-			if (startNode instanceof SearchResultView) {
-
-				double startSearchResultView     = System.nanoTime();
-
-				String searchString = (String) request.getParameter("search");
-
-				if ((request != null) && StringUtils.isNotBlank(searchString)) {
-
-					for (Page resultPage : getResultPages(securityContext, (Page) page)) {
-
-						// recursively render children
-						List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
-
-						for (AbstractRelationship rel : rels) {
-
-							if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
-
-								AbstractNode subNode = rel.getEndNode();
-
-								if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
-
-									getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth, inBody, searchClass, attrs, resultPage,
-										   condition);
-
-								}
-
-							}
-
-						}
-					}
-
-				}
-				
-				double endSearchResultView     = System.nanoTime();
-				logger.log(Level.FINE, "Get graph objects for search {0} in {1} seconds", new Object[] { searchString, decimalFormat.format((endSearchResultView - startSearchResultView) / 1000000000.0)});
-
-			} else if (startNode instanceof View) {
-
-				double startView     = System.nanoTime();
-				
-				// fetch query results
-				List<GraphObject> results = ((View) startNode).getGraphObjects(request);
-				
-				double endView     = System.nanoTime();
-				logger.log(Level.FINE, "Get graph objects for {0} in {1} seconds", new Object[] { startNode.getUuid(), decimalFormat.format((endView - startView) / 1000000000.0)});
-
-				for (GraphObject result : results) {
-
-					// recursively render children
-					List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
-
-					for (AbstractRelationship rel : rels) {
-
-						if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
-
-							AbstractNode subNode = rel.getEndNode();
-
-							if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
-
-								getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth, inBody, searchClass, attrs, (AbstractNode) result,
-									   condition);
-
-							}
-
-						}
-
-					}
-				}
-			} else if (startNode instanceof Condition) {
-
-				// recursively render children
-				List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
-				Condition newCondition          = (Condition) startNode;
-
-				for (AbstractRelationship rel : rels) {
-
-					AbstractNode subNode = rel.getEndNode();
-
-					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
-
-						getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
-
-					}
-
-				}
-			} else {
-
-				// recursively render children
-				List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
-
-				for (AbstractRelationship rel : rels) {
-
-					if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
-
-						AbstractNode subNode = rel.getEndNode();
-
-						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
-
-							getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
-
-						}
-
-					}
-
-				}
-			}
-
-			boolean whitespaceOnly = false;
-			int lastNewline        = buffer.lastIndexOf("\n");
-
-			whitespaceOnly = StringUtils.isBlank((lastNewline > -1)
-				? buffer.substring(lastNewline)
-				: buffer.toString());
-
-			if ((el != null) &&!el.avoidWhitespace()) {
-
-				if (whitespaceOnly) {
-
-					buffer.replace(buffer.length() - 2, buffer.length(), "");
-
-				} else {
-
-					buffer.append(indent(depth - 1, true));
-
-				}
-
-			}
-
-			// render end tag, if needed (= if not singleton tags)
-			if ((startNode instanceof HtmlElement || startNode instanceof Content) && StringUtils.isNotBlank(tag) && (!isVoid)) {
-
-				buffer.append("</").append(tag).append(">");
-
-				if ((el != null) &&!el.avoidWhitespace()) {
-
-					buffer.append(indent(depth - 1, true));
-
-				}
-
-			}
-
-		}
-	}
-
-	/**
-	 * Return (cached) result pages
-	 *
-	 * Search string is taken from SecurityContext's http request
-	 * Given displayPage is substracted from search result (we don't want to return search result page in search results)
-	 *
-	 * @param securityContext
-	 * @param displayPage
-	 * @return
-	 */
-	public static Set<Page> getResultPages(final SecurityContext securityContext, final Page displayPage) {
-
-		HttpServletRequest request = securityContext.getRequest();
-		String search              = request.getParameter("search");
-
-		if ((request == null) || StringUtils.isEmpty(search)) {
-
-			return Collections.EMPTY_SET;
-
-		}
-
-		if (request != null) {
-
-			resultPages = (Set<Page>) request.getAttribute("searchResults");
-
-			if ((resultPages != null) &&!resultPages.isEmpty()) {
-
-				return resultPages;
-
-			}
-
-		}
-
-		if (resultPages == null) {
-
-			resultPages = new HashSet<Page>();
-
-		}
-
-		// fetch search results
-		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-		searchAttributes.add(Search.andContent(search));
-		searchAttributes.add(Search.andExactType(Content.class.getSimpleName()));
-
-		try {
-
-			Result<Content> result = searchNodesAsSuperuser.execute(searchAttributes);
-			for (Content content : result.getResults()) {
-
-				resultPages.addAll(PageHelper.getPages(securityContext, content));
-
-			}
-
-			// Remove result page itself
-			resultPages.remove((Page) displayPage);
-
-		} catch (FrameworkException fe) {
-			logger.log(Level.WARNING, "Error while searching in content", fe);
-		}
-
-		return resultPages;
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -1321,49 +817,8 @@ public class HtmlServlet extends HttpServlet {
 		return notModified;
 	}
 
-	//~--- inner classes --------------------------------------------------
-
-	private static class ThreadLocalConfluenceProcessor extends ThreadLocal<MarkupParser> {
-
-		@Override
-		protected MarkupParser initialValue() {
-			return new MarkupParser(new ConfluenceDialect());
-		}
+	public void setResourceProvider(final ResourceProvider resourceProvider) {
+		this.resourceProvider = resourceProvider;
 	}
-
-
-	private static class ThreadLocalMediaWikiProcessor extends ThreadLocal<MarkupParser> {
-
-		@Override
-		protected MarkupParser initialValue() {
-			return new MarkupParser(new MediaWikiDialect());
-		}
-	}
-
-
-	private static class ThreadLocalPegDownProcessor extends ThreadLocal<PegDownProcessor> {
-
-		@Override
-		protected PegDownProcessor initialValue() {
-			return new PegDownProcessor();
-		}
-	}
-
-
-	private static class ThreadLocalTextileProcessor extends ThreadLocal<MarkupParser> {
-
-		@Override
-		protected MarkupParser initialValue() {
-			return new MarkupParser(new TextileDialect());
-		}
-	}
-
-
-	private static class ThreadLocalTracWikiProcessor extends ThreadLocal<MarkupParser> {
-
-		@Override
-		protected MarkupParser initialValue() {
-			return new MarkupParser(new TracWikiDialect());
-		}
-	}
+	
 }

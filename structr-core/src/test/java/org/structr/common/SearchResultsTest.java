@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 /*
 *  Copyright (C) 2010-2013 Axel Morgner
 *
@@ -150,7 +168,7 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.UNDEFINED, 1)).get(0);
+			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.IS_AT, 1)).get(0);
 			PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
 			String val1              = "54354354546806849870";
 
@@ -202,7 +220,8 @@ public class SearchResultsTest extends StructrTest {
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
-			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, SearchOperator.AND));
+//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -298,7 +317,8 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, SearchOperator.AND));
+//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 

@@ -18,55 +18,50 @@
  */
 
 var win = $(window);
+var canvas;
 
 $(document).ready(function() {
     Structr.registerModule('dashboard', _Dashboard);
-
-//    win.resize(function() {
-//        _Dashboard.resize();
-//    });
-
 });
 
 var _Dashboard = {
-
-    icon : 'icon/page.png',
-    add_icon : 'icon/page_add.png',
-    delete_icon : 'icon/page_delete.png',
-    clone_icon : 'icon/page_copy.png',
-
-    init : function() {
+    icon: 'icon/page.png',
+    add_icon: 'icon/page_add.png',
+    delete_icon: 'icon/page_delete.png',
+    clone_icon: 'icon/page_copy.png',
+    init: function() {
     },
-
-    onload : function() {
-        
+    onload: function() {
         _Dashboard.init();
-        
         activeTab = $.cookie('structrActiveTab');
-        log('value read from cookie', activeTab);
+        main.append('<div class="searchBox"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+        main.append('<div class="canvas" id="graph"></div>');
+        searchField = $('.search', main);
+        searchField.focus();
+        searchField.keyup(function(e) {
+            var searchString = $(this).val();
+            if (searchString && searchString.length && e.keyCode === 13) {
 
-        log('onload');
-        
-        main.append('<div class="callToAction button">Create a new Page <img src="img/go.gif" alt="Create a new Page"></div>');
-        
-        $(main.children('.callToAction')).on('click', function(e) {
-            e.stopPropagation();
-            main.empty();
-            Structr.activateMenuEntry('pages');
-            Structr.modules['pages'].onload();
-            
-            document.location = '/structr/#pages'
-            
-            Command.createSimplePage();
+                $('.clearSearchIcon').show().on('click', function() {
+                    _Crud.clearSearch(main);
+                });
+                Command.search(searchString);
 
-            _Pages.resize();
-
+            } else if (e.keyCode === 27 || searchString === '') {
+                _Dashboard.clearSearch();
+            }
         });
-
+        drawGraph();
     },
-
-    refresh : function() {
-        dashboard.empty();
+    appendNode: function(node) {
+        graph.render(node.id, 0, [canvas.w / 2, canvas.h / 2]);
+    },
+    clearSearch: function() {
+        _Dashboard.clearSearchResults();
+        $('.clearSearchIcon').hide().off('click');
+        $('.search').val('');
+    },
+    clearSearchResults: function() {
+        //canvas.element.empty();
     }
-
 };

@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.core;
@@ -64,10 +63,9 @@ public class Services {
 	// Database-related constants
 	public static final String DATABASE_PATH = "database.path";
 	public static final String FILES_PATH    = "files.path";
-	
 	public static final String LOG_DATABASE_PATH = "log.database.path";
-
 	public static final String REST_PATH     = "application.rest.path";
+	public static final String FOREIGN_TYPE = "foreign.type.key";
 	
 	// LogService-related constants
 	public static final String LOG_SERVICE_INTERVAL  = "structr.logging.interval";
@@ -81,17 +79,22 @@ public class Services {
 	public static final String SMTP_USER              = "smtp.user";
 	public static final String SMTP_PASSWORD          = "smtp.password";
 
-//      public static final String ENTITY_PACKAGES = "entity.packages";
 	public static final String RESOURCES              = "resources";
-	public static final String SUPERUSER_PASSWORD     = "superuser.password";
 
 	// Security-related constants
 	public static final String SUPERUSER_USERNAME = "superuser.username";
+	public static final String SUPERUSER_PASSWORD = "superuser.password";
+
 	public static final String TCP_PORT           = "tcp.port";
 	public static final String TMP_PATH           = "tmp.path";
 	public static final String UDP_PORT           = "udp.port";
 	
 	public static final String JSON_OUTPUT_DEPTH  = "json.depth";
+	
+	// geocoding
+	public static final String GEOCODING_PROVIDER = "geocoding.provider";
+	public static final String GEOCODING_LANGUAGE = "geocoding.language";
+	public static final String GEOCODING_APIKEY   = "geocoding.apikey";
 	
 	private static Map<String, String> context    = null;
 	private static final Logger logger            = Logger.getLogger(Services.class.getName());

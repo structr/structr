@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.rest.servlet;
@@ -173,7 +172,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
 
 			// do action
 			RestMethodResult result = resourceConstraint.doDelete();
@@ -256,7 +255,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), propertyView.get(securityContext));
 			
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
@@ -388,7 +387,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
 			
 			// do action
 			RestMethodResult result = resourceConstraint.doHead();
@@ -464,7 +463,7 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
 			
 			// do action
 			RestMethodResult result = resourceConstraint.doOptions();
@@ -549,7 +548,7 @@ public class JsonRestServlet extends HttpServlet {
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// let authenticator examine request again
-				securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(), propertyView.get(securityContext));
+				securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
 				
 				// do action
 				RestMethodResult result = resourceConstraint.doPost(properties);
@@ -649,12 +648,14 @@ public class JsonRestServlet extends HttpServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-				Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
+				List<Resource> chain	       = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
+				Resource resource	       = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
+				securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), propertyView.get(securityContext));
+				
 				// do action
-				RestMethodResult result = resourceConstraint.doPut(properties);
+				RestMethodResult result = resource.doPut(properties);
 
 				result.commitResponse(gson, response);
 			} else {

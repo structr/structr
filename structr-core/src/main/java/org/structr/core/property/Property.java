@@ -1,25 +1,30 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
@@ -32,8 +37,10 @@ import org.structr.core.graph.search.TextualSearchAttribute;
  */
 public abstract class Property<T> implements PropertyKey<T> {
 
+	private static final Logger logger = Logger.getLogger(Property.class.getName());
+	
 	protected Class<? extends GraphObject> declaringClass  = null;
-	protected T defaultValue                        = null;
+	protected T defaultValue                               = null;
 	protected boolean isReadOnlyProperty                   = false;
 	protected boolean isWriteOnceProperty                  = false;
 	protected boolean isSystemProperty                     = false;
@@ -156,8 +163,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
 		
 		// return empty string on null value here to enable searching for empty values
-		String searchString = searchValue != null ? searchValue.toString() : "";
-		String search       = exactMatch ? Search.exactMatch(searchString) : searchString;
+		
+		String search = "";
+		
+		if (searchValue != null) {
+		
+			Object convertedValue = getSearchValue(searchValue);
+			String searchString = convertedValue == null ? "" : convertedValue.toString();
+			search       = exactMatch ? Search.exactMatch(searchString) : searchString;
+
+		}
 		
 		return new TextualSearchAttribute(this, search, op);
 	}
@@ -165,5 +180,25 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
 		searchableProperties.add(this);
+	}
+	
+	@Override
+	public Object getSearchValue(T source) {
+		
+		PropertyConverter databaseConverter = databaseConverter(SecurityContext.getSuperUserInstance());
+		Object convertedSearchValue      = source;
+
+		if (databaseConverter != null) {
+
+			try {
+				convertedSearchValue = databaseConverter.convert(source);
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to convert search value {0} for key {1}", new Object[] { source, this });
+			}
+		}
+		
+		return convertedSearchValue;
 	}
 }

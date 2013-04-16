@@ -1,20 +1,20 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
@@ -82,6 +82,17 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 */
 	public CollectionProperty(String name, Class destType, RelationshipType relType, boolean oneToMany) {
 		this(name, destType, relType, Direction.OUTGOING, oneToMany);
+	}
+
+	/**
+	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
+	 *
+	 * @param name
+	 * @param destType
+	 * @param relType
+	 */
+	public CollectionProperty(String name, Class destType, RelationshipType relType, Notion notion, boolean oneToMany) {
+		this(name, destType, relType, Direction.OUTGOING, notion, oneToMany);
 	}
 
 	/**
@@ -164,6 +175,11 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	}
 
 	@Override
+	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
@@ -182,7 +198,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 			if (cardinality.equals(Relation.Cardinality.OneToMany) || cardinality.equals(Relation.Cardinality.ManyToMany)) {
 
-				NodeFactory nodeFactory = new NodeFactory(securityContext);
+				NodeFactory nodeFactory = new NodeFactory(securityContext, false, false);
 				Class destinationType   = getDestType();
 				List<T> nodes           = new LinkedList<T>();
 				Node dbNode             = node.getNode();
@@ -232,7 +248,9 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 				
 				for (GraphObject targetNode : collection) {
 
-					createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
+					if (targetNode != null) {
+						createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
+					}
 				}
 
 			} else {

@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.web.node;
@@ -34,15 +33,14 @@ import com.flagstone.transform.util.image.BufferedImageEncoder;
 
 import org.apache.commons.io.FileUtils;
 
-import org.structr.common.ImageHelper;
+import org.structr.web.common.ImageHelper;
 import org.structr.common.Path;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Image;
-import org.structr.core.entity.Image;
+import org.structr.web.entity.Image;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -262,7 +260,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 										     new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
 										     new NodeAttribute(AbstractNode.name, name), new NodeAttribute(Image.width, width),
 										     new NodeAttribute(Image.height, height),
-										     new NodeAttribute(org.structr.core.entity.File.contentType, contentType),
+										     new NodeAttribute(org.structr.web.entity.File.contentType, contentType),
 										     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
 
 							// Establish HAS_CHILD relationship from parent node

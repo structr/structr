@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.converter;
 
 import org.structr.common.SecurityContext;
@@ -38,13 +37,13 @@ public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, 
 	@Override
 	public Object revert(String source) {
 		
-		if(currentObject instanceof AbstractRelationship) {
+		if (currentObject instanceof AbstractRelationship) {
 			
-			AbstractRelationship rel = (AbstractRelationship)currentObject;
-			if(rel != null) {
+			AbstractRelationship rel = (AbstractRelationship) currentObject;
+			if (rel != null) {
 				
 				AbstractNode endNode = rel.getEndNode();
-				if(endNode != null) {
+				if (endNode != null) {
 					
 					return endNode.getType();
 				}
@@ -56,6 +55,6 @@ public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, 
 
 	@Override
 	public String convert(Object source) {
-		return null;
+		return source != null ? source.toString() : null;
 	}
 }

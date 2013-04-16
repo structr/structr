@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.common;
@@ -34,13 +33,15 @@ import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 import org.structr.core.Result;
+import org.structr.core.TestRelType;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 
@@ -131,10 +132,56 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 	}
 
+	public void test01DeleteRelationship() {
+
+		try {
+			
+			List<AbstractNode> nodes        = this.createTestNodes("UnknownTestType", 2);
+
+			assertNotNull(nodes);
+			assertTrue(nodes.size() == 2);
+			
+			AbstractRelationship rel = createRelationshipCommand.execute(nodes.get(0), nodes.get(1), TestRelType.ONE_TO_ONE);
+			
+			assertNotNull(rel);
+			
+			try {
+				// try to delete relationship
+				rel.getRelationship().delete();
+				
+				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
+			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
+			
+			// Relationship still there
+			assertNotNull(rel);
+			
+			
+			// Delete relationship in transaction
+			// This works because structr's DeleteRelationshipCommand creates a tx 
+			deleteRelationshipCommand.execute(rel);
+			
+			try {
+				rel.getUuid();
+				
+				fail("Should have raised an org.neo4j.graphdb.NotFoundException");
+			} catch (org.neo4j.graphdb.NotFoundException e) {}
+				
+			
+		
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+		
+		
+	}	
+	
 	/**
 	 * DELETE_NONE should not trigger any delete cascade
 	 */
-	public void test02CascadeDeleteNone() {
+	public void test03CascadeDeleteNone() {
 
 		try {
 
@@ -171,7 +218,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	 * DELETE_INCOMING should not trigger delete cascade from start to end node,
 	 * but from end to start node
 	 */
-	public void test03CascadeDeleteIncoming() {
+	public void test04CascadeDeleteIncoming() {
 
 		try {
 
@@ -214,7 +261,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	 * DELETE_OUTGOING should trigger delete cascade from start to end node,
 	 * but not from end to start node.
 	 */
-	public void test04CascadeDeleteOutgoing() {
+	public void test05CascadeDeleteOutgoing() {
 
 		try {
 
@@ -257,7 +304,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	 * DELETE_INCOMING + DELETE_OUTGOING should trigger delete cascade from start to end node
 	 * and from end node to start node
 	 */
-	public void test05CascadeDeleteBidirectional() {
+	public void test06CascadeDeleteBidirectional() {
 
 		try {
 
@@ -301,7 +348,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	 * trigger delete cascade from start to end node only
 	 * if the remote node would not be valid afterwards
 	 */
-	public void test06CascadeDeleteConditional() {
+	public void test07CascadeDeleteConditional() {
 
 		try {
 
@@ -361,7 +408,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 				AbstractNode start       = createTestNode(type1.getSimpleName());
 				AbstractNode end         = createTestNode(type2.getSimpleName());
-				AbstractRelationship rel = createTestRelationship(start, end, RelType.UNDEFINED);
+				AbstractRelationship rel = createTestRelationship(start, end, RelType.IS_AT);
 
 				rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
 

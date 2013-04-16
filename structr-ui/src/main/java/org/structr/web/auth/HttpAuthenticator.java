@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.web.auth;
@@ -110,43 +109,52 @@ public class HttpAuthenticator implements Authenticator {
 
 		Principal user;
 		String auth = request.getHeader("Authorization");
-
-		if (auth == null) {
-
-			sendBasicAuthResponse(response);
-
-			return null;
-
-		}
-
-		if (!auth.toUpperCase().startsWith("BASIC ")) {
-
-			sendBasicAuthResponse(response);
-
-			return null;
-
-		}
-
-		String[] userAndPass = getUsernameAndPassword(request);
-
+		
 		try {
+			if (auth == null) {
 
-			if ((userAndPass == null) || (userAndPass.length != 2)) {
+				sendBasicAuthResponse(response);
 
-				writeUnauthorized(response);
+				return null;
+
 			}
 
-			user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userAndPass[0], userAndPass[1]);
+			if (!auth.toUpperCase().startsWith("BASIC ")) {
 
-		} catch (Exception ex) {
+				sendBasicAuthResponse(response);
 
-			sendBasicAuthResponse(response);
+				return null;
 
-			return null;
+			}
 
+			String[] userAndPass = getUsernameAndPassword(request);
+
+			try {
+
+				if ((userAndPass == null) || (userAndPass.length != 2)) {
+
+					writeUnauthorized(response);
+				}
+
+				user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userAndPass[0], userAndPass[1]);
+
+			} catch (Exception ex) {
+
+				sendBasicAuthResponse(response);
+
+				return null;
+
+			}
+
+			return user;
+			
+		} catch (IllegalStateException ise) {
+			
+			logger.log(Level.WARNING, "Error while sending basic auth response, stream might be already closed, sending anyway.");
+			
 		}
-
-		return user;
+		
+		return null;
 
 	}
 
@@ -174,13 +182,21 @@ public class HttpAuthenticator implements Authenticator {
 
 	public static void writeContent(String content, HttpServletResponse response) throws IOException {
 
-		response.setStatus(HttpServletResponse.SC_OK);
-		response.setCharacterEncoding("UTF-8");
+		try {
+			
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.setCharacterEncoding("UTF-8");
 
-		PrintWriter writer = response.getWriter();
-		writer.append(content);
-		writer.flush();
-		writer.close();
+			PrintWriter writer = response.getWriter();
+			writer.append(content);
+			writer.flush();
+			writer.close();
+
+		} catch (IllegalStateException ise) {
+			
+			logger.log(Level.WARNING, "Error while appending to writer", ise);
+			
+		}
 
 	}
 

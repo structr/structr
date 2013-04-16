@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.websocket.command;
@@ -53,16 +52,6 @@ public class ImportCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(ImportCommand.class);
-		StructrWebSocket.addCommand(PatchCommand.class);
-		StructrWebSocket.addCommand(SortCommand.class);
-		StructrWebSocket.addCommand(WrapInComponentCommand.class);
-		StructrWebSocket.addCommand(ClonePageCommand.class);
-		StructrWebSocket.addCommand(ChildrenCommand.class);
-		StructrWebSocket.addCommand(ListCommand.class);
-		StructrWebSocket.addCommand(AddCommand.class);
-		StructrWebSocket.addCommand(RemoveCommand.class);
-		StructrWebSocket.addCommand(LinkCommand.class);
-		StructrWebSocket.addCommand(CreateSimplePage.class);
 
 	}
 
@@ -73,6 +62,7 @@ public class ImportCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		Map<String, Object> properties        = webSocketData.getNodeData();
+		final String code                     = (String) properties.get("code");
 		final String address                  = (String) properties.get("address");
 		final String name                     = (String) properties.get("name");
 		final int timeout                     = Integer.parseInt((String) properties.get("timeout"));
@@ -83,7 +73,7 @@ public class ImportCommand extends AbstractCommand {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Importer pageImporter = new Importer(securityContext, address, name, timeout, publicVisible, authVisible);
+				Importer pageImporter = new Importer(securityContext, code, address, name, timeout, publicVisible, authVisible);
 				boolean parseOk       = pageImporter.parse();
 
 				if (parseOk) {

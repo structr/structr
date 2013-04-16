@@ -1,29 +1,27 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.core.graph;
 
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
@@ -38,8 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
-import org.structr.core.Services;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,7 +49,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CypherQueryCommand.class.getName());
 	
-	protected static final ThreadLocalExecutionEngine engine = new ThreadLocalExecutionEngine();
+	//protected static final ThreadLocalExecutionEngine engine = new ThreadLocalExecutionEngine();
 	
 	//~--- methods --------------------------------------------------------
 
@@ -72,6 +68,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
 		RelationshipFactory relFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
+		ExecutionEngine     engine      = (ExecutionEngine) arguments.get("cypherExecutionEngine");
 		//GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
@@ -80,11 +77,11 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		if (parameters != null) {
 
-			result = engine.get().execute(query, parameters);
+			result = engine.execute(query, parameters);
 			
 		} else {
-
-			result = engine.get().execute(query);
+			
+			result = engine.execute(query);
 		}
 
 		for (Map<String, Object> row : result) {
@@ -117,23 +114,5 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		return resultList;
 	}
-	
-	/**
-	 * A thread local version of the neo4j cypher execution engine.
-	 */
-	protected static class ThreadLocalExecutionEngine extends ThreadLocal<ExecutionEngine> {
-		
-		@Override
-		protected ExecutionEngine initialValue() {
-			
-			try {
-		
-				return new ExecutionEngine((GraphDatabaseService)Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class).execute());
-				
-			} catch (Throwable t) {}
-			
-			return null;
-		}
-	}	
 
 }

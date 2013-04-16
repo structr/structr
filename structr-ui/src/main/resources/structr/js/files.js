@@ -27,7 +27,7 @@ $(document).ready(function() {
     Structr.registerModule('files', _Files);
     Structr.classes.push('file');
     Structr.classes.push('folder');
-//    Structr.classes.push('image');
+    //    Structr.classes.push('image');
     _Files.resize();
     win.resize(function() {
         _Files.resize();
@@ -80,11 +80,11 @@ var _Files = {
         main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
-//        images = $('#images');
+        //        images = $('#images');
         
         _Files.refreshFolders();
         _Files.refreshFiles();
-//        _Files.refreshImages();
+    //        _Files.refreshImages();
 
     //	_Files.resize();
     },
@@ -111,7 +111,6 @@ var _Files = {
             drop.on('drop', function(event) {
                 
                 if (!event.originalEvent.dataTransfer) {
-                    console.log(event);
                     return;
                 }
                 
@@ -121,7 +120,6 @@ var _Files = {
                 event.preventDefault();
                 
                 fileList = event.originalEvent.dataTransfer.files;
-                console.log(fileList);
                 var filesToUpload = [];
                 var tooLargeFiles = [];
 
@@ -153,26 +151,25 @@ var _Files = {
                     
                 } else {
                     
-                    var dialogMsg = $('#dialogMsg');
-
-                    dialog.empty();
-                    dialogMsg.empty();
-
-                    dialog.append('<table class="props"></table>');
-                    
-                    $(filesToUpload).each(function(i, fileToUpload) {
-                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
-                    });
-
-                    Structr.dialog('Uploading Files', function() {
-                        return true;
-                    }, function() {
-                        return true;
-                    });
+                    //                    var dialogMsg = $('#dialogMsg');
+                    //
+                    //                    dialog.empty();
+                    //                    dialogMsg.empty();
+                    //
+                    //                    dialog.append('<table class="props"></table>');
+                    //                    
+                    //                    $(filesToUpload).each(function(i, fileToUpload) {
+                    //                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
+                    //                    });
+                    //
+                    //                    Structr.dialog('Uploading Files', function() {
+                    //                        return true;
+                    //                    }, function() {
+                    //                        return true;
+                    //                    });
                     
                     $(filesToUpload).each(function(i, file) {
-                        log(file);
-                        if (file) _Files.createFile(file);
+                        Command.createFile(file);
                     });
 
                 }
@@ -185,29 +182,27 @@ var _Files = {
         _Files.resize();
     },
 	
-    refreshImages : function() {
-        images.empty();
-        images.append('<h1>Images</h1>');
-        Structr.addPager(images, 'Image');
-    },
-	
     refreshFolders : function() {
         folders.empty();
         folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
-        if (Structr.addPager(folders, 'Folder')) {
+        
+        //Command.list(type, pageSize[type], page[type], sort, order);
+        Command.list('Folder', 1000, 1, 'name', 'asc');
+        
+        //if (Structr.addPager(folders, 'Folder')) {
 
-            $('.add_folder_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Folder';
-                Command.create(entity);
-            });
-        }
+        $('.add_folder_icon', main).on('click', function(e) {
+            e.stopPropagation();
+            var entity = {};
+            entity.type = 'Folder';
+            Command.create(entity);
+        });
+    //}
     },
 
-    getIcon : function(file, isImage) {
+    getIcon : function(file) {
         var icon = _Files.icon; // default
-        if (file && file.contentType && !isImage) {
+        if (file && file.contentType) {
 
             if (file.contentType.indexOf('pdf') > -1) {
                 icon = 'icon/page_white_acrobat.png';
@@ -216,101 +211,85 @@ var _Files = {
             } else if (file.contentType.indexOf('xml') > -1) {
                 icon = 'icon/page_white_code.png';
             }
-        } else {
-            icon = viewRootUrl + file.name;
         }
         
         return icon;
     },
 
-    appendFileElement : function(file, folderId, add, hasChildren, isImage) {
+    appendFileElement : function(file, add) {
 
-        log('Files.appendFileElement', file, folderId, add, hasChildren, isImage);
+        log('Files.appendFileElement', file);
         
-        if (!folderId && file.parentFolder) return false;
-        
+        //if (file.parent) return false;
 
-        var div;
-        var parentElement, cls;
+        var icon = _Files.getIcon(file);
+        var folderId = file.parent ? file.parent.id : null;
         
-//        if (isImage) {
-//            parentElement = images;
-//            cls = 'image';
-//        } else {
-            parentElement = files;
-            cls = 'file';
-//        }
-
-        var icon = _Files.getIcon(file, isImage);
+        var parent = Structr.findParent(folderId, null, null, files);
+        log(parent, folderId, isExpanded(folderId));
         
-        var parent = Structr.findParent(folderId, null, null, parentElement);
-        
-        if (parent == files && file.parentFolder) {
-            return;
+        if (parent != files && !isExpanded(folderId)) {
+            return false;
         }
-        
-        if (add) _Entities.ensureExpanded(parent);
+        //if (add) _Entities.ensureExpanded(parent);
         
         var delIcon, newDelIcon;
-        div = Structr.node(file.id);
-        if (add && div && div.length) {
+        var div = Structr.node(file.id);
+        if (div && div.length) {
             
             var formerParent = div.parent();
-            parent.append(div.css({
-                top: 0,
-                left: 0
-            }));
+            //            parent.append(div.css({
+            //                top: 0,
+            //                left: 0
+            //            }));
             
             if (!Structr.containsNodes(formerParent)) {
                 _Entities.removeExpandIcon(formerParent);
                 enable($('.delete_icon', formerParent)[0]);
             }            
             
-            log('appended existing div to parent', div, parent);
-            
         } else {
         
-            parent.append('<div class="node ' + cls + ' ' + file.id + '_">'
+            parent.append('<div id="id_' + file.id + '" class="node file">'
                 + '<img class="typeIcon" src="'+ icon + '">'
                 + '<b title="' + file.name + '" class="name_">' + fitStringToSize(file.name, 200) + '</b> <span class="id">' + file.id + '</span>'
                 + '</div>');
-            div = Structr.node(file.id, folderId);
+            div = Structr.node(file.id);
             
-            log('appended new div to parent', div, parent);
         }
 
-        $('.typeIcon', div).on('click', function(e) {
+        div.children('.typeIcon').on('click', function(e) {
             e.stopPropagation();
             window.open(viewRootUrl + file.name, 'Download ' + file.name);
         });
         log(folderId, add);
         
-        delIcon = $('.delete_icon', div);
+        delIcon = div.children('.delete_icon');
 
         if (folderId) {
-            newDelIcon = '<img title="Remove '+  cls + ' \'' + file.name + '\' from folder ' + folderId + '" alt="Remove '+  cls + ' \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_file_icon + '">';
+            newDelIcon = '<img title="Remove file \'' + file.name + '\' from folder ' + folderId + '" alt="Remove file \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_file_icon + '">';
             if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);
-                delIcon = $('.delete_icon', div);
+                delIcon = div.children('.delete_icon');
             }
-            $('.delete_icon', div).on('click', function(e) {
+            div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
                 //_Files.removeFileFromFolder(file.id, folderId, isImage);
                 Command.removeSourceFromTarget(file.id, folderId);
             });
-            disable($('.delete_icon', parent)[0]);
+            disable(parent.children('.delete_icon')[0]);
 			
         } else {
-            newDelIcon = '<img title="Delete ' + file.name + ' \'' + file.name + '\'" alt="Delete ' + file.name + ' \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+            newDelIcon = '<img title="Delete file ' + file.name + '\'" alt="Delete file \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
             if (add && delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);
-                delIcon = $('.delete_icon', div);
+                delIcon = div.children('.delete_icon');
             } 
-            $('.delete_icon', div).on('click', function(e) {
+            div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
                 _Entities.deleteNode(this, file);
             });
@@ -321,7 +300,7 @@ var _Files = {
             revert: 'invalid',
             helper: 'clone',
             //containment: '#main',
-            zIndex: 4,
+            stack: '.node',
             stop : function(e,ui) {
                 $('#pages_').droppable('enable').removeClass('nodeHover');
             }
@@ -336,98 +315,70 @@ var _Files = {
         return div;
     },
 	
-    appendImageElement : function(file, folderId, removeExisting, hasChildren) {
-        console.log('appendImageElement', file, folderId, removeExisting);
-        return _Files.appendFileElement(file, folderId, removeExisting, hasChildren, true);
-    },
-		
-    appendFolderElement : function(folder, folderId, hasChildren) {
-		
-        log('appendFolderElement', folder, folderId, hasChildren);
+    appendFolderElement : function(folder) {
         
-        var parent = Structr.findParent(folderId, null, null, folders);
+        log('appendFolderElement', folder, folder.parent);
+
+        var hasParent = folder.parent && folder.parent.id;
         
-        log('appendFolderElement parent', parent);
-        if (!parent) return false;
-        
-        //parent.append('<div id="_' + folderId + '" class="node element ' + folderId + '_"></div>');
-        
-        //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
-        //var div = $('#_' + id);
-        
-        var delIcon, newDelIcon;    
-        var div;
-        
-        var removeExisting = true;
-        
-        //div = Structr.node(folder.id);
-        div = $('#_' + folder.id);
-        
-        log('appendFolderElement: parent, div', parent, div);
-        
-        if (div && div.length) {
-            
-            var formerParent = div.parent();
-            
-            parent.append(div.css({
-                top: 0,
-                left: 0
-            }));
-            
-            if (!Structr.containsNodes(formerParent)) {
-                _Entities.removeExpandIcon(formerParent);
-                enable($('.delete_icon', formerParent)[0]);
-            }
-            
-        } else {
-            
-            parent.append('<div id="_' + folder.id + '" structr_type="folder" class="node folder ' + folder.id + '_">'
-                + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
-                + '<b title="' + folder.name + '" class="name_">' + fitStringToSize(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
-                + '</div>');
-        
-            //div = Structr.node(folder.id, parent.id);
-            div = $('#_' + folder.id);
+        log(folder.name, 'has parent?', hasParent);
+
+        var parentId, parentFolderElement;
+        if (folder.parent && folder.parent.id) {
+            parentId = folder.parent.id;
+            parentFolderElement = Structr.node(parentId);
         }
+
+        var parent = parentFolderElement ? parentFolderElement : folders;
+
+        parent.append('<div id="id_' + folder.id + '" structr_type="folder" class="node folder">'
+            + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
+            + '<b title="' + folder.name + '" class="name_">' + fitStringToSize(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
+            + '</div>');
         
-        delIcon = $('.delete_icon', div);
+        var div = Structr.node(folder.id);
         
-        if (folderId) {
-            newDelIcon = '<img title="Remove folder ' + folder.name + '\' from folder ' + folderId + '" alt="Remove folder ' + folder.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_folder_icon + '">';
+        var delIcon = div.children('.delete_icon');
+        
+        if (parent != folders) {
+            var newDelIcon = '<img title="Remove folder ' + folder.name + '\' from folder ' + folder.parent.id + '" alt="Remove folder ' + folder.name + '\' from folder ' + folder.parent.id + '" class="delete_icon button" src="' + _Files.delete_folder_icon + '">';
             if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);
-                delIcon = $('.delete_icon', div);
+            //delIcon = $('.delete_icon', div);
             }
-            $('.delete_icon', div).on('click', function(e) {
+            div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
-                Command.removeSourceFromTarget(folder.id, folderId);
+                Command.removeChild(folder.id);
             });
-            disable($('.delete_icon', parent)[0]);
+        //disable($('.delete_icon', parent)[0]);
 			
         } else {
-            newDelIcon = '<img title="Delete ' + folder.name + ' \'' + folder.name + '\'" alt="Delete ' + folder.name + ' \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
-            if (removeExisting && delIcon && delIcon.length) {
+            newDelIcon = '<img title="Delete folder \'' + folder.name + '\'" alt="Delete folder \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+            if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);
-                delIcon = $('.delete_icon', div);
+            //delIcon = $('.delete_icon', div);
             } 
-            $('.delete_icon', div).on('click', function(e) {
+            div.children('.delete_icon').on('click', function(e) {
                 e.stopPropagation();
                 _Entities.deleteNode(this, folder);
             });
-		
         }
+        
+        var hasChildren = (folder.folders && folder.folders.length) || (folder.files && folder.files.length);
+        
+        log(folder.name, 'has children?', hasChildren, 'is expanded?', isExpanded(folder.id));
         
         _Entities.appendExpandIcon(div, folder, hasChildren);
         
         div.draggable({
             revert: 'invalid',
-            helper: 'clone',
-            //containment: '#main',
-            zIndex: 4
+            //helper: 'clone',
+            containment: '#main',
+            stack: 'div'
         });
         
         div.droppable({
@@ -444,8 +395,10 @@ var _Files = {
                     var nodeData = {};
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
-                    log('addExpandedNode(folderId)', addExpandedNode(folderId));
-                    Command.createAndAdd(folderId, nodeData);
+                    //log('addExpandedNode(folderId)', addExpandedNode(folderId));
+                    Command.appendFile(fileId, folderId);
+                    $(ui.draggable).remove();
+                //Command.createAndAdd(folderId, nodeData);
                 }
             }
         });
@@ -457,102 +410,19 @@ var _Files = {
         return div;
     },
     
-    removeFolderFromFolder : function(folderToRemoveId, folderId) {
-        
-        var folder = Structr.node(folderId);
-        var folderToRemove = Structr.node(folderToRemoveId, folderId);
-        _Entities.resetMouseOverState(folderToRemove);
-        
-        folders.append(folderToRemove);
-        
-        $('.delete_icon', folderToRemove).replaceWith('<img title="Delete folder ' + folderToRemoveId + '" '
-            + 'alt="Delete folder ' + folderToRemoveId + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', folderToRemove).on('click', function(e) {
-            e.stopPropagation();
-            _Entities.deleteNode(this, Structr.entity(folderToRemoveId));
-        });
-        
-        folderToRemove.draggable({
-            revert: 'invalid',
-            containment: '#main',
-            zIndex: 1
-        });
-
-        if (!Structr.containsNodes(folder)) {
-            _Entities.removeExpandIcon(folder);
-            enable($('.delete_icon', folder)[0]);
-        }
-
-        log('removeFolderFromFolder: fileId=' + folderToRemoveId + ', folderId=' + folderId);
-    },
-    
-    removeFileFromFolder : function(fileId, folderId, isImage) {
-        log('removeFileFromFolder', fileId, folderId, isImage);
-        
-        var parentElement, cls;
-        if (isImage) {
-            parentElement = images;
-            cls = 'image';
-        } else {
-            parentElement = files;
-            cls = 'file';
-        }
-
-        var folder = Structr.node(folderId);
-        var file = Structr.node(fileId, folderId);
-        
-        log(file, folder);
-        
-        _Entities.resetMouseOverState(file);
-        
-        parentElement.append(file);
-        
-        $('.delete_icon', file).replaceWith('<img title="Delete ' + cls + ' ' + fileId + '" '
-            + 'alt="Delete ' + cls + ' ' + fileId + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', file).on('click', function(e) {
-            e.stopPropagation();
-            _Entities.deleteNode(this, Structr.entity(fileId));
-        });
-        
-        file.draggable({
-            revert: 'invalid',
-            containment: '#main',
-            zIndex: 1
-        });
-
-        if (!Structr.containsNodes(folder)) {
-            _Entities.removeExpandIcon(folder);
-            enable($('.delete_icon', folder)[0]);
-        }
-        
-    },
-    
     removeImageFromFolder : function(imageId, folderId) {
         log('removeImageFromFolder', imageId, folderId);
         _Files.removeFileFromFolder(imageId, folderId, true);
     },
 
-    createFile : function(fileObj) {
-        var entity = {};
-        log(fileObj);
-        entity.contentType = fileObj.type;
-        entity.name = fileObj.name;
-        entity.size = fileObj.size;
-        entity.type = isImage(entity.contentType) ? 'Image' : 'File';
-        Command.create(entity);
-    },
-    
     uploadFile : function(file) {
-
-        log(fileList);
+        
+        console.log('upload file', file);
 
         $(fileList).each(function(i, fileObj) {
 
-            log(file);
-
             if (fileObj.name == file.name) {
      
-                log(fileObj);
                 log('Uploading chunks for file ' + file.id);
                 
                 var reader = new FileReader();
@@ -591,12 +461,13 @@ var _Files = {
                         var start = c*chunkSize;
                         var end = (c+1)*chunkSize;
                         
-                        var chunk = utf8_to_b64(binaryContent.substring(start,end));
+                        var chunk = window.btoa(binaryContent.substring(start,end));
                         // TODO: check if we can send binary data directly
 
                         Command.chunk(file.id, c, chunkSize, chunk);
 
                     }
+                    
                     var typeIcon = Structr.node(file.id).find('.typeIcon');
                     var iconSrc = typeIcon.prop('src');
                     log('Icon src: ', iconSrc);
@@ -615,7 +486,9 @@ var _Files = {
         for (var c=0; c<chunks; c++) {
             var start = c*chunkSize;
             var end = (c+1)*chunkSize;
+            //console.log(text.substring(start,end));
             var chunk = utf8_to_b64(text.substring(start,end));
+            //console.log(chunk);
             // TODO: check if we can send binary data directly
             Command.chunk(file.id, c, chunkSize, chunk);
         }
@@ -643,7 +516,7 @@ var _Files = {
     },
 
     editContent : function (button, file, element) {
-        debug = true;
+        //debug = true;
         var url = viewRootUrl + file.name + '?edit';
         log('editContent', button, file, element, url);
         var headers = {};
@@ -660,8 +533,7 @@ var _Files = {
         } else {
             contentType = 'text/plain';
         }
-        
-        log('contentType, dataType', contentType, dataType);
+        //console.log('contentType, dataType', contentType, dataType);
         
         $.ajax({
             url: url,
@@ -670,7 +542,6 @@ var _Files = {
             contentType: contentType,
             headers: headers,
             success: function(data) {
-                console.log(data);
                 text = data;
                 if (isDisabled(button)) return;
                 var div = element.append('<div class="editor"></div>');
@@ -678,6 +549,7 @@ var _Files = {
                 var contentBox = $('.editor', element);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
+                    //value: text,
                     mode:  contentType,
                     lineNumbers: true
                 //            ,
@@ -706,17 +578,17 @@ var _Files = {
 
                 editor.id = file.id;
                 
-                element.parent().children('.dialogBtn').append('<button id="saveFile"> Save </button>');
-                element.parent().children('.dialogBtn').append('<button id="saveAndClose"> Save and close</button>');
-                $(element.parent().find('button#saveFile').first()).on('click', function(e) {
+                dialogBtn.append('<button id="saveFile"> Save </button>');
+                dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+                $('button#saveFile', dialogBtn).on('click', function(e) {
                     e.stopPropagation();
                     _Files.updateTextFile(file, editor.getValue());
                 });
-                $(element.parent().find('button#saveAndClose').first()).on('click', function(e) {
+                $('button#saveAndClose', dialogBtn).on('click', function(e) {
                     e.stopPropagation();
                     _Files.updateTextFile(file, editor.getValue());
                     setTimeout(function() {
-                        $('.dialogCancelButton', $('.dialogBtn')).click();
+                        dialogCancelButton.click();
                     }, 100);
                 });
             },

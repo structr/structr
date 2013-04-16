@@ -31,9 +31,12 @@ var dmp;
 var editorCursor;
 var dialog;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, loginButton;
-
+var dialogId;
 var page = [];
 var pageSize = [];
+var expandedIdsCookieName = 'structrTreeExpandedIds_' + port;
+var lastMenuEntryCookieName = 'structrLastMenuEntry_' + port;
+var pagerDataCookieName = 'structrPagerData_' + port + '_';
 
 $(document).ready(function() {
     
@@ -49,18 +52,18 @@ $(document).ready(function() {
         footer.show();
     }
     
-    dialog = $('#dialogBox .dialogText');
     dialogBox = $('#dialogBox');
+    dialog = $('.dialogText', dialogBox);
     dialogMsg = $('.dialogMsg', dialogBox);
-    dialogBtn = $('.dialogBtn', dialogBox);
+    dialogBtn = $('.dialogBtn');
     dialogTitle = $('.dialogTitle', dialogBox);
     dialogMeta = $('.dialogMeta', dialogBox);
     dialogText = $('.dialogText', dialogBox);
-    dialogCancelButton = $('.dialogCancelButton', dialogBtn);
+    dialogCancelButton = $('.closeButton', dialogBtn);
     dialogSaveButton = $('.save', dialogBox);
     loginButton = $('#loginButton');
 
-    dmp = new diff_match_patch()
+    dmp = new diff_match_patch();
         
     $('#import_json').on('click', function(e) {
         e.stopPropagation();
@@ -96,19 +99,12 @@ $(document).ready(function() {
         Structr.modules['pages'].onload();
         _Pages.resize();
     });
-
-    $('#components_').on('click', function(e) {
-        e.stopPropagation();
-        main.empty();
-        Structr.activateMenuEntry('components');
-        Structr.modules['components'].onload();
-    });
     
-    $('#types_').on('click', function(e) {
+    $('#propertyDefinitions_').on('click', function(e) {
         e.stopPropagation();
         main.empty();
-        Structr.activateMenuEntry('types');
-        Structr.modules['types'].onload();
+        Structr.activateMenuEntry('propertyDefinitions');
+        Structr.modules['propertyDefinitions'].onload();
     });
 
     $('#elements_').on('click', function(e) {
@@ -155,14 +151,14 @@ $(document).ready(function() {
 
     $('#usernameField').keypress(function(e) {
         e.stopPropagation();
-        if (e.which == 13) {
+        if (e.which === 13) {
             $(this).blur();
             loginButton.focus().click();
         }
     });
     $('#passwordField').keypress(function(e) {
         e.stopPropagation();
-        if (e.which == 13) {
+        if (e.which === 13) {
             $(this).blur();
             loginButton.focus().click();
         }
@@ -171,10 +167,16 @@ $(document).ready(function() {
     Structr.init();
     
     $(document).keyup(function(e) {
-        if (e.keyCode == 27) {
+        if (e.keyCode === 27) {
             dialogCancelButton.click();
         }
     });     
+    
+    Structr.resize();
+    
+    $(window).on('resize', function() {
+        Structr.resize();
+    });
 	
 });
 
@@ -204,14 +206,14 @@ var Structr = {
 
     init : function() {
         
-        token = $.cookie('structrSessionToken');
-        user = $.cookie('structrUser');
+        token = $.cookie(tokenCookieName);
+        user = $.cookie(userCookieName);
         log('token', token);
         log('user', user);
 
-        Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
+        Structr.expanded = $.parseJSON($.cookie(expandedIdsCookieName));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
-        log('expanded ids', $.cookie('structrTreeExpandedIds'));
+        log('expanded ids', $.cookie(expandedIdsCookieName));
 
         connect();
 
@@ -250,8 +252,8 @@ var Structr = {
     doLogout : function(text) {
         log('doLogout ' + user);
         //Structr.saveSession();
-        $.cookie('structrSessionToken', '');
-        $.cookie('structrUser', '');
+        $.cookie(tokenCookieName, '');
+        $.cookie(userCookieName, '');
         if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
             Structr.clearMain();
             Structr.login(text);
@@ -265,7 +267,7 @@ var Structr = {
         var anchor = getAnchorFromUrl(browserUrl);
         log('anchor', anchor);
 
-        lastMenuEntry = ((anchor && anchor != 'logout') ? anchor : $.cookie('structrLastMenuEntry'));
+        lastMenuEntry = ((anchor && anchor !== 'logout') ? anchor : $.cookie(lastMenuEntryCookieName));
         if (!lastMenuEntry) {
             lastMenuEntry = 'dashboard';
         } else {
@@ -290,6 +292,7 @@ var Structr = {
         if (callback) $('#confirmation .yesButton').on('click', function(e) {
             e.stopPropagation();
             callback();
+            $(this).off('click');
         });
         $('#confirmation .noButton').on('click', function(e) {
             e.stopPropagation();
@@ -333,39 +336,110 @@ var Structr = {
 
     dialog : function(text, callbackOk, callbackCancel) {
 
-        dialogMsg.empty();
-        dialogMeta.empty();
-        $(':not(.dialogCancelButton)', dialogBtn).remove();
-            
-        if (text) dialogTitle.html(text);
-        if (callbackCancel) dialogCancelButton.on('click', function(e) {
-            e.stopPropagation();
-            callbackCancel();
-            dialogText.empty();
-            _Pages.reloadPreviews();
-            $.unblockUI({
-                fadeOut: 25
-            });            
-        });
-        $.blockUI.defaults.overlayCSS.opacity = .6;
-        $.blockUI.defaults.applyPlatformOpacityRules = false;
-        $.blockUI({
-            fadeIn: 25,
-            fadeOut: 25,
-            message: dialogBox,
-            css: {
-                border: 'none',
-                backgroundColor: 'transparent'
-            }
-        });
-    //        $('.blockUI.blockMsg').center();
+        if (browser) {
 
+            dialogText.empty();
+            dialogMsg.empty();
+            dialogMeta.empty();
+            //dialogBtn.empty();
+            
+            if (text) dialogTitle.html(text);
+            if (callbackCancel) dialogCancelButton.on('click', function(e) {
+                e.stopPropagation();
+                callbackCancel();
+                dialogText.empty();
+                $.unblockUI({
+                    fadeOut: 25
+
+                });
+                dialogBtn.children(':not(.closeButton)').remove();
+                //dialogSaveButton.remove();
+                //$('#saveProperties').remove();
+                if (searchField) searchField.focus();
+            });
+            $.blockUI.defaults.overlayCSS.opacity = .6;
+            $.blockUI.defaults.applyPlatformOpacityRules = false;
+            
+        
+            var w = $(window).width();
+            var h = $(window).height();
+
+            var ml = 24;
+            var mt = 24;
+
+            // Calculate dimensions of dialog
+            var dw = Math.min(900, w-ml);
+            var dh = Math.min(600, h-mt);
+            //            var dw = (w-24) + 'px';
+            //            var dh = (h-24) + 'px';
+            
+            var l = parseInt((w-dw)/2);
+            var t = parseInt((h-dh)/2);
+            
+            $.blockUI({
+                fadeIn: 25,
+                fadeOut: 25,
+                message: dialogBox,
+                css: {
+                    cursor: 'default',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                themedCSS: { 
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
+            });
+            
+        }
+    },
+
+    resize : function() {
+        var w = $(window).width();
+        var h = $(window).height();
+
+        var ml = 24;
+        var mt = 24;
+
+        // Calculate dimensions of dialog
+        var dw = Math.min(900, w-ml);
+        var dh = Math.min(600, h-mt);
+        //            var dw = (w-24) + 'px';
+        //            var dh = (h-24) + 'px';
+            
+        var l = parseInt((w-dw)/2);
+        var t = parseInt((h-dh)/2);
+        
+        $('.blockPage').css({
+            width: dw + 'px',
+            height: dh + 'px',
+            top: t + 'px',
+            left: l + 'px'
+        });
+        
+        var bw = (dw-28) + 'px';
+        var bh = (dh-106) + 'px';
+
+        $('#dialogBox .dialogTextWrapper').css({
+            width: bw,
+            height: bh
+        });
     },
 
     error : function(text, callback) {
         if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
         //console.log(callback);
-        if (callback) $('#errorBox .okButton').on('click', function(e) {
+        if (callback) $('#errorBox .closeButton').on('click', function(e) {
             e.stopPropagation();
             //callback();
             //console.log(callback);
@@ -378,6 +452,36 @@ var Structr = {
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
             message: $('#errorBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+    },
+
+    tempInfo : function(text, autoclose) {
+        window.clearTimeout(dialogId);
+        if (text) $('#tempInfoBox .infoHeading').html('<img src="icon/information.png"> ' + text);
+        if (autoclose) {
+            dialogId = window.setTimeout(function() {
+                $.unblockUI({
+                    fadeOut: 25
+                });                
+            }, 3000);
+        }
+        $('#tempInfoBox .closeButton').on('click', function(e) {
+            e.stopPropagation();
+            window.clearTimeout(dialogId);
+            $.unblockUI({
+                fadeOut: 25
+            });
+            dialogBtn.children(':not(.closeButton)').remove();
+            if (searchField) searchField.focus();
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            message: $('#tempInfoBox'),
             css: {
                 border: 'none',
                 backgroundColor: 'transparent'
@@ -408,11 +512,10 @@ var Structr = {
         menuEntry.addClass('active').removeClass('inactive');
         $('#title').text('structr ' + menuEntry.text());
         
-        if (lastMenuEntry && lastMenuEntry != 'logout') {
+        if (lastMenuEntry && lastMenuEntry !== 'logout') {
 
-            $.cookie('structrLastMenuEntry', lastMenuEntry, {
-                expires: 7,
-                path: '/'
+            $.cookie(lastMenuEntryCookieName, lastMenuEntry, {
+                expires: 7
             });
         }
     },
@@ -447,100 +550,14 @@ var Structr = {
         return parent;
     },
     
-    node : function(id, parentId, componentId, pageId, position) {
-        var entityElement, parentElement, componentElement, pageElement;
-
-        log('Structr.node', id, parentId, componentId, pageId, position);
-
-        if (id && parentId && componentId && pageId && (pageId != parentId) && (pageId != componentId)) {
-
-            pageElement = $('.node.' + pageId + '_');
-            log('pageElement', pageElement);
-            
-            if (id == pageId) {
-                
-                entityElement = pageElement;
-                
-            } else {
-                
-                componentElement = $('.node.' + componentId + '_', pageElement);
-                log('componentElement', componentElement);
-                
-                if (id == componentId) {
-                    entityElement = componentElement;
-                    
-                } else {
-                    
-                    if (parentId == componentId) {
-                        parentElement = componentElement;
-                    } else {
-                        parentElement = $('.node.' + parentId + '_', componentElement);
-                    }
-                    log('parentElement', parentElement);
-                    
-                    if (id == parentId) {
-                        entityElement = parentElement;
-                    } else {
-                        entityElement = parentElement.children('.node.' + id + '_');
-                        log('entityElement', entityElement);
-                    }
-                }
-            }
-            
-
-        } else if (id && parentId && pageId && (pageId != parentId)) {
-
-            pageElement = $('.node.' + pageId + '_');
-            parentElement = $('.node.' + parentId + '_', pageElement);
-            entityElement = $('.node.' + id + '_', parentElement);
-
-        } else if (id && componentId && pageId && (pageId != componentId)) {
-            
-            pageElement = $('.node.' + pageId + '_');
-            componentElement = $('.node.' + componentId + '_', pageElement);
-
-            if (id == componentId) {
-                entityElement = componentElement;
-            } else {
-                entityElement = $('.node.' + id + '_', componentElement);
-            }
-
-        } else if (id && pageId) {
-            
-            if (id == pageId) {
-                entityElement = $('.node.' + pageId + '_');
-            }
-            else {
-                pageElement = $('.node.' + pageId + '_');
-                entityElement = $('.node.' + id + '_', pageElement);
-            }
-
-        } else if (id && parentId) {
-
-            parentElement = $('.node.' + parentId + '_');
-            entityElement = parentElement.children('.node.' + id + '_');
-
-        } else if (id) {
-
-            entityElement = $('.node.' + id + '_');
-
-        }
-
-        if (entityElement && entityElement.length>1 && position) {
-            return $(entityElement[position]);
-        } else {
-            return entityElement;
-        }
+    parent : function(id) {
+        return Structr.node(id).parent().closest('.node');
     },
     
-    elementFromAddress : function(treeAddress) {
-        return $('#_' + treeAddress);
-    },
-    
-    entityFromAddress : function(treeAddress) {
-        var entityElement = Structr.elementFromAddress(treeAddress);
-        var entity = Structr.entityFromElement(entityElement);
-        return entity;
+    node : function(id) {
+        var node = $($('#id_' + id)[0]);
+        //console.log('Structr.node', node);
+        return node.length ? node : undefined;
     },
     
     entity : function(id, parentId) {
@@ -597,13 +614,13 @@ var Structr = {
             
             var pageLeft = $('.pageLeft', pager);
             var pageRight = $('.pageRight', pager);
-            if (page[type] == 1) {
+            if (page[type] === 1) {
                 pageLeft.attr('disabled', 'disabled').addClass('disabled');
             } else {
                 pageLeft.removeAttr('disabled', 'disabled').removeClass('disabled');
             }
 
-            if (page[type] == pageCount[type]) {
+            if (page[type] === pageCount[type]) {
                 pageRight.attr('disabled', 'disabled').addClass('disabled');
             } else {
                 pageRight.removeAttr('disabled', 'disabled').removeClass('disabled');
@@ -617,11 +634,11 @@ var Structr = {
     },
     
     storePagerDataInCookie : function(type) {
-        $.cookie('structrPagerData_' + type, page[type] + ',' + pageSize[type]);
+        $.cookie(pagerDataCookieName + type, page[type] + ',' + pageSize[type]);
     },
     
     restorePagerDataFromCookie : function(type) {
-        var cookie = $.cookie('structrPagerData_' + type);
+        var cookie = $.cookie(pagerDataCookieName + type);
         if (cookie) {
             var pagerData = cookie.split(',');
             log('Pager Data from Cookie', pagerData);
@@ -671,7 +688,7 @@ var Structr = {
         var pageSizeForm = $('.pageSize', pager);
 
         pageSizeForm.on('keypress', function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 pageSize[type] = $(this).val();
                 pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
                 page[type] = 1;
@@ -684,7 +701,7 @@ var Structr = {
         });
 
         pageForm.on('keypress', function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 page[type] = $(this).val();
                 $('.page', pager).val(page[type]);
                 $('.node', el).remove();
@@ -692,18 +709,18 @@ var Structr = {
             }
         });
 
-        if (page[type] == 1) {
+        if (page[type] === 1) {
             pageLeft.attr('disabled', 'disabled').addClass('disabled');
         }
 
-        if (page[type] == pageCount[type]) {
+        if (page[type] === pageCount[type]) {
             pageRight.attr('disabled', 'disabled').addClass('disabled');
         }
 
         pageLeft.on('click', function() {
             pageRight.removeAttr('disabled').removeClass('disabled');
             page[type]--;
-            if (page[type] == 1) {
+            if (page[type] === 1) {
                 pageLeft.attr('disabled', 'disabled').addClass('disabled');
             }
             $('.page', pager).val(page[type]);
@@ -714,7 +731,7 @@ var Structr = {
         pageRight.on('click', function() {
             pageLeft.removeAttr('disabled').removeClass('disabled');
             page[type]++;
-            if (page[type] == pageCount[type]) {
+            if (page[type] === pageCount[type]) {
                 pageRight.attr('disabled', 'disabled').addClass('disabled');
             }
             $('.page', pager).val(page[type]);
@@ -733,7 +750,7 @@ function getElementPath(element) {
         var self = $(this);
         //if (self.hasClass('page')) return getId(self);
         // id for top-level element
-        if (i==0) return getId(self);
+        if (i === 0) return getId(self);
         return self.prevAll('.node').length;
     }).get().join('_');
 }
@@ -747,48 +764,46 @@ function swapFgBg(el) {
 }
 
 function isImage(contentType) {
-    return (contentType.indexOf('image') > -1);
+    return (contentType && contentType.indexOf('image') > -1);
 }
 
 function plural(type) {
-    if (type.substring(type.length-1, type.length) == 'y') {
+    if (type.substring(type.length-1, type.length) === 'y') {
         return type.substring(0, type.length-1) + 'ies';
     } else {
         return type + 's';
     }
 }
 
-function addExpandedNode(treeAddress) {
-    log('addExpandedNode', treeAddress);
+function addExpandedNode(id) {
+    log('addExpandedNode', id);
 
-    if (!treeAddress) return;
+    if (!id) return;
 
-    getExpanded()[treeAddress] = true;
-    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
-        expires: 7, 
-        path: '/'
+    getExpanded()[id] = true;
+    $.cookie(expandedIdsCookieName, $.toJSON(Structr.expanded), {
+        expires: 7
     });
 
 }
 
-function removeExpandedNode(treeAddress) {
-    log('removeExpandedNode', treeAddress);
+function removeExpandedNode(id) {
+    log('removeExpandedNode', id);
 
-    if (!treeAddress) return;
+    if (!id) return;
     
-    delete getExpanded()[treeAddress];
-    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
-        expires: 7, 
-        path: '/'
+    delete getExpanded()[id];
+    $.cookie(expandedIdsCookieName, $.toJSON(Structr.expanded), {
+        expires: 7
     });
 }
 
-function isExpanded(treeAddress) {
-    log('treeAddress, getExpanded()[treeAddress]', treeAddress, getExpanded()[treeAddress]);
+function isExpanded(id) {
+    log('id, getExpanded()[id]', id, getExpanded()[id]);
 
-    if (!treeAddress) return false;
+    if (!id) return false;
 
-    var isExpanded = getExpanded()[treeAddress] == true ? true : false;
+    var isExpanded = getExpanded()[id] === true ? true : false;
 
     log(isExpanded);
 
@@ -797,7 +812,7 @@ function isExpanded(treeAddress) {
 
 function getExpanded() {
     if (!Structr.expanded) {
-        Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
+        Structr.expanded = $.parseJSON($.cookie(expandedIdsCookieName));
     }
 
     if (!Structr.expanded) {
@@ -809,7 +824,7 @@ function getExpanded() {
 
 function formatValueInputField(key, obj) {
 
-    if (obj == null) {
+    if (obj === null) {
         return '<input name="' + key + '" type="text" value="">';
     } else if (obj.constructor === Object) {
 
@@ -834,36 +849,13 @@ function formatKey(text) {
     var result = '';
     for (var i=0; i<text.length; i++) {
         var c = text.charAt(i);
-        if (c == c.toUpperCase()) {
+        if (c === c.toUpperCase()) {
             result += ' ' + c;
         } else {
-            result += (i==0 ? c.toUpperCase() : c);
+            result += (i === 0 ? c.toUpperCase() : c);
         }
     }
     return result;
-}
-
-function deleteAll(button, type, callback) {
-    var types = plural(type);
-    var element = $('#' + types);
-    if (isDisabled(button)) return;
-    var con = confirm('Delete all ' + types + '?');
-    if (!con) return;
-    var headers = {
-        'X-StructrSessionToken' : token
-    };
-    $.ajax({
-        url: rootUrl + type.toLowerCase(),
-        type: "DELETE",
-        headers: headers,
-        success: function(data) {
-            $(element).children("." + type).each(function(i, child) {
-                $(child).remove();
-            });
-            enable(button);
-            if (callback) callback();
-        }
-    });
 }
 
 function isDisabled(button) {
@@ -920,21 +912,13 @@ function refresh(parentId, id) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-function getIdFromClassString(classString) {
-    if (!classString) return false;
-    var classes = classString.split(' ');
-    var id;
-    $(classes).each(function(i,v) {
-        var len = v.length;
-        if (v.substring(len-1, len) == '_') {
-            id = v.substring(0,v.length-1);
-        }
-    });
-    return id;
+function getIdFromIdString(idString) {
+    if (!idString || !idString.startsWith('id_')) return false;
+    return idString.substring(3);
 }
 
 function getId(element) {
-    return getIdFromClassString($(element).prop('class')) || undefined;
+    return getIdFromIdString($(element).prop('id')) || undefined;
 }
 
 function followIds(pageId, entity) {
@@ -954,7 +938,7 @@ function followIds(pageId, entity) {
         headers: headers,
         success: function(data) {
             //console.log(data);
-            if (!data || data.length == 0 || !data.result) return;
+            if (!data || data.length === 0 || !data.result) return;
             var out = data.result;
             if ($.isArray(out)) {
                 //for (var i=0; i<out.length; i++) {

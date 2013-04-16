@@ -64,7 +64,7 @@ CodeMirror.defineMode("lua", function(config, parserConfig) {
   function normal(stream, state) {
     var ch = stream.next();
     if (ch == "-" && stream.eat("-")) {
-      if (stream.eat("["))
+      if (stream.eat("[") && stream.eat("["))
         return (state.cur = bracketed(readBracket(stream), "comment"))(stream, state);
       stream.skipToEnd();
       return "comment";
@@ -123,7 +123,7 @@ CodeMirror.defineMode("lua", function(config, parserConfig) {
         else if (builtins.test(word)) style = "builtin";
 	else if (specials.test(word)) style = "variable-2";
       }
-      if ((style != "lua-comment") && (style != "lua-string")){
+      if ((style != "comment") && (style != "string")){
         if (indentTokens.test(word)) ++state.indentDepth;
         else if (dedentTokens.test(word)) --state.indentDepth;
       }

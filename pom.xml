@@ -4,14 +4,14 @@
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
     <packaging>pom</packaging>
-    <version>0.6</version>
+    <version>0.7-SNAPSHOT</version>
     <name>structr</name>
     <url>http://structr.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>0.6</structr.version>
+        <structr.version>0.7-SNAPSHOT</structr.version>
     </properties>
 
     <modules>
@@ -35,6 +35,19 @@
                     <target>1.6</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <debug>false</debug>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+		<version>1.10.b1</version>
+                <configuration>
+                    <header>header.txt</header>
+		    <strictCheck>true</strictCheck>
+		    <failIfMissing>false</failIfMissing>
+		    <includes>
+		      <include>**/*.java</include>
+                    </includes>
                 </configuration>
             </plugin>
         </plugins>
@@ -79,12 +92,12 @@
 	<repository>
 	    <id>releases.maven.structr.org</id>
 	    <name>maven.structr.org-releases</name>
-	    <url>http://maven.structr.org:8082/artifactory/release</url>
+	    <url>http://maven.structr.org/artifactory/release</url>
 	</repository>
 	<snapshotRepository>
 	    <id>snapshots.maven.structr.org</id>
 	    <name>maven.structr.org-snapshots</name>
-	    <url>http://maven.structr.org:8082/artifactory/snapshot</url>
+	    <url>http://maven.structr.org/artifactory/snapshot</url>
 	</snapshotRepository>
     </distributionManagement>
 </project>

@@ -1,26 +1,26 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.websocket.command;
 
+import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -32,13 +32,18 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.RelationshipHelper;
 import org.structr.websocket.message.WebSocketMessage;
+import org.structr.web.common.RelType;
+import org.structr.web.entity.Image;
+import org.structr.rest.resource.PagingHelper;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import org.structr.core.entity.Image;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,6 +52,14 @@ import org.structr.core.entity.Image;
  * @author Christian Morgner
  */
 public class ListCommand extends AbstractCommand {
+	
+	private static final Logger logger = Logger.getLogger(ListCommand.class.getName());
+
+	static {
+
+		StructrWebSocket.addCommand(ListCommand.class);
+
+	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
@@ -55,9 +68,12 @@ public class ListCommand extends AbstractCommand {
 		String rawType                         = (String) webSocketData.getNodeData().get("type");
 		Class type                             = EntityContext.getEntityClassForRawType(rawType);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		Set<String> nodesWithChildren          = new HashSet<String>();
+		
+		if (type == null) {
+			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
+			return;
+		}
 
-//              searchAttributes.addAll(Search.andExactTypeAndSubtypes(CaseHelper.toUpperCamelCase(type)));
 		searchAttributes.add(Search.andExactType(type.getSimpleName()));
 		
 		// for image lists, suppress thumbnails
@@ -74,8 +90,8 @@ public class ListCommand extends AbstractCommand {
 		try {
 
 			// do search
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder), pageSize,
-						page);
+			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
+			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
 			List<? extends GraphObject> resultList = result.getResults();
 
 			// determine which of the nodes have children
@@ -85,28 +101,29 @@ public class ListCommand extends AbstractCommand {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (RelationshipHelper.hasChildren(node, node.getUuid())) {
+					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
 
-						nodesWithChildren.add(node.getUuid());
+						filteredResults.add(node);
 					}
 
 				}
 
 			}
 
-			// Determine children in this resource
-			webSocketData.setNodesWithChildren(nodesWithChildren);
-
+			// save raw result count
+			int resultCountBeforePaging = filteredResults.size();
+			
 			// set full result list
-			webSocketData.setResult(resultList);
-			webSocketData.setRawResultCount(result.getRawResultCount());
+			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
+			webSocketData.setRawResultCount(resultCountBeforePaging);
 
-//                      }
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
+			
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "Exception occured", fex);
+			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}
 

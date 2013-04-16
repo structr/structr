@@ -28,8 +28,8 @@ $(document).ready(function() {
 var _UsersAndGroups = {
 
     init : function() {
-    //Structr.classes.push('user');
-    //Structr.classes.push('group');
+        //Structr.classes.push('user');
+        //Structr.classes.push('group');
         pageSize['Group'] = 25;
         pageSize['User'] = 25;
         
@@ -37,7 +37,7 @@ var _UsersAndGroups = {
         page['User'] = 1;
     
     },
-	
+
     onload : function() {
         _UsersAndGroups.init();
         //Structr.activateMenuEntry('usersAndGroups');
@@ -79,49 +79,6 @@ var _UsersAndGroups = {
         Structr.addPager(users, 'User');
     },
 
-    removeUserFromGroup : function(userId, groupId) {
-
-        var group = Structr.node(groupId);
-
-        var user = Structr.node(userId, groupId);
-
-        if ($('.' + userId + '_', users).length) {
-            user.remove();
-        } else {
-            users.append(user);//.animate();
-        }
-
-        _Entities.resetMouseOverState(user);
-        
-        log('removeUserFromGroup, containesNodes?', group, Structr.containsNodes(group));
-
-        if (!Structr.containsNodes(group)) {
-            _Entities.removeExpandIcon(group);
-        }
-
-        $('.delete_icon', user).replaceWith('<img title="Delete user ' + user.name + '" '
-            + 'alt="Delete user ' + user.name + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', user).on('click', function(e) {
-            e.stopPropagation();
-            _UsersAndGroups.deleteUser(this, Structr.entity(userId));
-        });
-        
-        user.draggable({
-            revert: 'invalid',
-            containment: '#main',
-            zIndex: 1
-        });
-
-        var numberOfUsers = $('.user', group).size();
-        log(numberOfUsers);
-        if (numberOfUsers == 0) {
-            enable($('.delete_icon', group)[0]);
-        }
-
-        log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
-        
-    },
-
     deleteUser : function(button, user) {
         log('deleteUser ' + user);
         _Entities.deleteNode(button, user);
@@ -132,9 +89,10 @@ var _UsersAndGroups = {
         _Entities.deleteNode(button, group);
     },
 
-    appendGroupElement : function(group, hasChildren) {
+    appendGroupElement : function(group) {
+        var hasChildren = group.users && group.users.length;
         log('appendGroupElement', group, hasChildren);
-        groups.append('<div id="_' + group.id + '" class="node group ' + group.id + '_">'
+        groups.append('<div id="id_' + group.id + '" class="node group">'
             + '<img class="typeIcon" src="icon/group.png">'
             + '<b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
             + '</div>');
@@ -143,7 +101,7 @@ var _UsersAndGroups = {
         div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            _UsersAndGroups.deleteGroup(this, group)
+            _UsersAndGroups.deleteGroup(this, group);
         });
         
         _Entities.appendExpandIcon(div, group, hasChildren);
@@ -161,7 +119,8 @@ var _UsersAndGroups = {
                 nodeData.id = userId;
                 //console.log('addExpandedNode(groupId)', groupId);
                 addExpandedNode(groupId);
-                Command.createAndAdd(groupId, nodeData);
+                Command.appendUser(userId, groupId);
+                //Command.createAndAdd(groupId, nodeData);
             }
         });
         
@@ -171,28 +130,25 @@ var _UsersAndGroups = {
         return div;
     },
 
-    appendUserElement : function(user, groupId, removeExisting) {
-        log('appendUserElement', user, groupId, removeExisting);
-
-        if (!groupId && user.groups.length) return false;
-
-        removeExisting = true;
+    appendUserElement : function(user, group) {
+        log('appendUserElement', user);
 
         var div;
         var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
         + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">'
         var delIcon;
-        div = $('.' + user.id + '_', users);
+        div = Structr.node(user.id);
         
-        if (groupId) {
+        if (user.groups && user.groups.length) {
             
+            var groupId = user.groups;
             //div = Structr.node(user.id, groupId);
 
             var parent = Structr.node(groupId);
             
             log('parent, div', parent, div);
             
-            if (removeExisting && div && div.length) {
+            if (div && div.length) {
                 parent.append(div.css({
                     top: 0,
                     left: 0
@@ -207,13 +163,12 @@ var _UsersAndGroups = {
                 
                 log('### new user, appending to ', parent);
                 
-                
-                parent.append('<div class="node user ' + user.id + '_">'
+                parent.append('<div id="id_' + user.id + '" class="node user">'
                     + '<img class="typeIcon" src="icon/user.png">'
                     //				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
                     + ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
                     + '</div>');
-                div = Structr.node(user.id, groupId);
+                div = Structr.node(user.id);
                 div.append(newDelIcon);
                 
             }
@@ -225,24 +180,34 @@ var _UsersAndGroups = {
 
             // disable delete icon on parent
             disable($('.delete_icon', parent)[0]);
-            div.draggable('disable').removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
+            //div.draggable('disable');
+            
+            div.draggable({
+                revert: 'invalid',
+                containment: '#pages',
+                stack: 'div',
+                helper: 'clone',
+                start: function(event, ui) {
+                    $(this).draggable(disable);
+                }
+            });
+            
+            div.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
 
         } else {
 
-            if (Structr.node(user.id).length) return false;
-
-            users.append('<div class="node user ' + user.id + '_">'
+            users.append('<div id="id_' + user.id + '" class="node user">'
                 + '<img class="typeIcon" src="icon/user.png">'
                 //				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
                 + ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
                 + '</div>');
-            div = $('.' + user.id + '_', users);
+            div = Structr.node(user.id);
             
             newDelIcon = '<img title="Delete user \'' + user.name + '\'" '
             + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
             delIcon = $('.delete_icon', div);
             
-            if (removeExisting && delIcon && delIcon.length) {
+            if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
             } else {
                 div.append(newDelIcon);

@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.6</version>
+        <version>0.7-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>jar</packaging>
-    <version>0.6</version>
+    <version>0.7-SNAPSHOT</version>
     <name>structr-ui</name>
     <url>http://structr.org</url>
 
@@ -21,11 +21,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <repositories>
-        <repository>
-            <id>java.net2</id>
-            <name>Repository hosting the jee6 artifacts</name>
-            <url>http://download.java.net/maven/2</url>
-        </repository>
         <repository>
             <id>neo4j-releases</id>
             <url>http://m2.neo4j.org/content/repositories/releases</url>
@@ -36,11 +31,11 @@
         </repository>
         <repository>
             <id>snapshots.maven.structr.org</id>
-            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
+            <url>http://maven.structr.org/artifactory/snapshot</url>
         </repository>
         <repository>
             <id>releases.maven.structr.org</id>
-            <url>http://maven.structr.org:8082/artifactory/release</url>
+            <url>http://maven.structr.org/artifactory/release</url>
         </repository> 
         <repository>
             <id>jboss</id>
@@ -62,6 +57,14 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-websocket</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <type>jar</type>
+            <scope>test</scope>
+            <optional>false</optional>
         </dependency>
         <dependency>
             <artifactId>urlrewritefilter</artifactId>
@@ -97,8 +100,8 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.9-SNAPSHOT</version>
-            </dependency>
+            <version>1.9.M04</version>
+        </dependency>
         <dependency>
             <groupId>com.flagstone</groupId>
             <artifactId>transform</artifactId>
@@ -119,6 +122,11 @@
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.9.5</version>
+        </dependency>
     </dependencies>
     <build>
         <resources>
@@ -130,6 +138,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
                 <configuration>
                     <executable>java</executable>
                     <arguments>
@@ -211,6 +220,7 @@
             </plugin>-->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
                 <configuration>
                     <descriptors>
                         <descriptor>src/main/resources/assemblies/dist.xml</descriptor>
@@ -226,7 +236,7 @@
                     </execution>
                 </executions>
             </plugin>
-<!--            <plugin>
+            <!--            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
@@ -268,6 +278,29 @@
                             <value>myvalue</value>
                         </systemProperty>
                     </systemProperties>
+                </configuration>
+            </plugin>-->
+            <!--            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <id>PhantomJS Unit Testing</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>phantomjs</executable>
+                    <workingDirectory>test</workingDirectory>
+                    <arguments>
+                        <argument>phantomjs_jasminexml_runner.js</argument>
+                        <argument>test_runner.html</argument>
+                        <argument>${project.build.directory}/surefire-reports</argument>
+                    </arguments>
                 </configuration>
             </plugin>-->
         </plugins>

@@ -17,63 +17,65 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var types;
+var propertyDefinitions;
 
 $(document).ready(function() {
-    Structr.registerModule('types', _Types);
-    Structr.classes.push('typeDefinition');
+    Structr.registerModule('propertyDefinitions', _PropertyDefinitions);
+    Structr.classes.push('propertyDefinition');
 });
 
-var _Types = {
+var _PropertyDefinitions = {
     
     type_icon : 'icon/database_table.png',
 
     init : function() {
+        pageSize['PropertyDefinition'] = 100;
+        page['PropertyDefinition'] = 1;
     },
 	
     onload : function() {
-        _Types.init();
-        log('onload');
+        _PropertyDefinitions.init();
         if (palette) palette.remove();
 
-        main.append('<table><tr><td id="types"></td></tr></table>');
-        types = $('#types');
-        _Types.refreshTypes();
+        main.append('<table><tr><td id="propertyDefinitions"></td></tr></table>');
+        propertyDefinitions = $('#propertyDefinitions');
+        _PropertyDefinitions.refreshPropertyDefinitions();
     },
     
-    refreshTypes : function() {
-        types.empty();
-        if (Command.list('TypeDefinition')) {
-            types.append('<button class="add_type_icon button"><img title="Add Type Definition" alt="Add Type Definition" src="' + _Types.type_icon + '"> Add Type Definition</button>');
+    refreshPropertyDefinitions : function() {
+        propertyDefinitions.empty();
+        if (Command.list('PropertyDefinition')) {
+            propertyDefinitions.append('<button class="add_type_icon button"><img title="Add PropertyDefinition" alt="Add PropertyDefinition" src="' + _PropertyDefinitions.type_icon + '"> Add PropertyDefinition</button>');
             $('.add_type_icon', main).on('click', function(e) {
                 e.stopPropagation();
                 var entity = {};
-                entity.type = 'TypeDefinition';
+                entity.type = 'PropertyDefinition';
                 return Command.create(entity);
             });
         }
+            
+        Structr.addPager(propertyDefinitions, 'PropertyDefinition');
     },
     
-    appendTypeElement : function(type) {
+    appendPropertyDefinitionElement : function(propertyDefinition) {
 		
-        log('appendTypeElement', type);
+        console.log('appendTypeElement', propertyDefinition);
         
-        
-        types.append('<div id="_' + type.id + '" structr_type="folder" class="node folder ' + type.id + '_">'
-            + '<img class="typeIcon" src="'+ _Types.type_icon + '">'
-            + '<b class="name_">' + type.name + '</b> <span class="id">' + type.id + '</span>'
+        propertyDefinitions.append('<div id="id_' + propertyDefinition.id + '" class="node propertyDefinition">'
+            + '<img class="typeIcon" src="'+ propertyDefinition.type_icon + '">'
+            + '<b title="' + propertyDefinition.name + '" class="name_">' + fitStringToSize(propertyDefinition.name, 200) + '</b> <span class="id">' + propertyDefinition.id + '</span>'
             + '</div>');
         
-        var div = $('#_' + type.id);
+        div = Structr.node(propertyDefinition.id);
         
-        div.append('<img title="Delete Type Definition ' + type.id + '" alt="Delete Type Definition ' + type.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        div.append('<img title="Delete Type ' + propertyDefinition.id + '" alt="Delete Type ' + propertyDefinition.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            _Entities.deleteNode(this, type);
+            _Entities.deleteNode(this, propertyDefinition);
         });
         
-        _Entities.appendAccessControlIcon(div, type);
-        _Entities.appendEditPropertiesIcon(div, type);
+        _Entities.appendAccessControlIcon(div, propertyDefinition);
+        _Entities.appendEditPropertiesIcon(div, propertyDefinition);
         _Entities.setMouseOver(div);
 		
         return div;

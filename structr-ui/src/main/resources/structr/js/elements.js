@@ -32,9 +32,6 @@ var _Elements = {
 
     elementNames : [
 
-    // Active components
-    'Component', 'View', 'RemoteView',
-
     // The root element
     'html',
 
@@ -72,10 +69,7 @@ var _Elements = {
     ],
 
     elementGroups : [
-    {
-        'name' : 'Components',
-        'elements' : ['Component', 'View', 'RemoteView']
-    },
+
     {
         'name' : 'Root',
         'elements' : ['html', 'content']
@@ -185,40 +179,33 @@ var _Elements = {
         }
     },
 
-    appendElementElement : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
-        log('_Elements.appendElementElement', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-        log(entity.id);
-        var parent;
+    appendElementElement : function(entity, refNode) {
+        log('_Elements.appendElementElement', entity);
         
-        if (treeAddress) {
-            parent = $('#_' + treeAddress);
-        } else {
-            parent = Structr.findParent(parentId, componentId, pageId, elements);
-        }
+        var hasChildren = entity.childrenIds && entity.childrenIds.length;
+        
+        var parent = entity.parent.id ? Structr.node(entity.parent.id) : undefined;
         
         log('appendElementElement parent', parent);
         if (!parent) return false;
         
-        var parentPath = getElementPath(parent);
-        log(parentPath);
-        
         _Entities.ensureExpanded(parent);
         
-        var pos = parent.children('.node').length;
-        log(pos);
+        var id = entity.id;
         
-        var id = parentPath + '_' + parent.children('.node').length;
-        log(id);
+        var html = '<div id="id_' + id + '" class="node element"></div>';
         
-        parent.append('<div id="_' + id + '" class="node element ' + entity.id + '_"></div>');
-        
+        if (refNode) {
+            refNode.before(html);
+        } else {
+            parent.append(html);
+        }
+
         //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
-        var div = $('#_' + id);
+        var div = Structr.node(id);
         log('Element appended (div, parent)', div, parent);
         
         if (!div) return;
-        
-        entity.pageId = pageId;
         
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
 
@@ -237,80 +224,12 @@ var _Elements = {
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            _Entities.deleteElement(this, entity);
-        });
-
-
-        div.append('<img title="Wrap in Component" alt="Wrap in Component" class="add_icon button" src="' + _Components.add_icon + '">');
-        $('.add_icon', div).on('click', function(e) {
-            e.stopPropagation();
-            var self = $(this);
-
-            var node = $(self.closest('.node')[0]);
-
-            var pos = node.parent().children('.node').size() - 1;
-
-            var nodeData = {};
-            nodeData.type = 'Component';
-            nodeData.parentId = getId(node.parent());
-
-            var relData = {};
-
-//            var component = node.closest('.component')[0];
-//            if (component) {
-//                var componentId = getId(component);
-//                relData[componentId] = pos;
-//                relData.componentId = componentId;
-//            }
-
-            var page = node.closest('.page')[0];
-            if (page) {
-                var pageId = getId(page);
-                relData[pageId] = pos;
-                relData.pageId = pageId;
-            }
-            log('Wrap element in component', getId(node), nodeData, relData);
-            //_Entities.createAndAdd(getId(node), nodeData, relData);
-            
-            var dialog = $('#dialogBox .dialogText');
-            var dialogMsg = $('#dialogMsg');
-			
-            dialog.empty();
-            dialogMsg.empty();
-            
-            dialog.append('<label for="kind">Component Class:</label></td><td><input id="_kind" name="kind" size="20" value="">');
-            dialog.append('<button id="startWrap">Create Component</button>');
-
-            Structr.dialog('Create Component', function() {
-                return true;
-            }, function() {
-                return true;
-            });
-			
-            $('#startWrap').on('click', function(e) {
-                e.stopPropagation();
-
-                var kind = $('#_kind', dialog).val();
-                
-                nodeData.kind = kind;
-                
-                dialog.empty();
-                dialogMsg.empty();
-                
-                $.unblockUI({
-                    fadeOut: 25
-                });
-
-                log('start');
-                return Command.wrap(getId(node), nodeData, relData);
-            });
-
-            
-
+            _Entities.deleteNode(this, entity);
         });
 
         _Entities.setMouseOver(div);
         _Entities.appendEditPropertiesIcon(div, entity);
+        _Entities.appendDataIcon(div, entity);
         _Entities.appendAccessControlIcon(div, entity);
         
         if (entity.tag == 'a' || entity.tag == 'link') {

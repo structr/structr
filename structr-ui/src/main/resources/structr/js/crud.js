@@ -20,15 +20,17 @@
 var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
 var searchField;
 
-var browser = (typeof document == 'object');
+var browser = (typeof document === 'object');
 var headers;
+var crudPagerDataCookieName = 'structrCrudPagerData_' + port + '_';
+var crudTypeCookieName = 'structrCrudType_' + port;
 
 if (browser) {
     
     $(document).ready(function() {
 
         defaultType     = 'Page';
-        defaultView     = 'public';
+        defaultView     = 'ui';
         defaultSort     = '';
         defaultOrder    = '';
                 
@@ -56,36 +58,16 @@ if (browser) {
             _Crud.type = defaultType;
         //            console.log(_Crud.type);
         }
-
-        // check for single edit mode
-        var id = urlParam('id')
-        if (id) {
-            console.log('edit mode, editing ', id);
-            headers = {
-                'X-User' : 'admin',
-                'X-Password' : 'admin'
-            };   
-            
-            _Crud.loadSchema(function() {
-                _Crud.crudRead(null, id, function(node) {
-                    //console.log(node);
-                    _Crud.showDetails(node, false, _Crud.type);
-                });
-            });
-            
-        } else {
-        //_Crud.onload();
-        }
+        
+        _Crud.resize();
+        $(window).on('resize', function() {
+            _Crud.resize();
+        });
         
     });
     
 } else {
     defaultView = 'public';
-    // default header fields
-    headers = {
-        'X-User' : 'admin',
-        'X-Password' : 'admin'
-    };   
 }
 
 var _Crud = {
@@ -93,7 +75,9 @@ var _Crud = {
     schemaLoading : false,
     schemaLoaded : false,
     
-    types : [ 'Page', 'User', 'Group', 'File', 'Image', 'Content' ],
+    //allTypes : [],
+    
+    types : [],//'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
     views : [ 'public', 'all', 'ui' ],
 
     schema : [],
@@ -110,19 +94,6 @@ var _Crud = {
     
     init : function() {
 
-        if (token) {
-
-            headers = {
-                'X-StructrSessionToken' : token
-            };
-        } else {
-            headers = {
-                'X-User' : 'admin',
-                'X-Password' : 'admin'
-            };   
-            
-        }
-
         _Crud.schemaLoading = false;
         _Crud.schemaLoaded = false;
         _Crud.schema = [];
@@ -138,7 +109,7 @@ var _Crud = {
         
         searchField.keyup(function(e) {
             var searchString = $(this).val();
-            if (searchString && searchString.length && e.keyCode == 13) {
+            if (searchString && searchString.length && e.keyCode === 13) {
                 
                 $('.clearSearchIcon').show().on('click', function() {
                     _Crud.clearSearch(main);
@@ -146,25 +117,30 @@ var _Crud = {
                
                 _Crud.search(searchString, main, null, function(e, node) {
                     e.preventDefault();
-                    _Crud.showDetails(node, false);
+                    _Crud.showDetails(node, false, node.type);
                     return false;
                 });
                 
                 $('#resourceTabs', main).remove();
                 $('#resourceBox', main).remove();
                 
-            } else if (e.keyCode == 27 || searchString == '') {
+            } else if (e.keyCode === 27 || searchString === '') {
                 
-                _Crud.clearSearch(main);
+                _Crud.clearSearch(main);                
+                
             }
             
             
         });
         
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
+//        $('#resourceTabsMenu').append('<li id="addResourceTab" class="ui-state-default ui-corner-top" role="tab"><span><img src="icon/add.png"></span></li>');
+//        $('#addResourceTab', $('#resourceTabsMenu')).on('click', function() {
+//           _Crud.addResource();
+//        });
         
         $(document).keyup(function(e) {
-            if (e.keyCode == 27) {
+            if (e.keyCode === 27) {
                 dialogCancelButton.click();
             }
         });
@@ -174,9 +150,28 @@ var _Crud = {
         
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
-        
-        _Crud.init();
 
+        if (token) {
+
+            headers = {
+                'X-StructrSessionToken' : token
+            };
+        }
+
+        // check for single edit mode
+        var id = urlParam('id');
+        if (id) {
+            //console.log('edit mode, editing ', id);
+            _Crud.loadSchema(function() {
+                _Crud.crudRead(null, id, function(node) {
+                    //console.log(node, _Crud.view[node.type]);
+                    _Crud.showDetails(node, false, node.type);
+                });
+            });
+            
+        } else {
+            _Crud.init();
+        }
     
     },
 
@@ -209,7 +204,7 @@ var _Crud = {
             //console.log('schema not loaded completely, checking all types ...');
             $.each(_Crud.types, function(t, type) {
                 //console.log('checking type ' + type, (_Crud.schema[type] && _Crud.schema[type] != null));
-                all &= (_Crud.schema[type] && _Crud.schema[type] != null);
+                all &= (_Crud.schema[type] && _Crud.schema[type] !== null);
             });
         }
         _Crud.schemaLoaded = all;
@@ -234,14 +229,54 @@ var _Crud = {
      * after the complete schema is loaded.
      */
     loadSchema : function(callback) {
+        
         // Avoid duplicate loading of schema
         if (_Crud.schemaLoading) {
             return;
         }
         _Crud.schemaLoading = true;
-        $.each(_Crud.types, function(t, type) {
-            //console.log('Loading type definition for ' + type + '...');
-            _Crud.loadTypeDefinition(type, callback);
+        
+        _Crud.loadAccessibleResources(function() {
+            $.each(_Crud.types, function(t, type) {
+                //console.log('Loading type definition for ' + type + '...');
+                _Crud.loadTypeDefinition(type, callback);
+            });
+        });
+        
+    },
+
+    loadAccessibleResources : function(callback) {
+        var url = rootUrl + 'resource_access/ui';
+        $.ajax({
+            url: url,
+            headers: headers,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            //async: false,
+            success: function(data) {
+                //console.log(data);
+                var types = [];
+                $.each(data.result, function(i, res) {
+                    var type = getTypeFromResourceSignature(res.signature);
+                    //console.log(res);
+                    if (!isIn(type, _Crud.types)) {
+                        types.push({'type': type, 'position': res.position});
+                    }
+                });
+                //console.log(types);
+                types.sort(function(a, b) {
+                    return a.position - b.position;
+                });
+
+                $.each(types, function(i, typeObj) {
+                    _Crud.types.push(typeObj.type);
+                });
+
+                if (callback) {
+                    callback();
+                }
+                
+            }
         });
     },
 
@@ -319,14 +354,12 @@ var _Crud = {
         table.append('<tr></tr>');
         var tableHeader = $('tr:first-child', table);
         var view = res.views[_Crud.view[type]];
-                    
         if (view) {
             var k = Object.keys(view);
             if (k && k.length) {
                 _Crud.keys[type] = k;
                 $.each(_Crud.keys[type], function(k, key) {
-                    tableHeader.append('<th class="' + view[key].jsonName + '">' + _Crud.formatKey(view[key].jsonName) + '</th>');
-                //tableHeader.append('<th>' + key + '</th>');
+                    tableHeader.append('<th class="' + key + '">' + _Crud.formatKey(key) + '</th>');
                 });
                 tableHeader.append('<th>Actions</th>');
             }
@@ -336,13 +369,13 @@ var _Crud = {
         typeNode.append('<button id="export' + type + '"><img src="icon/database_table.png"> Export as CSV</button>');
                     
         $('#create' + type, typeNode).on('click', function() {
-            _Crud.crudCreate(type, res.url);
+            _Crud.crudCreate(type, res.url.substring(1));
         });
         $('#export' + type, typeNode).on('click', function() {
             _Crud.crudExport(type);
         });
 
-        if (type == _Crud.type) {
+        if (type === _Crud.type) {
             _Crud.activateList(_Crud.type);
             _Crud.activatePagerElements(_Crud.type, pagerNode);
         }
@@ -399,11 +432,11 @@ var _Crud = {
     },
     
     storeTypeInCookie : function() {
-        $.cookie('structrCrudType', _Crud.type);
+        $.cookie(crudTypeCookieName, _Crud.type);
     },
     
     restoreTypeFromCookie : function() {
-        var cookie = $.cookie('structrCrudType');
+        var cookie = $.cookie(crudTypeCookieName);
         if (cookie) {
             _Crud.type = cookie;
         //console.log('Current type from Cookie', cookie);
@@ -414,12 +447,12 @@ var _Crud = {
         var type = _Crud.type;
         var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
         //console.log('pager data to store in cookie: ', pagerData);
-        $.cookie('structrCrudPagerData_' + type, pagerData);
+        $.cookie(crudPagerDataCookieName + type, pagerData);
     },
     
     restorePagerDataFromCookie : function() {
         var type = _Crud.type;
-        var cookie = $.cookie('structrCrudPagerData_' + type);
+        var cookie = $.cookie(crudPagerDataCookieName + type);
         
         if (cookie) {
             var pagerData = cookie.split(',');
@@ -434,22 +467,27 @@ var _Crud = {
 
     replaceSortHeader : function(type) {
         var table = _Crud.getTable(type);
-        var newOrder = (_Crud.order[type] && _Crud.order[type] == 'desc' ? 'asc' : 'desc');
+        var newOrder = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
+        var res = _Crud.schema[type];
+        var view = res.views[_Crud.view[type]];
         $('th', table).each(function(i, t) {
             var th = $(t);
             var key = th.attr('class');
-            if (key != 'Actions') {
+            if (key !== 'Actions') {
                 $('a', th).off('click');
                 th.empty();
-                th.append('<a href="' + _Crud.sortAndPagingParameters(type, key, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
-                $('a', th).on('click', function(event) {
-                    event.preventDefault();
-                    _Crud.sort[type] = key;
-                    _Crud.order[type] = (_Crud.order[type] && _Crud.order[type] == 'desc' ? 'asc' : 'desc');
-                    _Crud.activateList(type);
-                    _Crud.updateUrl(type);
-                    return false;
-                });
+                if (view[key]) {
+                    var sortKey = view[key].jsonName;
+                    th.append('<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
+                    $('a', th).on('click', function(event) {
+                        event.preventDefault();
+                        _Crud.sort[type] = key;
+                        _Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
+                        _Crud.activateList(type);
+                        _Crud.updateUrl(type);
+                        return false;
+                    });
+                }
             }
         });
     },
@@ -499,7 +537,7 @@ var _Crud = {
             success: function(data) {
                 //console.log(data);
                 $.each(data.result, function(i, item) {
-                    if (item.type == type) {
+                    if (item.type === type) {
                         _Crud.appendRow(type, item);
                     }
                 });
@@ -511,6 +549,32 @@ var _Crud = {
             }
         });
     },
+
+//    addResource : function() {
+//        _Crud.dialog('Add another Type', function() {
+//            }, function() {
+//            });
+//        dialogText.append('Select Types');
+//        $.each(_Crud.allTypes, function(i, type) {
+//            dialogText.append('<div id="add-resource-' + type + '" class="button">' + type + '</div>');
+//            $('#add-resource-' + type, dialogText).on('click', function() {
+//                $.ajax({
+//                    url: rootUrl + 'resource_access?signature=' + type,
+//                    headers: headers,
+//                    data : '{visibleToAuthenticatedUsers:true}',
+//                    dataType: 'json',
+//                    contentType: 'application/json; charset=utf-8',
+//                    method: 'PUT',
+//                    success: function(data) {
+//                        console.log('success');
+//                    },
+//                    error : function(a,b,c) {
+//                        console.log(a,b,c);
+//                    }
+//                });                
+//            });
+//        });
+//    },
 
     crudExport : function(type) {
         var url  = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
@@ -573,7 +637,7 @@ var _Crud = {
             pageLeft.removeAttr('disabled').removeClass('disabled');
         }
         
-        if (!_Crud.pageCount || _Crud.pageCount == 0 || (_Crud.page[type] == _Crud.pageCount)) {
+        if (!_Crud.pageCount || _Crud.pageCount === 0 || (_Crud.page[type] === _Crud.pageCount)) {
             pageRight.attr('disabled', 'disabled').addClass('disabled');
         } else {
             pageRight.removeAttr('disabled').removeClass('disabled');
@@ -586,14 +650,14 @@ var _Crud = {
         //console.log('activatePagerElements', type);
         //        var typeNode = $('#' + type);
         $('.page', pagerNode).on('keypress', function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 _Crud.page[type] = $(this).val();
                 _Crud.activateList(type);
             }
         });
                 
         $('.pageSize', pagerNode).on('keypress', function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 _Crud.pageSize[type] = $(this).val();
                 // set page no to 1
                 _Crud.page[type] = 1;
@@ -633,9 +697,11 @@ var _Crud = {
     },
 
     crudRead : function(type, id, callback) {
-        console.log('headers', headers);
+        // use 'ui' view as default to make the 'edit by id' feature work
+        var view = (type && _Crud.view[type] ? _Crud.view[type] : 'ui');
+        var url = rootUrl + id + '/' + view;
         $.ajax({
-            url: rootUrl + id + (type && _Crud.view[type] ? '/' + _Crud.view[type] : ''),
+            url: url,
             headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -680,6 +746,7 @@ var _Crud = {
     },
 
     crudCreate : function(type, url, json, onSuccess, onError) {
+        //console.log('crudCreate', type, url, json);
         $.ajax({
             url: rootUrl + url,
             headers: headers,
@@ -688,30 +755,115 @@ var _Crud = {
             data: json,
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function(data, status, xhr) {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    var location = xhr.getResponseHeader('location');
-                    var id = location.substring(location.lastIndexOf('/') + 1);
-                    _Crud.crudRead(type, id);
-                    $.unblockUI({
-                        fadeOut: 25
-                    });
-                    document.location.reload();
-                }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    //console.log(data, status, xhr);
-                    _Crud.dialog('Create new ' + type, function() {
-                        //console.log('ok')
-                        }, function() {
-                        //console.log('cancel')
+            statusCode : {
+                201 : function(xhr) {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        //                        var location = xhr.getResponseHeader('location');
+                        //                        var id = location.substring(location.lastIndexOf('/') + 1);
+                        //                        _Crud.crudRead(type, id);
+                        $.unblockUI({
+                            fadeOut: 25
                         });
-                    _Crud.showDetails(null, true, type);
+                        _Crud.activateList(type);
+                    //document.location.reload();
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                        var resp = JSON.parse(data.responseText);
+                        console.log(resp);
+                        $.each(Object.keys(resp.errors[type]), function(i, key) {
+                            var errorMsg = resp.errors[type][key][0];
+                           console.log(key, errorMsg); 
+                           $('td.' + key + ' input', dialogText).prop('placeholder', errorMsg).css({
+                               backgroundColor: '#fee',
+                               borderColor: '#933'
+                           });
+                        });
+                        //_Crud.error('Error: ' + data.responseText, true);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        //console.log(data, status, xhr);
+                        _Crud.dialog('Create new ' + type, function() {
+                            //console.log('ok')
+                            }, function() {
+                            //console.log('cancel')
+                            });
+                        _Crud.showDetails(null, true, type);
+                    }
                 }
             }
         });
@@ -719,7 +871,7 @@ var _Crud = {
 
     crudRefresh : function(id, key) {
         var url = rootUrl + id + '/' + _Crud.view[_Crud.type];
-        //        console.log('crudRefresh', id, key, headers, url);
+        //console.log('crudRefresh', id, key, headers, url);
         
         $.ajax({
             url: url,
@@ -748,7 +900,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                //console.log('reset', id, key, data.result[key]);
+                console.log('reset', id, key, data.result[key]);
                 _Crud.resetCell(id, key, data.result[key]);
             }
         });
@@ -764,21 +916,63 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    _Crud.crudRefresh(id);
+            statusCode : {
+                200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id);
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id);
+                    }
                 }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    _Crud.crudReset(id);
-                }
-            //alert(data.responseText);
-            // TODO: Overlay with error info
             }
         });
     },
@@ -786,31 +980,96 @@ var _Crud = {
     crudUpdate : function(id, key, newValue, onSuccess, onError) {
         var url = rootUrl + id;
         var json = '{"' + key + '":"' + newValue + '"}';
-        //        console.log('crudUpdate', headers, url, json);
+        //console.log('crudUpdate', headers, url, json);
         $.ajax({
             url: url,
             headers: headers,
             data: json,
             type: 'PUT',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
+            //dataType: 'json',
+            //contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    _Crud.crudRefresh(id, key);
+            statusCode : {
+                200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id, key);
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
                 }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    _Crud.crudReset(id, key);
-                }
-            //alert(data.responseText);
-            // TODO: Overlay with error info
             }
+        //            success: function() {
+        //                console.log('crudUpdate success', url, headers, json);
+        //                if (onSuccess) {
+        //                    onSuccess();
+        //                } else {
+        //                    _Crud.crudRefresh(id, key);
+        //                }
+        //            },
+        //            error: function(data, status, xhr) {
+        //                console.log('crudUpdate error', url, headers, json, data, status, xhr);
+        //                // since jQuery 1.9, an empty response body is regarded as an error
+        //                // we have to react on this here
+        //                if (data.status == 200) {
+        //                } else {
+        //                    if (onError) {
+        //                        onError();
+        //                    } else {
+        //                        _Crud.crudReset(id, key);
+        //                    }
+        //                }
+        //            //alert(data.responseText);
+        //            // TODO: Overlay with error info
+        //            }
         });
     },
     
@@ -819,7 +1078,7 @@ var _Crud = {
         var url = rootUrl + id;
         var json = '{"' + key + '":null}';
         
-        //        console.log('crudRemoveProperty', headers, url, json);
+        //console.log('crudRemoveProperty', headers, url, json);
         
         $.ajax({
             url: url,
@@ -829,22 +1088,71 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    _Crud.crudRefresh(id, key);
+            statusCode : {
+                200 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id, key);
+                    }
+                },
+                204 : function() {
+                    if (onSuccess) {
+                        onSuccess();
+                    } else {
+                        _Crud.crudRefresh(id, key);
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                422 : function(data, status, xhr) {
+                    _Crud.error('Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    if (onError) {
+                        onError();
+                    } else {
+                        _Crud.crudReset(id, key);
+                    }
                 }
-            },
-            error: function(data, status, xhr) {
-                if (onError) {
-                    onError();
-                } else {
-                    _Crud.crudReset(id, key);
-                }
-            //alert(data.responseText);
-            // TODO: Overlay with error info
-            }
+            }            
         });
     },
 
@@ -856,11 +1164,34 @@ var _Crud = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
-            success: function() {
-                //alert(id + ' deleted!');
-                var row = $('#' + id);
-                row.remove();
-            }
+            statusCode : {
+                200 : function() {
+                    var row = $('#' + id);
+                    row.remove();
+                },
+                204 : function() {
+                    var row = $('#' + id);
+                    row.remove();
+                },
+                400 : function(data, status, xhr) {
+                    _Crud.error('Bad request: ' + data.responseText, true);
+                },
+                401 : function(data, status, xhr) {
+                    _Crud.error('Authentication required: ' + data.responseText, true);
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                    _Crud.error('Forbidden: ' + data.responseText, true);
+                },
+                404 : function(data, status, xhr) {
+                    _Crud.error('Not found: ' + data.responseText, true);
+                },
+                422 : function(data, status, xhr) {
+                },
+                500 : function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                }
+            }               
         });
     },
 
@@ -959,7 +1290,7 @@ var _Crud = {
             _Crud.crudUpdate(id, key, newValue);
         });
         input.keypress(function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 var newValue = input.val();
                 _Crud.crudUpdate(id, key, newValue);
             }
@@ -977,14 +1308,12 @@ var _Crud = {
         var type = item.type;
         var row = $('#' + id);
         if (_Crud.keys[type]) {
-            //console.log(type);
             $.each(_Crud.keys[type], function(k, key) {
                 row.append('<td class="' + key + '"></td>');
                 var cells = _Crud.cells(id, key);
                 $.each(cells, function(i, cell) {
                     _Crud.populateCell(id, key, type, item[key], cell);
                 });
-                
             });
             row.append('<td class="actions"><button class="edit"><img src="icon/pencil.png"> Edit</button><button class="delete"><img src="icon/cross.png"> Delete</button></td>');
             $('.actions .edit', row).on('mouseup', function(event) {
@@ -995,7 +1324,7 @@ var _Crud = {
             $('.actions .delete', row).on('mouseup', function(event) {
                 event.preventDefault();
                 var c = confirm('Are you sure to delete ' + type + ' ' + id + ' ?');
-                if (c == true) {
+                if (c === true) {
                     _Crud.crudDelete(id);
                 }
             });
@@ -1006,27 +1335,42 @@ var _Crud = {
         var isCollection = _Crud.isCollection(key, type);
         var relatedType  = _Crud.relatedType(key, type);
         var simpleType;
-
+        
         if (!relatedType) {
             
-            cell.text(nvl(formatValue(value),'')).on('mouseup', function(event) {
-                event.preventDefault();
-                var self = $(this);
-                var oldValue = self.text();
-                self.off('mouseup');
-                self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
-                _Crud.activateTextInputField($('input', self), id, key);
-            });
-        //console.log('single value, no related type');
+            //console.log(key, value, typeof value);
+            
+            if (typeof value === 'boolean') {
+                cell.append('<input type="checkbox" ' + (value?'checked="checked"':'') + '>');
+                $('input', cell).on('change', function() {
+                   //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
+                   _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                });
+                
+        
+            } else {
+                cell.text(nvl(formatValue(value),'')).on('mouseup', function(event) {
+                    event.preventDefault();
+                    var self = $(this);
+                    var oldValue = self.text();
+                    self.off('mouseup');
+                    self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
+                    _Crud.activateTextInputField($('input', self), id, key);
+                });
+            }
 
         } else if (isCollection) {
                     
             simpleType = lastPart(relatedType, '.');
+            
+            if (value && value.length) {
                     
-            $.each(value, function(v, relatedId) {
-                _Crud.getAndAppendNode(type, id, key, relatedId, cell);
-            });
-            //cells.append('<div style="clear:both"><img class="add" src="icon/add_grey.png"></div>');
+                $.each(value, function(v, relatedId) {
+                    _Crud.getAndAppendNode(type, id, key, relatedId, cell);
+                });
+                //cells.append('<div style="clear:both"><img class="add" src="icon/add_grey.png"></div>');
+            }
+
             cell.append('<img class="add" src="icon/add_grey.png">');
             $('.add', cell).on('click', function() {
                 _Crud.dialog('Add ' + simpleType, function() {}, function() {});
@@ -1036,7 +1380,7 @@ var _Crud = {
         } else {
                     
             simpleType = lastPart(relatedType, '.');
-                    
+            
             if (value) {
                     
                 _Crud.getAndAppendNode(type, id, key, value, cell);
@@ -1058,7 +1402,7 @@ var _Crud = {
         //console.log('headers', headers);
         if (!obj) return;
         var id;
-        if ((typeof obj) == 'object') {
+        if ((typeof obj) === 'object') {
             id = obj.id;
         } else {
             id = obj;
@@ -1073,12 +1417,12 @@ var _Crud = {
             //async: false,
             success: function(data) {
                 var node = data.result;
-                console.log('node', node);
+                //console.log('node', node);
                 
                 cell.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(node.name, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
                 //console.log(node);
-                if (node.type == 'Image') {
+                if (node.type === 'Image') {
                     
                     if (node.isThumbnail) {
                         nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
@@ -1090,7 +1434,7 @@ var _Crud = {
                     $('.thumbnail', nodeEl).on('click', function(e) {
                         e.stopPropagation();
                         e.preventDefault();
-                        _Crud.showDetails(node, false, _Crud.type);
+                        _Crud.showDetails(node, false, node.type);
                         return false;
                     });
 
@@ -1118,7 +1462,7 @@ var _Crud = {
                 });
                 nodeEl.on('click', function(e) {
                     e.preventDefault();
-                    _Crud.showDetails(node, false, _Crud.type);
+                    _Crud.showDetails(node, false, node.type);
                     return false;
                 });                    
 
@@ -1198,9 +1542,9 @@ var _Crud = {
         el.append('<div class="searchResults"></div>');
         var searchResults = $('.searchResults', el);
         
-        $('.search').select();
+        //$('.search').select();
         
-        var view = 'public'; // _Crud.view[_Crud.type]
+        var view = _Crud.view[_Crud.type];
         
         var types = type ? [ type ] : _Crud.types;
         
@@ -1225,14 +1569,14 @@ var _Crud = {
                 
                     $.each(data.result, function(i, node) {
                         
-                        if (node.type == type) {
+                        if (node.type === type) {
                             
                             //console.log('node', node);
                             $('#resultsFor' + type, searchResults).append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
                 
                             var nodeEl = $('#_' + node.id, searchResults);
                             //console.log(node);
-                            if (node.type == 'Image') {
+                            if (node.type === 'Image') {
                                 nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
                             }
                     
@@ -1270,7 +1614,7 @@ var _Crud = {
             e.preventDefault();
                 
             var searchString = $(this).val();
-            if (searchString && searchString.length && e.keyCode == 13) {
+            if (searchString && searchString.length && e.keyCode === 13) {
                 
                 $('.clearSearchIcon', searchBox).show().on('click', function() {
                     if (_Crud.clearSearchResults(el)) {
@@ -1288,7 +1632,11 @@ var _Crud = {
                     return false;
                 });
                 
-            } else if (e.keyCode == 27 || searchString == '') {
+            } else if (e.keyCode === 27 || searchString === '') {
+
+                if (!searchString || searchString === '') {
+                    dialogCancelButton.click();
+                }
                 
                 if (_Crud.clearSearchResults(el)) {
                     $('.clearSearchIcon').hide().off('click');
@@ -1304,8 +1652,10 @@ var _Crud = {
     },
 
     removeRelatedObject : function(type, id, key, relatedObj) {
+        var view = _Crud.view[_Crud.type];
         var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
-        var url = rootUrl + urlType + '/' + id;
+        var url = rootUrl + urlType + '/' + id + '/' + view;
+        console.log(url);
         if (_Crud.isCollection(key, type)) {
             var objects = [];
             $.ajax({
@@ -1316,7 +1666,7 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 //async: false,
                 success: function(data) {
-                    //console.log(data.result[key]);
+                    //console.log(key, data.result, data.result[key]);
                     $.each(data.result[key], function(i, obj) {
                         //console.log(obj, ' equals ', relatedObj);
                         if (!_Crud.equal(obj, relatedObj)) {
@@ -1337,29 +1687,35 @@ var _Crud = {
                         data: json,
                         contentType: 'application/json; charset=utf-8',
                         //async: false,
-                        success: function(data) {
+                        statusCode : {
+                            200 : function(data) {
                             
-                            var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-                            //console.log('removeRelatedObject, setting new id array', headers, url, objects, json);
+                                var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
+                                //console.log('removeRelatedObject, setting new id array', headers, url, objects, json);
                             
-                            $.ajax({
-                                url: url,
-                                headers: headers,
-                                type: 'PUT',
-                                dataType: 'json',
-                                data: json,
-                                contentType: 'application/json; charset=utf-8',
-                                //async: false,
-                                success: function(data) {
-                                    var rowEl = $('#' + id);
-                                    var nodeEl = $('.' + _Crud.id(relatedObj) + '_', rowEl);
-                                    console.log(rowEl, nodeEl);
-                                    nodeEl.remove();
-                                },
-                                error: function(a,b,c) {
-                                    console.log(a,b,c);
-                                }
-                            });
+                                $.ajax({
+                                    url: url,
+                                    headers: headers,
+                                    type: 'PUT',
+                                    dataType: 'json',
+                                    data: json,
+                                    contentType: 'application/json; charset=utf-8',
+                                    //async: false,
+                                    statusCode : {
+                                        200 : function(data) {
+                                            var rowEl = $('#' + id);
+                                            var nodeEl = $('.' + _Crud.id(relatedObj) + '_', rowEl);
+                                            console.log(rowEl, nodeEl);
+                                            nodeEl.remove();
+                                        },
+                                        error: function(a,b,c) {
+                                            console.log(a,b,c);
+                                        }
+                                        
+                                    }
+                                });
+                                
+                            }
                         }
                     });
                 }
@@ -1383,8 +1739,9 @@ var _Crud = {
     },
     
     addRelatedObject : function(type, id, key, relatedObj, callback) {
+        var view = _Crud.view[_Crud.type];
         var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
-        var url = rootUrl + urlType + '/' + id;
+        var url = rootUrl + urlType + '/' + id + '/' + view;
         //console.log('headers', headers);
         if (_Crud.isCollection(key, type)) {
             var objects = [];
@@ -1479,16 +1836,83 @@ var _Crud = {
             });
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
+            $.blockUI.defaults.css.cursor = 'default';
+            
+        
+            var w = $(window).width();
+            var h = $(window).height();
+
+            var ml = 0;
+            var mt = 24;
+
+            // Calculate dimensions of dialog
+            var dw = Math.min(900, w-ml);
+            var dh = Math.min(600, h-mt);
+            //            var dw = (w-24) + 'px';
+            //            var dh = (h-24) + 'px';
+            
+            var l = parseInt((w-dw)/2);
+            var t = parseInt((h-dh)/2);
+            
+            //console.log(w, h, dw, dh, l, t);
+            
             $.blockUI({
                 fadeIn: 25,
                 fadeOut: 25,
                 message: dialogBox,
                 css: {
                     border: 'none',
-                    backgroundColor: 'transparent'
-                }
+                    backgroundColor: 'transparent',
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                themedCSS: { 
+                    width: dw + 'px',
+                    height: dh + 'px',
+                    top: t + 'px',
+                    left: l + 'px'
+                },
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
             });
+            
         }
+    },
+
+    resize : function() {
+        var w = $(window).width();
+        var h = $(window).height();
+
+        var ml = 0;
+        var mt = 24;
+
+        // Calculate dimensions of dialog
+        var dw = Math.min(900, w-ml);
+        var dh = Math.min(600, h-mt);
+        //            var dw = (w-24) + 'px';
+        //            var dh = (h-24) + 'px';
+            
+        var l = parseInt((w-dw)/2);
+        var t = parseInt((h-dh)/2);
+        
+        $('.blockPage').css({
+            width: dw + 'px',
+            height: dh + 'px',
+            top: t + 'px',
+            left: l + 'px'
+        });
+        
+        var bw = (dw-28) + 'px';
+        var bh = (dh-106) + 'px';
+
+        $('#dialogBox .dialogTextWrapper').css({
+            width: bw,
+            height: bh
+        });
     },
 
     error : function(text, callback) {
@@ -1516,7 +1940,7 @@ var _Crud = {
 
     showDetails : function(node, create, typeParam) {
 
-        var type = node.type;
+        var type = typeParam || node.type;
         if (!type) {
             Structr.error('Missing type', function() {}, function() {});
             return;
@@ -1525,7 +1949,7 @@ var _Crud = {
         
         if (node) {
             //console.log('Edit node', node);
-            _Crud.dialog('Details of ' + type + ' ' + node.name + '<span class="id"> [' + node.id + ']</span>', function() {}, function() {});
+            _Crud.dialog('Details of ' + type + ' ' + (node.name ? node.name : node.id) + '<span class="id"> [' + node.id + ']</span>', function() {}, function() {});
         } else {
             //console.log('Create new node of type', typeOnCreate);
             _Crud.dialog('Create new ' + type, function() {}, function() {});
@@ -1535,18 +1959,25 @@ var _Crud = {
         
         if (create) {
             //console.log('edit mode, appending form');
-            dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th><th>Type</th><th>Read Only</th></table></form>');
+            dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table></form>');
         } else {
-            dialogText.append('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th><th>Type</th><th>Read Only</th></table>');
+            dialogText.append('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table>');
         }
         
         var table = $('table', dialogText);
         
-        $.each(typeDef.views[_Crud.view[type]], function(i, property) {
+        
+        var keys = _Crud.keys[type];
+        if (!keys) {
+            keys = Object.keys(typeDef.views[_Crud.view[type]]);
+        }
+        
+        $.each(keys, function(i, key) {
+        //$.each(typeDef.views[_Crud.view[type]], function(i, property) {
             //console.log(property);
-            var type = property.className.substring(property.className.lastIndexOf('.') + 1);
-            var key = property.jsonName;
-            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td><td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+            //var type = property.className.substring(property.className.lastIndexOf('.') + 1);
+            //var key = property.jsonName;
+            table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
             var cell = $('.' + key, table);
             if (node && node.id) {
                 //console.log(node.id, key, type, node[key], cell);
@@ -1556,11 +1987,11 @@ var _Crud = {
                 cell.append(formatValueInputField(key, ''));
             }
         });
-        
         dialogSaveButton.remove();
         if (create) {
             dialogBox.append('<button class="save" id="saveProperties">Save</button>');
             $('.save', $('#dialogBox')).on('click', function() {
+                $(this).remove();
                 var form = $('#entityForm');
                 var json = JSON.stringify(_Crud.serializeObject(form));
                 //console.log(json);
@@ -1575,7 +2006,7 @@ var _Crud = {
             });
         }
         
-        if (node && node.type == 'Image') {
+        if (node && node.type === 'Image') {
             dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
         }
         
@@ -1586,10 +2017,10 @@ var _Crud = {
         var result = '';
         for (var i=0; i<text.length; i++) {
             var c = text.charAt(i);
-            if (c == c.toUpperCase()) {
+            if (c === c.toUpperCase()) {
                 result += ' ' + c;
             } else {
-                result += (i==0 ? c.toUpperCase() : c);
+                result += (i===0 ? c.toUpperCase() : c);
             }
         }
         return result;
@@ -1599,7 +2030,7 @@ var _Crud = {
         var o = {};
         var a = obj.serializeArray();
         $.each(a, function() {
-            if (this.value && this.value != '') {
+            if (this.value && this.value !== '') {
                 if (o[this.name]) {
                     if (!o[this.name].push) {
                         o[this.name] = [o[this.name]];
@@ -1633,7 +2064,7 @@ var _Crud = {
      * Return the id of the given object.
      */
     id : function(objectOrId) {
-        if (typeof objectOrId == 'object') {
+        if (typeof objectOrId === 'object') {
             return objectOrId.id;
         } else {
             return objectOrId;
@@ -1647,14 +2078,14 @@ var _Crud = {
      * in any other case, compare values directly.
      */
     equal : function(obj1, obj2) {
-        if (typeof obj1 == 'object' && typeof obj2 == 'object') {
+        if (typeof obj1 === 'object' && typeof obj2 === 'object') {
             var id1 = obj1.id;
             var id2 = obj2.id;
             if (id1 && id2) {
-                return id1 == id2;
+                return id1 === id2;
             }
         } else {
-            return obj1 == obj2;
+            return obj1 === obj2;
         }
         
         // default
@@ -1664,7 +2095,7 @@ var _Crud = {
 }
 
 // Hook for nodejs
-if (typeof module == 'object') {
+if (typeof module === 'object') {
     var $ = require('jquery');
     var token = '';
     var rootUrl = 'http://localhost:8180/structr/rest/';

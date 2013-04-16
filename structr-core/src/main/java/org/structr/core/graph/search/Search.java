@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.core.graph.search;
@@ -57,6 +56,14 @@ import org.structr.core.Result;
 public abstract class Search {
 
 	public static final String DISTANCE_SEARCH_KEYWORD    = "distance";
+	public static final String LOCATION_SEARCH_KEYWORD    = "location";
+	public static final String STREET_SEARCH_KEYWORD      = "street";
+	public static final String HOUSE_SEARCH_KEYWORD       = "house";
+	public static final String POSTAL_CODE_SEARCH_KEYWORD = "postalCode";
+	public static final String CITY_SEARCH_KEYWORD        = "city";
+	public static final String STATE_SEARCH_KEYWORD       = "state";
+	public static final String COUNTRY_SEARCH_KEYWORD     = "country";
+	
 	private static final Logger logger                    = Logger.getLogger(Search.class.getName());
 	private static final Set<Character> specialCharsExact = new LinkedHashSet<Character>();
 	private static final Set<Character> specialChars      = new LinkedHashSet<Character>();

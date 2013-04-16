@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 package org.structr.core.validator;
 
@@ -48,7 +47,7 @@ import org.structr.core.Result;
  *
  * @author Christian Morgner
  */
-public class TypeUniquenessValidator extends PropertyValidator<String> {
+public class TypeUniquenessValidator<T> extends PropertyValidator<T> {
 
 	private static final Logger logger = Logger.getLogger(TypeUniquenessValidator.class.getName());
 
@@ -67,9 +66,9 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public boolean isValid(GraphObject object, PropertyKey<String> key, String value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer) {
 
-		if ((value == null) || ((value != null) && (value.length() == 0))) {
+		if (value == null) {
 
 			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 
@@ -77,7 +76,7 @@ public class TypeUniquenessValidator extends PropertyValidator<String> {
 
 		}
 
-		if ((key != null) && (value != null)) {
+		if (key != null) {
 
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
 			boolean nodeExists               = false;

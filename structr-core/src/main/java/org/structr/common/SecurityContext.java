@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.common;
@@ -61,7 +60,7 @@ public class SecurityContext {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Long, AbstractNode> cache = new ConcurrentHashMap<Long, AbstractNode>();
+	private Map<Long, AbstractNode> cache = null;
 	private AccessMode accessMode         = AccessMode.Frontend;
 	private Map<String, Object> attrs     = null;
 	private Authenticator authenticator   = null;
@@ -78,6 +77,8 @@ public class SecurityContext {
 
 		this.cachedUser = user;
 		this.accessMode = accessMode;
+
+		cache = new ConcurrentHashMap<Long, AbstractNode>();
 	}
 
 	private SecurityContext(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
@@ -95,13 +96,21 @@ public class SecurityContext {
 		} catch (Throwable t) {
 
 			logger.log(Level.SEVERE, "Could not instantiate security context!");
-
 		}
-			
-//		logger.log(Level.INFO, "######################################## Creating new security context WITH request and response: {0}", this.hashCode());
-		
-//		Thread.dumpStack();
 
+		// TEST: request-based caching
+		if (request != null && request.getServletContext() != null) {
+			cache = (Map<Long, AbstractNode>)request.getServletContext().getAttribute("NODE_CACHE");
+		}
+		
+		if (cache == null) {
+
+			cache = new ConcurrentHashMap<Long, AbstractNode>();
+			
+			if (request != null && request.getServletContext() != null) {
+				request.getServletContext().setAttribute("NODE_CACHE", cache);
+			}
+		}
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -111,7 +120,10 @@ public class SecurityContext {
 	 * created for is finished and the resources can be freed.
 	 */
 	public void cleanUp() {
-		cache.clear();
+		
+		if (cache != null) {
+			cache.clear();
+		}
 	}
 	
 	public AbstractNode lookup(Node node) {
@@ -195,20 +207,21 @@ public class SecurityContext {
 
 	//~--- get methods ----------------------------------------------------
 
+	public static SecurityContext getSuperUserInstance(HttpServletRequest request, HttpServletResponse response) {
+		return new SuperUserSecurityContext(request, response);
+	}
+	
 	public static SecurityContext getSuperUserInstance() {
-
 		return new SuperUserSecurityContext();
 
 	}
 
 	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
-
 		return new SecurityContext(config, request, response, accessMode);
 
 	}
 
 	public static SecurityContext getInstance(Principal user, AccessMode accessMode) throws FrameworkException {
-
 		return new SecurityContext(user, accessMode);
 
 	}
@@ -233,9 +246,9 @@ public class SecurityContext {
 
 				cachedUser = authenticator.getUser(this, request, response);
 
-			} catch (FrameworkException ex) {
+			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "No user found", ex);
+				logger.log(Level.WARNING, "No user found");
 
 			}
 
@@ -566,6 +579,10 @@ public class SecurityContext {
 	// ----- nested classes -----
 	private static class SuperUserSecurityContext extends SecurityContext {
 
+		public SuperUserSecurityContext(HttpServletRequest request, HttpServletResponse response) {
+			super(null, request, response, null);
+		}
+		
 		public SuperUserSecurityContext() {
 
 			super(null, null, null, null);

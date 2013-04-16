@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.6</version>
+        <version>0.7-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-rest</artifactId>
     <packaging>jar</packaging>
-    <version>0.6</version>
+    <version>0.7-SNAPSHOT</version>
     <name>structr-rest</name>
     <url>http://structr.org</url>
     <build>
@@ -32,11 +32,11 @@
     <repositories>
         <repository>
             <id>snapshots.maven.structr.org</id>
-            <url>http://maven.structr.org:8082/artifactory/snapshot</url>
+            <url>http://maven.structr.org/artifactory/snapshot</url>
         </repository>
         <repository>
             <id>releases.maven.structr.org</id>
-            <url>http://maven.structr.org:8082/artifactory/release</url>
+            <url>http://maven.structr.org/artifactory/release</url>
         </repository> 
     </repositories>		
     <dependencies>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>org.eclipse.jetty.aggregate</groupId>
             <artifactId>jetty-all-server</artifactId>
-            <version>8.1.0.RC5</version>
+            <version>8.1.10.v20130312</version>
             <scope>test</scope>
         </dependency>
         <dependency>
