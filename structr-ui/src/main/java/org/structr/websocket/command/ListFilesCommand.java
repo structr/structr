@@ -20,27 +20,27 @@
 
 package org.structr.websocket.command;
 
+import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.web.entity.Image;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.resource.PagingHelper;
+import org.structr.web.common.RelType;
 import org.structr.websocket.message.WebSocketMessage;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.core.entity.Image;
-import org.structr.rest.resource.PagingHelper;
-import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 

@@ -22,7 +22,7 @@ package org.structr.web.entity;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.*;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -32,6 +32,8 @@ import org.structr.core.entity.Principal;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------

@@ -32,7 +32,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
 
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.websocket.StructrWebSocket;
 

@@ -27,13 +27,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Cache;
-import org.structr.core.entity.File;
-import org.structr.core.entity.Folder;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.Image;
 import org.structr.core.entity.Location;
-import org.structr.core.entity.NodeList;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.ResourceAccess;
@@ -127,7 +123,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
 			final AbstractNode startNode   = nodes.get(0);
 			final AbstractNode endNode     = nodes.get(1);
-			final RelationshipType relType = RelType.CONTAINS;
+			final RelationshipType relType = RelType.IS_AT;
 
 			assertTrue(startNode != null);
 			assertTrue(endNode != null);
@@ -188,12 +184,8 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 					assertTrue(entityList.contains(AbstractNode.class));
 					assertTrue(entityList.contains(Cache.class));
-					assertTrue(entityList.contains(File.class));
 					assertTrue(entityList.contains(GenericNode.class));
-					assertTrue(entityList.contains(Image.class));
 					assertTrue(entityList.contains(Location.class));
-					assertTrue(entityList.contains(NodeList.class));
-					assertTrue(entityList.contains(Folder.class));
 					assertTrue(entityList.contains(PlainText.class));
 					assertTrue(entityList.contains(Person.class));
 					assertTrue(entityList.contains(ResourceAccess.class));
@@ -319,7 +311,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 							List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
 							final AbstractNode startNode   = nodes.get(0);
 							final AbstractNode endNode     = nodes.get(1);
-							final RelationshipType relType = RelType.LINK;
+							final RelationshipType relType = RelType.IS_AT;
 							AbstractRelationship rel       = (AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType);
 
 							assertTrue(rel != null);
@@ -361,7 +353,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
 			final AbstractNode startNode   = nodes.get(0);
 			final AbstractNode endNode     = nodes.get(1);
-			final RelationshipType relType = RelType.UNDEFINED;
+			final RelationshipType relType = RelType.IS_AT;
 			final PropertyMap props        = new PropertyMap();
 
 			props.put(new StringProperty("foo"), "bar");

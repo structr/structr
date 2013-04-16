@@ -18,15 +18,15 @@
  */
 
 
-package org.structr.core.entity;
+package org.structr.web.entity;
 
+import org.structr.web.common.FileHelper;
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.*;
-import org.structr.common.ImageHelper;
-import org.structr.common.ImageHelper.Thumbnail;
+import org.structr.web.common.ImageHelper;
+import org.structr.web.common.ImageHelper.Thumbnail;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
@@ -44,11 +44,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.ThumbnailParameters;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.ThumbnailProperty;
+import org.structr.web.property.ThumbnailProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,8 +75,8 @@ public class Image extends File {
 	
 //	public static final CollectionProperty<Image> thumbnails = new CollectionProperty("thumbnails", Image.class, RelType.THUMBNAIL, Direction.OUTGOING, true, Relation.DELETE_OUTGOING);
 
-	public static final View uiView              = new View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner);
-	public static final View publicView          = new View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner);
+	public static final org.structr.common.View uiView              = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner);
+	public static final org.structr.common.View publicView          = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner);
 	
 	static {
 		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail, owner);

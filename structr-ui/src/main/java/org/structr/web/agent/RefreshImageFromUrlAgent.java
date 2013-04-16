@@ -29,7 +29,7 @@ import org.structr.core.agent.RefreshImageFromUrlTask;
 import org.structr.core.agent.ReturnValue;
 import org.structr.core.agent.Task;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Image;
+import org.structr.web.entity.Image;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.node.ExtractAndSetImageDimensionsAndFormat;

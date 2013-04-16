@@ -18,14 +18,15 @@
  */
 
 
-package org.structr.core.property;
+package org.structr.web.property;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.ThumbnailParameters;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.converter.ThumbnailConverter;
-import org.structr.core.entity.Image;
+import org.structr.core.property.AbstractReadOnlyProperty;
+import org.structr.web.converter.ThumbnailConverter;
+import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
 

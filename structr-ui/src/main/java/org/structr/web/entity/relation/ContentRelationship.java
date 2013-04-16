@@ -21,7 +21,7 @@
 package org.structr.web.entity.relation;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.dom.Content;

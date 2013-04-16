@@ -30,20 +30,20 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
 
 import org.structr.common.CaseHelper;
-import org.structr.common.FileHelper;
-import org.structr.common.ImageHelper;
+import org.structr.web.common.FileHelper;
+import org.structr.web.common.ImageHelper;
 import org.structr.common.Path;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.File;
-import org.structr.core.entity.Folder;
-import org.structr.core.entity.Image;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NewIndexNodeCommand;
@@ -502,7 +502,7 @@ public class Importer {
 
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
-		String relativeFilePath = org.structr.core.entity.File.getDirectoryPath(uuid) + "/" + uuid;
+		String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
 		String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
 		java.io.File fileOnDisk = new java.io.File(filePath);
 

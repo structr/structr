@@ -30,8 +30,8 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Image;
-import org.structr.core.entity.Image;
+import org.structr.web.entity.Image;
+import org.structr.web.entity.Image;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeServiceCommand;
 

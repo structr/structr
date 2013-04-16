@@ -33,7 +33,7 @@ import org.structr.core.property.*;
  */
 public class TestFour extends AbstractNode {
 	
-	public static final EntityProperty<TestOne> testOne             = new EntityProperty<TestOne>("testOne", TestOne.class, RelType.DATA, Direction.INCOMING, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final EntityProperty<TestOne> testOne             = new EntityProperty<TestOne>("testOne", TestOne.class, RelType.IS_AT, Direction.INCOMING, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<String>("stringArrayProperty", String.class);
 	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty");
 	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty");

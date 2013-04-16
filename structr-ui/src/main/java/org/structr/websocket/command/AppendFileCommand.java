@@ -24,12 +24,12 @@ package org.structr.websocket.command;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractFile;
+import org.structr.web.entity.AbstractFile;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Folder;
+import org.structr.web.entity.Folder;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;

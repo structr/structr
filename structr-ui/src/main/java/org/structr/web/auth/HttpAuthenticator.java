@@ -182,13 +182,21 @@ public class HttpAuthenticator implements Authenticator {
 
 	public static void writeContent(String content, HttpServletResponse response) throws IOException {
 
-		response.setStatus(HttpServletResponse.SC_OK);
-		response.setCharacterEncoding("UTF-8");
+		try {
+			
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.setCharacterEncoding("UTF-8");
 
-		PrintWriter writer = response.getWriter();
-		writer.append(content);
-		writer.flush();
-		writer.close();
+			PrintWriter writer = response.getWriter();
+			writer.append(content);
+			writer.flush();
+			writer.close();
+
+		} catch (IllegalStateException ise) {
+			
+			logger.log(Level.WARNING, "Error while appending to writer", ise);
+			
+		}
 
 	}
 

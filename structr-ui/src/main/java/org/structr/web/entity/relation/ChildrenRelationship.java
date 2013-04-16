@@ -23,7 +23,7 @@ package org.structr.web.entity.relation;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;

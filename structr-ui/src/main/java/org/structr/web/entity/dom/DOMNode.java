@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -515,7 +515,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// special keyword "link", works only on root level
 				if (_data == null && "link".equals(part.toLowerCase())) {
 
-					for (AbstractRelationship rel : getRelationships(RelType.LINK, Direction.OUTGOING)) {
+					for (AbstractRelationship rel : getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
 
 						_data = rel.getEndNode();
 
@@ -549,7 +549,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// special keyword "owner"
 				if ("owner".equals(part.toLowerCase())) {
 
-					for (AbstractRelationship rel : getRelationships(RelType.OWNS, Direction.INCOMING)) {
+					for (AbstractRelationship rel : getRelationships(org.structr.common.RelType.OWNS, Direction.INCOMING)) {
 
 						_data = rel.getStartNode();
 

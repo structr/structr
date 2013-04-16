@@ -18,13 +18,11 @@
  */
 
 
-package org.structr.common;
+package org.structr.web.common;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Image;
-import org.structr.core.entity.TestImage;
 import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -33,7 +31,9 @@ import java.io.IOException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.ImageHelper.Thumbnail;
+import org.structr.web.common.ImageHelper.Thumbnail;
+import org.structr.web.entity.Image;
+import org.structr.web.entity.TestImage;
 
 //~--- classes ----------------------------------------------------------------
 

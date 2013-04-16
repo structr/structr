@@ -27,36 +27,10 @@ import org.neo4j.graphdb.RelationshipType;
  */
 public enum RelType implements RelationshipType {
 	
-	UNDEFINED, LINK, PAGE_LINK,
 	SECURITY,
-        USE_TEMPLATE,
         OWNS,
-        ROOT_NODE,
-        THUMBNAIL,
-	NEXT_LIST_ENTRY,
-	LAST_LIST_ENTRY,
 	IS_AT,
+	PROPERTY_ACCESS,
+	CHILDREN
 
-	// application relationships
-	DATA,
-	SUBMIT,
-	ERROR_DESTINATION,
-	SUCCESS_DESTINATION,
-	CREATE_DESTINATION,
-        
-        // type relationships
-        TYPE,
-        SUBTYPE,
-
-	// web
-	CONTAINS,	
-	CONTAINS_NEXT_SIBLING,
-	DEFINES_TYPE,
-	DEFINES_PROPERTY,
-	PAGE,
-	ROOT,
-	RENDER_NODE,
-	RENDER_LIST,
-	RENDER_TREE,
-	SYNC
 }

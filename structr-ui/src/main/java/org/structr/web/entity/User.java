@@ -27,7 +27,7 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
@@ -72,28 +72,6 @@ public class User extends Person implements Principal {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
-	/**
-	 * Return user's personal root node
-	 *
-	 * @return
-	 */
-	public AbstractNode getRootNode() {
-
-		List<AbstractRelationship> outRels = getRelationships(RelType.ROOT_NODE, Direction.OUTGOING);
-
-		if (outRels != null) {
-
-			for (AbstractRelationship r : outRels) {
-
-				return r.getEndNode();
-			}
-
-		}
-
-		return null;
-
-	}
 
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {

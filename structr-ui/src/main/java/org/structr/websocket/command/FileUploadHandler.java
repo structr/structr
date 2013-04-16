@@ -23,7 +23,7 @@ package org.structr.websocket.command;
 import org.structr.common.Path;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.entity.File;
+import org.structr.web.entity.File;
 
 //~--- JDK imports ------------------------------------------------------------
 

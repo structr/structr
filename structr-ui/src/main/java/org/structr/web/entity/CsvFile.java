@@ -20,10 +20,6 @@
 
 package org.structr.web.entity;
 
-import org.structr.core.entity.File;
-
-//~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author amorgner

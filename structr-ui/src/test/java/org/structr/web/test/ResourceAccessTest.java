@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Folder;
+import org.structr.web.entity.Folder;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;

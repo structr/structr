@@ -53,7 +53,7 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.entity.dom.Page;
-import org.structr.core.entity.File;
+import org.structr.web.entity.File;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -251,7 +251,7 @@ public class HtmlServlet extends HttpServlet {
 			
 			edit = renderContext.getEdit();
 			
-			org.structr.core.entity.File file = findFile(request, path);
+			org.structr.web.entity.File file = findFile(request, path);
 			DOMNode rootElement               = null;
 			AbstractNode dataNode             = null;
 			String searchFor                  = null;
@@ -527,7 +527,7 @@ public class HtmlServlet extends HttpServlet {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	private org.structr.core.entity.File findFile(HttpServletRequest request, final String path) throws FrameworkException {
+	private org.structr.web.entity.File findFile(HttpServletRequest request, final String path) throws FrameworkException {
 	
 		// FIXME: Take full page path into account
 		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
@@ -543,8 +543,8 @@ public class HtmlServlet extends HttpServlet {
 		}
 		
 		for (AbstractNode node : entryPoints) {
-			if (node instanceof org.structr.core.entity.File) {
-				return (org.structr.core.entity.File) node;
+			if (node instanceof org.structr.web.entity.File) {
+				return (org.structr.web.entity.File) node;
 			}
 		}
 		

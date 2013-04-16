@@ -22,7 +22,7 @@ package org.structr.websocket.command;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;

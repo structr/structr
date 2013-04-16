@@ -42,7 +42,7 @@ public class TestTwo extends AbstractNode {
 	public static final Property<Long> aLong    = new LongProperty("aLong");
 	public static final Property<Date> aDate    = new ISO8601DateProperty("aDate");
 	
-	public static final CollectionProperty<TestOne> testOnes = new CollectionProperty<TestOne>("test_ones", TestOne.class, RelType.CONTAINS, true);
+	public static final CollectionProperty<TestOne> testOnes = new CollectionProperty<TestOne>("test_ones", TestOne.class, RelType.OWNS, true);
 
 	public static final View publicView = new View(TestTwo.class, PropertyView.Public,
 		name, anInt, aLong, aDate

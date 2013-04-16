@@ -16,13 +16,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.property;
+package org.structr.web.property;
 
 import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.ImageConverter;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.StringProperty;
+import org.structr.web.converter.ImageConverter;
+import org.structr.web.entity.Image;
 
 /**
  * A property that tries to create an {@link Image} from BASE64 encoded data you store with setProperty.

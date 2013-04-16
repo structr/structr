@@ -62,7 +62,7 @@ import org.apache.commons.collections.iterators.IteratorEnumeration;
 
 import org.apache.commons.collections.map.LRUMap;
 import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;

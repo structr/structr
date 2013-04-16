@@ -65,7 +65,7 @@ public class ResourceAccess extends AbstractNode {
 	public static final Property<String>                    signature       = new StringProperty("signature");
 	public static final Property<Long>                      flags           = new LongProperty("flags");
 	public static final Property<Integer>                   position        = new IntProperty("position");
-	public static final CollectionProperty<PropertyAccess>  propertyAccess  = new CollectionProperty<PropertyAccess>("propertyAccess", PropertyAccess.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	public static final CollectionProperty<PropertyAccess>  propertyAccess  = new CollectionProperty<PropertyAccess>("propertyAccess", PropertyAccess.class, RelType.PROPERTY_ACCESS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position

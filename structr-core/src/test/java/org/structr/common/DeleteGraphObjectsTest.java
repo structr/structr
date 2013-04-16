@@ -33,10 +33,8 @@ import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertNotNull;
@@ -410,7 +408,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 				AbstractNode start       = createTestNode(type1.getSimpleName());
 				AbstractNode end         = createTestNode(type2.getSimpleName());
-				AbstractRelationship rel = createTestRelationship(start, end, RelType.UNDEFINED);
+				AbstractRelationship rel = createTestRelationship(start, end, RelType.IS_AT);
 
 				rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
 

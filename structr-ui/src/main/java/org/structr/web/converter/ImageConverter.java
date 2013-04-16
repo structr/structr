@@ -18,15 +18,14 @@
  */
 
 
-package org.structr.core.converter;
+package org.structr.web.converter;
 
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.ImageHelper;
-import org.structr.core.entity.Image;
+import org.structr.web.common.ImageHelper;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -36,8 +35,10 @@ import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.IndexNodeCommand;
+import org.structr.core.graph.NewIndexNodeCommand;
+import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -99,7 +100,7 @@ public class ImageConverter extends PropertyConverter {
 			if (img != null) {
 				
 				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
-				Services.command(securityContext, IndexNodeCommand.class).update(img, AbstractNode.uuid);
+				Services.command(securityContext, NewIndexNodeCommand.class).updateNode(img);
 				
 				currentObject.setProperty(keyAndClass.getPropertyKey(), img);
 			}

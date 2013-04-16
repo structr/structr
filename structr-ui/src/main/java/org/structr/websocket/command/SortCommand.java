@@ -22,7 +22,7 @@ package org.structr.websocket.command;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;

@@ -43,7 +43,7 @@ import org.w3c.dom.Element;
  */
 public class CreateSimplePage extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(CreateSimplePage.class.getName());
 
 	static {
 

@@ -25,10 +25,12 @@ import org.structr.core.property.Property;
 import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
 
-import org.structr.common.*;
+import org.structr.web.common.RelType;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Linkable;
+import org.structr.web.entity.Linkable;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;

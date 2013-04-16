@@ -18,7 +18,7 @@
  */
 
 
-package org.structr.common;
+package org.structr.web.common;
 
 import org.structr.core.property.PropertyMap;
 import com.mortennobel.imagescaling.ResampleOp;
@@ -29,8 +29,8 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.File;
-import org.structr.core.entity.Image;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Image;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.util.Base64;
 
@@ -46,6 +46,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 

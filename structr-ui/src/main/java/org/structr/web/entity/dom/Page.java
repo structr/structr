@@ -20,12 +20,12 @@ package org.structr.web.entity.dom;
 
 
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Linkable;
+import org.structr.web.entity.Linkable;
 import org.structr.core.graph.NodeService;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;

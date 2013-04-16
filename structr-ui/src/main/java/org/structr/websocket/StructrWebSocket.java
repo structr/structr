@@ -33,7 +33,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.File;
+import org.structr.web.entity.File;
 import org.structr.core.entity.Principal;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.LoginCommand;

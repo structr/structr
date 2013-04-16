@@ -27,7 +27,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 

@@ -20,7 +20,7 @@ package org.structr.web.entity.dom;
 
 
 import java.util.List;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;

@@ -109,7 +109,7 @@ public class PerformanceTest extends StructrTest {
 
 			int number                      = 1000;
 			long t0                         = System.nanoTime();
-			List<AbstractRelationship> rels = createTestRelationships(RelType.UNDEFINED, number);
+			List<AbstractRelationship> rels = createTestRelationships(RelType.IS_AT, number);
 			long t1                         = System.nanoTime();
 
 			assertTrue(rels.size() == number);

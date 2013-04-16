@@ -18,12 +18,11 @@
  */
 
 
-package org.structr.core.entity;
+package org.structr.web.entity;
 
 import org.apache.commons.io.FileUtils;
 
-
-import org.structr.common.FileHelper;
+import org.structr.web.common.FileHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;

@@ -18,23 +18,21 @@
  */
 
 
-package org.structr.core.entity;
+package org.structr.web.entity;
 
-import org.neo4j.graphdb.Direction;
-import org.structr.common.*;
-import org.structr.core.GraphObject;
-import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.CollectionProperty;
+import org.structr.web.entity.Image;
+import org.structr.common.ThumbnailParameters;
+import org.structr.web.property.ThumbnailProperty;
 
-//~--- interfaces -------------------------------------------------------------
+//~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * Image with a 200x100 thumbnail
+ * 
  * @author Axel Morgner
  */
-public interface Linkable extends GraphObject {
+public class TestImage extends Image {
 
-	public static final CollectionProperty<AbstractNode> linkingElements = new CollectionProperty<AbstractNode>("linkingElements", AbstractNode.class, RelType.LINK, Direction.INCOMING, new PropertyNotion(AbstractNode.uuid), true);
-
-	public static final View uiView = new View(Linkable.class, PropertyView.Ui, linkingElements);
+	public static final ThumbnailProperty thumbnail = new ThumbnailProperty("thumbnail", new ThumbnailParameters(200, 100, false));
+	
 }

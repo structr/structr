@@ -19,11 +19,12 @@
 
 
 
-package org.structr.core.entity;
+package org.structr.web.entity;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityProperty;
 

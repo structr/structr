@@ -18,12 +18,12 @@
  */
 
 
-package org.structr.core.entity;
+package org.structr.web.entity;
 
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.core.EntityContext;
 import static org.structr.core.GraphObject.type;

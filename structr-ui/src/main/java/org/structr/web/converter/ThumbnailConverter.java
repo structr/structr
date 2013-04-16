@@ -18,10 +18,10 @@
  */
 
 
-package org.structr.core.converter;
+package org.structr.web.converter;
 
 import org.structr.common.ThumbnailParameters;
-import org.structr.core.entity.Image;
+import org.structr.web.entity.Image;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
 

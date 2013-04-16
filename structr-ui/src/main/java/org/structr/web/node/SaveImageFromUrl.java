@@ -24,13 +24,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.Path;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Image;
-import org.structr.core.entity.Image;
+import org.structr.web.entity.Image;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -126,7 +125,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 			// Create new image node first
 			Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(
 						     new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
-						     new NodeAttribute(org.structr.core.entity.File.url, urlString),
+						     new NodeAttribute(org.structr.web.entity.File.url, urlString),
 						     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true),
 						     new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 

@@ -18,7 +18,7 @@
  */
 
 
-package org.structr.common;
+package org.structr.web.common;
 
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Path;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,7 +61,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void writeToFile(final org.structr.core.entity.File fileNode, final byte[] data) throws FrameworkException, IOException {
+	public static void writeToFile(final org.structr.web.entity.File fileNode, final byte[] data) throws FrameworkException, IOException {
 
 		String uuid = fileNode.getProperty(AbstractNode.uuid);
 
@@ -75,7 +76,7 @@ public class FileHelper {
 
 		}
 
-		fileNode.setRelativeFilePath(org.structr.core.entity.File.getDirectoryPath(uuid) + "/" + uuid);
+		fileNode.setRelativeFilePath(org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid);
 
 		java.io.File fileOnDisk = new java.io.File(Services.getFilesPath() + "/" + fileNode.getRelativeFilePath());
 
@@ -202,7 +203,7 @@ public class FileHelper {
 	 * @param file
 	 * @return 
 	 */
-	public static Long getChecksum(final org.structr.core.entity.File file) {
+	public static Long getChecksum(final org.structr.web.entity.File file) {
 
 		String relativeFilePath = file.getRelativeFilePath();
 
@@ -238,7 +239,7 @@ public class FileHelper {
 	 * @param file
 	 * @return 
 	 */
-	public static long getSize(final org.structr.core.entity.File file) {
+	public static long getSize(final org.structr.web.entity.File file) {
 		
 		String path = file.getRelativeFilePath();
 

@@ -33,15 +33,14 @@ import com.flagstone.transform.util.image.BufferedImageEncoder;
 
 import org.apache.commons.io.FileUtils;
 
-import org.structr.common.ImageHelper;
+import org.structr.web.common.ImageHelper;
 import org.structr.common.Path;
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Image;
-import org.structr.core.entity.Image;
+import org.structr.web.entity.Image;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -261,7 +260,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 										     new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
 										     new NodeAttribute(AbstractNode.name, name), new NodeAttribute(Image.width, width),
 										     new NodeAttribute(Image.height, height),
-										     new NodeAttribute(org.structr.core.entity.File.contentType, contentType),
+										     new NodeAttribute(org.structr.web.entity.File.contentType, contentType),
 										     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
 
 							// Establish HAS_CHILD relationship from parent node

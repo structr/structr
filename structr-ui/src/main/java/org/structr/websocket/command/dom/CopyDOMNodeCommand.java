@@ -23,7 +23,7 @@ package org.structr.websocket.command.dom;
 
 import java.util.Map;
 
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;

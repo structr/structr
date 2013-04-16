@@ -20,7 +20,7 @@
 
 package org.structr.websocket.command;
 
-import org.structr.common.RelType;
+import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -30,7 +30,6 @@ import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.web.common.RelationshipHelper;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Html;
 import org.structr.websocket.message.MessageBuilder;
@@ -56,7 +55,7 @@ import org.structr.websocket.StructrWebSocket;
  */
 public class ClonePageCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(ClonePageCommand.class.getName());
 
 	static {
 
@@ -132,8 +131,6 @@ public class ClonePageCommand extends AbstractCommand {
 								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
 							}
-
-							RelationshipHelper.tagOutgoingRelsWithPageId(newPage, newPage, originalPageId, pageId);
 
 						}
 
