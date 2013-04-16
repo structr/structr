@@ -93,15 +93,15 @@ var _Entities = {
             });
         });
         
-        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled renderOnIndex_">Render in index mode</button></div>');
-        var indexSwitch = $('.renderOnIndex_');
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnIndex_">Hide in index mode</button></div>');
+        var indexSwitch = $('.hideOnIndex_');
 
         _Entities.changeBooleanAttribute(indexSwitch, entity.renderOnIndex);
 
         indexSwitch.on('click', function(e) {
             e.stopPropagation();
-            entity.setProperty('renderOnIndex', indexSwitch.hasClass('disabled'), $('#renderOnIndex', dialogText).is(':checked'), function() {
-                _Entities.changeBooleanAttribute(indexSwitch, entity.renderOnIndex);
+            entity.setProperty('hideOnIndex_', indexSwitch.hasClass('disabled'), $('#hideOnIndex_', dialogText).is(':checked'), function() {
+                _Entities.changeBooleanAttribute(indexSwitch, entity.hideOnIndex_);
             });
         });
 
