@@ -52,7 +52,6 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.auth.HttpAuthenticator;
-import org.structr.web.entity.Component;
 import org.structr.web.entity.dom.Page;
 import org.structr.core.entity.File;
 
@@ -63,15 +62,18 @@ import java.text.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.property.GenericProperty;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
+import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -90,9 +92,11 @@ public class HtmlServlet extends HttpServlet {
 	public static final String REDIRECT = "redirect";
 	public static final String LAST_GET_URL = "lastGetUrl";
 	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
+	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	
 	private ResourceProvider resourceProvider                   = null;
 
+	private static final ThreadLocalMatcher threadLocalUUIDMatcher              = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 	
 	public static SearchNodeCommand searchNodesAsSuperuser;
 	//~--- fields ---------------------------------------------------------
@@ -249,6 +253,7 @@ public class HtmlServlet extends HttpServlet {
 			
 			org.structr.core.entity.File file = findFile(request, path);
 			DOMNode rootElement               = null;
+			AbstractNode dataNode             = null;
 			String searchFor                  = null;
 			
 			if (file == null) {
@@ -256,7 +261,7 @@ public class HtmlServlet extends HttpServlet {
 				String[] urlParts = PathHelper.getParts(path);
 				
 
-				if (urlParts.length > 1) {
+				if ((urlParts == null) || urlParts.length > 1) {
 
 					searchFor = StringUtils.substringBefore(urlParts[1], "?");
 
@@ -275,10 +280,6 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 				
-				// FIXME: disabled
-				/*
-
-				 
 				// store remaining path parts in request
 				Matcher matcher                 = threadLocalUUIDMatcher.get();
 				boolean requestUriContainsUuids = false;
@@ -293,14 +294,15 @@ public class HtmlServlet extends HttpServlet {
 
 				}
 
+				
 				if (!requestUriContainsUuids) {
 
-					// Try to find a component by name
-					comp = findComponent(request, path);
+					// Try to find a data ndoe by name
+					dataNode = findFirstNodeByPath(request, path);
 
-					if (comp != null) {
+					if (dataNode != null) {
 
-						request.setAttribute(comp.getUuid(), 0);
+						request.setAttribute(dataNode.getUuid(), 0);
 
 						// set to "true" if part matches UUID pattern
 						requestUriContainsUuids = true;
@@ -310,34 +312,35 @@ public class HtmlServlet extends HttpServlet {
 				} else {
 					
 					AbstractNode n = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(PathHelper.getName(path));
-					if (n != null && n instanceof Component) {
-						comp = (Component) n;
+					if (n != null) {
+						dataNode = n;
 					}
 					
 				}
 
 				// store information about UUIDs in path in request for later use in Component
-				request.setAttribute(Component.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
-				*/
+				request.setAttribute(REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
 			}
 			
-			/*
+			
 			if (rootElement == null && file == null) {
 				
-				if (comp != null) {
+				if (dataNode != null) {
 					
-					// Last path part matches a component
+					// Last path part matches a data node
 					// Remove last path part and try again searching for a page
 					
 					// clear possible entry points
 					request.removeAttribute(POSSIBLE_ENTRY_POINTS);
 					
-					page = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
+					rootElement = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
+					
+					renderContext.setDetailsDataObject(dataNode);
 					
 				}
 				
 			}
-			*/
+			
 			
 			AbstractNode node = file != null ? file : rootElement != null ? rootElement : null;
 			
@@ -489,26 +492,32 @@ public class HtmlServlet extends HttpServlet {
 	
 
 	/**
-	 * Find a component with its name matching last path part
+	 * Find first node whose name matches the given path
 	 * 
 	 * @param request
 	 * @param path
 	 * @return
 	 * @throws FrameworkException 
 	 */
-//	private Component findComponent(HttpServletRequest request, final String path) throws FrameworkException {
-//	
-//		// FIXME: Take full file path into account
-//		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
-//		
-//		for (AbstractNode node : entryPoints) {
-//			if (node instanceof Component) {
-//				return (Component) node;
-//			}
-//		}
-//		
-//		return null;
-//	}
+	private AbstractNode findFirstNodeByPath(HttpServletRequest request, final String path) throws FrameworkException {
+		
+		// FIXME: Take full path into account
+		String name = PathHelper.getName(path);
+		
+		if (name.length() > 0) {
+
+			logger.log(Level.FINE, "Requested name: {0}", name);
+
+			Result results = searchNodesAsSuperuser.execute(Search.andExactName(name));
+			
+			logger.log(Level.FINE, "{0} results", results.size());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
+			
+			return (results.size() > 0 ? (AbstractNode) results.get(0) : null);
+		}
+
+		return null;
+	}
 	
 	/**
 	 * Find a file with its name matching last path part
@@ -672,7 +681,6 @@ public class HtmlServlet extends HttpServlet {
 			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
 
 			group.add(Search.orExactType(Page.class.getSimpleName()));
-			group.add(Search.orExactType(Component.class.getSimpleName()));
 			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
 //			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
 			searchAttrs.add(group);
@@ -708,7 +716,6 @@ public class HtmlServlet extends HttpServlet {
 			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
 
 			group.add(Search.orExactType(Page.class.getSimpleName()));
-			group.add(Search.orExactType(Component.class.getSimpleName()));
 			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
 //			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
 			searchAttrs.add(group);

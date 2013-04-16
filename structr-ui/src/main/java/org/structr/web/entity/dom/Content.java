@@ -39,13 +39,11 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.Search;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.PageHelper;
 import org.structr.web.common.RenderContext;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;

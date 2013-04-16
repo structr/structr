@@ -64,7 +64,7 @@ public class DynamicTypeResource extends TypeResource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		boolean includeDeletedAndHidden        = false;
+		boolean includeDeletedAndHidden        = true;
 		boolean publicOnly                     = false;
 
 		if (rawType != null) {

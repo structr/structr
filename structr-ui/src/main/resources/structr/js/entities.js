@@ -78,8 +78,40 @@ var _Entities = {
     },
 
     showDataDialog : function(entity) {
-        
+
         Structr.dialog('Edit Data Settings of ' + entity.id, function() { return true; }, function() { return true; });
+
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled renderDetails_">Render single object only in details mode</button></div>');
+        var detailsSwitch = $('.renderDetails_');
+
+        _Entities.changeBooleanAttribute(detailsSwitch, entity.renderDetails);
+
+        detailsSwitch.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty('renderDetails', detailsSwitch.hasClass('disabled'), $('#renderDetails', dialogText).is(':checked'), function() {
+                _Entities.changeBooleanAttribute(detailsSwitch, entity.renderDetails);
+            });
+        });
+        
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled renderOnIndex_">Render in index mode</button></div>');
+        var indexSwitch = $('.renderOnIndex_');
+
+        _Entities.changeBooleanAttribute(indexSwitch, entity.renderOnIndex);
+
+        indexSwitch.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty('renderOnIndex', indexSwitch.hasClass('disabled'), $('#renderOnIndex', dialogText).is(':checked'), function() {
+                _Entities.changeBooleanAttribute(indexSwitch, entity.renderOnIndex);
+            });
+        });
+
+        dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
+        $('#saveDataKey', dialog).on('click', function() {
+            entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {
+                log('Data Key successfully updated!', entity.dataKey);
+            });
+        });
+
 
         dialog.append('<div><h3>REST Query</h3><textarea cols="80" rows="4" id="restQuery">' + (entity.restQuery ? entity.restQuery : '') + '</textarea></div>');
         dialog.append('<div><button id="applyRestQuery">Apply</button></div>');
@@ -112,13 +144,6 @@ var _Entities = {
             });
         });
 
-        dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
-        $('#saveDataKey', dialog).on('click', function() {
-            entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {
-                log('Data Key successfully updated!', entity.dataKey);
-            });
-        });
-
         //_Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
         
         dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId" size="32" value="' + (entity.dataNodeId ? entity.dataNodeId : '') + '"><button id="saveDataNodeId">Save</button></div>');
@@ -133,7 +158,7 @@ var _Entities = {
         var views;
 	var startView = '_html_';
         
-        if (entity.type === 'Content') {
+        if (entity.type === 'Content' || entity.type === 'Page') {
             views = ['all', 'in', 'out' ];
             startView = 'all';
         } else {

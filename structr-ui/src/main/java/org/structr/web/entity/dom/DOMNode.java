@@ -61,7 +61,6 @@ import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.common.PageHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Renderable;
@@ -293,7 +292,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	 *
 	 * @throws FrameworkException
 	 */
-	private void updatePages(SecurityContext securityContext) throws FrameworkException {
+	private void increasePageVersion(SecurityContext securityContext) throws FrameworkException {
 
 		Page page = (Page) getOwnerDocument();
 		
@@ -307,17 +306,19 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	}
 
 	@Override
-	public void afterModification(SecurityContext securityContext) {
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		try {
 
-			updatePages(securityContext);
+			increasePageVersion(securityContext);
 
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.WARNING, "Updating page version failed", ex);
 
 		}
+		
+		return true;
 
 	}
 	
@@ -767,7 +768,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			Result<Content> result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(searchAttributes);
 			for (Content content : result.getResults()) {
 
-				resultPages.addAll(PageHelper.getPages(securityContext, content));
+				resultPages.add((Page) content.getOwnerDocument());
 			}
 
 			// Remove result ownerDocument itself
