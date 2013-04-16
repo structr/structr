@@ -109,43 +109,52 @@ public class HttpAuthenticator implements Authenticator {
 
 		Principal user;
 		String auth = request.getHeader("Authorization");
-
-		if (auth == null) {
-
-			sendBasicAuthResponse(response);
-
-			return null;
-
-		}
-
-		if (!auth.toUpperCase().startsWith("BASIC ")) {
-
-			sendBasicAuthResponse(response);
-
-			return null;
-
-		}
-
-		String[] userAndPass = getUsernameAndPassword(request);
-
+		
 		try {
+			if (auth == null) {
 
-			if ((userAndPass == null) || (userAndPass.length != 2)) {
+				sendBasicAuthResponse(response);
 
-				writeUnauthorized(response);
+				return null;
+
 			}
 
-			user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userAndPass[0], userAndPass[1]);
+			if (!auth.toUpperCase().startsWith("BASIC ")) {
 
-		} catch (Exception ex) {
+				sendBasicAuthResponse(response);
 
-			sendBasicAuthResponse(response);
+				return null;
 
-			return null;
+			}
 
+			String[] userAndPass = getUsernameAndPassword(request);
+
+			try {
+
+				if ((userAndPass == null) || (userAndPass.length != 2)) {
+
+					writeUnauthorized(response);
+				}
+
+				user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userAndPass[0], userAndPass[1]);
+
+			} catch (Exception ex) {
+
+				sendBasicAuthResponse(response);
+
+				return null;
+
+			}
+
+			return user;
+			
+		} catch (IllegalStateException ise) {
+			
+			logger.log(Level.WARNING, "Error while sending basic auth response, stream might be already closed, sending anyway.");
+			
 		}
-
-		return user;
+		
+		return null;
 
 	}
 
