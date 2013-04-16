@@ -22,6 +22,8 @@ var searchField;
 
 var browser = (typeof document === 'object');
 var headers;
+var crudPagerDataCookieName = 'structrCrudPagerData_' + port + '_';
+var crudTypeCookieName = 'structrCrudType_' + port;
 
 if (browser) {
     
@@ -430,11 +432,11 @@ var _Crud = {
     },
     
     storeTypeInCookie : function() {
-        $.cookie('structrCrudType', _Crud.type);
+        $.cookie(crudTypeCookieName, _Crud.type);
     },
     
     restoreTypeFromCookie : function() {
-        var cookie = $.cookie('structrCrudType');
+        var cookie = $.cookie(crudTypeCookieName);
         if (cookie) {
             _Crud.type = cookie;
         //console.log('Current type from Cookie', cookie);
@@ -445,12 +447,12 @@ var _Crud = {
         var type = _Crud.type;
         var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
         //console.log('pager data to store in cookie: ', pagerData);
-        $.cookie('structrCrudPagerData_' + type, pagerData);
+        $.cookie(crudPagerDataCookieName + type, pagerData);
     },
     
     restorePagerDataFromCookie : function() {
         var type = _Crud.type;
-        var cookie = $.cookie('structrCrudPagerData_' + type);
+        var cookie = $.cookie(crudPagerDataCookieName + type);
         
         if (cookie) {
             var pagerData = cookie.split(',');

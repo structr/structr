@@ -22,6 +22,7 @@ var token;
 var loggedIn = false;
 var user;
 var reconn;
+var port = document.location.port;
 
 var rawResultCount = [];
 var pageCount = [];
@@ -29,6 +30,9 @@ var page = 1;
 var pageSize = 25;
 var sort = 'name';
 var order = 'asc';
+
+var tokenCookieName = 'structrSessionToken_' + port;
+var userCookieName = 'structrUser_' + port;
 
 var footer = $('#footer');
 
@@ -64,8 +68,6 @@ function connect() {
 
         log('WebSocket.readyState: ' + ws.readyState, ws);
 		
-        var entity;
-
         ws.onopen = function() {
             
 	    if ($.unblockUI) {
@@ -132,8 +134,8 @@ function connect() {
                 log('token', token);
 		
                 if (sessionValid) {
-                    $.cookie('structrSessionToken', token);
-                    $.cookie('structrUser', user);
+                    $.cookie(tokenCookieName, token);
+                    $.cookie(userCookieName, user);
                     $.unblockUI({
                         fadeOut: 25
                     });
@@ -142,8 +144,8 @@ function connect() {
                     Structr.loadInitialModule();
 					
                 } else {
-                    $.cookie('structrSessionToken', '');
-                    $.cookie('structrUser', '');
+                    $.cookie(tokenCookieName, '');
+                    $.cookie(userCookieName, '');
                     clearMain();
 
                     Structr.login();
@@ -151,8 +153,8 @@ function connect() {
 
             } else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
-                $.cookie('structrSessionToken', '');
-                $.cookie('structrUser', '');
+                $.cookie(tokenCookieName, '');
+                $.cookie(userCookieName, '');
                 clearMain();
                 Structr.login();
 
@@ -303,8 +305,8 @@ function connect() {
 
                 if (sessionValid === false) {
                     log('invalid session');
-                    $.cookie('structrSessionToken', '');
-                    $.cookie('structrUser', '');
+                    $.cookie(tokenCookieName, '');
+                    $.cookie(userCookieName, '');
                     clearMain();
 
                     Structr.login();

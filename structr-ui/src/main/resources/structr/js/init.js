@@ -34,6 +34,9 @@ var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialog
 var dialogId;
 var page = [];
 var pageSize = [];
+var expandedIdsCookieName = 'structrTreeExpandedIds_' + port;
+var lastMenuEntryCookieName = 'structrLastMenuEntry_' + port;
+var pagerDataCookieName = 'structrPagerData_' + port + '_';
 
 $(document).ready(function() {
     
@@ -96,13 +99,6 @@ $(document).ready(function() {
         Structr.modules['pages'].onload();
         _Pages.resize();
     });
-
-//    $('#components_').on('click', function(e) {
-//        e.stopPropagation();
-//        main.empty();
-//        Structr.activateMenuEntry('components');
-//        Structr.modules['components'].onload();
-//    });
     
     $('#propertyDefinitions_').on('click', function(e) {
         e.stopPropagation();
@@ -155,14 +151,14 @@ $(document).ready(function() {
 
     $('#usernameField').keypress(function(e) {
         e.stopPropagation();
-        if (e.which == 13) {
+        if (e.which === 13) {
             $(this).blur();
             loginButton.focus().click();
         }
     });
     $('#passwordField').keypress(function(e) {
         e.stopPropagation();
-        if (e.which == 13) {
+        if (e.which === 13) {
             $(this).blur();
             loginButton.focus().click();
         }
@@ -171,7 +167,7 @@ $(document).ready(function() {
     Structr.init();
     
     $(document).keyup(function(e) {
-        if (e.keyCode == 27) {
+        if (e.keyCode === 27) {
             dialogCancelButton.click();
         }
     });     
@@ -210,14 +206,14 @@ var Structr = {
 
     init : function() {
         
-        token = $.cookie('structrSessionToken');
-        user = $.cookie('structrUser');
+        token = $.cookie(tokenCookieName);
+        user = $.cookie(userCookieName);
         log('token', token);
         log('user', user);
 
-        Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
+        Structr.expanded = $.parseJSON($.cookie(expandedIdsCookieName));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
-        log('expanded ids', $.cookie('structrTreeExpandedIds'));
+        log('expanded ids', $.cookie(expandedIdsCookieName));
 
         connect();
 
@@ -256,8 +252,8 @@ var Structr = {
     doLogout : function(text) {
         log('doLogout ' + user);
         //Structr.saveSession();
-        $.cookie('structrSessionToken', '');
-        $.cookie('structrUser', '');
+        $.cookie(tokenCookieName, '');
+        $.cookie(userCookieName, '');
         if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
             Structr.clearMain();
             Structr.login(text);
@@ -271,7 +267,7 @@ var Structr = {
         var anchor = getAnchorFromUrl(browserUrl);
         log('anchor', anchor);
 
-        lastMenuEntry = ((anchor && anchor != 'logout') ? anchor : $.cookie('structrLastMenuEntry'));
+        lastMenuEntry = ((anchor && anchor !== 'logout') ? anchor : $.cookie(lastMenuEntryCookieName));
         if (!lastMenuEntry) {
             lastMenuEntry = 'dashboard';
         } else {
@@ -516,11 +512,10 @@ var Structr = {
         menuEntry.addClass('active').removeClass('inactive');
         $('#title').text('structr ' + menuEntry.text());
         
-        if (lastMenuEntry && lastMenuEntry != 'logout') {
+        if (lastMenuEntry && lastMenuEntry !== 'logout') {
 
-            $.cookie('structrLastMenuEntry', lastMenuEntry, {
-                expires: 7,
-                path: '/'
+            $.cookie(lastMenuEntryCookieName, lastMenuEntry, {
+                expires: 7
             });
         }
     },
@@ -619,13 +614,13 @@ var Structr = {
             
             var pageLeft = $('.pageLeft', pager);
             var pageRight = $('.pageRight', pager);
-            if (page[type] == 1) {
+            if (page[type] === 1) {
                 pageLeft.attr('disabled', 'disabled').addClass('disabled');
             } else {
                 pageLeft.removeAttr('disabled', 'disabled').removeClass('disabled');
             }
 
-            if (page[type] == pageCount[type]) {
+            if (page[type] === pageCount[type]) {
                 pageRight.attr('disabled', 'disabled').addClass('disabled');
             } else {
                 pageRight.removeAttr('disabled', 'disabled').removeClass('disabled');
@@ -639,11 +634,11 @@ var Structr = {
     },
     
     storePagerDataInCookie : function(type) {
-        $.cookie('structrPagerData_' + type, page[type] + ',' + pageSize[type]);
+        $.cookie(pagerDataCookieName + type, page[type] + ',' + pageSize[type]);
     },
     
     restorePagerDataFromCookie : function(type) {
-        var cookie = $.cookie('structrPagerData_' + type);
+        var cookie = $.cookie(pagerDataCookieName + type);
         if (cookie) {
             var pagerData = cookie.split(',');
             log('Pager Data from Cookie', pagerData);
@@ -693,7 +688,7 @@ var Structr = {
         var pageSizeForm = $('.pageSize', pager);
 
         pageSizeForm.on('keypress', function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 pageSize[type] = $(this).val();
                 pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
                 page[type] = 1;
@@ -706,7 +701,7 @@ var Structr = {
         });
 
         pageForm.on('keypress', function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 page[type] = $(this).val();
                 $('.page', pager).val(page[type]);
                 $('.node', el).remove();
@@ -714,18 +709,18 @@ var Structr = {
             }
         });
 
-        if (page[type] == 1) {
+        if (page[type] === 1) {
             pageLeft.attr('disabled', 'disabled').addClass('disabled');
         }
 
-        if (page[type] == pageCount[type]) {
+        if (page[type] === pageCount[type]) {
             pageRight.attr('disabled', 'disabled').addClass('disabled');
         }
 
         pageLeft.on('click', function() {
             pageRight.removeAttr('disabled').removeClass('disabled');
             page[type]--;
-            if (page[type] == 1) {
+            if (page[type] === 1) {
                 pageLeft.attr('disabled', 'disabled').addClass('disabled');
             }
             $('.page', pager).val(page[type]);
@@ -736,7 +731,7 @@ var Structr = {
         pageRight.on('click', function() {
             pageLeft.removeAttr('disabled').removeClass('disabled');
             page[type]++;
-            if (page[type] == pageCount[type]) {
+            if (page[type] === pageCount[type]) {
                 pageRight.attr('disabled', 'disabled').addClass('disabled');
             }
             $('.page', pager).val(page[type]);
@@ -755,7 +750,7 @@ function getElementPath(element) {
         var self = $(this);
         //if (self.hasClass('page')) return getId(self);
         // id for top-level element
-        if (i==0) return getId(self);
+        if (i === 0) return getId(self);
         return self.prevAll('.node').length;
     }).get().join('_');
 }
@@ -773,7 +768,7 @@ function isImage(contentType) {
 }
 
 function plural(type) {
-    if (type.substring(type.length-1, type.length) == 'y') {
+    if (type.substring(type.length-1, type.length) === 'y') {
         return type.substring(0, type.length-1) + 'ies';
     } else {
         return type + 's';
@@ -786,9 +781,8 @@ function addExpandedNode(id) {
     if (!id) return;
 
     getExpanded()[id] = true;
-    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
-        expires: 7, 
-        path: '/'
+    $.cookie(expandedIdsCookieName, $.toJSON(Structr.expanded), {
+        expires: 7
     });
 
 }
@@ -799,9 +793,8 @@ function removeExpandedNode(id) {
     if (!id) return;
     
     delete getExpanded()[id];
-    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
-        expires: 7, 
-        path: '/'
+    $.cookie(expandedIdsCookieName, $.toJSON(Structr.expanded), {
+        expires: 7
     });
 }
 
@@ -810,7 +803,7 @@ function isExpanded(id) {
 
     if (!id) return false;
 
-    var isExpanded = getExpanded()[id] == true ? true : false;
+    var isExpanded = getExpanded()[id] === true ? true : false;
 
     log(isExpanded);
 
@@ -819,7 +812,7 @@ function isExpanded(id) {
 
 function getExpanded() {
     if (!Structr.expanded) {
-        Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
+        Structr.expanded = $.parseJSON($.cookie(expandedIdsCookieName));
     }
 
     if (!Structr.expanded) {
@@ -831,7 +824,7 @@ function getExpanded() {
 
 function formatValueInputField(key, obj) {
 
-    if (obj == null) {
+    if (obj === null) {
         return '<input name="' + key + '" type="text" value="">';
     } else if (obj.constructor === Object) {
 
@@ -856,36 +849,13 @@ function formatKey(text) {
     var result = '';
     for (var i=0; i<text.length; i++) {
         var c = text.charAt(i);
-        if (c == c.toUpperCase()) {
+        if (c === c.toUpperCase()) {
             result += ' ' + c;
         } else {
-            result += (i==0 ? c.toUpperCase() : c);
+            result += (i === 0 ? c.toUpperCase() : c);
         }
     }
     return result;
-}
-
-function deleteAll(button, type, callback) {
-    var types = plural(type);
-    var element = $('#' + types);
-    if (isDisabled(button)) return;
-    var con = confirm('Delete all ' + types + '?');
-    if (!con) return;
-    var headers = {
-        'X-StructrSessionToken' : token
-    };
-    $.ajax({
-        url: rootUrl + type.toLowerCase(),
-        type: "DELETE",
-        headers: headers,
-        success: function(data) {
-            $(element).children("." + type).each(function(i, child) {
-                $(child).remove();
-            });
-            enable(button);
-            if (callback) callback();
-        }
-    });
 }
 
 function isDisabled(button) {
@@ -968,7 +938,7 @@ function followIds(pageId, entity) {
         headers: headers,
         success: function(data) {
             //console.log(data);
-            if (!data || data.length == 0 || !data.result) return;
+            if (!data || data.length === 0 || !data.result) return;
             var out = data.result;
             if ($.isArray(out)) {
                 //for (var i=0; i<out.length; i++) {

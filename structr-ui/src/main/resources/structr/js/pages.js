@@ -23,6 +23,7 @@ var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
+var activeTabCookieName = 'structrActiveTab_' + port;
 var win = $(window);
 
 $(document).ready(function() {
@@ -101,7 +102,7 @@ var _Pages = {
         
         _Pages.init();
         
-        activeTab = $.cookie('structrActiveTab');
+        activeTab = $.cookie(activeTabCookieName);
         log('value read from cookie', activeTab);
 
         log('onload');
@@ -316,9 +317,8 @@ var _Pages = {
         element.addClass('active');
 
         log('set cookie for active tab', activeTab);
-        $.cookie('structrActiveTab', activeTab, {
-            expires: 7,
-            path: '/'
+        $.cookie(activeTabCookieName, activeTab, {
+            expires: 7
         });
 
     },
