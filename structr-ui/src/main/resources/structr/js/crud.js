@@ -387,7 +387,7 @@ var _Crud = {
      */
     restType : function(type) {
         var typeDef = _Crud.schema[type];
-        return typeDef.url.substring(1);
+        return typeDef ? typeDef.url.substring(1) : type.toUnderscore();
     },
     
     /**
@@ -493,13 +493,14 @@ var _Crud = {
     },
 
     sortAndPagingParameters : function(t,s,o,ps,p) {
-        var typeParam = (t ? 'type=' + t : '');
+        //var typeParam = (t ? 'type=' + t : '');
         var sortParam = (s ? 'sort=' + s : '');
         var orderParam = (o ? 'order=' + o : '');
         var pageSizeParam = (ps ? 'pageSize=' + ps : '');
         var pageParam = (p ? 'page=' + p : '');
     
-        var params = (typeParam ? '?' + typeParam : '');
+        //var params = (typeParam ? '?' + typeParam : '');
+        var params = '';
         params = params + (sortParam ? (params.length?'&':'?') + sortParam : '');
         params = params + (orderParam ? (params.length?'&':'?') + orderParam : '');
         params = params + (pageSizeParam ? (params.length?'&':'?') + pageSizeParam : '');
@@ -1419,7 +1420,9 @@ var _Crud = {
                 var node = data.result;
                 //console.log('node', node);
                 
-                cell.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(node.name, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+                var displayName = node.name ? node.name : node.id;
+                
+                cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
                 //console.log(node);
                 if (node.type === 'Image') {
@@ -1471,44 +1474,6 @@ var _Crud = {
   
     },
     
-    //    getAndAppendNodes : function(parentType, id, key, type, el, pageSize) {
-    //        var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
-    //        var view = 'public'; // _Crud.view[_Crud.type]
-    //        var url = rootUrl + urlType + '/' + view + _Crud.sortAndPagingParameters('name', 'asc', pageSize, 1);
-    //        $.ajax({
-    //            url: url,
-    //            headers: headers,
-    //            type: 'GET',
-    //            dataType: 'json',
-    //            contentType: 'application/json; charset=utf-8',
-    //            //async: false,
-    //            success: function(data) {
-    //                
-    //                $.each(data.result, function(i, node) {
-    //                
-    //                    //console.log('node', node);
-    //                    el.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
-    //                
-    //                    var nodeEl = $('#_' + node.id, el);
-    //                    //console.log(node);
-    //                    if (node.type == 'Image') {
-    //                        nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
-    //                    }
-    //                    
-    //                    nodeEl.on('click', function(e) {
-    //                        e.preventDefault();
-    //                        _Crud.addRelatedObject(parentType, id, key, node, function() {
-    //                            document.location.reload();
-    //                        });
-    //                        return false;
-    //                    });
-    //                
-    //                });
-    //            }
-    //        });
-    //  
-    //    },
-    
     clearSearch : function(el) {
         if (_Crud.clearSearchResults(el)) {
             $('.clearSearchIcon').hide().off('click');
@@ -1551,8 +1516,7 @@ var _Crud = {
         $.each(types, function(t, type) {
             
             var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', pageSize, 1) + '&name=' + searchString + '&loose=1';
-            
-            //console.log(url);
+            console.log(url);
             
             $.ajax({
                 url: url,
@@ -1569,22 +1533,19 @@ var _Crud = {
                 
                     $.each(data.result, function(i, node) {
                         
-                        if (node.type === type) {
-                            
-                            //console.log('node', node);
-                            $('#resultsFor' + type, searchResults).append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
-                
-                            var nodeEl = $('#_' + node.id, searchResults);
-                            //console.log(node);
-                            if (node.type === 'Image') {
-                                nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
-                            }
-                    
-                            nodeEl.on('click', function(e) {
-                                onClickCallback(e, node);
-                            });
-                        
+                        //console.log('node', node);
+                        var displayName = node.name ? node.name : node.id;
+                        $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(displayName, 120) + '</div>');
+
+                        var nodeEl = $('#_' + node.id, searchResults);
+                        //console.log(node);
+                        if (node.type === 'Image') {
+                            nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
                         }
+
+                        nodeEl.on('click', function(e) {
+                            onClickCallback(e, node);
+                        });
                 
                     });
                 }

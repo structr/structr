@@ -66,32 +66,32 @@ function unescapeTags(str) {
 
 $.fn.reverse = [].reverse;
 
-if (typeof String.prototype.endsWith != 'function') {
+if (typeof String.prototype.endsWith !== 'function') {
     String.prototype.endsWith = function(pattern) {
         var d = this.length - pattern.length;
         return d >= 0 && this.lastIndexOf(pattern) === d;
     };
 }
 
-if (typeof String.prototype.startsWith != 'function') {
+if (typeof String.prototype.startsWith !== 'function') {
     String.prototype.startsWith = function (str){
         return this.indexOf(str) == 0;
     };
 }
 
-if (typeof String.prototype.capitalize != 'function') {
+if (typeof String.prototype.capitalize !== 'function') {
     String.prototype.capitalize = function() {
         return this.charAt(0).toUpperCase() + this.slice(1);
     };
 }
 
-if (typeof String.prototype.escapeForJSON != 'function') {
+if (typeof String.prototype.escapeForJSON !== 'function') {
     String.prototype.escapeForJSON = function() {
         return this.replace(/"/g, '\'');
     };
 }
 
-if (typeof String.prototype.lpad != 'function') {
+if (typeof String.prototype.lpad !== 'function') {
     String.prototype.lpad = function(padString, length) {
         var str = this;
         while (str.length < length)
@@ -100,13 +100,13 @@ if (typeof String.prototype.lpad != 'function') {
     };
 }
 
-if (typeof String.prototype.contains != 'function') {
+if (typeof String.prototype.contains !== 'function') {
     String.prototype.contains = function(pattern) {
         return this.indexOf(pattern) > 0;
     };
 }
 
-if (typeof String.prototype.splitAndTitleize != 'function') {
+if (typeof String.prototype.splitAndTitleize !== 'function') {
     String.prototype.splitAndTitleize = function(sep) {
         
         var res = new Array();
