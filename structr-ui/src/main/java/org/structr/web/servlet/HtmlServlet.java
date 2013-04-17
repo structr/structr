@@ -20,7 +20,6 @@
 
 package org.structr.web.servlet;
 
-import org.structr.core.property.PropertyKey;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
@@ -45,7 +44,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
@@ -70,7 +68,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.structr.core.graph.GetNodeByIdCommand;
-import org.structr.core.property.GenericProperty;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -251,35 +248,38 @@ public class HtmlServlet extends HttpServlet {
 			
 			edit = renderContext.getEdit();
 			
-			org.structr.web.entity.File file = findFile(request, path);
+			
+			
 			DOMNode rootElement               = null;
 			AbstractNode dataNode             = null;
-			String searchFor                  = null;
 			
-			if (file == null) {
 			
-				String[] urlParts = PathHelper.getParts(path);
-				
+			String[] urlParts = PathHelper.getParts(path);
+			if ((urlParts == null) || (urlParts.length == 0)) {
 
-				if ((urlParts == null) || urlParts.length > 1) {
+				// try to find a page with position==0
+				rootElement = findIndexPage();
 
-					searchFor = StringUtils.substringBefore(urlParts[1], "?");
+				logger.log(Level.FINE, "No path supplied, trying to find index page");
+
+			} else {
+
+				rootElement = findPage(request, path);
+			}
+
+			if (rootElement == null) { // No page found
+
+				// Look for a file
+				org.structr.web.entity.File file = findFile(request, path);
+				if (file != null) {
+
+					logger.log(Level.FINE, "File found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
+
+					streamFile(securityContext, file, request, response);
+					return;
 
 				}
 
-				if ((urlParts == null) || (urlParts.length == 0)) {
-
-					// try to find a page with position==0
-					rootElement = findIndexPage();
-
-					logger.log(Level.INFO, "No path supplied, trying to find index page");
-
-				} else {
-
-					rootElement = findPage(request, path);
-				}
-
-				
 				// store remaining path parts in request
 				Matcher matcher                 = threadLocalUUIDMatcher.get();
 				boolean requestUriContainsUuids = false;
@@ -294,55 +294,60 @@ public class HtmlServlet extends HttpServlet {
 
 				}
 
-				
+
 				if (!requestUriContainsUuids) {
 
-					// Try to find a data ndoe by name
+					// Try to find a data node by name
 					dataNode = findFirstNodeByPath(request, path);
 
-					if (dataNode != null) {
-
-						request.setAttribute(dataNode.getUuid(), 0);
-
-						// set to "true" if part matches UUID pattern
-						requestUriContainsUuids = true;
-
-					}
-
 				} else {
-					
+
 					AbstractNode n = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(PathHelper.getName(path));
 					if (n != null) {
 						dataNode = n;
 					}
-					
+
 				}
 
-				// store information about UUIDs in path in request for later use in Component
-				request.setAttribute(REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
-			}
-			
-			
-			if (rootElement == null && file == null) {
-				
 				if (dataNode != null) {
-					
+
 					// Last path part matches a data node
 					// Remove last path part and try again searching for a page
-					
+
 					// clear possible entry points
 					request.removeAttribute(POSSIBLE_ENTRY_POINTS);
-					
+
 					rootElement = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
-					
+
 					renderContext.setDetailsDataObject(dataNode);
-					
+
 				}
+
+			}
+
+			// Still nothing found, do error handling
+			if (rootElement == null) {
+				
+				// Check if security context has set an 401 status
+				if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
+
+					try {
+						
+						HttpAuthenticator.writeUnauthorized(response);
+						
+					} catch (IllegalStateException ise) {}
+
+				} else {
+
+					HttpAuthenticator.writeNotFound(response);
+
+				}
+				
+				return;
 				
 			}
 			
-			
-			AbstractNode node = file != null ? file : rootElement != null ? rootElement : null;
+			logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 			
 			if (edit || dontCache) {
 
@@ -350,35 +355,20 @@ public class HtmlServlet extends HttpServlet {
 
 			} else {
 				
-				if (node != null) {
-					lastModified = node.getLastModifiedDate();
-				}
+				lastModified = rootElement.getLastModifiedDate();
 
 			}
 
-			if ((rootElement != null) && securityContext.isVisible(rootElement)) {
+			if (securityContext.isVisible(rootElement)) {
 				
 				// Store last page GET URL in session
 				request.getSession().setAttribute(LAST_GET_URL, request.getPathInfo());
-
 				PrintWriter out            = response.getWriter();
-				String uuid                = rootElement.getProperty(AbstractNode.uuid);
-				
-				
-				
-				List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
-				Map<String, String[]> parameterMap = request.getParameterMap();
-
-				if ((parameterMap != null) && (parameterMap.size() > 0)) {
-
-					attrs = convertToNodeAttributes(parameterMap);
-
-				}
 				
 				double setup     = System.nanoTime();
 				logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
 
-				if (!edit && !dontCache && setCachingHeader(request, response, node)) {
+				if (!edit && !dontCache && notModifiedSince(request, response, rootElement)) {
 
 					out.flush();
 					out.close();
@@ -415,71 +405,8 @@ public class HtmlServlet extends HttpServlet {
 
 				}
 
-			} else if ((file != null) && securityContext.isVisible(file)) {
-
-				OutputStream out = response.getOutputStream();
-
-				if (!edit && setCachingHeader(request, response, node)) {
-
-					out.flush();
-					out.close();
-
-				} else {
-
-					// 2b: stream file to response
-					InputStream in     = file.getInputStream();
-					String contentType = file.getContentType();
-
-					if (contentType != null) {
-
-						response.setContentType(contentType);
-
-					} else {
-
-						// Default
-						response.setContentType("application/octet-stream");
-					}
-
-					try {
-
-						IOUtils.copy(in, out);
-						
-					} catch (Throwable t) {
-						
-					} finally {
-
-						if (out != null) {
-							
-							try {
-								// 3: output content
-								out.flush();
-								out.close();
-								
-							} catch(Throwable t) {}
-						}
-
-						if (in != null) {
-							in.close();
-						}
-
-						response.setStatus(HttpServletResponse.SC_OK);
-					}
-				}
-
 			} else {
 
-				// Check if security context has set an 401 status
-				if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
-
-					try {
-						HttpAuthenticator.writeUnauthorized(response);
-					} catch (IllegalStateException ise) { }
-
-				} else {
-
-					HttpAuthenticator.writeNotFound(response);
-
-				}
 			}
 
 		} catch (Throwable t) {
@@ -605,41 +532,6 @@ public class HtmlServlet extends HttpServlet {
 		return parameters;
 	}
 
-	/**
-	 * Convert parameter map to list of node attributes
-	 *
-	 * @param parameterMap
-	 * @return
-	 */
-	private List<NodeAttribute> convertToNodeAttributes(final Map<String, String[]> parameterMap) {
-
-		List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
-
-		for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
-
-			String[] values = param.getValue();
-			Object val;
-
-			if (values.length == 1) {
-
-				val = values[0];
-
-			} else {
-
-				val = values;
-
-			}
-
-			PropertyKey key = new GenericProperty(param.getKey());
-			NodeAttribute attr = new NodeAttribute(key, val);
-
-			attrs.add(attr);
-
-		}
-
-		return attrs;
-	}
-
 	private Page findIndexPage() throws FrameworkException {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
@@ -744,10 +636,10 @@ public class HtmlServlet extends HttpServlet {
 
 			logger.log(Level.FINE, "Requested name {0}", name);
 
-			possibleEntryPoints = findPossibleEntryPointsByUuid(request, name);
+			possibleEntryPoints = possibleEntryPoints = findPossibleEntryPointsByName(request, name);
 		
 			if (possibleEntryPoints.isEmpty()) {
-				possibleEntryPoints = findPossibleEntryPointsByName(request, name);
+				findPossibleEntryPointsByUuid(request, name);
 			}
 			
 			return possibleEntryPoints;
@@ -758,7 +650,7 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- set methods ----------------------------------------------------
 
-	private static boolean setCachingHeader(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
+	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
 
 		boolean notModified = false;
 
@@ -783,7 +675,8 @@ public class HtmlServlet extends HttpServlet {
 
 		if (lastModified != null) {
 
-			response.addHeader("Last-Modified", httpDateFormat.format(lastModified));
+			Date roundedLastModified = DateUtils.round(lastModified, Calendar.SECOND);
+			response.addHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
 
 			String ifModifiedSince = request.getHeader("If-Modified-Since");
 
@@ -795,10 +688,8 @@ public class HtmlServlet extends HttpServlet {
 					
 					// Note that ifModSince has not ms resolution, so the last digits are always 000
 					// That requires the lastModified to be rounded to seconds
-					
-					Date rounded = DateUtils.round(lastModified, Calendar.SECOND);
 
-					if ((ifModSince != null) && (rounded.equals(ifModSince) || rounded.before(ifModSince))) {
+					if ((ifModSince != null) && (roundedLastModified.equals(ifModSince) || roundedLastModified.before(ifModSince))) {
 
 						notModified = true;
 
@@ -821,4 +712,59 @@ public class HtmlServlet extends HttpServlet {
 		this.resourceProvider = resourceProvider;
 	}
 	
+
+	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+		if (securityContext.isVisible(file)) {
+
+			OutputStream out = response.getOutputStream();
+
+			if (!edit && notModifiedSince(request, response, file)) {
+
+				out.flush();
+				out.close();
+
+			} else {
+
+				// 2b: stream file to response
+				InputStream in     = file.getInputStream();
+				String contentType = file.getContentType();
+
+				if (contentType != null) {
+
+					response.setContentType(contentType);
+
+				} else {
+
+					// Default
+					response.setContentType("application/octet-stream");
+				}
+
+				try {
+
+					IOUtils.copy(in, out);
+
+				} catch (Throwable t) {
+
+				} finally {
+
+					if (out != null) {
+
+						try {
+							// 3: output content
+							out.flush();
+							out.close();
+
+						} catch(Throwable t) {}
+					}
+
+					if (in != null) {
+						in.close();
+					}
+
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
+			}
+		}
+	}
 }

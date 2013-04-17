@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.entity.Component;
@@ -153,10 +152,6 @@ public class RenderContext {
 	
 	public int getDepth() {
 		return depth;
-	}
-	
-	public Condition getCondition() {
-		return condition;
 	}
 	
 	public String getSearchClass() {
