@@ -147,11 +147,13 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 				Relationship rel                           = startNode.createRelationshipTo(endNode, relType);
 				T newRel                                   = relationshipFactory.instantiateRelationship(securityContext, rel);
 
-				newRel.setProperty(AbstractRelationship.createdDate, new Date());
 
 				if (newRel != null) {
 
-					if ((properties != null) &&!properties.isEmpty()) {
+					newRel.unlockReadOnlyPropertiesOnce();
+					newRel.setProperty(AbstractRelationship.createdDate, new Date());
+
+					if (properties != null && !properties.isEmpty()) {
 
 						for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 							

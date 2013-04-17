@@ -111,13 +111,13 @@ public class User extends Person implements Principal {
 
 	public boolean isBackendUser() {
 
-		return getBooleanProperty(User.backendUser);
+		return getProperty(User.backendUser);
 
 	}
 
 	public boolean isFrontendUser() {
 
-		return getBooleanProperty(User.frontendUser);
+		return getProperty(User.frontendUser);
 
 	}
 

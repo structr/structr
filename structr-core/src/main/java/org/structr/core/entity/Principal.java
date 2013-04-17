@@ -27,6 +27,8 @@ import org.structr.core.GraphObject;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.core.EntityContext;
+import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -45,7 +47,16 @@ public interface Principal extends GraphObject {
 	public static final Property<Boolean> blocked   = new BooleanProperty("blocked");
 	//public static final Property<String>  realName  = new StringProperty("realName");
 
-	
+        static class Impl {
+
+                static {
+
+                        // ----- initialize searchable properties
+                        EntityContext.registerSearchableProperty(Principal.class, NodeIndex.keyword.name(), AbstractNode.name);
+                        EntityContext.registerSearchableProperty(Principal.class, NodeIndex.fulltext.name(), AbstractNode.name);
+
+                }
+        }	
 	//~--- methods --------------------------------------------------------
 
 	public void block() throws FrameworkException;

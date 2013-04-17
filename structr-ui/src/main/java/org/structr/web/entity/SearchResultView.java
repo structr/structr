@@ -71,12 +71,11 @@ public class SearchResultView extends View {
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		HttpServletRequest request   = renderContext.getRequest();
-		Condition condition          = renderContext.getCondition();
 		Page page                    = renderContext.getPage();
 		double startSearchResultView = System.nanoTime();
 		String searchString          = (String) request.getParameter("search");
 
-		if ((request != null) && StringUtils.isNotBlank(searchString)) {
+		if (StringUtils.isNotBlank(searchString)) {
 
 			for (Page resultPage : getResultPages(securityContext, page)) {
 
@@ -85,15 +84,11 @@ public class SearchResultView extends View {
 
 				for (AbstractRelationship rel : rels) {
 
-					if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+					DOMElement subNode = (DOMElement) rel.getEndNode();
 
-						DOMElement subNode = (DOMElement) rel.getEndNode();
+					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
-
-							subNode.render(securityContext, renderContext, depth + 1);
-						}
-
+						subNode.render(securityContext, renderContext, depth + 1);
 					}
 
 				}

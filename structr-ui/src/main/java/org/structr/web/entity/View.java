@@ -151,7 +151,6 @@ public class View extends DOMElement {
 		double startView = System.nanoTime();
 		
 		HttpServletRequest request = renderContext.getRequest();
-		Condition condition = renderContext.getCondition();
 
 		// fetch query results
 		List<GraphObject> results = getGraphObjects(request);
@@ -168,15 +167,12 @@ public class View extends DOMElement {
 
 				for (AbstractRelationship rel : rels) {
 
-					if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+					DOMElement subNode = (DOMElement) rel.getEndNode();
 
-						DOMElement subNode = (DOMElement) rel.getEndNode();
+					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
+						subNode.render(securityContext, renderContext, depth + 1);
 
-							subNode.render(securityContext, renderContext, depth + 1);
-
-						}
 					}
 				}
 			}

@@ -50,7 +50,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.TextualSearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -353,7 +353,14 @@ public class TypeResource extends SortableResource {
 		Set<String> keys = new HashSet();
 		
 		for (SearchAttribute attr : attrs) {
-			keys.add(attr.getKey().jsonName());
+			
+			PropertyKey key = attr.getKey();
+			if (key != null) {
+				
+				keys.add(attr.getKey().jsonName());
+				
+			}
+				
 		}
 		
 		return keys;

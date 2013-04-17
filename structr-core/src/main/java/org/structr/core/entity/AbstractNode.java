@@ -81,7 +81,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	// properties
 	public static final Property<String>          name                        = new StringProperty("name");
-	public static final Property<String>          createdBy                   = new StringProperty("createdBy").systemProperty().writeOnce();
+	public static final Property<String>          createdBy                   = new StringProperty("createdBy").systemProperty().readOnly().writeOnce();
 	public static final Property<Boolean>         deleted                     = new BooleanProperty("deleted");
 	public static final Property<Boolean>         hidden                      = new BooleanProperty("hidden");
 
@@ -411,72 +411,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Returns the property value for the given key as a Date object.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Date object
-	 */
-	@Override
-	public Date getDateProperty(final PropertyKey<Date> key) {
-
-		Object propertyValue = getProperty(key);
-
-		if (propertyValue != null) {
-
-			if (propertyValue instanceof Date) {
-
-				return (Date) propertyValue;
-			} else if (propertyValue instanceof Long) {
-
-				return new Date((Long) propertyValue);
-			} else if (propertyValue instanceof String) {
-
-				try {
-
-					// try to parse as a number
-					return new Date(Long.parseLong((String) propertyValue));
-				} catch (NumberFormatException nfe) {
-
-					try {
-
-						Date date = DateUtils.parseDate(((String) propertyValue), new String[] { "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss", "yyyymmdd", "yyyymm",
-							"yyyy" });
-
-						return date;
-
-					} catch (ParseException ex2) {
-
-						logger.log(Level.WARNING, "Could not parse " + propertyValue + " to date", ex2);
-
-					}
-
-					logger.log(Level.WARNING, "Can''t parse String {0} to a Date.", propertyValue);
-
-					return null;
-
-				}
-
-			} else {
-
-				logger.log(Level.WARNING, "Date property is not null, but type is neither Long nor String, returning null");
-
-				return null;
-
-			}
-
-		}
-
-		return null;
-
-	}
-
-	/**
 	 * Indicates whether this node is visible to public users.
 	 * 
 	 * @return whether this node is visible to public users
 	 */
 	public boolean getVisibleToPublicUsers() {
-		return getBooleanProperty(visibleToPublicUsers);
+		return getProperty(visibleToPublicUsers);
 	}
 
 	/**
@@ -485,7 +425,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return whether this node is visible to authenticated users
 	 */
 	public boolean getVisibleToAuthenticatedUsers() {
-		return getBooleanProperty(visibleToPublicUsers);
+		return getProperty(visibleToPublicUsers);
 	}
 
 	/**
@@ -494,7 +434,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return whether this node is hidden
 	 */
 	public boolean getHidden() {
-		return getBooleanProperty(hidden);
+		return getProperty(hidden);
 	}
 
 	/**
@@ -503,7 +443,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return whether this node is deleted
 	 */
 	public boolean getDeleted() {
-		return getBooleanProperty(deleted);
+		return getProperty(deleted);
 	}
 
 	/**
@@ -646,154 +586,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return result.toString();
-
-	}
-
-	/**
-	 * Returns the property value for the given key as an Integer object.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as an Integer object
-	 */
-	@Override
-	public Integer getIntProperty(final PropertyKey<Integer> key) {
-
-		Object propertyValue = getProperty(key);
-		Integer result       = null;
-
-		if (propertyValue == null) {
-
-			return null;
-		}
-
-		if (propertyValue instanceof Integer) {
-
-			result = ((Integer) propertyValue);
-		} else if (propertyValue instanceof String) {
-
-			if ("".equals((String) propertyValue)) {
-
-				return null;
-			}
-
-			result = Integer.parseInt(((String) propertyValue));
-
-		}
-
-		return result;
-
-	}
-
-	/**
-	 * Returns the property value for the given key as a Long object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Long object
-	 */
-	@Override
-	public Long getLongProperty(final PropertyKey<Long> key) {
-
-		Object propertyValue = getProperty(key);
-		Long result          = null;
-
-		if (propertyValue == null) {
-
-			return null;
-		}
-
-		if (propertyValue instanceof Long) {
-
-			result = ((Long) propertyValue);
-		} else if (propertyValue instanceof Integer) {
-
-			result = ((Integer) propertyValue).longValue();
-		} else if (propertyValue instanceof String) {
-
-			if ("".equals((String) propertyValue)) {
-
-				return null;
-			}
-
-			result = Long.parseLong(((String) propertyValue));
-
-		}
-
-		return result;
-
-	}
-
-	/**
-	 * Returns the property value for the given key as a Double object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Double object
-	 */
-	@Override
-	public Double getDoubleProperty(final PropertyKey<Double> key) throws FrameworkException {
-
-		Object propertyValue = getProperty(key);
-		Double result        = null;
-
-		if (propertyValue == null) {
-
-			return null;
-		}
-
-		if (propertyValue instanceof Double) {
-
-			Double doubleValue = (Double) propertyValue;
-
-			if (doubleValue.equals(Double.NaN)) {
-
-				// clean NaN values from database
-				setProperty(key, null);
-
-				return null;
-			}
-
-			result = doubleValue;
-
-		} else if (propertyValue instanceof String) {
-
-			if ("".equals((String) propertyValue)) {
-
-				return null;
-			}
-
-			result = Double.parseDouble(((String) propertyValue));
-
-		}
-
-		return result;
-
-	}
-	
-	/**
-	 * Returns the property value for the given key as a Boolean object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Boolean object
-	 */
-	@Override
-	public boolean getBooleanProperty(final PropertyKey<Boolean> key) {
-
-		Object propertyValue = getProperty(key);
-		Boolean result       = false;
-
-		if (propertyValue == null) {
-
-			return Boolean.FALSE;
-		}
-
-		if (propertyValue instanceof Boolean) {
-
-			result = ((Boolean) propertyValue);
-		} else if (propertyValue instanceof String) {
-
-			result = Boolean.parseBoolean(((String) propertyValue));
-		}
-
-		return result;
 
 	}
 
@@ -1232,7 +1024,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
 
-		return getBooleanProperty(visibleToAuthenticatedUsers);
+		return getProperty(visibleToAuthenticatedUsers);
 
 	}
 
@@ -1252,22 +1044,22 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	
 	@Override
 	public Date getVisibilityStartDate() {
-		return getDateProperty(visibilityStartDate);
+		return getProperty(visibilityStartDate);
 	}
 	
 	@Override
 	public Date getVisibilityEndDate() {
-		return getDateProperty(visibilityEndDate);
+		return getProperty(visibilityEndDate);
 	}
 
 	@Override
 	public Date getCreatedDate() {
-		return getDateProperty(createdDate);
+		return getProperty(createdDate);
 	}
 	
 	@Override
 	public Date getLastModifiedDate() {
-		return getDateProperty(lastModifiedDate);
+		return getProperty(lastModifiedDate);
 	}
 
 	// ----- end interface AccessControllable -----

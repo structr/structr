@@ -58,6 +58,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.search.SearchOperator;
+import org.structr.core.graph.search.TextualSearchAttribute;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.PropertyMap;
@@ -735,21 +737,19 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		HttpServletRequest request = securityContext.getRequest();
 		String search              = request.getParameter("search");
 
-		if ((request == null) || StringUtils.isEmpty(search)) {
+		if (StringUtils.isEmpty(search)) {
 
 			return Collections.EMPTY_SET;
 		}
 
-		if (request != null) {
 
-			resultPages = (Set<Page>) request.getAttribute("searchResults");
+		resultPages = (Set<Page>) request.getAttribute("searchResults");
 
-			if ((resultPages != null) && !resultPages.isEmpty()) {
+		if ((resultPages != null) && !resultPages.isEmpty()) {
 
-				return resultPages;
-			}
-
+			return resultPages;
 		}
+
 
 		if (resultPages == null) {
 
@@ -760,7 +760,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-		searchAttributes.add(Search.andContent(search));
+		searchAttributes.add(new TextualSearchAttribute(Content.content, search, SearchOperator.AND));
 		searchAttributes.add(Search.andExactType(Content.class.getSimpleName()));
 
 		try {
@@ -1190,11 +1190,12 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				
 				PropertyKey key = it.next();
 				
-				// omit system properties, parent/children and page relationships
-				if (!key.isSystemProperty()
+				// omit system properties (except type), parent/children and page relationships
+				if (key.equals(GraphObject.type) || (!key.isSystemProperty()
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
-					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds)) {
+					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
+					
 					properties.put(key, getProperty(key));
 				}
 			}

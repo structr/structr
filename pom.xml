@@ -19,7 +19,6 @@
         <module>structr-base-archetype</module>
         <module>structr-core</module>
         <module>structr-rest</module>
-        <module>structr-websocket</module>
         <module>structr-ui</module>
         <module>structr-server</module>
   </modules>

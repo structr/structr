@@ -65,31 +65,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Integer getIntProperty(PropertyKey propertyKey) {
-		return (Integer)getProperty(propertyKey);
-	}
-
-	@Override
-	public Long getLongProperty(PropertyKey propertyKey) {
-		return (Long)getProperty(propertyKey);
-	}
-
-	@Override
-	public Date getDateProperty(PropertyKey key) {
-		return (Date)getProperty(key);
-	}
-
-	@Override
-	public boolean getBooleanProperty(PropertyKey key) throws FrameworkException {
-		return (Boolean)getProperty(key);
-	}
-
-	@Override
-	public Double getDoubleProperty(PropertyKey key) throws FrameworkException {
-		return (Double)getProperty(key);
-	}
-
-	@Override
 	public Comparable getComparableProperty(PropertyKey key) throws FrameworkException {
 		return (Comparable)getProperty(key);
 	}

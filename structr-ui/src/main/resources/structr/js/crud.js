@@ -387,7 +387,7 @@ var _Crud = {
      */
     restType : function(type) {
         var typeDef = _Crud.schema[type];
-        return typeDef.url.substring(1);
+        return typeDef ? typeDef.url.substring(1) : type.toUnderscore();
     },
     
     /**
@@ -400,6 +400,16 @@ var _Crud = {
         return (view && view[key] && view[key].isCollection);
     },
     
+    /**
+     * Return true if the combination of the given property key
+     * and the given type is a read-only property
+     */
+    readOnly : function(key, type) {
+        var typeDef = _Crud.schema[type];
+        var view = typeDef.views[_Crud.view[type]];
+        return (view && view[key] && view[key].readOnly);
+    },
+
     /**
      * Return the related type of the given property key
      * of the given type
@@ -493,13 +503,14 @@ var _Crud = {
     },
 
     sortAndPagingParameters : function(t,s,o,ps,p) {
-        var typeParam = (t ? 'type=' + t : '');
+        //var typeParam = (t ? 'type=' + t : '');
         var sortParam = (s ? 'sort=' + s : '');
         var orderParam = (o ? 'order=' + o : '');
         var pageSizeParam = (ps ? 'pageSize=' + ps : '');
         var pageParam = (p ? 'page=' + p : '');
     
-        var params = (typeParam ? '?' + typeParam : '');
+        //var params = (typeParam ? '?' + typeParam : '');
+        var params = '';
         params = params + (sortParam ? (params.length?'&':'?') + sortParam : '');
         params = params + (orderParam ? (params.length?'&':'?') + orderParam : '');
         params = params + (pageSizeParam ? (params.length?'&':'?') + pageSizeParam : '');
@@ -1334,29 +1345,37 @@ var _Crud = {
     populateCell : function(id, key, type, value, cell) {
         var isCollection = _Crud.isCollection(key, type);
         var relatedType  = _Crud.relatedType(key, type);
+        var readOnly     = _Crud.readOnly(key, type);
         var simpleType;
+        
+        if (readOnly) {
+            cell.addClass('readonly');
+        }
         
         if (!relatedType) {
             
             //console.log(key, value, typeof value);
             
             if (typeof value === 'boolean') {
-                cell.append('<input type="checkbox" ' + (value?'checked="checked"':'') + '>');
-                $('input', cell).on('change', function() {
-                   //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
-                   _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
-                });
-                
-        
+                cell.append('<input ' + (readOnly ? 'class="readonly" readonly ' : '') + 'type="checkbox" ' + (value?'checked="checked"':'') + '>');
+                if (!readOnly) {
+                    $('input', cell).on('change', function() {
+                       //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
+                       _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                    });
+                }
             } else {
-                cell.text(nvl(formatValue(value),'')).on('mouseup', function(event) {
-                    event.preventDefault();
-                    var self = $(this);
-                    var oldValue = self.text();
-                    self.off('mouseup');
-                    self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
-                    _Crud.activateTextInputField($('input', self), id, key);
-                });
+                cell.text(nvl(formatValue(value),''));
+                if (!readOnly) {
+                    cell.on('mouseup', function(event) {
+                        event.preventDefault();
+                        var self = $(this);
+                        var oldValue = self.text();
+                        self.off('mouseup');
+                        self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
+                        _Crud.activateTextInputField($('input', self), id, key);
+                    });
+                }
             }
 
         } else if (isCollection) {
@@ -1419,7 +1438,9 @@ var _Crud = {
                 var node = data.result;
                 //console.log('node', node);
                 
-                cell.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(node.name, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+                var displayName = _Crud.displayName(node);
+                
+                cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
                 //console.log(node);
                 if (node.type === 'Image') {
@@ -1471,44 +1492,6 @@ var _Crud = {
   
     },
     
-    //    getAndAppendNodes : function(parentType, id, key, type, el, pageSize) {
-    //        var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
-    //        var view = 'public'; // _Crud.view[_Crud.type]
-    //        var url = rootUrl + urlType + '/' + view + _Crud.sortAndPagingParameters('name', 'asc', pageSize, 1);
-    //        $.ajax({
-    //            url: url,
-    //            headers: headers,
-    //            type: 'GET',
-    //            dataType: 'json',
-    //            contentType: 'application/json; charset=utf-8',
-    //            //async: false,
-    //            success: function(data) {
-    //                
-    //                $.each(data.result, function(i, node) {
-    //                
-    //                    //console.log('node', node);
-    //                    el.append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
-    //                
-    //                    var nodeEl = $('#_' + node.id, el);
-    //                    //console.log(node);
-    //                    if (node.type == 'Image') {
-    //                        nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
-    //                    }
-    //                    
-    //                    nodeEl.on('click', function(e) {
-    //                        e.preventDefault();
-    //                        _Crud.addRelatedObject(parentType, id, key, node, function() {
-    //                            document.location.reload();
-    //                        });
-    //                        return false;
-    //                    });
-    //                
-    //                });
-    //            }
-    //        });
-    //  
-    //    },
-    
     clearSearch : function(el) {
         if (_Crud.clearSearchResults(el)) {
             $('.clearSearchIcon').hide().off('click');
@@ -1551,8 +1534,7 @@ var _Crud = {
         $.each(types, function(t, type) {
             
             var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', pageSize, 1) + '&name=' + searchString + '&loose=1';
-            
-            //console.log(url);
+            console.log(url);
             
             $.ajax({
                 url: url,
@@ -1569,22 +1551,19 @@ var _Crud = {
                 
                     $.each(data.result, function(i, node) {
                         
-                        if (node.type === type) {
-                            
-                            //console.log('node', node);
-                            $('#resultsFor' + type, searchResults).append('<div title="' + node.name + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(node.name, 120) + '</div>');
-                
-                            var nodeEl = $('#_' + node.id, searchResults);
-                            //console.log(node);
-                            if (node.type === 'Image') {
-                                nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
-                            }
-                    
-                            nodeEl.on('click', function(e) {
-                                onClickCallback(e, node);
-                            });
-                        
+                        //console.log('node', node);
+                        var displayName = _Crud.displayName(node);
+                        $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(displayName, 120) + '</div>');
+
+                        var nodeEl = $('#_' + node.id, searchResults);
+                        //console.log(node);
+                        if (node.type === 'Image') {
+                            nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
                         }
+
+                        nodeEl.on('click', function(e) {
+                            onClickCallback(e, node);
+                        });
                 
                     });
                 }
@@ -1593,6 +1572,16 @@ var _Crud = {
         });
 
         
+    },
+
+    displayName : function(node) {
+        var displayName;
+        if (node.type === 'Content') {
+            displayName = node.content.substring(0, 100);
+        } else {
+            displayName = node.name ? node.name : node.id;
+        }
+        return displayName;
     },
 
     displaySearch : function(parentType, id, key, type, el) {

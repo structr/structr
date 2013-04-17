@@ -21,7 +21,6 @@
 package org.structr.web.entity.blog;
 
 import java.util.Date;
-import org.structr.web.entity.*;
 import org.structr.core.property.Property;
 import org.neo4j.graphdb.Direction;
 
@@ -53,17 +52,17 @@ public class Comment extends AbstractNode {
 	public static final EntityProperty<Person>         author = new EntityProperty<Person>("owner", Person.class, org.structr.web.common.RelType.AUTHOR, Direction.INCOMING, true);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Comment.class, PropertyView.Ui,
-		type, name, publishDate, author
+		type, name, publishDate, author, text
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
-		type, name, publishDate, author
+	public static final org.structr.common.View publicView = new org.structr.common.View(Comment.class, PropertyView.Public,
+		type, name, publishDate, author, text
 	);
 	
 	static {
 
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(),  uiView.properties());
+		EntityContext.registerSearchablePropertySet(Comment.class, NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(Comment.class, NodeIndex.keyword.name(),  uiView.properties());
 	}
 
 	//~--- get methods ----------------------------------------------------

@@ -155,6 +155,7 @@ public class NodeFactory<T extends AbstractNode> {
 				
 				try {
 
+					newNode.unlockReadOnlyPropertiesOnce();
 					newNode.setType(nodeType);
 
 				} catch (Throwable t) {

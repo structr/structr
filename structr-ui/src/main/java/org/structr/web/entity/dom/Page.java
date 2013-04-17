@@ -621,7 +621,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		HttpServletRequest request = securityContext.getRequest();
-		Condition condition        = renderContext.getCondition();
 		
 		renderContext.setPage(this);
 		
@@ -630,14 +629,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		// recursively render children
 		for (AbstractRelationship rel : getChildRelationships()) {
 
-			if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
+			DOMNode subNode = (DOMNode)rel.getEndNode();
 
-				DOMNode subNode = (DOMNode)rel.getEndNode();
+			if (subNode.isNotDeleted()) {
 
-				if (subNode.isNotDeleted()) {
-
-					subNode.render(securityContext, renderContext, depth);
-				}
+				subNode.render(securityContext, renderContext, depth);
 			}
 		}
 	}

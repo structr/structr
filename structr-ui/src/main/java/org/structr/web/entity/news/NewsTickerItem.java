@@ -18,11 +18,10 @@
  */
 
 
-package org.structr.web.entity.blog;
+package org.structr.web.entity.news;
 
 import java.util.Date;
 import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
@@ -33,37 +32,37 @@ import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.entity.Person;
+import org.structr.core.property.EntityProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Entity bean to represent a blog post
+ * Entity bean to represent a short news item, typically used in a news ticker
  * 
  * @author Axel Morgner
  *
  */
-public class Post extends AbstractNode {
+public class NewsTickerItem extends AbstractNode {
 
-	public static final Property<String>                title = new StringProperty("title");
-	public static final CollectionProperty<Content>  sections = new CollectionProperty<Content>("sections", Content.class, RelType.CONTAINS, Direction.OUTGOING, true);
-	public static final CollectionProperty<Comment>  comments = new CollectionProperty<Comment>("comments", Comment.class, org.structr.web.common.RelType.COMMENT, Direction.OUTGOING, true);
+	public static final EntityProperty<Content>          text = new EntityProperty<Content>("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final Property<Date>            publishDate = new ISO8601DateProperty("publishDate");
+	public static final EntityProperty<Person>         author = new EntityProperty<Person>("owner", Person.class, org.structr.web.common.RelType.AUTHOR, Direction.INCOMING, true);
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(Post.class, PropertyView.Ui,
-		type, name, title, sections, publishDate, owner, comments
+	public static final org.structr.common.View uiView = new org.structr.common.View(NewsTickerItem.class, PropertyView.Ui,
+		type, name, publishDate, author, text
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(Post.class, PropertyView.Public,
-		type, name, title, sections, publishDate, owner, comments
+	public static final org.structr.common.View publicView = new org.structr.common.View(NewsTickerItem.class, PropertyView.Public,
+		type, name, publishDate, author, text
 	);
 	
 	static {
 
-		EntityContext.registerSearchablePropertySet(Post.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Post.class, NodeIndex.keyword.name(),  uiView.properties());
+		EntityContext.registerSearchablePropertySet(NewsTickerItem.class, NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(NewsTickerItem.class, NodeIndex.keyword.name(),  uiView.properties());
 	}
 
 	//~--- get methods ----------------------------------------------------
