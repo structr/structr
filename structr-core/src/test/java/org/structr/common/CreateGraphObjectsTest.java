@@ -40,8 +40,12 @@ import java.io.IOException;
 import java.util.Collections;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.TestSeven;
@@ -115,8 +119,44 @@ public class CreateGraphObjectsTest extends StructrTest {
 		}
 
 	}
+	public void test02CreateNodeWithExistingUuid() {
 
-	public void test02CreateRelationship() {
+		try {
+
+			AbstractNode node;
+
+			final PropertyMap props = new PropertyMap();
+			
+			String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
+
+			props.put(AbstractNode.type, "UnknownTestTypeÄÖLß");
+			props.put(AbstractNode.uuid, uuid);
+
+			node = transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+
+				@Override
+				public AbstractNode execute() throws FrameworkException {
+
+					// Create node with a type which has no entity class => should result in a node of type 'GenericNode'
+					return (AbstractNode) createNodeCommand.execute(props);
+				}
+
+			});
+
+			assertTrue(node != null);
+			assertTrue(node instanceof GenericNode);
+			assertEquals(node.getUuid(), uuid);
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+	
+	public void test03CreateRelationship() {
 
 		try {
 
@@ -155,7 +195,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 	/**
 	 * Create a node for each configured entity class and check the type
 	 */
-	public void test03CheckNodeEntities() {
+	public void test04CheckNodeEntities() {
 
 		final PropertyMap props = new PropertyMap();
 
@@ -269,7 +309,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 	/**
 	 * Create a node for each configured entity class and check the type
 	 */
-	public void test04CheckRelationshipEntities() {
+	public void test05CheckRelationshipEntities() {
 
 		try {
 
@@ -345,7 +385,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 	 * - same set of property keys and values
 	 *
 	 */
-	public void test05DuplicateRelationships() {
+	public void test06DuplicateRelationships() {
 
 		try {
 

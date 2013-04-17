@@ -401,6 +401,16 @@ var _Crud = {
     },
     
     /**
+     * Return true if the combination of the given property key
+     * and the given type is a read-only property
+     */
+    readOnly : function(key, type) {
+        var typeDef = _Crud.schema[type];
+        var view = typeDef.views[_Crud.view[type]];
+        return (view && view[key] && view[key].readOnly);
+    },
+
+    /**
      * Return the related type of the given property key
      * of the given type
      */
@@ -1335,29 +1345,37 @@ var _Crud = {
     populateCell : function(id, key, type, value, cell) {
         var isCollection = _Crud.isCollection(key, type);
         var relatedType  = _Crud.relatedType(key, type);
+        var readOnly     = _Crud.readOnly(key, type);
         var simpleType;
+        
+        if (readOnly) {
+            cell.addClass('readonly');
+        }
         
         if (!relatedType) {
             
             //console.log(key, value, typeof value);
             
             if (typeof value === 'boolean') {
-                cell.append('<input type="checkbox" ' + (value?'checked="checked"':'') + '>');
-                $('input', cell).on('change', function() {
-                   //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
-                   _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
-                });
-                
-        
+                cell.append('<input ' + (readOnly ? 'class="readonly" readonly ' : '') + 'type="checkbox" ' + (value?'checked="checked"':'') + '>');
+                if (!readOnly) {
+                    $('input', cell).on('change', function() {
+                       //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
+                       _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                    });
+                }
             } else {
-                cell.text(nvl(formatValue(value),'')).on('mouseup', function(event) {
-                    event.preventDefault();
-                    var self = $(this);
-                    var oldValue = self.text();
-                    self.off('mouseup');
-                    self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
-                    _Crud.activateTextInputField($('input', self), id, key);
-                });
+                cell.text(nvl(formatValue(value),''));
+                if (!readOnly) {
+                    cell.on('mouseup', function(event) {
+                        event.preventDefault();
+                        var self = $(this);
+                        var oldValue = self.text();
+                        self.off('mouseup');
+                        self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
+                        _Crud.activateTextInputField($('input', self), id, key);
+                    });
+                }
             }
 
         } else if (isCollection) {
@@ -1420,7 +1438,7 @@ var _Crud = {
                 var node = data.result;
                 //console.log('node', node);
                 
-                var displayName = node.name ? node.name : node.id;
+                var displayName = _Crud.displayName(node);
                 
                 cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
@@ -1534,7 +1552,7 @@ var _Crud = {
                     $.each(data.result, function(i, node) {
                         
                         //console.log('node', node);
-                        var displayName = node.name ? node.name : node.id;
+                        var displayName = _Crud.displayName(node);
                         $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(displayName, 120) + '</div>');
 
                         var nodeEl = $('#_' + node.id, searchResults);
@@ -1554,6 +1572,16 @@ var _Crud = {
         });
 
         
+    },
+
+    displayName : function(node) {
+        var displayName;
+        if (node.type === 'Content') {
+            displayName = node.content.substring(0, 100);
+        } else {
+            displayName = node.name ? node.name : node.id;
+        }
+        return displayName;
     },
 
     displaySearch : function(parentType, id, key, type, el) {

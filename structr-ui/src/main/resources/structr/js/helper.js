@@ -199,7 +199,7 @@ function fitStringToSize(str,len) {
             // Calculate the middle position
             posMid = posStart + Math.ceil((posEnd - posStart) / 2);
             // Break the loop if this is the last round
-            if (posMid==posEnd || posMid==posStart) break;
+            if (posMid===posEnd || posMid===posStart) break;
 
             span.innerHTML = str.substring(0,posMid) + '&hellip;';
 
@@ -238,9 +238,9 @@ function hideAjaxLoader() {
     $('#ajaxLoader').hide();
 }
 
-function formatValue(value, key, type, id) {
+function formatValue(value) {
 
-    if (value == null) {
+    if (value === null) {
         return '';
     } else if (value.constructor === String) {
         

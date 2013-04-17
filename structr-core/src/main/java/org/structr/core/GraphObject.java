@@ -40,10 +40,10 @@ import org.structr.core.entity.AbstractRelationship;
 public interface GraphObject {
 
 	public static final Property<String>  base                        = new StringProperty("base");
-	public static final Property<String>  uuid                        = new StringProperty("uuid").systemProperty().writeOnce();
-	public static final Property<String>  type                        = new StringProperty("type").writeOnce();
+	public static final Property<String>  uuid                        = new StringProperty("uuid").systemProperty().readOnly().writeOnce();
+	public static final Property<String>  type                        = new StringProperty("type").systemProperty().readOnly().writeOnce();
 
-	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().writeOnce();
+	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().readOnly().writeOnce();
 	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemProperty().readOnly();
 	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
