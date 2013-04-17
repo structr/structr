@@ -114,7 +114,7 @@ public class PropertyAccess extends AbstractNode {
 	public long getFlags() {
 		
 		if (cachedFlags == null) {
-			cachedFlags = getLongProperty(ResourceAccess.flags);
+			cachedFlags = getProperty(ResourceAccess.flags);
 		}
 		
 		if (cachedFlags != null) {
@@ -127,7 +127,7 @@ public class PropertyAccess extends AbstractNode {
 	public int getPosition() {
 		
 		if (cachedPosition == null) {
-			cachedPosition = getIntProperty(ResourceAccess.position);
+			cachedPosition = getProperty(ResourceAccess.position);
 		}
 		
 		if (cachedPosition != null) {

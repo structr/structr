@@ -31,13 +31,13 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.PlainText;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.IOException;
+import java.util.Collections;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -166,7 +166,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					List<Class> entityList = null;
+					List<Class> entityList = Collections.EMPTY_LIST;
 
 					try {
 
@@ -186,7 +186,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 					assertTrue(entityList.contains(Cache.class));
 					assertTrue(entityList.contains(GenericNode.class));
 					assertTrue(entityList.contains(Location.class));
-					assertTrue(entityList.contains(PlainText.class));
 					assertTrue(entityList.contains(Person.class));
 					assertTrue(entityList.contains(ResourceAccess.class));
 					assertTrue(entityList.contains(PropertyAccess.class));

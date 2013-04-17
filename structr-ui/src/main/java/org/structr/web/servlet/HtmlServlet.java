@@ -766,7 +766,7 @@ public class HtmlServlet extends HttpServlet {
 		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
 		DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
 		Calendar cal              = new GregorianCalendar();
-		Integer seconds           = node.getIntProperty(Page.cacheForSeconds);
+		Integer seconds           = node.getProperty(Page.cacheForSeconds);
 
 		if (seconds != null) {
 

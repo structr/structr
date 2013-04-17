@@ -148,7 +148,7 @@ public class ValidationHelper {
 	 */
 	public static boolean checkDate(GraphObject node, PropertyKey<Date> key, ErrorBuffer errorBuffer) {
 
-		Date date     = node.getDateProperty(key);
+		Date date     = node.getProperty(key);
 		String type   = node.getType();
 		boolean error = false;
 
@@ -176,8 +176,8 @@ public class ValidationHelper {
 	 */
 	public static boolean checkDatesChronological(GraphObject node, PropertyKey<Date> key1, PropertyKey<Date> key2, ErrorBuffer errorBuffer) {
 
-		Date date1    = node.getDateProperty(key1);
-		Date date2    = node.getDateProperty(key2);
+		Date date1    = node.getProperty(key1);
+		Date date2    = node.getProperty(key2);
 		String type   = node.getType();
 		boolean error = false;
 

@@ -86,10 +86,10 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			// Check defaults
 			assertTrue(node.getProperty(AbstractNode.type).equals(type));
 			assertTrue(node.getProperty(AbstractNode.name).equals(name));
-			assertTrue(!node.getBooleanProperty(AbstractNode.hidden));
-			assertTrue(!node.getBooleanProperty(AbstractNode.deleted));
-			assertTrue(!node.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
-			assertTrue(!node.getBooleanProperty(AbstractNode.visibleToPublicUsers));
+			assertTrue(!node.getProperty(AbstractNode.hidden));
+			assertTrue(!node.getProperty(AbstractNode.deleted));
+			assertTrue(!node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+			assertTrue(!node.getProperty(AbstractNode.visibleToPublicUsers));
 
 			name = "GenericNode-name-äöüß";
 
@@ -97,17 +97,17 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			node.setProperty(AbstractNode.name, name);
 			assertTrue(node.getProperty(AbstractNode.name).equals(name));
 			node.setProperty(AbstractNode.hidden, true);
-			assertTrue(node.getBooleanProperty(AbstractNode.hidden));
+			assertTrue(node.getProperty(AbstractNode.hidden));
 			node.setProperty(AbstractNode.hidden, false);
-			assertFalse(node.getBooleanProperty(AbstractNode.hidden));
+			assertFalse(node.getProperty(AbstractNode.hidden));
 			node.setProperty(AbstractNode.deleted, true);
-			assertTrue(node.getBooleanProperty(AbstractNode.deleted));
+			assertTrue(node.getProperty(AbstractNode.deleted));
 			node.setProperty(AbstractNode.deleted, false);
-			assertFalse(node.getBooleanProperty(AbstractNode.deleted));
+			assertFalse(node.getProperty(AbstractNode.deleted));
 			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-			assertTrue(node.getBooleanProperty(AbstractNode.visibleToAuthenticatedUsers));
+			assertTrue(node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
 			node.setProperty(AbstractNode.visibleToPublicUsers, true);
-			assertTrue(node.getBooleanProperty(AbstractNode.visibleToPublicUsers));
+			assertTrue(node.getProperty(AbstractNode.visibleToPublicUsers));
 
 		} catch (FrameworkException ex) {
 

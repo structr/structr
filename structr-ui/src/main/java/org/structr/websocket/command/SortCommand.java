@@ -75,7 +75,7 @@ public class SortCommand extends AbstractCommand {
 
 					try {
 
-						Long oldPos = rel.getLongProperty(pageIdProperty);
+						Long oldPos = rel.getProperty(pageIdProperty);
 
 						if ((oldPos != null) && !(oldPos.equals(pos))) {
 

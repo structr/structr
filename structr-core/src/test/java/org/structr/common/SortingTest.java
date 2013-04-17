@@ -43,7 +43,6 @@ import org.structr.core.property.PropertyKey;
 import org.apache.lucene.search.SortField;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
@@ -416,7 +415,7 @@ public class SortingTest extends StructrTest {
 
 //                      for (GraphObject obj : result.getResults()) {
 //
-//                              System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getIntProperty(key));
+//                              System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getProperty(key));
 //                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
@@ -426,7 +425,7 @@ public class SortingTest extends StructrTest {
 			for (int j = 0; j < pageSize; j++) {
 
 				int expectedNumber = offset + j;
-				int gotNumber      = result.get(j).getIntProperty(key);
+				int gotNumber      = (Integer) result.get(j).getProperty(key);
 
 				System.out.println("expected: " + expectedNumber + ", got: " + gotNumber);
 				assertEquals(expectedNumber, gotNumber);
@@ -469,7 +468,7 @@ public class SortingTest extends StructrTest {
 
 				i++;
 
-				System.out.println(node.getProperty(AbstractNode.name) + ": " + node.getLongProperty(key));
+				System.out.println(node.getProperty(AbstractNode.name) + ": " + node.getProperty(key));
 
 			}
 
@@ -490,7 +489,7 @@ public class SortingTest extends StructrTest {
 
 			for (AbstractNode obj : result.getResults()) {
 
-				System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getLongProperty(key));
+				System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getProperty(key));
 			}
 
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
@@ -505,7 +504,7 @@ public class SortingTest extends StructrTest {
 			for (int j = 0; j < pageSize; j++) {
 
 				long expectedNumber = offset + j;
-				long gotNumber      = result.get(j).getLongProperty(key);
+				long gotNumber      = (Long) result.get(j).getProperty(key);
 
 				System.out.println("expected: " + expectedNumber + ", got: " + gotNumber);
 				assertEquals(expectedNumber, gotNumber);

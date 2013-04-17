@@ -126,13 +126,13 @@ public class Image extends File {
 
 	public Integer getWidth() {
 
-		return getIntProperty(Image.width);
+		return getProperty(Image.width);
 
 	}
 
 	public Integer getHeight() {
 
-		return getIntProperty(Image.height);
+		return getProperty(Image.height);
 
 	}
 

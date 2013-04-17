@@ -106,46 +106,6 @@ public interface GraphObject {
 	public <T> T getProperty(final PropertyKey<T> propertyKey);
 	
 	/**
-	 * Returns the property value for the given key as an Integer object.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as an Integer object
-	 */
-	public Integer getIntProperty(final PropertyKey<Integer> propertyKey);
-
-	/**
-	 * Returns the property value for the given key as a Long object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Long object
-	 */
-	public Long getLongProperty(final PropertyKey<Long> propertyKey);
-
-	/**
-	 * Returns the property value for the given key as a Date object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Date object
-	 */
-        public Date getDateProperty(final PropertyKey<Date> key);
-
-	/**
-	 * Returns the property value for the given key as a Boolean object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Boolean object
-	 */
-        public boolean getBooleanProperty(final PropertyKey<Boolean> key) throws FrameworkException ;
-
-	/**
-	 * Returns the property value for the given key as a Double object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Double object
-	 */
-        public Double getDoubleProperty(final PropertyKey<Double> key) throws FrameworkException ;
-
-	/**
 	 * Returns the property value for the given key as a Comparable
 	 * 
 	 * @param key the property key to retrieve the value for

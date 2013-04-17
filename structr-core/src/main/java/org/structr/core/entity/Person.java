@@ -181,13 +181,13 @@ public class Person extends AbstractNode implements Principal {
 
 	public boolean getNewsletter() {
 
-		return getBooleanProperty(Person.newsletter);
+		return getProperty(Person.newsletter);
 
 	}
 
 	public Date getBirthday() {
 
-		return getDateProperty(Person.birthday);
+		return getProperty(Person.birthday);
 
 	}
 

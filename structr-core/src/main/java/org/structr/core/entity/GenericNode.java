@@ -22,13 +22,10 @@ package org.structr.core.entity;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.geotools.referencing.factory.epsg.DefaultFactory;
-import org.structr.common.DefaultFactoryDefinition;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------

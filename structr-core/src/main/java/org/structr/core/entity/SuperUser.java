@@ -185,34 +185,6 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Integer getIntProperty(PropertyKey<Integer> propertyKey) {
-
-		return null;
-
-	}
-
-	@Override
-	public Date getDateProperty(PropertyKey<Date> key) {
-
-		return null;
-
-	}
-
-	@Override
-	public boolean getBooleanProperty(PropertyKey<Boolean> key) throws FrameworkException {
-
-		return false;
-
-	}
-
-	@Override
-	public Double getDoubleProperty(PropertyKey<Double> key) throws FrameworkException {
-
-		return null;
-
-	}
-
-	@Override
 	public Comparable getComparableProperty(PropertyKey<? extends Comparable> key) throws FrameworkException {
 
 		return null;
@@ -242,13 +214,6 @@ public class SuperUser implements Principal {
 
 	@Override
 	public String getUuid() {
-
-		return null;
-
-	}
-
-	@Override
-	public Long getLongProperty(PropertyKey<Long> propertyKey) {
 
 		return null;
 
