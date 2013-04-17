@@ -63,8 +63,8 @@ public class Post extends AbstractNode {
 	
 	static {
 
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(),  uiView.properties());
+		EntityContext.registerSearchablePropertySet(Post.class, NodeIndex.fulltext.name(), uiView.properties());
+		EntityContext.registerSearchablePropertySet(Post.class, NodeIndex.keyword.name(),  uiView.properties());
 	}
 
 	//~--- get methods ----------------------------------------------------
