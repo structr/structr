@@ -68,15 +68,6 @@ public class Comment extends AbstractNode {
 
 	//~--- get methods ----------------------------------------------------
 
-	/**
-	 * Return property value which is used for indexing.
-	 *
-	 * This is useful f.e. to filter markup from HTML to index only text,
-	 * or to get dates as long values.
-	 *
-	 * @param key
-	 * @return
-	 */
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
 
