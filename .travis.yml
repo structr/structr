@@ -1,5 +1,4 @@
 language: java
-env: MAVEN_OPTS='-Duser.timezone="Europe/Berlin"'
 jdk:
   - openjdk6
 branches:
