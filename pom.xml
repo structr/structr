@@ -21,7 +21,7 @@
         <module>structr-rest</module>
         <module>structr-ui</module>
         <module>structr-server</module>
-  </modules>
+    </modules>
 
     <build>
         <plugins>
@@ -39,31 +39,32 @@
             <plugin>
                 <groupId>com.mycila.maven-license-plugin</groupId>
                 <artifactId>maven-license-plugin</artifactId>
-		<version>1.10.b1</version>
+                <version>1.10.b1</version>
                 <configuration>
                     <header>header.txt</header>
-		    <strictCheck>true</strictCheck>
-		    <failIfMissing>false</failIfMissing>
-		    <includes>
-		      <include>**/*.java</include>
+                    <strictCheck>true</strictCheck>
+                    <failIfMissing>false</failIfMissing>
+                    <includes>
+                        <include>**/*.java</include>
                     </includes>
                 </configuration>
             </plugin>
-     <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-             <argLine>-Duser.timezone=Europe/Berlin</argLine>
-        </configuration>
-      </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.14</version>
+                <configuration>
+                    <argLine>-Duser.timezone=Europe/Berlin</argLine>
+                </configuration>
+            </plugin>
         </plugins>
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.wagon</groupId>
-         <artifactId>wagon-ftp</artifactId>
-         <version>2.2</version>
-      </extension>
-    </extensions>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ftp</artifactId>
+                <version>2.2</version>
+            </extension>
+        </extensions>
     </build>
 
     <licenses>
@@ -95,15 +96,15 @@
         <url>https://github.com/structr/structr/tree/master/structr</url>
     </scm>
     <distributionManagement>
-	<repository>
-	    <id>releases.maven.structr.org</id>
-	    <name>maven.structr.org-releases</name>
-	    <url>http://maven.structr.org/artifactory/release</url>
-	</repository>
-	<snapshotRepository>
-	    <id>snapshots.maven.structr.org</id>
-	    <name>maven.structr.org-snapshots</name>
-	    <url>http://maven.structr.org/artifactory/snapshot</url>
-	</snapshotRepository>
+        <repository>
+            <id>releases.maven.structr.org</id>
+            <name>maven.structr.org-releases</name>
+            <url>http://maven.structr.org/artifactory/release</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots.maven.structr.org</id>
+            <name>maven.structr.org-snapshots</name>
+            <url>http://maven.structr.org/artifactory/snapshot</url>
+        </snapshotRepository>
     </distributionManagement>
 </project>
