@@ -136,8 +136,8 @@ public class NamedRelationResource extends WrappingResource {
 				}
 			}
 		}
-
-		return new Result(relationResults, null, isCollectionResource(), isPrimitiveArray());
+		
+		return PagingHelper.subResult(new Result(relationResults, null, isCollectionResource(), isPrimitiveArray()), pageSize, page, offsetId);
 	}
 
 	@Override
