@@ -49,7 +49,7 @@ public interface Authenticator {
 	 * @param request
 	 * @throws FrameworkException 
 	 */
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException;
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, final String resourceSignature, final ResourceAccess resourceAccess, final String propertyView) throws FrameworkException;
 	
 	/**
 	 *
@@ -57,19 +57,21 @@ public interface Authenticator {
 	 *
 	 * @param securityContext the security context
 	 * @param request the request to authenticate
+	 * @param response the response
 	 * @param userName the (optional) username
 	 * @param password the (optional) password
 	 * 
 	 * @return the user that was just logged in
 	 * @throws AuthenticationException
 	 */
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException;
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final String userName, final String password) throws AuthenticationException;
 
 	/**
 	 * Logs the given request out.
 	 *
 	 * @param securityContext the security context
 	 * @param request the request to log out
+	 * @param response the response
 	 */
 	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response);
 
@@ -79,8 +81,10 @@ public interface Authenticator {
 	 *
 	 * @param securityContext the security context
 	 * @param request the request
+	 * @param response the response
+	 * @param tryLogin if true, try to login the user
 	 * @return the logged-in user or null
 	 * @throws FrameworkException
 	 */
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException;
 }

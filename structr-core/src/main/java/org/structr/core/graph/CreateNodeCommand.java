@@ -20,8 +20,6 @@
 
 package org.structr.core.graph;
 
-import java.lang.Object;
-import java.lang.String;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.RelType;
@@ -38,7 +36,6 @@ import org.structr.core.entity.Principal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.core.property.PropertyKey;
@@ -82,7 +79,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 	public T execute(PropertyMap attributes) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Principal user               = securityContext.getUser();
+		Principal user               = securityContext.getUser(true);
 		T node	                     = null;
 
 		if (graphDb != null) {

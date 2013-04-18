@@ -101,7 +101,7 @@ public class StructrAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
 
 		String userName  = (String) request.getSession().getAttribute(USERNAME_KEY);
 		

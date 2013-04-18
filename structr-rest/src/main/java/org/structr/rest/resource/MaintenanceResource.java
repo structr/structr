@@ -122,9 +122,8 @@ public class MaintenanceResource extends Resource {
 
 			logger.log(Level.INFO, "SecurityContext is {0}, user is {1}", new Object[] { (securityContext != null)
 				? "non-null"
-				: "null", ((securityContext != null)
-												     && (securityContext.getUser() != null))
-					  ? securityContext.getUser().getProperty(AbstractNode.name)
+				: "null", ((securityContext != null) && (securityContext.getUser(true) != null))
+					  ? securityContext.getUser(true).getProperty(AbstractNode.name)
 					  : "null" });
 
 			throw new NotAllowedException();

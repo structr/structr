@@ -72,7 +72,7 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		getUser(securityContext, request, response);
+		getUser(securityContext, request, response, true);
 
 	}
 
@@ -82,7 +82,7 @@ public class UiAuthenticator implements Authenticator {
 		
 		Method method       = methods.get(request.getMethod());
 
-		Principal user = securityContext.getUser();
+		Principal user = securityContext.getUser(true);
 		boolean validUser = (user != null);
 		
 		// super user is always authenticated
@@ -192,7 +192,7 @@ public class UiAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
 
 		String userName = request.getHeader("X-User");
 		String password = request.getHeader("X-Password");
@@ -203,9 +203,14 @@ public class UiAuthenticator implements Authenticator {
 		if (token != null) {
 
 			user = AuthHelper.getUserForToken(token);
+			
 		} else if ((userName != null) && (password != null)) {
 
-			user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(request, response), userName, password);
+			if (tryLogin) {
+				
+				user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(request, response), userName, password);
+				
+			}
 		}
 
 		if (user != null) {

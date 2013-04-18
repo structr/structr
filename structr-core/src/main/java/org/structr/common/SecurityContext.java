@@ -238,13 +238,13 @@ public class SecurityContext {
 
 	}
 
-	public Principal getUser() {
+	public Principal getUser(final boolean tryLogin) {
 
 		if (cachedUser == null) {
 
 			try {
 
-				cachedUser = authenticator.getUser(this, request, response);
+				cachedUser = authenticator.getUser(this, request, response, tryLogin);
 
 			} catch (Throwable t) {
 
@@ -313,7 +313,7 @@ public class SecurityContext {
 
 	public boolean isSuperUser() {
 
-		Principal user = getUser();
+		Principal user = getUser(false);
 
 		return ((user != null) && (user instanceof SuperUser));
 
@@ -331,7 +331,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		Principal user = getUser();
+		Principal user = getUser(false);
 
 		if (user == null) {
 
@@ -339,7 +339,7 @@ public class SecurityContext {
 		}
 
 		// owner is always allowed to do anything with its nodes
-		if ((user != null) && (user.equals(node) || user.equals(node.getOwnerNode()))) {
+		if (user.equals(node) || user.equals(node.getOwnerNode())) {
 
 			return true;
 		}
@@ -360,9 +360,7 @@ public class SecurityContext {
 
 		}
 
-		logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, (user != null)
-			? user.getProperty(AbstractNode.name)
-			: "null", accessMode, node, permission });
+		logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, user.getProperty(AbstractNode.name), accessMode, node, permission });
 
 		return isAllowed;
 
@@ -413,7 +411,7 @@ public class SecurityContext {
 		}
 
 		// Ask for user only if node is visible for authenticated users
-		if (node.isVisibleToAuthenticatedUsers() && getUser() != null) {
+		if (node.isVisibleToAuthenticatedUsers() && getUser(false) != null) {
 			
 			return true;
 		}
@@ -437,7 +435,7 @@ public class SecurityContext {
 		}
 
 		// fetch user
-		Principal user = getUser();
+		Principal user = getUser(false);
 
 		// anonymous users may not see any nodes in backend
 		if (user == null) {
@@ -463,7 +461,15 @@ public class SecurityContext {
 
 	/**
 	 * Indicates whether the given node is visible for a frontend
-	 * request. This method ignores the user.
+	 * request. This method should be used to explicetely check
+	 * visibility of the requested root element, like e.g. a page,
+	 * a partial or a file/image to download.
+	 * 
+	 * It should *not* be used to check accessibility of child
+	 * nodes because it might send a 401 along with a request for
+	 * basic authentication.
+	 * 
+	 * For those, use {@link SecurityContext#isReadable(org.structr.core.entity.AbstractNode, boolean, boolean)}
 	 *
 	 * @param node
 	 * @return
@@ -475,16 +481,15 @@ public class SecurityContext {
 			return false;
 		}
 
-		// check hidden flag (see STRUCTR-12)
+		// check hidden flag
 		if (node.isHidden()) {
 
 			return false;
 		}
 
-		// public nodes are always visible (constrained by time)
+		// public nodes are always visible
 		if (node.isVisibleToPublicUsers()) {
 
-//                      return visibleByTime;
 			return true;
 		}
 
@@ -492,7 +497,7 @@ public class SecurityContext {
 		if (node.isVisibleToAuthenticatedUsers()) {
 
 			// fetch user
-			Principal user = getUser();
+			Principal user = getUser(true);
 
 			if (user != null) {
 
@@ -506,7 +511,7 @@ public class SecurityContext {
 
 	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {
 
-		Principal user = getUser();
+		Principal user = getUser(false);
 
 		return node.isGranted(permission, user);
 
@@ -598,7 +603,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public Principal getUser() {
+		public Principal getUser(final boolean tryLogin) {
 
 			return new SuperUser();
 

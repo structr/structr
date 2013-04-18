@@ -194,7 +194,7 @@ public class HttpAuthenticator implements Authenticator {
 
 		} catch (IllegalStateException ise) {
 			
-			logger.log(Level.WARNING, "Error while appending to writer", ise);
+			logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
 			
 		}
 
@@ -238,11 +238,11 @@ public class HttpAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) {
 
 		Principal user = (Principal) request.getSession().getAttribute(SESSION_USER);
 
-		if (user == null) {
+		if (tryLogin && user == null) {
 
 			user = checkBasicAuthentication(request, response);
 		}

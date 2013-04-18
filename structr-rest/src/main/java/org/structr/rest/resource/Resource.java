@@ -168,7 +168,7 @@ public abstract class Resource {
 
 							if (!securityContext.isAllowed((AbstractNode) obj, Permission.delete)) {
 
-								logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{ obj, securityContext.getUser() });
+								logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{ obj, securityContext.getUser(true) });
 								throw new NotAllowedException();
 
 							}

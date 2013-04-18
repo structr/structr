@@ -31,7 +31,7 @@ var _Entities = {
 
         //console.log('Change boolean attribute ', attrElement, ' to ', value);
 
-        if (value == true) {
+        if (value === true) {
             attrElement.removeClass('disabled').addClass('enabled').prop('checked', true);
         } else {
             attrElement.removeClass('enabled').addClass('disabled').prop('checked', false);
@@ -384,13 +384,15 @@ var _Entities = {
                 e.stopPropagation();
                 Structr.dialog('Access Control and Visibility', function() {}, function() {});
 
-                _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'ownerId');
+                _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
                 
                 dialogText.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
                 dialogText.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
                 
                 var publicSwitch = $('.visibleToPublicUsers_');
                 var authSwitch = $('.visibleToAuthenticatedUsers_');
+                
+                console.log(entity);    
                 
                 _Entities.changeBooleanAttribute(publicSwitch, entity.visibleToPublicUsers);
                 _Entities.changeBooleanAttribute(authSwitch, entity.visibleToAuthenticatedUsers);
@@ -420,6 +422,13 @@ var _Entities = {
     },
 
     appendSimpleSelection : function(el, entity, type, title, key) {
+
+        var subKey;
+        if (key.contains('.')) {
+            subKey = key.substring(key.indexOf('.')+1, key.length);
+            key = key.substring(0, key.indexOf('.'));
+            console.log('object key:', key, 'sub key', subKey);
+        }
         
         el.append('<h3>' + title + '</h3><p id="' + key + 'Box"></p>');
                 
@@ -440,8 +449,13 @@ var _Entities = {
             headers: headers,
             success: function(data) {
                 $(data.result).each(function(i, result) {
-                    //log(result);
-                    selectElement.append('<option ' + (entity[key] == result.id ? 'selected' : '') + ' value="' + result.id + '">' + result.name + '</option>');
+                    
+                    var id = (subKey ? entity[key][subKey] : entity[key]);
+                    console.log(id, result.id);
+                    
+                    var selected = (id === result.id ? 'selected' : '');
+                    
+                    selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
                 });
             }
         });                

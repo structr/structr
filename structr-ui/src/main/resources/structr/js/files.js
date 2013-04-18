@@ -228,7 +228,7 @@ var _Files = {
         var parent = Structr.findParent(folderId, null, null, files);
         log(parent, folderId, isExpanded(folderId));
         
-        if (parent != files && !isExpanded(folderId)) {
+        if (parent !== files && !isExpanded(folderId)) {
             return false;
         }
         //if (add) _Entities.ensureExpanded(parent);
@@ -306,9 +306,9 @@ var _Files = {
             }
         });
 
-        _Entities.appendAccessControlIcon(div, file);
-        _Entities.appendEditPropertiesIcon(div, file);
         _Files.appendEditFileIcon(div, file);      
+        _Entities.appendEditPropertiesIcon(div, file);
+        _Entities.appendAccessControlIcon(div, file);
 
         _Entities.setMouseOver(div);
         

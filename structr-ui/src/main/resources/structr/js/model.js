@@ -56,39 +56,39 @@ var StructrModel = {
         var type = data.type;
         var obj;
         
-        if (type == 'Page') {
+        if (type === 'Page') {
             
             obj = new StructrPage(data);
             
-        } else if (type == 'Content') {
+        } else if (type === 'Content') {
             
             obj = new StructrContent(data);
             
-        } else if (type == 'Group') {
+        } else if (type === 'Group') {
             
             obj = new StructrGroup(data);
             
-        } else if (type == 'User') {
+        } else if (type === 'User') {
             
             obj = new StructrUser(data);
             
-        } else if (type == 'File') {
+        } else if (type === 'File') {
             
             obj = new StructrFile(data);
             
-        } else if (type == 'Image') {
+        } else if (type === 'Image') {
             
             obj = new StructrImage(data);
             
-        } else if (type == 'Folder') {
+        } else if (type === 'Folder') {
             
             obj = new StructrFolder(data);
             
-        } else if (type == 'DataNode') {
+        } else if (type === 'DataNode') {
             
             obj = new StructrDataNode(data);
             
-        } else if (type == 'PropertyDefinition') {
+        } else if (type === 'PropertyDefinition') {
             
             obj = new StructrPropertyDefinition(data);
             
@@ -236,7 +236,7 @@ var StructrModel = {
         }
             
             
-        if (typeof newValue  == 'boolean') {
+        if (typeof newValue  === 'boolean') {
                     
             _Entities.changeBooleanAttribute(attrElement, newValue);
             
@@ -254,7 +254,7 @@ var StructrModel = {
                 attrElement.val(newValue);
             } else {
                 log(key, newValue);
-                if (key == 'name') {
+                if (key === 'name') {
                     attrElement.html(fitStringToSize(newValue, 200));
                     attrElement.attr('title', newValue);
                 }
@@ -264,7 +264,7 @@ var StructrModel = {
                 inputElement.val(newValue);
             }
                 
-            if (key == 'content') {
+            if (key === 'content') {
                     
                 log(attrElement.text(), newValue);
                     
@@ -281,7 +281,7 @@ var StructrModel = {
             
         log(key, Structr.getClass(element));
             
-        if (key == 'name' && Structr.getClass(element) == 'page') {
+        if (key === 'name' && Structr.getClass(element) === 'page') {
 
             // update tab and reload iframe
             var tabNameElement = $('#show_' + id).children('.name_');
@@ -353,7 +353,7 @@ var StructrModel = {
             
             var value = obj[key];
             
-            if (typeof value != 'object') {
+            if (typeof value !== 'object') {
                 data[key] = value;
             }
             
@@ -439,7 +439,7 @@ StructrFile.prototype.save = function() {
     StructrModel.save(this.id);
 }
 
-StructrFile.prototype.setProperty = function(key, value, callback) {
+StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
     Command.setProperty(this.id, key, value, false, callback);
 }
 
@@ -505,7 +505,7 @@ StructrImage.prototype.save = function() {
     StructrModel.save(this.id);
 }
 
-StructrImage.prototype.setProperty = function(key, value, callback) {
+StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
     Command.setProperty(this.id, key, value, false, callback);
 }
 
@@ -619,8 +619,8 @@ function StructrPage(data) {
 //    return new Element(name);
 //}
 
-StructrPage.prototype.setProperty = function(key, value, rec, callback) {
-    Command.setProperty(this.id, key, value, rec, callback);
+StructrPage.prototype.setProperty = function(key, value, recursive, callback) {
+    Command.setProperty(this.id, key, value, recursive, callback);
 }
 
 StructrPage.prototype.append = function() {
@@ -778,7 +778,7 @@ StructrPropertyDefinition.prototype.save = function() {
     StructrModel.save(this.id);
 }
 
-StructrPropertyDefinition.prototype.setProperty = function(key, value, callback) {
+StructrPropertyDefinition.prototype.setProperty = function(key, value, recursive, callback) {
     Command.setProperty(this.id, key, value, false, callback);
 }
 
@@ -821,7 +821,7 @@ StructrSearchResult.prototype.append = function() {
 function removeFromArray(array, obj) {
     var newArray = [];
     $.each(array, function(i, el) {
-        if (el.id != obj.id) {
+        if (el.id !== obj.id) {
             newArray.push(el);
         }
     });

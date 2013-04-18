@@ -62,7 +62,7 @@ public class RestAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) {
 
 		String userHeader = request.getHeader("X-User");
 		Principal user         = null;
