@@ -21,6 +21,7 @@
 package org.structr.web.entity.blog;
 
 import java.util.Date;
+import java.util.List;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.neo4j.graphdb.Direction;
@@ -35,6 +36,7 @@ import org.structr.core.graph.NodeService.NodeIndex;
 
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -67,5 +69,24 @@ public class Post extends AbstractNode {
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public Object getPropertyForIndexing(final PropertyKey key) {
+
+		if (key.equals(sections)) {
+			
+			StringBuilder buf = new StringBuilder();
+			
+			List<Content> _sections = getProperty(sections);
+			for (Content section : _sections) {
+				buf.append(section.getProperty(Content.content));
+			}
+			
+			return buf.toString();
+		}
+		
+		return getProperty(key);
+
+	}
 
 }

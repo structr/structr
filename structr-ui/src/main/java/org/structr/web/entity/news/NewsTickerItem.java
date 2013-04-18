@@ -35,6 +35,7 @@ import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.entity.Person;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -66,5 +67,16 @@ public class NewsTickerItem extends AbstractNode {
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public Object getPropertyForIndexing(final PropertyKey key) {
+
+		if (key.equals(text)) {
+			return getProperty(text).getProperty(Content.content);
+		}
+		
+		return getProperty(key);
+
+	}
 
 }
