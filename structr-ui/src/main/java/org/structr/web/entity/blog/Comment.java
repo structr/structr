@@ -75,7 +75,7 @@ public class Comment extends AbstractNode {
 			return getProperty(text).getProperty(Content.content);
 		}
 		
-		return getProperty(key);
+		return super.getPropertyForIndexing(key);
 
 	}
 

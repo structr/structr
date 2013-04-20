@@ -85,7 +85,7 @@ public class Post extends AbstractNode {
 			return buf.toString();
 		}
 		
-		return getProperty(key);
+		return super.getPropertyForIndexing(key);
 
 	}
 
