@@ -32,12 +32,9 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
-import org.structr.core.JsonInputGSONAdapter;
 import org.structr.core.Value;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
-import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.PagingHelper;
 import org.structr.rest.resource.Resource;
 import org.structr.core.Result;
@@ -64,7 +61,8 @@ import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
-import org.structr.rest.exception.NotFoundException;
+import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
+import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.*;
 
 //~--- classes ----------------------------------------------------------------
@@ -93,11 +91,9 @@ public class JsonRestServlet extends HttpServlet {
 	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
 	private PropertyKey defaultIdProperty                       = AbstractNode.uuid;
 	private String defaultPropertyView                          = PropertyView.Public;
-	private Gson gson                                           = null;
+	private ThreadLocalGson gson                                = null;
 	private Writer logWriter                                    = null;
-	private JsonInputGSONAdapter jsonInputAdapter               = null;
 	private Value<String> propertyView                          = null;
-	private ResultGSONAdapter resultGsonAdapter                 = null;
 	private ResourceProvider resourceProvider                   = null;
 
 	public JsonRestServlet(final ResourceProvider resourceProvider, final String defaultPropertyView, final PropertyKey<String> idProperty) {
@@ -120,20 +116,8 @@ public class JsonRestServlet extends HttpServlet {
 
 		// initialize variables
 		this.propertyView  = new ThreadLocalPropertyView();
-
-		// initialize adapters
-		this.resultGsonAdapter  = new ResultGSONAdapter(propertyView, defaultIdProperty);
-		this.jsonInputAdapter = new JsonInputGSONAdapter(propertyView, defaultIdProperty);
-
-		// create GSON serializer
-		this.gson = new GsonBuilder()
-                        .setPrettyPrinting()
-                        .serializeNulls()
-                        .registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
-                        .registerTypeAdapter(JsonInput.class, jsonInputAdapter)
-                        .registerTypeAdapter(Result.class, resultGsonAdapter)
-                        .create();
 		
+		this.gson = new ThreadLocalGson();
 	}
 
 	@Override
@@ -178,13 +162,13 @@ public class JsonRestServlet extends HttpServlet {
 			RestMethodResult result = resourceConstraint.doDelete();
 
 			// commit response
-			result.commitResponse(gson, response);
+			result.commitResponse(gson.get(), response);
 
 		} catch (FrameworkException frameworkException) {
 
 			// set status & write JSON output
 			response.setStatus(frameworkException.getStatus());
-			gson.toJson(frameworkException, response.getWriter());
+			gson.get().toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
 
 		} catch (JsonSyntaxException jsex) {
@@ -303,7 +287,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				Writer writer = response.getWriter();
 
-				gson.toJson(result, writer);
+				gson.get().toJson(result, writer);
 				response.setStatus(HttpServletResponse.SC_OK);
 				writer.append("\n");    // useful newline
 
@@ -323,7 +307,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// set status & write JSON output
 			response.setStatus(frameworkException.getStatus());
-			gson.toJson(frameworkException, response.getWriter());
+			gson.get().toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
 
 		} catch (JsonSyntaxException jsex) {
@@ -393,13 +377,13 @@ public class JsonRestServlet extends HttpServlet {
 			RestMethodResult result = resourceConstraint.doHead();
 
 			// commit response
-			result.commitResponse(gson, response);
+			result.commitResponse(gson.get(), response);
 
 		} catch (FrameworkException frameworkException) {
 
 			// set status & write JSON output
 			response.setStatus(frameworkException.getStatus());
-			gson.toJson(frameworkException, response.getWriter());
+			gson.get().toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
 
 		} catch (JsonSyntaxException jsex) {
@@ -469,13 +453,13 @@ public class JsonRestServlet extends HttpServlet {
 			RestMethodResult result = resourceConstraint.doOptions();
 
 			// commit response
-			result.commitResponse(gson, response);
+			result.commitResponse(gson.get(), response);
 
 		} catch (FrameworkException frameworkException) {
 
 			// set status & write JSON output
 			response.setStatus(frameworkException.getStatus());
-			gson.toJson(frameworkException, response.getWriter());
+			gson.get().toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
 			
 		} catch (JsonSyntaxException jsex) {
@@ -535,7 +519,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			final JsonInput propertySet   = gson.fromJson(request.getReader(), JsonInput.class);
+			final JsonInput propertySet   = gson.get().fromJson(request.getReader(), JsonInput.class);
 
 			// let module-specific authenticator examine the request first
 			securityContext.initializeAndExamineRequest(request, response);
@@ -557,13 +541,13 @@ public class JsonRestServlet extends HttpServlet {
 				propertyView.set(securityContext, defaultPropertyView);
 
 				// commit response
-				result.commitResponse(gson, response);
+				result.commitResponse(gson.get(), response);
 				
 			} else {
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
-				result.commitResponse(gson, response);
+				result.commitResponse(gson.get(), response);
 
 			}
 
@@ -571,7 +555,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// set status & write JSON output
 			response.setStatus(frameworkException.getStatus());
-			gson.toJson(frameworkException, response.getWriter());
+			gson.get().toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
 
 		} catch (JsonSyntaxException jsex) {
@@ -640,7 +624,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			final JsonInput propertySet   = gson.fromJson(request.getReader(), JsonInput.class);
+			final JsonInput propertySet   = gson.get().fromJson(request.getReader(), JsonInput.class);
 
 			// let module-specific authenticator examine the request first
 			securityContext.initializeAndExamineRequest(request, response);
@@ -657,12 +641,12 @@ public class JsonRestServlet extends HttpServlet {
 				// do action
 				RestMethodResult result = resource.doPut(properties);
 
-				result.commitResponse(gson, response);
+				result.commitResponse(gson.get(), response);
 			} else {
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
-				result.commitResponse(gson, response);
+				result.commitResponse(gson.get(), response);
 
 			}
 
@@ -670,7 +654,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// set status & write JSON output
 			response.setStatus(frameworkException.getStatus());
-			gson.toJson(frameworkException, response.getWriter());
+			gson.get().toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
 			
 		} catch (JsonSyntaxException jsex) {
@@ -858,5 +842,23 @@ public class JsonRestServlet extends HttpServlet {
 		}
 	}
 
+	private class ThreadLocalGson extends ThreadLocal<Gson> {
+		
+		@Override
+		protected Gson initialValue() {
+			
+			JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter(propertyView, defaultIdProperty);
+			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, defaultIdProperty);
+
+			// create GSON serializer
+			return new GsonBuilder()
+				.setPrettyPrinting()
+				.serializeNulls()
+				.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
+				.registerTypeAdapter(JsonInput.class, jsonInputAdapter)
+				.registerTypeAdapter(Result.class, resultGsonAdapter)
+				.create();
+		}
+	}
 	// </editor-fold>
 }

@@ -37,7 +37,7 @@ import org.structr.core.entity.AbstractNode;
  * 
  * @author Axel Morgner
  */
-public class GraphObjectComparator implements Comparator<GraphObject>, ViewTransformation {
+public class GraphObjectComparator implements Comparator<GraphObject>, ViewTransformation<GraphObject> {
 
 	public static final String ASCENDING  = "asc";
 	public static final String DESCENDING = "desc";
@@ -125,7 +125,7 @@ public class GraphObjectComparator implements Comparator<GraphObject>, ViewTrans
 	}
 
 	@Override
-	public void apply(SecurityContext securityContext, List<? extends GraphObject> obj) throws FrameworkException {
+	public void apply(SecurityContext securityContext, List<GraphObject> obj) throws FrameworkException {
 		Collections.sort(obj, this);
 	}
 

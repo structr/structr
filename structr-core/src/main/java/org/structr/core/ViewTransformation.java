@@ -27,10 +27,10 @@ import org.structr.common.error.FrameworkException;
  * 
  * @author Christian Morgner
  */
-public interface ViewTransformation extends Transformation<List<? extends GraphObject>> {
+public interface ViewTransformation<T> extends Transformation<List<T>> {
 
 	@Override
-	public void apply(SecurityContext securityContext, List<? extends GraphObject> list) throws FrameworkException;
+	public void apply(SecurityContext securityContext, List<T> list) throws FrameworkException;
 	
 	/**
 	 * Indicates whether the underlying resource should be evaluated.
