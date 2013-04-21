@@ -288,7 +288,15 @@ public class JsonRestServlet extends HttpServlet {
 				Writer writer = response.getWriter();
 
 				gson.get().toJson(result, writer);
-				response.setStatus(HttpServletResponse.SC_OK);
+				
+				if (result.hasPartialContent()) {
+
+					response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+					
+				} else {
+				
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
 				writer.append("\n");    // useful newline
 
 			} else {
@@ -317,7 +325,7 @@ public class JsonRestServlet extends HttpServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jsex.getMessage()));
+			response.getWriter().append(jsonError(code, "Json syntax exception in GET: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -326,7 +334,7 @@ public class JsonRestServlet extends HttpServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jpex.getMessage()));
+			response.getWriter().append(jsonError(code, "Parser exception in GET: " + jpex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -335,7 +343,7 @@ public class JsonRestServlet extends HttpServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + t.getMessage()));
+			response.getWriter().append(jsonError(code, "Exception in GET: " + t.getMessage()));
 			
 		} finally {
 

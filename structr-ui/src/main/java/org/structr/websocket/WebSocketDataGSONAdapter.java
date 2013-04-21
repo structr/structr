@@ -269,7 +269,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			for (GraphObject obj : src.getResult()) {
 
-				result.add(graphObjectSerializer.serialize(obj, GraphObject.class, context));
+				result.add(graphObjectSerializer.serialize(obj, System.currentTimeMillis()));
 			}
 
 			root.add("result", result);
