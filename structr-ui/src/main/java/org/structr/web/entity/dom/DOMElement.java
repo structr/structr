@@ -75,9 +75,9 @@ import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.NamedRelationResource;
@@ -367,23 +367,38 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					} else {
 						
 						if (listData.isEmpty() && currentDataNode != null) {
-						
-							propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
 
-							if (propertyKey != null && propertyKey instanceof CollectionProperty) {
-
-								CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
-								for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
-
-									//renderContext.setStartNode(node);
-									renderContext.putDataObject(subKey, node);
-									subNode.render(securityContext, renderContext, depth + 1);
-
+							Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
+							if (elements instanceof Iterable) {
+								
+								for (Object o : (Iterable)elements) {
+									
+									if (o instanceof GraphObject) {
+										
+										GraphObject graphObject = (GraphObject)o;
+										renderContext.putDataObject(subKey, graphObject);
+										subNode.render(securityContext, renderContext, depth + 1);
+										
+									}
 								}
-
-							} else {
-								//subNode.render(securityContext, renderContext, depth + 1);
 							}
+							
+//							propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+//
+//							if (propertyKey != null && propertyKey instanceof CollectionProperty) {
+//
+//								CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
+//								for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
+//
+//									//renderContext.setStartNode(node);
+//									renderContext.putDataObject(subKey, node);
+//									subNode.render(securityContext, renderContext, depth + 1);
+//
+//								}
+//
+//							} else {
+//								//subNode.render(securityContext, renderContext, depth + 1);
+//							}
 
 							// reset data node in render context
 							renderContext.setDataObject(currentDataNode);
