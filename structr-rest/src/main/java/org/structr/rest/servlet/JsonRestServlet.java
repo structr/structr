@@ -61,6 +61,8 @@ import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.property.Property;
+import org.structr.rest.StreamingJsonWriter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.*;
@@ -89,7 +91,7 @@ public class JsonRestServlet extends HttpServlet {
 	//~--- fields ---------------------------------------------------------
 
 	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
-	private PropertyKey defaultIdProperty                       = AbstractNode.uuid;
+	private Property<String> defaultIdProperty                  = AbstractNode.uuid;
 	private String defaultPropertyView                          = PropertyView.Public;
 	private ThreadLocalGson gson                                = null;
 	private Writer logWriter                                    = null;
@@ -100,7 +102,9 @@ public class JsonRestServlet extends HttpServlet {
 		
 		this.resourceProvider    = resourceProvider;
 		this.defaultPropertyView = defaultPropertyView;
-		this.defaultIdProperty   = idProperty;
+		
+		// CHM (2013-04-21): id property will be ignored from now on..
+		// this.defaultIdProperty   = idProperty;
 	}
 	
 	@Override
@@ -286,9 +290,19 @@ public class JsonRestServlet extends HttpServlet {
 				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
 				Writer writer = response.getWriter();
+				
+				new StreamingJsonWriter(securityContext, propertyView, writer).stream(result);
 
-				gson.get().toJson(result, writer);
-				response.setStatus(HttpServletResponse.SC_OK);
+				// gson.get().toJson(result, writer);
+				
+				if (result.hasPartialContent()) {
+
+					response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+					
+				} else {
+				
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
 				writer.append("\n");    // useful newline
 
 			} else {
@@ -317,7 +331,7 @@ public class JsonRestServlet extends HttpServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jsex.getMessage()));
+			response.getWriter().append(jsonError(code, "Json syntax exception in GET: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -326,7 +340,7 @@ public class JsonRestServlet extends HttpServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jpex.getMessage()));
+			response.getWriter().append(jsonError(code, "Parser exception in GET: " + jpex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -335,7 +349,7 @@ public class JsonRestServlet extends HttpServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + t.getMessage()));
+			response.getWriter().append(jsonError(code, "Exception in GET: " + t.getMessage()));
 			
 		} finally {
 

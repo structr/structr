@@ -32,6 +32,7 @@ public class Result<T extends GraphObject> {
 	private List<T> results = null;
 	private boolean isCollection = false;
 	private boolean isPrimitiveArray = false;
+	private boolean hasPartialContent = false;
 	private String propertyView = null;
 
 	private String searchString = null;
@@ -161,5 +162,13 @@ public class Result<T extends GraphObject> {
 	
 	public int size() {
 		return !isEmpty() ? results.size() : 0;
+	}
+	
+	public void setHasPartialContent(boolean hasPartialContent) {
+		this.hasPartialContent = hasPartialContent;
+	}
+	
+	public boolean hasPartialContent() {
+		return hasPartialContent;
 	}
 }

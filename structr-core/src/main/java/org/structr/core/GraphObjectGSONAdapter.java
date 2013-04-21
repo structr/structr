@@ -24,7 +24,7 @@ package org.structr.core;
 //~--- JDK imports ------------------------------------------------------------
 
 import com.google.gson.*;
-import java.lang.reflect.Type;
+import com.google.gson.stream.JsonWriter;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
@@ -33,6 +33,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.concurrent.TimeUnit;
 import org.structr.common.SecurityContext;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -48,10 +49,10 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @author Christian Morgner
  */
-public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
+public class GraphObjectGSONAdapter {
 
-	private static final Logger logger                      = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
-		
+	private static final Logger logger                   = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
+	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
 	
 	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<Class, Serializer>();
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<Class, Serializer>();
@@ -62,6 +63,8 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 	private PropertyKey idProperty                       = null;
 	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
+	private JsonWriter writer                            = null;
+	private long startTime                               = 0;
  	
 	//~--- constructors ---------------------------------------------------
 
@@ -90,10 +93,18 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public JsonElement serialize(GraphObject src, Type typeOfSrc, JsonSerializationContext context) {
+	public JsonElement serialize(GraphObject src, long startTime) {
 
 		String localPropertyView  = propertyView.get(null);
+		this.startTime            = startTime;
+
+		// check for timeout
+		if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+				
+			logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+
+			return null;
+		}
 
 		return root.serialize(src, localPropertyView, 0);
 	}
@@ -187,7 +198,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		public abstract JsonElement serialize(T value, String localPropertyView, int depth);
 		
 		public JsonElement serializeRoot(Object value, String localPropertyView, int depth) {
-			
+
 			if (value != null) {
 				
 				Serializer serializer = getSerializerForType(value.getClass());
@@ -201,7 +212,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		}
 		
 		public JsonElement serializeProperty(PropertyKey key, Object value, String localPropertyView, int depth) {
-			
+
 			try {
 				PropertyConverter converter = key.inputConverter(securityContext);
 
@@ -219,7 +230,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				// CHM: remove debug code later
 				t.printStackTrace();
 
-				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}, {2}) of entity {3} (value {4}) : {5}", new Object[] {
+				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}) of entity {2} (value {3}) : {4}", new Object[] {
 					key.jsonName(),
 					key.getClass(),
 					key.getClass().getDeclaringClass(),
@@ -230,7 +241,6 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 			}
 			
 			return null;
-
 		}
 	}
 	

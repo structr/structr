@@ -46,6 +46,7 @@ import org.structr.core.entity.AbstractNode;
  */
 public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializer<Result> {
 
+	private DecimalFormat decimalFormat                   = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
 
 	public ResultGSONAdapter(Value<String> propertyView, PropertyKey idProperty) {
@@ -115,12 +116,28 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 					throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
 				}
 
+				// keep track of serialization time
+				long startTime = System.currentTimeMillis();
+
 				if(src.isCollection()) {
 
 					// serialize list of results
 					JsonArray resultArray = new JsonArray();
 					for(GraphObject graphObject : results) {
-						resultArray.add(graphObjectGsonAdapter.serialize(graphObject, GraphObject.class, context));
+						
+						JsonElement element = graphObjectGsonAdapter.serialize(graphObject, startTime);
+						if (element != null) {
+							
+							resultArray.add(element);
+							
+						} else {
+							
+							// stop serialization if timeout occurs
+							result.add("status", new JsonPrimitive("Serialization aborted due to timeout"));
+							src.setHasPartialContent(true);
+							
+							break;
+						}
 					}
 
 					result.add("result", resultArray);
@@ -128,7 +145,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 				} else {
 
 					// use GraphObject adapter to serialize single result
-					result.add("result", graphObjectGsonAdapter.serialize(results.get(0), GraphObject.class, context));
+					result.add("result", graphObjectGsonAdapter.serialize(results.get(0), startTime));
 				}
 			}
 		}
@@ -145,7 +162,6 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 			result.add("sort_order", new JsonPrimitive(sortOrder));
 		}
 		
-		DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 		result.add("serialization_time", new JsonPrimitive(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0)));
 
 		return result;
