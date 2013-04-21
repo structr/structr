@@ -75,6 +75,7 @@ import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.GenericProperty;
@@ -368,37 +369,46 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 						
 						if (listData.isEmpty() && currentDataNode != null) {
 
+							// There are two alternative ways of retrieving sub elements:
+							// First try to get generic properties,
+							// if that fails, try to create a propertyKey for the subKey
+							
 							Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
-							if (elements instanceof Iterable) {
+							
+							if (elements != null) {
 								
-								for (Object o : (Iterable)elements) {
-									
-									if (o instanceof GraphObject) {
-										
-										GraphObject graphObject = (GraphObject)o;
-										renderContext.putDataObject(subKey, graphObject);
-										subNode.render(securityContext, renderContext, depth + 1);
-										
+								if (elements instanceof Iterable) {
+
+									for (Object o : (Iterable)elements) {
+
+										if (o instanceof GraphObject) {
+
+											GraphObject graphObject = (GraphObject)o;
+											renderContext.putDataObject(subKey, graphObject);
+											subNode.render(securityContext, renderContext, depth + 1);
+
+										}
 									}
 								}
-							}
+								
+							} else {
+
+								propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+
+								if (propertyKey != null && propertyKey instanceof CollectionProperty) {
+
+									CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
+									for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
+
+										//renderContext.setStartNode(node);
+										renderContext.putDataObject(subKey, node);
+										subNode.render(securityContext, renderContext, depth + 1);
+
+									}
+
+								}
 							
-//							propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
-//
-//							if (propertyKey != null && propertyKey instanceof CollectionProperty) {
-//
-//								CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
-//								for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
-//
-//									//renderContext.setStartNode(node);
-//									renderContext.putDataObject(subKey, node);
-//									subNode.render(securityContext, renderContext, depth + 1);
-//
-//								}
-//
-//							} else {
-//								//subNode.render(securityContext, renderContext, depth + 1);
-//							}
+							}
 
 							// reset data node in render context
 							renderContext.setDataObject(currentDataNode);
