@@ -51,6 +51,13 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 	public void updateNode(AbstractNode node) {
 		
 		init();
+
+		// Don't touch non-structr node
+		String uuid = node.getProperty(AbstractNode.uuid);
+		if (uuid == null) {
+
+			return;
+		}
 		
 		removeNode(node);
 		addNode(node);
@@ -162,6 +169,13 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 	public void removeNode(AbstractNode node) {
 		
 		init();
+
+		// Don't touch non-structr node
+		String uuid = node.getProperty(AbstractNode.uuid);
+		if (uuid == null) {
+
+			return;
+		}
 		
 		Map<String, Set<PropertyKey>> searchablePropertyIndexMap = EntityContext.getSearchablePropertyMapForType(node.getClass());
 	
@@ -196,16 +210,8 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 
 		Index<Node> index = indices.get(indexName);
 		synchronized(index) {
-
-//			if (value instanceof Number) {
-//				
-//				index.add(node, key.dbName(), ValueContext.numeric((Number) value));
-//				
-//			} else {
 				
-				index.add(node, key.dbName(), value);
-				
-//			}
+			index.add(node, key.dbName(), value);
 		}
 	}
 }

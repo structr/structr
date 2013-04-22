@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.*;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -37,6 +38,8 @@ import org.apache.commons.lang.StringUtils;
  */
 public class RecurringDateHelper {
 
+	private static final Logger logger = Logger.getLogger(RecurringDateHelper.class.getName());
+	
 	private enum ShortWeekday {
 
 		Mo, Di, Mi, Do, Fr, Sa, So
@@ -131,9 +134,18 @@ public class RecurringDateHelper {
 		Calendar cal        = GregorianCalendar.getInstance();
 
 		cal.setTime(date);
+		
 		cal.set(Calendar.DAY_OF_WEEK, getDayOfWeek(shortWeekday));
-		cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hourMinute[0]));
-		cal.set(Calendar.MINUTE, Integer.parseInt(hourMinute[1]));
+		
+		try {
+			cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hourMinute[0]));
+			cal.set(Calendar.MINUTE, Integer.parseInt(hourMinute[1]));
+			
+		} catch (Throwable t) {
+			
+			logger.log(Level.WARNING, "Unable to parse time from string {0}", timeString);
+		}
+		
 		cal.set(Calendar.SECOND, 0);
 
 		return cal.getTime();
@@ -142,31 +154,37 @@ public class RecurringDateHelper {
 
 	private static int getDayOfWeek(final String shortWeekday) {
 
-		ShortWeekday wd = ShortWeekday.valueOf(shortWeekday);
+		try {
+			ShortWeekday wd = ShortWeekday.valueOf(shortWeekday);
 
-		switch (wd) {
+			switch (wd) {
 
-			case Mo :
-				return Calendar.MONDAY;
+				case Mo :
+					return Calendar.MONDAY;
 
-			case Di :
-				return Calendar.TUESDAY;
+				case Di :
+					return Calendar.TUESDAY;
 
-			case Mi :
-				return Calendar.WEDNESDAY;
+				case Mi :
+					return Calendar.WEDNESDAY;
 
-			case Do :
-				return Calendar.THURSDAY;
+				case Do :
+					return Calendar.THURSDAY;
 
-			case Fr :
-				return Calendar.FRIDAY;
+				case Fr :
+					return Calendar.FRIDAY;
 
-			case Sa :
-				return Calendar.SATURDAY;
+				case Sa :
+					return Calendar.SATURDAY;
 
-			case So :
-				return Calendar.SUNDAY;
+				case So :
+					return Calendar.SUNDAY;
 
+			}
+			
+		} catch (Throwable t) {
+			
+			logger.log(Level.WARNING, "Unable to parse day of week for string {0}", shortWeekday);
 		}
 
 		return 0;

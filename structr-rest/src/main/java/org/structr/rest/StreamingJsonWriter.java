@@ -304,7 +304,12 @@ public class StreamingJsonWriter {
 
 				if (converter != null) {
 
-					serializeRoot(writer, converter.revert(value), localPropertyView, depth);
+					Object convertedValue = null;
+					
+					// ignore conversion errors
+					try { convertedValue = converter.revert(value); } catch (Throwable t) {}
+					
+					serializeRoot(writer, convertedValue, localPropertyView, depth);
 
 				} else {
 
