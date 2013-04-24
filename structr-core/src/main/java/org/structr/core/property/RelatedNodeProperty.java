@@ -29,6 +29,8 @@ import org.structr.core.entity.AbstractNode;
  * A property that returns another property value from a related node.
  * 
  * @author Christian Morgner
+ * 
+ * @deprecated As of structr 0.7, use EntityNotionProperty instead!
  */
 public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	
