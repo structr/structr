@@ -41,7 +41,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 			
 		;
 		
-		Node referenceNode = graphDb.getRelationshipById(0);
+		Node referenceNode = graphDb.getNodeById(0);
 		description.traverse(referenceNode);
 
 	}
