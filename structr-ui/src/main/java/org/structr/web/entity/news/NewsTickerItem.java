@@ -72,7 +72,12 @@ public class NewsTickerItem extends AbstractNode {
 	public Object getPropertyForIndexing(final PropertyKey key) {
 
 		if (key.equals(text)) {
-			return getProperty(text).getProperty(Content.content);
+			
+			Content content = getProperty(text);
+			
+			if (content != null) {
+				return content.getProperty(Content.content);
+			}
 		}
 		
 		return super.getPropertyForIndexing(key);
