@@ -40,12 +40,14 @@ import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityProperty;
+import org.structr.core.validator.SimpleRegexValidator;
+import org.structr.core.validator.TypeUniquenessValidator;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  *
- * @author amorgner
+ * @author Axel Morgner
  *
  */
 public class User extends Person implements Principal {
@@ -69,8 +71,10 @@ public class User extends Person implements Principal {
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(),     name, email);
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(),  uiView.properties());
+		EntityContext.registerPropertyValidator(User.class, email, new TypeUniquenessValidator(User.class));
+		EntityContext.registerPropertyValidator(User.class, email, new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));
 	}
-
+	
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -120,7 +124,7 @@ public class User extends Person implements Principal {
 		return getProperty(User.frontendUser);
 
 	}
-
+	
 	//~--- set methods ----------------------------------------------------
 
 	public void setPassword(final String passwordValue) throws FrameworkException {
