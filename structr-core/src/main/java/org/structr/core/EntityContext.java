@@ -1182,7 +1182,7 @@ public class EntityContext {
 				RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
 				TransactionChangeSet changeSet                              = new TransactionChangeSet();
 				ErrorBuffer errorBuffer                                     = new ErrorBuffer();
-				NodeFactory nodeFactory                                     = new NodeFactory(securityContext);
+				NodeFactory nodeFactory                                     = new NodeFactory(superUserContext);
 				boolean hasError                                            = false;
 				
 				// store change set
