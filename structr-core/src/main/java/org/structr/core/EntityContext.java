@@ -1481,21 +1481,27 @@ public class EntityContext {
 
 			for (Node node : data.deletedNodes()) {
 
-				String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
-				AbstractNode entity = nodeFactory.createDummyNode(type);
+				Map<String, Object> removedProperties = removedNodeProperties.get(node);
+				if (removedProperties != null) {
+					
+					String type = (String)removedProperties.get(AbstractNode.type.dbName());
+					if (type != null) {
 
-				if (entity != null) {
+						AbstractNode entity = nodeFactory.createDummyNode(type);
+						if (entity != null) {
 
-					PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedNodeProperties.get(node));
+							PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedNodeProperties.get(node));
 
-					hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
+							hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
 
-					// notify registered listeners
-					for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-						hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
+							// notify registered listeners
+							for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+								hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
+							}
+
+							changeSet.delete(entity);
+						}
 					}
-
-					changeSet.delete(entity);
 				}
 			}
 
