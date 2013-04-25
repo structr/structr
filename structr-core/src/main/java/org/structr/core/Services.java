@@ -50,12 +50,14 @@ import org.structr.common.error.FrameworkException;
  * Use the {@see #command} method to obtain an instance of the desired command.
  * </p>
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
 public class Services {
 
 	// Application constants
 	public static final String APPLICATION_TITLE   = "application.title";
+	public static final String APPLICATION_HOST    = "application.host";
+	public static final String APPLICATION_PORT    = "application.port";
 	public static final String BASE_PATH           = "base.path";
 	public static final String CONFIGURED_SERVICES = "configured.services";
 	public static final String CONFIG_FILE_PATH    = "configfile.path";
@@ -105,6 +107,8 @@ public class Services {
 	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<Class>();
 	private static boolean initializationDone = false;
 	private static String appTitle;
+	private static String appHost;
+	private static String appPort;
 	private static String basePath;
 	private static String restPath;
 	private static String configFilePath;
@@ -210,6 +214,8 @@ public class Services {
 		configuredServices = getConfigValue(context, Services.CONFIGURED_SERVICES,
 			"ModuleService NodeService AgentService CloudService CacheService LogService NotificationService");
 		appTitle          = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
+		appHost           = getConfigValue(context, Services.APPLICATION_HOST, "localhost");
+		appPort           = getConfigValue(context, Services.APPLICATION_PORT, "8082");
 		tmpPath           = getConfigValue(context, Services.TMP_PATH, "/tmp");
 		basePath          = getConfigValue(context, Services.BASE_PATH, ".");
 		restPath          = getConfigValue(context, Services.REST_PATH, "/structr/rest");
@@ -412,6 +418,20 @@ public class Services {
 		return appTitle;
 	}
 
+	/**
+	 * Return the static application host name
+	 */
+	public static String getApplicationHost() {
+		return appHost;
+	}
+	
+	/**
+	 * Return the static application port
+	 */
+	public static String getApplicationPort() {
+		return appPort;
+	}
+	
 	/**
 	 * Return the static base path
 	 *
