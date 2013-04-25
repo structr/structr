@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
@@ -66,7 +65,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Renderable;
-import org.structr.web.servlet.HtmlServlet;
+import org.structr.web.entity.User;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -501,6 +500,20 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			}
 
+			// special keyword "me"
+			if ("me".equals(part.toLowerCase())) {
+
+				User me = (User) securityContext.getUser(false);
+
+				if (me != null) {
+		
+					_data = me;
+					
+					continue;
+				}
+
+			}
+
 			// the following keywords work only on root level
 			// so that they can be used as property keys for data objects
 			if (_data == null) {
@@ -577,20 +590,20 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				}
 
-				// special keyword "rest_result"
-				if ("rest_result".equals(part.toLowerCase())) {
-
-					HttpServletRequest request = securityContext.getRequest();
-
-					if (request != null) {
-
-						return StringEscapeUtils.escapeJavaScript(StringUtils.replace(StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE)), "\n", ""));
-					}
-
-					return 0;
-
-				}
-				
+//				// special keyword "rest_result"
+//				if ("rest_result".equals(part.toLowerCase())) {
+//
+//					HttpServletRequest request = securityContext.getRequest();
+//
+//					if (request != null) {
+//
+//						return StringEscapeUtils.escapeJavaScript(StringUtils.replace(StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE)), "\n", ""));
+//					}
+//
+//					return 0;
+//
+//				}
+//				
 			}
 
 		}
@@ -611,6 +624,15 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	}
 
+	/**
+	 * @deprecated This method uses the security context of instantiation
+	 * which is a bad idea. Use {@link DOMNode#getPropertyWithVariableReplacement} instead
+	 * 
+	 * @param renderContext
+	 * @param key
+	 * @return
+	 * @throws FrameworkException 
+	 */
 	protected String getPropertyWithVariableReplacement(RenderContext renderContext, PropertyKey<String> key) throws FrameworkException {
 
 		HttpServletRequest request = renderContext.getRequest();

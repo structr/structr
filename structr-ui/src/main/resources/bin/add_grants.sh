@@ -24,6 +24,10 @@ delete resource_access
 post resource_access '{"signature":"ResourceAccess","flags":17}'
 post resource_access '{"signature":"ResourceAccess/_Ui","flags":17}'
 
+# allow POST access to registration resource
+post resource_access '{"signature":"_registration","flags":68}'
+
+
 post resource_access '{"signature":"/","flags":255}'
 post resource_access '{"signature":"/_All","flags":255}'
 post resource_access '{"signature":"/_Ui","flags":255}'
@@ -40,6 +44,7 @@ post resource_access '{"signature":"_schema/File","flags":255}'
 post resource_access '{"signature":"_schema/Image","flags":255}'
 post resource_access '{"signature":"_schema/Content","flags":255}'
 post resource_access '{"signature":"_schema/NewsTickerItem","flags":255}'
+post resource_access '{"signature":"_schema/MailTemplate","flags":255}'
 post resource_access '{"signature":"_schema/PropertyDefinition","flags":255}'
 post resource_access '{"signature":"_schema/Post","flags":255}'
 post resource_access '{"signature":"_schema/Comment","flags":255}'
@@ -148,3 +153,11 @@ post resource_access '{"signature":"NewsTickerItem/_Public","flags":255}'
 post resource_access '{"signature":"NewsTickerItem/_Protected","flags":255}'
 post resource_access '{"signature":"NewsTickerItem/_Ui","flags":255}'
 post resource_access '{"signature":"NewsTickerItem/Id","flags":255}'
+
+post resource_access '{"signature":"MailTemplate","flags":255, "position":11, "visibleToPublicUsers":true}'
+post resource_access '{"signature":"MailTemplate/_All","flags":255}'
+post resource_access '{"signature":"MailTemplate/_Html","flags":255}'
+post resource_access '{"signature":"MailTemplate/_Public","flags":255}'
+post resource_access '{"signature":"MailTemplate/_Protected","flags":255}'
+post resource_access '{"signature":"MailTemplate/_Ui","flags":255}'
+post resource_access '{"signature":"MailTemplate/Id","flags":255}'

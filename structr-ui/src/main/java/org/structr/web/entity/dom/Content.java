@@ -192,7 +192,7 @@ public class Content extends DOMNode implements Text {
 		}
 
 		// fetch content with variable replacement
-		String _content = getPropertyWithVariableReplacement(renderContext, Content.content);
+		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
 
 		// examine content type and apply converter
 		String _contentType = getProperty(Content.contentType);

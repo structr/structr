@@ -1,7 +1,5 @@
 package org.structr.rest;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.util.List;
@@ -47,9 +45,9 @@ public class StreamingJsonWriter {
 	private PropertyKey idProperty                       = GraphObject.uuid;
 	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
-	private JsonWriter writer                            = null;
+	//private JsonWriter writer                            = null;
 	
-	public StreamingJsonWriter(SecurityContext securityContext, Value<String> propertyView, Writer writer) {
+	public StreamingJsonWriter(Value<String> propertyView) {
 
 		this.securityContext = SecurityContext.getSuperUserInstance();
 		this.propertyView    = propertyView;
@@ -70,13 +68,16 @@ public class StreamingJsonWriter {
 		nonSerializerClasses.add(StringBuffer.class);
 		nonSerializerClasses.add(Boolean.class);
 		
-		this.writer = new JsonWriter(writer);
-		this.writer.setIndent("   ");
+		//this.writer = new JsonWriter(writer);
+		//this.writer.setIndent("   ");
 	}
 	
-	public void stream(Result src) throws IOException {
+	public void stream(Writer w, Result src) throws IOException {
 		
 		long t0 = System.nanoTime();
+		
+		JsonWriter writer = new JsonWriter(w);
+		writer.setIndent("   ");
 		
 		// result fields in alphabetical order
 		List<? extends GraphObject> results = src.getResults();

@@ -20,22 +20,15 @@
 
 package org.structr.web.servlet;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import org.eclipse.jetty.client.ContentExchange;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.io.Buffer;
-import org.eclipse.jetty.io.ByteArrayBuffer;
 
 
 import org.structr.common.*;
@@ -61,6 +54,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -71,6 +66,7 @@ import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -91,6 +87,10 @@ public class HtmlServlet extends HttpServlet {
 	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	
+	public static final String CONFIRM_REGISTRATION_PAGE = "confirm_registration";
+	public static final String CONFIRM_KEY_KEY = "key";
+	public static final String TARGET_PAGE_KEY = "target";
+	
 	private ResourceProvider resourceProvider                   = null;
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher              = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
@@ -101,7 +101,7 @@ public class HtmlServlet extends HttpServlet {
 
 	private DecimalFormat decimalFormat                                         = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private boolean edit;
-	private Gson gson;
+//	private Gson gson;
 
 	public HtmlServlet() {}
 	
@@ -119,96 +119,8 @@ public class HtmlServlet extends HttpServlet {
 		 searchNodesAsSuperuser = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
 	}
 
-	private String postToRestUrl(HttpServletRequest request, final String pagePath, final Map<String, Object> parameters) {
-
-		HttpClient httpClient = new HttpClient();
-		ContentExchange contentExchange;
-		String restUrl = null;
-
-		gson = new GsonBuilder().create();
-
-		try {
-
-			httpClient.start();
-
-			contentExchange = new ContentExchange();
-
-			httpClient.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
-			request.setCharacterEncoding("UTF-8");
-
-			restUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getLocalPort() + Services.getRestPath() + "/" + pagePath;
-
-			contentExchange.setURL(restUrl);
-
-			Buffer buf = new ByteArrayBuffer(gson.toJson(parameters), "UTF-8");
-
-			contentExchange.setRequestContent(buf);
-			contentExchange.setRequestContentType("application/json;charset=UTF-8");
-			contentExchange.setMethod("POST");
-
-			String[] userAndPass = HttpAuthenticator.getUsernameAndPassword(request);
-
-			if ((userAndPass != null) && (userAndPass.length == 2) && (userAndPass[0] != null) && (userAndPass[1] != null)) {
-
-				contentExchange.addRequestHeader("X-User", userAndPass[0]);
-				contentExchange.addRequestHeader("X-Password", userAndPass[1]);
-
-			}
-
-			httpClient.send(contentExchange);
-			contentExchange.waitForDone();
-
-			return contentExchange.getResponseContent();
-
-		} catch (Exception ex) {
-
-			logger.log(Level.WARNING, "Error while POSTing to REST url " + restUrl, ex);
-
-			return null;
-		}
-	}
-
 	@Override
 	public void destroy() {}
-
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
-
-		request.setCharacterEncoding("UTF-8");
-		response.setCharacterEncoding("UTF-8");
-
-		Map<String, String[]> parameterMap = request.getParameterMap();
-		String path                        = PathHelper.clean(request.getPathInfo());
-
-		// For now, we treat the first path item as the page path.
-		// FIXME: Allow multi-segment page path (subpages)
-		
-		//String[] parts  = PathHelper.getParts(path);
-		String restPath = StringUtils.substringAfter(path, PathHelper.PATH_SEP);
-
-		String resp = postToRestUrl(request, restPath, convert(parameterMap));
-		
-		if (resp != null) {
-			request.getSession().setAttribute(REST_RESPONSE, resp);
-		}
-
-		String redirect = null;
-
-		try {
-			// Check for a target URL coming from the form
-			redirect = request.getParameter(REDIRECT);
-			
-			if (redirect == null) {
-				redirect = (String) request.getSession().getAttribute(LAST_GET_URL);
-				request.getSession().removeAttribute(LAST_GET_URL);
-			}
-
-			response.sendRedirect(redirect);
-
-		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Could not redirect to " + redirect, ex);
-		}
-	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -248,8 +160,6 @@ public class HtmlServlet extends HttpServlet {
 			
 			edit = renderContext.getEdit();
 			
-			
-			
 			DOMNode rootElement               = null;
 			AbstractNode dataNode             = null;
 			
@@ -264,7 +174,18 @@ public class HtmlServlet extends HttpServlet {
 
 			} else {
 
-				rootElement = findPage(request, path);
+				// check for registration first
+				if (checkRegistration(securityContext, request, response, path)) {
+					return;
+				}
+				
+				if (rootElement == null) {
+					
+					rootElement = findPage(request, path);
+					
+				} else {
+					dontCache = true;
+				}
 			}
 
 			if (rootElement == null) { // No page found
@@ -498,39 +419,39 @@ public class HtmlServlet extends HttpServlet {
 		
 		return null;
 	}
-	
-	/**
-	 * Convert parameter map so that after conversion, all map values
-	 * are a single String instead of an one-element String[]
-	 *
-	 * @param parameterMap
-	 * @return
-	 */
-	private Map<String, Object> convert(final Map<String, String[]> parameterMap) {
-
-		Map parameters = new HashMap<String, Object>();
-
-		for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
-
-			String[] values = param.getValue();
-			Object val;
-
-			if (values.length == 1) {
-
-				val = values[0];
-
-			} else {
-
-				val = values;
-
-			}
-
-			parameters.put(param.getKey(), val);
-
-		}
-
-		return parameters;
-	}
+//	
+//	/**
+//	 * Convert parameter map so that after conversion, all map values
+//	 * are a single String instead of an one-element String[]
+//	 *
+//	 * @param parameterMap
+//	 * @return
+//	 */
+//	private Map<String, Object> convert(final Map<String, String[]> parameterMap) {
+//
+//		Map parameters = new HashMap<String, Object>();
+//
+//		for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
+//
+//			String[] values = param.getValue();
+//			Object val;
+//
+//			if (values.length == 1) {
+//
+//				val = values[0];
+//
+//			} else {
+//
+//				val = values;
+//
+//			}
+//
+//			parameters.put(param.getKey(), val);
+//
+//		}
+//
+//		return parameters;
+//	}
 
 	private Page findIndexPage() throws FrameworkException {
 
@@ -552,6 +473,71 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		return null;
+	}
+
+	
+	/**
+	 * This method checks if the current request is a user registration confirmation,
+	 * usually triggered by a user clicking on a confirmation link in an e-mail.
+	 * 
+	 * @param securityContext
+	 * @param request
+	 * @param response
+	 * @param path
+	 * @return true if the registration was successful
+	 * @throws FrameworkException
+	 * @throws IOException 
+	 */
+	private boolean checkRegistration(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final String path) throws FrameworkException, IOException {
+
+		logger.log(Level.FINE, "Checking registration ...");
+		
+		String key        = request.getParameter(CONFIRM_KEY_KEY);
+		String targetPage = request.getParameter(TARGET_PAGE_KEY);
+
+		if (path.equals(CONFIRM_REGISTRATION_PAGE)) {
+		
+			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+			searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
+			searchAttrs.add(Search.andMatchValues(User.confirmationKey, key, SearchOperator.AND));
+
+			Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
+			
+			if (!results.isEmpty()) {
+				
+				User user = (User) results.get(0);
+				
+				// Clear confirmation key and set password
+				user.setConfirmationKey(null);
+				//user.setPassword("foobar");
+				
+				// Login user without password
+				request.getSession().setAttribute(HttpAuthenticator.SESSION_USER, user);
+				securityContext.setUser(user);
+
+				// Redirect to target page
+				if (StringUtils.isNotBlank(targetPage)) {
+					
+					response.sendRedirect("/" + targetPage);
+					
+					return true;
+					
+				}
+				
+//				try {
+//					request.authenticate(response);
+//					//response.addCookie(new Cookie());
+//				} catch (ServletException ex) {
+//					Logger.getLogger(HtmlServlet.class.getName()).log(Level.SEVERE, null, ex);
+//				}
+				
+				
+			}
+			
+		}
+
+		return false;
+		
 	}
 
 	private List<AbstractNode> findPossibleEntryPointsByUuid(HttpServletRequest request, final String uuid) throws FrameworkException {
@@ -636,7 +622,7 @@ public class HtmlServlet extends HttpServlet {
 
 			logger.log(Level.FINE, "Requested name {0}", name);
 
-			possibleEntryPoints = possibleEntryPoints = findPossibleEntryPointsByName(request, name);
+			possibleEntryPoints = findPossibleEntryPointsByName(request, name);
 		
 			if (possibleEntryPoints.isEmpty()) {
 				findPossibleEntryPointsByUuid(request, name);
