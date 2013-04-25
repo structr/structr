@@ -180,35 +180,4 @@ public class PagingHelper {
 
 	}
 
-//
-//      @Override
-//      public String getResourceSignature() {
-//            
-//            String uriPart    = getUriPart();
-//            StringBuilder uri = new StringBuilder();
-//
-//            if (uriPart.contains("/")) {
-//
-//                    String[] parts = StringUtils.split(uriPart, "/");
-//
-//                    for (String subPart : parts) {
-//
-//                            if (!subPart.matches("[a-zA-Z0-9]{32}")) {
-//
-//                                    uri.append(subPart);
-//                                    uri.append("/");
-//
-//                            }
-//
-//                    }
-//
-//                    return uri.toString();
-//
-//            } else {
-//
-//                    return uriPart;
-//
-//            }
-//      }
-
 }

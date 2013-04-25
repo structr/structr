@@ -24,6 +24,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.JsonWriter;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -43,6 +44,7 @@ import org.structr.core.Result;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.String;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -58,6 +60,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.*;
+import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
@@ -94,6 +97,7 @@ public class JsonRestServlet extends HttpServlet {
 	private Property<String> defaultIdProperty                  = AbstractNode.uuid;
 	private String defaultPropertyView                          = PropertyView.Public;
 	private ThreadLocalGson gson                                = null;
+	private ThreadLocalJsonWriter jsonWriter                    = null;
 	private Writer logWriter                                    = null;
 	private Value<String> propertyView                          = null;
 	private ResourceProvider resourceProvider                   = null;
@@ -121,7 +125,10 @@ public class JsonRestServlet extends HttpServlet {
 		// initialize variables
 		this.propertyView  = new ThreadLocalPropertyView();
 		
-		this.gson = new ThreadLocalGson();
+		this.gson       = new ThreadLocalGson();
+
+		this.jsonWriter = new ThreadLocalJsonWriter(propertyView);
+
 	}
 
 	@Override
@@ -291,7 +298,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				Writer writer = response.getWriter();
 				
-				new StreamingJsonWriter(securityContext, propertyView, writer).stream(result);
+				jsonWriter.get().stream(writer, result);
 
 				// gson.get().toJson(result, writer);
 				
@@ -873,6 +880,25 @@ public class JsonRestServlet extends HttpServlet {
 				.registerTypeAdapter(Result.class, resultGsonAdapter)
 				.create();
 		}
+	}
+
+	private class ThreadLocalJsonWriter extends ThreadLocal<StreamingJsonWriter> {
+		
+		private Value<String> propertyView;
+		
+		public ThreadLocalJsonWriter(Value<String> propertyView) {
+			
+			this.propertyView = propertyView;
+			
+		}
+		
+		@Override
+		protected StreamingJsonWriter initialValue() {
+			
+			return new StreamingJsonWriter(this.propertyView);
+
+		}
+
 	}
 	// </editor-fold>
 }
