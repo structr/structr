@@ -51,7 +51,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HttpAuthenticator implements Authenticator {
 
-	private static final String SESSION_USER = "sessionUser";
+	public static final String SESSION_USER  = "sessionUser";
 	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
 
 	//~--- methods --------------------------------------------------------
@@ -71,13 +71,15 @@ public class HttpAuthenticator implements Authenticator {
 		if (user != null) {
 
 			request.getSession().setAttribute(SESSION_USER, user);
+			
 			securityContext.setUser(user);
 
 			try {
 
 				request.login(userName, password);
+				request.authenticate(response);
 
-			} catch (ServletException ex) {
+			} catch (Exception ex) {
 
 				Logger.getLogger(HttpAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
 

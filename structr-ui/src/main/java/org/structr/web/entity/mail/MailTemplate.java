@@ -49,7 +49,7 @@ import org.structr.web.entity.dom.Content;
  */
 public class MailTemplate extends AbstractNode {
 
-	public static final EntityProperty<Content>          text = new EntityProperty<Content>("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), false);
+	public static final EntityProperty<Content>          text = new EntityProperty<Content>("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), false);
 	public static final Property<String>               locale = new StringProperty("locale");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(NewsTickerItem.class, PropertyView.Ui,

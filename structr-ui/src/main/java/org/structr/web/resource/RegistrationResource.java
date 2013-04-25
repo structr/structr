@@ -40,6 +40,7 @@ import org.structr.web.entity.User;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,6 +53,7 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
+import org.structr.web.servlet.HtmlServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,10 +72,12 @@ public class RegistrationResource extends Resource {
 		SUBJECT,
 		TEXT_BODY,
 		HTML_BODY,
-		BASE_URL
+		BASE_URL,
+		TARGET_PAGE
 	}
 
 	private static String localeString;
+	private static String confKey;
 	
 	//~--- methods --------------------------------------------------------
 
@@ -82,7 +86,7 @@ public class RegistrationResource extends Resource {
 
 		this.securityContext = securityContext;
 
-		return ("registration".equals(part));
+		return (getUriPart().equals(part));
 
 	}
 
@@ -103,11 +107,13 @@ public class RegistrationResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		if (propertySet.containsKey(User.email.jsonName())) {
+		if (propertySet.containsKey(User.email.jsonName()) && propertySet.size() == 1) {
+			
+			// only email
 
 			final String emailString  = (String) propertySet.get(User.email.jsonName());
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
-			
+			confKey = UUID.randomUUID().toString();
 			
 			User newUser = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
 
@@ -116,7 +122,9 @@ public class RegistrationResource extends Resource {
 
 					return (User) Services.command(securityContext, CreateNodeCommand.class).execute(
 						new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
-						new NodeAttribute(User.email, emailString));
+						new NodeAttribute(User.email, emailString),
+						new NodeAttribute(User.name, emailString),
+						new NodeAttribute(User.confirmationKey, confKey));
 				}
 
 			});
@@ -161,30 +169,34 @@ public class RegistrationResource extends Resource {
 		String userEmail = user.getProperty(User.email);
 		
 		replacementMap.put(toPlaceholder(User.email.jsonName()), userEmail);
-		replacementMap.put(toPlaceholder("link"), getTemplateText(TemplateKey.BASE_URL) + "/register?id=" + user.getUuid());
+		replacementMap.put(toPlaceholder("link"),
+			getTemplateText(TemplateKey.BASE_URL, "//" + Services.getApplicationHost() + ":" + Services.getApplicationPort())
+			+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
+			+ "?" + HtmlServlet.CONFIRM_KEY_KEY + "=" + confKey
+			+ "&" + HtmlServlet.TARGET_PAGE_KEY + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks"));
 
-		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY);
-		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY);
+		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.");
+		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>");
 		String textMailContent  = MailHelper.replacePlaceHoldersInTemplate(textMailTemplate, replacementMap);
 		String htmlMailContent  = MailHelper.replacePlaceHoldersInTemplate(htmlMailTemplate, replacementMap);
 
 		try {
 
 			MailHelper.sendHtmlMail(
-				getTemplateText(TemplateKey.SENDER_ADDRESS),
-				getTemplateText(TemplateKey.SENDER_NAME),
+				getTemplateText(TemplateKey.SENDER_ADDRESS, "structr-mail-daemon@localhost"),
+				getTemplateText(TemplateKey.SENDER_NAME, "Structr Mail Daemon"),
 				userEmail, "", null, null, null,
-				getTemplateText(TemplateKey.SUBJECT),
+				getTemplateText(TemplateKey.SUBJECT, "Welcome to Structr, please finalize registration"),
 				htmlMailContent, textMailContent);
 
 		} catch (Exception e) {
 
-			logger.log(Level.SEVERE, "Unable to send e-mail", e);
+			logger.log(Level.SEVERE, "Unable to send registration e-mail", e);
 		}
 
 	}
 
-	private String getTemplateText(final TemplateKey key) {
+	private String getTemplateText(final TemplateKey key, final String defaultValue) {
 		try {
 			List<MailTemplate> templates = (List<MailTemplate>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
 				Search.andExactType(MailTemplate.class.getSimpleName()),
@@ -195,6 +207,10 @@ public class RegistrationResource extends Resource {
 			if (!templates.isEmpty()) {
 				
 				return templates.get(0).getProperty(MailTemplate.text).getProperty(Content.content);
+				
+			} else {
+				
+				return defaultValue;
 				
 			}
 			
@@ -234,7 +250,7 @@ public class RegistrationResource extends Resource {
 	@Override
 	public String getResourceSignature() {
 
-		return getUriPart();
+		return "_registration";
 
 	}
 
