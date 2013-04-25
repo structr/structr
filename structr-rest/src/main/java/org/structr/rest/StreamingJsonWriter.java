@@ -344,6 +344,8 @@ public class StreamingJsonWriter {
 			// prevent endless recursion by pruning at depth n
 			if (depth <= outputNestingDepth) {
 
+				
+				/*
 				// id (only if idProperty is not set)
 				if (idProperty == null) {
 
@@ -358,7 +360,8 @@ public class StreamingJsonWriter {
 					}
 
 				}
-
+				*/
+				
 				// property keys
 				Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
 				if(keys != null) {
