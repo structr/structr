@@ -27,7 +27,6 @@ var activeTabCookieName = 'structrActiveTab_' + port;
 var win = $(window);
 var copy = false;
 
-
 $(document).ready(function() {
     Structr.registerModule('pages', _Pages);
     Structr.classes.push('page');
@@ -733,18 +732,15 @@ var _Pages = {
             sortable: '.node',
             //containment: 'parent',
             start: function(event, ui) {
-                //console.log('copy?', copy);
-                //copy = false;
-                console.log('sorting start');
                 sorting = true;
             },
             sort: function(event, ui) {
-                if (copy) return false;
+                //if (copy) return false;
+                copy = false;
             },
             update: function(event, ui) {
-                console.log('sorting update, copy active?', copy);
                 //console.log('copy?', copy);
-                if (copy) return;
+                if (copy) return false;
                 var el = $(ui.item);
                 var id = getId(el);
                 var refId = getId(el.next('.node'));
@@ -755,9 +751,6 @@ var _Pages = {
                 _Pages.reloadPreviews();
             },
             stop: function(event, ui) {
-                //if (copy) return;
-                //console.log('copy?', copy);
-                console.log('sorting stop');
                 sorting = false;
                 _Entities.resetMouseOverState(ui.item);
             }
@@ -774,7 +767,6 @@ var _Pages = {
                 _Entities.ensureExpanded(self);
 
                 if (sorting && !copy) {
-                    console.log('sorting, no drop allowed');
                     return;
                 }
                 var nodeData = {};
@@ -786,20 +778,16 @@ var _Pages = {
 
                 var source = StructrModel.obj(contentId);
                 var target = StructrModel.obj(elementId);
-
-                
-                console.log(source, getId(page), source ? source.pageId : 'source null')
                 
                 if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
                     copy = true;
-                    console.log('copy node', ui, copy);
                     event.preventDefault();
                     event.stopPropagation();
                     Command.copyDOMNode(source.id, target.id);
                     //_Entities.showSyncDialog(source, target);
                     return;
                 } else {
-                    console.log('not copying node');
+                    log('not copying node');
                 }
                 
                 if (contentId === elementId) {
