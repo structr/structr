@@ -248,7 +248,7 @@ var _Elements = {
                 headers['X-StructrSessionToken'] = token;
                 
                 $.ajax({
-                    url: rootUrl + 'pages?pageSize=100',
+                    url: rootUrl + 'pages/ui?pageSize=100',
                     async: true,
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
@@ -256,8 +256,6 @@ var _Elements = {
                     success: function(data) {
                         
                         $(data.result).each(function(i, res) {
-                            
-                            //console.log(entity.id, res.linkingElements);
                             
                             dialog.append('<div class="node page ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
                                 + '<b title="' + res.name + '" class="name_">' + res.name + '</b></div>');
@@ -299,8 +297,6 @@ var _Elements = {
                     headers: headers,
                     success: function(data) {
                         $(data.result).each(function(i, file) {
-                            
-                            log(entity.id, file.name, file);
                             
                             dialog.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
                                 + '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');

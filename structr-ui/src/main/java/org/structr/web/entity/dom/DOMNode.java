@@ -44,6 +44,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -468,6 +469,23 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					continue;
 
 				}
+
+				// special keyword "link", works on deeper levels, too
+				if ("link".equals(part.toLowerCase()) && _data instanceof AbstractNode) {
+
+					for (AbstractRelationship rel : ((AbstractNode) _data).getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
+
+						_data = rel.getEndNode();
+
+						break;
+
+					}
+
+					continue;
+
+				}
+			
+			
 			}
 			
 			// data objects from parent elements
@@ -545,17 +563,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// special keyword "parent"
 				if ("parent".equals(part.toLowerCase())) {
 
-					for (AbstractRelationship rel : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
-
-						if (rel.getProperty(pageIdProperty) != null) {
-
-							_data = rel.getStartNode();
-
-							break;
-
-						}
-
-					}
+					_data = (DOMNode) getParentNode();
 
 					continue;
 
