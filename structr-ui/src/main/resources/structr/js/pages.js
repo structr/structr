@@ -25,6 +25,8 @@ var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
 var activeTabCookieName = 'structrActiveTab_' + port;
 var win = $(window);
+var copy = false;
+
 
 $(document).ready(function() {
     Structr.registerModule('pages', _Pages);
@@ -119,7 +121,6 @@ var _Pages = {
         previewTabs = $('#previewTabs', previews);
 
         _Pages.refresh();
-        
         
         window.setTimeout('_Pages.resize()', 1000);
 
@@ -280,7 +281,7 @@ var _Pages = {
             e.stopPropagation();
             var self = $(this);
             var clicks = e.originalEvent.detail;
-            if (clicks == 1) {
+            if (clicks === 1) {
                 log('click', self, self.css('z-index'));
                 if (self.hasClass('active')) {
                     _Pages.makeTabEditable(self);
@@ -399,11 +400,11 @@ var _Pages = {
             _Entities.deleteNode(this, entity);
         });
 
-        div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="' + _Pages.clone_icon + '">');
-        $('.clone_icon', div).on('click', function(e) {
-            e.stopPropagation();
-            Command.clonePage(entity.id);
-        });
+//        div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="' + _Pages.clone_icon + '">');
+//        $('.clone_icon', div).on('click', function(e) {
+//            e.stopPropagation();
+//            Command.clonePage(entity.id);
+//        });
 
         _Entities.appendEditPropertiesIcon(div, entity);
         _Entities.appendAccessControlIcon(div, entity);
@@ -666,11 +667,11 @@ var _Pages = {
                             
                             //textBeforeEditing = cleanText(self.contents());
                             
-                            console.log(StructrModel.obj(structrId), 'source text', StructrModel.obj(structrId).content);
+                            //console.log(StructrModel.obj(structrId), 'source text', StructrModel.obj(structrId).content);
                             self.text(StructrModel.obj(structrId).content);
                             // Store old text in global var
                             textBeforeEditing = cleanText(self.contents());
-                            console.log("textBeforeEditing", textBeforeEditing);
+                            //console.log("textBeforeEditing", textBeforeEditing);
 
                         },
                         blur: function(e) {
@@ -727,13 +728,23 @@ var _Pages = {
             });
         }
         var sorting = false;
+        
         div.sortable({
             sortable: '.node',
-            containment: '#pages',
+            //containment: 'parent',
             start: function(event, ui) {
+                //console.log('copy?', copy);
+                //copy = false;
+                console.log('sorting start');
                 sorting = true;
             },
+            sort: function(event, ui) {
+                if (copy) return false;
+            },
             update: function(event, ui) {
+                console.log('sorting update, copy active?', copy);
+                //console.log('copy?', copy);
+                if (copy) return;
                 var el = $(ui.item);
                 var id = getId(el);
                 var refId = getId(el.next('.node'));
@@ -744,6 +755,9 @@ var _Pages = {
                 _Pages.reloadPreviews();
             },
             stop: function(event, ui) {
+                //if (copy) return;
+                //console.log('copy?', copy);
+                console.log('sorting stop');
                 sorting = false;
                 _Entities.resetMouseOverState(ui.item);
             }
@@ -753,20 +767,19 @@ var _Pages = {
             accept: '.element, .content, .component, .image, .file',
             greedy: true,
             hoverClass: 'nodeHover',
-            tolerance: 'pointer',
+            //tolerance: 'pointer',
             drop: function(event, ui) {
                 var self = $(this);
 
                 _Entities.ensureExpanded(self);
-                
-                if (sorting) {
-                    log('sorting, no drop allowed');
+
+                if (sorting && !copy) {
+                    console.log('sorting, no drop allowed');
                     return;
                 }
                 var nodeData = {};
 				
                 var page = self.closest('.page')[0];
-
                 
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
@@ -778,15 +791,16 @@ var _Pages = {
                 console.log(source, getId(page), source ? source.pageId : 'source null')
                 
                 if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
-                    console.log('copy node')
+                    copy = true;
+                    console.log('copy node', ui, copy);
+                    event.preventDefault();
+                    event.stopPropagation();
                     Command.copyDOMNode(source.id, target.id);
-                    _Entities.showSyncDialog(source, target);
+                    //_Entities.showSyncDialog(source, target);
                     return;
                 } else {
                     console.log('not copying node');
                 }
-                
-                
                 
                 if (contentId === elementId) {
                     log('drop on self not allowed');
