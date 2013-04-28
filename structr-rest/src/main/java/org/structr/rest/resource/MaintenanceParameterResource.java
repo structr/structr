@@ -44,6 +44,7 @@ import org.structr.core.agent.Task;
 import org.structr.core.graph.BulkDeleteSoftDeletedNodesCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
+import org.structr.core.graph.SyncCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,6 +69,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
 		maintenanceCommandMap.put("deleteSoftDeletedNodes", BulkDeleteSoftDeletedNodesCommand.class);
 		maintenanceCommandMap.put("setUuid", BulkSetUuidCommand.class);
+		maintenanceCommandMap.put("sync", SyncCommand.class);
 
 	}
 
