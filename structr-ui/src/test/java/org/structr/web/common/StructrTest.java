@@ -182,7 +182,7 @@ public class StructrTest extends TestCase {
 
 			}
 
-		}, true);
+		});
 
 	}
 
@@ -207,7 +207,7 @@ public class StructrTest extends TestCase {
 
 			}
 
-		}, true);
+		});
 
 	}
 
@@ -233,7 +233,7 @@ public class StructrTest extends TestCase {
 
 			}
 
-		}, true);
+		});
 
 	}
 
@@ -248,7 +248,7 @@ public class StructrTest extends TestCase {
 
 			}
 
-		}, true);
+		});
 
 	}
 

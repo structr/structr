@@ -32,7 +32,6 @@ import java.util.logging.Level;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.neo4j.kernel.GraphDatabaseAPI;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -68,16 +67,12 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final boolean debug                 = "true".equals(debugProperty);
 	private static final boolean logExceptions         = true;
 
-	private static final ThreadLocal<Transaction> transactions = new ThreadLocal<Transaction>();
-	private static final ThreadLocal<Long> transactionKeys     = new ThreadLocal<Long>();
-	private static final ThreadLocal<Long> depths              = new ThreadLocal<Long>();
+	private static final ThreadLocal<Transaction> transactions     = new ThreadLocal<Transaction>();
+	private static final ThreadPassageCounter threadPassageCounter = new ThreadPassageCounter();
+	private static final ThreadLocal<Long> transactionKeys         = new ThreadLocal<Long>();
+	private static final ThreadLocal<Long> depths                  = new ThreadLocal<Long>();
 	
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
-		
-		return execute(transaction, false);
-	}
-	
-	public <T> T execute(StructrTransaction<T> transaction, boolean unforced) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Long transactionKey          = transactionKeys.get();
@@ -87,15 +82,9 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 		if (tx == null || transactionKey == null) {
 			
-			if (unforced) {
-	
-				tx = ((GraphDatabaseAPI)graphDb).tx().unforced().begin();
-				
-			} else {
-			
-				tx = graphDb.beginTx();
-				
-			}
+			threadPassageCounter.inc();
+		
+			tx = graphDb.beginTx();
 			
 			transactionKey = nextLong();
 			
@@ -246,7 +235,13 @@ public class TransactionCommand extends NodeServiceCommand {
 				}
 			}
 
-			EntityContext.clearTransactionData(transactionKey);
+			threadPassageCounter.dec();
+		
+			// clear security context only when the last nested transaction is exited
+			if (threadPassageCounter.get() == 0L) {
+				
+				EntityContext.clearTransactionData(transactionKey);
+			}
 			
 			return ret;
 			
@@ -390,6 +385,22 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 		for (int i=0; i<depth+1; i++) {
 			System.out.print("        ");
+		}
+	}
+	
+	private static class ThreadPassageCounter extends ThreadLocal<Long> {
+		
+		@Override
+		protected Long initialValue() {
+			return Long.valueOf(0L);
+		}
+		
+		public synchronized  void inc() {
+			this.set(this.get().longValue() + 1);
+		}
+		
+		public synchronized  void dec() {
+			this.set(this.get().longValue() - 1);
 		}
 	}
 }
