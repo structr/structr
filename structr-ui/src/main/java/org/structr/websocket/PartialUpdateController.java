@@ -167,7 +167,7 @@ public class PartialUpdateController implements TransactionNotifier {
 	 * @param data 
 	 */
 	@Override
-	public void notify(TransactionData data) {
+	public void notify(SecurityContext securityContext, TransactionData data) {
 
 		// Collect all nodes to be taken into account
 		Set<Node> nodes = new HashSet();

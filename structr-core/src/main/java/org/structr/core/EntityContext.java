@@ -1251,8 +1251,10 @@ public class EntityContext {
 		@Override
 		public void afterCommit(TransactionData data, Long transactionKey) {
 		
+			SecurityContext securityContext = securityContextMap.get();
+
 			for (TransactionNotifier notifier : EntityContext.getTransactionNotifiers()) {
-				notifier.notify(data);
+				notifier.notify(securityContext, data);
 			}
 		
 		
