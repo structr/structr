@@ -427,7 +427,7 @@ var _Entities = {
         if (key.contains('.')) {
             subKey = key.substring(key.indexOf('.')+1, key.length);
             key = key.substring(0, key.indexOf('.'));
-            console.log('object key:', key, 'sub key', subKey);
+            //console.log('object key:', key, ', sub key: ', subKey);
         }
         
         el.append('<h3>' + title + '</h3><p id="' + key + 'Box"></p>');
@@ -450,8 +450,8 @@ var _Entities = {
             success: function(data) {
                 $(data.result).each(function(i, result) {
                     
-                    var id = (subKey ? entity[key][subKey] : entity[key]);
-                    console.log(id, result.id);
+                    var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
+                    //console.log(id, result.id);
                     
                     var selected = (id === result.id ? 'selected' : '');
                     
