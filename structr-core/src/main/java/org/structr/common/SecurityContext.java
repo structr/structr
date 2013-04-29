@@ -487,17 +487,17 @@ public class SecurityContext {
 			return false;
 		}
 
-		// public nodes are always visible
-		if (node.isVisibleToPublicUsers()) {
+		// Fetch already logged-in user, if present (don't try to login)
+		Principal user = getUser(false);
+		
+		// Public nodes are visible to non-auth users only
+		if (node.isVisibleToPublicUsers() && user == null) {
 
 			return true;
 		}
 
 		// Ask for user only if node is visible for authenticated users
 		if (node.isVisibleToAuthenticatedUsers()) {
-
-			// fetch user
-			Principal user = getUser(true);
 
 			if (user != null) {
 

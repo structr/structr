@@ -322,7 +322,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	// ----- private methods -----
 	private void authenticateToken(final String messageToken) {
 
-		Principal user = AuthHelper.getUserForToken(messageToken);
+		Principal user = AuthHelper.getUserForSessionId(messageToken);
 
 		if (user != null) {
 
@@ -371,7 +371,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	public Principal getCurrentUser() {
 
-		return AuthHelper.getUserForToken(token);
+		return AuthHelper.getUserForSessionId(token);
 
 	}
 

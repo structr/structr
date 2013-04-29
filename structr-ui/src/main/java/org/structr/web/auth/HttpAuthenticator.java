@@ -42,6 +42,8 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,31 +59,64 @@ public class HttpAuthenticator implements Authenticator {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
-
-	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView)
-		throws FrameworkException {}
-
-	@Override
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
-
-		Principal user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
-
+	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	
+		Principal user = checkSessionAuthentication(request, response);
+		
 		if (user != null) {
 
 			request.getSession().setAttribute(SESSION_USER, user);
 			
 			securityContext.setUser(user);
 
+//			try {
+//
+//				request.authenticate(response);
+//
+//			} catch (Exception ex) {
+//
+//				logger.log(Level.SEVERE, null, ex);
+//
+//			}
+
+		}
+		
+	
+	}
+
+	@Override
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView)
+		throws FrameworkException {
+	
+		logger.log(Level.INFO, "Got session? ", request.getSession(false));
+		logger.log(Level.INFO, "User principal: ", request.getUserPrincipal());
+	
+	}
+
+	@Override
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+
+		Principal user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
+
+		if (user != null) {
+
+			request.getSession().setAttribute(SESSION_USER, user);
+			
+			securityContext.setUser(user);
+			
+			String sessionIdFromRequest = request.getSession(false).getId();
+
 			try {
 
-				request.login(userName, password);
-				request.authenticate(response);
+				// store session id in user object
+				user.setProperty(Principal.sessionId, sessionIdFromRequest);
+				
+				//request.login(userName, password);
+				//request.authenticate(response);
 
 			} catch (Exception ex) {
 
-				Logger.getLogger(HttpAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
+				logger.log(Level.SEVERE, null, ex);
 
 			}
 
@@ -101,9 +136,31 @@ public class HttpAuthenticator implements Authenticator {
 
 		} catch (ServletException ex) {
 
-			Logger.getLogger(HttpAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 
 		}
+
+	}
+	private Principal checkSessionAuthentication(HttpServletRequest request, HttpServletResponse response) {
+
+		HttpSession session = request.getSession(false);
+		
+		if (session == null) {
+			
+			return null;
+		}
+		
+		String sessionIdFromRequest = request.getSession(false).getId();
+
+		Principal user = AuthHelper.getUserForSessionId(sessionIdFromRequest);
+
+		if (user != null) {
+
+			return user;
+
+		}
+
+		return null;
 
 	}
 

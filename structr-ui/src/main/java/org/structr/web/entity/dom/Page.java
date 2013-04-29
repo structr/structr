@@ -203,7 +203,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					// create new content element
 					DOMElement element = (DOMElement)Services.command(securityContext, CreateNodeCommand.class).execute(
 						new NodeAttribute(AbstractNode.type, elementType),
-						new NodeAttribute(DOMElement.tag, tag)
+						new NodeAttribute(DOMElement.tag, tag),
+						new NodeAttribute(AbstractNode.visibleToPublicUsers, true)
 					);
 					
 					// create relationship from ownerDocument to new text element
@@ -233,7 +234,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					
 					// create new content element
 					org.structr.web.entity.dom.DocumentFragment fragment = (org.structr.web.entity.dom.DocumentFragment)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.DocumentFragment.class.getSimpleName())
+						new NodeAttribute(AbstractNode.type,
+						org.structr.web.entity.dom.DocumentFragment.class.getSimpleName())
 					);
 					
 					// create relationship from ownerDocument to new text element
@@ -265,7 +267,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					// create new content element
 					Content content = (Content)Services.command(securityContext, CreateNodeCommand.class).execute(
 						new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
-						new NodeAttribute(Content.content,   text)
+						new NodeAttribute(Content.content,   text),
+						new NodeAttribute(AbstractNode.visibleToPublicUsers, true)
 					);
 					
 					// create relationship from ownerDocument to new text element
@@ -631,7 +634,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			DOMNode subNode = (DOMNode)rel.getEndNode();
 
-			if (subNode.isNotDeleted()) {
+			if (subNode.isNotDeleted() && securityContext.isVisible(subNode)) {
 
 				subNode.render(securityContext, renderContext, depth);
 			}
