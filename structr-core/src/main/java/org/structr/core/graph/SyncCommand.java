@@ -23,6 +23,7 @@ package org.structr.core.graph;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,8 +42,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+import org.apache.commons.io.IOUtils;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -62,10 +65,12 @@ import org.structr.core.Value;
  */
 public class SyncCommand extends NodeServiceCommand implements MaintenanceCommand, Serializable {
 
-	private static final Logger logger                = Logger.getLogger(SyncCommand.class.getName());
-	private static final Map<Class, String> typeMap   = new LinkedHashMap<Class, String>();
-	private static final Map<Class, Method> methodMap = new LinkedHashMap<Class, Method>();
-	private static final Map<String, Class> classMap  = new LinkedHashMap<String, Class>();
+	private static final Logger logger                 = Logger.getLogger(SyncCommand.class.getName());
+	private static final String STRUCTR_ZIP_DB_NAME    = "db";
+	
+	private static final Map<Class, String> typeMap    = new LinkedHashMap<Class, String>();
+	private static final Map<Class, Method> methodMap  = new LinkedHashMap<Class, Method>();
+	private static final Map<String, Class> classMap   = new LinkedHashMap<String, Class>();
 
 	private final DecimalFormat decimalFormat  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private final GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
@@ -269,78 +274,29 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	
 	private void exportFile(String fileName) throws FrameworkException {
 	
-		int nodeCount = 0;
-		int relCount = 0;
-		
 		try {
 			
 			double t0                  = System.nanoTime();
-			PrintWriter writer         = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(fileName)))));
-			GlobalGraphOperations ggop = GlobalGraphOperations.at(graphDb);
+			ZipOutputStream zos        = new ZipOutputStream(new FileOutputStream(fileName));
+			PrintWriter writer         = new PrintWriter(new BufferedWriter(new OutputStreamWriter(zos)));
 
-			for (Node node : ggop.getAllNodes()) {
-
-				// ignore non-structr nodes
-				if (node.hasProperty(GraphObject.uuid.dbName())) {
-
-					writer.print("N");
-					
-					for (String key : node.getPropertyKeys()) {
-
-						serialize(writer, key);
-						serialize(writer, node.getProperty(key));
-					}
-					
-					// do not use platform-specific line ending here!
-					writer.print("\n");
-
-					nodeCount++;
-				}
-			}
+			// set compression
+			zos.setLevel(6);
 			
-			writer.flush();
+			// export files first
+			exportDirectory(zos, new File("files"), "");
+
+			// export database
+			exportDatabase(zos, writer);
 			
-			for (Relationship rel : ggop.getAllRelationships()) {
+			// finish ZIP file
+			zos.finish();
 
-				// ignore non-structr nodes
-				if (rel.hasProperty(GraphObject.uuid.dbName())) {
-
-					Node startNode = rel.getStartNode();
-					Node endNode   = rel.getEndNode();
-					
-					if (startNode.hasProperty("uuid") && endNode.hasProperty("uuid")) {
-
-						String startId = (String)startNode.getProperty("uuid");
-						String endId   = (String)endNode.getProperty("uuid");
-
-						writer.print("R");
-						serialize(writer, startId);
-						serialize(writer, endId);
-						serialize(writer, rel.getType().name());
-
-						for (String key : rel.getPropertyKeys()) {
-
-							serialize(writer, key);
-							serialize(writer, rel.getProperty(key));
-						}
-						
-						// do not use platform-specific line ending here!
-						writer.print("\n");
-
-						relCount++;
-					}
-					
-				}
-				
-			}
-
-			writer.flush();
+			// close stream
 			writer.close();
 
 			double t1   = System.nanoTime();
 			double time = ((t1 - t0) / 1000000000.0);
-			
-			logger.log(Level.INFO, "Exported {0} nodes and {1} rels in {2} s", new Object[] { nodeCount, relCount, decimalFormat.format(time) } );
 			
 		} catch (Throwable t) {
 			
@@ -351,6 +307,186 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	}
 	
 	private void importFile(final String fileName) throws FrameworkException {
+
+		// open file for import
+		
+		try {
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(fileName));
+			ZipEntry entry     = zis.getNextEntry();
+			
+			while (entry != null) {
+
+				if (STRUCTR_ZIP_DB_NAME.equals(entry.getName())) {
+
+					importDatabase(zis);
+
+				} else {
+					
+					// store other files in "files" dir..
+					importDirectory(zis, entry);
+				}
+
+				entry = zis.getNextEntry();
+			}
+			
+		} catch (IOException ioex) {
+
+			ioex.printStackTrace();
+		}	
+	}	
+	
+	private void exportDirectory(ZipOutputStream zos, File dir, String path) throws IOException {
+		
+		String nestedPath = path + dir.getName() + "/";
+		ZipEntry dirEntry = new ZipEntry(nestedPath);
+		zos.putNextEntry(dirEntry);
+		
+		File[] contents = dir.listFiles();
+		if (contents != null) {
+			
+			for (File file : contents) {
+				
+				if (file.isDirectory()) {
+					
+					exportDirectory(zos, file, nestedPath);
+					
+				} else {
+				 	
+					// create ZIP entry
+					ZipEntry fileEntry  = new ZipEntry(nestedPath + file.getName());
+					fileEntry.setTime(file.lastModified());
+					zos.putNextEntry(fileEntry);
+
+					// copy file into stream
+					FileInputStream fis = new FileInputStream(file);
+					IOUtils.copy(fis, zos);
+					fis.close();
+					
+					// flush and close entry
+					zos.flush();
+					zos.closeEntry();
+				}
+			}
+		}
+		
+		zos.closeEntry();
+		
+	}
+	
+	private void exportDatabase(ZipOutputStream zos, PrintWriter writer) throws IOException, FrameworkException {
+		
+		// start database zip entry
+		GlobalGraphOperations ggop = GlobalGraphOperations.at(graphDb);
+		ZipEntry dbEntry           = new ZipEntry(STRUCTR_ZIP_DB_NAME);
+		int nodeCount              = 0;
+		int relCount               = 0;
+		
+		zos.putNextEntry(dbEntry);
+
+		for (Node node : ggop.getAllNodes()) {
+
+			// ignore non-structr nodes
+			if (node.hasProperty(GraphObject.uuid.dbName())) {
+
+				writer.print("N");
+
+				for (String key : node.getPropertyKeys()) {
+
+					serialize(writer, key);
+					serialize(writer, node.getProperty(key));
+				}
+
+				// do not use platform-specific line ending here!
+				writer.print("\n");
+
+				nodeCount++;
+			}
+		}
+
+		writer.flush();
+
+		for (Relationship rel : ggop.getAllRelationships()) {
+
+			// ignore non-structr nodes
+			if (rel.hasProperty(GraphObject.uuid.dbName())) {
+
+				Node startNode = rel.getStartNode();
+				Node endNode   = rel.getEndNode();
+
+				if (startNode.hasProperty("uuid") && endNode.hasProperty("uuid")) {
+
+					String startId = (String)startNode.getProperty("uuid");
+					String endId   = (String)endNode.getProperty("uuid");
+
+					writer.print("R");
+					serialize(writer, startId);
+					serialize(writer, endId);
+					serialize(writer, rel.getType().name());
+
+					for (String key : rel.getPropertyKeys()) {
+
+						serialize(writer, key);
+						serialize(writer, rel.getProperty(key));
+					}
+
+					// do not use platform-specific line ending here!
+					writer.print("\n");
+
+					relCount++;
+				}
+
+			}
+
+		}
+
+		writer.flush();
+
+		// finish db entry
+		zos.closeEntry();
+
+		logger.log(Level.INFO, "Exported {0} nodes and {1} rels", new Object[] { nodeCount, relCount } );
+	}
+	
+	private void importDirectory(ZipInputStream zis, ZipEntry entry) throws IOException {
+		
+		if (entry.isDirectory()) {
+			
+			File newDir = new File(entry.getName());
+			if (!newDir.exists()) {
+				
+				newDir.mkdirs();
+			}
+			
+		} else {
+			
+			File newFile      = new File(entry.getName());
+			boolean overwrite = false;
+			
+			if (!newFile.exists()) {
+				
+				overwrite = true;
+				
+			} else {
+				
+				if (newFile.lastModified() < entry.getTime()) {
+					
+					logger.log(Level.INFO, "Overwriting existing file {0} because import file is newer.", entry.getName());
+					overwrite = true;
+				}
+			}
+
+			if (overwrite) {
+				
+				FileOutputStream fos = new FileOutputStream(newFile);
+				IOUtils.copy(zis, fos);
+				
+				fos.flush();
+				fos.close();
+			}
+		}
+	}
+	
+	private void importDatabase(final ZipInputStream zis) throws FrameworkException {
 	
 		final Value<Long> nodeCountValue = new StaticValue<Long>(0L);
 		final Value<Long> relCountValue  = new StaticValue<Long>(0L);
@@ -370,16 +506,15 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				long relCount                   = 0;
 					
 				try {
-				
-					reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(fileName))));
+					reader = new BufferedReader(new InputStreamReader(zis));
 
 					do {
 
 						try {
-							
+
 							// store current position
 							reader.mark(4);
-							
+
 							// read one byte
 							String objectType = read(reader, 1);
 
@@ -407,14 +542,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 									RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
 									currentObject = startNode.createRelationshipTo(endNode, relType);
 								}
-								
+
 								relCount++;
 
 							} else {
 
 								// reset if not at the beginning of a line
 								reader.reset();
-								
+
 								if (currentKey == null) {
 
 									currentKey = (String)deserialize(reader);
@@ -438,7 +573,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 									} else {
 
-										logger.log(Level.WARNING, "No current object to store property in..");
+										logger.log(Level.WARNING, "No current object to store property in.");
 									}
 								}
 							}
@@ -451,16 +586,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					} while (!finished);
 					
 				} catch (IOException ioex) {
-					
-					ioex.printStackTrace();
-					
-				} finally {
-					
-					if (reader != null) {
-						
-						// close reader
-						try { reader.close(); } catch (IOException ioex2) { logger.log(Level.WARNING, "Unable to close reader: {0}", ioex2.getMessage()); }
-					}
 				}
 				
 				logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { nodeCount, relCount } );
@@ -477,5 +602,5 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		double time = ((t1 - t0) / 1000000000.0);
 
 		logger.log(Level.INFO, "Import done in {0} s", decimalFormat.format(time));
-	}	
+	}
 }

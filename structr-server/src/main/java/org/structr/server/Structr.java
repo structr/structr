@@ -42,7 +42,6 @@ import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
-import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -51,9 +50,15 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.context.ApplicationContextListener;
+import org.structr.core.GraphObject;
 import org.structr.core.Service;
+import org.structr.core.Services;
 import org.structr.core.agent.AgentService;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.cron.CronService;
@@ -61,6 +66,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.log.LogService;
 import org.structr.core.module.ModuleService;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.SyncCommand;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
@@ -73,6 +79,7 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 public class Structr {
 	
 	private static final Logger logger                         = Logger.getLogger(Structr.class.getName());
+	private static final String INITIAL_SEED_FILE             = "seed.zip";
 	
 	private String applicationName                             = "structr server";
 	private String restUrl                                     = "/structr/rest";
@@ -587,6 +594,38 @@ public class Structr {
 				callback.execute();
 			}
 			
+		}
+		
+		// check for empty database and seed file
+		File seedFile = new File(basePath + "/" + INITIAL_SEED_FILE);
+		if (seedFile.exists()) {
+			
+			logger.log(Level.INFO, "Found initial seed file, checking database status..");
+			
+			GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
+			boolean hasApplicationNodes  = false;
+			
+			// check for application nodes (which have UUIDs)
+			for (Node node : GlobalGraphOperations.at(graphDb).getAllNodes()) {
+				
+				if (node.hasProperty(GraphObject.uuid.dbName())) {
+					
+					hasApplicationNodes = true;
+					break;
+				}
+			}
+			
+			if (!hasApplicationNodes) {
+				
+				logger.log(Level.INFO, "No application nodes found, applying initial seed..");
+				
+				Map<String, Object> attributes = new LinkedHashMap<String, Object>();
+				
+				attributes.put("mode", "import");
+				attributes.put("file", seedFile.getAbsoluteFile().getAbsolutePath());
+				
+				Services.command(SecurityContext.getSuperUserInstance(), SyncCommand.class).execute(attributes);
+			}
 		}
 		
 		if (waitForExit) {
