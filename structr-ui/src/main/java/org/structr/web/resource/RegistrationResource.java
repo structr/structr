@@ -109,29 +109,42 @@ public class RegistrationResource extends Resource {
 
 		if (propertySet.containsKey(User.email.jsonName()) && propertySet.size() == 1) {
 			
-			// only email
-
+			User user;
+			
 			final String emailString  = (String) propertySet.get(User.email.jsonName());
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
 			confKey = UUID.randomUUID().toString();
 			
-			User newUser = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
+			Result result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
+				Search.andExactType(User.class.getSimpleName()),
+				Search.andExactProperty(User.email, emailString));
+				
+			if (!result.isEmpty()) {
+				
+				user = (User) result.get(0);
+				user.setConfirmationKey(confKey);
+				
+			} else {
 
-				@Override
-				public User execute() throws FrameworkException {
+				user = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
 
-					return (User) Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
-						new NodeAttribute(User.email, emailString),
-						new NodeAttribute(User.name, emailString),
-						new NodeAttribute(User.confirmationKey, confKey));
-				}
+					@Override
+					public User execute() throws FrameworkException {
 
-			});
+						return (User) Services.command(securityContext, CreateNodeCommand.class).execute(
+							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
+							new NodeAttribute(User.email, emailString),
+							new NodeAttribute(User.name, emailString),
+							new NodeAttribute(User.confirmationKey, confKey));
+					}
 
-			if (newUser != null) {
+				});
 
-				sendInvitationLink(newUser);
+			}
+			
+			if (user != null) {
+
+				sendInvitationLink(user);
 			}
 
 		}
