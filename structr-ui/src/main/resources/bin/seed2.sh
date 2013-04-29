@@ -8,7 +8,7 @@ SUPERUSER_PASSWORD=`grep superuser.password $STRUCTR_CONF | awk '{ print $3 }' |
 curl -i http://localhost:8082/structr/rest/resource_access -d'{"signature":"User","flags":255}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 curl -i http://localhost:8082/structr/rest/users -d'{"name":"admin","password":"admin", "frontendUser":true, "backendUser":true }' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 
-curl -i http://localhost:8082/structr/rest/resource_access -XDELETE
+curl -i http://localhost:8082/structr/rest/resource_access -XDELETE -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"ResourceAccess","flags":17}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 curl -i http://localhost:8082/structr/rest/resource_access -d '{"signature":"ResourceAccess/_Ui","flags":17}' -HX-User:$SUPERUSER_USERNAME -HX-Password:$SUPERUSER_PASSWORD
 
