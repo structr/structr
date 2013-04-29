@@ -340,6 +340,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				DOMNode subNode = (DOMNode) rel.getEndNode();
 				
+				if (!securityContext.isVisible(subNode)) {
+					continue;
+				}
+
 				GraphObject details = renderContext.getDetailsDataObject();
 				boolean detailMode = details != null;
 

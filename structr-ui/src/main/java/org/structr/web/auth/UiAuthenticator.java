@@ -22,6 +22,8 @@ package org.structr.web.auth;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
@@ -34,6 +36,7 @@ import org.structr.core.entity.ResourceAccess;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.SuperUser;
 
@@ -47,6 +50,8 @@ public class UiAuthenticator implements Authenticator {
 	
 	private enum Method { GET, PUT, POST, DELETE }
 	private static final Map<String, Method> methods = new LinkedHashMap<String, Method>();
+	public static final String SESSION_USER  = "sessionUser";
+	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
 
 	// HTTP methods
 	static {
@@ -170,16 +175,38 @@ public class UiAuthenticator implements Authenticator {
 
 	}
 	
-	
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
-		String errorMsg = null;
-		Principal user  = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(request, response), userName, password);
+		Principal user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
 
-		if (errorMsg != null) {
+		if (user != null) {
 
-			throw new AuthenticationException(errorMsg);
+			HttpSession session = request.getSession(false);
+			
+			// Websocket connects don't have a session
+			if (session != null) {
+			
+				session.setAttribute(SESSION_USER, user);
+			
+				String sessionIdFromRequest = session.getId();
+
+				try {
+					// store session id in user object
+					user.setProperty(Principal.sessionId, sessionIdFromRequest);
+
+					//request.login(userName, password);
+					//request.authenticate(response);
+
+				} catch (Exception ex) {
+
+					logger.log(Level.SEVERE, null, ex);
+
+				}
+			}
+
+			securityContext.setUser(user);
+
 		}
 
 		return user;
@@ -187,7 +214,31 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {}
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
+	
+		try {
+
+			Principal user = securityContext.getUser(false);
+			
+			if (user != null) {
+				
+				user.setProperty(Principal.sessionId, null);
+
+			}
+
+			request.getSession().setAttribute(SESSION_USER, null);
+			request.getSession(false).invalidate();
+			request.logout();
+			securityContext.setUser(null);
+
+		} catch (Exception ex) {
+
+			logger.log(Level.WARNING, "Error while logging out user", ex);
+
+		}
+
+	
+	}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -202,7 +253,7 @@ public class UiAuthenticator implements Authenticator {
 		// Try to authorize with a session token first
 		if (token != null) {
 
-			user = AuthHelper.getUserForToken(token);
+			user = AuthHelper.getUserForSessionId(token);
 			
 		} else if ((userName != null) && (password != null)) {
 
