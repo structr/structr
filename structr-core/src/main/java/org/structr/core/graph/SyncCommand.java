@@ -37,6 +37,8 @@ import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -58,6 +60,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
@@ -498,6 +502,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			public Object execute() throws FrameworkException {
 
 				Map<String, Node> uuidMap       = new LinkedHashMap<String, Node>();
+				List<Relationship> rels         = new LinkedList<Relationship>();
+				List<Node> nodes                = new LinkedList<Node>();
 				PropertyContainer currentObject = null;
 				BufferedReader reader           = null;
 				String currentKey               = null;
@@ -528,6 +534,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 								currentObject = graphDb.createNode();
 								nodeCount++;
 
+								// store for later use
+								nodes.add((Node)currentObject);
+
 							} else if ("R".equals(objectType)) {
 
 								String startId     = (String)deserialize(reader);
@@ -541,6 +550,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 									RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
 									currentObject = startNode.createRelationshipTo(endNode, relType);
+
+									// store for later use
+									rels.add((Relationship)currentObject);
 								}
 
 								relCount++;
@@ -593,6 +605,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				nodeCountValue.set(securityContext, nodeCount);
 				relCountValue.set(securityContext, relCount);
 
+				// make nodes visible in transaction context
+				RelationshipFactory relFactory     = new RelationshipFactory(securityContext);
+				NodeFactory nodeFactory            = new NodeFactory(securityContext);
+				
+				for (Node node : nodes) {
+					TransactionCommand.nodeCreated(nodeFactory.createNode(node));
+				}
+				
+				for (Relationship rel : rels) {
+					TransactionCommand.relationshipCreated(relFactory.instantiateRelationship(securityContext, rel));
+				}
+				
 				return null;
 			}
 

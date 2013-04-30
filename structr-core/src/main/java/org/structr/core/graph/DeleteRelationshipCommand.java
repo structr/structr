@@ -122,6 +122,8 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
+					TransactionCommand.relationshipDeleted(finalRel);
+
 					try {
 
 						// remove object from index

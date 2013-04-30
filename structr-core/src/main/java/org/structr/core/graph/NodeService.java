@@ -152,11 +152,13 @@ public class NodeService implements SingletonService {
 
 		}
 
+		/* dont register transaction event handler
 		if (graphDb != null) {
 
 			graphDb.registerTransactionEventHandler(EntityContext.getTransactionEventHandler());
 		}
-
+		*/
+		
 		if (graphDb == null) {
 
 			logger.log(Level.SEVERE, "Database could not be started ({0}) ...", dbPath);

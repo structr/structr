@@ -75,6 +75,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			return null;
 
 		}
+		
+		TransactionCommand.nodeDeleted(node);
 
 		// final Node node                  = graphDb.getNodeById(structrNode.getId());
 		final RemoveNodeFromIndex removeNodeFromIndex = Services.command(securityContext, RemoveNodeFromIndex.class);

@@ -39,7 +39,6 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -147,9 +146,10 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 				Relationship rel                           = startNode.createRelationshipTo(endNode, relType);
 				T newRel                                   = relationshipFactory.instantiateRelationship(securityContext, rel);
 
-
 				if (newRel != null) {
 
+					TransactionCommand.relationshipCreated(newRel);
+					
 					newRel.unlockReadOnlyPropertiesOnce();
 					newRel.setProperty(AbstractRelationship.createdDate, new Date());
 

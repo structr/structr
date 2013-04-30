@@ -141,8 +141,6 @@ public class Services {
 	 */
 	public static <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
 
-		logger.log(Level.FINER, "Creating command ", commandType.getName());
-
 		Class serviceClass = null;
 		T command          = null;
 

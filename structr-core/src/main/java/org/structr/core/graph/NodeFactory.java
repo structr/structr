@@ -150,6 +150,7 @@ public class NodeFactory<T extends AbstractNode> {
 			newNode.init(factoryProfile.getSecurityContext(), node);
 			newNode.onNodeInstantiation();
 
+			/* FIXME: why must the node type be set here???
 			String newNodeType = newNode.getProperty(AbstractNode.type);
 			if (newNodeType == null) { //  || (newNodeType != null && !newNodeType.equals(nodeType))) {
 				
@@ -163,6 +164,7 @@ public class NodeFactory<T extends AbstractNode> {
 					logger.log(Level.SEVERE, "Unable to set type property {0} on node {1}: {2}", new Object[] { nodeType, newNode, t.getMessage() } );
 				}
 			}
+			*/
 			
 			// cache node for this request
 			securityContext.store(newNode);

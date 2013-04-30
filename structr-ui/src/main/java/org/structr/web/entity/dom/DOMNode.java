@@ -500,8 +500,6 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			referenceKeyProperty = new StringProperty(referenceKey);
 		}
 		
-		PropertyKey pageIdProperty       = new StringProperty(pageId);
-		
 		Page _page                       = renderContext.getPage();
 		GraphObject _data                = null;
 
