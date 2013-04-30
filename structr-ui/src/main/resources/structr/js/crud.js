@@ -1245,20 +1245,7 @@ var _Crud = {
         $.each(cells, function(i, cell) {
             cell.empty();
             _Crud.populateCell(id, key, _Crud.type, oldValue, cell);
-            //        c.text(nvl(formatValue(oldValue), ''));
-            var oldFg = cell.css('color');
-            var oldBg = cell.css('backgroundColor');
-            //console.log('old colors' , oldFg, oldBg);
-            cell.animate({
-                color: '#f00',
-                backgroundColor: '#fbb'
-            }, 250, function() {
-                $(this).animate({
-                    color: oldFg,
-                    backgroundColor: oldBg
-                }, 500);
-            });
-            
+            blinkRed(cell);
         });
         
     },
@@ -1269,19 +1256,7 @@ var _Crud = {
         $.each(cells, function(i, cell) {
             cell.empty();
             _Crud.populateCell(id, key, _Crud.type, newValue, cell);
-        
-            var oldFg = cell.css('color');
-            var oldBg = cell.css('backgroundColor');
-            //console.log('old colors' , oldFg, oldBg);
-            cell.animate({
-                color: '#81ce25',
-                backgroundColor: '#efe'
-            }, 100, function() {
-                $(this).animate({
-                    color: oldFg,
-                    backgroundColor: oldBg
-                }, 500);
-            });
+            blinkGreen(cell);
         });
     },
     

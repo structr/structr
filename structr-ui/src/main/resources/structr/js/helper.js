@@ -278,6 +278,36 @@ function formatValue(value) {
 
 function getTypeFromResourceSignature(signature) {
     var i = signature.indexOf('/');
-    if (i==-1) return signature;
+    if (i === -1) return signature;
     return signature.substring(0,i);
+}
+
+function blinkGreen(element) {
+    var oldFg = element.css('color');
+    var oldBg = element.css('backgroundColor');
+    //console.log('old colors' , oldFg, oldBg);
+    element.animate({
+        color: '#81ce25',
+        backgroundColor: '#efe'
+    }, 100, function() {
+        $(this).animate({
+            color: oldFg,
+            backgroundColor: oldBg
+        }, 200);
+    });
+}
+
+function blinkRed(element) {
+    var oldFg = element.css('color');
+    var oldBg = element.css('backgroundColor');
+    //console.log('old colors' , oldFg, oldBg);
+    element.animate({
+        color: '#f00',
+        backgroundColor: '#fbb'
+    }, 250, function() {
+        $(this).animate({
+            color: oldFg,
+            backgroundColor: oldBg
+        }, 500);
+    });
 }
