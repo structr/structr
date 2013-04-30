@@ -64,7 +64,6 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.Condition;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -203,8 +202,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					// create new content element
 					DOMElement element = (DOMElement)Services.command(securityContext, CreateNodeCommand.class).execute(
 						new NodeAttribute(AbstractNode.type, elementType),
-						new NodeAttribute(DOMElement.tag, tag),
-						new NodeAttribute(AbstractNode.visibleToPublicUsers, true)
+						new NodeAttribute(DOMElement.tag, tag)
 					);
 					
 					// create relationship from ownerDocument to new text element

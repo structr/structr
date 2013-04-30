@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
-import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
@@ -46,11 +45,11 @@ import org.structr.core.entity.SuperUser;
  *
  * @author Axel Morgner
  */
-public class UiAuthenticator implements Authenticator {
+public class UiAuthenticator extends HttpAuthenticator {
 	
 	private enum Method { GET, PUT, POST, DELETE }
 	private static final Map<String, Method> methods = new LinkedHashMap<String, Method>();
-	public static final String SESSION_USER  = "sessionUser";
+
 	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
 
 	// HTTP methods
@@ -187,8 +186,6 @@ public class UiAuthenticator implements Authenticator {
 			// Websocket connects don't have a session
 			if (session != null) {
 			
-				session.setAttribute(SESSION_USER, user);
-			
 				String sessionIdFromRequest = session.getId();
 
 				try {
@@ -226,7 +223,6 @@ public class UiAuthenticator implements Authenticator {
 
 			}
 
-			request.getSession().setAttribute(SESSION_USER, null);
 			request.getSession(false).invalidate();
 			request.logout();
 			securityContext.setUser(null);
@@ -245,10 +241,19 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
 
+		// First, check session (JSESSIONID cookie)
+		Principal user = checkSessionAuthentication(request, response);
+		
+		if (user != null) {
+			
+			securityContext.setUser(user);
+			return user;
+		}
+		
+		// Second, check X-Headers
 		String userName = request.getHeader("X-User");
 		String password = request.getHeader("X-Password");
 		String token    = request.getHeader("X-StructrSessionToken");
-		Principal user  = null;
 
 		// Try to authorize with a session token first
 		if (token != null) {
@@ -267,8 +272,9 @@ public class UiAuthenticator implements Authenticator {
 		if (user != null) {
 
 			securityContext.setUser(user);
-		}
 
+		}
+		
 		return user;
 
 	}

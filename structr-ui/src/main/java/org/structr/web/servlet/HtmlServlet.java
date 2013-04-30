@@ -519,7 +519,6 @@ public class HtmlServlet extends HttpServlet {
 				//user.setPassword("foobar");
 				
 				// Login user without password
-				request.getSession().setAttribute(HttpAuthenticator.SESSION_USER, user);
 				securityContext.setUser(user);
 
 				// Redirect to target page
