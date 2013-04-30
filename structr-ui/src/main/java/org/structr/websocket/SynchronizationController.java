@@ -34,20 +34,33 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.URIUtil;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
+import static org.mockito.Mockito.mock;
 import org.structr.common.AccessMode;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.EntityContext;
+import org.structr.core.Result;
+import org.structr.core.Services;
+import org.structr.core.TransactionChangeSet;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.rest.ResourceProvider;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.User;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
-
-import org.w3c.dom.Node;
+import org.structr.web.entity.dom.Page;
 
 /**
  *
@@ -56,11 +69,12 @@ import org.w3c.dom.Node;
 public class SynchronizationController implements StructrTransactionListener {
 
 	private static final Logger logger                              = Logger.getLogger(SynchronizationController.class.getName());
-	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<StructrWebSocket>();
+
 	private final Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
+	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<StructrWebSocket>();
 	private List<WebSocketMessage> messageStack                     = null;
+	private ResourceProvider resourceProvider                       = null;
 	private Gson gson                                               = null;
-	private PartialUpdateController partialController               = new PartialUpdateController(this);
 
 	public SynchronizationController(Gson gson) {
 
@@ -85,13 +99,13 @@ public class SynchronizationController implements StructrTransactionListener {
 		}
 
 	}
-
-	public PartialUpdateController getPartialsNotifier() {
-		return partialController;
-	}
 	
+	public void setResourceProvider(final ResourceProvider resourceProvider) {
+		this.resourceProvider = resourceProvider;
+	}
+
 	// ----- private methods -----
-	protected void broadcast(final WebSocketMessage webSocketData) {
+	private void broadcast(final WebSocketMessage webSocketData) {
 
 		logger.log(Level.FINE, "Broadcasting message to {0} clients..", clients.size());
 
@@ -127,9 +141,13 @@ public class SynchronizationController implements StructrTransactionListener {
 						
 						// For non-authenticated clients, construct a security context without user
 						if (securityContext == null) {
+							
 							try {
+								
 								securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
+								
 							} catch (FrameworkException ex) {
+								
 								continue;
 							}
 						}
@@ -166,35 +184,214 @@ public class SynchronizationController implements StructrTransactionListener {
 
 	}
 
-	private List<? extends GraphObject> filter(final SecurityContext securityContext, final List<? extends GraphObject> all) {
+	private <T extends GraphObject> List<T> filter(final SecurityContext securityContext, final List<T> all) {
 
-		List<GraphObject> filteredResult = new LinkedList<GraphObject>();
-
-		for (GraphObject obj : all) {
+		List<T> filteredResult = new LinkedList<T>();
+		for (T obj : all) {
 			
-			if (securityContext.isVisible((AbstractNode) obj)) {
+			if (securityContext.isVisible((AbstractNode)obj)) {
 
 				filteredResult.add(obj);
 			}
-
 		}
 
 		return filteredResult;
 
 	}
+	
+	private void broadcastPartials(String type) throws FrameworkException {
 
+		// create list of dynmiac elements
+		SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
+		List<SearchAttribute> attrs              = new LinkedList<SearchAttribute>();
+
+		// Find all DOMElements which render data of the type of the obj
+		attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
+		SearchAttributeGroup g = new SearchAttributeGroup(SearchOperator.AND);
+		g.add(Search.orExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(type)));
+		g.add(Search.orExactProperty(DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type)));
+		attrs.add(g);
+
+		Result results = Services.command(superUserSecurityContext, SearchNodeCommand.class).execute(attrs);
+		List<DOMElement> dynamicElements = results.getResults();
+			
+		// create message
+		for (StructrWebSocket socket : clients) {
+
+			// filter elements
+			List<DOMElement> filteredElements = filter(socket.getSecurityContext(), dynamicElements);
+			List<WebSocketMessage> partialMessages = createPartialMessages(superUserSecurityContext, filteredElements);
+
+			for (WebSocketMessage webSocketData : partialMessages) {
+				
+				webSocketData.setSessionValid(true);
+
+				String pagePath = (String) webSocketData.getNodeData().get("pagePath");
+				String clientPagePath = socket.getPathPath();
+				
+				if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
+					continue;
+				}
+
+				Connection socketConnection = socket.getConnection();
+
+				webSocketData.setCallback(socket.getCallback());
+
+				if ((socketConnection != null)) {
+
+					String message = gson.toJson(webSocketData, WebSocketMessage.class);
+
+					try {
+
+						socketConnection.sendMessage(message);
+
+					} catch (org.eclipse.jetty.io.EofException eof) {
+
+						logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+
+					} catch (Throwable t) {
+
+						logger.log(Level.WARNING, "Error sending message to client.", t);
+
+					}
+				}
+			}
+		}
+	}
+
+	private List<WebSocketMessage> createPartialMessages(SecurityContext securityContext, List<DOMElement> elements) {
+		
+		HttpServletRequest request             = mock(HttpServletRequest.class);
+		List<WebSocketMessage> partialMessages = new LinkedList<WebSocketMessage>();
+		RenderContext ctx                      = new RenderContext(request, null, false, Locale.GERMAN);
+		
+		ctx.setResourceProvider(resourceProvider);
+		
+		for (DOMElement el : elements) {
+			
+			try {
+				
+				Page page = el.getProperty(DOMNode.ownerDocument);
+				if (page != null) {
+					
+					DOMElement parent = (DOMElement) el.getParentNode();
+				
+					if (parent != null) {
+						
+						parent.render(securityContext, ctx, 0);
+				
+						String partialContent = ctx.getBuffer().toString();
+
+						WebSocketMessage message = new WebSocketMessage();
+
+						message.setCommand("PARTIAL");
+
+						message.setNodeData("pageId", page.getUuid());
+						message.setNodeData("pagePath", "/" + page.getName());
+						message.setNodeData("parentPositionPath", parent.getPositionPath());
+
+						message.setMessage(StringUtils.remove(partialContent, "\n"));
+
+						partialMessages.add(message);
+					}
+					
+				}
+				
+				
+			} catch (FrameworkException ex) {
+				logger.log(Level.SEVERE, null, ex);
+			}
+			
+		}
+
+		return partialMessages;
+	}
+	
+	/*
+	private void sendPartial(SecurityContext securityContext, String type) {
+		
+		List<DOMElement> dynamicElements = null;
+		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+
+		// Find all DOMElements which render data of the type of the obj
+		attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
+		SearchAttributeGroup g = new SearchAttributeGroup(SearchOperator.AND);
+		g.add(Search.orExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(type)));
+		g.add(Search.orExactProperty(DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type)));
+		attrs.add(g);
+
+		try {
+			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
+			
+			dynamicElements = results.getResults();
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, "Something went wrong while searching for dynamic elements of type " + type, ex);
+		}
+		
+		HttpServletRequest request = mock(HttpServletRequest.class);
+		RenderContext ctx = new RenderContext(request, null, false, Locale.GERMAN);
+		ctx.setResourceProvider(resourceProvider);
+		
+		for (DOMElement el : dynamicElements) {
+			
+			logger.log(Level.FINE, "Found dynamic element for type {0}: {1}", new Object[]{type, el});
+			
+			try {
+				
+				Page page = el.getProperty(DOMNode.ownerDocument);
+				
+				// render only when contained in a page
+				if (page != null) {
+					
+					DOMElement parent = (DOMElement) el.getParentNode();
+				
+					if (parent != null) {
+						
+						parent.render(securityContext, ctx, 0);
+				
+						String partialContent = ctx.getBuffer().toString();
+
+						logger.log(Level.FINE, "Partial output:\n{0}", partialContent);
+
+						WebSocketMessage message = new WebSocketMessage();
+
+						message.setCommand("PARTIAL");
+
+						message.setNodeData("pageId", page.getUuid());
+
+						String pageName = page.getName();
+
+						message.setNodeData("pagePath", "/" + pageName);
+						message.setMessage(StringUtils.remove(partialContent, "\n"));
+						message.setNodeData("parentPositionPath", parent.getPositionPath());
+
+						broadcast(message);
+					}
+					
+				}
+				
+				
+			} catch (FrameworkException ex) {
+				logger.log(Level.SEVERE, null, ex);
+			}
+			
+			
+		}
+	}
+	*/
+	
 	// ----- interface StructrTransactionListener -----
 	@Override
-	public void begin(SecurityContext securityContext, long transactionKey) {
+	public void commitStarts(SecurityContext securityContext, long transactionKey) {
 
 		messageStack = new LinkedList<WebSocketMessage>();
 
 		messageStackMap.put(transactionKey, messageStack);
-
 	}
 
 	@Override
-	public void commit(SecurityContext securityContext, long transactionKey) {
+	public void commitFinishes(SecurityContext securityContext, long transactionKey) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -215,12 +412,54 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	@Override
-	public void rollback(SecurityContext securityContext, long transactionKey) {
+	public void willRollback(SecurityContext securityContext, long transactionKey) {
 
 		// roll back transaction
 		messageStackMap.remove(transactionKey);
 	}
 
+	@Override
+	public void afterCommit(SecurityContext securityContext, long transactionKey) {
+		
+		TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet(transactionKey);
+		if (changeSet != null) {
+
+			Set<String> types = new LinkedHashSet<String>();
+			
+			for (AbstractNode node : changeSet.getCreatedNodes()) {
+				types.add(node.getType());
+			}
+			
+			for (AbstractNode node : changeSet.getDeletedNodes()) {
+				types.add(node.getType());
+			}
+			
+			for (AbstractNode node : changeSet.getModifiedNodes()) {
+				types.add(node.getType());
+			}
+			
+			// broadcast partials
+			for (String type : types) {
+				
+				try {
+					
+					if (type != null) {
+						
+						broadcastPartials(type);
+					}
+					
+				} catch (Throwable t) {
+					
+					logger.log(Level.WARNING, "Unable to broadcast partials for type {0}: {1}", new Object[] { type, t.getMessage() } );
+				}
+			}
+		} else {
+			
+			logger.log(Level.WARNING, "Unable to broadcast partial updates, changeSet not found");
+		}
+		
+	}
+	
 	@Override
 	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue) {
 
@@ -355,7 +594,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				message.setId(endNode.getUuid());
 				message.setNodeData("parentId", startNode.getUuid());
 
-				Node refNode = null;
+				org.w3c.dom.Node refNode = null;
 
 				message.setCommand("APPEND_CHILD");
 
@@ -405,16 +644,6 @@ public class SynchronizationController implements StructrTransactionListener {
 
 	@Override
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
-
-//              messageStack = messageStackMap.get(transactionKey);
-//
-//              WebSocketMessage message = new WebSocketMessage();
-//              String uuid              = graphObject.getProperty("uuid").toString();
-//
-//              message.setId(uuid);
-//              message.setCommand("UPDATE");
-//              message.setGraphObject(graphObject);
-//              messageStack.add(message);
 		return true;
 	}
 
@@ -440,7 +669,6 @@ public class SynchronizationController implements StructrTransactionListener {
 			WebSocketMessage message = new WebSocketMessage();
 			String startNodeId       = relationship.getCachedStartNodeId();
 			String endNodeId         = relationship.getCachedEndNodeId();
-			String pageId            = properties.get(new StringProperty("pageId"));
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
@@ -464,8 +692,6 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			message.setId(uuid);
 			message.setCommand("DELETE");
-			
-			partialController.sendPartial(securityContext, properties.get(AbstractNode.type));
 			
 			messageStack.add(message);
 

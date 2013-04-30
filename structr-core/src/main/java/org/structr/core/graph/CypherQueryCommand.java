@@ -90,7 +90,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 				if (o instanceof Node) {
 
-					AbstractNode node = nodeFactory.createNode((Node) o, includeHiddenAndDeleted, publicOnly);
+					AbstractNode node = nodeFactory.instantiateNode((Node) o, includeHiddenAndDeleted, publicOnly);
 
 					if (node != null) {
 

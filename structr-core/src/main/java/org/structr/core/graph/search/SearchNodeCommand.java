@@ -327,7 +327,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 					: 0 });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-				intermediateResult = nodeFactory.createNodes(hits);
+				intermediateResult = nodeFactory.instantiateNodes(hits);
 
 				if (hits != null) {
 					hits.close();

@@ -83,7 +83,7 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 
 		for(Node n : nodes) {
 			
-			T abstractNode = nodeFactory.createNode(n);
+			T abstractNode = nodeFactory.instantiateNode(n);
 			if(abstractNode != null) {
 				nodeList.add(abstractNode);
 			}

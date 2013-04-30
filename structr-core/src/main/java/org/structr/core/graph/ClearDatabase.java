@@ -57,7 +57,7 @@ public class ClearDatabase extends NodeServiceCommand {
 		if (graphDb != null) {
 
 			final DeleteNodeCommand delNode   = Services.command(securityContext, DeleteNodeCommand.class);
-			final Result<AbstractNode> result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+			final Result<AbstractNode> result = nodeFactory.instantiateAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 			
 			long deletedNodes = bulkGraphOperation(securityContext, result.getResults(), 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
 

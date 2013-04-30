@@ -40,7 +40,7 @@ public interface StructrTransactionListener {
 	 * @param securityContext the security context
 	 * @param transactionKey the transaction key
 	 */
-	public void begin(SecurityContext securityContext, long transactionKey);
+	public void commitStarts(SecurityContext securityContext, long transactionKey);
 	
 	/**
 	 * Called when the transaction is about to be committed.
@@ -48,7 +48,7 @@ public interface StructrTransactionListener {
 	 * @param securityContext the security context
 	 * @param transactionKey the transaction key
 	 */
-	public void commit(SecurityContext securityContext, long transactionKey);
+	public void commitFinishes(SecurityContext securityContext, long transactionKey);
 	
 	/**
 	 * Called when the transaction is about to be rolled back.
@@ -56,8 +56,16 @@ public interface StructrTransactionListener {
 	 * @param securityContext the security context
 	 * @param transactionKey the transaction key
 	 */
-	public void rollback(SecurityContext securityContext, long transactionKey);
+	public void willRollback(SecurityContext securityContext, long transactionKey);
 
+	/**
+	 * Called when the commit has been successful.
+	 * 
+	 * @param securityContext the security context
+	 * @param transactionKey the transaction key
+	 */
+	public void afterCommit(SecurityContext securityContext, long transactionKey);
+	
 	/**
 	 * Called for every property that is modified on a given node in the
 	 * transaction.

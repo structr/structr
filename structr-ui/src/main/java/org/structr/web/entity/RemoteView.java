@@ -95,7 +95,7 @@ public class RemoteView extends View {
 
 					if (o instanceof Node) {
 
-						AbstractNode node = nodeFactory.createNode((Node) o);
+						AbstractNode node = nodeFactory.instantiateNode((Node) o);
 
 						if (node != null) {
 

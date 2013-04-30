@@ -95,7 +95,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 			boolean isCreation         = true;
 
 			// Create node with type
-			node = nodeFactory.createNodeWithType(graphDb.createNode(), nodeType, isCreation);
+			node = nodeFactory.instantiateNodeWithType(graphDb.createNode(), nodeType, isCreation);
 			if(node != null) {
 				
 				if ((user != null) && user instanceof AbstractNode) {

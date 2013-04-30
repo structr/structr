@@ -189,7 +189,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 			NodeFactory nodeFactory     = new NodeFactory<AbstractNode>(securityContext, pageSize, page, offsetId);
 
 			// traverse path to force evaluation
-			nodeFactory.createAllNodes(path.nodes());
+			nodeFactory.instantiateAllNodes(path.nodes());
 
 			return lastResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 
