@@ -87,7 +87,7 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 
 		for(Node n : nodes) {
 			
-			T abstractNode = nodeFactory.createNode(n);
+			T abstractNode = nodeFactory.instantiateNode(n);
 			if(abstractNode != null) {
 				nodeList.add(abstractNode);
 			}

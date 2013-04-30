@@ -240,17 +240,26 @@ public class SecurityContext {
 
 	public Principal getUser(final boolean tryLogin) {
 
-		if (cachedUser == null) {
+		// If we've got a user, return it! Easiest and fastest!!
+		if (cachedUser != null) {
+			
+			return cachedUser;
+			
+		}
+		
+		if (authenticator == null) {
+			
+			return null;
+			
+		}
 
-			try {
+		try {
 
-				cachedUser = authenticator.getUser(this, request, response, tryLogin);
+			cachedUser = authenticator.getUser(this, request, response, tryLogin);
 
-			} catch (Throwable t) {
+		} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "No user found");
-
-			}
+			logger.log(Level.WARNING, "No user found");
 
 		}
 

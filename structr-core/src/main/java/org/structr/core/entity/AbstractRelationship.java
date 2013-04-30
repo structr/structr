@@ -503,7 +503,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 // FIXME:		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 
-		return (AbstractNode) nodeFactory.createNode(dbRelationship.getEndNode());
+		return (AbstractNode) nodeFactory.instantiateNode(dbRelationship.getEndNode());
 
 	}
 
@@ -512,7 +512,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 // FIXME		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 
-		return (AbstractNode) nodeFactory.createNode(dbRelationship.getStartNode());
+		return (AbstractNode) nodeFactory.instantiateNode(dbRelationship.getStartNode());
 	}
 
 	public AbstractNode getOtherNode(final AbstractNode node) {
@@ -520,7 +520,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 // FIXME:		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 
-		return (AbstractNode) nodeFactory.createNode(dbRelationship.getOtherNode(node.getNode()));
+		return (AbstractNode) nodeFactory.instantiateNode(dbRelationship.getOtherNode(node.getNode()));
 
 	}
 

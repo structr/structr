@@ -101,15 +101,15 @@ public class NodeFactory<T extends AbstractNode> {
 
 	//~--- methods --------------------------------------------------------
 
-	public T createNode(final Node node) {
+	public T instantiateNode(final Node node) {
 
 		String nodeType = factoryDefinition.determineNodeType(node);
 
-		return createNodeWithType(node, nodeType, false);
+		return instantiateNodeWithType(node, nodeType, false);
 
 	}
 
-	public T createNodeWithType(final Node node, final String nodeType, boolean isCreation) {
+	public T instantiateNodeWithType(final Node node, final String nodeType, boolean isCreation) {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newNode = (T)securityContext.lookup(node);
@@ -177,12 +177,12 @@ public class NodeFactory<T extends AbstractNode> {
 		return null;
 	}
 
-	public T createNode(final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
+	public T instantiateNode(final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
 
 		factoryProfile.setIncludeDeletedAndHidden(includeDeletedAndHidden);
 		factoryProfile.setPublicOnly(publicOnly);
 
-		return createNode(node);
+		return instantiateNode(node);
 
 	}
 
@@ -196,7 +196,7 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param input
 	 * @return
 	 */
-	public Result createNodes(final IndexHits<Node> input) throws FrameworkException {
+	public Result instantiateNodes(final IndexHits<Node> input) throws FrameworkException {
 
 		if (input != null) {
 
@@ -229,7 +229,7 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param input
 	 * @return
 	 */
-	public Result createAllNodes(final Iterable<Node> input) throws FrameworkException {
+	public Result instantiateAllNodes(final Iterable<Node> input) throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -237,7 +237,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 			for (Node node : input) {
 
-				AbstractNode n = createNode(node);
+				AbstractNode n = instantiateNode(node);
 
 				if (n != null) {
 
@@ -259,7 +259,7 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @param input
 	 * @return
 	 */
-	public List<AbstractNode> bulkCreateNodes(final Iterable<Node> input) throws FrameworkException {
+	public List<AbstractNode> bulkInstantiateNodes(final Iterable<Node> input) throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -267,7 +267,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 			for (Node node : input) {
 
-				AbstractNode n = createNode(node);
+				AbstractNode n = instantiateNode(node);
 
 				if (n != null) {
 
@@ -291,7 +291,7 @@ public class NodeFactory<T extends AbstractNode> {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	public T createDummyNode(final String nodeType) throws FrameworkException {
+	public T instantiateDummyNode(final String nodeType) throws FrameworkException {
 
 		Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(nodeType);
 		T newNode          = null;
@@ -358,7 +358,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 		for (Node node : input) {
 
-			AbstractNode n = createNode(node);
+			AbstractNode n = instantiateNode(node);
 
 			nodesUpToOffset.add(n);
 
@@ -419,7 +419,7 @@ public class NodeFactory<T extends AbstractNode> {
 		// through the index result (input) to get more items.
 		for (Node node : input) {
 
-			AbstractNode n = createNode(node);
+			AbstractNode n = instantiateNode(node);
 
 			if (n != null) {
 
@@ -460,7 +460,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 			for (Node n : rawNodes.subList(fromIndex, toIndex)) {
 
-				nodes.add(createNode(n));
+				nodes.add(instantiateNode(n));
 			}
 
 			// We've run completely through the iterator,
@@ -490,7 +490,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 		for (Node node : input) {
 
-			AbstractNode n = createNode(node);
+			AbstractNode n = instantiateNode(node);
 
 			overallCount++;
 
@@ -535,34 +535,10 @@ public class NodeFactory<T extends AbstractNode> {
 
 		for (Node node : spatialRecordHits) {
 
-			Long dbNodeId = null;
-			Node realNode = node; //null;
-
-//			if (node.hasProperty("id")) {
-//
-//				dbNodeId = (Long) node.getProperty("id");
-//
-//				try {
-//
-//					realNode = graphDb.getNodeById(dbNodeId);
-//
-//				} catch (NotFoundException nfe) {
-//
-//					// Should not happen, but it does
-//					// FIXME: Why does the spatial index return an unknown ID?
-//					logger.log(Level.SEVERE, "Node with id {0} not found.", dbNodeId);
-//
-//					for (String key : node.getPropertyKeys()) {
-//
-//						logger.log(Level.FINE, "{0}={1}", new Object[] { key, node.getProperty(key) });
-//					}
-//				}
-//
-//			}
-
+			Node realNode = node;
 			if (realNode != null) {
 
-				AbstractNode n = createNode(realNode);
+				AbstractNode n = instantiateNode(realNode);
 				
 				nodes.add(n);
 

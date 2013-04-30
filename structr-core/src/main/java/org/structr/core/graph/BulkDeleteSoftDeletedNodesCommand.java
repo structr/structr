@@ -56,7 +56,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 		
 		if (graphDb != null) {
 
-			Result<AbstractNode> nodes = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+			Result<AbstractNode> nodes = nodeFactory.instantiateAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 
 			final boolean erase;
 			
