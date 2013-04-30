@@ -218,9 +218,24 @@ public class SynchronizationController implements StructrTransactionListener {
 		// create message
 		for (StructrWebSocket socket : clients) {
 
+			SecurityContext securityContext = socket.getSecurityContext();
+			
+			// For non-authenticated clients, construct a security context without user
+			if (securityContext == null) {
+
+				try {
+
+					securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
+
+				} catch (FrameworkException ex) {
+
+					continue;
+				}
+			}
+			
 			// filter elements
-			List<DOMElement> filteredElements = filter(socket.getSecurityContext(), dynamicElements);
-			List<WebSocketMessage> partialMessages = createPartialMessages(superUserSecurityContext, filteredElements);
+			List<DOMElement> filteredElements = filter(securityContext, dynamicElements);
+			List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
 
 			for (WebSocketMessage webSocketData : partialMessages) {
 				
