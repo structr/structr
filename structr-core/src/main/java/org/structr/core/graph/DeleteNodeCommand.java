@@ -76,8 +76,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		}
 		
-		TransactionCommand.nodeDeleted(node);
-
 		// final Node node                  = graphDb.getNodeById(structrNode.getId());
 		final RemoveNodeFromIndex removeNodeFromIndex = Services.command(securityContext, RemoveNodeFromIndex.class);
 		final DeleteRelationshipCommand deleteRel     = Services.command(securityContext, DeleteRelationshipCommand.class);
@@ -157,6 +155,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					// delete node in database
 					node.getNode().delete();
 
+					// mark node as deleted in transaction
+					TransactionCommand.nodeDeleted(node);
+					
 					// now check again the deletion cascade for violated constraints
 					if (cascade) {
 

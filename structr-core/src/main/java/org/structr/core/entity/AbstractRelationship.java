@@ -663,9 +663,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	@Override
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		
-		cachedUuid = (String)properties.get(AbstractRelationship.uuid);
-		
 		return true;
 	}
 	

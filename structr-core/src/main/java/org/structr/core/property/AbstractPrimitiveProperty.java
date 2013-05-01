@@ -150,16 +150,23 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						// notify only non-system properties
 						if (!isSystemProperty) {
 							
+							// collect modified properties
 							if (obj instanceof AbstractNode) {
 
-								TransactionCommand.nodeModified((AbstractNode)obj);
+								TransactionCommand.nodeModified(
+									(AbstractNode)obj,
+									AbstractPrimitiveProperty.this,
+									propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+								);
 
 							} else if (obj instanceof AbstractRelationship) {
 
-								TransactionCommand.relationshipModified((AbstractRelationship)obj);
+								TransactionCommand.relationshipModified(
+									(AbstractRelationship)obj,
+									AbstractPrimitiveProperty.this,
+									propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+								);
 							}
-
-							TransactionCommand.nonSystemProperty();
 						}
 						
 						// save space

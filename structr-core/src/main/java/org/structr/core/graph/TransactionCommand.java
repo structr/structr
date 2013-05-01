@@ -21,6 +21,10 @@
 package org.structr.core.graph;
 
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -28,13 +32,14 @@ import org.neo4j.graphdb.Transaction;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.neo4j.kernel.PlaceboTransaction;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.TransactionChangeSet;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,23 +62,34 @@ import org.structr.core.property.PropertyMap;
  */
 public class TransactionCommand extends NodeServiceCommand {
 
-	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
-
-	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
-
-	private TransactionChangeSet changeSet = null;
+	private static final Logger logger                                            = Logger.getLogger(TransactionCommand.class.getName());
+	
+	private static final ThreadLocal<TransactionCommand> currentCommand           = new ThreadLocal<TransactionCommand>();
+	private static final ThreadLocal<Transaction>        transactions             = new ThreadLocal<Transaction>();
+	
+	private IndexRelationshipCommand indexRelationshipCommand = null;
+	private NewIndexNodeCommand indexNodeCommand              = null;
+	private ModificationQueue modificationQueue               = null;
+	private ErrorBuffer errorBuffer                           = null;
 
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
 		
+		indexRelationshipCommand     = Services.command(SecurityContext.getSuperUserInstance(), IndexRelationshipCommand.class);
+		indexNodeCommand             = Services.command(SecurityContext.getSuperUserInstance(), NewIndexNodeCommand.class);;
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		Transaction tx               = transactions.get();
+		boolean topLevel             = (tx == null);
 		FrameworkException error     = null;
-		Transaction tx               = graphDb.beginTx();
-		boolean topLevel             = !(tx instanceof PlaceboTransaction);	// PlaceboTransaction extends TopLevelTransaction!
 		T result                     = null;
 		
 		if (topLevel) {
+		
+			// start new transaction
+			this.modificationQueue = new ModificationQueue();
+			this.errorBuffer       = new ErrorBuffer();
+			tx                     = graphDb.beginTx();
 			
-			this.changeSet = new TransactionChangeSet();
+			transactions.set(tx);
 			currentCommand.set(this);
 		}
 	
@@ -82,42 +98,41 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 			result = transaction.execute();
 			
-			if (topLevel && !changeSet.systemOnly()) {
+			if (topLevel) {
 
-				ErrorBuffer errorBuffer = new ErrorBuffer();
-
-				callBeforeMethods(changeSet, errorBuffer);
-				
-				if (errorBuffer.hasError()) {
+				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 					
 					// create error
-					error = new FrameworkException(422, errorBuffer);
-					
-					// throw something to exit here
-					throw new IllegalStateException();
+					throw new FrameworkException(422, errorBuffer);
 				}
-				
-				callAfterMethods(changeSet);
 			}
-			
-			
-			tx.success();
 			
 		} catch (Throwable t) {
 
-			// t.printStackTrace();
+			t.printStackTrace();
 			
+			// catch everything
 			tx.failure();
 			
-		} finally {
-			
-			tx.finish();
+			if (t instanceof FrameworkException) {
+				error = (FrameworkException)t;
+			}
 		}
 
 		// finish toplevel transaction
 		if (topLevel) {
 				
+			tx.success();
+			tx.finish();
+			
+			// cleanup
 			currentCommand.remove();
+			transactions.remove();
+			
+			// no error, notify entities
+			if (error == null) {
+				modificationQueue.doOuterCallbacks(securityContext);
+			}
 		}
 		
 		// throw actual error
@@ -128,98 +143,15 @@ public class TransactionCommand extends NodeServiceCommand {
 		return result;
 	}
 	
-	private void callBeforeMethods(TransactionChangeSet changeSet, ErrorBuffer errorBuffer) throws FrameworkException {
-
-		IndexRelationshipCommand indexRelCommand = Services.command(securityContext, IndexRelationshipCommand.class);
-		NewIndexNodeCommand indexNodeCommand     = Services.command(securityContext, NewIndexNodeCommand.class);
-		PropertyMap properties               = new PropertyMap();
-		
-		for (AbstractNode node : changeSet.getCreatedNodes()) {
-			node.beforeCreation(securityContext, errorBuffer);
-			indexNodeCommand.addNode(node);
-		}
-
-		for (AbstractNode node : changeSet.getModifiedNodes()) {
-			node.beforeModification(securityContext, errorBuffer);
-			indexNodeCommand.updateNode(node);
-		}
-
-		for (AbstractNode node : changeSet.getDeletedNodes()) {
-			node.beforeDeletion(securityContext, errorBuffer, properties);
-		}
-		
-		for (AbstractRelationship rel : changeSet.getCreatedRelationships()) {
-			rel.beforeCreation(securityContext, errorBuffer);
-			indexRelCommand.execute(rel);
-		}
-
-		for (AbstractRelationship rel : changeSet.getModifiedRelationships()) {
-			rel.beforeModification(securityContext, errorBuffer);
-			indexRelCommand.execute(rel);
-		}
-
-		for (AbstractRelationship rel : changeSet.getDeletedRelationships()) {
-			rel.beforeDeletion(securityContext, errorBuffer, properties);
-		}
-	}
-				
-	private void callAfterMethods(TransactionChangeSet changeSet) throws FrameworkException {
-
-		for (AbstractNode node : changeSet.getCreatedNodes()) {
-			node.afterCreation(securityContext);
-		}
-
-		for (AbstractNode node : changeSet.getModifiedNodes()) {
-			node.afterModification(securityContext);
-		}
-
-		for (AbstractNode node : changeSet.getDeletedNodes()) {
-			node.afterDeletion(securityContext);
-		}
-
-		for (AbstractRelationship rel : changeSet.getCreatedRelationships()) {
-			rel.afterCreation(securityContext);
-		}
-
-		for (AbstractRelationship rel : changeSet.getModifiedRelationships()) {
-			rel.afterModification(securityContext);
-		}
-
-		for (AbstractRelationship rel : changeSet.getDeletedRelationships()) {
-			rel.afterDeletion(securityContext);
-		}
-	}
-	
-	public static void nonSystemProperty() {
-		
-		TransactionCommand command = currentCommand.get();
-		if (command != null) {
-			
-			TransactionChangeSet changeSet = command.getChangeSet();
-			if (changeSet != null) {
-				
-				changeSet.nonSystemProperty();
-				
-			} else {
-				
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
-			}
-			
-		} else {
-			
-			logger.log(Level.SEVERE, "Object modified while outside of transaction!");
-		}
-	}
-	
 	public static void nodeCreated(AbstractNode node) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
 			
-			TransactionChangeSet changeSet = command.getChangeSet();
-			if (changeSet != null) {
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
 				
-				changeSet.create(node);
+				modificationQueue.create(node);
 				
 			} else {
 				
@@ -232,15 +164,15 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 	
-	public static void nodeModified(AbstractNode node) {
+	public static void nodeModified(AbstractNode node, PropertyKey key, Object previousValue) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
 			
-			TransactionChangeSet changeSet = command.getChangeSet();
-			if (changeSet != null) {
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
 				
-				changeSet.modify(node);
+				modificationQueue.modify(node, key, previousValue);
 				
 			} else {
 				
@@ -258,10 +190,10 @@ public class TransactionCommand extends NodeServiceCommand {
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
 			
-			TransactionChangeSet changeSet = command.getChangeSet();
-			if (changeSet != null) {
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
 				
-				changeSet.delete(node);
+				modificationQueue.delete(node);
 				
 			} else {
 				
@@ -279,10 +211,16 @@ public class TransactionCommand extends NodeServiceCommand {
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
 			
-			TransactionChangeSet changeSet = command.getChangeSet();
-			if (changeSet != null) {
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
 				
-				changeSet.create(relationship);
+				modificationQueue.create(relationship);
+				
+				AbstractNode startNode = relationship.getStartNode();
+				AbstractNode endNode   = relationship.getEndNode();
+
+				modificationQueue.modify(startNode, null, null);
+				modificationQueue.modify(endNode, null, null);
 				
 			} else {
 				
@@ -295,21 +233,15 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 	
-	public static void relationshipModified(AbstractRelationship relationship) {
+	public static void relationshipModified(AbstractRelationship relationship, PropertyKey key, Object value) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
 			
-			TransactionChangeSet changeSet = command.getChangeSet();
-			if (changeSet != null) {
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
 				
-				changeSet.modify(relationship);
-				
-				AbstractNode startNode = relationship.getStartNode();
-				AbstractNode endNode   = relationship.getEndNode();
-				
-				changeSet.modifyRelationshipEndpoint(startNode, relationship.getRelType());
-				changeSet.modifyRelationshipEndpoint(endNode, relationship.getRelType());
+				modificationQueue.modify(relationship, null, null);
 				
 			} else {
 				
@@ -327,16 +259,16 @@ public class TransactionCommand extends NodeServiceCommand {
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
 			
-			TransactionChangeSet changeSet = command.getChangeSet();
-			if (changeSet != null) {
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
 				
-				changeSet.delete(relationship);
+				modificationQueue.delete(relationship);
 				
 				AbstractNode startNode = relationship.getStartNode();
 				AbstractNode endNode   = relationship.getEndNode();
-				
-				changeSet.modifyRelationshipEndpoint(startNode, relationship.getRelType());
-				changeSet.modifyRelationshipEndpoint(endNode, relationship.getRelType());
+
+				modificationQueue.modify(startNode, null, null);
+				modificationQueue.modify(endNode, null, null);
 				
 			} else {
 				
@@ -349,7 +281,266 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 
-	private TransactionChangeSet getChangeSet() {
-		return changeSet;
+	private ModificationQueue getModificationQueue() {
+		return modificationQueue;
+	}
+	
+	private class ModificationQueue {
+		
+		ConcurrentSkipListMap<String, State> modifications = new ConcurrentSkipListMap<String, State>();
+		Map<String, State> immutableState                  = new LinkedHashMap<String, State>();
+		
+		public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+			
+			boolean valid = true;
+			
+			while (!modifications.isEmpty()) {
+				
+				Entry<String, State> entry = modifications.pollFirstEntry();
+				if (entry != null) {
+					
+					// do callback according to entry state
+					valid &= entry.getValue().doInnerCallback(securityContext, errorBuffer);
+					
+					// store entries for later notification
+					if (!immutableState.containsKey(entry.getKey())) {
+						immutableState.put(entry.getKey(), entry.getValue());
+					}
+				}
+			}
+			
+			return valid;
+		}
+		
+		public void doOuterCallbacks(SecurityContext securityContext) {
+			
+			// copy modifications, do after transaction callbacks
+			for (State state : immutableState.values()) {
+				
+				if (!state.isDeleted()) {
+					state.doOuterCallback(securityContext);
+				}
+			}
+			
+			// clear map afterwards
+			immutableState.clear();
+		}
+		
+		public void create(AbstractNode node) {
+			getState(node).create();
+		}
+		
+		public void create(AbstractRelationship relationship) {
+			getState(relationship).create();
+		}
+		
+		public void modify(AbstractNode node, PropertyKey key, Object previousValue) {
+			getState(node).modify(key, previousValue);
+		}
+		
+		public void modify(AbstractRelationship relationship, PropertyKey key, Object previousValue) {
+			getState(relationship).modify(key, previousValue);
+		}
+		
+		public void delete(AbstractNode node) {
+			getState(node).delete();
+		}
+		
+		public void delete(AbstractRelationship relationship) {
+			getState(relationship).delete();
+		}
+		
+		private State getState(AbstractNode node) {
+			
+			String hash = hash(node);
+			State state = modifications.get(hash);
+			
+			if (state == null) {
+				
+				state = new State(node);
+				modifications.put(hash, state);
+			}
+			
+			return state;
+		}
+		
+		private State getState(AbstractRelationship rel) {
+			
+			String hash = hash(rel);
+			State state = modifications.get(hash);
+			
+			if (state == null) {
+				
+				state = new State(rel);
+				modifications.put(hash, state);
+			}
+			
+			return state;
+		}
+		
+		private String hash(AbstractNode node) {
+			return "N" + node.getId();
+		}
+		
+		private String hash(AbstractRelationship rel) {
+			return "R" + rel.getId();
+		}
+	}
+	
+	private class State {
+		
+		private PropertyMap removedProperties = new PropertyMap();
+		private GraphObject object            = null;
+		private int status                    = 0;
+		
+		public State(GraphObject object) {
+			this.object = object;
+		}
+		
+		@Override
+		public String toString() {
+			return object.getClass().getSimpleName() + "(" + object + "); " + status;
+		}
+		
+		public void create() {
+			status |= 4;
+		}
+		
+		public void modify(PropertyKey key, Object previousValue) {
+			
+			status |= 2;
+			
+			// store previous value
+			if (key != null && previousValue != null) {
+				removedProperties.put(key, previousValue);
+			}
+		}
+		
+		public void delete() {
+			status |= 1;
+		}
+		
+		public boolean isCreated() {
+			return (status & 4) == 4;
+		}
+		
+		public boolean isModified() {
+			return (status & 2) == 2;
+		}
+		
+		public boolean isDeleted() {
+			return (status & 1) == 1;
+		}
+		
+		public boolean doInnerCallback(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+			
+			boolean valid = true;
+			
+			switch (status) {
+				
+				case 7:	// created, modified, deleted, poor guy => no callback
+					break;
+					
+				case 6: // created, modified => only creation callback will be called
+					valid &= object.beforeCreation(securityContext, errorBuffer);
+					addToIndex();
+					break;
+					
+				case 5: // created, deleted => no callback
+					break;
+					
+				case 4: // created => creation callback
+					valid &= object.beforeCreation(securityContext, errorBuffer);
+					addToIndex();
+					break;
+					
+				case 3: // modified, deleted => deletion callback
+					valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+					break;
+					
+				case 2: // modified => modification callback
+					valid &= object.beforeModification(securityContext, errorBuffer);
+					updateInIndex();
+					break;
+					
+				case 1: // deleted => deletion callback
+					valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+					break;
+					
+				case 0:	// no action, no callback
+					break;
+					
+				default:
+					break;
+			}
+			
+			return valid;
+		}
+		
+		public void doOuterCallback(SecurityContext securityContext) {
+			
+			switch (status) {
+				
+				case 7:	// created, modified, deleted, poor guy => no callback
+					break;
+					
+				case 6: // created, modified => only creation callback will be called
+					object.afterCreation(securityContext);
+					break;
+					
+				case 5: // created, deleted => no callback
+					break;
+					
+				case 4: // created => creation callback
+					object.afterCreation(securityContext);
+					break;
+					
+				case 3: // modified, deleted => deletion callback
+					object.afterDeletion(securityContext);
+					break;
+					
+				case 2: // modified => modification callback
+					object.afterModification(securityContext);
+					break;
+					
+				case 1: // deleted => deletion callback
+					object.afterDeletion(securityContext);
+					break;
+					
+				case 0:	// no action, no callback
+					break;
+					
+				default:
+					break;
+			}
+		}
+		
+		public GraphObject getObject() {
+			return object;
+		}
+
+		private void addToIndex() throws FrameworkException {
+			
+			if (object instanceof AbstractNode) {
+				
+				indexNodeCommand.addNode((AbstractNode)object);
+				
+			} else if (object instanceof AbstractRelationship) {
+				
+				indexRelationshipCommand.execute((AbstractRelationship)object);
+			}
+		}
+
+		private void updateInIndex() throws FrameworkException {
+			
+			if (object instanceof AbstractNode) {
+				
+				indexNodeCommand.updateNode((AbstractNode)object);
+				
+			} else if (object instanceof AbstractRelationship) {
+				
+				indexRelationshipCommand.execute((AbstractRelationship)object);
+			}
+		}
 	}
 }

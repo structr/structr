@@ -124,9 +124,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	private boolean readOnlyPropertiesUnlocked                    = false;
 
 	// reference to database node
-	protected Node dbNode;
-
 	protected String cachedUuid = null;
+	protected Node dbNode;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -967,9 +966,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		
-		cachedUuid = (String)properties.get(uuid);
-		
 		return true;
 	}
 	
