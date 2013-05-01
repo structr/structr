@@ -18,7 +18,7 @@
  */
 
 var pages;
-var previews, previewTabs, controls, palette, activeTab
+var previews, previewTabs, controls, palette, activeTab;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -46,6 +46,7 @@ var _Pages = {
     clone_icon : 'icon/page_copy.png',
 
     init : function() {
+        
         pageSize['Page'] = 10;
         page['Page'] = 1;
         
@@ -433,7 +434,7 @@ var _Pages = {
 
         $('#preview_' + entity.id).load(function() {
 
-            var offset = $(this).offset();
+            //var offset = $(this).offset();
 
             var doc = $(this).contents();
             var head = $(doc).find('head');
@@ -468,163 +469,164 @@ var _Pages = {
                 html.addClass('structr-element-container');
 
             }
-            droppables = iframeDocument.find('[data-structr_element_id]');
-
-            droppables.each(function(i,element) {
-                //console.log(element);
-                var el = $(element);
-
-                el.droppable({
-                    accept: '.element, .content, .component',
-                    greedy: true,
-                    hoverClass: 'structr-droppable-area',
-                    iframeOffset: {
-                        'top' : offset.top,
-                        'left' : offset.left
-                    },
-                    drop: function(event, ui) {
-                        
-                        var self = $(this);
-                        var page = self.closest( '.page')[0];
-                        var pageId;
-                        var pos;
-                        
-                        if (page) {
-
-                            // we're in the main page
-                            pageId = getId(page);
-                            pos = $('.content, .element', self).length;
-
-                        } else {
-                            
-                            // we're in the iframe
-                            page = self.closest('[data-structr_page_id]')[0];
-                            pageId = $(page).attr('data-structr_page_id');
-                            pos = $('[data-structr_element_id]', self).length;
-                        }
-                        
-//                        var contentId = getId(ui.draggable);
-                        var elementId = getId(self);
-
-                        if (!elementId) elementId = self.attr('data-structr_element_id');
-
-//                        if (!contentId) {
-//                            // create element on the fly
-//                            var tag = $(ui.draggable).text();
-//                            
-//                            console.log('suppress dropping anything in preview iframes for now');
-//                        //Command.createAndAppendDOMNode(pageId, elementId, (tag != 'content' ? tag : ''));
-//                            
+//            droppables = iframeDocument.find('[data-structr_element_id]');
+//
+//            droppables.each(function(i,element) {
+//                var el = $(element);
+//
+//                el.droppable({
+//                    accept: '.element, .content, .component',
+//                    greedy: true,
+//                    hoverClass: 'structr-droppable-area',
+//// this requires a patched jQuery, which we won't do anymore
+//// TODO: Find a better solution for dropping elements in the iframe at the right place                    
+////                    iframeOffset: { 
+////                        'top' : offset.top,
+////                        'left' : offset.left
+////                    },
+//                    drop: function(event, ui) {
+//                        
+//                        var self = $(this);
+//                        var page = self.closest( '.page')[0];
+//                        var pageId;
+//                        var pos;
+//                        
+//                        if (page) {
+//
+//                            // we're in the main page
+//                            pageId = getId(page);
+//                            pos = $('.content, .element', self).length;
+//
 //                        } else {
-//                            console.log('suppress dropping anything in preview iframes for now');
-//                        //Command.appendChild(contentId, elementId);
+//                            
+//                            // we're in the iframe
+//                            page = self.closest('[data-structr_page_id]')[0];
+//                            pageId = $(page).attr('data-structr_page_id');
+//                            pos = $('[data-structr_element_id]', self).length;
 //                        }
-                    }
-                });
-
-                var structrId = el.attr('data-structr_element_id');
-                //var type = el.prop('structr_type');
-                //  var name = el.prop('structr_name');
-//                var tag  = element.nodeName.toLowerCase();
-                if (structrId) {
-
-                    $('.move_icon', el).on('mousedown', function(e) {
-                        e.stopPropagation();
-                        var self = $(this);
-                        var element = self.closest('[data-structr_element_id]');
-                        //var element = self.children('.structr-node');
-                        log(element);
-                        var entity = Structr.entity(structrId, element.prop('data-structr_element_id'));
-                        entity.type = element.prop('data-structr_type');
-                        entity.name = element.prop('data-structr_name');
-                        log('move', entity);
-                        //var parentId = element.prop('structr_element_id');
-                        self.parent().children('.structr-node').show();
-                    });
-
-                    //                    $('b', el).on('click', function(e) {
-                    //                        e.stopPropagation();
-                    //                        var self = $(this);
-                    //                        var element = self.closest('[data-structr_element_id]');
-                    //                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-                    //                        entity.type = element.prop('structr_type');
-                    //                        entity.name = element.prop('structr_name');
-                    //                        log('edit', entity);
-                    //                        //var parentId = element.prop('structr_element_id');
-                    //                        log(element);
-                    ////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
-                    ////                            log('save')
-                    ////                        }, function() {
-                    ////                            log('cancelled')
-                    ////                        });
-                    //                        _Entities.showProperties(entity);
-                    //                    });
-
-                    $('.delete_icon', el).on('click', function(e) {
-                        e.stopPropagation();
-                        var self = $(this);
-                        var element = self.closest('[data-structr_element_id]');
-                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-                        entity.type = element.prop('data-structr_type');
-                        entity.name = element.prop('data-structr_name');
-                        log('delete', entity);
-                        var parentId = element.prop('data-structr_element_id');
-
-                        Command.removeSourceFromTarget(entity.id, parentId);
-                        _Entities.deleteNode(this, entity);
-                    });
-                    var offsetTop = -30;
-                    var offsetLeft = 0;
-                    el.on({
-                        mouseover: function(e) {
-                            e.stopPropagation();
-                            var self = $(this);
-                            //self.off('click');
-
-                            self.addClass('structr-element-container-active');
-
-                            //                            self.parent().children('.structr-element-container-header').remove();
-                            //
-                            //                            self.append('<div class="structr-element-container-header">'
-                            //                                + '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
-                            //                                + '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
-                            //                                + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
-                            //                                + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
-                            //                                + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
-                            //                                + '</div>'
-                            //                                );
-
-                            var node = Structr.node(structrId);
-                            if (node) {
-                                node.parent().removeClass('nodeHover');
-                                node.addClass('nodeHover');
-                            }
-
-                            var pos = self.position();
-                            var header = self.children('.structr-element-container-header');
-                            header.css({
-                                position: "absolute",
-                                top: pos.top + offsetTop + 'px',
-                                left: pos.left + offsetLeft + 'px',
-                                cursor: 'pointer'
-                            }).show();
-                            log(header);
-                        },
-                        mouseout: function(e) {
-                            e.stopPropagation();
-                            var self = $(this);
-                            self.removeClass('.structr-element-container');
-                            var header = self.children('.structr-element-container-header');
-                            header.remove();
-                            var node = Structr.node(structrId);
-                            if (node) {
-                                node.removeClass('nodeHover');
-                            }
-                        }
-                    });
-
-                }
-            });
+//                        
+////                        var contentId = getId(ui.draggable);
+//                        var elementId = getId(self);
+//
+//                        if (!elementId) elementId = self.attr('data-structr_element_id');
+//
+////                        if (!contentId) {
+////                            // create element on the fly
+////                            var tag = $(ui.draggable).text();
+////                            
+////                            console.log('suppress dropping anything in preview iframes for now');
+////                        //Command.createAndAppendDOMNode(pageId, elementId, (tag != 'content' ? tag : ''));
+////                            
+////                        } else {
+////                            console.log('suppress dropping anything in preview iframes for now');
+////                        //Command.appendChild(contentId, elementId);
+////                        }
+//                    }
+//                });
+//
+//                var structrId = el.attr('data-structr_element_id');
+//                //var type = el.prop('structr_type');
+//                //  var name = el.prop('structr_name');
+////                var tag  = element.nodeName.toLowerCase();
+//                if (structrId) {
+//
+//                    $('.move_icon', el).on('mousedown', function(e) {
+//                        e.stopPropagation();
+//                        var self = $(this);
+//                        var element = self.closest('[data-structr_element_id]');
+//                        //var element = self.children('.structr-node');
+//                        log(element);
+//                        var entity = Structr.entity(structrId, element.prop('data-structr_element_id'));
+//                        entity.type = element.prop('data-structr_type');
+//                        entity.name = element.prop('data-structr_name');
+//                        log('move', entity);
+//                        //var parentId = element.prop('structr_element_id');
+//                        self.parent().children('.structr-node').show();
+//                    });
+//
+//                    //                    $('b', el).on('click', function(e) {
+//                    //                        e.stopPropagation();
+//                    //                        var self = $(this);
+//                    //                        var element = self.closest('[data-structr_element_id]');
+//                    //                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
+//                    //                        entity.type = element.prop('structr_type');
+//                    //                        entity.name = element.prop('structr_name');
+//                    //                        log('edit', entity);
+//                    //                        //var parentId = element.prop('structr_element_id');
+//                    //                        log(element);
+//                    ////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
+//                    ////                            log('save')
+//                    ////                        }, function() {
+//                    ////                            log('cancelled')
+//                    ////                        });
+//                    //                        _Entities.showProperties(entity);
+//                    //                    });
+//
+//                    $('.delete_icon', el).on('click', function(e) {
+//                        e.stopPropagation();
+//                        var self = $(this);
+//                        var element = self.closest('[data-structr_element_id]');
+//                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
+//                        entity.type = element.prop('data-structr_type');
+//                        entity.name = element.prop('data-structr_name');
+//                        log('delete', entity);
+//                        var parentId = element.prop('data-structr_element_id');
+//
+//                        Command.removeSourceFromTarget(entity.id, parentId);
+//                        _Entities.deleteNode(this, entity);
+//                    });
+//                    var offsetTop = -30;
+//                    var offsetLeft = 0;
+//                    el.on({
+//                        mouseover: function(e) {
+//                            e.stopPropagation();
+//                            var self = $(this);
+//                            //self.off('click');
+//
+//                            self.addClass('structr-element-container-active');
+//
+//                            //                            self.parent().children('.structr-element-container-header').remove();
+//                            //
+//                            //                            self.append('<div class="structr-element-container-header">'
+//                            //                                + '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
+//                            //                                + '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
+//                            //                                + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
+//                            //                                + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
+//                            //                                + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
+//                            //                                + '</div>'
+//                            //                                );
+//
+//                            var node = Structr.node(structrId);
+//                            if (node) {
+//                                node.parent().removeClass('nodeHover');
+//                                node.addClass('nodeHover');
+//                            }
+//
+//                            var pos = self.position();
+//                            var header = self.children('.structr-element-container-header');
+//                            header.css({
+//                                position: "absolute",
+//                                top: pos.top + offsetTop + 'px',
+//                                left: pos.left + offsetLeft + 'px',
+//                                cursor: 'pointer'
+//                            }).show();
+//                            log(header);
+//                        },
+//                        mouseout: function(e) {
+//                            e.stopPropagation();
+//                            var self = $(this);
+//                            self.removeClass('.structr-element-container');
+//                            var header = self.children('.structr-element-container-header');
+//                            header.remove();
+//                            var node = Structr.node(structrId);
+//                            if (node) {
+//                                node.removeClass('nodeHover');
+//                            }
+//                        }
+//                    });
+//
+//                }
+//            });
 
             $(this).contents().find('[data-structr_content_id]').each(function(i,element) {
                 log(element);
@@ -663,14 +665,15 @@ var _Pages = {
                             self.removeClass('structr-editable-area');
                             self.addClass('structr-editable-area-active');
 
-                            
-                            //textBeforeEditing = cleanText(self.contents());
-                            
-                            //console.log(StructrModel.obj(structrId), 'source text', StructrModel.obj(structrId).content);
-                            self.text(StructrModel.obj(structrId).content);
                             // Store old text in global var
                             textBeforeEditing = cleanText(self.contents());
-                            //console.log("textBeforeEditing", textBeforeEditing);
+
+                            var srcText = StructrModel.obj(structrId).content;
+                            // Replace only if it differs (e.g. for variables)
+                            if (srcText !== textBeforeEditing) {
+                                self.text(srcText);
+                                textBeforeEditing = srcText;
+                            }
 
                         },
                         blur: function(e) {
@@ -678,7 +681,7 @@ var _Pages = {
                             var self = $(this);
                             contentSourceId = self.attr('data-structr_content_id');
                             var text = cleanText(self.contents());
-                            log('blur contentSourceId: ' + contentSourceId);
+                            //console.log('blur contentSourceId: ' + contentSourceId, textBeforeEditing, text);
                             //_Pages.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
                             //Command.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
                             Command.patch(contentSourceId, textBeforeEditing, text);
