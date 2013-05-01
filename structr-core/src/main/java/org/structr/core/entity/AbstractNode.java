@@ -27,7 +27,6 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.graph.SetOwnerCommand;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateUtils;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -58,7 +57,6 @@ import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.text.ParseException;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -91,7 +89,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
 	
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		uuid, name, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
+		uuid, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 	
 	//~--- static initializers --------------------------------------------
