@@ -81,59 +81,72 @@ var _Entities = {
 
         Structr.dialog('Edit Data Settings of ' + entity.id, function() { return true; }, function() { return true; });
 
-        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled renderDetails_">Render single object only in details mode</button></div>');
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled renderDetails_">Auto-limit to single object</button> If URL ends with an ID, the query result is limited to this object automatically.</div>');
         var detailsSwitch = $('.renderDetails_');
-
         _Entities.changeBooleanAttribute(detailsSwitch, entity.renderDetails);
-
         detailsSwitch.on('click', function(e) {
             e.stopPropagation();
             entity.setProperty('renderDetails', detailsSwitch.hasClass('disabled'), false, function() {
                 _Entities.changeBooleanAttribute(detailsSwitch, entity.renderDetails);
+                blinkGreen(detailsSwitch);
             });
         });
         
-        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnIndex_">Hide in index mode</button></div>');
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnIndex_">Hide element in index mode</button> If URL does not end with an ID, this element is hidden.</div>');
         var indexSwitch = $('.hideOnIndex_');
-
         _Entities.changeBooleanAttribute(indexSwitch, entity.hideOnIndex);
-
         indexSwitch.on('click', function(e) {
             e.stopPropagation();
             entity.setProperty('hideOnIndex', indexSwitch.hasClass('disabled'), false, function() {
                 _Entities.changeBooleanAttribute(indexSwitch, entity.hideOnIndex);
+                blinkGreen(indexSwitch);
             });
         });
 
-        dialog.append('<div><h3>Data Key</h3><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnDetail_">Hide element in details mode</button> If URL ends with an ID, this element is hidden.</div>');
+        var hideOnDetailSwitch = $('.hideOnDetail_');
+        _Entities.changeBooleanAttribute(hideOnDetailSwitch, entity.hideOnDetail);
+        hideOnDetailSwitch.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty('hideOnDetail', hideOnDetailSwitch.hasClass('disabled'), false, function() {
+                _Entities.changeBooleanAttribute(hideOnDetailSwitch, entity.hideOnDetail);
+                blinkGreen(hideOnDetailSwitch);
+            });
+        });
+
+        dialog.append('<div><h3>Data Key</h3><p>Query results are mapped to this key and can be accessed by ${dataKey.propertyKey}</p><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
         $('#saveDataKey', dialog).on('click', function() {
             entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {
                 log('Data Key successfully updated!', entity.dataKey);
+                blinkGreen($('#dataKey'));
             });
         });
 
 
-        dialog.append('<div><h3>REST Query</h3><textarea cols="80" rows="4" id="restQuery">' + (entity.restQuery ? entity.restQuery : '') + '</textarea></div>');
-        dialog.append('<div><button id="applyRestQuery">Apply</button></div>');
+        dialog.append('<div><h3>REST Query</h3><textarea cols="60" rows="2" id="restQuery">' + (entity.restQuery ? entity.restQuery : '') + '</textarea></div>');
+        dialog.append('<div><button id="applyRestQuery">Save    </button></div>');
         $('#applyRestQuery', dialog).on('click', function() {
             entity.setProperty('restQuery', $('#restQuery', dialog).val(), false, function() {
                 log('REST Query successfully updated!', entity.restQuery);
+                blinkGreen($('#restQuery'));
             });
         });
         
-        dialog.append('<div><h3>Cypher Query</h3><textarea cols="80" rows="4" id="cypherQuery">' + (entity.cypherQuery ? entity.cypherQuery : '') + '</textarea></div>');
-        dialog.append('<div><button id="applyCypherQuery">Apply</button></div>');
+        dialog.append('<div><h3>Cypher Query</h3><textarea cols="60" rows="2" id="cypherQuery">' + (entity.cypherQuery ? entity.cypherQuery : '') + '</textarea></div>');
+        dialog.append('<div><button id="applyCypherQuery">Save</button></div>');
         $('#applyCypherQuery', dialog).on('click', function() {
             entity.setProperty('cypherQuery', $('#cypherQuery', dialog).val(), false, function() {
                 log('Cypher Query successfully updated!', entity.cypherQuery);
+                blinkGreen($('#cypherQuery'));
             });
         });
         
-        dialog.append('<div><h3>XPath Query</h3><textarea cols="80" rows="4" id="xpathQuery">' + (entity.xpathQuery ? entity.xpathQuery : '') + '</textarea></div>');
-        dialog.append('<div><button id="applyXpathQuery">Apply</button></div>');
+        dialog.append('<div><h3>XPath Query</h3><textarea cols="60" rows="2" id="xpathQuery">' + (entity.xpathQuery ? entity.xpathQuery : '') + '</textarea></div>');
+        dialog.append('<div><button id="applyXpathQuery">Save</button></div>');
         $('#applyXpathQuery', dialog).on('click', function() {
             entity.setProperty('xpathQuery', $('#xpathQuery', dialog).val(), false, function() {
                 log('XPath Query successfully updated!', entity.xpathQuery);
+                blinkGreen($('#xpathQuery'));
             });
         });
 
@@ -141,16 +154,18 @@ var _Entities = {
         $('#savePartialUpdateKey', dialog).on('click', function() {
             entity.setProperty('partialUpdateKey', $('#partialUpdateKey', dialog).val(), false, function() {
                 log('Partial update key successfully updated!', entity.partialUpdateKey);
+                blinkGreen($('#partialUpdateKey'));
             });
         });
 
         //_Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
         
-        dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId" size="32" value="' + (entity.dataNodeId ? entity.dataNodeId : '') + '"><button id="saveDataNodeId">Save</button></div>');
-        $('#saveDataNodeId', dialog).on('click', function() {
-            log('add Data Node', entity.id, $('#dataNodeId', dialog).val());
-            Command.addDataTree(entity.id, $('#dataNodeId', dialog).val());
-        });
+//        dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId" size="32" value="' + (entity.dataNodeId ? entity.dataNodeId : '') + '"><button id="saveDataNodeId">Save</button></div>');
+//        $('#saveDataNodeId', dialog).on('click', function() {
+//            log('add Data Node', entity.id, $('#dataNodeId', dialog).val());
+//            Command.addDataTree(entity.id, $('#dataNodeId', dialog).val());
+//            blinkGreen($('#dataNodeId'));
+//        });
     },
 
     showProperties : function(entity) {
@@ -427,7 +442,7 @@ var _Entities = {
         if (key.contains('.')) {
             subKey = key.substring(key.indexOf('.')+1, key.length);
             key = key.substring(0, key.indexOf('.'));
-            console.log('object key:', key, 'sub key', subKey);
+            //console.log('object key:', key, ', sub key: ', subKey);
         }
         
         el.append('<h3>' + title + '</h3><p id="' + key + 'Box"></p>');
@@ -450,8 +465,8 @@ var _Entities = {
             success: function(data) {
                 $(data.result).each(function(i, result) {
                     
-                    var id = (subKey ? entity[key][subKey] : entity[key]);
-                    console.log(id, result.id);
+                    var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
+                    //console.log(id, result.id);
                     
                     var selected = (id === result.id ? 'selected' : '');
                     

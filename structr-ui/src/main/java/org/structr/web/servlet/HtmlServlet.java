@@ -54,8 +54,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -136,24 +134,33 @@ public class HtmlServlet extends HttpServlet {
 			
 			boolean dontCache = false;
 			
-			String resp = (String) request.getSession().getAttribute(REST_RESPONSE);
-			if (resp != null) {
-				
-				request.setAttribute(REST_RESPONSE, resp);
-				
-				// empty response content after reading
-				request.getSession().removeAttribute(REST_RESPONSE);
-				
-				// don't allow to show a cached page
-				dontCache = true;
-				
-			}
+//			String resp = (String) request.getSession().getAttribute(REST_RESPONSE);
+//			if (resp != null) {
+//				
+//				request.setAttribute(REST_RESPONSE, resp);
+//				
+//				// empty response content after reading
+//				request.getSession().removeAttribute(REST_RESPONSE);
+//				
+//				// don't allow to show a cached page
+//				dontCache = true;
+//				
+//			}
 
 			String path = PathHelper.clean(request.getPathInfo());
 
 			logger.log(Level.FINE, "Path info {0}", path);
 			
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
+			securityContext.initializeAndExamineRequest(request, response);
+			
+			if (securityContext.getUser(false) != null) {
+				
+				// Don't cache if a user is logged in
+				dontCache = true;
+				
+			}
+			
 			RenderContext renderContext = RenderContext.getInstance(request, response, Locale.getDefault());
 			
 			renderContext.setResourceProvider(resourceProvider);
@@ -512,7 +519,6 @@ public class HtmlServlet extends HttpServlet {
 				//user.setPassword("foobar");
 				
 				// Login user without password
-				request.getSession().setAttribute(HttpAuthenticator.SESSION_USER, user);
 				securityContext.setUser(user);
 
 				// Redirect to target page

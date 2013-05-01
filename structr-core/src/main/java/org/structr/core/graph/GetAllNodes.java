@@ -38,7 +38,7 @@ public class GetAllNodes extends NodeServiceCommand {
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
 
 		if(graphDb != null) {
-			return nodeFactory.bulkCreateNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+			return nodeFactory.bulkInstantiateNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 		}
 
 		return Collections.emptyList();

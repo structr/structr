@@ -105,7 +105,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 	}
 	
 	protected AbstractNode getAsAbstractNode(Map<String, Object> row, String columnName) throws FrameworkException {
-		return nodeFactory.createNode((Node)row.get(columnName));
+		return nodeFactory.instantiateNode((Node)row.get(columnName));
 	}
 	
 	protected AbstractRelationship getAsAbstractRelationship(Map<String, Object> row, String columnName) throws FrameworkException {
@@ -120,7 +120,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 			
 			if (obj instanceof Node) {
 				
-				return nodeFactory.createNode((Node)obj);
+				return nodeFactory.instantiateNode((Node)obj);
 			}
 			
 			if (obj instanceof Relationship) {

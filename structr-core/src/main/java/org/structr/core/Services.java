@@ -678,6 +678,10 @@ public class Services {
 	
 	private static String getAbsolutePath(String path) {
 
+		if (path == null) {
+			return null;
+		}
+		
 		if (path.startsWith("/")) {
 			return (path);
 		}

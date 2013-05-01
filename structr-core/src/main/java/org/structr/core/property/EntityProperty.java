@@ -224,7 +224,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 
 					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
 
-						value = nodeFactory.createNode(rel.getOtherNode(dbNode));
+						value = nodeFactory.instantiateNode(rel.getOtherNode(dbNode));
 
 						// break on first hit of desired type
 						if (value != null && destinationType.isInstance(value)) {

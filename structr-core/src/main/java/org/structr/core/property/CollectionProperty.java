@@ -208,7 +208,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
 
-						value = nodeFactory.createNode(rel.getOtherNode(dbNode));
+						value = nodeFactory.instantiateNode(rel.getOtherNode(dbNode));
 						if (value != null && destinationType.isInstance(value)) {
 
 							nodes.add((T)value);

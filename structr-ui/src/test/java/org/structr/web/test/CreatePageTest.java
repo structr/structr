@@ -37,6 +37,7 @@ import org.jsoup.select.Elements;
 import org.structr.core.GraphObject;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,15 +73,14 @@ public class CreatePageTest extends StructrUiTest {
 			Page page = Page.createNewPage(securityContext, pageName);
 			if (page != null) {
 				
-				// make page public
-				page.setProperty(GraphObject.visibleToPublicUsers, true);
-				
 				Element html  = page.createElement("html");
 				Element head  = page.createElement("head");
 				Element body  = page.createElement("body");
 				Element title = page.createElement("title");
 				Element h1    = page.createElement("h1");
 				Element div   = page.createElement("div");
+				
+				makeNodesPublic(page, html, head, body, title, h1, div);
 				
 				try {
 					// add HTML element to page
@@ -155,5 +155,21 @@ public class CreatePageTest extends StructrUiTest {
 
 		}
 
+	}
+	
+	private void makeNodesPublic(Node... nodes) {
+		
+		try {
+
+			for (Node node : nodes) {
+			
+				((GraphObject) node).setProperty(GraphObject.visibleToPublicUsers, true);
+
+			}
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+		
 	}
 }

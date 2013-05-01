@@ -58,7 +58,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 					for (final Node n : index.get(AbstractNode.name.dbName(), userName)) {
 
-						final AbstractNode s = nodeFactory.createNode(n);
+						final AbstractNode s = nodeFactory.instantiateNode(n);
 
 						if (s.getType().equals(Principal.class.getSimpleName())) {
 
@@ -82,7 +82,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 				final IndexHits<Node> indexHits = index.query( key.dbName(), "\"" + userNickName + "\"" );
 				try {
 					for (final Node n : indexHits) {
-						final Object u = nodeFactory.createNode(n);
+						final Object u = nodeFactory.instantiateNode(n);
 						if (u != null) {
 							return u;
 						}

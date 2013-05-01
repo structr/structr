@@ -129,7 +129,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> restQuery                = new StringProperty("restQuery");
 	public static final Property<Boolean> renderDetails           = new BooleanProperty("renderDetails");
 	public static final Property<Boolean> hideOnIndex             = new BooleanProperty("hideOnIndex");
-	
+	public static final Property<Boolean> hideOnDetail            = new BooleanProperty("hideOnDetail");
+
 	public static final Property<String> _title                   = new HtmlProperty("title");
 	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
 	public static final Property<String> _style                   = new HtmlProperty("style");
@@ -210,7 +211,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	);
 	
 	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds,
-										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId, renderDetails, hideOnIndex,
+										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId, renderDetails, hideOnIndex, hideOnDetail,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
@@ -340,6 +341,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				DOMNode subNode = (DOMNode) rel.getEndNode();
 				
+				if (!securityContext.isVisible(subNode)) {
+					continue;
+				}
+
 				GraphObject details = renderContext.getDetailsDataObject();
 				boolean detailMode = details != null;
 

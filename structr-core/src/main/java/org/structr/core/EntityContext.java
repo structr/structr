@@ -1190,7 +1190,7 @@ public class EntityContext {
 
 				// notify transaction listeners
 				for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-					listener.begin(securityContext, transactionKey);
+					listener.commitStarts(securityContext, transactionKey);
 				}
 				
 				// collect properties
@@ -1226,7 +1226,7 @@ public class EntityContext {
 				if (hasError) {
 
 					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-						listener.rollback(securityContext, transactionKey);
+						listener.willRollback(securityContext, transactionKey);
 					}
 
 					throw new FrameworkException(422, errorBuffer);
@@ -1234,7 +1234,7 @@ public class EntityContext {
 				}
 
 				for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-					listener.commit(securityContext, transactionKey);
+					listener.commitFinishes(securityContext, transactionKey);
 				}
 				
 				
@@ -1251,16 +1251,17 @@ public class EntityContext {
 		@Override
 		public void afterCommit(TransactionData data, Long transactionKey) {
 		
-			for (TransactionNotifier notifier : EntityContext.getTransactionNotifiers()) {
-				notifier.notify(data);
+			SecurityContext securityContext = securityContextMap.get();
+
+			for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+				listener.afterCommit(securityContext, transactionKey);
 			}
-		
-		
 		}
 
 		@Override
 		public void afterRollback(TransactionData data, Long transactionKey) {
 
+			/* FIXME: needed??
 			Throwable t = exceptionMap.get(transactionKey);
 
 			if (t != null) {
@@ -1268,6 +1269,7 @@ public class EntityContext {
 				// thow
 				throw new IllegalArgumentException(t);
 			}
+			*/
 		}
 			
 		private boolean collectRemovedNodeProperties(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, TransactionData data, TransactionChangeSet changeSet,
@@ -1292,7 +1294,7 @@ public class EntityContext {
 
 				if (!data.isDeleted(node)) {
 
-					AbstractNode modifiedNode = nodeFactory.createNode(node, true, false);
+					AbstractNode modifiedNode = nodeFactory.instantiateNode(node, true, false);
 					if (modifiedNode != null) {
 
 						PropertyKey key = getPropertyKeyForDatabaseName(modifiedNode.getClass(), entry.key());
@@ -1369,7 +1371,7 @@ public class EntityContext {
 						
 			for (Node node : sortNodes(data.createdNodes())) {
 
-				AbstractNode entity = nodeFactory.createNode(node, true, false);
+				AbstractNode entity = nodeFactory.instantiateNode(node, true, false);
 				if (entity != null) {
 
 					hasError |= !entity.beforeCreation(securityContext, errorBuffer);
@@ -1407,7 +1409,7 @@ public class EntityContext {
 					}
 
 					try {
-						AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
+						AbstractNode startNode = nodeFactory.instantiateNode(rel.getStartNode());
 						RelationshipType relationshipType = entity.getRelType();
 
 						if (startNode != null) {
@@ -1415,7 +1417,7 @@ public class EntityContext {
 							changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 						}
 
-						AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
+						AbstractNode endNode = nodeFactory.instantiateNode(rel.getEndNode());
 						if (endNode != null) {
 
 							changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
@@ -1452,7 +1454,7 @@ public class EntityContext {
 					changeSet.delete(entity);
 
 					try {
-						AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
+						AbstractNode startNode = nodeFactory.instantiateNode(rel.getStartNode());
 						RelationshipType relationshipType = entity.getRelType();
 
 						if (startNode != null) {
@@ -1460,7 +1462,7 @@ public class EntityContext {
 							changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 						}
 
-						AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
+						AbstractNode endNode = nodeFactory.instantiateNode(rel.getEndNode());
 						if (endNode != null) {
 
 							changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
@@ -1481,27 +1483,21 @@ public class EntityContext {
 
 			for (Node node : data.deletedNodes()) {
 
-				Map<String, Object> removedProperties = removedNodeProperties.get(node);
-				if (removedProperties != null) {
-					
-					String type = (String)removedProperties.get(AbstractNode.type.dbName());
-					if (type != null) {
+				String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
+				AbstractNode entity = nodeFactory.instantiateDummyNode(type);
 
-						AbstractNode entity = nodeFactory.createDummyNode(type);
-						if (entity != null) {
+				if (entity != null) {
 
-							PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedNodeProperties.get(node));
+					PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedNodeProperties.get(node));
 
-							hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
+					hasError |= !entity.beforeDeletion(securityContext, errorBuffer, properties);
 
-							// notify registered listeners
-							for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-								hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
-							}
-
-							changeSet.delete(entity);
-						}
+					// notify registered listeners
+					for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
+						hasError |= !listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, entity, properties);
 					}
+
+					changeSet.delete(entity);
 				}
 			}
 
@@ -1515,7 +1511,7 @@ public class EntityContext {
 
 			for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
 
-				AbstractNode nodeEntity = nodeFactory.createNode(entry.entity(), true, false);
+				AbstractNode nodeEntity = nodeFactory.instantiateNode(entry.entity(), true, false);
 				if (nodeEntity != null) {
 
 					PropertyKey key  = getPropertyKeyForDatabaseName(nodeEntity.getClass(), entry.key());

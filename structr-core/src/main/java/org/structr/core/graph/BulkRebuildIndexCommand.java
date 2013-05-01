@@ -73,7 +73,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 				final NewIndexNodeCommand indexNode = Services.command(securityContext, NewIndexNodeCommand.class);
 
 				// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-				final Result<AbstractNode> result = nodeFactory.createAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+				final Result<AbstractNode> result = nodeFactory.instantiateAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
 				final List<AbstractNode> nodes    = new ArrayList<AbstractNode>();
 
 				for (AbstractNode node : result.getResults()) {

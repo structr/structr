@@ -240,17 +240,26 @@ public class SecurityContext {
 
 	public Principal getUser(final boolean tryLogin) {
 
-		if (cachedUser == null) {
+		// If we've got a user, return it! Easiest and fastest!!
+		if (cachedUser != null) {
+			
+			return cachedUser;
+			
+		}
+		
+		if (authenticator == null) {
+			
+			return null;
+			
+		}
 
-			try {
+		try {
 
-				cachedUser = authenticator.getUser(this, request, response, tryLogin);
+			cachedUser = authenticator.getUser(this, request, response, tryLogin);
 
-			} catch (Throwable t) {
+		} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "No user found");
-
-			}
+			logger.log(Level.WARNING, "No user found");
 
 		}
 
@@ -487,17 +496,17 @@ public class SecurityContext {
 			return false;
 		}
 
-		// public nodes are always visible
-		if (node.isVisibleToPublicUsers()) {
+		// Fetch already logged-in user, if present (don't try to login)
+		Principal user = getUser(false);
+		
+		// Public nodes are visible to non-auth users only
+		if (node.isVisibleToPublicUsers() && user == null) {
 
 			return true;
 		}
 
 		// Ask for user only if node is visible for authenticated users
 		if (node.isVisibleToAuthenticatedUsers()) {
-
-			// fetch user
-			Principal user = getUser(true);
 
 			if (user != null) {
 

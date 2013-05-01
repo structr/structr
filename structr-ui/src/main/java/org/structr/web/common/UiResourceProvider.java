@@ -30,6 +30,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.structr.rest.resource.DynamicTypeResource;
+import org.structr.web.resource.LoginResource;
+import org.structr.web.resource.LogoutResource;
 import org.structr.web.resource.RegistrationResource;
 
 //~--- classes ----------------------------------------------------------------
@@ -48,6 +50,8 @@ public class UiResourceProvider implements ResourceProvider {
 
 		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"), UuidResource.class);       // matches a UUID without dashes
 		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);         // cypher query
+		resourceMap.put(Pattern.compile("login"), LoginResource.class);                // login
+		resourceMap.put(Pattern.compile("logout"), LogoutResource.class);              // logout
 		resourceMap.put(Pattern.compile("registration"), RegistrationResource.class);  // self-registration
 		resourceMap.put(Pattern.compile("maintenance"), MaintenanceResource.class);    // maintenance
 		resourceMap.put(Pattern.compile("in"), RelationshipResource.class);            // incoming relationship

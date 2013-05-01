@@ -19,6 +19,7 @@
 package org.structr.core;
 
 import org.neo4j.graphdb.event.TransactionData;
+import org.structr.common.SecurityContext;
 
 /**
  * An interface that allows you to be notified when a {@link GraphObject} is
@@ -29,6 +30,6 @@ import org.neo4j.graphdb.event.TransactionData;
  */
 public interface TransactionNotifier {
 
-	public void notify(TransactionData data);
+	public void notify(SecurityContext securityContext, TransactionData data);
 
 }

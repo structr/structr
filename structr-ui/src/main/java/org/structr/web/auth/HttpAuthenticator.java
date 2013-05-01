@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,37 +52,52 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HttpAuthenticator implements Authenticator {
 
-	public static final String SESSION_USER  = "sessionUser";
 	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
+	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	
+		Principal user = checkSessionAuthentication(request, response);
+		
+		if (user != null) {
+
+			securityContext.setUser(user);
+
+		}
+		
+	
+	}
 
 	@Override
 	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView)
-		throws FrameworkException {}
+		throws FrameworkException {
+	
+		logger.log(Level.FINE, "Got session? ", request.getSession(false));
+		logger.log(Level.FINE, "User principal: ", request.getUserPrincipal());
+	
+	}
 
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
-		Principal user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
+		Principal user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
 
 		if (user != null) {
 
-			request.getSession().setAttribute(SESSION_USER, user);
-			
 			securityContext.setUser(user);
+			
+			String sessionIdFromRequest = request.getSession(false).getId();
 
 			try {
 
-				request.login(userName, password);
-				request.authenticate(response);
+				// store session id in user object
+				user.setProperty(Principal.sessionId, sessionIdFromRequest);
 
 			} catch (Exception ex) {
 
-				Logger.getLogger(HttpAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
+				logger.log(Level.SEVERE, null, ex);
 
 			}
 
@@ -101,9 +117,31 @@ public class HttpAuthenticator implements Authenticator {
 
 		} catch (ServletException ex) {
 
-			Logger.getLogger(HttpAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 
 		}
+
+	}
+	protected static Principal checkSessionAuthentication(HttpServletRequest request, HttpServletResponse response) {
+
+		HttpSession session = request.getSession(false);
+		
+		if (session == null) {
+			
+			return null;
+		}
+		
+		String sessionIdFromRequest = request.getSession(false).getId();
+
+		Principal user = AuthHelper.getUserForSessionId(sessionIdFromRequest);
+
+		if (user != null) {
+
+			return user;
+
+		}
+
+		return null;
 
 	}
 
@@ -240,15 +278,23 @@ public class HttpAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) {
+	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
 
-		Principal user = (Principal) request.getSession().getAttribute(SESSION_USER);
+		// First, check session (JSESSIONID cookie)
+		Principal user = checkSessionAuthentication(request, response);
+		
+		if (user != null) {
+			
+			securityContext.setUser(user);
+			return user;
+		}
 
+		// Second, try basic auth, if requested
 		if (tryLogin && user == null) {
 
 			user = checkBasicAuthentication(request, response);
 		}
-
+		
 		return user;
 
 	}
