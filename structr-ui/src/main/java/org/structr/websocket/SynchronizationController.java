@@ -61,6 +61,8 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.html.Html;
+import org.w3c.dom.Node;
 
 /**
  *
@@ -199,22 +201,38 @@ public class SynchronizationController implements StructrTransactionListener {
 
 	}
 	
-	private void broadcastPartials(String type) throws FrameworkException {
+	private void broadcastPartials(Set<Class> types, Set<DOMNode> markupElements) {
 
-		// create list of dynmiac elements
+		// create set of dynamic elements
+		Set<DOMNode> dynamicElements = new HashSet(markupElements);
 		SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
 		List<SearchAttribute> attrs              = new LinkedList<SearchAttribute>();
 
-		// Find all DOMElements which render data of the type of the obj
-		attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
-		SearchAttributeGroup g = new SearchAttributeGroup(SearchOperator.AND);
-		g.add(Search.orExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(type)));
-		g.add(Search.orExactProperty(DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type)));
-		attrs.add(g);
+		if (!types.isEmpty()) {
+		
+			// Find all DOMElements which render data of the type of the obj
+			attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
+			SearchAttributeGroup g = new SearchAttributeGroup(SearchOperator.AND);
 
-		Result results = Services.command(superUserSecurityContext, SearchNodeCommand.class).execute(attrs);
-		List<DOMElement> dynamicElements = results.getResults();
-			
+			for (Class type : types) {
+
+				g.add(Search.orExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
+				g.add(Search.orExactProperty(DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
+
+			}
+
+			attrs.add(g);
+
+			Result results;
+			try {
+
+				results = Services.command(superUserSecurityContext, SearchNodeCommand.class).execute(attrs);
+				dynamicElements.addAll(results.getResults());
+
+			} catch (FrameworkException ex) {}
+		
+		}
+
 		// create message
 		for (StructrWebSocket socket : clients) {
 
@@ -233,8 +251,15 @@ public class SynchronizationController implements StructrTransactionListener {
 				}
 			}
 			
+			broadcastDynamicElements(securityContext, socket, new LinkedList(dynamicElements));
+			
+		}
+	}
+
+	private void broadcastDynamicElements(SecurityContext securityContext, StructrWebSocket socket, final List<DOMNode> dynamicElements) {
+		
 			// filter elements
-			List<DOMElement> filteredElements = filter(securityContext, dynamicElements);
+			List<DOMNode> filteredElements = filter(securityContext, dynamicElements);
 			List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
 
 			for (WebSocketMessage webSocketData : partialMessages) {
@@ -271,10 +296,10 @@ public class SynchronizationController implements StructrTransactionListener {
 					}
 				}
 			}
-		}
+		
 	}
-
-	private List<WebSocketMessage> createPartialMessages(SecurityContext securityContext, List<DOMElement> elements) {
+	
+	private List<WebSocketMessage> createPartialMessages(SecurityContext securityContext, List<DOMNode> elements) {
 		
 		HttpServletRequest request             = mock(HttpServletRequest.class);
 		List<WebSocketMessage> partialMessages = new LinkedList<WebSocketMessage>();
@@ -282,19 +307,43 @@ public class SynchronizationController implements StructrTransactionListener {
 		
 		ctx.setResourceProvider(resourceProvider);
 		
-		for (DOMElement el : elements) {
+		// Get unique parent elements
+		Set<DOMNode> parents = new HashSet();
+		
+		for (DOMNode el : elements) {
+			
+			
+			DOMNode parent = (DOMNode) el.getParentNode();
+			
+			if (parent != null && !(parent instanceof Html)) {
+				
+				boolean ancestorAlreadyInSet = false;
+				for (Node ancestor : parent.getAncestors()) {
+
+					if (parents.contains((DOMNode) ancestor)) {
+						ancestorAlreadyInSet = true;
+					}
+
+				}
+				
+				if (!ancestorAlreadyInSet) {
+					parents.add(parent);
+				}
+			}
+			
+		}
+		
+		for (DOMNode parent : parents) {
 			
 			try {
-				
-				Page page = el.getProperty(DOMNode.ownerDocument);
-				if (page != null) {
+				if (parent != null) {
+
+					Page page = parent.getProperty(DOMNode.ownerDocument);
 					
-					DOMElement parent = (DOMElement) el.getParentNode();
-				
-					if (parent != null) {
-						
+					if (page != null) {
+
 						parent.render(securityContext, ctx, 0);
-				
+
 						String partialContent = ctx.getBuffer().toString();
 
 						WebSocketMessage message = new WebSocketMessage();
@@ -308,10 +357,9 @@ public class SynchronizationController implements StructrTransactionListener {
 						message.setMessage(StringUtils.remove(partialContent, "\n"));
 
 						partialMessages.add(message);
+						
 					}
-					
 				}
-				
 				
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, null, ex);
@@ -321,80 +369,6 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		return partialMessages;
 	}
-	
-	/*
-	private void sendPartial(SecurityContext securityContext, String type) {
-		
-		List<DOMElement> dynamicElements = null;
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		// Find all DOMElements which render data of the type of the obj
-		attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
-		SearchAttributeGroup g = new SearchAttributeGroup(SearchOperator.AND);
-		g.add(Search.orExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(type)));
-		g.add(Search.orExactProperty(DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type)));
-		attrs.add(g);
-
-		try {
-			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
-			
-			dynamicElements = results.getResults();
-			
-		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, "Something went wrong while searching for dynamic elements of type " + type, ex);
-		}
-		
-		HttpServletRequest request = mock(HttpServletRequest.class);
-		RenderContext ctx = new RenderContext(request, null, false, Locale.GERMAN);
-		ctx.setResourceProvider(resourceProvider);
-		
-		for (DOMElement el : dynamicElements) {
-			
-			logger.log(Level.FINE, "Found dynamic element for type {0}: {1}", new Object[]{type, el});
-			
-			try {
-				
-				Page page = el.getProperty(DOMNode.ownerDocument);
-				
-				// render only when contained in a page
-				if (page != null) {
-					
-					DOMElement parent = (DOMElement) el.getParentNode();
-				
-					if (parent != null) {
-						
-						parent.render(securityContext, ctx, 0);
-				
-						String partialContent = ctx.getBuffer().toString();
-
-						logger.log(Level.FINE, "Partial output:\n{0}", partialContent);
-
-						WebSocketMessage message = new WebSocketMessage();
-
-						message.setCommand("PARTIAL");
-
-						message.setNodeData("pageId", page.getUuid());
-
-						String pageName = page.getName();
-
-						message.setNodeData("pagePath", "/" + pageName);
-						message.setMessage(StringUtils.remove(partialContent, "\n"));
-						message.setNodeData("parentPositionPath", parent.getPositionPath());
-
-						broadcast(message);
-					}
-					
-				}
-				
-				
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, null, ex);
-			}
-			
-			
-		}
-	}
-	*/
 	
 	// ----- interface StructrTransactionListener -----
 	@Override
@@ -437,37 +411,34 @@ public class SynchronizationController implements StructrTransactionListener {
 	public void afterCommit(SecurityContext securityContext, long transactionKey) {
 		
 		TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet(transactionKey);
+		Set<DOMNode> markupElements = new HashSet();
+		
 		if (changeSet != null) {
 
-			Set<String> types = new LinkedHashSet<String>();
+			Set<Class> types = new LinkedHashSet<Class>();
 			
-			for (AbstractNode node : changeSet.getCreatedNodes()) {
-				types.add(node.getType());
-			}
+			Set<AbstractNode> nodes = new HashSet();
 			
-			for (AbstractNode node : changeSet.getDeletedNodes()) {
-				types.add(node.getType());
-			}
+			nodes.addAll(changeSet.getCreatedNodes());
+			nodes.addAll(changeSet.getDeletedNodes());
+			nodes.addAll(changeSet.getModifiedNodes());
 			
-			for (AbstractNode node : changeSet.getModifiedNodes()) {
-				types.add(node.getType());
-			}
-			
-			// broadcast partials
-			for (String type : types) {
+			for (AbstractNode node : nodes) {
 				
-				try {
+				if (node instanceof DOMNode) {
 					
-					if (type != null) {
-						
-						broadcastPartials(type);
-					}
+					// disabled markupElements.add(((DOMNode) node));
 					
-				} catch (Throwable t) {
+				} else {
 					
-					logger.log(Level.WARNING, "Unable to broadcast partials for type {0}: {1}", new Object[] { type, t.getMessage() } );
+					types.add(node.getClass());
+					
 				}
 			}
+			
+			broadcastPartials(types, markupElements);
+
+			
 		} else {
 			
 			logger.log(Level.WARNING, "Unable to broadcast partial updates, changeSet not found");

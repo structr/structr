@@ -290,6 +290,45 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	}
 
 	/**
+	 * Get all ancestors of this node
+	 * 
+	 * @return list of ancestors
+	 */
+	public List<Node> getAncestors() {
+
+		List<Node> ancestors = new LinkedList();
+		
+		Node _parent = getParentNode();
+		while (_parent != null) {
+
+			ancestors.add(_parent);
+			_parent = _parent.getParentNode();
+		}
+		
+		return ancestors;
+		
+	}
+	
+	@Override
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		try {
+
+			increasePageVersion(securityContext);
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "Updating page version failed", ex);
+
+		}
+		
+		return true;
+
+	}
+
+	// ----- private methods -----
+	
+	/**
 	 * Do necessary updates on all containing pages
 	 *
 	 * @throws FrameworkException
@@ -307,24 +346,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	}
 
-	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-
-		try {
-
-			increasePageVersion(securityContext);
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.WARNING, "Updating page version failed", ex);
-
-		}
-		
-		return true;
-
-	}
 	
-	// ----- protected methods -----		
+	// ----- protected methods -----
+	
 	protected void checkIsChild(Node otherNode) throws DOMException {
 		
 		if (otherNode instanceof DOMNode) {

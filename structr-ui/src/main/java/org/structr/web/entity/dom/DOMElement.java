@@ -210,7 +210,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 										name, tag, pageId, path, parent, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId
 	);
 	
-	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds,
+	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds, owner,
 										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId, renderDetails, hideOnIndex, hideOnDetail,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
