@@ -46,6 +46,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.parboiled.common.StringUtils;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
@@ -112,6 +113,11 @@ public class RegistrationResource extends Resource {
 			User user;
 			
 			final String emailString  = (String) propertySet.get(User.email.jsonName());
+			
+			if (StringUtils.isEmpty(emailString)) {
+				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+			}
+			
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
 			confKey = UUID.randomUUID().toString();
 			
@@ -144,7 +150,11 @@ public class RegistrationResource extends Resource {
 			
 			if (user != null) {
 
-				sendInvitationLink(user);
+				if (!sendInvitationLink(user)) {
+					
+					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+					
+				}
 			}
 
 		}
@@ -175,7 +185,7 @@ public class RegistrationResource extends Resource {
 
 	}
 
-	private void sendInvitationLink(final User user) {
+	private boolean sendInvitationLink(final User user) {
 
 		Map<String, String> replacementMap = new HashMap();
 
@@ -205,7 +215,10 @@ public class RegistrationResource extends Resource {
 		} catch (Exception e) {
 
 			logger.log(Level.SEVERE, "Unable to send registration e-mail", e);
+			return false;
 		}
+		
+		return true;
 
 	}
 
