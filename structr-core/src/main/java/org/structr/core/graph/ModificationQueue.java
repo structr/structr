@@ -3,6 +3,8 @@ package org.structr.core.graph;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import static org.structr.common.RelType.IS_AT;
 import static org.structr.common.RelType.OWNS;
@@ -21,12 +23,15 @@ import org.structr.core.property.PropertyKey;
 	
 public class ModificationQueue {
 
+	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
+	
 	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<String, GraphObjectModificationState>();
 	private Map<String, GraphObjectModificationState> immutableState                  = new LinkedHashMap<String, GraphObjectModificationState>();
 	
 	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		boolean valid = true;
+		int count     = 0;
 
 		while (!modifications.isEmpty()) {
 
@@ -40,6 +45,10 @@ public class ModificationQueue {
 				if (!immutableState.containsKey(entry.getKey())) {
 					immutableState.put(entry.getKey(), entry.getValue());
 				}
+			}
+			
+			if (count++ > 10000) {
+				logger.log(Level.WARNING, "################################################################################### Too many modification callbacks!");
 			}
 		}
 
@@ -71,6 +80,18 @@ public class ModificationQueue {
 		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
 	}
 
+	public void modifyOwner(AbstractNode node) {
+		getState(node).modifyOwner();
+	}
+	
+	public void modifySecurity(AbstractNode node) {
+		getState(node).modifySecurity();
+	}
+	
+	public void modifyLocation(AbstractNode node) {
+		getState(node).modifyLocation();
+	}
+	
 	public void modify(AbstractNode node, PropertyKey key, Object previousValue) {
 		getState(node).modify(key, previousValue);
 	}
@@ -94,19 +115,22 @@ public class ModificationQueue {
 
 		if (OWNS.equals(relType)) {
 
-			// modifyOwner()
+			modifyOwner(startNode);
+			modifyOwner(endNode);
 			return;
 		}
 
 		if (SECURITY.equals(relType)) {
 
-			// modifSecurity()
+			modifySecurity(startNode);
+			modifySecurity(endNode);
 			return;
 		}
 
 		if (IS_AT.equals(relType)) {
 
-			// modifyLocation()
+			modifyLocation(startNode);
+			modifyLocation(endNode);
 			return;
 		}
 

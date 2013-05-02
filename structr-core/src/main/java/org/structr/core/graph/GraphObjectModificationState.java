@@ -31,6 +31,18 @@ public class GraphObjectModificationState {
 		return object.getClass().getSimpleName() + "(" + object + "); " + status;
 	}
 
+	public void modifyLocation() {
+		status |= 64;
+	}
+	
+	public void modifySecurity() {
+		status |= 32;
+	}
+	
+	public void modifyOwner() {
+		status |= 16;
+	}
+	
 	public void create() {
 		status |= 4;
 	}
@@ -54,6 +66,10 @@ public class GraphObjectModificationState {
 		status |= 1;
 	}
 
+	public boolean isPassivelyDeleted() {
+		return (status & 8) == 8;
+	}
+
 	public boolean isCreated() {
 		return (status & 4) == 4;
 	}
@@ -64,10 +80,6 @@ public class GraphObjectModificationState {
 
 	public boolean isDeleted() {
 		return (status & 1) == 1;
-	}
-
-	public boolean isPassivelyDeleted() {
-		return (status & 8) == 8;
 	}
 
 	/**
@@ -142,6 +154,18 @@ public class GraphObjectModificationState {
 	 */
 	public void doOuterCallback(SecurityContext securityContext) {
 
+		if ((status & 64) == 64) {
+			object.locationModified(securityContext);
+		}
+		
+		if ((status & 32) == 32) {
+			object.securityModified(securityContext);
+		}
+		
+		if ((status & 16) == 16) {
+			object.ownerModified(securityContext);
+		}
+		
 		switch (status) {
 
 			case 9: // deleted, and more specificly: passively deleted, i.e. this
@@ -192,14 +216,14 @@ public class GraphObjectModificationState {
 	}
 	
 	/**
-	 * Call validators.
+	 * Call validators. This must be synchronized globally
 	 * 
 	 * @param securityContext
 	 * @param errorBuffer
 	 * @return 
 	 */
-	private boolean validate(SecurityContext securityContext, ErrorBuffer errorBuffer) {
-		
+	private synchronized boolean validate(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	
 		boolean valid = true;
 				
 		for (PropertyKey key : removedProperties.keySet()) {

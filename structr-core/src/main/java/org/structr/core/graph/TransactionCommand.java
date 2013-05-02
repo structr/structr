@@ -54,13 +54,13 @@ import org.structr.core.property.PropertyKey;
  */
 public class TransactionCommand extends NodeServiceCommand {
 
-	private static final Logger logger                                            = Logger.getLogger(TransactionCommand.class.getName());
+	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
 	
-	private static final ThreadLocal<TransactionCommand> currentCommand           = new ThreadLocal<TransactionCommand>();
-	private static final ThreadLocal<Transaction>        transactions             = new ThreadLocal<Transaction>();
+	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
+	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
 	
-	private ModificationQueue modificationQueue               = null;
-	private ErrorBuffer errorBuffer                           = null;
+	private ModificationQueue modificationQueue = null;
+	private ErrorBuffer errorBuffer             = null;
 
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
 		
@@ -89,7 +89,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			if (topLevel) {
 
 				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
-					
+
 					// create error
 					throw new FrameworkException(422, errorBuffer);
 				}
