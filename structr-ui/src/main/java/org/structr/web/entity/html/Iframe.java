@@ -20,10 +20,27 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  * @author Axel Morgner
  */
 public class Iframe extends DOMElement {
+	
+	public static final Property<String> _src             = new HtmlProperty("src");
+	public static final Property<String> _srcdoc          = new HtmlProperty("srcdoc");
+	public static final Property<String> _sandbox         = new HtmlProperty("sandbox");
+	public static final Property<String> _seamless        = new HtmlProperty("seamless");
+	public static final Property<String> _allowfullscreen = new HtmlProperty("allowfullscreen");
+	public static final Property<String> _width           = new HtmlProperty("width");
+	public static final Property<String> _height          = new HtmlProperty("height");
+
+	public static final View htmlView = new View(Img.class, PropertyView.Html,
+	    _src, _srcdoc, _sandbox, _seamless, _allowfullscreen, _width, _height
+	);
+	
 }
