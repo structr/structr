@@ -60,6 +60,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
@@ -514,9 +515,9 @@ public class HtmlServlet extends HttpServlet {
 				
 				User user = (User) results.get(0);
 				
-				// Clear confirmation key and set password
+				// Clear confirmation key and set session id
 				user.setConfirmationKey(null);
-				//user.setPassword("foobar");
+				user.setProperty(Principal.sessionId, request.getSession().getId());
 				
 				// Login user without password
 				securityContext.setUser(user);

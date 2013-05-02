@@ -109,19 +109,30 @@ public class HttpAuthenticator implements Authenticator {
 
 	@Override
 	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
-
+	
 		try {
 
+			Principal user = securityContext.getUser(false);
+			
+			if (user != null) {
+				
+				user.setProperty(Principal.sessionId, null);
+
+			}
+
+			request.getSession(false).invalidate();
 			request.logout();
 			securityContext.setUser(null);
 
-		} catch (ServletException ex) {
+		} catch (Exception ex) {
 
-			logger.log(Level.SEVERE, null, ex);
+			logger.log(Level.WARNING, "Error while logging out user", ex);
 
 		}
 
+	
 	}
+	
 	protected static Principal checkSessionAuthentication(HttpServletRequest request, HttpServletResponse response) {
 
 		HttpSession session = request.getSession(false);

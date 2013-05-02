@@ -210,32 +210,6 @@ public class UiAuthenticator extends HttpAuthenticator {
 
 	}
 
-	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
-	
-		try {
-
-			Principal user = securityContext.getUser(false);
-			
-			if (user != null) {
-				
-				user.setProperty(Principal.sessionId, null);
-
-			}
-
-			request.getSession(false).invalidate();
-			request.logout();
-			securityContext.setUser(null);
-
-		} catch (Exception ex) {
-
-			logger.log(Level.WARNING, "Error while logging out user", ex);
-
-		}
-
-	
-	}
-
 	//~--- get methods ----------------------------------------------------
 
 	@Override

@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -98,23 +99,25 @@ public class AuthHelper {
 
 					}
 
-					if (password == null) {
+					if (StringUtils.isEmpty(password)) {
 
-						logger.log(Level.INFO, "Password for user {0} is null", user);
+						logger.log(Level.INFO, "Empty password for user {0}", user);
 
 						errorMsg = "You should enter a password.";
 
-					}
+					} else {
 
-					String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-					String pw                     = user.getEncryptedPassword();
+						String encryptedPasswordValue = DigestUtils.sha512Hex(password);
+						String pw                     = user.getEncryptedPassword();
 
-					if (pw == null || !encryptedPasswordValue.equals(pw)) {
+						if (pw == null || !encryptedPasswordValue.equals(pw)) {
 
-						logger.log(Level.INFO, "Wrong password for user {0}", user);
+							logger.log(Level.INFO, "Wrong password for user {0}", user);
 
-						errorMsg = STANDARD_ERROR_MSG;
+							errorMsg = STANDARD_ERROR_MSG;
 
+						}
+					
 					}
 
 				}
