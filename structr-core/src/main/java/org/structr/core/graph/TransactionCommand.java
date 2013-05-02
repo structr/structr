@@ -32,6 +32,11 @@ import org.neo4j.graphdb.Transaction;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.RelType;
+import static org.structr.common.RelType.IS_AT;
+import static org.structr.common.RelType.OWNS;
+import static org.structr.common.RelType.SECURITY;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -216,12 +221,6 @@ public class TransactionCommand extends NodeServiceCommand {
 				
 				modificationQueue.create(relationship);
 				
-				AbstractNode startNode = relationship.getStartNode();
-				AbstractNode endNode   = relationship.getEndNode();
-
-				modificationQueue.modify(startNode, null, null);
-				modificationQueue.modify(endNode, null, null);
-				
 			} else {
 				
 				logger.log(Level.SEVERE, "Got empty changeSet from command!");
@@ -263,12 +262,6 @@ public class TransactionCommand extends NodeServiceCommand {
 			if (modificationQueue != null) {
 				
 				modificationQueue.delete(relationship);
-				
-				AbstractNode startNode = relationship.getStartNode();
-				AbstractNode endNode   = relationship.getEndNode();
-
-				modificationQueue.modify(startNode, null, null);
-				modificationQueue.modify(endNode, null, null);
 				
 			} else {
 				
@@ -331,7 +324,10 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 		
 		public void create(AbstractRelationship relationship) {
+			
 			getState(relationship).create();
+			
+			modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
 		}
 		
 		public void modify(AbstractNode node, PropertyKey key, Object previousValue) {
@@ -347,7 +343,34 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 		
 		public void delete(AbstractRelationship relationship) {
+
 			getState(relationship).delete();
+			
+			modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
+		}
+		
+		private void modifyEndNodes(AbstractNode startNode, AbstractNode endNode, RelationshipType relType) {
+		
+			if (OWNS.equals(relType)) {
+				
+				// modifyOwner()
+				return;
+			}
+			
+			if (SECURITY.equals(relType)) {
+				
+				// modifSecurity()
+				return;
+			}
+			
+			if (IS_AT.equals(relType)) {
+				
+				// modifyLocation()
+				return;
+			}
+
+			modify(startNode, null, null);
+			modify(endNode, null, null);
 		}
 		
 		private State getState(AbstractNode node) {
