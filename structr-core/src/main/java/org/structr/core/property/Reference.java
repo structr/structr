@@ -18,10 +18,12 @@
  */
 package org.structr.core.property;
 
+import java.util.List;
 import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.search.SearchAttribute;
@@ -175,5 +177,15 @@ public class Reference<T> implements PropertyKey<T> {
 
 	@Override
 	public void registrationCallback(Class entityType) {
+	}
+
+	@Override
+	public void addValidator(PropertyValidator<T> validator) {
+		propertyKey.addValidator(validator);
+	}
+
+	@Override
+	public List<PropertyValidator<T>> getValidators() {
+		return propertyKey.getValidators();
 	}
 }

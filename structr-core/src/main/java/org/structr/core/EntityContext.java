@@ -314,7 +314,6 @@ public class EntityContext {
 	 * @param type the type of the entities for which the validator should be registered
 	 * @param propertyKey the property key under which the validator should be registered
 	 * @param validatorClass the type of the validator to register
-	 */
 	public static <T> void registerPropertyValidator(Class type, PropertyKey<T> propertyKey, PropertyValidator<T> validator) {
 
 		Map<PropertyKey, Set<PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
@@ -342,6 +341,7 @@ public class EntityContext {
 		}
 		
 	}
+	* */
 
 
 	// ----- searchable property map -----
@@ -1532,7 +1532,7 @@ public class EntityContext {
 
 						for (PropertyValidator validator : validators) {
 
-							hasError |= !(validator.isValid(nodeEntity, key, value, errorBuffer));
+							hasError |= !(validator.isValid(securityContext, nodeEntity, key, value, errorBuffer));
 
 						}
 
@@ -1576,7 +1576,7 @@ public class EntityContext {
 
 						for (PropertyValidator validator : validators) {
 
-							hasError |= !(validator.isValid(relEntity, key, value, errorBuffer));
+							hasError |= !(validator.isValid(securityContext, relEntity, key, value, errorBuffer));
 
 						}
 

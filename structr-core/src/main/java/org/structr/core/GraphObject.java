@@ -31,6 +31,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.StringProperty;
+import org.structr.core.validator.SimpleRegexValidator;
 
 /**
  * A common base class for {@link AbstractNode} and {@link AbstractRelationship}.
@@ -40,7 +42,7 @@ import org.structr.core.entity.AbstractRelationship;
 public interface GraphObject {
 
 	public static final Property<String>  base                        = new StringProperty("base");
-	public static final Property<String>  uuid                        = new StringProperty("uuid").systemProperty().readOnly().writeOnce();
+	public static final Property<String>  uuid                        = new StringProperty("uuid", new SimpleRegexValidator("[a-zA-Z0-9]{32}")).systemProperty().readOnly().writeOnce();
 	public static final Property<String>  type                        = new StringProperty("type").systemProperty().readOnly().writeOnce();
 
 	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().readOnly().writeOnce();

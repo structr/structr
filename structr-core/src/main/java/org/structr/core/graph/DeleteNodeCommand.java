@@ -141,12 +141,11 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					// deletion callback, must not prevent node deletion!
 					node.onNodeDeletion();
 
-					// Delete any relationship
+					// Delete any relationship (this is PASSIVE DELETION)
 					List<AbstractRelationship> rels = node.getRelationships();
-
 					for (AbstractRelationship r : rels) {
 
-						deleteRel.execute(r);
+						deleteRel.execute(r, true);
 					}
 
 					// remove node from index

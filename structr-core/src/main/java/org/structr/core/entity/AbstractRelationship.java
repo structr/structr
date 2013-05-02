@@ -92,7 +92,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
 
 		// register uuid validator
-		EntityContext.registerPropertyValidator(AbstractRelationship.class, uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
+		// EntityContext.registerPropertyValidator(AbstractRelationship.class, uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
 		
 	}
 
@@ -500,27 +500,43 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public AbstractNode getEndNode() {
 
-// FIXME:		NodeFactory nodeFactory = new NodeFactory(securityContext);
-		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-
-		return (AbstractNode) nodeFactory.instantiateNode(dbRelationship.getEndNode());
-
+		try {
+			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			return (AbstractNode) nodeFactory.createNode(dbRelationship.getEndNode());
+			
+		} catch (Throwable t) {
+			// ignore
+		}
+		
+		return null;
 	}
 
 	public AbstractNode getStartNode() {
 
-// FIXME		NodeFactory nodeFactory = new NodeFactory(securityContext);
-		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+		try {
 
-		return (AbstractNode) nodeFactory.instantiateNode(dbRelationship.getStartNode());
+			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			return (AbstractNode) nodeFactory.createNode(dbRelationship.getStartNode());
+			
+		} catch (Throwable t) {
+			// ignore
+		}
+		
+		return null;
 	}
 
 	public AbstractNode getOtherNode(final AbstractNode node) {
 
-// FIXME:		NodeFactory nodeFactory = new NodeFactory(securityContext);
-		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+		try {
 
-		return (AbstractNode) nodeFactory.instantiateNode(dbRelationship.getOtherNode(node.getNode()));
+			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			return (AbstractNode) nodeFactory.createNode(dbRelationship.getOtherNode(node.getNode()));
+			
+		} catch (Throwable t) {
+			// ignore
+		}
+		
+		return null;
 
 	}
 

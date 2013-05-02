@@ -18,6 +18,7 @@
  */
 package org.structr.core.validator;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.TypeToken;
@@ -29,7 +30,7 @@ import org.structr.core.PropertyValidator;
  *
  * @author Christian Morgner
  */
-public class TypeValidator extends PropertyValidator<Class> {
+public class TypeValidator implements PropertyValidator<Class> {
 
 	Class type = null;
 
@@ -38,7 +39,7 @@ public class TypeValidator extends PropertyValidator<Class> {
 	}
 
 	@Override
-	public boolean isValid(GraphObject object, PropertyKey<Class> key, Class value, ErrorBuffer errorBuffer) {
+	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<Class> key, Class value, ErrorBuffer errorBuffer) {
 
 		if(value != null && type.isAssignableFrom(value)) {
 			return true;

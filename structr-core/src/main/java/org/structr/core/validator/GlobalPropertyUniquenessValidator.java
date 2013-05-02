@@ -48,14 +48,14 @@ import org.structr.core.Result;
  *
  * @author Christian Morgner
  */
-public class GlobalPropertyUniquenessValidator extends PropertyValidator<String> {
+public class GlobalPropertyUniquenessValidator implements PropertyValidator<String> {
 
 	private static final Logger logger = Logger.getLogger(GlobalPropertyUniquenessValidator.class.getName());
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public boolean isValid(GraphObject object, PropertyKey key, String value, ErrorBuffer errorBuffer) {
+	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, String value, ErrorBuffer errorBuffer) {
 
 		if ((value == null) || ((value != null) && (value.toString().length() == 0))) {
 

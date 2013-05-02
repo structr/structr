@@ -37,23 +37,20 @@ import org.structr.core.graph.search.SearchUserCommand;
  *
  * @author Bastian Knerr
  */
-public class LowercaseTypeUniquenessValidator extends PropertyValidator<String> {
+public class LowercaseTypeUniquenessValidator implements PropertyValidator<String> {
 
-
-	private final PropertyKey propertyKey;
 	private final NodeIndex nodeIndex;
 
-	public LowercaseTypeUniquenessValidator(final NodeIndex indexKey, final PropertyKey key) {
+	public LowercaseTypeUniquenessValidator(final NodeIndex indexKey) {
 
 		nodeIndex = indexKey;
-		propertyKey = key;
 	}
 
 
 	@Override
-	public boolean isValid(final GraphObject object, final PropertyKey<String> key, final String value, final ErrorBuffer errorBuffer) {
+	public boolean isValid(SecurityContext securityContext, final GraphObject object, final PropertyKey<String> key, final String value, final ErrorBuffer errorBuffer) {
 
-		final AbstractNode result = lookup(nodeIndex, propertyKey, value);
+		final AbstractNode result = lookup(nodeIndex, key, value);
 		if (result == null) {
 			return true;
 		}

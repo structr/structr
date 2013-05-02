@@ -29,12 +29,12 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
-import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.validator.TypeUniquenessValidator;
 
 /**
@@ -62,7 +62,7 @@ public class ResourceAccess extends AbstractNode {
 	private Long cachedFlags     = null;
 	private Integer cachedPosition = null;
 
-	public static final Property<String>                    signature       = new StringProperty("signature");
+	public static final Property<String>                    signature       = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class));
 	public static final Property<Long>                      flags           = new LongProperty("flags");
 	public static final Property<Integer>                   position        = new IntProperty("position");
 	public static final CollectionProperty<PropertyAccess>  propertyAccess  = new CollectionProperty<PropertyAccess>("propertyAccess", PropertyAccess.class, RelType.PROPERTY_ACCESS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
@@ -80,7 +80,7 @@ public class ResourceAccess extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
 		
-		EntityContext.registerPropertyValidator(ResourceAccess.class, signature, new TypeUniquenessValidator(ResourceAccess.class));
+		// EntityContext.registerPropertyValidator(ResourceAccess.class, signature, new TypeUniquenessValidator(ResourceAccess.class));
 		
 		// signature and type must be scanEntity-only
 //		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.type);

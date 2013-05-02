@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -29,16 +30,22 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class StringProperty extends AbstractPrimitiveProperty<String> {
 	
-	public StringProperty(String name) {
-		this(name, name);
+	public StringProperty(String name, PropertyValidator<String>... validators) {
+
+		this(name, name, validators);
 	}
 	
-	public StringProperty(String jsonName, String dbName) {
-		super(jsonName, dbName);
+	public StringProperty(String jsonName, String dbName, PropertyValidator<String>... validators) {
+		this(jsonName, dbName, null, validators);
 	}
 	
-	public StringProperty(String jsonName, String dbName, String defaultValue) {
+	public StringProperty(String jsonName, String dbName, String defaultValue, PropertyValidator<String>... validators) {
+
 		super(jsonName, dbName, defaultValue);
+		
+		for (PropertyValidator<String> validator : validators) {
+			addValidator(validator);
+		}
 	}
 	
 	@Override

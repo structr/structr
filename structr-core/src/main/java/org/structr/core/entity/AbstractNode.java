@@ -107,7 +107,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 
 		// register uuid validator
-		EntityContext.registerPropertyValidator(AbstractNode.class, uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
+		// EntityContext.registerPropertyValidator(AbstractNode.class, uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
 
 	}
 

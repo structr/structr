@@ -1,6 +1,8 @@
 package org.structr.core.entity;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +18,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
@@ -73,6 +76,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	// ----- private members -----
 	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<String, Map<String, PropertyDefinition>>();
 	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<String, Class<? extends PropertyKey>>();
+	private List<PropertyValidator> validators                                     = new LinkedList<PropertyValidator>();
 	private Class declaringClass                                                   = null;
 	private PropertyKey delegate                                                   = null;
 
@@ -441,6 +445,16 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		}
 		
 		return definitionsForKind;
+	}
+
+	@Override
+	public void addValidator(PropertyValidator validator) {
+		validators.add(validator);
+	}
+
+	@Override
+	public List getValidators() {
+		return validators;
 	}
 
 }

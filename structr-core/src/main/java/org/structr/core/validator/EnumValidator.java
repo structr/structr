@@ -20,6 +20,7 @@ package org.structr.core.validator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.structr.common.SecurityContext;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -35,7 +36,7 @@ import org.structr.core.PropertyValidator;
  *
  * @author Christian Morgner
  */
-public class EnumValidator<T> extends PropertyValidator<T> {
+public class EnumValidator<T> implements PropertyValidator<T> {
 
 	private Set<T> values = new LinkedHashSet<T>();
 
@@ -46,7 +47,7 @@ public class EnumValidator<T> extends PropertyValidator<T> {
 	}
 
 	@Override
-	public boolean isValid(GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer) {
+	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer) {
 
 		if (value == null) {
 

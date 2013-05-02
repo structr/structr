@@ -18,10 +18,12 @@
  */
 package org.structr.core.property;
 
+import java.util.List;
 import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchOperator;
@@ -48,6 +50,9 @@ public interface PropertyKey<T> {
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext);
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity);
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext);
+
+	public void addValidator(PropertyValidator<T> validator);
+	public List<PropertyValidator<T>> getValidators();
 	
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass);
 	public Class<? extends GraphObject> getDeclaringClass();
