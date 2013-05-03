@@ -51,20 +51,20 @@ public interface StructrTransactionListener {
 	public void commitFinishes(SecurityContext securityContext, long transactionKey);
 	
 	/**
-	 * Called when the transaction is about to be rolled back.
-	 * 
-	 * @param securityContext the security context
-	 * @param transactionKey the transaction key
-	 */
-	public void willRollback(SecurityContext securityContext, long transactionKey);
-
-	/**
 	 * Called when the commit has been successful.
 	 * 
 	 * @param securityContext the security context
 	 * @param transactionKey the transaction key
 	 */
 	public void afterCommit(SecurityContext securityContext, long transactionKey);
+
+	/**
+	 * Called when the commit has not been successful and was rolled back.
+	 * 
+	 * @param securityContext the security context
+	 * @param transactionKey the transaction key
+	 */
+	public void afterRollback(SecurityContext securityContext, long transactionKey);
 	
 	/**
 	 * Called for every property that is modified on a given node in the
@@ -79,7 +79,7 @@ public interface StructrTransactionListener {
 	 * @param newValue
 	 * @return 
 	 */
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue);
+	public void propertyModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue);
 	
 	/**
 	 * Called for every property that is removed from a given node in the
@@ -93,7 +93,7 @@ public interface StructrTransactionListener {
 	 * @param oldValue
 	 * @return 
 	 */
-	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue);
+	public void propertyRemoved(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyKey key, Object oldValue);
 
 	/**
 	 * Called for every entity that is created in the transaction.
@@ -105,7 +105,7 @@ public interface StructrTransactionListener {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;
+	public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject) throws FrameworkException;
 	
 	/**
 	 * Called for every entity that is modified in the transaction.
@@ -117,7 +117,7 @@ public interface StructrTransactionListener {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) throws FrameworkException;
+	public void graphObjectModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject) throws FrameworkException;
 	
 	/**
 	 * Called for every entity that is deleted in the transaction.
@@ -130,5 +130,5 @@ public interface StructrTransactionListener {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyMap properties) throws FrameworkException;
+	public void graphObjectDeleted(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyMap properties) throws FrameworkException;
 }

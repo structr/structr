@@ -69,6 +69,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		boolean topLevel             = (tx == null);
 		FrameworkException error     = null;
 		T result                     = null;
+		long t0                      = System.currentTimeMillis();
 		
 		if (topLevel) {
 		
@@ -88,11 +89,17 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			if (topLevel) {
 
+				long t1 = System.currentTimeMillis();
+				
 				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
 					// create error
 					throw new FrameworkException(422, errorBuffer);
 				}
+
+				long t2 = System.currentTimeMillis();
+				
+				logger.log(Level.INFO, "inner callbacks took {0} ms", t2-t1);
 			}
 			
 		} catch (Throwable t) {
@@ -110,8 +117,11 @@ public class TransactionCommand extends NodeServiceCommand {
 		// finish toplevel transaction
 		if (topLevel) {
 				
+			long t3 = System.currentTimeMillis();
 			tx.success();
 			tx.finish();
+
+			long t4 = System.currentTimeMillis();
 			
 			// cleanup
 			currentCommand.remove();
@@ -121,6 +131,11 @@ public class TransactionCommand extends NodeServiceCommand {
 			if (error == null) {
 				modificationQueue.doOuterCallbacksAndCleanup(securityContext);
 			}
+				
+			long t5 = System.currentTimeMillis();
+				
+			logger.log(Level.INFO, "neo tx took {0} ms, outer callbacks took {1} ms, toplevel transaction took {2} ms", new Object[] { t4-t3, t5-t4 , t5-t0 } );
+			
 		}
 		
 		// throw actual error

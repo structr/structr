@@ -60,8 +60,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
@@ -610,7 +608,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				NodeFactory nodeFactory            = new NodeFactory(securityContext);
 				
 				for (Node node : nodes) {
-					TransactionCommand.nodeCreated(nodeFactory.createNode(node));
+					TransactionCommand.nodeCreated(nodeFactory.instantiateNode(node));
 				}
 				
 				for (Relationship rel : rels) {

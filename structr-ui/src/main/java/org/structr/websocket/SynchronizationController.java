@@ -24,7 +24,6 @@ package org.structr.websocket;
 import com.google.gson.Gson;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
@@ -32,6 +31,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +46,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.TransactionChangeSet;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
@@ -72,9 +71,10 @@ public class SynchronizationController implements StructrTransactionListener {
 
 	private static final Logger logger                              = Logger.getLogger(SynchronizationController.class.getName());
 
-	private final Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
+	private final Map<Long, List<WebSocketMessage>> messageStackMap = new ConcurrentHashMap<Long, List<WebSocketMessage>>();
+	private final Map<Long, Set<DOMNode>> markupElementsMap         = new ConcurrentHashMap<Long, Set<DOMNode>>();
+	private final Map<Long, Set<Class>> typesMap                    = new ConcurrentHashMap<Long, Set<Class>>();
 	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<StructrWebSocket>();
-	private List<WebSocketMessage> messageStack                     = null;
 	private ResourceProvider resourceProvider                       = null;
 	private Gson gson                                               = null;
 
@@ -257,46 +257,45 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	private void broadcastDynamicElements(SecurityContext securityContext, StructrWebSocket socket, final List<DOMNode> dynamicElements) {
-		
-			// filter elements
-			List<DOMNode> filteredElements = filter(securityContext, dynamicElements);
-			List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
 
-			for (WebSocketMessage webSocketData : partialMessages) {
-				
-				webSocketData.setSessionValid(true);
+		// filter elements
+		List<DOMNode> filteredElements = filter(securityContext, dynamicElements);
+		List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
 
-				String pagePath = (String) webSocketData.getNodeData().get("pagePath");
-				String clientPagePath = socket.getPathPath();
-				
-				if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
-					continue;
-				}
+		for (WebSocketMessage webSocketData : partialMessages) {
 
-				Connection socketConnection = socket.getConnection();
+			webSocketData.setSessionValid(true);
 
-				webSocketData.setCallback(socket.getCallback());
+			String pagePath = (String) webSocketData.getNodeData().get("pagePath");
+			String clientPagePath = socket.getPathPath();
 
-				if ((socketConnection != null)) {
+			if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
+				continue;
+			}
 
-					String message = gson.toJson(webSocketData, WebSocketMessage.class);
+			Connection socketConnection = socket.getConnection();
 
-					try {
+			webSocketData.setCallback(socket.getCallback());
 
-						socketConnection.sendMessage(message);
+			if ((socketConnection != null)) {
 
-					} catch (org.eclipse.jetty.io.EofException eof) {
+				String message = gson.toJson(webSocketData, WebSocketMessage.class);
 
-						logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+				try {
 
-					} catch (Throwable t) {
+					socketConnection.sendMessage(message);
 
-						logger.log(Level.WARNING, "Error sending message to client.", t);
+				} catch (org.eclipse.jetty.io.EofException eof) {
 
-					}
+					logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Error sending message to client.", t);
+
 				}
 			}
-		
+		}
 	}
 	
 	private List<WebSocketMessage> createPartialMessages(SecurityContext securityContext, List<DOMNode> elements) {
@@ -374,15 +373,15 @@ public class SynchronizationController implements StructrTransactionListener {
 	@Override
 	public void commitStarts(SecurityContext securityContext, long transactionKey) {
 
-		messageStack = new LinkedList<WebSocketMessage>();
-
-		messageStackMap.put(transactionKey, messageStack);
+		messageStackMap.put(transactionKey, new LinkedList<WebSocketMessage>());
+		markupElementsMap.put(transactionKey, new LinkedHashSet<DOMNode>());
+		typesMap.put(transactionKey, new LinkedHashSet<Class>());
 	}
 
 	@Override
 	public void commitFinishes(SecurityContext securityContext, long transactionKey) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		if (messageStack != null) {
 
@@ -395,61 +394,35 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
 		}
-
-		messageStackMap.remove(transactionKey);
-
 	}
 
 	@Override
-	public void willRollback(SecurityContext securityContext, long transactionKey) {
+	public void afterRollback(SecurityContext securityContext, long transactionKey) {
 
 		// roll back transaction
 		messageStackMap.remove(transactionKey);
+		markupElementsMap.remove(transactionKey);
+		typesMap.remove(transactionKey);
 	}
 
 	@Override
 	public void afterCommit(SecurityContext securityContext, long transactionKey) {
 		
-		TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet(transactionKey);
-		Set<DOMNode> markupElements = new HashSet();
-		
-		if (changeSet != null) {
+		Set<DOMNode> markupElements = markupElementsMap.get(transactionKey);
+		Set<Class> types            = typesMap.get(transactionKey);
 
-			Set<Class> types = new LinkedHashSet<Class>();
-			
-			Set<AbstractNode> nodes = new HashSet();
-			
-			nodes.addAll(changeSet.getCreatedNodes());
-			nodes.addAll(changeSet.getDeletedNodes());
-			nodes.addAll(changeSet.getModifiedNodes());
-			
-			for (AbstractNode node : nodes) {
-				
-				if (node instanceof DOMNode) {
-					
-					// disabled markupElements.add(((DOMNode) node));
-					
-				} else {
-					
-					types.add(node.getClass());
-					
-				}
-			}
-			
-			broadcastPartials(types, markupElements);
+		broadcastPartials(types, markupElements);
 
-			
-		} else {
-			
-			logger.log(Level.WARNING, "Unable to broadcast partial updates, changeSet not found");
-		}
-		
+		// roll back transaction
+		messageStackMap.remove(transactionKey);
+		markupElementsMap.remove(transactionKey);
+		typesMap.remove(transactionKey);
 	}
 	
 	@Override
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue) {
+	public void propertyModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		WebSocketMessage message = new WebSocketMessage();
 
@@ -486,8 +459,10 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			try {
 
+				registerPartialType(graphObject, transactionKey);
+			
 				Map<String, Object> nodeProperties = new HashMap<String, Object>();
-
+				
 				nodeProperties.put(key.dbName(), newValue);
 				nodeProperties.put(AbstractNode.type.dbName(), node.getType());    // needed for type resolution
 
@@ -509,15 +484,12 @@ public class SynchronizationController implements StructrTransactionListener {
 		message.setGraphObject(graphObject);
 		message.getModifiedProperties().add(key);
 		messageStack.add(message);
-
-		return true;
-
 	}
 
 	@Override
-	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue) {
+	public void propertyRemoved(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyKey key, Object oldValue) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		WebSocketMessage message = new WebSocketMessage();
 
@@ -548,21 +520,21 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			}
 
+		} else {
+
+			registerPartialType(graphObject, transactionKey);
 		}
 
 		message.setId(uuid);
 		message.setGraphObject(graphObject);
 		message.getRemovedProperties().add(key);
 		messageStack.add(message);
-
-		return true;
-
 	}
 
 	@Override
-	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
+	public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		AbstractRelationship relationship;
 
@@ -609,6 +581,8 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		} else {
 
+			registerPartialType(graphObject, transactionKey);
+			
 			WebSocketMessage message = new WebSocketMessage();
 
 			message.setCommand("CREATE");
@@ -623,20 +597,16 @@ public class SynchronizationController implements StructrTransactionListener {
 			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getProperty(AbstractNode.uuid));
 
 		}
-
-		return true;
-
 	}
 
 	@Override
-	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
-		return true;
+	public void graphObjectModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyMap properties) {
+	public void graphObjectDeleted(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyMap properties) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		AbstractRelationship relationship;
 
@@ -646,7 +616,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			if (ignoreRelationship(relationship)) {
 
-				return true;
+				return;
 			}
 
 			// do not access nodes of delete relationships
@@ -682,9 +652,6 @@ public class SynchronizationController implements StructrTransactionListener {
 			messageStack.add(message);
 
 		}
-
-		return true;
-
 	}
 
 	/**
@@ -708,4 +675,22 @@ public class SynchronizationController implements StructrTransactionListener {
 		}
 	}
 
+	private void registerPartialType(GraphObject graphObject, long transactionKey) {
+
+		if (graphObject instanceof AbstractNode) {
+			
+			AbstractNode node = (AbstractNode)graphObject;
+
+			// fill type map for partials rendering
+			Set<Class> types = typesMap.get(transactionKey);
+			types.add(node.getClass());
+
+			/* DISABLED
+			Set<DOMNode> markupElememts        = markupElementsMap.get(transactionKey);
+			if (node instanceof DOMNode) {
+				markupElememts.add((DOMNode)node);
+			}
+			*/
+		}
+	}
 }

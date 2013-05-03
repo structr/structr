@@ -152,12 +152,10 @@ public class NodeService implements SingletonService {
 
 		}
 
-		/* dont register transaction event handler
 		if (graphDb != null) {
 
 			graphDb.registerTransactionEventHandler(EntityContext.getTransactionEventHandler());
 		}
-		*/
 		
 		if (graphDb == null) {
 
