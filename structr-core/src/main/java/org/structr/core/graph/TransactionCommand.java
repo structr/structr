@@ -119,7 +119,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			// no error, notify entities
 			if (error == null) {
-				modificationQueue.doOuterCallbacks(securityContext);
+				modificationQueue.doOuterCallbacksAndCleanup(securityContext);
 			}
 		}
 		

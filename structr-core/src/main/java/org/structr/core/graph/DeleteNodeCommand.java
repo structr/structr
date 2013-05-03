@@ -49,7 +49,9 @@ import org.structr.common.error.ErrorBuffer;
 public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger            = Logger.getLogger(DeleteNodeCommand.class.getName());
-	private static Set<AbstractNode> deletedNodes = new LinkedHashSet<AbstractNode>();
+	
+	
+	private Set<AbstractNode> deletedNodes = new LinkedHashSet<AbstractNode>();
 
 	//~--- methods --------------------------------------------------------
 
@@ -66,15 +68,15 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private AbstractNode doDeleteNode(final AbstractNode node, final Boolean cascade) throws FrameworkException {
 
-		deletedNodes.add(node);
-
-		if (node.getProperty(AbstractNode.uuid) == null) {
+		if (!deletedNodes.contains(node) && node.getUuid() == null) {
 
 			logger.log(Level.WARNING, "Will not delete node which has no UUID");
 
 			return null;
 
 		}
+
+		deletedNodes.add(node);
 		
 		// final Node node                  = graphDb.getNodeById(structrNode.getId());
 		final RemoveNodeFromIndex removeNodeFromIndex = Services.command(securityContext, RemoveNodeFromIndex.class);
@@ -166,7 +168,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 							ErrorBuffer errorBuffer = new ErrorBuffer();
 							
-							if (!nodeToCheck.isValid(errorBuffer)) {
+							if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
 
 								// remove end node from index
 								removeNodeFromIndex.execute(nodeToCheck);

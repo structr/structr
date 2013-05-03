@@ -64,7 +64,8 @@ public class MailTemplate extends AbstractNode {
 
 		EntityContext.registerSearchablePropertySet(MailTemplate.class, NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(MailTemplate.class, NodeIndex.keyword.name(),  uiView.properties());
-		EntityContext.registerPropertyValidator(MailTemplate.class, name, new TypeUniquenessValidator(MailTemplate.class));
+		
+		MailTemplate.name.addValidator(new TypeUniquenessValidator(MailTemplate.class));
 	}
 
 	//~--- get methods ----------------------------------------------------

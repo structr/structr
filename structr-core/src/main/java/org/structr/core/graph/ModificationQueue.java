@@ -1,7 +1,9 @@
 package org.structr.core.graph;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,19 +29,20 @@ public class ModificationQueue {
 	
 	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<String, GraphObjectModificationState>();
 	private Map<String, GraphObjectModificationState> immutableState                  = new LinkedHashMap<String, GraphObjectModificationState>();
+	private Set<String> alreadyPropagated                                             = new LinkedHashSet<String>();
 	
 	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		boolean valid = true;
 		int count     = 0;
-
+		
 		while (!modifications.isEmpty()) {
 
 			Map.Entry<String, GraphObjectModificationState> entry = modifications.pollFirstEntry();
 			if (entry != null) {
 
 				// do callback according to entry state
-				valid &= entry.getValue().doInnerCallback(securityContext, errorBuffer);
+				valid &= entry.getValue().doInnerCallback(this, securityContext, errorBuffer);
 
 				// store entries for later notification
 				if (!immutableState.containsKey(entry.getKey())) {
@@ -48,14 +51,18 @@ public class ModificationQueue {
 			}
 			
 			if (count++ > 10000) {
+				
 				logger.log(Level.WARNING, "################################################################################### Too many modification callbacks!");
+				logger.log(Level.INFO, "{0} modifications in queue: ", modifications.size());
+				logger.log(Level.INFO, "{0} ", modifications.pollFirstEntry());
+				
 			}
 		}
 
 		return valid;
 	}
 
-	public void doOuterCallbacks(SecurityContext securityContext) {
+	public void doOuterCallbacksAndCleanup(SecurityContext securityContext) {
 
 		// copy modifications, do after transaction callbacks
 		for (GraphObjectModificationState state : immutableState.values()) {
@@ -65,8 +72,9 @@ public class ModificationQueue {
 			}
 		}
 
-		// clear map afterwards
+		// clear collections afterwards
 		immutableState.clear();
+		modifications.clear();
 	}
 
 	public void create(AbstractNode node) {
@@ -98,6 +106,18 @@ public class ModificationQueue {
 
 	public void modify(AbstractRelationship relationship, PropertyKey key, Object previousValue) {
 		getState(relationship).modify(key, previousValue);
+	}
+	
+	public void propagatedModification(AbstractNode node) {
+		
+		GraphObjectModificationState state = getState(node, true);
+		if (state != null) {
+			
+			state.propagatedModification();
+
+			// save hash to avoid repeated propagation
+			alreadyPropagated.add(hash(node));
+		}
 	}
 
 	public void delete(AbstractNode node) {
@@ -139,11 +159,15 @@ public class ModificationQueue {
 	}
 
 	private GraphObjectModificationState getState(AbstractNode node) {
+		return getState(node, false);
+	}
+	
+	private GraphObjectModificationState getState(AbstractNode node, boolean checkPropagation) {
 
 		String hash = hash(node);
 		GraphObjectModificationState state = modifications.get(hash);
 
-		if (state == null) {
+		if (state == null && !(checkPropagation && alreadyPropagated.contains(hash))) {
 
 			state = new GraphObjectModificationState(node);
 			modifications.put(hash, state);

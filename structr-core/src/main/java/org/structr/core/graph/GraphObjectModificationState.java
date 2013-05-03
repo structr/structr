@@ -1,6 +1,7 @@
 package org.structr.core.graph;
 
 import java.util.List;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -18,6 +19,17 @@ import org.structr.core.property.PropertyMap;
  */
 public class GraphObjectModificationState {
 
+	private static final Logger logger = Logger.getLogger(GraphObjectModificationState.class.getName());
+	
+	private static final int STATE_DELETED =                   1;
+	private static final int STATE_MODIFIED =                  2;
+	private static final int STATE_CREATED =                   4;
+	private static final int STATE_DELETED_PASSIVELY =         8;
+	private static final int STATE_OWNER_MODIFIED =           16;
+	private static final int STATE_SECURITY_MODIFIED =        32;
+	private static final int STATE_LOCATION_MODIFIED =        64;
+	private static final int STATE_PROPAGATED_MODIFICATION = 128;
+	
 	private PropertyMap removedProperties = new PropertyMap();
 	private GraphObject object            = null;
 	private int status                    = 0;
@@ -31,25 +43,29 @@ public class GraphObjectModificationState {
 		return object.getClass().getSimpleName() + "(" + object + "); " + status;
 	}
 
+	public void propagatedModification() {
+		status |= STATE_PROPAGATED_MODIFICATION;
+	}
+
 	public void modifyLocation() {
-		status |= 64;
+		status |= STATE_LOCATION_MODIFIED | STATE_PROPAGATED_MODIFICATION;
 	}
 	
 	public void modifySecurity() {
-		status |= 32;
+		status |= STATE_SECURITY_MODIFIED | STATE_PROPAGATED_MODIFICATION;
 	}
 	
 	public void modifyOwner() {
-		status |= 16;
+		status |= STATE_OWNER_MODIFIED | STATE_PROPAGATED_MODIFICATION;
 	}
 	
 	public void create() {
-		status |= 4;
+		status |= STATE_CREATED | STATE_PROPAGATED_MODIFICATION;
 	}
 
 	public void modify(PropertyKey key, Object previousValue) {
 
-		status |= 2;
+		status |= STATE_MODIFIED | STATE_PROPAGATED_MODIFICATION;
 
 		// store previous value
 		if (key != null) {
@@ -60,26 +76,26 @@ public class GraphObjectModificationState {
 	public void delete(boolean passive) {
 
 		if (passive) {
-			status |= 8;
+			status |= STATE_DELETED_PASSIVELY;
 		}
 
-		status |= 1;
+		status |= STATE_DELETED;
 	}
 
 	public boolean isPassivelyDeleted() {
-		return (status & 8) == 8;
+		return (status & STATE_DELETED_PASSIVELY) == STATE_DELETED_PASSIVELY;
 	}
 
 	public boolean isCreated() {
-		return (status & 4) == 4;
+		return (status & STATE_CREATED) == STATE_CREATED;
 	}
 
 	public boolean isModified() {
-		return (status & 2) == 2;
+		return (status & STATE_MODIFIED) == STATE_MODIFIED;
 	}
 
 	public boolean isDeleted() {
-		return (status & 1) == 1;
+		return (status & STATE_DELETED) == STATE_DELETED;
 	}
 
 	/**
@@ -90,19 +106,35 @@ public class GraphObjectModificationState {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	public boolean doInnerCallback(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean doInnerCallback(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		boolean valid = true;
+	
+		// check for modification propagation along the relationships
+		if ((status & STATE_PROPAGATED_MODIFICATION) == STATE_PROPAGATED_MODIFICATION && object instanceof AbstractNode) {
+			
+			AbstractNode srcNode = (AbstractNode)object;
+			
+			for (AbstractNode node : srcNode.getNodesForModificationPropagation()) {
+				
+				modificationQueue.propagatedModification(node);
+			}
 
-		switch (status) {
+		}
+		
+		
+		// examine only the last 4 bits here
+		switch (status & 0x000f) {
 
-			case 9: // deleted, and more specificly: passively deleted, i.e. this
-				// relationship was deleted because a node was deleted in the
-				// first place. This needs to be handled differently, i.e. no
-				// deletion callback may be called!
-				break;
-
-			case 8:	// passively deleted, won't happen
+			case 15:
+			case 14:
+			case 13:
+			case 12:
+			case 11:
+			case 10:
+			case  9:
+			case  8: // since all values >= 8 mean that the object was passively deleted, no action has to be taken
+				 // (no callback for passive deletion!)
 				break;
 
 			case 7:	// created, modified, deleted, poor guy => no callback
@@ -154,56 +186,63 @@ public class GraphObjectModificationState {
 	 */
 	public void doOuterCallback(SecurityContext securityContext) {
 
-		if ((status & 64) == 64) {
+		if ((status & STATE_PROPAGATED_MODIFICATION) == STATE_PROPAGATED_MODIFICATION) {
+			object.propagatedModification(securityContext);
+		}
+
+		if ((status & STATE_LOCATION_MODIFIED) == STATE_LOCATION_MODIFIED) {
 			object.locationModified(securityContext);
 		}
 		
-		if ((status & 32) == 32) {
+		if ((status & STATE_SECURITY_MODIFIED) == STATE_SECURITY_MODIFIED) {
 			object.securityModified(securityContext);
 		}
 		
-		if ((status & 16) == 16) {
+		if ((status & STATE_OWNER_MODIFIED) == STATE_OWNER_MODIFIED) {
 			object.ownerModified(securityContext);
 		}
 		
-		switch (status) {
+		// examine only the last 4 bits here
+		switch (status & 0x000f) {
 
-			case 9: // deleted, and more specificly: passively deleted, i.e. this
-				// relationship was deleted because a node was deleted in the
-				// first place. This needs to be handled differently, i.e. no
-				// deletion callback may be called!
+			case 15:
+			case 14:
+			case 13:
+			case 12:
+			case 11:
+			case 10:
+			case  9:
+			case  8: // since all values >= 8 mean that the object was passively deleted, no action has to be taken
+				 // (no callback for passive deletion!)
 				break;
 
-			case 8:	// passively deleted, won't happen
+			case  7: // created, modified, deleted, poor guy => no callback
 				break;
 
-			case 7:	// created, modified, deleted, poor guy => no callback
-				break;
-
-			case 6: // created, modified => only creation callback will be called
+			case  6: // created, modified => only creation callback will be called
 				object.afterCreation(securityContext);
 				break;
 
-			case 5: // created, deleted => no callback
+			case  5: // created, deleted => no callback
 				break;
 
-			case 4: // created => creation callback
+			case  4: // created => creation callback
 				object.afterCreation(securityContext);
 				break;
 
-			case 3: // modified, deleted => deletion callback
+			case  3: // modified, deleted => deletion callback
 				object.afterDeletion(securityContext);
 				break;
 
-			case 2: // modified => modification callback
+			case  2: // modified => modification callback
 				object.afterModification(securityContext);
 				break;
 
-			case 1: // deleted => deletion callback
+			case  1: // deleted => deletion callback
 				object.afterDeletion(securityContext);
 				break;
 
-			case 0:	// no action, no callback
+			case  0: // no action, no callback
 				break;
 
 			default:
