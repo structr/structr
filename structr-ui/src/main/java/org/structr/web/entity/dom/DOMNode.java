@@ -158,6 +158,27 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			}
 
 		});
+		functions.put("abbr", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				if (s != null && s.length > 1 && s[0] != null && s[1] != null) {
+					
+					try {
+						int maxLength = Integer.parseInt(s[1]);
+					
+						return StringUtils.substringBeforeLast(StringUtils.substring(s[0], 0, maxLength), " ").concat("…");
+						
+					} catch (NumberFormatException nfe) {}
+					
+				}
+				
+				return "";
+
+			}
+
+		});
 		functions.put("capitalize", new Function<String, String>() {
 
 			@Override
