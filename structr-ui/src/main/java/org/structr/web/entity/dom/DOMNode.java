@@ -167,8 +167,15 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					
 					try {
 						int maxLength = Integer.parseInt(s[1]);
-					
-						return StringUtils.substringBeforeLast(StringUtils.substring(s[0], 0, maxLength), " ").concat("…");
+						
+						if (s[0].length() > maxLength) {
+							
+							return StringUtils.substringBeforeLast(StringUtils.substring(s[0], 0, maxLength), " ").concat("…");
+							
+						} else {
+							
+							return s[0];
+						}
 						
 					} catch (NumberFormatException nfe) {}
 					
