@@ -106,7 +106,7 @@ public class GraphObjectModificationState {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	public boolean doInnerCallback(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean doInnerCallback(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
 
 		boolean valid = true;
 	
@@ -121,7 +121,6 @@ public class GraphObjectModificationState {
 			}
 
 		}
-		
 		
 		// examine only the last 4 bits here
 		switch (status & 0x000f) {
@@ -141,8 +140,10 @@ public class GraphObjectModificationState {
 				break;
 
 			case 6: // created, modified => only creation callback will be called
-				valid &= validate(securityContext, errorBuffer);
-				valid &= object.beforeCreation(securityContext, errorBuffer);
+				if (doValidation) {
+					valid &= validate(securityContext, errorBuffer);
+					valid &= object.beforeCreation(securityContext, errorBuffer);
+				}
 				addToIndex();
 				break;
 
@@ -150,23 +151,31 @@ public class GraphObjectModificationState {
 				break;
 
 			case 4: // created => creation callback
-				valid &= validate(securityContext, errorBuffer);
-				valid &= object.beforeCreation(securityContext, errorBuffer);
+				if (doValidation) {
+					valid &= validate(securityContext, errorBuffer);
+					valid &= object.beforeCreation(securityContext, errorBuffer);
+				}
 				addToIndex();
 				break;
 
 			case 3: // modified, deleted => deletion callback
-				valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+				if (doValidation) {
+					valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+				}
 				break;
 
 			case 2: // modified => modification callback
-				valid &= validate(securityContext, errorBuffer);
-				valid &= object.beforeModification(securityContext, errorBuffer);
+				if (doValidation) {
+					valid &= validate(securityContext, errorBuffer);
+					valid &= object.beforeModification(securityContext, errorBuffer);
+				}
 				updateInIndex();
 				break;
 
 			case 1: // deleted => deletion callback
-				valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+				if (doValidation) {
+					valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+				}
 				break;
 
 			case 0:	// no action, no callback

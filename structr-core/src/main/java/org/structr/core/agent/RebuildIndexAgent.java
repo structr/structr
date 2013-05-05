@@ -102,7 +102,7 @@ public class RebuildIndexAgent extends Agent {
 		final Iterator<Node> nodeIterator = allNodes.iterator();
 		while (nodeIterator.hasNext()) {
 
-			nodeCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
+			nodeCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>(false) {
 
 				@Override
 				public Integer execute() throws FrameworkException {
@@ -118,8 +118,8 @@ public class RebuildIndexAgent extends Agent {
 
 								indexer.updateNode(nodeFactory.instantiateNode(dbNode));
 
-								// restart transaction after 1000 iterations
-								if (++count == 1000) {
+								// restart transaction after 2000 iterations
+								if (++count == 2000) {
 									break;
 								}
 							}
@@ -155,7 +155,7 @@ public class RebuildIndexAgent extends Agent {
 		final Iterator<Relationship> relationshipIterator = allRelationships.iterator();
 		while (relationshipIterator.hasNext()) {
 
-			relationshipCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
+			relationshipCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>(false) {
 
 				@Override
 				public Integer execute() throws FrameworkException {
@@ -171,8 +171,8 @@ public class RebuildIndexAgent extends Agent {
 
 								indexer.execute(relFactory.instantiateRelationship(securityContext, dbRelationship));
 
-								// restart transaction after 1000 iterations
-								if (++count == 1000) {
+								// restart transaction after 2000 iterations
+								if (++count == 2000) {
 									break;
 								}
 							}

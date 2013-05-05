@@ -53,7 +53,6 @@ import org.structr.core.graph.NodeRelationshipsCommand;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -62,6 +61,9 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.structr.core.graph.GetAllRelationships;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 
@@ -96,8 +98,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	static {
 
-//		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
-//		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), name, type, createdDate, lastModifiedDate, hidden, deleted);
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uuid, name, type, createdDate, lastModifiedDate, hidden, deleted);
 		
@@ -105,10 +105,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
-
-		// register uuid validator
-		// EntityContext.registerPropertyValidator(AbstractNode.class, uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
-
 	}
 
 	//~--- fields ---------------------------------------------------------

@@ -31,7 +31,7 @@ public class ModificationQueue {
 	private Map<String, GraphObjectModificationState> immutableState                  = new LinkedHashMap<String, GraphObjectModificationState>();
 	private Set<String> alreadyPropagated                                             = new LinkedHashSet<String>();
 	
-	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
 
 		boolean valid = true;
 		int count     = 0;
@@ -42,20 +42,19 @@ public class ModificationQueue {
 			if (entry != null) {
 
 				// do callback according to entry state
-				valid &= entry.getValue().doInnerCallback(this, securityContext, errorBuffer);
+				valid &= entry.getValue().doInnerCallback(this, securityContext, errorBuffer, doValidation);
 
 				// store entries for later notification
 				if (!immutableState.containsKey(entry.getKey())) {
+					
 					immutableState.put(entry.getKey(), entry.getValue());
 				}
 			}
 			
-			if (count++ > 10000) {
+			if (count++ > 100000) {
 				
-				logger.log(Level.WARNING, "################################################################################### Too many modification callbacks!");
-				logger.log(Level.INFO, "{0} modifications in queue: ", modifications.size());
-				logger.log(Level.INFO, "{0} ", modifications.pollFirstEntry());
-				
+				logger.log(Level.WARNING, "################################################################################### Too many modification callbacks, aborting!");
+				break;
 			}
 		}
 
@@ -73,6 +72,7 @@ public class ModificationQueue {
 		}
 
 		// clear collections afterwards
+		alreadyPropagated.clear();
 		immutableState.clear();
 		modifications.clear();
 	}

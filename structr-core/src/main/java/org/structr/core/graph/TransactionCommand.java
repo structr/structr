@@ -55,6 +55,7 @@ import org.structr.core.property.PropertyKey;
 public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
+	private static final long THRESHOLD                                 = 300;
 	
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
 	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
@@ -91,21 +92,20 @@ public class TransactionCommand extends NodeServiceCommand {
 
 				long t1 = System.currentTimeMillis();
 				
-				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
+				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer, transaction.doValidation)) {
 
 					// create error
 					throw new FrameworkException(422, errorBuffer);
 				}
 
 				long t2 = System.currentTimeMillis();
-				
-				logger.log(Level.INFO, "inner callbacks took {0} ms", t2-t1);
+				if (t2-t1 > THRESHOLD) {
+					logger.log(Level.INFO, "Inner callbacks took {0} ms", t2-t1);
+				}
 			}
 			
 		} catch (Throwable t) {
 
-			t.printStackTrace();
-			
 			// catch everything
 			tx.failure();
 			
@@ -118,10 +118,14 @@ public class TransactionCommand extends NodeServiceCommand {
 		if (topLevel) {
 				
 			long t3 = System.currentTimeMillis();
+			
 			tx.success();
 			tx.finish();
 
 			long t4 = System.currentTimeMillis();
+			if (t4-t3 > THRESHOLD) {
+				logger.log(Level.INFO, "Neo tx took {0} ms", t4-t3);
+			}
 			
 			// cleanup
 			currentCommand.remove();
@@ -133,8 +137,13 @@ public class TransactionCommand extends NodeServiceCommand {
 			}
 				
 			long t5 = System.currentTimeMillis();
-				
-			logger.log(Level.INFO, "neo tx took {0} ms, outer callbacks took {1} ms, toplevel transaction took {2} ms", new Object[] { t4-t3, t5-t4 , t5-t0 } );
+			if (t5-t4 > THRESHOLD) {
+				logger.log(Level.INFO, "Outer callbacks took {0} ms", t5-t4);
+			}
+
+			if (t5-t0 > THRESHOLD) {
+				logger.log(Level.INFO, "Transaction took {0} ms", t5-t0);
+			}
 			
 		}
 		

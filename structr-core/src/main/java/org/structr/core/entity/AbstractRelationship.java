@@ -32,14 +32,12 @@ import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.time.DateUtils;
 
 import org.neo4j.graphdb.*;
 
 import org.structr.common.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.UuidCreationTransformation;
 import org.structr.common.error.*;
@@ -50,16 +48,10 @@ import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeService.RelationshipIndex;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
-import org.structr.core.validator.SimpleRegexValidator;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.text.ParseException;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -90,10 +82,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
-
-		// register uuid validator
-		// EntityContext.registerPropertyValidator(AbstractRelationship.class, uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
-		
 	}
 
 	//~--- fields ---------------------------------------------------------
