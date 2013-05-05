@@ -24,13 +24,11 @@ import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.Services;
 
 //import org.structr.context.SessionMonitor;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
 
@@ -43,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.structr.core.Result;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.search.SearchAttribute;
 
 //~--- classes ----------------------------------------------------------------

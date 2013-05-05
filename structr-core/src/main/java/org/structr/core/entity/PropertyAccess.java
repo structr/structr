@@ -68,11 +68,6 @@ public class PropertyAccess extends AbstractNode {
 
 		EntityContext.registerSearchablePropertySet(PropertyAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
 		EntityContext.registerSearchablePropertySet(PropertyAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
-		
-		// signature and type must be scanEntity-only
-//		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.type);
-//		EntityContext.registerWriteOnceProperty(ResourceAccess.class, signature);
-
 	}
 
 	//~--- constant enums -------------------------------------------------

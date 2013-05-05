@@ -42,8 +42,10 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.EntityContext;
+import org.structr.core.Services;
+import org.structr.core.graph.NodeService;
 import org.structr.rest.ResourceProvider;
 import org.structr.websocket.SynchronizationController;
 
@@ -90,8 +92,9 @@ public class WebSocketServlet extends HttpServlet {
 
 		syncController = new SynchronizationController(gson);
 		syncController.setResourceProvider(resourceProvider);
-		
-		EntityContext.registerTransactionListener(syncController);
+
+		GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
+		graphDb.registerTransactionEventHandler(syncController);
 
 		// create web socket factory
 		factory = new WebSocketFactory(new Acceptor() {
@@ -123,7 +126,9 @@ public class WebSocketServlet extends HttpServlet {
 
 	@Override
 	public void destroy() {
-		EntityContext.unregisterTransactionListener(syncController);
+		
+		GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
+		graphDb.unregisterTransactionEventHandler(syncController);
 	}
 
 	@Override

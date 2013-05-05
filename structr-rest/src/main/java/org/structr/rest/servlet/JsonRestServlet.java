@@ -63,6 +63,7 @@ import org.structr.core.*;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.Property;
 import org.structr.rest.StreamingJsonWriter;
@@ -164,10 +165,11 @@ public class JsonRestServlet extends HttpServlet {
 			securityContext.initializeAndExamineRequest(request, response);
 
 			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
+			Resource resourceConstraint     = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
+			String resourceSignature        = resourceConstraint.getResourceSignature();
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
 
 			// do action
 			RestMethodResult result = resourceConstraint.doDelete();
@@ -246,11 +248,12 @@ public class JsonRestServlet extends HttpServlet {
 			propertyView.set(securityContext, defaultPropertyView);
 
 			// evaluate constraints and measure query time
-			double queryTimeStart = System.nanoTime();
-			Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+			double queryTimeStart    = System.nanoTime();
+			Resource resource        = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+			String resourceSignature = resource.getResourceSignature();
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
 			
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
@@ -275,54 +278,33 @@ public class JsonRestServlet extends HttpServlet {
 			result.setIsCollection(resource.isCollectionResource());
 			result.setIsPrimitiveArray(resource.isPrimitiveArray());
 			
-			//Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
-			
 			PagingHelper.addPagingParameter(result, pageSize, page);
-			//Services.removeAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
 
 			// timing..
 			double queryTimeEnd   = System.nanoTime();
 
-			// commit response
-			if (result != null) {
+			// store property view that will be used to render the results
+			result.setPropertyView(propertyView.get(securityContext));
 
-				// store property view that will be used to render the results
-				result.setPropertyView(propertyView.get(securityContext));
-				
-				// allow resource to modify result set
-				resource.postProcessResultSet(result);
-				
-				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+			// allow resource to modify result set
+			resource.postProcessResultSet(result);
 
-				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+			result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-				Writer writer = response.getWriter();
-				
-				jsonWriter.get().stream(writer, result);
+			Writer writer = response.getWriter();
+			jsonWriter.get().stream(writer, result);
 
-				// gson.get().toJson(result, writer);
-				
-				if (result.hasPartialContent()) {
+			if (result.hasPartialContent()) {
 
-					response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-					
-				} else {
-				
-					response.setStatus(HttpServletResponse.SC_OK);
-				}
-				writer.append("\n");    // useful newline
+				response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
 
 			} else {
 
-				logger.log(Level.WARNING, "Result was null!");
-
-				int code = HttpServletResponse.SC_NO_CONTENT;
-
-				response.setStatus(code);
-				Writer writer = response.getWriter();
-				writer.append(jsonError(code, "Result was null!"));
-
+				response.setStatus(HttpServletResponse.SC_OK);
 			}
+
+			writer.append("\n");    // useful newline
 
 		} catch (FrameworkException frameworkException) {
 
@@ -388,14 +370,15 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
+			List<Resource> chain      = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
+			Resource resource         = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
+			String resourceSignature  = resource.getResourceSignature();
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
 			
 			// do action
-			RestMethodResult result = resourceConstraint.doHead();
+			RestMethodResult result = resource.doHead();
 
 			// commit response
 			result.commitResponse(gson.get(), response);
@@ -464,14 +447,15 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-			Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
+			List<Resource> chain      = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
+			Resource resource         = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
+			String resourceSignature  = resource.getResourceSignature();
 			
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
 			
 			// do action
-			RestMethodResult result = resourceConstraint.doOptions();
+			RestMethodResult result = resource.doOptions();
 
 			// commit response
 			result.commitResponse(gson.get(), response);
@@ -542,21 +526,22 @@ public class JsonRestServlet extends HttpServlet {
 
 			final JsonInput propertySet   = gson.get().fromJson(request.getReader(), JsonInput.class);
 
-			// let module-specific authenticator examine the request first
-			securityContext.initializeAndExamineRequest(request, response);
-
 			if (securityContext != null) {
+
+				// let module-specific authenticator examine the request first
+				securityContext.initializeAndExamineRequest(request, response);
 
 				// evaluate constraint chain
 				List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-				Resource resourceConstraint     = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
-				Map<String, Object> properties = convertPropertySetToMap(propertySet);
+				Resource resource               = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
+				Map<String, Object> properties  = convertPropertySetToMap(propertySet);
+				String resourceSignature        = resource.getResourceSignature();
 
 				// let authenticator examine request again
-				securityContext.examineRequest(request, resourceConstraint.getResourceSignature(), resourceConstraint.getGrant(request, response), propertyView.get(securityContext));
+				securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
 				
 				// do action
-				RestMethodResult result = resourceConstraint.doPost(properties);
+				RestMethodResult result = resource.doPost(properties);
 
 				// set default value for property view
 				propertyView.set(securityContext, defaultPropertyView);
@@ -645,24 +630,26 @@ public class JsonRestServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			final JsonInput propertySet   = gson.get().fromJson(request.getReader(), JsonInput.class);
-
-			// let module-specific authenticator examine the request first
-			securityContext.initializeAndExamineRequest(request, response);
+			final JsonInput propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
 
 			if (securityContext != null) {
 
+				// let module-specific authenticator examine the request first
+				securityContext.initializeAndExamineRequest(request, response);
+
 				// evaluate constraint chain
 				List<Resource> chain	       = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-				Resource resource	       = ResourceHelper.optimizeConstraintChain(chain, defaultIdProperty);
+				Resource resource	       = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
+				String resourceSignature       = resource.getResourceSignature();
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
-				securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), propertyView.get(securityContext));
+				securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
 				
 				// do action
 				RestMethodResult result = resource.doPut(properties);
 
 				result.commitResponse(gson.get(), response);
+				
 			} else {
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
@@ -763,29 +750,6 @@ public class JsonRestServlet extends HttpServlet {
 		return defaultValue;
 	}
 
-	/**
-	 * Tries to parse the given String to a long value, returning
-	 * defaultValue on error.
-	 *
-	 * @param value the source String to parse
-	 * @param defaultValue the default value that will be returned when parsing fails
-	 * @return the parsed value or the given default value when parsing fails
-	 */
-	private long parseLong(String value, long defaultValue) {
-
-		if (value == null) {
-
-			return defaultValue;
-
-		}
-
-		try {
-			return Long.parseLong(value);
-		} catch (Throwable ignore) {}
-
-		return defaultValue;
-	}
-
 	private String jsonError(final int code, final String message) {
 
 		StringBuilder buf = new StringBuilder(100);
@@ -800,27 +764,6 @@ public class JsonRestServlet extends HttpServlet {
 		} else {
 
 			buf.append("\n");
-
-		}
-
-		buf.append("}\n");
-
-		return buf.toString();
-	}
-
-	private String jsonMsg(final String message) {
-
-		StringBuilder buf = new StringBuilder(100);
-
-		buf.append("{\n");
-
-		if (message != null) {
-
-			buf.append("    \"message\" : \"").append(StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
-
-		} else {
-
-			buf.append("    \"message\" : \"\"\n");
 
 		}
 

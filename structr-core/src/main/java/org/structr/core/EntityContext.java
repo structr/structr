@@ -24,22 +24,12 @@ import org.structr.core.graph.NodeService;
 import java.lang.reflect.Field;
 import org.apache.commons.lang.StringUtils;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.event.PropertyEntry;
-import org.neo4j.graphdb.event.TransactionData;
-import org.neo4j.graphdb.event.TransactionEventHandler;
 
 import org.structr.common.CaseHelper;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.RelationshipFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -51,7 +41,6 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.common.*;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
@@ -87,20 +76,13 @@ public class EntityContext {
 	private static final Set<PropertyKey> globalKnownPropertyKeys                                 = new LinkedHashSet<PropertyKey>();
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalTransformationMap     = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
 	private static final Map<String, String> normalizedEntityNameCache                            = new LinkedHashMap<String, String>();
-	private static final Set<StructrTransactionListener> transactionListeners                     = new LinkedHashSet<StructrTransactionListener>();
-	private static final Set<TransactionNotifier> transactionNotifiers                            = new LinkedHashSet();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap               = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                            = new LinkedHashMap<String, Class>();
-	private static final EntityContextModificationListener globalModificationListener             = new EntityContextModificationListener();
 	private static final Map<Class, Set<Class>> interfaceMap                                      = new LinkedHashMap<Class, Set<Class>>();
 	private static final Map<String, Class> reverseInterfaceMap                                   = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                              = new LinkedHashMap<String, Class>();
 
-	private static final ThreadLocal<SecurityContext> securityContextMap                          = new ThreadLocal<SecurityContext>();
-	private static final ThreadLocal<Long> transactionKeyMap                                      = new ThreadLocal<Long>();
-	
 	private static FactoryDefinition factoryDefinition                                            = new DefaultFactoryDefinition();
-	private static final AtomicLong transactionKeyCounter                                         = new AtomicLong(0);
 
 	//~--- methods --------------------------------------------------------
 
@@ -200,42 +182,6 @@ public class EntityContext {
 
 		cachedEntities = Services.getService(ModuleService.class).getCachedNodeEntities();
 	}
-
-	/**
-	 * Register a listener to receive notifications about modified entities.
-	 * 
-	 * @param listener the listener to register
-	 */
-	public static void registerTransactionListener(StructrTransactionListener listener) {
-		transactionListeners.add(listener);
-	}
-
-	/**
-	 * Unregister a transaction listener.
-	 * 
-	 * @param listener the listener to unregister
-	 */
-	public static void unregisterTransactionListener(StructrTransactionListener listener) {
-		transactionListeners.remove(listener);
-	}
-
-	/**
-	 * Register a notifier to receive notifications about modified entities after commit
-	 * 
-	 * @param notifier the notifier to register
-	 */
-	public static void registerTransactionNotifier(TransactionNotifier notifier) {
-		transactionNotifiers.add(notifier);
-	}
-
-	/**
-	 * Unregister a transaction notifier
-	 * 
-	 * @param notifier the notifier to unregister
-	 */
-	public static void unregisterTransactionNotifier(TransactionNotifier notifier) {
-		transactionNotifiers.remove(notifier);
-	}
 	
 	/**
 	 * Register a transformation that will be applied to every newly created entity of a given type.
@@ -301,43 +247,6 @@ public class EntityContext {
 		// add all properties from set
 		properties.addAll(Arrays.asList(propertySet));
 	}
-
-	// ----- validator methods -----
-	/**
-	 * Registers a validator for the given property key of all entities of the given type.
-	 * 
-	 * @param type the type of the entities for which the validator should be registered
-	 * @param propertyKey the property key under which the validator should be registered
-	 * @param validatorClass the type of the validator to register
-	public static <T> void registerPropertyValidator(Class type, PropertyKey<T> propertyKey, PropertyValidator<T> validator) {
-
-		Map<PropertyKey, Set<PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
-
-		// fetch or create validator set
-		Set<PropertyValidator> validators = validatorMap.get(propertyKey);
-
-		if (validators == null) {
-
-			validators = new LinkedHashSet<PropertyValidator>();
-
-			validatorMap.put(propertyKey, validators);
-
-		}
-
-		validators.add(validator);
-		
-		// Automatically register the property key as searchable key,
-		// so that the uniqueness validators work
-		
-		if (AbstractNode.class.isAssignableFrom(type)) {
-			EntityContext.registerSearchableProperty(type, NodeIndex.keyword.name(), propertyKey);
-		} else if (AbstractRelationship.class.isAssignableFrom(type)) {
-			EntityContext.registerSearchableProperty(type, RelationshipIndex.rel_keyword.name(), propertyKey);
-		}
-		
-	}
-	* */
-
 
 	// ----- searchable property map -----
 	/**
@@ -639,14 +548,6 @@ public class EntityContext {
 
 	public static Collection<RelationshipMapping> getNamedRelations() {
 		return globalRelationshipNameMap.values();
-	}
-
-	public static Set<StructrTransactionListener> getTransactionListeners() {
-		return transactionListeners;
-	}
-	
-	public static Set<TransactionNotifier> getTransactionNotifiers() {
-		return transactionNotifiers;
 	}
 
 	public static Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
@@ -986,10 +887,6 @@ public class EntityContext {
 		return interfaces;
 	}
 	
-	public static EntityContextModificationListener getTransactionEventHandler() {
-		return globalModificationListener;
-	}
-
 	public static boolean isKnownProperty(final PropertyKey key) {
 		return globalKnownPropertyKeys.contains(key);
 	}
@@ -1007,70 +904,6 @@ public class EntityContext {
 	
 	public static void registerFactoryDefinition(FactoryDefinition factory) {
 		factoryDefinition = factory;
-	}
-	
-	public static synchronized void clearTransactionData(long transactionKey) {
-
-		securityContextMap.remove();
-		transactionKeyMap.remove();
-	}
-	
-	public static synchronized void setSecurityContext(SecurityContext securityContext) {
-		securityContextMap.set(securityContext);
-	}
-
-	public static synchronized void setTransactionKey(Long transactionKey) {
-		transactionKeyMap.set(transactionKey);
-	}
-	
-	private static ArrayList<Node> sortNodes(final Iterable<Node> it) {
-		
-		ArrayList<Node> list = new ArrayList<Node>();
-		
-		for (Node p : it) {
-			
-			list.add(p);
-			
-		}
-		
-		
-		Collections.sort(list, new Comparator<Node>() {
-
-			@Override
-			public int compare(Node o1, Node o2) {
-				Long id1 = o1.getId();
-				Long id2 = o2.getId();
-				return id1.compareTo(id2);
-			}
-		});
-		
-		return list;
-		
-	}
-	
-	private static ArrayList<Relationship> sortRelationships(final Iterable<Relationship> it) {
-		
-		ArrayList<Relationship> list = new ArrayList<Relationship>();
-		
-		for (Relationship p : it) {
-			
-			list.add(p);
-			
-		}
-		
-		
-		Collections.sort(list, new Comparator<Relationship>() {
-
-			@Override
-			public int compare(Relationship o1, Relationship o2) {
-				Long id1 = o1.getId();
-				Long id2 = o2.getId();
-				return id1.compareTo(id2);
-			}
-		});
-		
-		return list;
-		
 	}
 	
 	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> entityType, Object entity) {
@@ -1124,268 +957,4 @@ public class EntityContext {
 			interfaces.add(iface);
 		}
 	}
-	
-	//~--- inner classes --------------------------------------------------
-
-	// <editor-fold defaultstate="collapsed" desc="EntityContextModificationListener">
-	/**
-	 * Neo4j transaction event handler that implements the post-processing
-	 * of nodes and relationships in structr. This class handles the
-	 * change set of neo4j.
-	 */
-	public static class EntityContextModificationListener implements TransactionEventHandler<Long> {
-
-		// ----- interface TransactionEventHandler -----
-		@Override
-		public Long beforeCommit(TransactionData data) throws Exception {
-
-			Long transactionKeyValue = transactionKeyCounter.incrementAndGet();
-			long transactionKey      = transactionKeyValue.longValue();
-			
-			// check if node service is ready
-			if (!Services.isReady(NodeService.class)) {
-
-				logger.log(Level.WARNING, "Node service is not ready yet.");
-				return transactionKey;
-
-			}
-
-			SecurityContext securityContext                             = securityContextMap.get();
-			SecurityContext superUserContext                            = SecurityContext.getSuperUserInstance();
-			Map<Relationship, Map<String, Object>> removedRelProperties = new LinkedHashMap<Relationship, Map<String, Object>>();
-			Map<Node, Map<String, Object>> removedNodeProperties        = new LinkedHashMap<Node, Map<String, Object>>();
-			RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
-			NodeFactory nodeFactory                                     = new NodeFactory(superUserContext);
-
-			// notify transaction listeners
-			for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-				listener.commitStarts(securityContext, transactionKey);
-			}
-
-			// collect properties
-			collectRemovedNodeProperties(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
-			collectRemovedRelationshipProperties(securityContext, transactionKey, data, relFactory, removedRelProperties);
-
-			// call onCreation
-			callOnNodeCreation(securityContext, transactionKey, data, nodeFactory);
-			callOnRelationshipCreation(securityContext, transactionKey, data, relFactory);
-
-			// call onDeletion
-			callOnRelationshipDeletion(securityContext, transactionKey, data, relFactory, removedRelProperties);
-			callOnNodeDeletion(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
-
-			// call validators
-			callNodeValidators(securityContext, transactionKey, data, nodeFactory);
-			callRelationshipValidators(securityContext, transactionKey, data, relFactory);
-
-			for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-				listener.commitFinishes(securityContext, transactionKey);
-			}
-
-			return transactionKey;
-		}
-
-		@Override
-		public void afterCommit(TransactionData data, Long transactionKey) {
-		
-			SecurityContext securityContext = securityContextMap.get();
-
-			for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-				listener.afterCommit(securityContext, transactionKey);
-			}
-		}
-
-		@Override
-		public void afterRollback(TransactionData data, Long transactionKey) {
-			
-			SecurityContext securityContext = securityContextMap.get();
-
-			for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-				listener.afterRollback(securityContext, transactionKey);
-			}
-			
-		}
-			
-		private void collectRemovedNodeProperties(SecurityContext securityContext, long transactionKey, TransactionData data,
-		                                   NodeFactory nodeFactory, Map<Node, Map<String, Object>> removedNodeProperties) throws FrameworkException {
-			
-			for (PropertyEntry<Node> entry : data.removedNodeProperties()) {
-
-				Node node                       = entry.entity();
-				Map<String, Object> propertyMap = removedNodeProperties.get(node);
-
-				if (propertyMap == null) {
-
-					propertyMap = new LinkedHashMap<String, Object>();
-
-					removedNodeProperties.put(node, propertyMap);
-
-				}
-
-				propertyMap.put(entry.key(), entry.previouslyCommitedValue());
-
-				if (!data.isDeleted(node)) {
-
-					AbstractNode modifiedNode = nodeFactory.instantiateNode(node, true, false);
-					if (modifiedNode != null) {
-
-						PropertyKey key = getPropertyKeyForDatabaseName(modifiedNode.getClass(), entry.key());
-
-						// notify registered listeners
-						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							listener.propertyRemoved(securityContext, transactionKey, modifiedNode, key, entry.previouslyCommitedValue());
-						}
-					}
-
-				}
-			}
-		}
-			
-		private void collectRemovedRelationshipProperties(SecurityContext securityContext, long transactionKey, TransactionData data,
-		                                   RelationshipFactory relFactory, Map<Relationship, Map<String, Object>> removedRelProperties) throws FrameworkException {
-			
-			for (PropertyEntry<Relationship> entry : data.removedRelationshipProperties()) {
-
-				Relationship rel                = entry.entity();
-				Map<String, Object> propertyMap = removedRelProperties.get(rel);
-
-				if (propertyMap == null) {
-
-					propertyMap = new LinkedHashMap<String, Object>();
-
-					removedRelProperties.put(rel, propertyMap);
-
-				}
-
-				propertyMap.put(entry.key(), entry.previouslyCommitedValue());
-
-				if (!data.isDeleted(rel)) {
-
-					AbstractRelationship modifiedRel = relFactory.instantiateRelationship(securityContext, rel);
-					if (modifiedRel != null) {
-
-						PropertyKey key = getPropertyKeyForDatabaseName(modifiedRel.getClass(), entry.key());
-
-						// notify registered listeners
-						for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-							listener.propertyRemoved(securityContext, transactionKey, modifiedRel, key, entry.previouslyCommitedValue());
-						}
-					}
-				}
-
-			}
-		}
-		
-		private void callOnNodeCreation(SecurityContext securityContext, long transactionKey, TransactionData data, NodeFactory nodeFactory) throws FrameworkException {
-			
-			for (Node node : sortNodes(data.createdNodes())) {
-
-				AbstractNode entity = nodeFactory.instantiateNode(node, true, false);
-				if (entity != null) {
-
-					// notify registered listeners
-					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-						listener.graphObjectCreated(securityContext, transactionKey, entity);
-					}
-				}
-
-			}
-		}
-		
-		private boolean callOnRelationshipCreation(SecurityContext securityContext, long transactionKey, TransactionData data, RelationshipFactory relFactory) throws FrameworkException {
-			
-			boolean hasError = false;
-			
-			for (Relationship rel : sortRelationships(data.createdRelationships())) {
-
-				AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
-				if (entity != null) {
-
-					// notify registered listeners
-					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-						listener.graphObjectCreated(securityContext, transactionKey, entity);
-					}
-				}
-
-			}
-
-			return hasError;
-		}
-			
-		private void callOnRelationshipDeletion(SecurityContext securityContext, long transactionKey, TransactionData data,
-					RelationshipFactory relFactory, Map<Relationship, Map<String, Object>> removedRelProperties) throws FrameworkException {
-			
-			for (Relationship rel : data.deletedRelationships()) {
-
-				AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
-				if (entity != null) {
-
-					// convertFromInput properties
-					PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedRelProperties.get(rel));
-
-					// notify registered listeners
-					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-						listener.graphObjectDeleted(securityContext, transactionKey, entity, properties);
-					}
-				}
-			}
-		}
-		
-		private void callOnNodeDeletion(SecurityContext securityContext, long transactionKey, TransactionData data,
-		                                   NodeFactory nodeFactory, Map<Node, Map<String, Object>> removedNodeProperties) throws FrameworkException {
-			
-			for (Node node : data.deletedNodes()) {
-
-				String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
-				AbstractNode entity = nodeFactory.instantiateDummyNode(type);
-
-				if (entity != null) {
-
-					PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedNodeProperties.get(node));
-
-					// notify registered listeners
-					for(StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-						listener.graphObjectDeleted(securityContext, transactionKey, entity, properties);
-					}
-				}
-			}
-		}
-		
-		private void callNodeValidators(SecurityContext securityContext, long transactionKey, TransactionData data, NodeFactory nodeFactory) throws FrameworkException {
-			
-			for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
-
-				AbstractNode nodeEntity = nodeFactory.instantiateNode(entry.entity(), true, false);
-				if (nodeEntity != null) {
-
-					PropertyKey key  = getPropertyKeyForDatabaseName(nodeEntity.getClass(), entry.key());
-					Object value     = entry.value();
-
-					// notify registered listeners
-					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-						listener.propertyModified(securityContext, transactionKey, nodeEntity, key, entry.previouslyCommitedValue(), value);
-					}
-				}
-			}
-		}
-		
-		private void callRelationshipValidators(SecurityContext securityContext, long transactionKey, TransactionData data, RelationshipFactory relFactory) throws FrameworkException {
-
-			for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
-
-				AbstractRelationship relEntity    = relFactory.instantiateRelationship(securityContext, entry.entity());
-				if (relEntity != null) {
-
-					PropertyKey key = getPropertyKeyForDatabaseName(relEntity.getClass(), entry.key());
-					Object value    = entry.value();
-
-					// notify registered listeners
-					for (StructrTransactionListener listener : EntityContext.getTransactionListeners()) {
-						listener.propertyModified(securityContext, transactionKey, relEntity, key, entry.previouslyCommitedValue(), value);
-					}
-				}
-			}
-		}
-	}
-	// </editor-fold>
 }
