@@ -3,6 +3,7 @@ package org.structr.core.graph;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.logging.Level;
@@ -25,37 +26,35 @@ import org.structr.core.property.PropertyKey;
 	
 public class ModificationQueue {
 
-	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
-	
 	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<String, GraphObjectModificationState>();
-	private Map<String, GraphObjectModificationState> immutableState                  = new LinkedHashMap<String, GraphObjectModificationState>();
 	private Set<String> alreadyPropagated                                             = new LinkedHashSet<String>();
 	
 	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
 
+		boolean hasModifications = true;
 		boolean valid = true;
-		int count     = 0;
-		
-		while (!modifications.isEmpty()) {
 
-			Map.Entry<String, GraphObjectModificationState> entry = modifications.pollFirstEntry();
-			if (entry != null) {
+		// collect all modified nodes
+		while (hasModifications) {
+			
+			hasModifications = false;
+			
+			for (GraphObjectModificationState state : modifications.values()) {
 
-				// do callback according to entry state
-				valid &= entry.getValue().doInnerCallback(this, securityContext, errorBuffer, doValidation);
+				if (state.wasModified()) {
 
-				// store entries for later notification
-				if (!immutableState.containsKey(entry.getKey())) {
-					
-					immutableState.put(entry.getKey(), entry.getValue());
+					// do callback according to entry state
+					valid &= state.doInnerCallback(this, securityContext, errorBuffer);
+					hasModifications = true;
 				}
 			}
-			
-			if (count++ > 100000) {
-				
-				logger.log(Level.WARNING, "################################################################################### Too many modification callbacks, aborting!");
-				break;
-			}
+		}
+		
+		// do validation and indexing
+		for (Entry<String, GraphObjectModificationState> entry : modifications.entrySet()) {
+
+			// do callback according to entry state
+			valid &= entry.getValue().doValidationAndIndexing(this, securityContext, errorBuffer, doValidation);
 		}
 
 		return valid;
@@ -64,7 +63,7 @@ public class ModificationQueue {
 	public void doOuterCallbacksAndCleanup(SecurityContext securityContext) {
 
 		// copy modifications, do after transaction callbacks
-		for (GraphObjectModificationState state : immutableState.values()) {
+		for (GraphObjectModificationState state : modifications.values()) {
 
 			if (!state.isDeleted()) {
 				state.doOuterCallback(securityContext);
@@ -73,7 +72,6 @@ public class ModificationQueue {
 
 		// clear collections afterwards
 		alreadyPropagated.clear();
-		immutableState.clear();
 		modifications.clear();
 	}
 

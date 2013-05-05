@@ -31,6 +31,7 @@ public class GraphObjectModificationState {
 	private static final int STATE_PROPAGATED_MODIFICATION = 128;
 	
 	private PropertyMap removedProperties = new PropertyMap();
+	private boolean modified              = false;
 	private GraphObject object            = null;
 	private int status                    = 0;
 
@@ -44,42 +45,89 @@ public class GraphObjectModificationState {
 	}
 
 	public void propagatedModification() {
+		
+		int statusBefore = status;
+		
 		status |= STATE_PROPAGATED_MODIFICATION;
+		
+		if (status != statusBefore) {
+			modified = true;
+		}
 	}
 
 	public void modifyLocation() {
+		
+		int statusBefore = status;
+		
 		status |= STATE_LOCATION_MODIFIED | STATE_PROPAGATED_MODIFICATION;
+		
+		if (status != statusBefore) {
+			modified = true;
+		}
 	}
 	
 	public void modifySecurity() {
+		
+		int statusBefore = status;
+		
 		status |= STATE_SECURITY_MODIFIED | STATE_PROPAGATED_MODIFICATION;
+		
+		if (status != statusBefore) {
+			modified = true;
+		}
 	}
 	
 	public void modifyOwner() {
+		
+		int statusBefore = status;
+		
 		status |= STATE_OWNER_MODIFIED | STATE_PROPAGATED_MODIFICATION;
+		
+		if (status != statusBefore) {
+			modified = true;
+		}
 	}
 	
 	public void create() {
+		
+		int statusBefore = status;
+		
 		status |= STATE_CREATED | STATE_PROPAGATED_MODIFICATION;
+		
+		if (status != statusBefore) {
+			modified = true;
+		}
 	}
 
 	public void modify(PropertyKey key, Object previousValue) {
-
+		
+		int statusBefore = status;
+		
 		status |= STATE_MODIFIED | STATE_PROPAGATED_MODIFICATION;
 
 		// store previous value
 		if (key != null) {
 			removedProperties.put(key, previousValue);
 		}
+		
+		if (status != statusBefore) {
+			modified = true;
+		}
 	}
 
 	public void delete(boolean passive) {
-
+		
+		int statusBefore = status;
+		
 		if (passive) {
 			status |= STATE_DELETED_PASSIVELY;
 		}
 
 		status |= STATE_DELETED;
+		
+		if (status != statusBefore) {
+			modified = true;
+		}
 	}
 
 	public boolean isPassivelyDeleted() {
@@ -106,7 +154,7 @@ public class GraphObjectModificationState {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	public boolean doInnerCallback(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
+	public boolean doInnerCallback(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		boolean valid = true;
 	
@@ -140,45 +188,75 @@ public class GraphObjectModificationState {
 				break;
 
 			case 6: // created, modified => only creation callback will be called
-				if (doValidation) {
-					valid &= validate(securityContext, errorBuffer);
-					valid &= object.beforeCreation(securityContext, errorBuffer);
-				}
-				addToIndex();
+				valid &= object.beforeCreation(securityContext, errorBuffer);
 				break;
 
 			case 5: // created, deleted => no callback
 				break;
 
 			case 4: // created => creation callback
+				valid &= object.beforeCreation(securityContext, errorBuffer);
+				break;
+
+			case 3: // modified, deleted => deletion callback
+				valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+				break;
+
+			case 2: // modified => modification callback
+				valid &= object.beforeModification(securityContext, errorBuffer);
+				break;
+
+			case 1: // deleted => deletion callback
+				valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+				break;
+
+			case 0:	// no action, no callback
+				break;
+
+			default:
+				break;
+		}
+
+		// mark as finished
+		modified = false;
+		
+		return valid;
+	}
+
+	/**
+	 * Call beforeModification/Creation/Deletion methods.
+	 * 
+	 * @param securityContext
+	 * @param errorBuffer
+	 * @return
+	 * @throws FrameworkException 
+	 */
+	public boolean doValidationAndIndexing(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
+
+		boolean valid = true;
+	
+		// examine only the last 4 bits here
+		switch (status & 0x000f) {
+
+			case 6: // created, modified => only creation callback will be called
 				if (doValidation) {
 					valid &= validate(securityContext, errorBuffer);
-					valid &= object.beforeCreation(securityContext, errorBuffer);
 				}
 				addToIndex();
 				break;
 
-			case 3: // modified, deleted => deletion callback
+			case 4: // created => creation callback
 				if (doValidation) {
-					valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+					valid &= validate(securityContext, errorBuffer);
 				}
+				addToIndex();
 				break;
 
 			case 2: // modified => modification callback
 				if (doValidation) {
 					valid &= validate(securityContext, errorBuffer);
-					valid &= object.beforeModification(securityContext, errorBuffer);
 				}
 				updateInIndex();
-				break;
-
-			case 1: // deleted => deletion callback
-				if (doValidation) {
-					valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
-				}
-				break;
-
-			case 0:	// no action, no callback
 				break;
 
 			default:
@@ -261,6 +339,10 @@ public class GraphObjectModificationState {
 
 	public GraphObject getObject() {
 		return object;
+	}
+	
+	public boolean wasModified() {
+		return modified;
 	}
 	
 	/**
