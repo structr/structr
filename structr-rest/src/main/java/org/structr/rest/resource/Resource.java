@@ -303,7 +303,9 @@ public abstract class Resource {
 				}
 			}
 
-			Collections.sort(list, new GraphObjectComparator(finalSortKey, finalSortOrder));
+			if (finalSortKey != null) {
+				Collections.sort(list, new GraphObjectComparator(finalSortKey, finalSortOrder));
+			}
 		}
 	}
 
