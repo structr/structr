@@ -192,6 +192,11 @@ public class ResourceAccess extends AbstractNode {
 		grantCache.clear();
 	}
 	
+	@Override
+	public void afterDeletion(SecurityContext securityContext) {
+		grantCache.clear();
+	}
+	
 	public static ResourceAccess findGrant(String signature) throws FrameworkException {
 
 		ResourceAccess grant = grantCache.get(signature);
