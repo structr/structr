@@ -24,6 +24,7 @@ import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -35,8 +36,12 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<String>(Arrays.asList(new String[] { "true", "1", "on" }));
 
-	public BooleanProperty(String name) {
+	public BooleanProperty(String name, PropertyValidator<Boolean>... validators) {
 		super(name);
+		
+		for (PropertyValidator<Boolean> validator : validators) {
+			addValidator(validator);
+		}
 	}
 	
 	@Override

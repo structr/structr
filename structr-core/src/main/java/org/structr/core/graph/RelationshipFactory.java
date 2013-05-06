@@ -105,7 +105,27 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		try {
 
-			relClass = findNamedRelation(relationship);
+			// use already stored combined relationship type
+			if (relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
+
+				String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
+
+				relClass = EntityContext.getNamedRelationClass(combinedRelType);
+
+				if (relClass != null) {
+
+					newRel = instantiateRelationship(securityContext, combinedRelType);
+
+				}
+
+			}
+			
+			// 2nd try: create combined relationship type on the fly
+			if (relClass == null) {
+				relClass = findNamedRelation(relationship);
+			}
+			
+			
 			if (relClass != null) {
 
 				try {
@@ -113,23 +133,6 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 				} catch (Throwable t2) {
 					newRel = null;
 				}
-
-			} else {
-
-				if (relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
-
-					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
-
-					relClass = EntityContext.getNamedRelationClass(combinedRelType);
-
-					if (relClass != null) {
-
-						newRel = instantiateRelationship(securityContext, combinedRelType);
-
-					}
-
-				}
-
 			}
 
 		} catch (Throwable t) { }

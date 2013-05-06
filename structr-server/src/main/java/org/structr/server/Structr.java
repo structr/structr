@@ -625,6 +625,11 @@ public class Structr {
 				attributes.put("file", seedFile.getAbsoluteFile().getAbsolutePath());
 				
 				Services.command(SecurityContext.getSuperUserInstance(), SyncCommand.class).execute(attributes);
+				
+			} else {
+				
+				logger.log(Level.INFO, "Applications nodes found, not applying initial seed.");
+			
 			}
 		}
 		

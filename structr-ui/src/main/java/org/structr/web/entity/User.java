@@ -71,8 +71,9 @@ public class User extends Person implements Principal {
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(),     name, email);
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), uiView.properties());
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(),  uiView.properties());
-		EntityContext.registerPropertyValidator(User.class, email, new TypeUniquenessValidator(User.class));
-		EntityContext.registerPropertyValidator(User.class, email, new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));
+		
+		User.email.addValidator(new TypeUniquenessValidator(User.class));
+		User.email.addValidator(new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));
 	}
 	
 	//~--- get methods ----------------------------------------------------

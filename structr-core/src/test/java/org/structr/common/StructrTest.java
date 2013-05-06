@@ -354,7 +354,7 @@ public class StructrTest extends TestCase {
 
 		// wait for service layer to be initialized
 		do {
-			try { Thread.sleep(10); } catch(Throwable t) {}
+			try { Thread.sleep(100); } catch(Throwable t) {}
 			
 		} while(!Services.isInitialized());
 

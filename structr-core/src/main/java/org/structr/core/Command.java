@@ -18,10 +18,9 @@
  */
 package org.structr.core;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 
 /**
  * The base class for all types of commands.
@@ -62,8 +61,8 @@ public abstract class Command {
     }
 
     public Command() {
-        this.arguments = new ConcurrentHashMap<String, Object>(10, 0.9f, 8);
-        this.exitStatus = new ConcurrentHashMap<String, Object>(10, 0.9f, 8);
+        this.arguments = new HashMap<String, Object>();
+        this.exitStatus = new HashMap<String, Object>();
 
         // Set default
         exitStatus.put(EXIT_CODE, exitCode.UNKNOWN);

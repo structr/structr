@@ -49,7 +49,9 @@ import org.structr.common.error.ErrorBuffer;
 public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger            = Logger.getLogger(DeleteNodeCommand.class.getName());
-	private static Set<AbstractNode> deletedNodes = new LinkedHashSet<AbstractNode>();
+	
+	
+	private Set<AbstractNode> deletedNodes = new LinkedHashSet<AbstractNode>();
 
 	//~--- methods --------------------------------------------------------
 
@@ -66,9 +68,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private AbstractNode doDeleteNode(final AbstractNode node, final Boolean cascade) throws FrameworkException {
 
-		deletedNodes.add(node);
-
-		if (node.getProperty(AbstractNode.uuid) == null) {
+		if (!deletedNodes.contains(node) && node.getUuid() == null) {
 
 			logger.log(Level.WARNING, "Will not delete node which has no UUID");
 
@@ -76,6 +76,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		}
 
+		deletedNodes.add(node);
+		
 		// final Node node                  = graphDb.getNodeById(structrNode.getId());
 		final RemoveNodeFromIndex removeNodeFromIndex = Services.command(securityContext, RemoveNodeFromIndex.class);
 		final DeleteRelationshipCommand deleteRel     = Services.command(securityContext, DeleteRelationshipCommand.class);
@@ -141,12 +143,11 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					// deletion callback, must not prevent node deletion!
 					node.onNodeDeletion();
 
-					// Delete any relationship
+					// Delete any relationship (this is PASSIVE DELETION)
 					List<AbstractRelationship> rels = node.getRelationships();
-
 					for (AbstractRelationship r : rels) {
 
-						deleteRel.execute(r);
+						deleteRel.execute(r, true);
 					}
 
 					// remove node from index
@@ -155,6 +156,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					// delete node in database
 					node.getNode().delete();
 
+					// mark node as deleted in transaction
+					TransactionCommand.nodeDeleted(node);
+					
 					// now check again the deletion cascade for violated constraints
 					if (cascade) {
 
@@ -164,7 +168,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 							ErrorBuffer errorBuffer = new ErrorBuffer();
 							
-							if (!nodeToCheck.isValid(errorBuffer)) {
+							if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
 
 								// remove end node from index
 								removeNodeFromIndex.execute(nodeToCheck);

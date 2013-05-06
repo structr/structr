@@ -27,22 +27,17 @@ import org.structr.common.SecurityContext;
  *
  * @author Christian Morgner
  */
-public abstract class PropertyValidator<T> {
-
-	protected SecurityContext securityContext = null;
+public interface PropertyValidator<T> {
 
 	/**
 	 * Indicates whether the given value is valid for the given property
 	 * key and parameter.
 	 *
+	 * @param securityContext
 	 * @param key
 	 * @param value
 	 * @param parameter
 	 * @return
 	 */
-	public abstract boolean isValid(GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer);
-
-	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
-	}
+	public abstract boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer);
 }

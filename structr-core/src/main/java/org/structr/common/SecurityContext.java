@@ -20,6 +20,7 @@
 
 package org.structr.common;
 
+import org.structr.core.entity.ResourceAccess;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;

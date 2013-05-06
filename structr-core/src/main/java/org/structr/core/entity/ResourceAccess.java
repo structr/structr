@@ -18,6 +18,11 @@
  */
 package org.structr.core.entity;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
@@ -29,12 +34,17 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
-import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.validator.TypeUniquenessValidator;
 
 /**
@@ -56,13 +66,10 @@ import org.structr.core.validator.TypeUniquenessValidator;
  */
 public class ResourceAccess extends AbstractNode {
 
-	private static final Logger logger = Logger.getLogger(ResourceAccess.class.getName());
+	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<String, ResourceAccess>();
+	private static final Logger logger                          = Logger.getLogger(ResourceAccess.class.getName());
 
-	private String cachedResourceSignature = null;
-	private Long cachedFlags     = null;
-	private Integer cachedPosition = null;
-
-	public static final Property<String>                    signature       = new StringProperty("signature");
+	public static final Property<String>                    signature       = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class));
 	public static final Property<Long>                      flags           = new LongProperty("flags");
 	public static final Property<Integer>                   position        = new IntProperty("position");
 	public static final CollectionProperty<PropertyAccess>  propertyAccess  = new CollectionProperty<PropertyAccess>("propertyAccess", PropertyAccess.class, RelType.PROPERTY_ACCESS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
@@ -74,23 +81,17 @@ public class ResourceAccess extends AbstractNode {
 	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
 		signature, flags
 	);
+
+	// non-static members
+	private String cachedResourceSignature = null;
+	private Long cachedFlags               = null;
+	private Integer cachedPosition         = null;
 	
 	static {
 
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
 		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
-		
-		EntityContext.registerPropertyValidator(ResourceAccess.class, signature, new TypeUniquenessValidator(ResourceAccess.class));
-		
-		// signature and type must be scanEntity-only
-//		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.type);
-//		EntityContext.registerWriteOnceProperty(ResourceAccess.class, signature);
-
 	}
-
-	//~--- constant enums -------------------------------------------------
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public String toString() {
@@ -179,4 +180,64 @@ public class ResourceAccess extends AbstractNode {
 //		error |= checkPropertyNotNull(Key.city, errorBuffer);
 
 		return !error;
-	}}
+	}
+	
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+		grantCache.clear();
+	}
+	
+	@Override
+	public void afterModification(SecurityContext securityContext) {
+		grantCache.clear();
+	}
+	
+	@Override
+	public void afterDeletion(SecurityContext securityContext) {
+		grantCache.clear();
+	}
+	
+	public static ResourceAccess findGrant(String signature) throws FrameworkException {
+
+		ResourceAccess grant = grantCache.get(signature);
+		if (grant == null) {
+
+			SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
+			searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, signature));
+
+			Result result = search.execute(searchAttributes);
+
+			if (result.isEmpty()) {
+
+				logger.log(Level.WARNING, "No resource access object found for {0}", signature);
+
+			} else {
+
+				final AbstractNode node = (AbstractNode) result.get(0);
+
+				if (node instanceof ResourceAccess) {
+
+					grant = (ResourceAccess) node;
+					
+					grantCache.put(signature, grant);
+
+				} else {
+
+					logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { signature, node.getClass().getName() });
+
+				}
+
+				if (result.size() > 1) {
+
+					logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), signature });
+
+				}
+			}
+		}
+		
+		return grant;
+	}
+}

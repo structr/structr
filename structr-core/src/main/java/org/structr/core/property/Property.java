@@ -18,12 +18,14 @@
  */
 package org.structr.core.property;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -39,6 +41,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	private static final Logger logger = Logger.getLogger(Property.class.getName());
 	
+	protected List<PropertyValidator<T>> validators        = new LinkedList<PropertyValidator<T>>();
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean isReadOnlyProperty                   = false;
@@ -78,6 +81,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 
+	@Override
+	public void addValidator(PropertyValidator<T> validator) {
+		validators.add(validator);
+	}
+	
+	@Override
+	public List<PropertyValidator<T>> getValidators() {
+		return validators;
+	}
+	
 	@Override
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
 		this.declaringClass = declaringClass;

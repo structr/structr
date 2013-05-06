@@ -21,6 +21,7 @@ package org.structr.core.validator;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -40,7 +41,7 @@ import org.structr.core.graph.search.SearchNodeCommand;
  *
  * @author Christian Morgner
  */
-public class TypeAndExactNameValidator extends PropertyValidator<String> {
+public class TypeAndExactNameValidator implements PropertyValidator<String> {
 
 	private String type = null;
 
@@ -49,7 +50,7 @@ public class TypeAndExactNameValidator extends PropertyValidator<String> {
 	}
 
 	@Override
-	public boolean isValid(GraphObject object, PropertyKey<String> key, String value, ErrorBuffer errorBuffer) {
+	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<String> key, String value, ErrorBuffer errorBuffer) {
 
 		if(key == null) {
 			return false;

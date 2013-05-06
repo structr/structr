@@ -53,7 +53,6 @@ import org.structr.core.graph.NodeRelationshipsCommand;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -96,8 +95,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	static {
 
-//		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), uiView.properties());
-//		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uiView.properties());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), name, type, createdDate, lastModifiedDate, hidden, deleted);
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uuid, name, type, createdDate, lastModifiedDate, hidden, deleted);
 		
@@ -105,10 +102,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
-
-		// register uuid validator
-		EntityContext.registerPropertyValidator(AbstractNode.class, uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
-
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -124,9 +117,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	private boolean readOnlyPropertiesUnlocked                    = false;
 
 	// reference to database node
-	protected Node dbNode;
-
 	protected String cachedUuid = null;
+	protected Node dbNode;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -967,9 +959,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		
-		cachedUuid = (String)properties.get(uuid);
-		
 		return true;
 	}
 	

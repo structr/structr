@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -84,9 +85,9 @@ import org.structr.rest.servlet.JsonRestServlet;
  */
 public abstract class Resource {
 
-	private static final Logger logger                 = Logger.getLogger(Resource.class.getName());
-	private static final Set<String> NON_SEARCH_FIELDS = new LinkedHashSet<String>();
-	private static final Pattern rangeQueryPattern     = Pattern.compile("\\[(.+) TO (.+)\\]");
+	private static final Logger logger                        = Logger.getLogger(Resource.class.getName());
+	private static final Set<String> NON_SEARCH_FIELDS        = new LinkedHashSet<String>();
+	private static final Pattern rangeQueryPattern            = Pattern.compile("\\[(.+) TO (.+)\\]");
 
 	//~--- static initializers --------------------------------------------
 
@@ -303,55 +304,9 @@ public abstract class Resource {
 			}
 
 			if (finalSortKey != null) {
-
 				Collections.sort(list, new GraphObjectComparator(finalSortKey, finalSortOrder));
 			}
 		}
-	}
-
-	protected ResourceAccess findGrant(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
-
-		final SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(request, response), SearchNodeCommand.class);
-		//final String signature                       = EntityContext.normalizeEntityName(getResourceSignature());
-		final String signature                         = getResourceSignature();
-		
-		logger.log(Level.FINE, "Trying to find resource access object for {0}", signature);
-		
-		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		ResourceAccess grant                         = null;
-
-		searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
-		searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, signature));
-
-		final Result result = search.execute(searchAttributes);
-
-		if (result.isEmpty()) {
-
-			logger.log(Level.WARNING, "No resource access object found for {0}", signature);
-
-		} else {
-
-			final AbstractNode node = (AbstractNode) result.get(0);
-
-			if (node instanceof ResourceAccess) {
-
-				grant = (ResourceAccess) node;
-
-			} else {
-
-				logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { signature, node.getClass().getName() });
-
-			}
-
-			if (result.size() > 1) {
-
-				logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), signature });
-
-			}
-
-		}
-
-		return grant;
 	}
 
 	// ----- private methods -----
@@ -402,100 +357,77 @@ public abstract class Resource {
 
 	public abstract String getResourceSignature();
 
-	public ResourceAccess getGrant(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
-		return findGrant(request, response);
-	}
-
 	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request, final Set<String> validAttrs) {
 
-		final String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
-
-		if (request != null && !request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
-
-			final Double dist       = Double.parseDouble(distance);
-			final String location   = request.getParameter(Search.LOCATION_SEARCH_KEYWORD);
+		if (request != null) {
 			
-			String street     = request.getParameter(Search.STREET_SEARCH_KEYWORD);
-			String house      = request.getParameter(Search.HOUSE_SEARCH_KEYWORD);
-			String postalCode = request.getParameter(Search.POSTAL_CODE_SEARCH_KEYWORD);
-			String city       = request.getParameter(Search.CITY_SEARCH_KEYWORD);
-			String state      = request.getParameter(Search.STATE_SEARCH_KEYWORD);
-			String country    = request.getParameter(Search.COUNTRY_SEARCH_KEYWORD);
-		
-			// if location, use city and street, else use all fields that are there!
-			if (location != null) {
+			final String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
 
-				String[] parts = location.split("[,]+");
-				switch (parts.length) {
+			if (!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-					case 3:
-						country = parts[2];	// no break here intentionally
-						
-					case 2:
-						city = parts[1];	// no break here intentionally
-						
-					case 1:
-						street = parts[0];
-						break;
-						
-					default:
-						break;
+				final Double dist       = Double.parseDouble(distance);
+				final String location   = request.getParameter(Search.LOCATION_SEARCH_KEYWORD);
+
+				String street     = request.getParameter(Search.STREET_SEARCH_KEYWORD);
+				String house      = request.getParameter(Search.HOUSE_SEARCH_KEYWORD);
+				String postalCode = request.getParameter(Search.POSTAL_CODE_SEARCH_KEYWORD);
+				String city       = request.getParameter(Search.CITY_SEARCH_KEYWORD);
+				String state      = request.getParameter(Search.STATE_SEARCH_KEYWORD);
+				String country    = request.getParameter(Search.COUNTRY_SEARCH_KEYWORD);
+
+				// if location, use city and street, else use all fields that are there!
+				if (location != null) {
+
+					String[] parts = location.split("[,]+");
+					switch (parts.length) {
+
+						case 3:
+							country = parts[2];	// no break here intentionally
+
+						case 2:
+							city = parts[1];	// no break here intentionally
+
+						case 1:
+							street = parts[0];
+							break;
+
+						default:
+							break;
+					}
 				}
-			}
 
-			return new DistanceSearchAttribute(street, house, postalCode, city, state, country, dist, SearchOperator.AND);
+				return new DistanceSearchAttribute(street, house, postalCode, city, state, country, dist, SearchOperator.AND);
+			}
 		}
 
 		return null;
 	}
 
 
-	protected List<SearchAttribute> extractSearchableAttributesForNodes(final SecurityContext securityContext,
-	                                                                    final Class type,
-	                                                                    final HttpServletRequest request) throws FrameworkException {
-		return extractSearchableAttributes(securityContext,
-		                                   type,
-		                                   request,
-		                                   NodeService.NodeIndex.fulltext.name(),
-		                                   NodeService.NodeIndex.keyword.name());
+	protected List<SearchAttribute> extractSearchableAttributesForNodes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
+		return extractSearchableAttributes(securityContext, type, request, NodeService.NodeIndex.fulltext.name(), NodeService.NodeIndex.keyword.name());
 	}
 
-	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final SecurityContext securityContext,
-	                                                                            final Class type,
-	                                                                            final HttpServletRequest request)
-	                                                                            				throws FrameworkException {
-		return extractSearchableAttributes(securityContext,
-		                                   type,
-		                                   request,
-		                                   NodeService.RelationshipIndex.rel_fulltext.name(),
-		                                   NodeService.RelationshipIndex.rel_keyword.name());
+	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
+		return extractSearchableAttributes(securityContext, type, request, NodeService.RelationshipIndex.rel_fulltext.name(), NodeService.RelationshipIndex.rel_keyword.name());
 	}
 
-	private static List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext,
-	                                                                 final Class type,
-	                                                                 final HttpServletRequest request,
-	                                                                 final String fulltextIndex,
-	                                                                 final String keywordIndex) throws FrameworkException {
+	private static List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request, final String fulltextIndex, final String keywordIndex) throws FrameworkException {
+		
 		List<SearchAttribute> searchAttributes = Collections.emptyList();
 
 		// searchable attributes
 		if (type != null && request != null &&!request.getParameterMap().isEmpty()) {
 
-			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-
-			final Set<PropertyKey> searchableProperties =
-							getSearchableProperties(type,
-							                        looseSearch,
-							                        fulltextIndex,
-							                        keywordIndex);
+			final boolean looseSearch                   = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
+			final Set<PropertyKey> searchableProperties = getSearchableProperties(type, looseSearch, fulltextIndex, keywordIndex);
 
 			searchAttributes = checkAndAssembleSearchAttributes(securityContext, request, type, looseSearch, searchableProperties);
 
 		}
+		
 		return searchAttributes;
-
 	}
-
 
 	private static String removeQuotes(final String searchValue) {
 		String resultStr = searchValue;

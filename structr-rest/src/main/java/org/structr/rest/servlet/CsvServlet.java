@@ -68,6 +68,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.entity.ResourceAccess;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -146,11 +147,12 @@ public class CsvServlet extends HttpServlet {
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
 			Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext,
-							ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty),
+							ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty),
 								defaultIdProperty), propertyView);
+			String resourceSignature = resource.getResourceSignature();
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), propertyView.get(securityContext));
+			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
 
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);

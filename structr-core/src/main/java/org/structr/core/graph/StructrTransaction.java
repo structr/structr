@@ -26,5 +26,16 @@ import org.structr.common.error.FrameworkException;
  * @author Christian Morgner
  */
 public abstract class StructrTransaction<T> {
+	
+	protected boolean doValidation = true;
+	
+	public StructrTransaction() {
+		this.doValidation = true;
+	}
+	
+	public StructrTransaction(boolean doValidation) {
+		this.doValidation = doValidation;
+	}
+	
 	public abstract T execute() throws FrameworkException;
 }

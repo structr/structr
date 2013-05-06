@@ -48,62 +48,25 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	public Object execute(Object... parameters) throws FrameworkException {
-
-		RelationshipFactory relationshipFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Object ret                   = null;
-
-		if (graphDb != null) {
-
-			switch (parameters.length) {
-
-				case 0 :
-
-					throw new UnsupportedArgumentError("No arguments supplied");
-
-				case 1 :
-					return (handleSingleArgument(graphDb, relationshipFactory, parameters[0]));
-
-				default :
-
-					throw new UnsupportedArgumentError("Too many arguments supplied");
-
-
-			}
-
-		}
-
-		return ret;
+	public Object execute(final Relationship rel) throws FrameworkException {
+		
+		RelationshipFactory relFactory = new RelationshipFactory(securityContext);
+		
+		// default is active deletion!
+		return execute(relFactory.instantiateRelationship(securityContext, rel), false);
 	}
+	
+	public Object execute(final AbstractRelationship rel) throws FrameworkException {
+		
+		// default is active deletion!
+		return execute(rel, false);
+	}
+	
+	public Object execute(final AbstractRelationship rel, final boolean passiveDeletion) throws FrameworkException {
 
-	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private Object handleSingleArgument(GraphDatabaseService graphDb, RelationshipFactory relationshipFactory, Object argument) throws FrameworkException {
+		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
-
-		AbstractRelationship rel = null;
-
-		if (argument instanceof Long) {
-
-			// single long value: find relationship by id
-			long id = ((Long) argument).longValue();
-
-			try {
-				rel = relationshipFactory.instantiateRelationship(securityContext, (Relationship) graphDb.getRelationshipById(id));
-			} catch (NotFoundException nfe) {
-				logger.log(Level.SEVERE, "Relationship {0} not found, cannot delete.", id);
-			}
-		} else if (argument instanceof AbstractRelationship) {
-
-			rel = (AbstractRelationship) argument;
-
-		} else if (argument instanceof Relationship) {
-
-			rel = relationshipFactory.instantiateRelationship(securityContext, (Relationship) argument);
-
-		}
-
-		if (rel != null) {
+		if (graphDb != null && rel != null) {
 
 			if (rel.getProperty(AbstractRelationship.uuid) == null) {
 
@@ -121,6 +84,8 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 				@Override
 				public Object execute() throws FrameworkException {
+
+					TransactionCommand.relationshipDeleted(finalRel, passiveDeletion);
 
 					try {
 

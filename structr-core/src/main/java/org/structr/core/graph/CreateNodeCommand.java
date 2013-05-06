@@ -36,6 +36,7 @@ import org.structr.core.entity.Principal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.core.property.PropertyKey;
@@ -98,6 +99,8 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 			node = nodeFactory.instantiateNodeWithType(graphDb.createNode(), nodeType, isCreation);
 			if(node != null) {
 				
+				TransactionCommand.nodeCreated(node);
+				
 				if ((user != null) && user instanceof AbstractNode) {
 
 					// Create new relationship to user and grant permissions to user or group
@@ -117,7 +120,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.lastModifiedDate, now);
 
-				properties.remove(AbstractNode.type);
+				// properties.remove(AbstractNode.type);
 
 				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
 

@@ -1036,7 +1036,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				//HttpServletResponse response = renderContext.getResponse();
 				
 				
-				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeConstraintChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.uuid), AbstractNode.uuid), propertyView);
+				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.uuid), AbstractNode.uuid), propertyView);
 
 				// TODO: decide if we need to rest the REST request here
 				//securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);

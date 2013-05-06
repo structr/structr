@@ -21,24 +21,18 @@
 package org.structr.core.graph;
 
 
-import java.util.LinkedHashSet;
-import java.util.Queue;
+import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.Set;
-import java.util.logging.Level;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
-import org.structr.core.TransactionChangeSet;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,347 +54,234 @@ import org.structr.core.entity.AbstractNode;
  */
 public class TransactionCommand extends NodeServiceCommand {
 
-	private static final Logger logger                 = Logger.getLogger(TransactionCommand.class.getName());
-	private static final String debugProperty          = System.getProperty("DEBUG_TRANSACTIONS", "false");
-	private static final AtomicLong transactionCounter = new AtomicLong(0);
-	private static final int MAX_DEPTH                 = 16;
-	private static final boolean debug                 = "true".equals(debugProperty);
-	private static final boolean logExceptions         = true;
-
-	private static final ThreadLocal<Transaction> transactions     = new ThreadLocal<Transaction>();
-	private static final ThreadPassageCounter threadPassageCounter = new ThreadPassageCounter();
-	private static final ThreadLocal<Long> transactionKeys         = new ThreadLocal<Long>();
-	private static final ThreadLocal<Long> depths                  = new ThreadLocal<Long>();
+	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
+	private static final long THRESHOLD                                 = 300;
 	
+	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
+	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
+	
+	private ModificationQueue modificationQueue = null;
+	private ErrorBuffer errorBuffer             = null;
+
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
-
+		
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Long transactionKey          = transactionKeys.get();
 		Transaction tx               = transactions.get();
-		Throwable exception          = null;
-		T ret                        = null;
+		boolean topLevel             = (tx == null);
+		FrameworkException error     = null;
+		T result                     = null;
+		long t0                      = System.currentTimeMillis();
 		
-		if (tx == null || transactionKey == null) {
-			
-			threadPassageCounter.inc();
+		if (topLevel) {
 		
-			tx = graphDb.beginTx();
+			// start new transaction
+			this.modificationQueue = new ModificationQueue();
+			this.errorBuffer       = new ErrorBuffer();
+			tx                     = graphDb.beginTx();
 			
-			transactionKey = nextLong();
-			
-			transactionKeys.set(transactionKey);
 			transactions.set(tx);
-			
-			EntityContext.setSecurityContext(securityContext);
-			EntityContext.setTransactionKey(transactionKey);
-
-			try {
-
-				ret = transaction.execute();
-
-				tx.success();
-
-			} catch (Throwable t) {
-
-				if (debug) {
-					t.printStackTrace();
-				}
-
-				tx.failure();
-
-				// store exception for later use
-				exception = t;
-
-			} finally {
-
-				transactions.remove();
-				transactionKeys.remove();
-
-				synchronized(TransactionCommand.class) {
-
-					try {
-
-						tx.finish();
-
-
-					} catch (Throwable t) {
-
-						if (debug || logExceptions) {
-							t.printStackTrace();
-						}
-
-						// transaction failed, look for "real" cause..
-						exception = EntityContext.getFrameworkException(transactionKey);
-					}
-				}
-			}
-
-			if(exception != null) {
-
-				if (debug || logExceptions) {
-					exception.printStackTrace();
-				}
-
-				
-				if (exception instanceof FrameworkException) {
-					
-					logger.log(Level.WARNING, ((FrameworkException) exception).toString());
-					
-					EntityContext.clearTransactionData(transactionKey);
-					throw (FrameworkException)exception;
-					
-				} else {
-					
-					exception.printStackTrace();
-					
-					throw new RuntimeException(exception);
-				}
-			}
-
-			final TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet(transactionKey);
-			Long depthValue = depths.get();
-			long depth      = 0;
-			
-			if (depthValue != null) {
-				depth = depthValue.longValue();
-			}
-
-			if (debug) {
-				
-				indent();
-				System.out.println("BEFORE CHANGESET: " + transactionKey);
-			}
-			
-			if (changeSet != null) {
-			
-				if (debug) {
-				
-					indent();
-					System.out.println("BEFORE DEPTH: " + depth);
-				}
-
-				if (depth < MAX_DEPTH && !changeSet.systemOnly()) {
-					
-					if (debug) {
-
-						indent();
-						System.out.println("AFTER DEPTH: " + depth);
-					}
-					
-					depths.set(depth + 1);
-
-					try {
-						
-						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-							@Override
-							public Object execute() throws FrameworkException {
-
-								notifyChangeSet(changeSet);
-
-								return null;
-							}
-
-						});
-
-					} catch(Throwable t) {
-						
-						if (debug || logExceptions) {
-							t.printStackTrace();
-						}
-						
-						if (t instanceof FrameworkException) {
-
-							logger.log(Level.WARNING, ((FrameworkException) t).toString());
-
-							EntityContext.clearTransactionData(transactionKey);
-							throw (FrameworkException)t;
-						}
-						
-					}
-
-					depths.set(depth);
-					
-				} else {
-					
-					if (depth == MAX_DEPTH) {
-						logger.log(Level.SEVERE, "Maximum depth of nested modifications reached! You probably forgot to mark a property as a system property.");
-					}
-					
-					if (debug) {
-
-						indent();
-						System.out.println("CHANGESET STATS: " + changeSet.toString());
-					}
-				}
-			}
-
-			threadPassageCounter.dec();
+			currentCommand.set(this);
+		}
+	
+		// execute structr transaction
+		try {
 		
-			// clear security context only when the last nested transaction is exited
-			if (threadPassageCounter.get() == 0L) {
+			result = transaction.execute();
+			
+			if (topLevel) {
+
+				long t1 = System.currentTimeMillis();
 				
-				EntityContext.clearTransactionData(transactionKey);
+				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer, transaction.doValidation)) {
+
+					// create error
+					throw new FrameworkException(422, errorBuffer);
+				}
+
+				long t2 = System.currentTimeMillis();
+				if (t2-t1 > THRESHOLD) {
+					logger.log(Level.INFO, "Inner callbacks took {0} ms", t2-t1);
+				}
 			}
 			
-			return ret;
+		} catch (Throwable t) {
+
+			// catch everything
+			tx.failure();
+			
+			if (t instanceof FrameworkException) {
+				error = (FrameworkException)t;
+			}
+		}
+
+		// finish toplevel transaction
+		if (topLevel) {
+				
+			long t3 = System.currentTimeMillis();
+			
+			tx.success();
+			tx.finish();
+
+			long t4 = System.currentTimeMillis();
+			if (t4-t3 > THRESHOLD) {
+				logger.log(Level.INFO, "Neo tx took {0} ms", t4-t3);
+			}
+			
+			// cleanup
+			currentCommand.remove();
+			transactions.remove();
+			
+			// no error, notify entities
+			if (error == null) {
+				modificationQueue.doOuterCallbacksAndCleanup(securityContext);
+			}
+				
+			long t5 = System.currentTimeMillis();
+			if (t5-t4 > THRESHOLD) {
+				logger.log(Level.INFO, "Outer callbacks took {0} ms", t5-t4);
+			}
+
+			if (t5-t0 > THRESHOLD) {
+				logger.log(Level.INFO, "Transaction took {0} ms", t5-t0);
+			}
+			
+		}
+		
+		// throw actual error
+		if (error != null) {
+			throw error;
+		}
+		
+		return result;
+	}
+	
+	public static void nodeCreated(AbstractNode node) {
+		
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+			
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+				
+				modificationQueue.create(node);
+				
+			} else {
+				
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+			}
 			
 		} else {
-
-			if (debug) {
+			
+			logger.log(Level.SEVERE, "Node created while outside of transaction!");
+		}
+	}
+	
+	public static void nodeModified(AbstractNode node, PropertyKey key, Object previousValue) {
+		
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+			
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
 				
-				indent();
-				System.out.println("EXISTING TRANSACTION: " + transactionKey);
+				modificationQueue.modify(node, key, previousValue);
+				
+			} else {
+				
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
 			}
 			
-			return transaction.execute();
+		} else {
+			
+			logger.log(Level.SEVERE, "Node deleted while outside of transaction!");
 		}
 	}
 	
-	private void notifyChangeSet(TransactionChangeSet changeSet) {
-
-		// determine propagation set
-		final Queue<AbstractNode> propagationQueue = changeSet.getPropagationQueue();
-		final Set<AbstractNode> propagationSet     = new LinkedHashSet<AbstractNode>();
-
-		// add initial set of modified nodes; this line makes sure that the
-		// modified nodes themselves are notified of a propagated change
-		// as well.
-		propagationSet.addAll(propagationQueue);
-
-		if (!propagationQueue.isEmpty()) {
-
-			do {
-
-				final AbstractNode node = propagationQueue.poll();
-				if (!propagationSet.contains(node)) {
-
-					propagationSet.addAll(node.getNodesForModificationPropagation());
-				}
-
-			} while(!propagationQueue.isEmpty());
-		}
-
-		propagateModification(securityContext, propagationSet);
-
-		afterOwnerModification(securityContext, changeSet.getOwnerModifiedNodes());
-		afterSecurityModification(securityContext, changeSet.getSecurityModifiedNodes());
-		afterLocationModification(securityContext, changeSet.getLocationModifiedNodes());
-
-		afterDeletion(securityContext, changeSet.getDeletedNodes());
-		afterDeletion(securityContext, changeSet.getDeletedRelationships());
-
-		afterModification(securityContext, changeSet.getModifiedNodes());
-		afterModification(securityContext, changeSet.getModifiedRelationships());
-
-		// after transaction callbacks
-		afterCreation(securityContext, changeSet.getCreatedNodes());
-		afterCreation(securityContext, changeSet.getCreatedRelationships());
+	public static void nodeDeleted(AbstractNode node) {
 		
-		changeSet.clear();
-	}
-	
-	private void afterCreation(SecurityContext securityContext, Set<? extends GraphObject> data) {
-		
-		if(data != null && !data.isEmpty()) {
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
 			
-			for(GraphObject obj : data) {
-				obj.afterCreation(securityContext);
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+				
+				modificationQueue.delete(node);
+				
+			} else {
+				
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
 			}
-		}
-		
-	}
-
-	private void afterModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
-		
-		if(data != null && !data.isEmpty()) {
 			
-			for(GraphObject obj : data) {
-				obj.afterModification(securityContext);
-			}
-		}
-	}
-
-	private void afterDeletion(SecurityContext securityContext, Set<? extends GraphObject> data) {
-		
-		if(data != null && !data.isEmpty()) {
+		} else {
 			
-			for(GraphObject obj : data) {
-				obj.afterDeletion(securityContext);
-			}
-		}
-	}
-
-	private void afterOwnerModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
-		
-		if(data != null && !data.isEmpty()) {
-			
-			for(GraphObject obj : data) {
-				obj.ownerModified(securityContext);
-			}
-		}
-	}
-
-	private void afterSecurityModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
-		
-		if(data != null && !data.isEmpty()) {
-			
-			for(GraphObject obj : data) {
-				obj.securityModified(securityContext);
-			}
-		}
-	}
-
-	private void afterLocationModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
-		
-		if(data != null && !data.isEmpty()) {
-			
-			for(GraphObject obj : data) {
-				obj.locationModified(securityContext);
-			}
-		}
-	}
-
-	private void propagateModification(SecurityContext securityContext, Set<? extends GraphObject> data) {
-		
-		if(data != null && !data.isEmpty()) {
-			
-			for(GraphObject obj : data) {
-				obj.propagatedModification(securityContext);
-			}
-		}
-	}
-
-	private long nextLong() {
-		return transactionCounter.incrementAndGet();
-	}
-	
-	private void indent() {
-		Long depthValue = depths.get();
-		long depth      = 0;
-
-		if (depthValue != null) {
-			depth = depthValue.longValue();
-		}
-		
-		for (int i=0; i<depth+1; i++) {
-			System.out.print("        ");
+			logger.log(Level.SEVERE, "Node deleted while outside of transaction!");
 		}
 	}
 	
-	private static class ThreadPassageCounter extends ThreadLocal<Long> {
+	public static void relationshipCreated(AbstractRelationship relationship) {
 		
-		@Override
-		protected Long initialValue() {
-			return Long.valueOf(0L);
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+			
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+				
+				modificationQueue.create(relationship);
+				
+			} else {
+				
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+			}
+			
+		} else {
+			
+			logger.log(Level.SEVERE, "Relationships created while outside of transaction!");
 		}
+	}
+	
+	public static void relationshipModified(AbstractRelationship relationship, PropertyKey key, Object value) {
 		
-		public synchronized  void inc() {
-			this.set(this.get().longValue() + 1);
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+			
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+				
+				modificationQueue.modify(relationship, null, null);
+				
+			} else {
+				
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+			}
+			
+		} else {
+			
+			logger.log(Level.SEVERE, "Relationship deleted while outside of transaction!");
 		}
+	}
+	
+	public static void relationshipDeleted(AbstractRelationship relationship, boolean passive) {
 		
-		public synchronized  void dec() {
-			this.set(this.get().longValue() - 1);
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+			
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+				
+				modificationQueue.delete(relationship, passive);
+				
+			} else {
+				
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+			}
+			
+		} else {
+			
+			logger.log(Level.SEVERE, "Relationship deleted while outside of transaction!");
 		}
+	}
+
+	private ModificationQueue getModificationQueue() {
+		return modificationQueue;
 	}
 }

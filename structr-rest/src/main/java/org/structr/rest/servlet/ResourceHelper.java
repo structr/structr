@@ -31,7 +31,6 @@ import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.RelationshipFollowingResource;
 import org.structr.rest.resource.Resource;
-import org.structr.rest.resource.SchemaResource;
 import org.structr.rest.resource.ViewFilterResource;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -90,7 +89,7 @@ public class ResourceHelper {
 		String[] pathParts = path.split("[/]+");
 
 		// 2.: create container for resource constraints
-		List<Resource> constraintChain = new ArrayList<Resource>(pathParts.length);
+		List<Resource> resourceChain = new ArrayList<Resource>(pathParts.length);
 
 		// 3.: try to assign resource constraints for each URI part
 		for (int i = 0; i < pathParts.length; i++) {
@@ -101,20 +100,6 @@ public class ResourceHelper {
 			if (part.length() > 0) {
 
 				boolean found = false;
-
-//				// Special resource: _schema contains schema information
-//				if ("_schema".equals(part)) {
-//
-//					SchemaResource resource = new SchemaResource();
-//
-//					resource.checkAndConfigure("_schema", securityContext, request);
-//					constraintChain.add(resource);
-//
-//					found = true;
-//
-//					break;
-//
-//				}
 
 				// look for matching pattern
 				for (Map.Entry<Pattern, Class<? extends Resource>> entry : resourceMap.entrySet()) {
@@ -133,7 +118,7 @@ public class ResourceHelper {
 							resource = type.newInstance();
 						} catch (Throwable t) {
 
-							logger.log(Level.WARNING, "Error instantiating constraint class", t);
+							logger.log(Level.WARNING, "Error instantiating resource class", t);
 
 						}
 
@@ -144,7 +129,7 @@ public class ResourceHelper {
 
 							if (resource.checkAndConfigure(part, securityContext, request)) {
 
-								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}", new Object[] { matcher.pattern(), type.getName(),
+								logger.log(Level.FINE, "{0} matched, adding resource of type {1} for part {2}", new Object[] { matcher.pattern(), type.getName(),
 									part });
 
 								// allow constraint to modify context
@@ -152,7 +137,7 @@ public class ResourceHelper {
 								resource.configureIdProperty(defaultIdProperty);
 
 								// add constraint and go on
-								constraintChain.add(resource);
+								resourceChain.add(resource);
 
 								found = true;
 
@@ -174,7 +159,7 @@ public class ResourceHelper {
 			}
 		}
 
-		return constraintChain;
+		return resourceChain;
 
 	}
 
@@ -186,18 +171,17 @@ public class ResourceHelper {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	public static Resource optimizeConstraintChain(final List<Resource> constraintChain, final PropertyKey defaultIdProperty) throws FrameworkException {
+	public static Resource optimizeNestedResourceChain(final List<Resource> resourceChain, final PropertyKey defaultIdProperty) throws FrameworkException {
 
 		ViewFilterResource view = null;
-		int num                 = constraintChain.size();
+		int num                 = resourceChain.size();
 		boolean found           = false;
-		int iterations          = 0;
 
 		do {
 
 			StringBuilder chain = new StringBuilder();
 
-			for (Iterator<Resource> it = constraintChain.iterator(); it.hasNext(); ) {
+			for (Iterator<Resource> it = resourceChain.iterator(); it.hasNext(); ) {
 
 				Resource constr = it.next();
 
@@ -214,29 +198,24 @@ public class ResourceHelper {
 
 			}
 
-			logger.log(Level.FINE, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() });
-
 			found = false;
 
 			try {
 
 				for (int i = 0; i < num; i++) {
 
-					Resource firstElement       = constraintChain.get(i);
-					Resource secondElement      = constraintChain.get(i + 1);
+					Resource firstElement       = resourceChain.get(i);
+					Resource secondElement      = resourceChain.get(i + 1);
 					Resource combinedConstraint = firstElement.tryCombineWith(secondElement);
 
 					if (combinedConstraint != null) {
 
-						logger.log(Level.FINE, "Combined constraint {0} and {1} to {2}", new Object[] { firstElement.getClass().getSimpleName(),
-							secondElement.getClass().getSimpleName(), combinedConstraint.getClass().getSimpleName() });
-
 						// remove source constraints
-						constraintChain.remove(firstElement);
-						constraintChain.remove(secondElement);
+						resourceChain.remove(firstElement);
+						resourceChain.remove(secondElement);
 
 						// add combined constraint
-						constraintChain.add(i, combinedConstraint);
+						resourceChain.add(i, combinedConstraint);
 
 						// signal success
 						found = true;
@@ -255,24 +234,20 @@ public class ResourceHelper {
 				// ignore exceptions thrown here
 			}
 
-			iterations++;
-
 		} while (found);
 
 		StringBuilder chain = new StringBuilder();
 
-		for (Resource constr : constraintChain) {
+		for (Resource constr : resourceChain) {
 
 			chain.append(constr.getClass().getSimpleName());
 			chain.append(", ");
 
 		}
 
-		logger.log(Level.FINE, "Final constraint chain {0}", chain.toString());
+		if (resourceChain.size() == 1) {
 
-		if (constraintChain.size() == 1) {
-
-			Resource finalConstraint = constraintChain.get(0);
+			Resource finalConstraint = resourceChain.get(0);
 
 			if (view != null) {
 
@@ -310,6 +285,7 @@ public class ResourceHelper {
 			
 			ViewTransformation transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
 			if (transformation != null) {
+				
 				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
 			}
 		}

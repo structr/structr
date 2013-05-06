@@ -31,7 +31,6 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -48,6 +47,7 @@ import static junit.framework.Assert.fail;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.PropertyDefinition;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;

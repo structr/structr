@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
@@ -112,7 +113,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 	
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public void setProperty(SecurityContext securityContext, final GraphObject obj, T value) throws FrameworkException {
 		
 		PropertyConverter converter = databaseConverter(securityContext, obj);
 		final Object convertedValue;
@@ -146,6 +147,28 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					try {
 
+						// notify only non-system properties
+						if (!isSystemProperty) {
+							
+							// collect modified properties
+							if (obj instanceof AbstractNode) {
+
+								TransactionCommand.nodeModified(
+									(AbstractNode)obj,
+									AbstractPrimitiveProperty.this,
+									propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+								);
+
+							} else if (obj instanceof AbstractRelationship) {
+
+								TransactionCommand.relationshipModified(
+									(AbstractRelationship)obj,
+									AbstractPrimitiveProperty.this,
+									propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+								);
+							}
+						}
+						
 						// save space
 						if (convertedValue == null) {
 

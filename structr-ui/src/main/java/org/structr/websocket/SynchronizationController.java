@@ -24,7 +24,6 @@ package org.structr.websocket;
 import com.google.gson.Gson;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
@@ -32,6 +31,8 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -40,13 +41,20 @@ import org.eclipse.jetty.util.URIUtil;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 import static org.mockito.Mockito.mock;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.event.PropertyEntry;
+import org.neo4j.graphdb.event.TransactionData;
+import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.structr.common.AccessMode;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import static org.structr.core.EntityContext.getPropertyKeyForDatabaseName;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.TransactionChangeSet;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
@@ -68,13 +76,15 @@ import org.w3c.dom.Node;
  *
  * @author Christian Morgner
  */
-public class SynchronizationController implements StructrTransactionListener {
+public class SynchronizationController implements StructrTransactionListener, TransactionEventHandler<Long> {
 
 	private static final Logger logger                              = Logger.getLogger(SynchronizationController.class.getName());
 
-	private final Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
+	private final Map<Long, List<WebSocketMessage>> messageStackMap = new ConcurrentHashMap<Long, List<WebSocketMessage>>();
+	private final Map<Long, Set<DOMNode>> markupElementsMap         = new ConcurrentHashMap<Long, Set<DOMNode>>();
+	private final Map<Long, Set<Class>> typesMap                    = new ConcurrentHashMap<Long, Set<Class>>();
 	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<StructrWebSocket>();
-	private List<WebSocketMessage> messageStack                     = null;
+	private final AtomicLong transactionCounter                     = new AtomicLong(0);
 	private ResourceProvider resourceProvider                       = null;
 	private Gson gson                                               = null;
 
@@ -257,46 +267,45 @@ public class SynchronizationController implements StructrTransactionListener {
 	}
 
 	private void broadcastDynamicElements(SecurityContext securityContext, StructrWebSocket socket, final List<DOMNode> dynamicElements) {
-		
-			// filter elements
-			List<DOMNode> filteredElements = filter(securityContext, dynamicElements);
-			List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
 
-			for (WebSocketMessage webSocketData : partialMessages) {
-				
-				webSocketData.setSessionValid(true);
+		// filter elements
+		List<DOMNode> filteredElements = filter(securityContext, dynamicElements);
+		List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
 
-				String pagePath = (String) webSocketData.getNodeData().get("pagePath");
-				String clientPagePath = socket.getPathPath();
-				
-				if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
-					continue;
-				}
+		for (WebSocketMessage webSocketData : partialMessages) {
 
-				Connection socketConnection = socket.getConnection();
+			webSocketData.setSessionValid(true);
 
-				webSocketData.setCallback(socket.getCallback());
+			String pagePath = (String) webSocketData.getNodeData().get("pagePath");
+			String clientPagePath = socket.getPathPath();
 
-				if ((socketConnection != null)) {
+			if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
+				continue;
+			}
 
-					String message = gson.toJson(webSocketData, WebSocketMessage.class);
+			Connection socketConnection = socket.getConnection();
 
-					try {
+			webSocketData.setCallback(socket.getCallback());
 
-						socketConnection.sendMessage(message);
+			if ((socketConnection != null)) {
 
-					} catch (org.eclipse.jetty.io.EofException eof) {
+				String message = gson.toJson(webSocketData, WebSocketMessage.class);
 
-						logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+				try {
 
-					} catch (Throwable t) {
+					socketConnection.sendMessage(message);
 
-						logger.log(Level.WARNING, "Error sending message to client.", t);
+				} catch (org.eclipse.jetty.io.EofException eof) {
 
-					}
+					logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Error sending message to client.", t);
+
 				}
 			}
-		
+		}
 	}
 	
 	private List<WebSocketMessage> createPartialMessages(SecurityContext securityContext, List<DOMNode> elements) {
@@ -374,15 +383,15 @@ public class SynchronizationController implements StructrTransactionListener {
 	@Override
 	public void commitStarts(SecurityContext securityContext, long transactionKey) {
 
-		messageStack = new LinkedList<WebSocketMessage>();
-
-		messageStackMap.put(transactionKey, messageStack);
+		messageStackMap.put(transactionKey, new LinkedList<WebSocketMessage>());
+		markupElementsMap.put(transactionKey, new LinkedHashSet<DOMNode>());
+		typesMap.put(transactionKey, new LinkedHashSet<Class>());
 	}
 
 	@Override
 	public void commitFinishes(SecurityContext securityContext, long transactionKey) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		if (messageStack != null) {
 
@@ -395,61 +404,35 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
 		}
-
-		messageStackMap.remove(transactionKey);
-
 	}
 
 	@Override
-	public void willRollback(SecurityContext securityContext, long transactionKey) {
+	public void afterRollback(SecurityContext securityContext, long transactionKey) {
 
 		// roll back transaction
 		messageStackMap.remove(transactionKey);
+		markupElementsMap.remove(transactionKey);
+		typesMap.remove(transactionKey);
 	}
 
 	@Override
 	public void afterCommit(SecurityContext securityContext, long transactionKey) {
 		
-		TransactionChangeSet changeSet = EntityContext.getTransactionChangeSet(transactionKey);
-		Set<DOMNode> markupElements = new HashSet();
-		
-		if (changeSet != null) {
+		Set<DOMNode> markupElements = markupElementsMap.get(transactionKey);
+		Set<Class> types            = typesMap.get(transactionKey);
 
-			Set<Class> types = new LinkedHashSet<Class>();
-			
-			Set<AbstractNode> nodes = new HashSet();
-			
-			nodes.addAll(changeSet.getCreatedNodes());
-			nodes.addAll(changeSet.getDeletedNodes());
-			nodes.addAll(changeSet.getModifiedNodes());
-			
-			for (AbstractNode node : nodes) {
-				
-				if (node instanceof DOMNode) {
-					
-					// disabled markupElements.add(((DOMNode) node));
-					
-				} else {
-					
-					types.add(node.getClass());
-					
-				}
-			}
-			
-			broadcastPartials(types, markupElements);
+		broadcastPartials(types, markupElements);
 
-			
-		} else {
-			
-			logger.log(Level.WARNING, "Unable to broadcast partial updates, changeSet not found");
-		}
-		
+		// roll back transaction
+		messageStackMap.remove(transactionKey);
+		markupElementsMap.remove(transactionKey);
+		typesMap.remove(transactionKey);
 	}
 	
 	@Override
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue) {
+	public void propertyModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		WebSocketMessage message = new WebSocketMessage();
 
@@ -486,8 +469,10 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			try {
 
+				registerPartialType(graphObject, transactionKey);
+			
 				Map<String, Object> nodeProperties = new HashMap<String, Object>();
-
+				
 				nodeProperties.put(key.dbName(), newValue);
 				nodeProperties.put(AbstractNode.type.dbName(), node.getType());    // needed for type resolution
 
@@ -509,15 +494,12 @@ public class SynchronizationController implements StructrTransactionListener {
 		message.setGraphObject(graphObject);
 		message.getModifiedProperties().add(key);
 		messageStack.add(message);
-
-		return true;
-
 	}
 
 	@Override
-	public boolean propertyRemoved(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyKey key, Object oldValue) {
+	public void propertyRemoved(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyKey key, Object oldValue) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		WebSocketMessage message = new WebSocketMessage();
 
@@ -548,21 +530,21 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			}
 
+		} else {
+
+			registerPartialType(graphObject, transactionKey);
 		}
 
 		message.setId(uuid);
 		message.setGraphObject(graphObject);
 		message.getRemovedProperties().add(key);
 		messageStack.add(message);
-
-		return true;
-
 	}
 
 	@Override
-	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
+	public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		AbstractRelationship relationship;
 
@@ -609,6 +591,8 @@ public class SynchronizationController implements StructrTransactionListener {
 
 		} else {
 
+			registerPartialType(graphObject, transactionKey);
+			
 			WebSocketMessage message = new WebSocketMessage();
 
 			message.setCommand("CREATE");
@@ -623,20 +607,16 @@ public class SynchronizationController implements StructrTransactionListener {
 			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getProperty(AbstractNode.uuid));
 
 		}
-
-		return true;
-
 	}
 
 	@Override
-	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
-		return true;
+	public void graphObjectModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, PropertyMap properties) {
+	public void graphObjectDeleted(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyMap properties) {
 
-		messageStack = messageStackMap.get(transactionKey);
+		List<WebSocketMessage> messageStack = messageStackMap.get(transactionKey);
 
 		AbstractRelationship relationship;
 
@@ -646,7 +626,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 			if (ignoreRelationship(relationship)) {
 
-				return true;
+				return;
 			}
 
 			// do not access nodes of delete relationships
@@ -682,9 +662,6 @@ public class SynchronizationController implements StructrTransactionListener {
 			messageStack.add(message);
 
 		}
-
-		return true;
-
 	}
 
 	/**
@@ -708,4 +685,284 @@ public class SynchronizationController implements StructrTransactionListener {
 		}
 	}
 
+	private void registerPartialType(GraphObject graphObject, long transactionKey) {
+
+		if (graphObject instanceof AbstractNode) {
+			
+			AbstractNode node = (AbstractNode)graphObject;
+
+			// fill type map for partials rendering
+			Set<Class> types = typesMap.get(transactionKey);
+			types.add(node.getClass());
+
+			/* DISABLED
+			Set<DOMNode> markupElememts        = markupElementsMap.get(transactionKey);
+			if (node instanceof DOMNode) {
+				markupElememts.add((DOMNode)node);
+			}
+			*/
+		}
+	}
+
+	// ----- interface TransactionEventHandler -----
+	@Override
+	public Long beforeCommit(TransactionData data) throws Exception {
+
+		Long transactionKeyValue = transactionCounter.incrementAndGet();
+		long transactionKey      = transactionKeyValue.longValue();
+
+		// check if node service is ready
+		if (!Services.isReady(NodeService.class)) {
+
+			logger.log(Level.WARNING, "Node service is not ready yet.");
+			return transactionKey;
+
+		}
+
+		SecurityContext securityContext                             = SecurityContext.getSuperUserInstance();
+		Map<Relationship, Map<String, Object>> removedRelProperties = new LinkedHashMap<Relationship, Map<String, Object>>();
+		Map<org.neo4j.graphdb.Node, Map<String, Object>> removedNodeProperties        = new LinkedHashMap<org.neo4j.graphdb.Node, Map<String, Object>>();
+		RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
+		NodeFactory nodeFactory                                     = new NodeFactory(securityContext);
+
+		commitStarts(securityContext, transactionKey);
+
+		// collect properties
+		collectRemovedNodeProperties(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
+		collectRemovedRelationshipProperties(securityContext, transactionKey, data, relFactory, removedRelProperties);
+
+		// call onCreation
+		callOnNodeCreation(securityContext, transactionKey, data, nodeFactory);
+		callOnRelationshipCreation(securityContext, transactionKey, data, relFactory);
+
+		// call onDeletion
+		callOnRelationshipDeletion(securityContext, transactionKey, data, relFactory, removedRelProperties);
+		callOnNodeDeletion(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
+
+		// call validators
+		callNodePropertyModified(securityContext, transactionKey, data, nodeFactory);
+		callRelationshipPropertyModified(securityContext, transactionKey, data, relFactory);
+
+		commitFinishes(securityContext, transactionKey);
+
+		return transactionKey;
+	}
+
+	@Override
+	public void afterCommit(TransactionData data, Long transactionKey) {
+
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		afterCommit(securityContext, transactionKey);
+	}
+
+	@Override
+	public void afterRollback(TransactionData data, Long transactionKey) {
+
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		afterRollback(securityContext, transactionKey);
+	}
+
+	private void collectRemovedNodeProperties(SecurityContext securityContext, long transactionKey, TransactionData data,
+					   NodeFactory nodeFactory, Map<org.neo4j.graphdb.Node, Map<String, Object>> removedNodeProperties) throws FrameworkException {
+
+		for (PropertyEntry<org.neo4j.graphdb.Node> entry : data.removedNodeProperties()) {
+
+			org.neo4j.graphdb.Node node                       = entry.entity();
+			Map<String, Object> propertyMap = removedNodeProperties.get(node);
+
+			if (propertyMap == null) {
+
+				propertyMap = new LinkedHashMap<String, Object>();
+
+				removedNodeProperties.put(node, propertyMap);
+
+			}
+
+			propertyMap.put(entry.key(), entry.previouslyCommitedValue());
+
+			if (!data.isDeleted(node)) {
+
+				AbstractNode modifiedNode = nodeFactory.instantiateNode(node, true, false);
+				if (modifiedNode != null) {
+
+					PropertyKey key = getPropertyKeyForDatabaseName(modifiedNode.getClass(), entry.key());
+					propertyRemoved(securityContext, transactionKey, modifiedNode, key, entry.previouslyCommitedValue());
+				}
+
+			}
+		}
+	}
+
+	private void collectRemovedRelationshipProperties(SecurityContext securityContext, long transactionKey, TransactionData data,
+					   RelationshipFactory relFactory, Map<Relationship, Map<String, Object>> removedRelProperties) throws FrameworkException {
+
+		for (PropertyEntry<Relationship> entry : data.removedRelationshipProperties()) {
+
+			Relationship rel                = entry.entity();
+			Map<String, Object> propertyMap = removedRelProperties.get(rel);
+
+			if (propertyMap == null) {
+
+				propertyMap = new LinkedHashMap<String, Object>();
+
+				removedRelProperties.put(rel, propertyMap);
+
+			}
+
+			propertyMap.put(entry.key(), entry.previouslyCommitedValue());
+
+			if (!data.isDeleted(rel)) {
+
+				AbstractRelationship modifiedRel = relFactory.instantiateRelationship(securityContext, rel);
+				if (modifiedRel != null) {
+
+					PropertyKey key = getPropertyKeyForDatabaseName(modifiedRel.getClass(), entry.key());
+					propertyRemoved(securityContext, transactionKey, modifiedRel, key, entry.previouslyCommitedValue());
+				}
+			}
+
+		}
+	}
+
+	private void callOnNodeCreation(SecurityContext securityContext, long transactionKey, TransactionData data, NodeFactory nodeFactory) throws FrameworkException {
+
+		for (org.neo4j.graphdb.Node node : sortNodes(data.createdNodes())) {
+
+			AbstractNode entity = nodeFactory.instantiateNode(node, true, false);
+			if (entity != null) {
+
+				graphObjectCreated(securityContext, transactionKey, entity);
+			}
+
+		}
+	}
+
+	private boolean callOnRelationshipCreation(SecurityContext securityContext, long transactionKey, TransactionData data, RelationshipFactory relFactory) throws FrameworkException {
+
+		boolean hasError = false;
+
+		for (Relationship rel : sortRelationships(data.createdRelationships())) {
+
+			AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
+			if (entity != null) {
+
+				// notify registered listeners
+				graphObjectCreated(securityContext, transactionKey, entity);
+			}
+
+		}
+
+		return hasError;
+	}
+
+	private void callOnRelationshipDeletion(SecurityContext securityContext, long transactionKey, TransactionData data,
+				RelationshipFactory relFactory, Map<Relationship, Map<String, Object>> removedRelProperties) throws FrameworkException {
+
+		for (Relationship rel : data.deletedRelationships()) {
+
+			AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
+			if (entity != null) {
+
+				// convertFromInput properties
+				PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedRelProperties.get(rel));
+				graphObjectDeleted(securityContext, transactionKey, entity, properties);
+			}
+		}
+	}
+
+	private void callOnNodeDeletion(SecurityContext securityContext, long transactionKey, TransactionData data,
+					   NodeFactory nodeFactory, Map<org.neo4j.graphdb.Node, Map<String, Object>> removedNodeProperties) throws FrameworkException {
+
+		for (org.neo4j.graphdb.Node node : data.deletedNodes()) {
+
+			String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
+			AbstractNode entity = nodeFactory.instantiateDummyNode(type);
+
+			if (entity != null) {
+
+				PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedNodeProperties.get(node));
+				graphObjectDeleted(securityContext, transactionKey, entity, properties);
+			}
+		}
+	}
+
+	private void callNodePropertyModified(SecurityContext securityContext, long transactionKey, TransactionData data, NodeFactory nodeFactory) throws FrameworkException {
+
+		for (PropertyEntry<org.neo4j.graphdb.Node> entry : data.assignedNodeProperties()) {
+
+			AbstractNode nodeEntity = nodeFactory.instantiateNode(entry.entity(), true, false);
+			if (nodeEntity != null) {
+
+				PropertyKey key  = getPropertyKeyForDatabaseName(nodeEntity.getClass(), entry.key());
+				Object value     = entry.value();
+
+				propertyModified(securityContext, transactionKey, nodeEntity, key, entry.previouslyCommitedValue(), value);
+			}
+		}
+	}
+
+	private void callRelationshipPropertyModified(SecurityContext securityContext, long transactionKey, TransactionData data, RelationshipFactory relFactory) throws FrameworkException {
+
+		for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
+
+			AbstractRelationship relEntity    = relFactory.instantiateRelationship(securityContext, entry.entity());
+			if (relEntity != null) {
+
+				PropertyKey key = getPropertyKeyForDatabaseName(relEntity.getClass(), entry.key());
+				Object value    = entry.value();
+
+				propertyModified(securityContext, transactionKey, relEntity, key, entry.previouslyCommitedValue(), value);
+			}
+		}
+	}
+	
+	private ArrayList<org.neo4j.graphdb.Node> sortNodes(final Iterable<org.neo4j.graphdb.Node> it) {
+		
+		ArrayList<org.neo4j.graphdb.Node> list = new ArrayList<org.neo4j.graphdb.Node>();
+		
+		for (org.neo4j.graphdb.Node p : it) {
+			
+			list.add(p);
+			
+		}
+		
+		
+		Collections.sort(list, new Comparator<org.neo4j.graphdb.Node>() {
+
+			@Override
+			public int compare(org.neo4j.graphdb.Node o1, org.neo4j.graphdb.Node o2) {
+				Long id1 = o1.getId();
+				Long id2 = o2.getId();
+				return id1.compareTo(id2);
+			}
+		});
+		
+		return list;
+		
+	}
+	
+	private ArrayList<Relationship> sortRelationships(final Iterable<Relationship> it) {
+		
+		ArrayList<Relationship> list = new ArrayList<Relationship>();
+		
+		for (Relationship p : it) {
+			
+			list.add(p);
+			
+		}
+		
+		
+		Collections.sort(list, new Comparator<Relationship>() {
+
+			@Override
+			public int compare(Relationship o1, Relationship o2) {
+				Long id1 = o1.getId();
+				Long id2 = o2.getId();
+				return id1.compareTo(id2);
+			}
+		});
+		
+		return list;
+		
+	}
 }

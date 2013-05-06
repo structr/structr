@@ -18,9 +18,7 @@
  */
 package org.structr.core;
 
-import java.util.LinkedHashSet;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
@@ -38,17 +36,17 @@ public class TransactionChangeSet {
 	private Queue<AbstractNode> propagationQueue    = new ConcurrentLinkedQueue<AbstractNode>();
 	private boolean systemOnly                      = true;
 	
-	private Set<AbstractRelationship> modifiedRels  = new LinkedHashSet<AbstractRelationship>();
-	private Set<AbstractRelationship> createdRels   = new LinkedHashSet<AbstractRelationship>();
-	private Set<AbstractRelationship> deletedRels   = new LinkedHashSet<AbstractRelationship>();
+	private Queue<AbstractRelationship> modifiedRels  = new ConcurrentLinkedQueue<AbstractRelationship>();
+	private Queue<AbstractRelationship> createdRels   = new ConcurrentLinkedQueue<AbstractRelationship>();
+	private Queue<AbstractRelationship> deletedRels   = new ConcurrentLinkedQueue<AbstractRelationship>();
 
-	private Set<AbstractNode> modifiedNodes         = new LinkedHashSet<AbstractNode>();
-	private Set<AbstractNode> createdNodes          = new LinkedHashSet<AbstractNode>();
-	private Set<AbstractNode> deletedNodes          = new LinkedHashSet<AbstractNode>();
+	private Queue<AbstractNode> modifiedNodes         = new ConcurrentLinkedQueue<AbstractNode>();
+	private Queue<AbstractNode> createdNodes          = new ConcurrentLinkedQueue<AbstractNode>();
+	private Queue<AbstractNode> deletedNodes          = new ConcurrentLinkedQueue<AbstractNode>();
 
-	private Set<AbstractNode> ownerModifiedNodes    = new LinkedHashSet<AbstractNode>();
-	private Set<AbstractNode> securityModifiedNodes = new LinkedHashSet<AbstractNode>();
-	private Set<AbstractNode> locationModifiedNodes = new LinkedHashSet<AbstractNode>();
+	private Queue<AbstractNode> ownerModifiedNodes    = new ConcurrentLinkedQueue<AbstractNode>();
+	private Queue<AbstractNode> securityModifiedNodes = new ConcurrentLinkedQueue<AbstractNode>();
+	private Queue<AbstractNode> locationModifiedNodes = new ConcurrentLinkedQueue<AbstractNode>();
 
 	public void include(TransactionChangeSet changeSet) {
 		
@@ -241,39 +239,39 @@ public class TransactionChangeSet {
 		}
 	}
 	
-	public Set<AbstractRelationship> getModifiedRelationships() {
+	public Queue<AbstractRelationship> getModifiedRelationships() {
 		return modifiedRels;
 	}
 
-	public Set<AbstractRelationship> getCreatedRelationships() {
+	public Queue<AbstractRelationship> getCreatedRelationships() {
 		return createdRels;
 	}
 
-	public Set<AbstractRelationship> getDeletedRelationships() {
+	public Queue<AbstractRelationship> getDeletedRelationships() {
 		return deletedRels;
 	}
 
-	public Set<AbstractNode> getModifiedNodes() {
+	public Queue<AbstractNode> getModifiedNodes() {
 		return modifiedNodes;
 	}
 
-	public Set<AbstractNode> getCreatedNodes() {
+	public Queue<AbstractNode> getCreatedNodes() {
 		return createdNodes;
 	}
 
-	public Set<AbstractNode> getDeletedNodes() {
+	public Queue<AbstractNode> getDeletedNodes() {
 		return deletedNodes;
 	}
 
-	public Set<AbstractNode> getOwnerModifiedNodes() {
+	public Queue<AbstractNode> getOwnerModifiedNodes() {
 		return ownerModifiedNodes;
 	}
 
-	public Set<AbstractNode> getSecurityModifiedNodes() {
+	public Queue<AbstractNode> getSecurityModifiedNodes() {
 		return securityModifiedNodes;
 	}
 
-	public Set<AbstractNode> getLocationModifiedNodes() {
+	public Queue<AbstractNode> getLocationModifiedNodes() {
 		return locationModifiedNodes;
 	}
 	
