@@ -622,6 +622,7 @@ public class Structr {
 				Map<String, Object> attributes = new LinkedHashMap<String, Object>();
 				
 				attributes.put("mode", "import");
+				attributes.put("validate", "false");
 				attributes.put("file", seedFile.getAbsoluteFile().getAbsolutePath());
 				
 				Services.command(SecurityContext.getSuperUserInstance(), SyncCommand.class).execute(attributes);
