@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
@@ -93,12 +94,8 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			}
 
-			try {
-
-				rel.getUuid();
-				fail("Should have raised an org.neo4j.graphdb.NotFoundException");
-
-			} catch (org.neo4j.graphdb.NotFoundException e) {}
+			String uuid = rel.getUuid();
+			assertNull("UUID of deleted relationship should be null", uuid);
 
 		} catch (FrameworkException ex) {
 
@@ -239,12 +236,8 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			}
 
-			try {
-
-				rel.getUuid();
-				fail("Should have raised an org.neo4j.graphdb.NotFoundException");
-
-			} catch (org.neo4j.graphdb.NotFoundException e) {}
+			String uuid = rel.getUuid();
+			assertNull("UUID of deleted relationship should be null", uuid);
 
 		} catch (FrameworkException ex) {
 
@@ -288,12 +281,8 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			}
 
-			try {
-
-				rel.getUuid();
-				fail("Should have raised an org.neo4j.graphdb.NotFoundException");
-
-			} catch (org.neo4j.graphdb.NotFoundException e) {}
+			String uuid = rel.getUuid();
+			assertNull("UUID of deleted relationship should be null", uuid);
 
 		} catch (FrameworkException ex) {
 
