@@ -28,7 +28,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.rest.graphdb.RestGraphDatabase;
+//import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.core.property.StringProperty;
@@ -82,43 +82,43 @@ public class RemoteView extends View {
 			NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
 			// initialize remote cypher engine
-			GraphDatabaseService gds        = new RestGraphDatabase(repositoryUrl, username, password);
-			ExecutionEngine engine          = new ExecutionEngine(gds);
-
-			// execute cypher query
-			ExecutionResult result          = engine.execute(query);
-			
-			// process result
-			for (String column : result.columns()) {
-
-				for (Object o : IteratorUtil.asIterable(result.columnAs(column))) {
-
-					if (o instanceof Node) {
-
-						AbstractNode node = nodeFactory.instantiateNode((Node) o);
-
-						if (node != null) {
-
-							resultList.add(node);
-						}
-						
-					} else if (o instanceof Relationship) {
-
-						AbstractRelationship rel = relFactory.instantiateRelationship(securityContext, (Relationship) o);
-
-						if (rel != null) {
-
-							resultList.add(rel);
-						}
-
-					}
-
-				}
-
-			}
-
-			// shutdown rest database connection
-			gds.shutdown();
+//			GraphDatabaseService gds        = new RestGraphDatabase(repositoryUrl, username, password);
+//			ExecutionEngine engine          = new ExecutionEngine(gds);
+//
+//			// execute cypher query
+//			ExecutionResult result          = engine.execute(query);
+//			
+//			// process result
+//			for (String column : result.columns()) {
+//
+//				for (Object o : IteratorUtil.asIterable(result.columnAs(column))) {
+//
+//					if (o instanceof Node) {
+//
+//						AbstractNode node = nodeFactory.instantiateNode((Node) o);
+//
+//						if (node != null) {
+//
+//							resultList.add(node);
+//						}
+//						
+//					} else if (o instanceof Relationship) {
+//
+//						AbstractRelationship rel = relFactory.instantiateRelationship(securityContext, (Relationship) o);
+//
+//						if (rel != null) {
+//
+//							resultList.add(rel);
+//						}
+//
+//					}
+//
+//				}
+//
+//			}
+//
+//			// shutdown rest database connection
+//			gds.shutdown();
 			
 			return resultList;
 			

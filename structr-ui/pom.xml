@@ -92,11 +92,11 @@
             <artifactId>jersey-client</artifactId>
             <version>1.9-ea04</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.9.M04</version>
-        </dependency>
+            <version>1.9.RC2</version>
+        </dependency>-->
         <dependency>
             <groupId>com.flagstone</groupId>
             <artifactId>transform</artifactId>
