@@ -336,7 +336,7 @@ public class Person extends AbstractNode implements Principal {
 	@Override
 	public void grant(Permission permission, AbstractNode obj) {
 
-		AbstractRelationship secRel = obj.getSecurityRelationship(this);
+		SecurityRelationship secRel = obj.getSecurityRelationship(this);
 
 		if (secRel == null) {
 
@@ -359,7 +359,7 @@ public class Person extends AbstractNode implements Principal {
 	@Override
 	public void revoke(Permission permission, AbstractNode obj) {
 
-		AbstractRelationship secRel = obj.getSecurityRelationship(this);
+		SecurityRelationship secRel = obj.getSecurityRelationship(this);
 
 		if (secRel == null) {
 
@@ -379,9 +379,9 @@ public class Person extends AbstractNode implements Principal {
 
 	}
 
-	private AbstractRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
+	private SecurityRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
 
-		return Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
+		return (SecurityRelationship) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
 
 	}
 

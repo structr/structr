@@ -71,7 +71,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public static final Property<String>   combinedType  = new StringProperty("combinedType");
 	public static final Property<Integer>  cascadeDelete = new IntProperty("cascadeDelete");
-	public static final Property<String[]> allowed       = new GenericProperty<String[]>("allowed");
 	
 	
 	//~--- static initializers --------------------------------------------
@@ -301,32 +300,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	public void addPermission(final Permission permission) {
-
-		String[] allowed = getPermissions();
-
-		if (ArrayUtils.contains(allowed, permission.name())) {
-
-			return;
-		}
-
-		setAllowed((String[]) ArrayUtils.add(allowed, permission.name()));
-
-	}
-
-	public void removePermission(final Permission permission) {
-
-		String[] allowed = getPermissions();
-
-		if (!ArrayUtils.contains(allowed, permission.name())) {
-
-			return;
-		}
-
-		setAllowed((String[]) ArrayUtils.removeElement(allowed, permission.name()));
-
-	}
-	
 	/**
 	 * Indicates whether this relationship type propagates modifications
 	 * in the given direction. Overwrite this method and return true for
@@ -534,33 +507,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	public String[] getPermissions() {
-
-		if (dbRelationship.hasProperty(AbstractRelationship.allowed.dbName())) {
-
-			// StringBuilder result             = new StringBuilder();
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.allowed.dbName());
-
-			return allowedProperties;
-
-//                      if (allowedProperties != null) {
-//
-//                              for (String p : allowedProperties) {
-//
-//                                      result.append(p).append("\n");
-//
-//                              }
-//
-//                      }
-//
-//                      return result.toString();
-		} else {
-
-			return null;
-		}
-
-	}
-
 	/**
 	 * Return all property keys.
 	 *
@@ -705,31 +651,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		error |= ValidationHelper.checkStringNotBlank(this, AbstractRelationship.uuid, errorBuffer);
 
 		return !error;
-
-	}
-
-	public boolean isAllowed(final Permission permission) {
-
-		if (dbRelationship.hasProperty(allowed.dbName())) {
-
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(allowed.dbName());
-
-			if (allowedProperties != null) {
-
-				for (String p : allowedProperties) {
-
-					if (p.equals(permission.name())) {
-
-						return true;
-					}
-
-				}
-
-			}
-
-		}
-
-		return false;
 
 	}
 
@@ -944,30 +865,4 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	public void setAllowed(final List<String> allowed) {
-
-		String[] allowedActions = (String[]) allowed.toArray(new String[allowed.size()]);
-
-		setAllowed(allowedActions);
-
-	}
-
-	public void setAllowed(final Permission[] allowed) {
-
-		List<String> allowedActions = new ArrayList<String>();
-
-		for (Permission permission : allowed) {
-
-			allowedActions.add(permission.name());
-		}
-
-		setAllowed(allowedActions);
-
-	}
-
-	public void setAllowed(final String[] allowed) {
-
-		dbRelationship.setProperty(AbstractRelationship.allowed.dbName(), allowed);
-
-	}
 }

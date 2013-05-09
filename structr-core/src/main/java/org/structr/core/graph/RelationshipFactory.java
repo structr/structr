@@ -35,6 +35,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static org.structr.common.RelType.SECURITY;
+import org.structr.core.entity.SecurityRelationship;
 import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -105,9 +107,9 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		try {
 
-			// use already stored combined relationship type
-			if (relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
-
+			// 1st: Try combined type
+			if (relClass == null && relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
+				
 				String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
 
 				relClass = EntityContext.getNamedRelationClass(combinedRelType);
@@ -120,13 +122,19 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			}
 			
-			// 2nd try: create combined relationship type on the fly
+			// 2nd: Create combined relationship type on the fly
 			if (relClass == null) {
 				relClass = findNamedRelation(relationship);
 			}
+
+			// 3rd: Try security relationship directly
+			if (relClass == null && SECURITY.name().equals(relationship.getType().name())) {
+				
+				relClass = (Class) SecurityRelationship.class;
+
+			}
 			
-			
-			if (relClass != null) {
+			if (relClass != null && newRel == null) {
 
 				try {
 					newRel = relClass.newInstance();

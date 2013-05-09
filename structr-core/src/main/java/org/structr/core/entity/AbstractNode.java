@@ -113,7 +113,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	// request parameters
 	protected SecurityContext securityContext                     = null;
-	private Map<Long, AbstractRelationship> securityRelationships = null;
+	private Map<Long, SecurityRelationship> securityRelationships = null;
 	private boolean readOnlyPropertiesUnlocked                    = false;
 
 	// reference to database node
@@ -248,7 +248,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		if (securityRelationships == null) {
 
-			securityRelationships = new HashMap<Long, AbstractRelationship>();
+			securityRelationships = new HashMap<Long, SecurityRelationship>();
 		}
 
 		// Fill cache map
@@ -258,7 +258,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			
 			if (owner != null) {
 
-				securityRelationships.put(owner.getId(), r);
+				securityRelationships.put(owner.getId(), (SecurityRelationship) r);
 			}
 		}
 
@@ -682,7 +682,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return incoming security relationship
 	 */
 	@Override
-	public AbstractRelationship getSecurityRelationship(final Principal principal) {
+	public SecurityRelationship getSecurityRelationship(final Principal principal) {
 
 		if (principal == null) {
 
@@ -693,7 +693,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		if (securityRelationships == null) {
 
-			securityRelationships = new HashMap<Long, AbstractRelationship>();
+			securityRelationships = new HashMap<Long, SecurityRelationship>();
 		}
 
 		if (!(securityRelationships.containsKey(userId))) {
@@ -926,7 +926,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return true;
 		}
 
-		AbstractRelationship r = getSecurityRelationship(principal);
+		SecurityRelationship r = getSecurityRelationship(principal);
 
 		if ((r != null) && r.isAllowed(permission)) {
 

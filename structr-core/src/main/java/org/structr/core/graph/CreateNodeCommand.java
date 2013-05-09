@@ -36,12 +36,11 @@ import org.structr.core.entity.Principal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
+import org.structr.core.entity.SecurityRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -107,7 +106,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 					AbstractNode owner = (AbstractNode)user;
 					createRel.execute(owner, node, RelType.OWNS, false);
 					
-					AbstractRelationship securityRel = createRel.execute(owner, node, RelType.SECURITY, false);
+					SecurityRelationship securityRel = (SecurityRelationship) createRel.execute(owner, node, RelType.SECURITY, false);
 					securityRel.setAllowed(Permission.values());
 
 					node.unlockReadOnlyPropertiesOnce();
