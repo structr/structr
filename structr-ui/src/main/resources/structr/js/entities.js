@@ -300,7 +300,7 @@ var _Entities = {
                                     //                                } else if (isIn(key, _Entities.numberAttrs)) {
                                     } else if (isIn(key, _Entities.dateAttrs)) {
                                     
-                                        if (!res[key] || res[key] == 'null') {
+                                        if (!res[key] || res[key] === 'null') {
                                             res[key] = '';
                                         }
                                     
@@ -400,6 +400,48 @@ var _Entities = {
                 Structr.dialog('Access Control and Visibility', function() {}, function() {});
 
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
+
+                dialogText.append('<h3>Access Rights</h3>');
+                dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Type</th><th>Read</th><th>Write/Modify</th><th>Delete</th></tr></thead><tbody></tbody></table');
+                
+                var tb = $('#principals tbody', dialogText);
+                
+                var headers = {};
+                headers['X-StructrSessionToken'] = token;
+                $.ajax({
+                    url: rootUrl + '/' + entity.id + '/in',
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    headers: headers,
+                    success: function(data) {
+                        $(data.result).each(function(i, result) {
+                            
+                            var read = isIn('read', result.allowed);
+                            var write = isIn('write', result.allowed);
+                            var del = isIn('delete', result.allowed);
+                            
+                            var principalId = result.principalId;
+                            if (principalId) {
+                                
+                                var principal = new StructrUser({type:'User', id: principalId});
+                                StructrModel.objects[principalId] = principal;
+                                
+                                Command.get(principalId, function() {
+                                    tb.append('<tr id="_' + principalId + '"><td>' + principal.name + '</td><td>' + principal.type + '</td>'
+                                            + '<td><input class="read" type="checkbox" checked="' + read + '"></td>'
+                                            + '<td><input class="write" type="checkbox" checked="' + write + '"></td>'
+                                            + '<td><input class="delete" type="checkbox" checked="' + del + '"></td></tr>');
+                                    
+                                    var row = $('#_' + principalId, tb);
+                                    $('.read', row).on('click', function() {
+                                        // TODO: Add commands to set permissions in backend
+                                    });
+                                    
+                                });
+                            }
+                        });
+                    }
+                });                
                 
                 dialogText.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
                 dialogText.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
@@ -407,7 +449,7 @@ var _Entities = {
                 var publicSwitch = $('.visibleToPublicUsers_');
                 var authSwitch = $('.visibleToAuthenticatedUsers_');
                 
-                console.log(entity);    
+                //console.log(entity);    
                 
                 _Entities.changeBooleanAttribute(publicSwitch, entity.visibleToPublicUsers);
                 _Entities.changeBooleanAttribute(authSwitch, entity.visibleToAuthenticatedUsers);
@@ -449,7 +491,7 @@ var _Entities = {
                 
         var element = $('#' + key + 'Box');
                 
-        element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select">');
+        element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select"></select></span>');
                 
         var selectElement = $('#' + key + 'Select');
         
@@ -458,7 +500,7 @@ var _Entities = {
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         $.ajax({
-            url: rootUrl + type + '/all?pageSize=100',
+            url: rootUrl + type + '/ui?pageSize=100',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             headers: headers,
@@ -474,8 +516,6 @@ var _Entities = {
                 });
             }
         });                
-                
-        element.append('</select></span>');
 
         var select = $('#' + key + 'Select', element);
         select.on('change', function() {
@@ -489,7 +529,7 @@ var _Entities = {
 
         if (!(editIcon && editIcon.length)) {
             parent.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
-            editIcon = $('.edit_props_icon', parent)
+            editIcon = $('.edit_props_icon', parent);
         }
         editIcon.on('click', function(e) {
             e.stopPropagation();
@@ -504,7 +544,7 @@ var _Entities = {
 
         if (!(dataIcon && dataIcon.length)) {
             parent.append('<img title="Edit Data Settings" alt="Edit Data Settings" class="data_icon button" src="' + '/structr/icon/database_table.png' + '">');
-            dataIcon = $('.data_icon', parent)
+            dataIcon = $('.data_icon', parent);
         }
         dataIcon.on('click', function(e) {
             e.stopPropagation();

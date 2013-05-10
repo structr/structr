@@ -668,14 +668,22 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		if (_data != null) {
 			
-			Object value = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKeyProperty.jsonName()));
-			return value != null ? value : defaultValue;
+			return getEditModeValue(renderContext, _data, referenceKeyProperty, defaultValue);
+			
 		}
 
 		return null;
 
 	}
 
+	protected Object getEditModeValue(final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
+
+		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
+		
+		return value != null ? value : defaultValue;
+		
+	}
+	
 	protected String getPropertyWithVariableReplacement(SecurityContext securityContext, RenderContext renderContext, PropertyKey<String> key) throws FrameworkException {
 
 		return replaceVariables(securityContext, renderContext, super.getProperty(key));
@@ -737,6 +745,15 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		}
 
+//		if (value != null && renderContext.getEdit() && renderContext.inBody()) {
+//			
+//			GraphObject data = renderContext.getDataObject();
+//			if (data != null) {
+//				return "<span data-structr-raw-value=\"" + rawValue + "\" data-structr-data-id=\"" + data.getUuid() + "\">" + value + "</span>";
+//			}
+//			
+//		}
+		
 		return value;
 
 	}

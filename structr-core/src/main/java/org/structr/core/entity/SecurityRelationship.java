@@ -220,14 +220,14 @@ public class SecurityRelationship extends AbstractRelationship {
 
 	public void removePermission(final Permission permission) {
 
-		String[] allowed = getPermissions();
+		String[] _allowed = getPermissions();
 
-		if (!ArrayUtils.contains(allowed, permission.name())) {
+		if (!ArrayUtils.contains(_allowed, permission.name())) {
 
 			return;
 		}
 
-		setAllowed((String[]) ArrayUtils.removeElement(allowed, permission.name()));
+		setAllowed((String[]) ArrayUtils.removeElement(_allowed, permission.name()));
 
 	}
 		

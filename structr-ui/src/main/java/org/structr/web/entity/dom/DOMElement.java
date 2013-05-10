@@ -269,7 +269,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		boolean edit         = renderContext.getEdit();
 		boolean isVoid       = isVoidElement();
 		StringBuilder buffer = renderContext.getBuffer();
-		String pageId        = renderContext.getPageId();
+		//String pageId        = renderContext.getPageId();
 		String id            = getUuid();
 		String tag           = getProperty(DOMElement.tag);
 
@@ -281,14 +281,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			if (edit) {
 
-				if (depth == 1) {
+//				if (depth == 1) {
+//
+//					buffer.append(" data-structr_page_id='").append(pageId).append("'");
+//				}
 
-					buffer.append(" data-structr_page_id='").append(pageId).append("'");
-				}
-
-				buffer.append(" data-structr_element_id=\"").append(id).append("\"");
-				buffer.append(" data-structr_type=\"").append(getType()).append("\"");
-				buffer.append(" data-structr_name=\"").append(getName()).append("\"");
+				buffer.append(" data-structr-id=\"").append(id).append("\"");
+				//buffer.append(" data-structr_type=\"").append(getType()).append("\"");
+				//buffer.append(" data-structr_name=\"").append(getName()).append("\"");
 
 			}
 

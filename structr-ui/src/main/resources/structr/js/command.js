@@ -30,15 +30,15 @@ var Command = {
      * The server will return a single item with all properties
      * of the node with the given id to the sending client (no broadcast).
      */
-    get: function(id) {
+    get: function(id, callback) {
         var obj = {};
         obj.command = 'GET_PROPERTIES';
         obj.id = id;
         //var data = {};
         //data.id = id;
         //obj.data = data;
-        log('get()', obj);
-        return sendObj(obj);
+        log('get()', obj, callback);
+        return sendObj(obj, callback);
     },
     /**
      * Send a LIST command to the server.
@@ -125,15 +125,15 @@ var Command = {
      * The server will return the value of the property with the given key
      * of the node with the given id to the sending client (no broadcast).
      */
-    getProperty: function(id, key) {
+    getProperty: function(id, key, callback) {
         var obj = {};
         obj.command = 'GET_PROPERTY';
         obj.id = id;
         var data = {};
         data.key = key;
         obj.data = data;
-        log('getProperty()', obj);
-        return sendObj(obj);
+        log('getProperty()', obj, callback);
+        return sendObj(obj, callback);
     },
     /**
      * Send an SEARCH command to the server.
@@ -435,7 +435,7 @@ var Command = {
         if (!nodeData.name) {
             nodeData.name = 'New ' + nodeData.type + ' ' + Math.floor(Math.random() * (999999 - 1));
         }
-        if (nodeData.type == 'Content' && !nodeData.content) {
+        if (nodeData.type === 'Content' && !nodeData.content) {
             nodeData.content = nodeData.name;
         }
         obj.id = id;
@@ -456,7 +456,7 @@ var Command = {
         if (!nodeData.name) {
             nodeData.name = 'New ' + nodeData.type + ' ' + Math.floor(Math.random() * (999999 - 1));
         }
-        if (nodeData.type == 'Content' && !nodeData.content) {
+        if (nodeData.type === 'Content' && !nodeData.content) {
             nodeData.content = nodeData.name;
         }
         obj.data = nodeData;

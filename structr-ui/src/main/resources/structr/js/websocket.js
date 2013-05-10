@@ -207,7 +207,7 @@ function connect() {
                 var id = data.id;
                 var key = data.data['key'];
                 var val = data.data[key];
-                log('calling StructrModel.update(id, key, val)', id, key, val);
+                console.log('calling StructrModel.update(data)', data);
                 StructrModel.update(data);
                 
 //            } else if (command === 'DATA_NODE_PARENT') { /*********************** DATA_NODE_PARENT ************************/
