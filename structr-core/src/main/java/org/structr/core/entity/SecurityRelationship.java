@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.AccessControllable;
@@ -42,6 +44,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
+import org.structr.core.Services;
+import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.property.ArrayProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,6 +59,7 @@ import org.structr.core.property.ArrayProperty;
  */
 public class SecurityRelationship extends AbstractRelationship {
 
+	private static final Logger logger = Logger.getLogger(SecurityRelationship.class.getName());
 	
 	public static final Property<String> principalId          = new StringProperty("principalId");
 	public static final Property<String> accessControllableId = new StringProperty("accessControllableId");
@@ -96,9 +101,9 @@ public class SecurityRelationship extends AbstractRelationship {
 		keys.add(principalId);
 		keys.add(accessControllableId);
 		
-		if(dbRelationship != null) {
+		if (dbRelationship != null) {
 			
-			for(String key : dbRelationship.getPropertyKeys()) {
+			for (String key : dbRelationship.getPropertyKeys()) {
 				keys.add(EntityContext.getPropertyKeyForDatabaseName(entityType, key));
 			}
 		}
@@ -227,7 +232,24 @@ public class SecurityRelationship extends AbstractRelationship {
 			return;
 		}
 
-		setAllowed((String[]) ArrayUtils.removeElement(_allowed, permission.name()));
+		String[] newPermissions = (String[]) ArrayUtils.removeElement(_allowed, permission.name());
+		
+		if (newPermissions.length > 0) {
+		
+			setAllowed(newPermissions);
+			
+		} else {
+			try {
+				
+				// No permissions anymore, remove security relationship
+				Services.command(securityContext, DeleteRelationshipCommand.class).execute(this);
+				
+				
+			} catch (FrameworkException ex) {
+				logger.log(Level.SEVERE, "Could not remove security relationship!", ex);
+			}
+			
+		}
 
 	}
 		

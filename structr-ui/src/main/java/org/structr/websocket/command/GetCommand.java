@@ -20,25 +20,29 @@
 
 package org.structr.websocket.command;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * Websocket command to retrieve a single node by id.
+ * 
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class GetProperties extends AbstractCommand {
+public class GetCommand extends AbstractCommand {
+	
+	private static final Logger logger = Logger.getLogger(GetCommand.class.getName());
 	
 	static {
 		
-		StructrWebSocket.addCommand(GetProperties.class);
+		StructrWebSocket.addCommand(GetCommand.class);
 		
 	}
 
@@ -67,7 +71,9 @@ public class GetProperties extends AbstractCommand {
 
 		} else {
 
-			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
+			logger.log(Level.WARNING, "Node not found for id {0}!", webSocketData.getId());
+			// Not necessary to send a 404 here
+			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
 	}
@@ -76,6 +82,6 @@ public class GetProperties extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-		return "GET_PROPERTIES";
+		return "GET";
 	}
 }

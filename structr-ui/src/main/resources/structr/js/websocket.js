@@ -159,7 +159,7 @@ function connect() {
                 Structr.login();
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
-                //console.log('Error code: ' + code);
+                console.log('Error code: ' + code);
 				
                 if (code === 403) {
                     Structr.login('Wrong username or password!');
@@ -201,36 +201,41 @@ function connect() {
                 log('GET_PROPERTY', data.data['key']);
                 StructrModel.updateKey(id, key, val);
                 
-            } else if (command === 'GET_PROPERTIES' || command === 'UPDATE') { /*********************** GET_PROPERTIES / UPDATE ************************/
+            } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET_PROPERTIES / UPDATE ************************/
                 
-                log('UPDATE', data);
+                log(command, data);
                 var id = data.id;
                 var key = data.data['key'];
                 var val = data.data[key];
-                console.log('calling StructrModel.update(data)', data);
-                StructrModel.update(data);
                 
-//            } else if (command === 'DATA_NODE_PARENT') { /*********************** DATA_NODE_PARENT ************************/
-//                
-//                log('DATA_NODE_PARENT', data.id, result);
-//                var obj = StructrModel.obj(data.id);
-//                obj.parentId = result.length && result[0].id;
-//                if (data.callback) {
-//                    log('executing callback with id', data.callback);
-//                    StructrModel.callbacks[data.callback]();
-//                }
-//                
+                var obj = StructrModel.update(data);
+                
+                if (data.callback) {
+                    //console.log('executing callback with id', data.callback);
+                    StructrModel.callbacks[data.callback](obj);
+                }
+                
+            } else if (command.endsWith('GET_BY_TYPE')) { /*********************** CHILDREN ************************/
+                
+                log('GET_BY_TYPE', data);
+                
+                $(result).each(function(i, entity) {
+                    
+                    // Don't append a DOM node
+                    var obj = StructrModel.create(entity, undefined, false);
+                    
+                    if (data.callback) {
+                        StructrModel.callbacks[data.callback](obj);
+                    }
+                    
+                });
+                
             } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
                 
                 log('CHILDREN', data);
                 
                 $(result).each(function(i, entity) {
                     
-//                    if (entity.type === 'DataNode') {
-//                        //console.log('DataNode', entity, data.nodesWithChildren, isIn(entity.id, data.nodesWithChildren));
-//                        entity.hasChildren = isIn(entity.id, data.nodesWithChildren);
-//                    }
-
                     StructrModel.create(entity);
                     
                 });
@@ -249,15 +254,20 @@ function connect() {
                 
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
                 
-                log('LIST', result);
+                log('LIST', result, data);
                 
                 $('.pageCount', $('#pager' + type)).val(pageCount[type]);
                 
                 $(result).each(function(i, entity) {
                     
-                    StructrModel.create(entity);
+                    var obj = StructrModel.create(entity);
+                    
+                    if (data.callback) {
+                        StructrModel.callbacks[data.callback](obj);
+                    }
                     
                 });
+
                 
             } else if (command === 'DELETE') { /*********************** DELETE ************************/
                 

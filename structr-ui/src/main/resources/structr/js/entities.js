@@ -20,14 +20,12 @@
 var buttonClicked;
 
 var _Entities = {
-    
-    booleanAttrs : ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
-    numberAttrs : ['position', 'size'],
-    dateAttrs : ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
-    hiddenAttrs : ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
-    readOnlyAttrs : ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
-    
-    changeBooleanAttribute : function(attrElement, value) {
+    booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
+    numberAttrs: ['position', 'size'],
+    dateAttrs: ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
+    hiddenAttrs: ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
+    readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
+    changeBooleanAttribute: function(attrElement, value) {
 
         //console.log('Change boolean attribute ', attrElement, ' to ', value);
 
@@ -38,48 +36,53 @@ var _Entities = {
         }
 
     },
-
-    reloadChildren : function(id) {
+    reloadChildren: function(id) {
         var el = Structr.node(id);
-        
+
         log('reloadChildren', el);
-        
+
         $(el).children('.node').remove();
         _Entities.resetMouseOverState(el);
-        
+
         Command.children(id);
-        
-    },
 
-    deleteNode : function(button, entity) {
+    },
+    deleteNode: function(button, entity) {
         buttonClicked = button;
-        if (isDisabled(button)) return;
-        
-        Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + '] ?</p>',
-            function() {
-                Command.deleteNode(entity.id);
-                $.unblockUI({
-                    fadeOut: 25
-                });
-            });
-    },
+        if (isDisabled(button))
+            return;
 
-    showSyncDialog : function(source, target) {
-        Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() { return true; }, function() { return true; });
-        
+        Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + '] ?</p>',
+                function() {
+                    Command.deleteNode(entity.id);
+                    $.unblockUI({
+                        fadeOut: 25
+                    });
+                });
+    },
+    showSyncDialog: function(source, target) {
+        Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() {
+            return true;
+        }, function() {
+            return true;
+        });
+
         dialog.append('<div><input type="radio" name="syncMode" value="none"><label for="unidir">None</label></div>');
         dialog.append('<div><input type="radio" name="syncMode" value="unidir"><label for="unidir">Uni-directional (master/slave)</label></div>');
         dialog.append('<div><input type="radio" name="syncMode" value="bidir"><label for="unidir">Bi-directional</label></div>');
-        
+
         $('input[name=syncMode]:radio', dialog).on('change', function() {
-           Command.setSyncMode(source.id, target.id, $(this).val());
+            Command.setSyncMode(source.id, target.id, $(this).val());
         });
-        
+
     },
+    showDataDialog: function(entity) {
 
-    showDataDialog : function(entity) {
-
-        Structr.dialog('Edit Data Settings of ' + entity.id, function() { return true; }, function() { return true; });
+        Structr.dialog('Edit Data Settings of ' + entity.id, function() {
+            return true;
+        }, function() {
+            return true;
+        });
 
         dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled renderDetails_">Auto-limit to single object</button> If URL ends with an ID, the query result is limited to this object automatically.</div>');
         var detailsSwitch = $('.renderDetails_');
@@ -91,7 +94,7 @@ var _Entities = {
                 blinkGreen(detailsSwitch);
             });
         });
-        
+
         dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnIndex_">Hide element in index mode</button> If URL does not end with an ID, this element is hidden.</div>');
         var indexSwitch = $('.hideOnIndex_');
         _Entities.changeBooleanAttribute(indexSwitch, entity.hideOnIndex);
@@ -131,7 +134,7 @@ var _Entities = {
                 blinkGreen($('#restQuery'));
             });
         });
-        
+
         dialog.append('<div><h3>Cypher Query</h3><textarea cols="60" rows="2" id="cypherQuery">' + (entity.cypherQuery ? entity.cypherQuery : '') + '</textarea></div>');
         dialog.append('<div><button id="applyCypherQuery">Save</button></div>');
         $('#applyCypherQuery', dialog).on('click', function() {
@@ -140,7 +143,7 @@ var _Entities = {
                 blinkGreen($('#cypherQuery'));
             });
         });
-        
+
         dialog.append('<div><h3>XPath Query</h3><textarea cols="60" rows="2" id="xpathQuery">' + (entity.xpathQuery ? entity.xpathQuery : '') + '</textarea></div>');
         dialog.append('<div><button id="applyXpathQuery">Save</button></div>');
         $('#applyXpathQuery', dialog).on('click', function() {
@@ -159,7 +162,7 @@ var _Entities = {
         });
 
         //_Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
-        
+
 //        dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId" size="32" value="' + (entity.dataNodeId ? entity.dataNodeId : '') + '"><button id="saveDataNodeId">Save</button></div>');
 //        $('#saveDataNodeId', dialog).on('click', function() {
 //            log('add Data Node', entity.id, $('#dataNodeId', dialog).val());
@@ -167,41 +170,40 @@ var _Entities = {
 //            blinkGreen($('#dataNodeId'));
 //        });
     },
-
-    showProperties : function(entity) {
+    showProperties: function(entity) {
 
         var views;
-	var startView = '_html_';
-        
-        if (entity.type === 'Content' || entity.type === 'Page') {
-            views = ['all', 'in', 'out' ];
-            startView = 'all';
+        var startView = '_html_';
+
+        if (isIn(entity.type, ['Content', 'Page', 'User', 'Group', 'File', 'Folder'])) {
+            views = ['ui', 'in', 'out'];
+            startView = 'ui';
         } else {
-            views = ['_html_', 'all', 'in', 'out'];
+            views = ['_html_', 'ui', 'in', 'out'];
         }
 
         var tabTexts = [];
         tabTexts._html_ = 'HTML';
-        tabTexts.all = 'Node';
+        tabTexts.ui = 'Node';
         tabTexts.in = 'Incoming';
         tabTexts.out = 'Outgoing';
 
         //dialog.empty();
         Structr.dialog('Edit Properties of ' + entity.id,
-            function() {
-                return true;
-            },
-            function() {
-                return true;
-            }
-            );
+                function() {
+                    return true;
+                },
+                function() {
+                    return true;
+                }
+        );
 
         dialog.append('<div id="tabs"><ul></ul></div>');
 
         $(views).each(function(i, view) {
             var tabs = $('#tabs', dialog);
             var tabText = tabTexts[view];
-            
+
             $('ul', tabs).append('<li class="' + (view === startView ? 'active' : '') + '" id="tab-' + view + '">' + tabText + '</li>');
 
             tabs.append('<div id="tabView-' + view + '"><br></div>');
@@ -225,8 +227,8 @@ var _Entities = {
             var headers = {};
             headers['X-StructrSessionToken'] = token;
             log('headers', headers);
-            log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
-            
+            console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
+
             $.ajax({
                 url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
                 async: true,
@@ -237,7 +239,7 @@ var _Entities = {
                     //element.append('<div class="sep"></div>');
                     //element.append('<table class="props"></table>');
                     log(data.result);
-                    
+
                     // Default: Edit node id
                     var id = entity.id;
                     // ID of graph object to edit
@@ -245,7 +247,7 @@ var _Entities = {
 
                         // reset id for each object group
                         id = entity.id;
-			
+
                         var keys = Object.keys(res);
 
                         log('keys', keys);
@@ -253,41 +255,41 @@ var _Entities = {
                         //			if (view == 'in' || view == 'out') {
                         //			    tabView.append('<br><h3>Relationship ' + res['id']+ '</h3>')
                         //			}
-			log('res[id]', res['id']);
-                        tabView.append('<table class="props ' + view + ' ' + res['id'] +'_"></table>');
+                        log('res[id]', res['id']);
+                        tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
 
                         var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
-				
+
                         $(keys).each(function(i, key) {
 
                             if (view === '_html_') {
-                                
+
                                 if (key !== 'id') {
-                                
+
                                     props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
-                                
+
                                 }
-                                
+
                             } else if (view === 'in' || view === 'out') {
-                                
+
                                 if (key === 'id') {
                                     // set ID to rel ID
                                     id = res[key];
-                                //console.log('Set ID to relationship ID', id);
+                                    //console.log('Set ID to relationship ID', id);
                                 }
-                                
+
                                 props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
-                                                               
+
                             } else {
-                                
+
                                 if (!key.startsWith('_html_') && !isIn(key, _Entities.hiddenAttrs)) {
-                                    
+
                                     if (isIn(key, _Entities.readOnlyAttrs)) {
-                                        
+
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_ readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td></tr>');
-                                
+
                                     } else if (isIn(key, _Entities.booleanAttrs)) {
-                                    
+
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
@@ -296,16 +298,16 @@ var _Entities = {
                                             Command.setProperty(id, key, checked);
                                         });
                                         Command.getProperty(id, key, '#dialogBox');
-                                
-                                    //                                } else if (isIn(key, _Entities.numberAttrs)) {
+
+                                        //                                } else if (isIn(key, _Entities.numberAttrs)) {
                                     } else if (isIn(key, _Entities.dateAttrs)) {
-                                    
+
                                         if (!res[key] || res[key] === 'null') {
                                             res[key] = '';
                                         }
-                                    
+
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td></tr>');
-                                    
+
                                         var dateField = $(props.find('.dateField'));
                                         dateField.datetimepicker({
                                             showSecond: true,
@@ -313,29 +315,29 @@ var _Entities = {
                                             dateFormat: 'yy-mm-dd',
                                             separator: 'T'
                                         });
-                                    //dateField.datepicker();
-                                    
+                                        //dateField.datepicker();
+
                                     } else {
-                                
+
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
                                     }
-                                
+
                                 }
                             }
 
                         });
-                        
+
                         props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td></tr>');
 
-                        $('.props tr td.value input', dialog).each(function(i,v) {
-                            
+                        $('.props tr td.value input', dialog).each(function(i, v) {
+
                             var input = $(v);
-                            
+
                             var relId = input.parent().attr('rel_id');
                             //console.log('attaching events for saving attrs of relationship', relId);
 
                             if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
-                            
+
                                 input.on('focus', function() {
                                     input.addClass('active');
                                 });
@@ -349,31 +351,31 @@ var _Entities = {
                                     log('relId', relId);
                                     var objId = relId ? relId : id;
                                     log('set properties of obj', objId);
-                                    
+
                                     var keyInput = input.parent().parent().children('td').first().children('input');
                                     log(keyInput);
                                     if (keyInput && keyInput.length) {
-                                    
+
                                         // new key
                                         log('new key: Command.setProperty(', objId, keyInput.val(), input.val());
                                         Command.setProperty(objId, keyInput.val(), input.val());
-                                        
-                                        
+
+
                                     } else {
-                                        
+
                                         // existing key
                                         log('existing key: Command.setProperty(', objId, input.prop('name'), input.val());
                                         Command.setProperty(objId, input.prop('name'), input.val());
-                                        
+
                                     }
-                                    
-                                    
+
+
                                     input.removeClass('active');
                                     input.parent().children('.icon').each(function(i, img) {
                                         $(img).remove();
                                     });
                                 });
-                            
+
                             }
 
                         });
@@ -385,7 +387,6 @@ var _Entities = {
         });
 
     },
-
     appendAccessControlIcon: function(parent, entity, hide) {
 
         var keyIcon = $('.key_icon', parent);
@@ -393,74 +394,31 @@ var _Entities = {
         if (!(keyIcon && keyIcon.length)) {
             parent.append(newKeyIcon);
             keyIcon = $('.key_icon', parent)
-            if (hide) keyIcon.hide();
-            
+            if (hide)
+                keyIcon.hide();
+
             keyIcon.on('click', function(e) {
                 e.stopPropagation();
-                Structr.dialog('Access Control and Visibility', function() {}, function() {});
+                Structr.dialog('Access Control and Visibility', function() {
+                }, function() {
+                });
 
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
-                dialogText.append('<h3>Access Rights</h3>');
-                dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th></tr></thead><tbody></tbody></table');
-                
-                var tb = $('#principals tbody', dialogText);
-                
-                var headers = {};
-                headers['X-StructrSessionToken'] = token;
-                $.ajax({
-                    url: rootUrl + '/' + entity.id + '/in',
-                    dataType: 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: headers,
-                    success: function(data) {
-                        $(data.result).each(function(i, result) {
-                            
-                            var permission = {
-                                'read': isIn('read', result.allowed),
-                                'write': isIn('write', result.allowed),
-                                'delete': isIn('delete', result.allowed)
-                            };
-
-                            var principalId = result.principalId;
-                            if (principalId) {
-                                
-                                var principal = new StructrUser({type:'User', id: principalId});
-                                StructrModel.objects[principalId] = principal;
-                                
-                                Command.get(principalId, function() {
-                                    tb.append('<tr id="_' + principalId + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> ' + principal.name +'</td>'
-                                            + '<td><input class="read" type="checkbox"' + (permission.read ? ' checked="checked"' : '') + '"></td>'
-                                            + '<td><input class="write" type="checkbox"' + (permission.write ? ' checked="checked"' : '') + '"></td>'
-                                            + '<td><input class="delete" type="checkbox"' + (permission.delete ? ' checked="checked"' : '') + '"></td></tr>');
-                                    
-                                    var row = $('#_' + principalId, tb);
-
-                                    ['read', 'write', 'delete'].forEach(function(perm) {
-                                        $('.' + perm, row).on('click', function() {
-                                            var sw = $(this);
-                                            Command.setPermission(entity.id, principalId, permission[perm] ? 'revoke' : 'grant', perm, false, function() {
-                                                //sw.prop("checked", !sw.prop("checked"));
-                                            });                                        
-                                        });
-                                    });                                    
-                                });
-                            }
-                        });
-                    }
-                });                
-                
                 dialogText.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
-                dialogText.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
-                
+
+                if (lastMenuEntry === 'pages') {
+                    dialogText.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
+                }
+
                 var publicSwitch = $('.visibleToPublicUsers_');
                 var authSwitch = $('.visibleToAuthenticatedUsers_');
-                
+
                 //console.log(entity);    
-                
+
                 _Entities.changeBooleanAttribute(publicSwitch, entity.visibleToPublicUsers);
                 _Entities.changeBooleanAttribute(authSwitch, entity.visibleToAuthenticatedUsers);
-                
+
                 publicSwitch.on('click', function(e) {
                     e.stopPropagation();
                     entity.setProperty('visibleToPublicUsers', publicSwitch.hasClass('disabled'), $('#recursive', dialogText).is(':checked'), function() {
@@ -475,8 +433,61 @@ var _Entities = {
                     });
                 });
 
+
+                dialogText.append('<h3>Access Rights</h3>');
+                dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
+
+                var tb = $('#principals tbody', dialogText);
+                tb.append('<tr id="new"><td><select id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td></tr>');
+                Command.getByType('User', 1000, 1, 'name', 'asc', function(user) {
+                    $('#newPrincipal').append('<option value="' + user.id + '">' + user.name + '</option>');
+                });
+                $('#newPrincipal').on('change', function() {
+                    var sel = $(this);
+                    console.log(sel);
+                    var pId = sel[0].value;
+                    Command.setPermission(entity.id, pId, 'grant', 'read', false);
+                    $('#new', tb).selectedIndex = 0;
+
+                    Command.get(pId, function(p) {
+                        addPrincipal(entity, p, { 'read': true});
+                    });
+
+                });
+
+                var headers = {};
+                headers['X-StructrSessionToken'] = token;
+                $.ajax({
+                    url: rootUrl + '/' + entity.id + '/in',
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    headers: headers,
+                    success: function(data) {
+
+                        $(data.result).each(function(i, result) {
+
+                            var permissions = {
+                                'read': isIn('read', result.allowed),
+                                'write': isIn('write', result.allowed),
+                                'delete': isIn('delete', result.allowed),
+                                'accessControl': isIn('accessControl', result.allowed)
+                            };
+
+                            var principalId = result.principalId;
+                            if (principalId) {
+
+                                Command.get(principalId, function(p) {
+                                    addPrincipal(entity, p, permissions);
+                                });
+
+                            }
+
+                        });
+                    }
+                });
+
             });
-        
+
             keyIcon.on('mouseover', function(e) {
                 var self = $(this);
                 self.show();
@@ -484,26 +495,25 @@ var _Entities = {
             });
         }
     },
-
-    appendSimpleSelection : function(el, entity, type, title, key) {
+    appendSimpleSelection: function(el, entity, type, title, key) {
 
         var subKey;
         if (key.contains('.')) {
-            subKey = key.substring(key.indexOf('.')+1, key.length);
+            subKey = key.substring(key.indexOf('.') + 1, key.length);
             key = key.substring(0, key.indexOf('.'));
             //console.log('object key:', key, ', sub key: ', subKey);
         }
-        
+
         el.append('<h3>' + title + '</h3><p id="' + key + 'Box"></p>');
-                
+
         var element = $('#' + key + 'Box');
-                
+
         element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select"></select></span>');
-                
+
         var selectElement = $('#' + key + 'Select');
-        
+
         selectElement.append('<option></option>')
-        
+
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         $.ajax({
@@ -513,24 +523,23 @@ var _Entities = {
             headers: headers,
             success: function(data) {
                 $(data.result).each(function(i, result) {
-                    
+
                     var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
                     //console.log(id, result.id);
-                    
+
                     var selected = (id === result.id ? 'selected' : '');
-                    
+
                     selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
                 });
             }
-        });                
+        });
 
         var select = $('#' + key + 'Select', element);
         select.on('change', function() {
             entity.setProperty(key, select.val(), false);
-        });          
+        });
     },
-
-    appendEditPropertiesIcon : function(parent, entity) {
+    appendEditPropertiesIcon: function(parent, entity) {
 
         var editIcon = $('.edit_props_icon', parent);
 
@@ -544,8 +553,7 @@ var _Entities = {
             _Entities.showProperties(entity);
         });
     },
-
-    appendDataIcon : function(parent, entity) {
+    appendDataIcon: function(parent, entity) {
 
         var dataIcon = $('.data_icon', parent);
 
@@ -559,11 +567,10 @@ var _Entities = {
             _Entities.showDataDialog(entity);
         });
     },
+    appendExpandIcon: function(el, entity, hasChildren, expand) {
 
-    appendExpandIcon : function(el, entity, hasChildren, expand) {
-        
         log('_Entities.appendExpandIcon', el, entity, hasChildren, expand);
-        
+
         var button = $(el.children('.expand_icon').first());
         if (button && button.length) {
             log('Expand icon already existing');
@@ -574,22 +581,22 @@ var _Entities = {
 
             var typeIcon = $(el.children('.typeIcon').first());
             var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
-            
+
             typeIcon.css({
                 paddingRight: 0 + 'px'
             })
-            .after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
+                    .after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
 
             button = $(el.children('.expand_icon').first());
 
             if (button) {
-                
+
                 button.on('click', function(e) {
                     log('expand icon clicked');
                     e.stopPropagation();
                     _Entities.toggleElement($(this).parent('.node'));
                 });
-                
+
                 $(el).on('click', function(e) {
                     log('node clicked');
                     _Entities.toggleElement(this);
@@ -599,7 +606,7 @@ var _Entities = {
                 button.on('mousedown', function(e) {
                     e.stopPropagation();
                 });
-                
+
                 if (expand) {
                     _Entities.ensureExpanded(el);
                 }
@@ -612,9 +619,9 @@ var _Entities = {
         }
 
     },
-
-    removeExpandIcon : function(el) {
-        if (!el) return;
+    removeExpandIcon: function(el) {
+        if (!el)
+            return;
         log('removeExpandIcon', el);
         var button = $(el.children('.expand_icon').first());
         button.remove();
@@ -622,10 +629,10 @@ var _Entities = {
             paddingRight: 11 + 'px'
         });
     },
-
-    setMouseOver : function(el, allowClick) {
+    setMouseOver: function(el, allowClick) {
         var node = $(el).closest('.node');
-        if (!node || !node.children) return;
+        if (!node || !node.children)
+            return;
 
         if (!allowClick) {
             node.on('click', function(e) {
@@ -647,7 +654,7 @@ var _Entities = {
                 if (page.length) {
                     var pageId = getId(page);
                     var previewNodes = $('#preview_' + pageId).contents().find('[structr_element_id]');
-                    previewNodes.each(function(i,v) {
+                    previewNodes.each(function(i, v) {
                         var self = $(v);
                         var sid = self.attr('structr_element_id');
                         if (sid === nodeId) {
@@ -664,8 +671,7 @@ var _Entities = {
             }
         });
     },
-
-    resetMouseOverState : function(element) {
+    resetMouseOverState: function(element) {
         var el = $(element);
         var node = el.closest('.node')
         if (node) {
@@ -676,7 +682,7 @@ var _Entities = {
         if (page.length) {
             var resId = getId(page);
             var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
-            previewNodes.each(function(i,v) {
+            previewNodes.each(function(i, v) {
                 var self = $(v);
                 var sid = self.attr('structr_element_id');
                 if (sid === nodeId) {
@@ -687,75 +693,75 @@ var _Entities = {
             });
         }
     },
+    ensureExpanded: function(element) {
 
-    ensureExpanded : function(element) {
-        
         var el = $(element);
         var b;
         var src = el.prop('src');
-        
+
         var id = getId(element);
-        
+
         log('ensureExpanded: ', el, id);
         addExpandedNode(id);
-        
+
         b = el.children('.expand_icon').first();
         src = b.prop('src');
-        
-        if (!src) return;
-        
+
+        if (!src)
+            return;
+
         if (src.endsWith('icon/tree_arrow_down.png')) {
             return;
         } else {
-            
+
             Command.children(id);
             b.prop('src', 'icon/tree_arrow_down.png');
-            
+
         }
     },
-
-    toggleElement : function(element, expanded) {
+    toggleElement: function(element, expanded) {
 
         var el = $(element);
         var b;
         var src = el.prop('src');
-        
+
         var id = getId(el);
-        
+
         log(el);
-        
+
         log('toggleElement: ', id);
-        
+
         b = el.children('.expand_icon').first();
         src = b.prop('src');
-        
-        if (!src) return;
-        
+
+        if (!src)
+            return;
+
         if (src.endsWith('icon/tree_arrow_down.png')) {
-            
+
             $.each(el.children('.node'), function(i, child) {
-               $(child).remove();
+                $(child).remove();
             });
-            
+
             b.prop('src', 'icon/tree_arrow_right.png');
 
             removeExpandedNode(id);
         } else {
-            
-            if (!expanded) Command.children(id);
+
+            if (!expanded)
+                Command.children(id);
             b.prop('src', 'icon/tree_arrow_down.png');
 
             addExpandedNode(id);
         }
 
     },
-
-    makeNameEditable : function(element) {
+    makeNameEditable: function(element) {
         //element.off('dblclick');
         element.off('hover');
         var oldName = $.trim(element.children('b.name_').attr('title'));
         //console.log('oldName', oldName);
-        element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
+        element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length + 4) + '" class="newName_" value="' + oldName + '">');
         element.find('.button').hide();
 
         var input = $('input', element);
@@ -775,7 +781,7 @@ var _Entities = {
         });
 
         input.keypress(function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
@@ -794,3 +800,45 @@ var _Entities = {
 
 
 };
+
+function addPrincipal(entity, principal, permissions) {
+
+    $('#newPrincipal option[value="' + principal.id + '"]').remove();
+    $('#new').before('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
+
+    var row = $('#_' + principal.id);
+
+    ['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
+
+        row.append('<td><input class="' + perm + '" type="checkbox"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
+        var disabled = false;
+
+        $('.' + perm, row).on('dblclick', function() {
+            return false;
+        });
+
+        $('.' + perm, row).on('click', function() {
+            if (disabled)
+                return false;
+            var sw = $(this);
+            disabled = true;
+            sw.prop('disabled', 'disabled');
+            //console.log('checked elements', $('input:checked', row).length);
+            if (!$('input:checked', row).length) {
+                $('#newPrincipal').append('<option value="' + row.attr('id').substring(1) + '">' + $('.name', row).text() + '</option>');
+                row.remove();
+            }
+            Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, false, function() {
+                permissions[perm] = !permissions[perm];
+                log('Permission successfully updated!');
+                blinkGreen(sw.parent());
+                window.setTimeout(function() {
+                    disabled = false;
+                    sw.prop('disabled', '');
+                }, 200);
+                
+                
+            });
+        });
+    });
+}

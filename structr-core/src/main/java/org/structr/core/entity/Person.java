@@ -50,6 +50,8 @@ import org.structr.core.graph.CreateRelationshipCommand;
  *
  */
 public class Person extends AbstractNode implements Principal {
+	
+	private static final Logger logger = Logger.getLogger(Person.class.getName());
 
 	public static final Property<String>  salutation          = new StringProperty("salutation");
 	public static final Property<String>  firstName           = new StringProperty("firstName");
@@ -346,7 +348,7 @@ public class Person extends AbstractNode implements Principal {
 
 			} catch (FrameworkException ex) {
 
-				Logger.getLogger(Person.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
+				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
 
 			}
 
@@ -363,19 +365,12 @@ public class Person extends AbstractNode implements Principal {
 
 		if (secRel == null) {
 
-			try {
+			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
 
-				secRel = createSecurityRelationshipTo(obj);
+		} else {
 
-			} catch (FrameworkException ex) {
-
-				Logger.getLogger(Person.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
-
-			}
-
+			secRel.removePermission(permission);
 		}
-
-		secRel.removePermission(permission);
 
 	}
 

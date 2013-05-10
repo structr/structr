@@ -20,67 +20,60 @@
 
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.property.PropertyKey;
-import org.structr.websocket.message.WebSocketMessage;
-import org.structr.web.common.RelType;
-import org.structr.web.entity.Image;
 import org.structr.rest.resource.PagingHelper;
+import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket command to retrieve nodes of a given type which are on root level,
- * i.e. not children of another node.
+ * Websocket command to a list of nodes by type.
  * 
- * To get all nodes of a certain type, see the {@link GetCommand}.
- * 
+ * Supports paging and ignores thumbnails.
+ *
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class ListCommand extends AbstractCommand {
+public class GetByTypeCommand extends AbstractCommand {
 	
-	private static final Logger logger = Logger.getLogger(ListCommand.class.getName());
-
+	private static final Logger logger = Logger.getLogger(GetByTypeCommand.class.getName());
+	
 	static {
-
-		StructrWebSocket.addCommand(ListCommand.class);
-
+		
+		StructrWebSocket.addCommand(GetByTypeCommand.class);
+		
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		String rawType                         = (String) webSocketData.getNodeData().get("type");
 		Class type                             = EntityContext.getEntityClassForRawType(rawType);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		
+
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 			return;
 		}
 
 		searchAttributes.add(Search.andExactType(type.getSimpleName()));
-		
+
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
 			searchAttributes.add(Search.andExactProperty(Image.isThumbnail, false));
@@ -96,35 +89,17 @@ public class ListCommand extends AbstractCommand {
 
 			// do search
 			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
-			List<? extends GraphObject> resultList = result.getResults();
-
-			// determine which of the nodes have children
-			for (GraphObject obj : resultList) {
-
-				if (obj instanceof AbstractNode) {
-
-					AbstractNode node = (AbstractNode) obj;
-
-					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
-
-						filteredResults.add(node);
-					}
-
-				}
-
-			}
 
 			// save raw result count
-			int resultCountBeforePaging = filteredResults.size();
-			
+			int resultCountBeforePaging = result.size();
+
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
+			webSocketData.setResult(PagingHelper.subList(result.getResults(), pageSize, page, null));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
-			
+
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Exception occured", fex);
@@ -132,15 +107,13 @@ public class ListCommand extends AbstractCommand {
 
 		}
 
+
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
-
-		return "LIST";
-
+		return "GET_BY_TYPE";
 	}
-
 }

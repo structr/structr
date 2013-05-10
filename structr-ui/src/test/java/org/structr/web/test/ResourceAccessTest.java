@@ -151,7 +151,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			String password = "testpassword-01";
 			User	testUser	= createTestNodes(User.class, 1).get(0);
 			testUser.setName(name);
-			testUser.setPassword(password);
+			testUser.setProperty(User.password, password);
 			
 			// test user has no specific rights on the object => still 403
 			RestAssured.given()
@@ -205,7 +205,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			String password = "testpassword-01";
 			User	testUser	= createTestNodes(User.class, 1).get(0);
 			testUser.setName(name);
-			testUser.setPassword(password);
+			testUser.setProperty(User.password, password);
 			
 			// test user has no specific rights on the object => still 403
 			RestAssured.given()

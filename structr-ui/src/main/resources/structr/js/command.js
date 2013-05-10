@@ -32,7 +32,7 @@ var Command = {
      */
     get: function(id, callback) {
         var obj = {};
-        obj.command = 'GET_PROPERTIES';
+        obj.command = 'GET';
         obj.id = id;
         //var data = {};
         //data.id = id;
@@ -41,12 +41,35 @@ var Command = {
         return sendObj(obj, callback);
     },
     /**
+     * Send a single GET_BY_TYPE command to the server.
+     * 
+     * The server will return a single item with all properties
+     * of the node with the given id to the sending client (no broadcast).
+     * 
+     * The optional callback function will be executed for each node in the result set.
+     */
+    getByType: function(type, pageSize, page, sort, order, callback) {
+        var obj = {};
+        obj.command = 'GET_BY_TYPE';
+        var data = {};
+        data.type = type;
+        obj.pageSize = pageSize;
+        obj.page = page;
+        obj.sort = sort;
+        obj.order = order;
+        obj.data = data;
+        log('getByType()', obj, callback);
+        return sendObj(obj, callback);
+    },
+    /**
      * Send a LIST command to the server.
      * 
      * The server will return a result set containing all items of the given
-     * type to the sending client (no broadcast).
+     * type which are not children of another node to the sending client (no broadcast).
+     * 
+     * The optional callback function will be executed for each node in the result set.
      */
-    list: function(type, pageSize, page, sort, order) {
+    list: function(type, pageSize, page, sort, order, callback) {
         var obj = {};
         obj.command = 'LIST';
         var data = {};
@@ -56,46 +79,46 @@ var Command = {
         obj.sort = sort;
         obj.order = order;
         obj.data = data;
-        log('list()', obj);
-        return sendObj(obj);
-    },
-    /**
-     * Send a LIST_DATA_NODES command to the server.
-     * 
-     * The server will return a result set containing all items of the given
-     * type to the sending client (no broadcast).
-     */
-    listDataNodes: function(type, pageSize, page, sort, order, key) {
-        var obj = {};
-        obj.command = 'LIST_DATA_NODES';
-        var data = {};
-        data.type = type;
-        data.key = key;
-        obj.pageSize = pageSize;
-        obj.page = page;
-        obj.sort = sort;
-        obj.order = order;
-        obj.data = data;
-        //console.log('listDataNodes()', obj);
-        return sendObj(obj);
-    },
-    /**
-     * Send a DATA_NODE_PARENT command to the server.
-     * 
-     * The server will return a result set containing the parent node
-     * of the data node with the given id in the tree with the
-     * given key.
-     */
-    dataNodeParent: function(id, key, callback) {
-        var obj = {};
-        obj.command = 'DATA_NODE_PARENT';
-        obj.id = id;
-        var data = {};
-        data.key = key;
-        obj.data = data;
-        log('dataNodeParent()', obj, callback);
+        log('list()', obj, callback);
         return sendObj(obj, callback);
     },
+//    /**
+//     * Send a LIST_DATA_NODES command to the server.
+//     * 
+//     * The server will return a result set containing all items of the given
+//     * type to the sending client (no broadcast).
+//     */
+//    listDataNodes: function(type, pageSize, page, sort, order, key) {
+//        var obj = {};
+//        obj.command = 'LIST_DATA_NODES';
+//        var data = {};
+//        data.type = type;
+//        data.key = key;
+//        obj.pageSize = pageSize;
+//        obj.page = page;
+//        obj.sort = sort;
+//        obj.order = order;
+//        obj.data = data;
+//        //console.log('listDataNodes()', obj);
+//        return sendObj(obj);
+//    },
+//    /**
+//     * Send a DATA_NODE_PARENT command to the server.
+//     * 
+//     * The server will return a result set containing the parent node
+//     * of the data node with the given id in the tree with the
+//     * given key.
+//     */
+//    dataNodeParent: function(id, key, callback) {
+//        var obj = {};
+//        obj.command = 'DATA_NODE_PARENT';
+//        obj.id = id;
+//        var data = {};
+//        data.key = key;
+//        obj.data = data;
+//        log('dataNodeParent()', obj, callback);
+//        return sendObj(obj, callback);
+//    },
     /**
      * Send a CHILDREN command to the server.
      * 

@@ -403,8 +403,8 @@ var _Files = {
             }
         });
 
-        _Entities.appendAccessControlIcon(div, folder);
         _Entities.appendEditPropertiesIcon(div, folder);
+        _Entities.appendAccessControlIcon(div, folder);
         _Entities.setMouseOver(div);
 		
         return div;

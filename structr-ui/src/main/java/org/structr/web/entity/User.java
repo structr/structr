@@ -96,59 +96,19 @@ public class User extends Person implements Principal {
 	 * Intentionally return null.
 	 * @return
 	 */
-	public String getPassword() {
+	@Override
+	public <T> T getProperty(final PropertyKey<T> key) {
 
-		return null;
-
-	}
-
-	public String getConfirmationKey() {
-
-		return getProperty(User.confirmationKey);
-
-	}
-
-	public String getSessionId() {
-
-		return getProperty(Principal.sessionId);
+		if (User.password.equals(key)) {
+			
+			return null;
+			
+		} else {
+			
+			return super.getProperty(key);
+			
+		}
 
 	}
 
-	public boolean isBackendUser() {
-
-		return getProperty(User.backendUser);
-
-	}
-
-	public boolean isFrontendUser() {
-
-		return getProperty(User.frontendUser);
-
-	}
-	
-	//~--- set methods ----------------------------------------------------
-
-	public void setPassword(final String passwordValue) throws FrameworkException {
-
-		setProperty(password, passwordValue);
-
-	}
-
-	public void setConfirmationKey(final String value) throws FrameworkException {
-
-		setProperty(User.confirmationKey, value);
-
-	}
-
-	public void setFrontendUser(final boolean isFrontendUser) throws FrameworkException {
-
-		setProperty(User.frontendUser, isFrontendUser);
-
-	}
-
-	public void setBackendUser(final boolean isBackendUser) throws FrameworkException {
-
-		setProperty(User.backendUser, isBackendUser);
-
-	}
 }

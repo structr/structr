@@ -128,7 +128,7 @@ public class RegistrationResource extends Resource {
 			if (!result.isEmpty()) {
 				
 				user = (User) result.get(0);
-				user.setConfirmationKey(confKey);
+				user.setProperty(User.confirmationKey, confKey);
 				
 			} else {
 

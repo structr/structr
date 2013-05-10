@@ -516,7 +516,7 @@ public class HtmlServlet extends HttpServlet {
 				User user = (User) results.get(0);
 				
 				// Clear confirmation key and set session id
-				user.setConfirmationKey(null);
+				user.setProperty(User.confirmationKey, null);
 				user.setProperty(Principal.sessionId, request.getSession().getId());
 				
 				// Login user without password

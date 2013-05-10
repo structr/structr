@@ -129,7 +129,9 @@ public class SetPermissionCommand extends AbstractCommand {
 		if (!securityContext.isAllowed(obj, Permission.accessControl)) {
 			
 			logger.log(Level.WARNING, "Not allowed to set permissions");
-			getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+			getWebSocket().send(MessageBuilder.status().message("You don't have the permission to control access for this object!").code(400).build(), true);
+			
+			return;
 			
 		}
 		
