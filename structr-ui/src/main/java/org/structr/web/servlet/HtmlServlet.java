@@ -135,19 +135,6 @@ public class HtmlServlet extends HttpServlet {
 			
 			boolean dontCache = false;
 			
-//			String resp = (String) request.getSession().getAttribute(REST_RESPONSE);
-//			if (resp != null) {
-//				
-//				request.setAttribute(REST_RESPONSE, resp);
-//				
-//				// empty response content after reading
-//				request.getSession().removeAttribute(REST_RESPONSE);
-//				
-//				// don't allow to show a cached page
-//				dontCache = true;
-//				
-//			}
-
 			String path = PathHelper.clean(request.getPathInfo());
 
 			logger.log(Level.FINE, "Path info {0}", path);
@@ -336,6 +323,8 @@ public class HtmlServlet extends HttpServlet {
 
 			} else {
 
+				response.sendError(HttpServletResponse.SC_NOT_FOUND);
+				
 			}
 
 		} catch (Throwable t) {
@@ -708,55 +697,59 @@ public class HtmlServlet extends HttpServlet {
 
 	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-		if (securityContext.isVisible(file)) {
+		if (!securityContext.isVisible(file)) {
+			
+			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			return;
+			
+		}
 
-			OutputStream out = response.getOutputStream();
+		OutputStream out = response.getOutputStream();
 
-			if (!edit && notModifiedSince(request, response, file)) {
+		if (!edit && notModifiedSince(request, response, file)) {
 
-				out.flush();
-				out.close();
+			out.flush();
+			out.close();
+
+		} else {
+
+			// 2b: stream file to response
+			InputStream in     = file.getInputStream();
+			String contentType = file.getContentType();
+
+			if (contentType != null) {
+
+				response.setContentType(contentType);
 
 			} else {
 
-				// 2b: stream file to response
-				InputStream in     = file.getInputStream();
-				String contentType = file.getContentType();
+				// Default
+				response.setContentType("application/octet-stream");
+			}
 
-				if (contentType != null) {
+			try {
 
-					response.setContentType(contentType);
+				IOUtils.copy(in, out);
 
-				} else {
+			} catch (Throwable t) {
 
-					// Default
-					response.setContentType("application/octet-stream");
+			} finally {
+
+				if (out != null) {
+
+					try {
+						// 3: output content
+						out.flush();
+						out.close();
+
+					} catch(Throwable t) {}
 				}
 
-				try {
-
-					IOUtils.copy(in, out);
-
-				} catch (Throwable t) {
-
-				} finally {
-
-					if (out != null) {
-
-						try {
-							// 3: output content
-							out.flush();
-							out.close();
-
-						} catch(Throwable t) {}
-					}
-
-					if (in != null) {
-						in.close();
-					}
-
-					response.setStatus(HttpServletResponse.SC_OK);
+				if (in != null) {
+					in.close();
 				}
+
+				response.setStatus(HttpServletResponse.SC_OK);
 			}
 		}
 	}

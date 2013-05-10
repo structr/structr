@@ -118,7 +118,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		properties.put(AbstractNode.name, name != null ? name : "page");
 		properties.put(AbstractNode.type, Page.class.getSimpleName());
-		properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
 		properties.put(AbstractNode.visibleToPublicUsers, true);
 		properties.put(Page.contentType, "text/html");
 	

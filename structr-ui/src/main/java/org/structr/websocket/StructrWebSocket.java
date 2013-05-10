@@ -21,30 +21,31 @@
 package org.structr.websocket;
 
 import org.structr.websocket.command.FileUploadHandler;
-import com.google.gson.Gson;
-
-import org.apache.commons.codec.binary.Base64;
-
-import org.eclipse.jetty.websocket.WebSocket;
 
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+
+import org.structr.core.property.PropertyKey;
+import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.File;
 import org.structr.core.entity.Principal;
+
+import org.structr.web.entity.File;
+
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.LoginCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
+import com.google.gson.Gson;
+import org.eclipse.jetty.websocket.WebSocket;
+
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.IOException;
-
-import java.security.SecureRandom;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -53,8 +54,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.graph.GetNodeByIdCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,8 +63,6 @@ import org.structr.core.graph.GetNodeByIdCommand;
  */
 public class StructrWebSocket implements WebSocket.OnTextMessage {
 
-	private static final int SessionIdLength           = 128;
-	private static final SecureRandom secureRandom     = new SecureRandom();
 	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
 
@@ -307,19 +304,20 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	}
 
 	// ----- public static methods -----
-	public static String secureRandomString() {
-
-		byte[] binaryData = new byte[SessionIdLength];
-
-		// create random data
-		secureRandom.nextBytes(binaryData);
-
-		// return random data encoded in Base64
-		return Base64.encodeBase64URLSafeString(binaryData);
-
-	}
+//	public static String secureRandomString() {
+//
+//		byte[] binaryData = new byte[SessionIdLength];
+//
+//		// create random data
+//		secureRandom.nextBytes(binaryData);
+//
+//		// return random data encoded in Base64
+//		return Base64.encodeBase64URLSafeString(binaryData);
+//
+//	}
 
 	// ----- private methods -----
+	
 	private void authenticateToken(final String messageToken) {
 
 		Principal user = AuthHelper.getUserForSessionId(messageToken);
@@ -333,7 +331,8 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	}
 
 	// ----- private static methods -----
-	public static final void addCommand(final Class command) {
+	
+	public static void addCommand(final Class command) {
 
 		try {
 
@@ -387,7 +386,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	}
 
-	public String getPathPath() {
+	public String getPagePath() {
 
 		return pagePath;
 

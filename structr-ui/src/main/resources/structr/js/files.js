@@ -517,7 +517,7 @@ var _Files = {
 
     editContent : function (button, file, element) {
         //debug = true;
-        var url = viewRootUrl + file.name + '?edit';
+        var url = viewRootUrl + file.name + '?edit=1';
         log('editContent', button, file, element, url);
         var headers = {};
         headers['X-StructrSessionToken'] = token;

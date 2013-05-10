@@ -73,18 +73,25 @@ public class LoginCommand extends AbstractCommand {
 
 				if (user != null) {
 
-					String token = StructrWebSocket.secureRandomString();
+					String sessionId = webSocketData.getSessionId();
+					
+					if (sessionId == null) {
+						
+						logger.log(Level.INFO, "Could not login {0}: No sessionId found", new Object[] { username, password });
+						getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+						
+					}
 
 					// store token in user
-					user.setProperty(Principal.sessionId, token);
+					user.setProperty(Principal.sessionId, sessionId);
 
 					// store token in response data
 					webSocketData.getNodeData().clear();
-					webSocketData.setToken(token);
+					webSocketData.setToken(sessionId);
 					webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
 
 					// authenticate socket
-					this.getWebSocket().setAuthenticated(token, user);
+					this.getWebSocket().setAuthenticated(sessionId, user);
 
 					// send data..
 					this.getWebSocket().send(webSocketData, false);
@@ -94,7 +101,7 @@ public class LoginCommand extends AbstractCommand {
 			} catch (AuthenticationException e) {
 
 				logger.log(Level.INFO, "Could not login {0} with {1}", new Object[] { username, password });
-				this.getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+				getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to execute command", fex);

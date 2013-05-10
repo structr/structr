@@ -132,7 +132,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 			// create message
 			for (StructrWebSocket socket : clients) {
 				
-				String clientPagePath = socket.getPathPath();
+				String clientPagePath = socket.getPagePath();
 				if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
 					continue;
 				}
@@ -277,7 +277,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 			webSocketData.setSessionValid(true);
 
 			String pagePath = (String) webSocketData.getNodeData().get("pagePath");
-			String clientPagePath = socket.getPathPath();
+			String clientPagePath = socket.getPagePath();
 
 			if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
 				continue;
