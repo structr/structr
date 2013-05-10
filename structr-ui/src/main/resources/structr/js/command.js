@@ -250,6 +250,20 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send a SET_PERMISSIONS command to the server.
+     * 
+     * The server will set the permission contained in the 'data' on the node
+     * with the given id and broadcast an update notification.
+     */
+    setPermission: function(id, principalId, action, permission, recursive, callback) {
+        var obj = {};
+        obj.command = 'SET_PERMISSION';
+        obj.id = id;
+        obj.data = { 'principalId': principalId, 'action': action, 'permission': permission, 'recursive': recursive };
+        log('setPermission()', obj, callback);
+        return sendObj(obj, callback);
+    },
+    /**
      * Send an APPEND_FILE command to the server.
      * 
      * The server will append the file or folder node with the given id

@@ -402,7 +402,7 @@ var _Entities = {
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
                 dialogText.append('<h3>Access Rights</h3>');
-                dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Type</th><th>Read</th><th>Write/Modify</th><th>Delete</th></tr></thead><tbody></tbody></table');
+                dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th></tr></thead><tbody></tbody></table');
                 
                 var tb = $('#principals tbody', dialogText);
                 
@@ -416,10 +416,12 @@ var _Entities = {
                     success: function(data) {
                         $(data.result).each(function(i, result) {
                             
-                            var read = isIn('read', result.allowed);
-                            var write = isIn('write', result.allowed);
-                            var del = isIn('delete', result.allowed);
-                            
+                            var permission = {
+                                'read': isIn('read', result.allowed),
+                                'write': isIn('write', result.allowed),
+                                'delete': isIn('delete', result.allowed)
+                            };
+
                             var principalId = result.principalId;
                             if (principalId) {
                                 
@@ -427,16 +429,21 @@ var _Entities = {
                                 StructrModel.objects[principalId] = principal;
                                 
                                 Command.get(principalId, function() {
-                                    tb.append('<tr id="_' + principalId + '"><td>' + principal.name + '</td><td>' + principal.type + '</td>'
-                                            + '<td><input class="read" type="checkbox" checked="' + read + '"></td>'
-                                            + '<td><input class="write" type="checkbox" checked="' + write + '"></td>'
-                                            + '<td><input class="delete" type="checkbox" checked="' + del + '"></td></tr>');
+                                    tb.append('<tr id="_' + principalId + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> ' + principal.name +'</td>'
+                                            + '<td><input class="read" type="checkbox"' + (permission.read ? ' checked="checked"' : '') + '"></td>'
+                                            + '<td><input class="write" type="checkbox"' + (permission.write ? ' checked="checked"' : '') + '"></td>'
+                                            + '<td><input class="delete" type="checkbox"' + (permission.delete ? ' checked="checked"' : '') + '"></td></tr>');
                                     
                                     var row = $('#_' + principalId, tb);
-                                    $('.read', row).on('click', function() {
-                                        // TODO: Add commands to set permissions in backend
-                                    });
-                                    
+
+                                    ['read', 'write', 'delete'].forEach(function(perm) {
+                                        $('.' + perm, row).on('click', function() {
+                                            var sw = $(this);
+                                            Command.setPermission(entity.id, principalId, permission[perm] ? 'revoke' : 'grant', perm, false, function() {
+                                                //sw.prop("checked", !sw.prop("checked"));
+                                            });                                        
+                                        });
+                                    });                                    
                                 });
                             }
                         });
