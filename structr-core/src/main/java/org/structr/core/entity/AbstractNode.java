@@ -113,7 +113,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	// request parameters
 	protected SecurityContext securityContext                     = null;
-	private Map<Long, SecurityRelationship> securityRelationships = null;
 	private boolean readOnlyPropertiesUnlocked                    = false;
 
 	// reference to database node
@@ -238,29 +237,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return "<AbstractNode>";
-
-	}
-
-	/**
-	 * Populate the security relationship cache map
-	 */
-	private void populateSecurityRelationshipCacheMap() {
-
-		if (securityRelationships == null) {
-
-			securityRelationships = new HashMap<Long, SecurityRelationship>();
-		}
-
-		// Fill cache map
-		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
-			
-			Principal owner = (Principal) r.getStartNode();
-			
-			if (owner != null) {
-
-				securityRelationships.put(owner.getId(), (SecurityRelationship) r);
-			}
-		}
 
 	}
 
@@ -682,26 +658,23 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return incoming security relationship
 	 */
 	@Override
-	public SecurityRelationship getSecurityRelationship(final Principal principal) {
+	public SecurityRelationship getSecurityRelationship(final Principal p) {
 
-		if (principal == null) {
+		if (p == null) {
 
 			return null;
 		}
 
-		long userId = principal.getId();
-
-		if (securityRelationships == null) {
-
-			securityRelationships = new HashMap<Long, SecurityRelationship>();
+		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+			
+			if (r.getStartNode().equals(p)) {
+				
+				return (SecurityRelationship) r;
+				
+			}
 		}
-
-		if (!(securityRelationships.containsKey(userId))) {
-
-			populateSecurityRelationshipCacheMap();
-		}
-
-		return securityRelationships.get(userId);
+		
+		return null;
 
 	}
 
