@@ -135,14 +135,13 @@ public class HttpAuthenticator implements Authenticator {
 	
 	protected static Principal checkSessionAuthentication(HttpServletRequest request, HttpServletResponse response) {
 
-		HttpSession session = request.getSession(false);
+		String sessionIdFromRequest = request.getRequestedSessionId();
 		
-		if (session == null) {
+		if (sessionIdFromRequest == null){
 			
 			return null;
+			
 		}
-		
-		String sessionIdFromRequest = request.getSession(false).getId();
 
 		Principal user = AuthHelper.getUserForSessionId(sessionIdFromRequest);
 

@@ -442,6 +442,9 @@ var _Entities = {
                 Command.getByType('User', 1000, 1, 'name', 'asc', function(user) {
                     $('#newPrincipal').append('<option value="' + user.id + '">' + user.name + '</option>');
                 });
+                Command.getByType('Group', 1000, 1, 'name', 'asc', function(group) {
+                    $('#newPrincipal').append('<option value="' + group.id + '">' + group.name + '</option>');
+                });
                 $('#newPrincipal').on('change', function() {
                     var sel = $(this);
                     console.log(sel);
@@ -817,12 +820,17 @@ function addPrincipal(entity, principal, permissions) {
             return false;
         });
 
-        $('.' + perm, row).on('click', function() {
+        $('.' + perm, row).on('click', function(e) {
+            e.preventDefault();
             if (disabled)
                 return false;
             var sw = $(this);
             disabled = true;
             sw.prop('disabled', 'disabled');
+            window.setTimeout(function() {
+                disabled = false;
+                sw.prop('disabled', null);
+            }, 200);
             //console.log('checked elements', $('input:checked', row).length);
             if (!$('input:checked', row).length) {
                 $('#newPrincipal').append('<option value="' + row.attr('id').substring(1) + '">' + $('.name', row).text() + '</option>');
@@ -830,12 +838,9 @@ function addPrincipal(entity, principal, permissions) {
             }
             Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, false, function() {
                 permissions[perm] = !permissions[perm];
+                sw.prop('checked', permissions[perm]);
                 log('Permission successfully updated!');
                 blinkGreen(sw.parent());
-                window.setTimeout(function() {
-                    disabled = false;
-                    sw.prop('disabled', '');
-                }, 200);
                 
                 
             });

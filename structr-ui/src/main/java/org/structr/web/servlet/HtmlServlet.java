@@ -138,7 +138,7 @@ public class HtmlServlet extends HttpServlet {
 			String path = PathHelper.clean(request.getPathInfo());
 
 			logger.log(Level.FINE, "Path info {0}", path);
-			
+
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 			securityContext.initializeAndExamineRequest(request, response);
 			
@@ -490,6 +490,13 @@ public class HtmlServlet extends HttpServlet {
 		logger.log(Level.FINE, "Checking registration ...");
 		
 		String key        = request.getParameter(CONFIRM_KEY_KEY);
+		
+		if (StringUtils.isEmpty(key)) {
+			
+			return false;
+			
+		}
+		
 		String targetPage = request.getParameter(TARGET_PAGE_KEY);
 
 		if (path.equals(CONFIRM_REGISTRATION_PAGE)) {

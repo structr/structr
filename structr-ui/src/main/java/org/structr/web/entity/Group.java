@@ -32,8 +32,14 @@ import org.structr.core.entity.Principal;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.core.Services;
+import org.structr.core.entity.SecurityRelationship;
+import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -44,6 +50,8 @@ import org.structr.core.property.CollectionProperty;
  *
  */
 public class Group extends AbstractNode implements Principal {
+	
+	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
 	public static final CollectionProperty<User> users = new CollectionProperty<User>("users", User.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
@@ -56,20 +64,51 @@ public class Group extends AbstractNode implements Principal {
 	);
 
 	//~--- methods --------------------------------------------------------
-
 	@Override
 	public void grant(Permission permission, AbstractNode obj) {
 
-		obj.getSecurityRelationship(this).addPermission(permission);
+		SecurityRelationship secRel = obj.getSecurityRelationship(this);
+
+		if (secRel == null) {
+
+			try {
+
+				secRel = createSecurityRelationshipTo(obj);
+
+			} catch (FrameworkException ex) {
+
+				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
+
+			}
+
+		}
+
+		secRel.addPermission(permission);
 
 	}
 
 	@Override
 	public void revoke(Permission permission, AbstractNode obj) {
 
-		obj.getSecurityRelationship(this).removePermission(permission);
+		SecurityRelationship secRel = obj.getSecurityRelationship(this);
+
+		if (secRel == null) {
+
+			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
+
+		} else {
+
+			secRel.removePermission(permission);
+		}
 
 	}
+
+	private SecurityRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
+
+		return (SecurityRelationship) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, org.structr.common.RelType.SECURITY);
+
+	}
+
 
 	@Override
 	public void block() throws FrameworkException {

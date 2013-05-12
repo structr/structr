@@ -529,15 +529,14 @@ public class SecurityContext {
 
 	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
 
-//              Principal user = getUser();
+                Principal user = getUser(false);
 		switch (permission) {
 
 			case read :
 				return isVisibleInFrontend(node);    // scanEntity permission in frontend is equivalent to visibility here
 
-			// return node.isGranted(AbstractRelationship.READ_KEY, user);
 			default :
-				return false;
+				return node.isGranted(permission, user);
 
 		}
 	}

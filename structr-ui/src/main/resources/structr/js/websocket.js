@@ -159,7 +159,7 @@ function connect() {
                 Structr.login();
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
-                console.log('Error code: ' + code);
+                log('Error code: ' + code);
 				
                 if (code === 403) {
                     Structr.login('Wrong username or password!');
@@ -172,26 +172,20 @@ function connect() {
                     
                     if (codeStr.startsWith('20')) {
                         msgClass = 'success';
-                        if (dialogBox.is(':visible')){
-                            dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
-                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-                        } else {
-                            Structr.tempInfo('', true);
-                            $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
-                        }
                     } else if (codeStr.startsWith('30')) {
-                        Structr.dialog('', function() {}, function() {});
                         msgClass = 'info';
-                        dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('40')) {
-                        //Structr.dialog('', function() {}, function() {});
-                        Structr.tempInfo('', true);
                         msgClass = 'warning';
-                        $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else {
-                        Structr.error('', function() {}, function() {});
                         msgClass = 'error';
-                        $('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                    }
+                        
+                    if (dialogBox.is(':visible')){
+                        dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                    } else {
+                        Structr.tempInfo('', true);
+                        $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     }
 
                 }

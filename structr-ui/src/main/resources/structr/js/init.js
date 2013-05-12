@@ -218,7 +218,7 @@ var Structr = {
 
         // make a dummy request to get a sessionId
         if (!sessionId) {
-            $.get('/confirm_registration');
+            $.get('/');
         }
 
         connect();
@@ -269,8 +269,9 @@ var Structr = {
     doLogout : function(text) {
         log('doLogout ' + user);
         //Structr.saveSession();
-        $.cookie(tokenCookieName, '');
-        $.cookie(userCookieName, '');
+        $.cookie(tokenCookieName, null);
+        $.cookie('JSESSIONID', null);
+        $.cookie(userCookieName, null);
         if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
             Structr.clearMain();
             Structr.login(text);
@@ -352,7 +353,6 @@ var Structr = {
     },
 
     dialog : function(text, callbackOk, callbackCancel) {
-
         if (browser) {
 
             dialogText.empty();

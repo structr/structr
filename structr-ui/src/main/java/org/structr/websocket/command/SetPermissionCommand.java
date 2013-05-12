@@ -91,6 +91,15 @@ public class SetPermissionCommand extends AbstractCommand {
 
 		if (obj != null) {
 
+			if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.accessControl)) {
+
+				logger.log(Level.WARNING, "No access control permission for {0} on {1}", new Object[] {getWebSocket().getCurrentUser().toString(), obj.toString()});
+				getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
+				return;
+				
+			}
+			
+			
 			try {
 				setPermission(obj, principal, action, permission, rec);
 
@@ -123,19 +132,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	private void setPermission(final AbstractNode obj, final Principal principal, final String action, final String permission, final boolean rec) throws FrameworkException {
 
-		SecurityContext securityContext = getWebSocket().getSecurityContext();
-		
-		// Check if current user has permission for access control
-		if (!securityContext.isAllowed(obj, Permission.accessControl)) {
-			
-			logger.log(Level.WARNING, "Not allowed to set permissions");
-			getWebSocket().send(MessageBuilder.status().message("You don't have the permission to control access for this object!").code(400).build(), true);
-			
-			return;
-			
-		}
-		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
 		
 			@Override
 			public Object execute() throws FrameworkException {

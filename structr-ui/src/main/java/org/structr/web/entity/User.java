@@ -20,6 +20,8 @@
 
 package org.structr.web.entity;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -31,6 +33,8 @@ import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import static org.structr.core.GraphObject.uuid;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeService.NodeIndex;
@@ -77,6 +81,27 @@ public class User extends Person implements Principal {
 	}
 	
 	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public List<Principal> getParents() {
+
+		List<Principal> parents               = new LinkedList<Principal>();
+		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
+
+		for (AbstractRelationship rel : parentRels) {
+
+			AbstractNode node = rel.getStartNode();
+
+			if (node instanceof Principal) {
+
+				parents.add((Principal) node);
+			}
+
+		}
+
+		return parents;
+
+	}
 
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
