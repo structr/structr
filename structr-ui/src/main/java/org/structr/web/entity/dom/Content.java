@@ -51,6 +51,7 @@ import org.structr.common.Permission;
 import org.structr.core.GraphObject;
 
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
@@ -248,11 +249,11 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	protected Object getEditModeValue(final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
+	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
 
 		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
 		
-		if (renderContext.getEdit() && renderContext.inBody()) {
+		if (renderContext.getEdit() && renderContext.inBody() && securityContext.isAllowed((AbstractNode) dataObject, Permission.write) && !referenceKeyProperty.isReadOnlyProperty()) {
 
 			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName() + "\" data-structr-id=\"" + dataObject.getUuid() + "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
 

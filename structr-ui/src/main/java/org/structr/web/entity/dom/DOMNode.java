@@ -487,18 +487,17 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		String referenceKey              = parts[parts.length - 1];
 		String defaultValue              = null;
 		
-		PropertyKey referenceKeyProperty;
 		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
 			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
-			referenceKeyProperty = new StringProperty(ref[0]);
+			referenceKey = ref[0];
 			if (ref.length > 1) {
 				defaultValue         = ref[1];
 			} else {
 				defaultValue         = "";
 			}
-		} else {
-			referenceKeyProperty = new StringProperty(referenceKey);
 		}
+		
+		
 		
 		Page _page                       = renderContext.getPage();
 		GraphObject _data                = null;
@@ -667,8 +666,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 
 		if (_data != null) {
-			
-			return getEditModeValue(renderContext, _data, referenceKeyProperty, defaultValue);
+
+			PropertyKey referenceKeyProperty = EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKey);
+			return getEditModeValue(securityContext, renderContext, _data, referenceKeyProperty, defaultValue);
 			
 		}
 
@@ -676,7 +676,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	}
 
-	protected Object getEditModeValue(final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
+	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
 
 		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
 		
