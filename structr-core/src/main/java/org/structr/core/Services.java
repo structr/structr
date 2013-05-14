@@ -705,6 +705,14 @@ public class Services {
 
 		if(!configuredServiceClasses.contains(serviceClass)) {
 
+			// Try once to find service class in string list "configuredServices".
+			// If already initialized, there is no need to check the string field
+			// again, because this method is called once for each registered service
+			// when structr starts.
+			if (initializationDone) {
+				return false;
+			}
+			
 			boolean configurationContainsClass = StringUtils.contains(configuredServices, serviceClass.getSimpleName());
 
 			if (configurationContainsClass) {

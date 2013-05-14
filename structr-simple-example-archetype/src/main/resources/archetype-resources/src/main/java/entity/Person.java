@@ -49,7 +49,7 @@ public class Person extends AbstractNode {
 	static {
 
 		// register type uniqueness validator
-		EntityContext.registerPropertyValidator(Person.class, name, new TypeUniquenessValidator(Person.class));
+		Person.name.addValidator(new TypeUniquenessValidator(Person.class));
 		
 	}
 	

@@ -106,6 +106,9 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 		} catch (Throwable t) {
 
+			// TODO: add debugging switch!
+			// t.printStackTrace();
+			
 			// catch everything
 			tx.failure();
 			
