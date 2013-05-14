@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public interface Transformation<T> {
+public abstract class Transformation<T> implements Comparable<Transformation<T>> {
 	
 	/**
 	 * Transforms the given object.
@@ -37,7 +37,7 @@ public interface Transformation<T> {
 	 * 
 	 * @throws FrameworkException 
 	 */
-	public void apply(SecurityContext securityContext, T obj) throws FrameworkException;
+	public abstract void apply(SecurityContext securityContext, T obj) throws FrameworkException;
 	
 	/**
 	 * Returns the desired position of this transformation in a list. Return
@@ -46,5 +46,10 @@ public interface Transformation<T> {
 	 * 
 	 * @return the desired position of this transformation in a list
 	 */
-	public int getOrder();
+	public abstract int getOrder();
+	
+	@Override
+	public int compareTo(Transformation<T> t) {
+		return Integer.valueOf(getOrder()).compareTo(Integer.valueOf(t.getOrder()));
+	}
 }

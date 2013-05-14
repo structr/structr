@@ -37,7 +37,7 @@ import org.structr.core.entity.AbstractNode;
  * 
  * @author Axel Morgner
  */
-public class GraphObjectComparator implements Comparator<GraphObject>, ViewTransformation<GraphObject> {
+public class GraphObjectComparator extends ViewTransformation<GraphObject> implements Comparator<GraphObject> {
 
 	public static final String ASCENDING  = "asc";
 	public static final String DESCENDING = "desc";
