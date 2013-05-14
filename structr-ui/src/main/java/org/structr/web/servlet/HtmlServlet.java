@@ -87,6 +87,7 @@ public class HtmlServlet extends HttpServlet {
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	
 	public static final String CONFIRM_REGISTRATION_PAGE = "confirm_registration";
+	public static final String GET_SESSION_ID_PAGE = "get_session_id";
 	public static final String CONFIRM_KEY_KEY = "key";
 	public static final String TARGET_PAGE_KEY = "target";
 	
@@ -169,7 +170,12 @@ public class HtmlServlet extends HttpServlet {
 
 			} else {
 
-				// check for registration first
+				// check if request was solely intended to obtain a session id
+				if (checkGetSessionId(securityContext, request, response, path)) {
+					return;
+				}
+
+				// check for registration
 				if (checkRegistration(securityContext, request, response, path)) {
 					return;
 				}
@@ -416,40 +422,13 @@ public class HtmlServlet extends HttpServlet {
 		
 		return null;
 	}
-//	
-//	/**
-//	 * Convert parameter map so that after conversion, all map values
-//	 * are a single String instead of an one-element String[]
-//	 *
-//	 * @param parameterMap
-//	 * @return
-//	 */
-//	private Map<String, Object> convert(final Map<String, String[]> parameterMap) {
-//
-//		Map parameters = new HashMap<String, Object>();
-//
-//		for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
-//
-//			String[] values = param.getValue();
-//			Object val;
-//
-//			if (values.length == 1) {
-//
-//				val = values[0];
-//
-//			} else {
-//
-//				val = values;
-//
-//			}
-//
-//			parameters.put(param.getKey(), val);
-//
-//		}
-//
-//		return parameters;
-//	}
 
+	/**
+	 * Find the page with the lowest position value
+	 * 
+	 * @return
+	 * @throws FrameworkException 
+	 */
 	private Page findIndexPage() throws FrameworkException {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
@@ -463,7 +442,7 @@ public class HtmlServlet extends HttpServlet {
 
 		if (!results.isEmpty()) {
 
-			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, AbstractNodeComparator.ASCENDING));
+			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
 			return (Page) results.get(0);
 
@@ -472,6 +451,23 @@ public class HtmlServlet extends HttpServlet {
 		return null;
 	}
 
+	private boolean checkGetSessionId(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final String path) throws FrameworkException, IOException {
+		
+		logger.log(Level.INFO, "Request to get session id");
+		
+		if (path.equals(GET_SESSION_ID_PAGE)) {
+		
+			request.getSession(true);
+			response.setStatus(HttpServletResponse.SC_OK);
+			
+			response.flushBuffer();
+			return true;
+			
+		}
+
+		return false;
+		
+	}
 	
 	/**
 	 * This method checks if the current request is a user registration confirmation,
@@ -526,14 +522,6 @@ public class HtmlServlet extends HttpServlet {
 					return true;
 					
 				}
-				
-//				try {
-//					request.authenticate(response);
-//					//response.addCookie(new Cookie());
-//				} catch (ServletException ex) {
-//					Logger.getLogger(HtmlServlet.class.getName()).log(Level.SEVERE, null, ex);
-//				}
-				
 				
 			}
 			

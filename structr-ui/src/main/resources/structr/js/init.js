@@ -218,7 +218,7 @@ var Structr = {
 
         // make a dummy request to get a sessionId
         if (!sessionId) {
-            $.get('/');
+            $.get('/get_session_id');
         }
 
         connect();
