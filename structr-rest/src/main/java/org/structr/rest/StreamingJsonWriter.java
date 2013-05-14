@@ -45,12 +45,14 @@ public class StreamingJsonWriter {
 	private PropertyKey idProperty                       = GraphObject.uuid;
 	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
+	private boolean indent                               = true;
 	//private JsonWriter writer                            = null;
 	
-	public StreamingJsonWriter(Value<String> propertyView) {
+	public StreamingJsonWriter(Value<String> propertyView, boolean indent) {
 
 		this.securityContext = SecurityContext.getSuperUserInstance();
 		this.propertyView    = propertyView;
+		this.indent          = indent;
 
 		serializers.put(GraphObject.class, root);
 		serializers.put(PropertyMap.class, new PropertyMapSerializer());
@@ -77,7 +79,10 @@ public class StreamingJsonWriter {
 		long t0 = System.nanoTime();
 		
 		JsonWriter writer = new JsonWriter(w);
-		writer.setIndent("   ");
+		
+		if (indent) {
+			writer.setIndent("   ");
+		}
 		
 		// result fields in alphabetical order
 		List<? extends GraphObject> results = src.getResults();

@@ -386,7 +386,7 @@ public class Structr {
 		if (enableGzipCompression) {
 
 			FilterHolder gzipFilter = new FilterHolder(GzipFilter.class);
-			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript");
+			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
 			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 
 		}
