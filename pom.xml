@@ -17,6 +17,7 @@
     <modules>
         <module>structr-simple-example-archetype</module>
         <module>structr-base-archetype</module>
+        <module>structr-ui-archetype</module>
         <module>structr-core</module>
         <module>structr-rest</module>
         <module>structr-ui</module>

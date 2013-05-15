@@ -1,0 +1,364 @@
+@charset "UTF-8";
+
+.resourceBox {
+    /*height: 600px;*/
+    overflow: auto;
+    border: 1px solid #999 ! important;
+    background: #fff ! important;
+    font-family: Arial, Helvetica, Sans-serif ! important;
+    font-size: 8pt;
+}
+
+.resourceBox table {
+    border-collapse: collapse;
+    background: #fff;
+    margin: 6px 0;
+    width: 100%;
+}
+
+.resourceBox td, .resourceBox th {
+    padding: 4px;
+    border: 1px solid #b5b5b5;
+    text-align: left;
+    vertical-align: top;
+    height: 1em;
+}
+
+.resourceBox tr:nth-child(odd) {
+    background: #f7f7f7 ! important;
+}
+
+.resourceBox tr:nth-child(even) {
+    background: #fff ! important;
+}
+
+.resourceBox th {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.resourceBox td.value {
+    padding: 0;
+}
+
+.resourceBox td.save {
+    color: #aaa;
+}
+
+.resourceBox td.save.active:hover, .resourceBox .delete:hover, .resourceBox .edit:hover {
+    cursor: pointer;
+    /*text-decoration: underline;*/
+}
+
+.resourceBox td.save.active {
+    font-weight: bold;
+    color: #f33;
+}
+
+.resourceBox td input[type=text] {
+    margin: 0;
+    border: 1px solid #a5a5a5;
+    /*border: none;*/
+}
+
+.resourceBox button {
+    /*margin: 12px 0 0 0;*/
+}
+
+#resourceTabs {
+    margin: 12px;
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: Arial, Helvetica, Sans-serif;
+}
+
+#resourceTabs li.ui-corner-top {
+    font-weight: bold;
+    border: 1px solid #999;
+    background-color: #e9e9e9;
+    background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f7f7f7)) no-repeat;
+    background: -moz-linear-gradient(90deg, #e3e3e3, #f7f7f7) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#e3e3e3', GradientType=0);
+    /*cursor: pointer ! important;*/
+}
+
+#resourceTabs .ui-state-default a,
+#resourceTabs .ui-state-default a:visited {
+    color: #505050 ! important;
+}
+
+#resourceTabs li.ui-state-active {
+    color: #333 ! important;
+    background-color: #81ce25;
+    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
+    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
+}
+
+#resourceTabs li.ui-state-active a,
+#resourceTabs li.ui-state-active a:visited {
+    color: #333 ! important;
+}
+
+#resourceTabsMenu {
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+#addResourceTab {
+    cursor: pointer;
+}
+
+#addResourceTab img {
+    margin: 6px 6px 2px 6px;
+}
+
+input.readonly {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.infoFooter {
+    clear: both;
+    width: 100%;
+    text-align: right;
+}
+
+.exportArea {
+    border: none;
+    width: 770px;
+    height: 590px;
+    overflow: auto;
+}
+
+.resourceBox div.node,
+#relatedNodesList .node,
+.props .node {
+    color: #333;
+    line-height: 1.7em;
+    border-radius: 5px;
+    border: 1px solid #a5a5a5;
+    padding: 2px 5px;
+    margin: 2px 2px 3px 1px;
+    background-color: #eee;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+    float: left;
+}
+
+.resourceBox div.node:hover,
+#relatedNodesList .node:hover,
+.props .node:hover {
+    color: #555;
+    border: 1px solid #bbb;
+    background-color: #fff;
+    background: -webkit-gradient(linear, left bottom, left top, from(#dfdfdf), to(#ffffff)) no-repeat ! important;
+    background: -moz-linear-gradient(90deg, #dfdfdf, #ffffff) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#ffffff', EndColorStr='#dfdfdf', GradientType=0);
+    cursor: pointer;
+}
+
+.resourceBox td button {
+    margin: 2px 3px 0 2px;
+}
+
+.props .node img,
+.resourceBox div.node img {
+    vertical-align: middle;
+    margin: 0 0 2px 4px;
+}
+
+
+.resourceBox div.node img.add, .resourceBox td img.add, .props td img.add,
+.resourceBox div.node img.edit, .resourceBox td img.edit, .props td img.edit,
+.resourceBox div.node img.remove, .resourceBox td img.remove, .props td img.remove {
+    filter: alpha(opacity=60);
+    -khtml-opacity: 0.6;
+    -moz-opacity: 0.6;
+    opacity: 0.6;
+}
+
+.props td img.add,
+.resourceBox td img.add {
+    margin: 2px 0 2px 1px;
+    float: right;
+}
+
+.resourceBox div.node img.add:hover, .resourceBox td img.add:hover, .props td img.add:hover,
+.resourceBox div.node img.edit:hover, .resourceBox td img.edit:hover, .props td img.edit:hover,
+.resourceBox div.node img.remove:hover, .resourceBox td img.remove:hover .props td img.remove:hover {
+    filter: alpha(opacity=100);
+    -khtml-opacity: 1.0;
+    -moz-opacity: 1.0;
+    opacity: 1.0;
+    cursor: pointer;
+}
+
+table.props input.readonly {
+    /*color: #666 ! important;*/
+    border: none;
+    background-color: transparent ! important;
+}
+
+img.thumbnail {
+    max-width: 100px;
+    max-height: 100px;
+}
+
+#images .node img.thumbnail,
+.resourceBox td img.thumbnail {
+    margin-top: -42px;
+    margin-left: -50%;
+}
+
+#relatedNodesList .node img.thumbnail {
+    margin-top: 24px;
+    margin-left: -50%;
+}
+
+.resourceBox td .image,
+#relatedNodesList .image {
+    width: 102px;
+    height: 130px;
+    float: left;
+    margin-right: 4px;
+    position: relative;
+}
+
+
+.resourceBox td .thumbnailZoom,
+#relatedNodesList .node .thumbnailZoom {
+    max-width: 300px;
+    max-height: 300px;
+    position: absolute;
+    z-index: 4;
+}
+
+.resourceBox td div.wrap,
+#relatedNodesList .node div.wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+}
+
+.dialog {
+    margin: auto;
+}
+
+.dialogTextWrapper {
+    overflow: auto;
+}
+
+.dialogText {
+}
+
+#dialogBox .dialogText .props {
+    width: 100%;
+    height: 100%;
+}
+
+
+#dialogBox .dialogText div.img {
+    clear: both;
+    /*height: 492px;*/
+}
+
+#dialogBox .dialogText div.wrap,
+#dialogBox .dialogText .node div.wrap {
+}
+
+#dialogBox .dialogText {
+/*    min-width: 600px;
+    min-height: 100px;
+    height: 660px;*/
+    position: relative;
+    /*float: left;*/
+}
+
+#dialogBox .dialogText .thumbnailZoom {
+    max-width: 776px;
+    max-height: 480px;
+/*    margin-top: 0;
+    margin-left: -50%;*/
+}
+
+.dialogTitle span.id {
+    display: none;
+}
+
+/*
+* Search
+*/
+ 
+.searchBox {
+     position: absolute;
+     right: 12px;
+     top: 15px;
+     z-index: 5;
+     line-height: 1em;
+}
+
+.searchBoxDialog {
+     top: 1px;
+}
+
+.searchBox input.search {
+    border: 1px solid #a5a5a5;
+    border-radius: 3px;
+    width: 240px;
+    height: 24px;
+    padding: 2px 4px;
+}
+
+.searchResults {
+    margin-top: 42px;
+}
+
+h2.searchResultsTitle {
+    position: absolute;
+    color: #333;
+    top: 60px;
+    left: 12px;
+}
+
+.searchResults h3 {
+    color: #333;
+    clear: both;
+    margin: 0 0 12px 0;
+}
+
+.searchResultGroup {
+    border-radius: 5px;
+    margin: 12px;
+    padding: 8px 12px;
+    clear: both;
+    border: 1px solid red;
+}
+
+.searchResults .node {
+    margin: 0 4px 4px 0;
+}
+
+.clearSearchIcon {
+    display: none;
+    position: absolute;
+    top: 9px;
+    right: 8px;
+    cursor: pointer;
+}
+
+.dialogText h2.searchResultsTitle {
+    top: 0px;
+}
+
+.dialogText .searchResults {
+    margin-top: 0;
+}
+
+.dialogText .searchResultGroup {
+    position: absolute;
+    top: 42px;
+}
