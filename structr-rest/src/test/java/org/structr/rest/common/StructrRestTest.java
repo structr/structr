@@ -102,7 +102,7 @@ public class StructrRestTest extends TestCase {
 	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
 	protected static final String host = "127.0.0.1";
-	protected static final int restPort = 8875;
+	protected static final int httpPort = 8875;
 	
 	static {
 
@@ -111,8 +111,8 @@ public class StructrRestTest extends TestCase {
 		
 		// configure RestAssured
 		RestAssured.basePath = restUrl;
-		RestAssured.baseURI = "http://" + host + ":" + restPort;
-		RestAssured.port = restPort;
+		RestAssured.baseURI = "http://" + host + ":" + httpPort;
+		RestAssured.port = httpPort;
 	}
 	
 	//~--- methods --------------------------------------------------------
@@ -155,7 +155,7 @@ public class StructrRestTest extends TestCase {
 			List<Connector> connectors           = new LinkedList<Connector>();
 			HandlerCollection handlerCollection  = new HandlerCollection();
 
-			server = new Server(restPort);
+			server = new Server(httpPort);
 			
 			ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, ServletContextHandler.SESSIONS);
 
@@ -197,12 +197,12 @@ public class StructrRestTest extends TestCase {
 
 			server.setHandler(handlerCollection);
 
-			if (host != null && !host.isEmpty() && restPort > -1) {
+			if (host != null && !host.isEmpty() && httpPort > -1) {
 
 				SelectChannelConnector httpConnector = new SelectChannelConnector();
 
 				httpConnector.setHost(host);
-				httpConnector.setPort(restPort);
+				httpConnector.setPort(httpPort);
 				httpConnector.setMaxIdleTime(30000);
 				httpConnector.setRequestHeaderSize(8192);
 
@@ -210,7 +210,7 @@ public class StructrRestTest extends TestCase {
 
 			} else {
 
-				logger.log(Level.WARNING, "Unable to configure REST port, please make sure that application.host, application.rest.port and application.rest.path are set correctly in structr.conf.");
+				logger.log(Level.WARNING, "Unable to configure REST port, please make sure that application.host, application.http.port and application.rest.path are set correctly in structr.conf.");
 			}
 
 			if (!connectors.isEmpty()) {
@@ -476,7 +476,7 @@ public class StructrRestTest extends TestCase {
 			config.add("");
 			config.add("# REST server settings");
 			config.add("application.host = " + host);
-			config.add("application.rest.port = " + restPort);
+			config.add("application.http.port = " + httpPort);
 			config.add("application.rest.path = " + restUrl);
 			config.add("");
 			config.add("application.https.enabled = false");

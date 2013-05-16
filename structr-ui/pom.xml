@@ -46,6 +46,10 @@
             <name>google-diff-patch-match</name>
             <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
         </repository>		
+        <repository>
+            <id>apache</id>
+            <url>https://repository.apache.org/content/groups/public/</url>
+        </repository>
     </repositories>
     <dependencies>
         <dependency>
@@ -121,6 +125,11 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>1.9.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.oltu</groupId>
+            <artifactId>oltu-oauth2-client</artifactId>
+            <version>0.31-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>

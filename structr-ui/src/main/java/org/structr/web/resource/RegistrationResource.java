@@ -132,20 +132,7 @@ public class RegistrationResource extends Resource {
 				
 			} else {
 
-				user = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
-
-					@Override
-					public User execute() throws FrameworkException {
-
-						return (User) Services.command(securityContext, CreateNodeCommand.class).execute(
-							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
-							new NodeAttribute(User.email, emailString),
-							new NodeAttribute(User.name, emailString),
-							new NodeAttribute(User.confirmationKey, confKey));
-					}
-
-				});
-
+				user = createUser(securityContext, emailString);
 			}
 			
 			if (user != null) {
@@ -193,7 +180,7 @@ public class RegistrationResource extends Resource {
 		
 		replacementMap.put(toPlaceholder(User.email.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, "//" + Services.getApplicationHost() + ":" + Services.getApplicationPort())
+			getTemplateText(TemplateKey.BASE_URL, "//" + Services.getApplicationHost() + ":" + Services.getHttpPort())
 			+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
 			+ "?" + HtmlServlet.CONFIRM_KEY_KEY + "=" + confKey
 			+ "&" + HtmlServlet.TARGET_PAGE_KEY + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks"));
@@ -254,6 +241,34 @@ public class RegistrationResource extends Resource {
 
 		return "${".concat(key).concat("}");
 
+	}
+	
+
+	public static User createUser(final SecurityContext securityContext, final String emailString) {
+		
+		User user = null;
+		
+		try {
+			user = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
+
+			   @Override
+			   public User execute() throws FrameworkException {
+
+				   return (User) Services.command(securityContext, CreateNodeCommand.class).execute(
+					   new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
+					   new NodeAttribute(User.email, emailString),
+					   new NodeAttribute(User.name, emailString),
+					   new NodeAttribute(User.confirmationKey, confKey));
+			   }
+
+		   });
+			
+		} catch (FrameworkException ex) {
+			Logger.getLogger(RegistrationResource.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		
+		return user;
+		
 	}
 	
 	

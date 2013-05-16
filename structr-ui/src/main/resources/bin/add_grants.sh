@@ -24,14 +24,14 @@ delete resource_access
 post resource_access '{"signature":"ResourceAccess","flags":17}'
 post resource_access '{"signature":"ResourceAccess/_Ui","flags":17}'
 
-# allow POST access to registration resource
-post resource_access '{"signature":"_registration","flags":68}'
+# allow public users POST access to registration resource
+post resource_access '{"signature":"_registration","flags":64}'
 
-# allow POST access to login resource
-post resource_access '{"signature":"_login","flags":68}'
+# allow public users POST access to login resource
+post resource_access '{"signature":"_login","flags":4}'
 
-# allow POST access to logout resource
-post resource_access '{"signature":"_logout","flags":68}'
+# allow authenticated users POST access to logout resource
+post resource_access '{"signature":"_logout","flags":64}'
 
 post resource_access '{"signature":"/","flags":255}'
 post resource_access '{"signature":"/_All","flags":255}'

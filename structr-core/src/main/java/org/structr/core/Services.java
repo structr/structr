@@ -55,19 +55,27 @@ import org.structr.common.error.FrameworkException;
 public class Services {
 
 	// Application constants
-	public static final String APPLICATION_TITLE   = "application.title";
-	public static final String APPLICATION_HOST    = "application.host";
-	public static final String APPLICATION_PORT    = "application.port";
-	public static final String BASE_PATH           = "base.path";
-	public static final String CONFIGURED_SERVICES = "configured.services";
-	public static final String CONFIG_FILE_PATH    = "configfile.path";
+	public static final String APPLICATION_TITLE         = "application.title";
+	public static final String APPLICATION_HOST          = "application.host";
+	public static final String APPLICATION_HTTP_PORT     = "application.http.port";
+	public static final String APPLICATION_HTTPS_PORT    = "application.https.port";
+	public static final String APPLICATION_HTTPS_ENABLED = "application.https.enabled";
+	public static final String REST_PATH                 = "application.rest.path";
+
+	// Keystore
+	public static final String APPLICATION_KEYSTORE_PATH     = "application.keystore.path";
+	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
+	
+	// Base constants
+	public static final String BASE_PATH             = "base.path";
+	public static final String CONFIGURED_SERVICES   = "configured.services";
+	public static final String CONFIG_FILE_PATH      = "configfile.path";
 
 	// Database-related constants
-	public static final String DATABASE_PATH = "database.path";
-	public static final String FILES_PATH    = "files.path";
+	public static final String DATABASE_PATH     = "database.path";
+	public static final String FILES_PATH        = "files.path";
 	public static final String LOG_DATABASE_PATH = "log.database.path";
-	public static final String REST_PATH     = "application.rest.path";
-	public static final String FOREIGN_TYPE = "foreign.type.key";
+	public static final String FOREIGN_TYPE      = "foreign.type.key";
 	
 	// LogService-related constants
 	public static final String LOG_SERVICE_INTERVAL  = "structr.logging.interval";
@@ -107,9 +115,13 @@ public class Services {
 	private static final Set<Class> registeredServiceClasses = new LinkedHashSet<Class>();
 	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<Class>();
 	private static boolean initializationDone = false;
+	private static String httpsEnabled;
 	private static String appTitle;
 	private static String appHost;
-	private static String appPort;
+	private static String appHttpPort;
+	private static String appHttpsPort;
+	private static String keystorePath;
+	private static String keystorePassword;
 	private static String basePath;
 	private static String restPath;
 	private static String configFilePath;
@@ -214,7 +226,11 @@ public class Services {
 			"ModuleService NodeService AgentService CloudService CacheService LogService NotificationService");
 		appTitle          = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
 		appHost           = getConfigValue(context, Services.APPLICATION_HOST, "localhost");
-		appPort           = getConfigValue(context, Services.APPLICATION_PORT, "8082");
+		appHttpPort       = getConfigValue(context, Services.APPLICATION_HTTP_PORT, "8082");
+		appHttpsPort      = getConfigValue(context, Services.APPLICATION_HTTPS_PORT, "8083");
+		httpsEnabled      = getConfigValue(context, Services.APPLICATION_HTTPS_ENABLED, "false");
+		keystorePath      = getConfigValue(context, Services.APPLICATION_KEYSTORE_PATH, "");
+		keystorePassword  = getConfigValue(context, Services.APPLICATION_KEYSTORE_PASSWORD, "");
 		tmpPath           = getConfigValue(context, Services.TMP_PATH, "/tmp");
 		basePath          = getConfigValue(context, Services.BASE_PATH, ".");
 		restPath          = getConfigValue(context, Services.REST_PATH, "/structr/rest");
@@ -411,33 +427,47 @@ public class Services {
 	//~--- get methods ----------------------------------------------------
 
 	/**
-	 * Return the static application title
+	 * Return the application title
 	 */
 	public static String getApplicationTitle() {
 		return appTitle;
 	}
 
 	/**
-	 * Return the static application host name
+	 * Return the application host name
 	 */
 	public static String getApplicationHost() {
 		return appHost;
 	}
 	
 	/**
-	 * Return the static application port
+	 * Return the application HTTP port
 	 */
-	public static String getApplicationPort() {
-		return appPort;
+	public static String getHttpPort() {
+		return appHttpPort;
 	}
 	
 	/**
-	 * Return the static base path
+	 * Return HTTPS enabled
+	 */
+	public static boolean getHttpsEnabled() {
+		return "true".equals(httpsEnabled);
+	}
+
+	/**
+	 * Return the application HTTPS port
+	 */
+	public static String getHttpsPort() {
+		return appHttpsPort;
+	}
+
+	/**
+	 * Return the keystore path
 	 *
 	 * @return
 	 */
-	public static String getBasePath() {
-		return getPath(Path.Base);
+	public static String getKeystorePath() {
+		return keystorePath;
 	}
 
 	/**
@@ -446,7 +476,25 @@ public class Services {
 	 * @return
 	 */
 	public static String getRestPath() {
-		return getPath(Path.Rest);
+		return restPath;
+	}
+	
+	/**
+	 * Return the keystore password
+	 *
+	 * @return
+	 */
+	public static String getKeystorePassword() {
+		return keystorePassword;
+	}
+
+	/**
+	 * Return the static base path
+	 *
+	 * @return
+	 */
+	public static String getBasePath() {
+		return getPath(Path.Base);
 	}
 
 	/**

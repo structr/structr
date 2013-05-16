@@ -81,7 +81,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> cacheForSeconds                   = new IntProperty("cacheForSeconds");
 	public static final CollectionProperty<DOMNode> elements                = new CollectionProperty<DOMNode>("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
 	
-	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version);
+	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version, position);
 	public static final org.structr.common.View publicView                  = new org.structr.common.View(Page.class, PropertyView.Public, linkingElements, contentType, owner, cacheForSeconds, version);
 
 	private Html5DocumentType docTypeNode                                   = null;

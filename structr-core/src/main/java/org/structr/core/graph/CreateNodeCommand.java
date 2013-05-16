@@ -79,7 +79,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 	public T execute(PropertyMap attributes) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Principal user               = securityContext.getUser(true);
+		Principal user               = securityContext.getUser(false);
 		T node	                     = null;
 
 		if (graphDb != null) {

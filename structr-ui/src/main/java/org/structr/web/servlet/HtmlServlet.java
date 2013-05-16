@@ -82,7 +82,6 @@ public class HtmlServlet extends HttpServlet {
 	private static Date lastModified;
 	public static final String REST_RESPONSE = "restResponse";
 	public static final String REDIRECT = "redirect";
-	public static final String LAST_GET_URL = "lastGetUrl";
 	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	
@@ -143,6 +142,11 @@ public class HtmlServlet extends HttpServlet {
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 			securityContext.initializeAndExamineRequest(request, response);
 			
+			// don't continue on redirects
+			if (response.getStatus() == 302) {
+				return;
+			}
+			
 			if (securityContext.getUser(false) != null) {
 				
 				// Don't cache if a user is logged in
@@ -160,8 +164,8 @@ public class HtmlServlet extends HttpServlet {
 			AbstractNode dataNode             = null;
 			
 			
-			String[] urlParts = PathHelper.getParts(path);
-			if ((urlParts == null) || (urlParts.length == 0)) {
+			String[] uriParts = PathHelper.getParts(path);
+			if ((uriParts == null) || (uriParts.length == 0)) {
 
 				// try to find a page with position==0
 				rootElement = findIndexPage();
@@ -169,9 +173,9 @@ public class HtmlServlet extends HttpServlet {
 				logger.log(Level.FINE, "No path supplied, trying to find index page");
 
 			} else {
-
+				
 				// check if request was solely intended to obtain a session id
-				if (checkGetSessionId(securityContext, request, response, path)) {
+				if (checkGetSessionId(request, response, path)) {
 					return;
 				}
 
@@ -206,10 +210,10 @@ public class HtmlServlet extends HttpServlet {
 				Matcher matcher                 = threadLocalUUIDMatcher.get();
 				boolean requestUriContainsUuids = false;
 
-				for (int i = 0; i < urlParts.length; i++) {
+				for (int i = 0; i < uriParts.length; i++) {
 
-					request.setAttribute(urlParts[i], i);
-					matcher.reset(urlParts[i]);
+					request.setAttribute(uriParts[i], i);
+					matcher.reset(uriParts[i]);
 
 					// set to "true" if part matches UUID pattern
 					requestUriContainsUuids |= matcher.matches();
@@ -273,8 +277,8 @@ public class HtmlServlet extends HttpServlet {
 			
 			if (edit || dontCache) {
 
-				response.setHeader("Pragma", "no-cache");
-
+				setNoCacheHeaders(response);
+				
 			} else {
 				
 				lastModified = rootElement.getLastModifiedDate();
@@ -283,8 +287,6 @@ public class HtmlServlet extends HttpServlet {
 
 			if (securityContext.isVisible(rootElement)) {
 				
-				// Store last page GET URL in session
-				request.getSession().setAttribute(LAST_GET_URL, request.getPathInfo());
 				PrintWriter out            = response.getWriter();
 				
 				double setup     = System.nanoTime();
@@ -303,17 +305,11 @@ public class HtmlServlet extends HttpServlet {
 					double end     = System.nanoTime();
 					logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
 
-					// FIXME: where to get content type
 					String contentType = rootElement.getProperty(Page.contentType);
 
-					if (contentType != null) {
+					if (contentType != null && contentType.equals("text/html")) {
 
-						if (contentType.equals("text/html")) {
-
-							contentType = contentType.concat(";charset=UTF-8");
-
-						}
-
+						contentType = contentType.concat(";charset=UTF-8");
 						response.setContentType(contentType);
 
 					} else {
@@ -335,8 +331,8 @@ public class HtmlServlet extends HttpServlet {
 
 		} catch (Throwable t) {
 
-			// t.printStackTrace();
-			logger.log(Level.WARNING, "Exception while processing request", t);
+			t.printStackTrace();
+			logger.log(Level.SEVERE, "Exception while processing request", t);
 			HttpAuthenticator.writeInternalServerError(response);
 		}
 	}
@@ -451,11 +447,21 @@ public class HtmlServlet extends HttpServlet {
 		return null;
 	}
 
-	private boolean checkGetSessionId(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final String path) throws FrameworkException, IOException {
+	/**
+	 * Check if the request was solely intended to get a session id
+	 * 
+	 * @param request
+	 * @param response
+	 * @param path
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException 
+	 */
+	private boolean checkGetSessionId(final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException {
 		
-		logger.log(Level.INFO, "Request to get session id");
+		logger.log(Level.INFO, "Checking for {0} ...", GET_SESSION_ID_PAGE);
 		
-		if (path.equals(GET_SESSION_ID_PAGE)) {
+		if (GET_SESSION_ID_PAGE.equals(path)) {
 		
 			request.getSession(true);
 			response.setStatus(HttpServletResponse.SC_OK);
@@ -495,7 +501,7 @@ public class HtmlServlet extends HttpServlet {
 		
 		String targetPage = request.getParameter(TARGET_PAGE_KEY);
 
-		if (path.equals(CONFIRM_REGISTRATION_PAGE)) {
+		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 		
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 			searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
@@ -627,6 +633,14 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- set methods ----------------------------------------------------
 
+	public static void setNoCacheHeaders(final HttpServletResponse response) {
+		
+		response.setHeader("Cache-Control", "private, max-age=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
+		response.setDateHeader("Expires", 0);
+		
+	}
+	
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
 
 		boolean notModified = false;
