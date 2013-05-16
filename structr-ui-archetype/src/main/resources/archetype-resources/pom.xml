@@ -26,7 +26,7 @@
 						<argument>-Xmx512m</argument>
 						<argument>-classpath</argument>
 						<argument>target/lib/*:target/${artifactId}-${version}.jar</argument>
-						<argument>${package}.Server</argument>
+						<argument>${package}.Ui</argument>
 					</arguments>
 				</configuration>
 			</plugin>
@@ -46,6 +46,24 @@
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unpack-static</id>
+						<phase>package</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.structr</groupId>
+									<artifactId>structr-ui</artifactId>
+									<type>jar</type>
+								</artifactItem>
+							</artifactItems>
+							<outputDirectory>${project.build.directory}/</outputDirectory>
+							<includes>structr/**</includes>
 						</configuration>
 					</execution>
 				</executions>
@@ -79,6 +97,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
 				<configuration>
 					<descriptors>
 						<descriptor>src/main/resources/assemblies/dist.xml</descriptor>
@@ -107,7 +126,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>
-			<artifactId>structr-server</artifactId>
+			<artifactId>structr-ui</artifactId>
 			<version>0.7-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
