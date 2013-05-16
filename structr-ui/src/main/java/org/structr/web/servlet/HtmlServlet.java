@@ -132,6 +132,9 @@ public class HtmlServlet extends HttpServlet {
 
 			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
 			response.setCharacterEncoding("UTF-8");
+
+			// create session if not already existing
+			request.getSession();
 			
 			boolean dontCache = false;
 			
