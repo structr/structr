@@ -214,6 +214,7 @@ public class HttpAuthenticator implements Authenticator {
 						try {
 
 							user.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
+							securityContext.setUser(user);
 							
 							HtmlServlet.setNoCacheHeaders(response);
 							
