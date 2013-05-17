@@ -444,7 +444,7 @@ public class HttpAuthenticator implements Authenticator {
 		try {
 			
 			result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-				Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()),
+				Search.andExactTypeAndSubtypes(User.class.getSimpleName()),
 				Search.andExactProperty(User.email, email));
 
 		} catch (FrameworkException ex) {

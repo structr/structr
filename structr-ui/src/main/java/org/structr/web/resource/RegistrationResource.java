@@ -47,6 +47,8 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.parboiled.common.StringUtils;
+import org.structr.core.entity.Person;
+import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
@@ -243,31 +245,68 @@ public class RegistrationResource extends Resource {
 
 	}
 	
-
+	/**
+	 * Create a new user
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object
+	 * 
+	 * @param securityContext
+	 * @param emailString
+	 * @return 
+	 */
 	public static User createUser(final SecurityContext securityContext, final String emailString) {
-		
-		User user = null;
-		
+
 		try {
-			user = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
 
-			   @Override
-			   public User execute() throws FrameworkException {
+				@Override
+				public User execute() throws FrameworkException {
 
-				   return (User) Services.command(securityContext, CreateNodeCommand.class).execute(
-					   new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
-					   new NodeAttribute(User.email, emailString),
-					   new NodeAttribute(User.name, emailString),
-					   new NodeAttribute(User.confirmationKey, confKey));
-			   }
+					User user;
+					
+					// First, search for a Person with that e-mail address
+					Result result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
+					Search.andExactType(Person.class.getSimpleName()),
+					Search.andExactProperty(Person.email, emailString));
 
-		   });
+					if (!result.isEmpty()) {
+
+						Person person = (Person) result.get(0);
+
+						// convert to user
+						person.unlockReadOnlyPropertiesOnce();
+						person.setType(User.class.getSimpleName());
+
+						user = new User();
+						user.init(securityContext, person.getNode());
+
+						// index manually, because type is a system property!
+						Services.command(securityContext, NewIndexNodeCommand.class).updateNode(person);
+
+						user.setProperty(User.confirmationKey, confKey);
+
+					} else {
+
+
+						user = (User) Services.command(securityContext, CreateNodeCommand.class).execute(
+							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
+							new NodeAttribute(User.email, emailString),
+							new NodeAttribute(User.name, emailString),
+							new NodeAttribute(User.confirmationKey, confKey));
+
+					}
+
+					return user;
+
+				}
+				
+			});
 			
 		} catch (FrameworkException ex) {
 			Logger.getLogger(RegistrationResource.class.getName()).log(Level.SEVERE, null, ex);
 		}
 		
-		return user;
+		return null;
 		
 	}
 	

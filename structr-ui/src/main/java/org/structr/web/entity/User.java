@@ -30,7 +30,6 @@ import org.neo4j.graphdb.Direction;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import static org.structr.core.GraphObject.uuid;
 import org.structr.core.entity.AbstractNode;

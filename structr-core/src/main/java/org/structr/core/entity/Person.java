@@ -39,8 +39,11 @@ import org.structr.core.property.Property;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
+import static org.structr.core.entity.AbstractNode.name;
 import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -79,10 +82,8 @@ public class Person extends AbstractNode implements Principal {
 	
 	static {
 
-//		EntityContext.registerPropertySet(Person.class, PropertyView.All, Key.values());
-
-		// public properties
-//		EntityContext.registerPropertySet(Person.class, PropertyView.Public, Key.salutation, Key.firstName, Key.middleNameOrInitial, Key.lastName);
+		EntityContext.registerSearchablePropertySet(Person.class, NodeIndex.keyword.name(), name, email);
+		EntityContext.registerSearchablePropertySet(Person.class, NodeIndex.fulltext.name(), name, email, firstName, lastName, street, city, state, country);
 
 	}
 
