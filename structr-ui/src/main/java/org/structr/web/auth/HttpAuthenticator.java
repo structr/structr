@@ -43,11 +43,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.structr.common.PathHelper;
-import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.web.entity.User;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Person;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -96,9 +93,16 @@ public class HttpAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String emailOrUsername, String password) throws AuthenticationException {
 
-		Principal user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
+		Principal user = AuthHelper.getPrincipalForPassword(Person.email, emailOrUsername, password);
+		
+		if (user == null) {
+			
+			// try again with name
+			user = AuthHelper.getPrincipalForPassword(AbstractNode.name, emailOrUsername, password);
+			
+		}
 
 		if (user != null) {
 
@@ -201,7 +205,7 @@ public class HttpAuthenticator implements Authenticator {
 
 				if (email != null) {
 
-					Principal user = HttpAuthenticator.getUserForEmail(securityContext, email);
+					Principal user = AuthHelper.getPrincipalForEmail(email);
 
 					if (user == null) {
 
@@ -270,7 +274,7 @@ public class HttpAuthenticator implements Authenticator {
 			
 		}
 
-		Principal user = AuthHelper.getUserForSessionId(sessionIdFromRequest);
+		Principal user = AuthHelper.getPrincipalForSessionId(sessionIdFromRequest);
 
 		if (user != null) {
 
@@ -313,7 +317,7 @@ public class HttpAuthenticator implements Authenticator {
 					writeUnauthorized(response);
 				}
 
-				user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userAndPass[0], userAndPass[1]);
+				user = AuthHelper.getPrincipalForPassword(Person.email, userAndPass[0], userAndPass[1]);
 
 			} catch (Exception ex) {
 
@@ -335,7 +339,7 @@ public class HttpAuthenticator implements Authenticator {
 
 	}
 
-	public void sendBasicAuthResponse(HttpServletResponse response) {
+	private void sendBasicAuthResponse(HttpServletResponse response) {
 
 		try {
 
@@ -395,25 +399,6 @@ public class HttpAuthenticator implements Authenticator {
 
 	//~--- get methods ----------------------------------------------------
 
-	public static String[] getUsernameAndPassword(final HttpServletRequest request) {
-
-		String auth = request.getHeader("Authorization");
-
-		if (auth == null) {
-
-			return null;
-		}
-
-		String usernameAndPassword = new String(Base64.decodeBase64(auth.substring(6)));
-
-		logger.log(Level.FINE, "Decoded user and pass: {0}", usernameAndPassword);
-
-		String[] userAndPass = StringUtils.split(usernameAndPassword, ":");
-
-		return userAndPass;
-
-	}
-
 	@Override
 	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
 
@@ -436,33 +421,26 @@ public class HttpAuthenticator implements Authenticator {
 
 	}
 	
-	public static Principal getUserForEmail(final SecurityContext securityContext, final String email) {
-		
-		Principal user = null;
-		
-		Result result = Result.EMPTY_RESULT;
-		try {
-			
-			result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-				Search.andExactTypeAndSubtypes(User.class.getSimpleName()),
-				Search.andExactProperty(User.email, email));
+	private static String[] getUsernameAndPassword(final HttpServletRequest request) {
 
-		} catch (FrameworkException ex) {
-			
-			logger.log(Level.SEVERE, null, ex);
+		String auth = request.getHeader("Authorization");
 
+		if (auth == null) {
+
+			return null;
 		}
 
-		if (!result.isEmpty()) {
+		String usernameAndPassword = new String(Base64.decodeBase64(auth.substring(6)));
 
-			user = (User) result.get(0);
+		logger.log(Level.FINE, "Decoded user and pass: {0}", usernameAndPassword);
 
-		}
-		
-		return user;
+		String[] userAndPass = StringUtils.split(usernameAndPassword, ":");
+
+		return userAndPass;
+
 	}
-	
-	public static String getSessionId(final HttpServletRequest request) {
+
+	private static String getSessionId(final HttpServletRequest request) {
 		
 		String existingSessionId = request.getRequestedSessionId();
 		

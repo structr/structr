@@ -152,9 +152,9 @@ public class SecurityContext {
 
 	}
 
-	public Principal doLogin(String userName, String password) throws AuthenticationException {
+	public Principal doLogin(String emailOrUsername, String password) throws AuthenticationException {
 
-		return authenticator.doLogin(this, request, response, userName, password);
+		return authenticator.doLogin(this, request, response, emailOrUsername, password);
 
 	}
 

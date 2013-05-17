@@ -86,6 +86,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 		validators.add(validator);
 	}
 	
+	public Property<T> validator(PropertyValidator<T> validator) {
+		addValidator(validator);
+		return this;
+	}
+
 	@Override
 	public List<PropertyValidator<T>> getValidators() {
 		return validators;

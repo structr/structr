@@ -47,7 +47,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.parboiled.common.StringUtils;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Person;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -264,18 +266,14 @@ public class RegistrationResource extends Resource {
 
 					User user;
 					
-					// First, search for a Person with that e-mail address
-					Result result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-					Search.andExactType(Person.class.getSimpleName()),
-					Search.andExactProperty(Person.email, emailString));
+					// First, search for a person with that e-mail address
+					Person person = (Person) AuthHelper.getPrincipalForEmail(emailString);
 
-					if (!result.isEmpty()) {
-
-						Person person = (Person) result.get(0);
-
+					if (person != null) {
+						
 						// convert to user
 						person.unlockReadOnlyPropertiesOnce();
-						person.setType(User.class.getSimpleName());
+						person.setProperty(AbstractNode.type, User.class.getSimpleName());
 
 						user = new User();
 						user.init(securityContext, person.getNode());
@@ -286,7 +284,6 @@ public class RegistrationResource extends Resource {
 						user.setProperty(User.confirmationKey, confKey);
 
 					} else {
-
 
 						user = (User) Services.command(securityContext, CreateNodeCommand.class).execute(
 							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),

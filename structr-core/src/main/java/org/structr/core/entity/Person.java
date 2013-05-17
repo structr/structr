@@ -44,6 +44,7 @@ import org.structr.core.Services;
 import static org.structr.core.entity.AbstractNode.name;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.validator.TypeUniquenessValidator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,7 +61,7 @@ public class Person extends AbstractNode implements Principal {
 	public static final Property<String>  firstName           = new StringProperty("firstName");
 	public static final Property<String>  middleNameOrInitial = new StringProperty("middleNameOrInitial");
 	public static final Property<String>  lastName            = new StringProperty("lastName");
-	public static final Property<String>  email               = new StringProperty("email");
+	public static final Property<String>  email               = new StringProperty("email").validator(new TypeUniquenessValidator(Person.class));
 	public static final Property<String>  email2              = new StringProperty("email2");
 	public static final Property<String>  password            = new PasswordProperty("password");
 	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1");
@@ -84,6 +85,8 @@ public class Person extends AbstractNode implements Principal {
 
 		EntityContext.registerSearchablePropertySet(Person.class, NodeIndex.keyword.name(), name, email);
 		EntityContext.registerSearchablePropertySet(Person.class, NodeIndex.fulltext.name(), name, email, firstName, lastName, street, city, state, country);
+		
+//		Person.name.addValidator(new TypeUniquenessValidator(Person.class));
 
 	}
 
