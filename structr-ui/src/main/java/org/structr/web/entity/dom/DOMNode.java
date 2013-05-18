@@ -203,7 +203,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			@Override
 			public String apply(String[] s) {
 
-				if (s.length < 3) {
+				if (s[0] == null || s.length < 3) {
 
 					return "";
 				}
@@ -233,6 +233,10 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] });
 
+				if (s[0] == null || s[1] == null) {
+					return "false";
+				}
+				
 				return s[0].equals(s[1])
 				       ? "true"
 				       : "false";
