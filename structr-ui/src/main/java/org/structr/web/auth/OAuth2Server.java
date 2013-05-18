@@ -307,7 +307,7 @@ public class OAuth2Server {
 
 			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
-			if (ResponseFormat.urlEncoded.equals(getResponseType())) {
+			if (ResponseFormat.urlEncoded.equals(getResponseFormat())) {
 				
 				tokenResponse = oAuthClient.accessToken(clientReq, GitHubTokenResponse.class);
 				
