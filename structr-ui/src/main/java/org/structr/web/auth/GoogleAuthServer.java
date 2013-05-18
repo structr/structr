@@ -20,19 +20,46 @@
 package org.structr.web.auth;
 
 import java.util.logging.Logger;
+import org.structr.core.Services;
 
 /**
  *
  * @author Axel Morgner
  */
-public class OpenIdAuthServer extends OAuth2Server {
+public class GoogleAuthServer extends OAuth2Server {
 	
-	private static final Logger logger = Logger.getLogger(OpenIdAuthServer.class.getName());
+	private static final Logger logger = Logger.getLogger(GoogleAuthServer.class.getName());
 	
-	public OpenIdAuthServer(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri) {
+	@Override
+	protected String getScope() {
+		return "email";
+	}
 
-		super(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri);
+	@Override
+	public ResponseFormat getResponseFormat() {
 		
+		return ResponseFormat.json;
+		
+	}
+	@Override
+	public String getUserResourceUri() {
+		
+		return Services.getConfigurationValue("oauth.google.user_details_resource_uri", "");
+			
+	}
+
+	@Override
+	public String getReturnUri() {
+		
+		return Services.getConfigurationValue("oauth.google.return_uri", "/");
+			
+	}
+
+	@Override
+	public String getErrorUri() {
+		
+		return Services.getConfigurationValue("oauth.google.error_uri", "/");
+			
 	}
 	
 }

@@ -30,6 +30,7 @@ import org.apache.oltu.oauth2.client.response.GitHubTokenResponse;
 import org.apache.oltu.oauth2.client.response.OAuthAccessTokenResponse;
 import org.apache.oltu.oauth2.client.response.OAuthAuthzResponse;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
+import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.utils.JSONUtils;
@@ -44,7 +45,7 @@ public class OAuth2Server {
 	
 	private static final Logger logger = Logger.getLogger(OAuth2Server.class.getName());
 	
-	protected enum ResponseType {
+	protected enum ResponseFormat {
 		json, urlEncoded
 	}
 	
@@ -76,6 +77,18 @@ public class OAuth2Server {
 		
 	}
 	
+	@Override
+	public String toString() {
+		
+		return this.getClass().getName()
+		+ "\nauthorizationLocation: " + authorizationLocation
+		+ "\ntokenLocation: " + tokenLocation
+		+ "\nclientId: " + clientId
+		+ "\nclientSecret: " + clientSecret
+		+ "\nredirectUri: " + redirectUri;
+
+	}
+	
 	/**
 	 * Create an end-user authorization request
 	 * 
@@ -92,7 +105,10 @@ public class OAuth2Server {
 			.setClientId(clientId)
 			.setRedirectURI(getAbsoluteRedirectUri(request, redirectUri))
 			.setScope(getScope())
+			.setResponseType(getResponseType())
 		.buildQueryMessage();
+		
+		logger.log(Level.INFO, "Authorization request location URI: {0}", oauthClientRequest.getLocationUri());
 		
 		return oauthClientRequest;
 		
@@ -128,6 +144,9 @@ public class OAuth2Server {
 						
 						oauthServer = (OAuth2Server) serverClass.newInstance();
 						oauthServer.init(authLocation, tokenLocation, clientId, clientSecret, redirectUri);
+						
+						logger.log(Level.INFO, "Using OAuth server {0}", oauthServer);
+						
 						return oauthServer;
 	
 					} catch (Exception ex) {
@@ -156,11 +175,13 @@ public class OAuth2Server {
 			
 			return FacebookAuthServer.class;
 			
-		} else {
+		} else if ("google".equals(name)) {
 			
-			return OpenIdAuthServer.class;
+			return GoogleAuthServer.class;
 			
 		}
+		
+		return OAuth2Server.class;
 		
 	}
 	
@@ -168,18 +189,29 @@ public class OAuth2Server {
 		return "";
 	}
 	
+	protected String getResponseType() {
+		return "code";
+	}
+
 	private static String getCode(final HttpServletRequest request) {
 		
 		OAuthAuthzResponse oar;
 
 		try {
 
+			logger.log(Level.INFO, "Trying to get authorization code from request {0}", request);
+			
 			oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
+			
+			String code = oar.getCode();
+			
+			logger.log(Level.INFO, "Got code {0} from authorization request", code);
+			
 			return oar.getCode();
 
-		} catch (Throwable t) {
+		} catch (OAuthProblemException e) {
 
-			logger.log(Level.SEVERE, "Could not read authorization response", t);
+			logger.log(Level.SEVERE, "Could not read authorization request: {0}, {1}", new Object[] { e.getError(), e.getDescription() });
 
 		}
 		
@@ -196,7 +228,16 @@ public class OAuth2Server {
 		
 		try {
 			
-			String body = getUserResponse(request).getBody();
+			OAuthResourceResponse userResponse = getUserResponse(request);
+
+			if (userResponse == null) {
+
+				return null;
+
+			}
+
+			String body = userResponse.getBody();
+	
 			logger.log(Level.INFO, "User response body: {0}", body);
 			return (String) JSONUtils.parseJSON(body).get(key);
 			
@@ -212,13 +253,25 @@ public class OAuth2Server {
 
 	public String getAccessToken(final HttpServletRequest request) {
 		
-		return getAccessTokenResponse(request).getAccessToken();
+		OAuthAccessTokenResponse resp = getAccessTokenResponse(request);
+		
+		if (resp == null) {
+			return null;
+		}
+		
+		return resp.getAccessToken();
 			
 	}
 	
 	public Long getExpiresIn(final HttpServletRequest request) {
 		
-		return getAccessTokenResponse(request).getExpiresIn();
+		OAuthAccessTokenResponse resp = getAccessTokenResponse(request);
+		
+		if (resp == null) {
+			return null;
+		}
+		
+		return resp.getExpiresIn();
 		
 	}
 	
@@ -232,6 +285,15 @@ public class OAuth2Server {
 		
 		try {
 		
+			String code = getCode(request);
+			
+			if (code == null) {
+				
+				logger.log(Level.SEVERE, "Could not get code from request, cancelling authorization process");
+				return null;
+				
+			}
+			
 			OAuthClientRequest clientReq = OAuthClientRequest
 				.tokenLocation(tokenLocation)
 				.setGrantType(GrantType.AUTHORIZATION_CODE)
@@ -241,9 +303,11 @@ public class OAuth2Server {
 				.setCode(getCode(request))
 			.buildBodyMessage();
 
+			logger.log(Level.INFO, "Request body: {0}", clientReq.getBody());
+
 			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
-			if (ResponseType.urlEncoded.equals(getResponseType())) {
+			if (ResponseFormat.urlEncoded.equals(getResponseType())) {
 				
 				tokenResponse = oAuthClient.accessToken(clientReq, GitHubTokenResponse.class);
 				
@@ -308,16 +372,24 @@ public class OAuth2Server {
 		
 		try {
 		
-			OAuthClientRequest clientReq = new OAuthBearerClientRequest(getUserResourceUri())
-				.setAccessToken(getAccessToken(request))
-				.buildQueryMessage();
-
-			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+			String accessToken = getAccessToken(request);
 			
-			userResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
-			logger.log(Level.INFO, "User response: {0}", userResponse.getBody());
+			if (accessToken != null) {
+			
+				OAuthClientRequest clientReq = new OAuthBearerClientRequest(getUserResourceUri())
+					.setAccessToken(accessToken)
+					.buildQueryMessage();
 
-			return userResponse;
+				logger.log(Level.INFO, "User info request: {0}", clientReq.getLocationUri());
+				
+				OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+
+				userResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
+				logger.log(Level.INFO, "User info response: {0}", userResponse);
+
+				return userResponse;
+				
+			}
 			
 		} catch (Throwable t) {
 			
@@ -335,9 +407,9 @@ public class OAuth2Server {
 		
 	}
 	
-	public ResponseType getResponseType() {
+	public ResponseFormat getResponseFormat() {
 		
-		return ResponseType.json;
+		return ResponseFormat.json;
 		
 	}
 	

@@ -35,9 +35,16 @@ public class FacebookAuthServer extends OAuth2Server {
 	public FacebookAuthServer() {}
 
 	@Override
-	public ResponseType getResponseType() {
+	public String getScope() {
 		
-		return ResponseType.urlEncoded;
+		return "email";
+		
+	}
+
+	@Override
+	public ResponseFormat getResponseFormat() {
+		
+		return ResponseFormat.urlEncoded;
 		
 	}
 
@@ -60,13 +67,6 @@ public class FacebookAuthServer extends OAuth2Server {
 		
 		return Services.getConfigurationValue("oauth.facebook.error_uri", "/");
 			
-	}
-
-	@Override
-	public String getScope() {
-		
-		return "email";
-		
 	}
 	
 	@Override

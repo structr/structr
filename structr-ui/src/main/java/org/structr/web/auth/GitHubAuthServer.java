@@ -19,9 +19,11 @@
 
 package org.structr.web.auth;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
 import org.structr.core.Services;
 
 /**
@@ -35,9 +37,16 @@ public class GitHubAuthServer extends OAuth2Server {
 	public GitHubAuthServer() {};
 
 	@Override
-	public ResponseType getResponseType() {
+	public String getScope() {
 		
-		return ResponseType.urlEncoded;
+		return "user:email";
+		
+	}
+	
+	@Override
+	public ResponseFormat getResponseFormat() {
+		
+		return ResponseFormat.urlEncoded;
 		
 	}
 	
@@ -63,16 +72,19 @@ public class GitHubAuthServer extends OAuth2Server {
 	}
 
 	@Override
-	public String getScope() {
-		
-		return "user:email";
-		
-	}
-	
-	@Override
 	public String getEmail(final HttpServletRequest request) {
 		
-		String body = getUserResponse(request).getBody();
+		OAuthResourceResponse userResponse = getUserResponse(request);
+		
+		if (userResponse == null) {
+			
+			return null;
+			
+		}
+		
+		String body = userResponse.getBody();
+		logger.log(Level.INFO, "User response body: {0}", body);
+		
 		String[] addresses = StringUtils.stripAll(StringUtils.stripAll(StringUtils.stripEnd(StringUtils.stripStart(body, "["), "]").split(",")), "\"");
 
 		return addresses.length > 0 ? addresses[0] : null;
