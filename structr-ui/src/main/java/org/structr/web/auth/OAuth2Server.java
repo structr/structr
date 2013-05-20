@@ -145,7 +145,7 @@ public class OAuth2Server {
 						oauthServer = (OAuth2Server) serverClass.newInstance();
 						oauthServer.init(authLocation, tokenLocation, clientId, clientSecret, redirectUri);
 						
-						logger.log(Level.INFO, "Using OAuth server {0}", oauthServer);
+						logger.log(Level.FINE, "Using OAuth server {0}", oauthServer);
 						
 						return oauthServer;
 	
@@ -199,13 +199,13 @@ public class OAuth2Server {
 
 		try {
 
-			logger.log(Level.INFO, "Trying to get authorization code from request {0}", request);
+			logger.log(Level.FINE, "Trying to get authorization code from request {0}", request);
 			
 			oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
 			
 			String code = oar.getCode();
 			
-			logger.log(Level.INFO, "Got code {0} from authorization request", code);
+			logger.log(Level.FINE, "Got code {0} from authorization request", code);
 			
 			return oar.getCode();
 
@@ -303,7 +303,7 @@ public class OAuth2Server {
 				.setCode(getCode(request))
 			.buildBodyMessage();
 
-			logger.log(Level.INFO, "Request body: {0}", clientReq.getBody());
+			logger.log(Level.FINE, "Request body: {0}", clientReq.getBody());
 
 			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
@@ -316,7 +316,7 @@ public class OAuth2Server {
 				tokenResponse = oAuthClient.accessToken(clientReq);
 			}
 			
-			logger.log(Level.INFO, "Access token response: {0}", tokenResponse.getBody());
+			logger.log(Level.FINE, "Access token response: {0}", tokenResponse.getBody());
 			
 			return tokenResponse;
 			
@@ -380,12 +380,12 @@ public class OAuth2Server {
 					.setAccessToken(accessToken)
 					.buildQueryMessage();
 
-				logger.log(Level.INFO, "User info request: {0}", clientReq.getLocationUri());
+				logger.log(Level.FINE, "User info request: {0}", clientReq.getLocationUri());
 				
 				OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
 				userResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
-				logger.log(Level.INFO, "User info response: {0}", userResponse);
+				logger.log(Level.FINE, "User info response: {0}", userResponse);
 
 				return userResponse;
 				

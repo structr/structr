@@ -197,11 +197,11 @@ public class HttpAuthenticator implements Authenticator {
 			
 			if (accessToken != null) {
 				
-				logger.log(Level.INFO, "Got access token {0}", accessToken);
+				logger.log(Level.FINE, "Got access token {0}", accessToken);
 				//securityContext.setAttribute("OAuthAccessToken", accessToken);
 				
 				String email = oauthServer.getEmail(request);
-				logger.log(Level.INFO, "Got email: {0}", new Object[] { email });
+				logger.log(Level.FINE, "Got email: {0}", new Object[] { email });
 
 				if (email != null) {
 
@@ -224,7 +224,7 @@ public class HttpAuthenticator implements Authenticator {
 							
 							try {
 								
-								logger.log(Level.INFO, "Response status: {0}", response.getStatus());
+								logger.log(Level.FINE, "Response status: {0}", response.getStatus());
 								
 								response.sendRedirect(oauthServer.getReturnUri());
 								
