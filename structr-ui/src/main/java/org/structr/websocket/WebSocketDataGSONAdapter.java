@@ -96,6 +96,11 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			root.add("code", new JsonPrimitive(src.getCode()));
 		}
 
+		if (src.getSessionId() != null) {
+
+			root.add("sessionId", new JsonPrimitive(src.getSessionId()));
+		}
+
 		if (src.getToken() != null) {
 
 			root.add("token", new JsonPrimitive(src.getToken()));
@@ -318,30 +323,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 	}
 
-//	private JsonObject buildTree(TreeNode node, JsonSerializationContext context) {
-//
-//		AbstractNode data    = node.getData();
-//		JsonObject jsonChild = new JsonObject();
-//
-//		if (data != null) {
-//
-//			jsonChild = graphObjectSerializer.serialize(data, GraphObject.class, context).getAsJsonObject();
-//		}
-//
-//		JsonArray array = new JsonArray();
-//
-//		for (TreeNode childNode : node.getChildren()) {
-//
-////                      AbstractNode childData = childNode.getNodeData();
-//			array.add(buildTree(childNode, context));
-//		}
-//
-//		jsonChild.add("children", array);
-//
-//		return jsonChild;
-//
-//	}
-
 	@Override
 	public WebSocketMessage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
@@ -366,6 +347,11 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			if (root.has("pageId")) {
 
 				webSocketData.setPageId(root.getAsJsonPrimitive("pageId").getAsString());
+			}
+
+			if (root.has("sessionId")) {
+
+				webSocketData.setSessionId(root.getAsJsonPrimitive("sessionId").getAsString());
 			}
 
 			if (root.has("token")) {

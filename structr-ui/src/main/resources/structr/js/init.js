@@ -25,7 +25,7 @@ var wsRoot = '/structr/ws';
 
 var header, main, footer;
 var debug = false;
-//var onload = [];
+var token, sessionId;
 var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
@@ -207,6 +207,7 @@ var Structr = {
     init : function() {
         
         token = $.cookie(tokenCookieName);
+        sessionId = $.cookie('JSESSIONID');
         user = $.cookie(userCookieName);
         log('token', token);
         log('user', user);
@@ -215,7 +216,16 @@ var Structr = {
         log('######## Expanded IDs after reload ##########', Structr.expanded);
         log('expanded ids', $.cookie(expandedIdsCookieName));
 
+        // make a dummy request to get a sessionId
+        if (!sessionId) {
+            $.get('/get_session_id');
+        }
+
         connect();
+        
+        window.setInterval(function() {
+            sendObj({command:'PING', sessionId: $.cookie('JSESSIONID')});
+        }, 60000);
 
     },
 
@@ -242,7 +252,14 @@ var Structr = {
 
     doLogin : function(username, password) {
         log('doLogin ' + username + ' with ' + password);
-        if (send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }')) {
+        var obj = {};
+        obj.command = 'LOGIN';
+        obj.sessionId = $.cookie('JSESSIONID');
+        var data = {};
+        data.username = username;
+        data.password = password;
+        obj.data = data;
+        if (sendObj(obj)) {
             user = username;
             return true;
         }
@@ -252,8 +269,9 @@ var Structr = {
     doLogout : function(text) {
         log('doLogout ' + user);
         //Structr.saveSession();
-        $.cookie(tokenCookieName, '');
-        $.cookie(userCookieName, '');
+        $.cookie(tokenCookieName, null);
+        $.cookie('JSESSIONID', null);
+        $.cookie(userCookieName, null);
         if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
             Structr.clearMain();
             Structr.login(text);
@@ -335,7 +353,6 @@ var Structr = {
     },
 
     dialog : function(text, callbackOk, callbackCancel) {
-
         if (browser) {
 
             dialogText.empty();

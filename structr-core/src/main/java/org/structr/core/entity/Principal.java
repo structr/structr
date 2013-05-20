@@ -52,7 +52,7 @@ public interface Principal extends GraphObject {
                 static {
 
                         // ----- initialize searchable properties
-                        EntityContext.registerSearchableProperty(Principal.class, NodeIndex.keyword.name(), AbstractNode.name);
+                        EntityContext.registerSearchablePropertySet(Principal.class, NodeIndex.keyword.name(), AbstractNode.name, sessionId);
                         EntityContext.registerSearchableProperty(Principal.class, NodeIndex.fulltext.name(), AbstractNode.name);
 
                 }

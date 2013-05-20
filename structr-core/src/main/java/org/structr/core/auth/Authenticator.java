@@ -58,13 +58,13 @@ public interface Authenticator {
 	 * @param securityContext the security context
 	 * @param request the request to authenticate
 	 * @param response the response
-	 * @param userName the (optional) username
+	 * @param emailOrUsername the (optional) email/username
 	 * @param password the (optional) password
 	 * 
 	 * @return the user that was just logged in
 	 * @throws AuthenticationException
 	 */
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final String userName, final String password) throws AuthenticationException;
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final String emailOrUsername, final String password) throws AuthenticationException;
 
 	/**
 	 * Logs the given request out.

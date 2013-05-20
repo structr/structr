@@ -37,6 +37,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.structr.core.auth.exception.UnauthorizedException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Person;
 import org.structr.core.entity.SuperUser;
 
 //~--- classes ----------------------------------------------------------------
@@ -175,9 +177,9 @@ public class UiAuthenticator extends HttpAuthenticator {
 	}
 	
 	@Override
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String emailOrUsername, String password) throws AuthenticationException {
 
-		Principal user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
+		Principal user = AuthHelper.getPrincipalForPassword(Person.email, emailOrUsername, password);
 
 		if (user != null) {
 
@@ -191,9 +193,6 @@ public class UiAuthenticator extends HttpAuthenticator {
 				try {
 					// store session id in user object
 					user.setProperty(Principal.sessionId, sessionIdFromRequest);
-
-					//request.login(userName, password);
-					//request.authenticate(response);
 
 				} catch (Exception ex) {
 
@@ -232,13 +231,13 @@ public class UiAuthenticator extends HttpAuthenticator {
 		// Try to authorize with a session token first
 		if (token != null) {
 
-			user = AuthHelper.getUserForSessionId(token);
+			user = AuthHelper.getPrincipalForSessionId(token);
 			
 		} else if ((userName != null) && (password != null)) {
 
 			if (tryLogin) {
 				
-				user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(request, response), userName, password);
+				user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
 				
 			}
 		}

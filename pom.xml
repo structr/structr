@@ -4,19 +4,20 @@
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
     <packaging>pom</packaging>
-    <version>0.7.M03</version>
+    <version>0.7.M04</version>
     <name>structr</name>
     <url>http://structr.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>0.7.M03</structr.version>
+        <structr.version>0.7.M04</structr.version>
     </properties>
 
     <modules>
         <module>structr-simple-example-archetype</module>
         <module>structr-base-archetype</module>
+        <module>structr-ui-archetype</module>
         <module>structr-core</module>
         <module>structr-rest</module>
         <module>structr-ui</module>

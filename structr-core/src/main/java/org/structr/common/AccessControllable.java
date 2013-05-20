@@ -19,8 +19,8 @@
 package org.structr.common;
 
 import java.util.Date;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SecurityRelationship;
 
 /**
  * Interface to encapsulate query-able permissions. This interface exists
@@ -53,7 +53,7 @@ public interface AccessControllable {
 	 * @param principal
 	 * @return incoming security relationship
 	 */
-	public AbstractRelationship getSecurityRelationship(final Principal principal);
+	public SecurityRelationship getSecurityRelationship(final Principal principal);
 
 	// visibility
 	public boolean isVisibleToPublicUsers();

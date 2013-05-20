@@ -227,7 +227,7 @@ public class StructrUiTest extends TestCase {
 
 			} else {
 
-				logger.log(Level.WARNING, "Unable to configure HTTP port, please make sure that application.host, application.rest.port and application.rest.path are set correctly in structr.conf.");
+				logger.log(Level.WARNING, "Unable to configure HTTP port, please make sure that application.host, application.http.port and application.rest.path are set correctly in structr.conf.");
 			}
 
 			if (!connectors.isEmpty()) {
@@ -518,7 +518,7 @@ public class StructrUiTest extends TestCase {
 			config.add("");
 			config.add("# REST server settings");
 			config.add("application.host = " + host);
-			config.add("application.rest.port = " + httpPort);
+			config.add("application.http.port = " + httpPort);
 			config.add("application.rest.path = " + restUrl);
 			config.add("");
 			config.add("application.https.enabled = false");

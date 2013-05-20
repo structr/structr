@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.structr.core.Result;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.search.SearchAttribute;
 
@@ -70,7 +71,7 @@ public class StructrAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
-		Principal user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
+		Principal user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
 
 		try {
 

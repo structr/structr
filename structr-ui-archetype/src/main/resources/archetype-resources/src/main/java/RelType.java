@@ -16,30 +16,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+package ${package};
 
-import org.structr.core.GraphObject;
-import org.structr.core.Transformation;
+import org.neo4j.graphdb.RelationshipType;
 
-/**
- *
- * @author Axel Morgner
- */
-public abstract class GraphObjectTransformation implements Comparable, Transformation<GraphObject> {
+public enum RelType implements RelationshipType {
 
-	@Override
-	public int compareTo(Object t) {
-		if (t == null || !(t instanceof Transformation)) {
-			return -1;
-		}
-
-		return ((Integer) this.getOrder()).compareTo(
-			(Integer) (((Transformation) t).getOrder())
-			);
-	}	
-
-	@Override
-	public int getOrder() {
-		return 10;
-	}
+	// add your relationship types here
 }

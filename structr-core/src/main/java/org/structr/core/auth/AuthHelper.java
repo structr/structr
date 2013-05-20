@@ -40,11 +40,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.Result;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Person;
+import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.core.graph.search.SearchOperator;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Authentication helper used in structr UI.
+ * Utility class for authentication
  *
  * @author Axel Morgner
  */
@@ -55,45 +60,90 @@ public class AuthHelper {
 
 	//~--- get methods ----------------------------------------------------
 
-	public static Principal getUserForUsernameAndPassword(final SecurityContext securityContext, final String userName, final String password) throws AuthenticationException {
+	/**
+	 * Find a {@link Principal} for the given email address
+	 * 
+	 * @param securityContext
+	 * @param email
+	 * @return 
+	 */
+	public static Principal getPrincipalForEmail(final String email) {
+		
+		Principal principal = null;
+		
+		Result result = Result.EMPTY_RESULT;
+		try {
+			
+			result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
+				Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()),
+				Search.andExactProperty(Person.email, email));
+
+		} catch (FrameworkException ex) {
+			
+			logger.log(Level.WARNING, "Could not search for person", ex);
+
+		}
+
+		if (!result.isEmpty()) {
+
+			principal = (Principal) result.get(0);
+
+		}
+
+		return principal;
+	}
+	
+	/**
+	 * Find a {@link Principal} with matching password and given key or name
+	 * 
+	 * @param securityContext
+	 * @param key
+	 * @param value
+	 * @param password
+	 * @return
+	 * @throws AuthenticationException 
+	 */
+	public static Principal getPrincipalForPassword(final PropertyKey key, final String value, final String password) throws AuthenticationException {
 
 		String errorMsg = null;
-		Principal user  = null;
+		Principal principal  = null;
 
-		if (Services.getSuperuserUsername().equals(userName) && Services.getSuperuserPassword().equals(password)) {
+		if (Services.getSuperuserUsername().equals(value) && Services.getSuperuserPassword().equals(password)) {
 
 			logger.log(Level.INFO, "############# Authenticated as superadmin! ############");
 
-			user = new SuperUser();
+			principal = new SuperUser();
 
 		} else {
 
 			try {
 
-				SearchNodeCommand searchNode = Services.command(securityContext, SearchNodeCommand.class);
+				SearchNodeCommand searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
 				List<SearchAttribute> attrs  = new LinkedList<SearchAttribute>();
 
 				attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
-//				attrs.add(Search.andExactType("User"));
-				attrs.add(Search.andExactName(userName));
+				SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+				group.add(Search.orExactProperty(key, value));
+				group.add(Search.orExactProperty(AbstractNode.name, value));
+				attrs.add(group);
 
 				Result userList = searchNode.execute(attrs);
 				
 				if (!userList.isEmpty()) {
-					user = (Principal) userList.get(0);
+					principal = (Principal) userList.get(0);
 				}
 
-				if (user == null) {
+				if (principal == null) {
 
-					logger.log(Level.INFO, "No user found for name {0}", userName);
+					logger.log(Level.INFO, "No user found for {0} {1}", new Object[]{ key.dbName(), value });
 
 					errorMsg = STANDARD_ERROR_MSG;
 
 				} else {
 
-					if (user.isBlocked()) {
+					if (principal.isBlocked()) {
 
-						logger.log(Level.INFO, "User {0} is blocked", user);
+						logger.log(Level.INFO, "User {0} is blocked", principal);
 
 						errorMsg = STANDARD_ERROR_MSG;
 
@@ -101,18 +151,18 @@ public class AuthHelper {
 
 					if (StringUtils.isEmpty(password)) {
 
-						logger.log(Level.INFO, "Empty password for user {0}", user);
+						logger.log(Level.INFO, "Empty password for principal {0}", principal);
 
-						errorMsg = "You should enter a password.";
+						errorMsg = "Empty password, should not ever happen down here!";
 
 					} else {
 
 						String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-						String pw                     = user.getEncryptedPassword();
+						String pw                     = principal.getEncryptedPassword();
 
 						if (pw == null || !encryptedPasswordValue.equals(pw)) {
 
-							logger.log(Level.INFO, "Wrong password for user {0}", user);
+							logger.log(Level.INFO, "Wrong password for principal {0}", principal);
 
 							errorMsg = STANDARD_ERROR_MSG;
 
@@ -135,11 +185,17 @@ public class AuthHelper {
 			throw new AuthenticationException(errorMsg);
 		}
 
-		return user;
+		return principal;
 
 	}
 
-	public static Principal getUserForSessionId(final String sessionId) {
+	/**
+	 * Find a {@link Principal} for the given session id
+	 * 
+	 * @param sessionId
+	 * @return 
+	 */
+	public static Principal getPrincipalForSessionId(final String sessionId) {
 
 		Principal user              = null;
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();

@@ -203,7 +203,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			@Override
 			public String apply(String[] s) {
 
-				if (s.length < 3) {
+				if (s[0] == null || s.length < 3) {
 
 					return "";
 				}
@@ -214,6 +214,21 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				} else {
 
 					return s[2];
+				}
+
+			}
+
+		});
+		functions.put("empty", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				if (StringUtils.isEmpty(s[0])) {
+
+					return "true";
+				} else {
+					return "false";
 				}
 
 			}
@@ -233,6 +248,10 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] });
 
+				if (s[0] == null || s[1] == null) {
+					return "false";
+				}
+				
 				return s[0].equals(s[1])
 				       ? "true"
 				       : "false";
@@ -487,18 +506,17 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		String referenceKey              = parts[parts.length - 1];
 		String defaultValue              = null;
 		
-		PropertyKey referenceKeyProperty;
 		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
 			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
-			referenceKeyProperty = new StringProperty(ref[0]);
+			referenceKey = ref[0];
 			if (ref.length > 1) {
 				defaultValue         = ref[1];
 			} else {
 				defaultValue         = "";
 			}
-		} else {
-			referenceKeyProperty = new StringProperty(referenceKey);
 		}
+		
+		
 		
 		Page _page                       = renderContext.getPage();
 		GraphObject _data                = null;
@@ -667,15 +685,24 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 
 		if (_data != null) {
+
+			PropertyKey referenceKeyProperty = EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKey);
+			return getEditModeValue(securityContext, renderContext, _data, referenceKeyProperty, defaultValue);
 			
-			Object value = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKeyProperty.jsonName()));
-			return value != null ? value : defaultValue;
 		}
 
 		return null;
 
 	}
 
+	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
+
+		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
+		
+		return value != null ? value : defaultValue;
+		
+	}
+	
 	protected String getPropertyWithVariableReplacement(SecurityContext securityContext, RenderContext renderContext, PropertyKey<String> key) throws FrameworkException {
 
 		return replaceVariables(securityContext, renderContext, super.getProperty(key));
@@ -737,6 +764,15 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		}
 
+//		if (value != null && renderContext.getEdit() && renderContext.inBody()) {
+//			
+//			GraphObject data = renderContext.getDataObject();
+//			if (data != null) {
+//				return "<span data-structr-raw-value=\"" + rawValue + "\" data-structr-data-id=\"" + data.getUuid() + "\">" + value + "</span>";
+//			}
+//			
+//		}
+		
 		return value;
 
 	}

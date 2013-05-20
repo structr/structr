@@ -27,15 +27,15 @@ import org.structr.common.error.FrameworkException;
  * 
  * @author Christian Morgner
  */
-public interface ViewTransformation<T> extends Transformation<List<T>> {
+public abstract class ViewTransformation<T> extends Transformation<List<T>> {
 
 	@Override
-	public void apply(SecurityContext securityContext, List<T> list) throws FrameworkException;
+	public abstract void apply(SecurityContext securityContext, List<T> list) throws FrameworkException;
 	
 	/**
 	 * Indicates whether the underlying resource should be evaluated.
 	 * 
 	 * @return whether the underlying resource should be evaluated.
 	 */
-	public boolean evaluateWrappedResource();
+	public abstract boolean evaluateWrappedResource();
 }

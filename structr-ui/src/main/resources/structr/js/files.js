@@ -403,8 +403,8 @@ var _Files = {
             }
         });
 
-        _Entities.appendAccessControlIcon(div, folder);
         _Entities.appendEditPropertiesIcon(div, folder);
+        _Entities.appendAccessControlIcon(div, folder);
         _Entities.setMouseOver(div);
 		
         return div;
@@ -517,7 +517,7 @@ var _Files = {
 
     editContent : function (button, file, element) {
         //debug = true;
-        var url = viewRootUrl + file.name + '?edit';
+        var url = viewRootUrl + file.id + '?edit=1';
         log('editContent', button, file, element, url);
         var headers = {};
         headers['X-StructrSessionToken'] = token;

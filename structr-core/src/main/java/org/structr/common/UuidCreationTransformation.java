@@ -22,6 +22,7 @@ import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -30,7 +31,7 @@ import org.structr.core.entity.AbstractNode;
  *
  * @author Christian Morgner
  */
-public class UuidCreationTransformation extends GraphObjectTransformation {
+public class UuidCreationTransformation extends Transformation<GraphObject> {
 
 	//private static final ThreadLocalPattern pattern = new ThreadLocalPattern();
 	

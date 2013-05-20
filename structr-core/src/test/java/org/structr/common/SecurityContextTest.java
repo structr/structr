@@ -20,9 +20,9 @@ package org.structr.common;
 
 import java.util.Date;
 import junit.framework.TestCase;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SecurityRelationship;
 
 /**
  *
@@ -143,7 +143,7 @@ public class SecurityContextTest extends TestCase {
 		}
 
 		@Override
-		public AbstractRelationship getSecurityRelationship(Principal principal) {
+		public SecurityRelationship getSecurityRelationship(Principal principal) {
 			return(null);
 		}
 

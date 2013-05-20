@@ -48,8 +48,13 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
+ * Websocket command to retrieve nodes of a given type which are on root level,
+ * i.e. not children of another node.
+ * 
+ * To get all nodes of a certain type, see the {@link GetCommand}.
+ * 
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class ListCommand extends AbstractCommand {
 	

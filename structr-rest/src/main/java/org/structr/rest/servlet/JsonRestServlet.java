@@ -24,7 +24,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.stream.JsonWriter;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -33,7 +32,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
-import org.structr.core.Value;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.PagingHelper;
@@ -120,15 +118,24 @@ public class JsonRestServlet extends HttpServlet {
 			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
 		}
 
+		boolean indentJson = true;
+		
+		try {
+			indentJson = Boolean.parseBoolean(Services.getConfigurationValue(Services.JSON_INDENTATION, "true"));
+		
+		} catch (Throwable t) {
+			
+			logger.log(Level.WARNING, "Unable to parse value for {0}: {1}", new Object[] { Services.JSON_INDENTATION, t.getMessage() } );
+		}
+		
+		
 		// inject resources
 		resourceMap.putAll(resourceProvider.getResources());
 
 		// initialize variables
 		this.propertyView  = new ThreadLocalPropertyView();
-		
-		this.gson       = new ThreadLocalGson();
-
-		this.jsonWriter = new ThreadLocalJsonWriter(propertyView);
+		this.gson          = new ThreadLocalGson();
+		this.jsonWriter    = new ThreadLocalJsonWriter(propertyView, indentJson);
 
 	}
 
@@ -828,18 +835,18 @@ public class JsonRestServlet extends HttpServlet {
 	private class ThreadLocalJsonWriter extends ThreadLocal<StreamingJsonWriter> {
 		
 		private Value<String> propertyView;
+		private boolean indent = false;
 		
-		public ThreadLocalJsonWriter(Value<String> propertyView) {
+		public ThreadLocalJsonWriter(Value<String> propertyView, boolean indent) {
 			
 			this.propertyView = propertyView;
-			
+			this.indent       = indent;
 		}
 		
 		@Override
 		protected StreamingJsonWriter initialValue() {
 			
-			return new StreamingJsonWriter(this.propertyView);
-
+			return new StreamingJsonWriter(this.propertyView, indent);
 		}
 
 	}

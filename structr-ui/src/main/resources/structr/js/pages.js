@@ -628,10 +628,12 @@ var _Pages = {
 //                }
 //            });
 
-            $(this).contents().find('[data-structr_content_id]').each(function(i,element) {
+            $(this).contents().find('[data-structr-id]').each(function(i,element) {
                 log(element);
                 var el = $(element);
-                var structrId = el.attr('data-structr_content_id');
+                var type = el.attr('data-structr-type');
+                if (type !== 'Content') return;
+                var structrId = el.attr('data-structr-id');
                 if (structrId) {
                     
                     el.on({
@@ -679,7 +681,7 @@ var _Pages = {
                         blur: function(e) {
                             e.stopPropagation();
                             var self = $(this);
-                            contentSourceId = self.attr('data-structr_content_id');
+                            contentSourceId = self.attr('data-structr-id');
                             var text = cleanText(self.contents());
                             //console.log('blur contentSourceId: ' + contentSourceId, textBeforeEditing, text);
                             //_Pages.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());

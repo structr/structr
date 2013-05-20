@@ -20,6 +20,8 @@
 
 package org.structr.web.entity;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -28,9 +30,10 @@ import org.neo4j.graphdb.Direction;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import static org.structr.core.GraphObject.uuid;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeService.NodeIndex;
@@ -59,7 +62,7 @@ public class User extends Person implements Principal {
 	public static final CollectionProperty<Group> groups          = new CollectionProperty<Group>("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, new PropertyNotion(uuid), false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups, img
+		type, name, email, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups, img
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
@@ -79,6 +82,27 @@ public class User extends Person implements Principal {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
+	public List<Principal> getParents() {
+
+		List<Principal> parents               = new LinkedList<Principal>();
+		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
+
+		for (AbstractRelationship rel : parentRels) {
+
+			AbstractNode node = rel.getStartNode();
+
+			if (node instanceof Principal) {
+
+				parents.add((Principal) node);
+			}
+
+		}
+
+		return parents;
+
+	}
+
+	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
 
 		if (User.password.equals(key)) {
@@ -96,59 +120,19 @@ public class User extends Person implements Principal {
 	 * Intentionally return null.
 	 * @return
 	 */
-	public String getPassword() {
+	@Override
+	public <T> T getProperty(final PropertyKey<T> key) {
 
-		return null;
-
-	}
-
-	public String getConfirmationKey() {
-
-		return getProperty(User.confirmationKey);
-
-	}
-
-	public String getSessionId() {
-
-		return getProperty(Principal.sessionId);
+		if (User.password.equals(key)) {
+			
+			return null;
+			
+		} else {
+			
+			return super.getProperty(key);
+			
+		}
 
 	}
 
-	public boolean isBackendUser() {
-
-		return getProperty(User.backendUser);
-
-	}
-
-	public boolean isFrontendUser() {
-
-		return getProperty(User.frontendUser);
-
-	}
-	
-	//~--- set methods ----------------------------------------------------
-
-	public void setPassword(final String passwordValue) throws FrameworkException {
-
-		setProperty(password, passwordValue);
-
-	}
-
-	public void setConfirmationKey(final String value) throws FrameworkException {
-
-		setProperty(User.confirmationKey, value);
-
-	}
-
-	public void setFrontendUser(final boolean isFrontendUser) throws FrameworkException {
-
-		setProperty(User.frontendUser, isFrontendUser);
-
-	}
-
-	public void setBackendUser(final boolean isBackendUser) throws FrameworkException {
-
-		setProperty(User.backendUser, isBackendUser);
-
-	}
 }

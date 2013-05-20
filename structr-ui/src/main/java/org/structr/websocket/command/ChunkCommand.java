@@ -20,7 +20,6 @@
 
 package org.structr.websocket.command;
 
-import java.util.Date;
 import org.apache.commons.codec.binary.Base64;
 
 import org.structr.websocket.message.MessageBuilder;
@@ -30,6 +29,9 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
+import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 
@@ -54,6 +56,8 @@ public class ChunkCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
+		SecurityContext securityContext = getWebSocket().getSecurityContext();
+		
 		try {
 
 			int sequenceNumber = Integer.parseInt((String) webSocketData.getNodeData().get("chunkId"));
@@ -79,12 +83,20 @@ public class ChunkCommand extends AbstractCommand {
 
 			File file = (File) getNode(uuid);
 			
+			if (!getWebSocket().getSecurityContext().isAllowed(file, Permission.write)) {
+
+				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
+				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
+				return;
+				
+			}
+			
 			long size = (long)(sequenceNumber * chunkSize) + data.length;
 			
 			// Set proper size
 			file.setProperty(File.size, size);
 			
-			long partSize = (long)(sequenceNumber * chunkSize) + chunkSize;
+			//long partSize = (long)(sequenceNumber * chunkSize) + chunkSize;
 			
 			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
 			

@@ -39,10 +39,14 @@ import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.structr.common.PathHelper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Person;
+import org.structr.web.resource.RegistrationResource;
+import org.structr.web.servlet.HtmlServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,6 +68,15 @@ public class HttpAuthenticator implements Authenticator {
 		if (user != null) {
 
 			securityContext.setUser(user);
+			return;
+
+		}
+		
+		user = checkExternalAuthentication(securityContext, request, response);
+		
+		if (user != null) {
+			
+			securityContext.setUser(user);
 
 		}
 		
@@ -80,15 +93,22 @@ public class HttpAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String emailOrUsername, String password) throws AuthenticationException {
 
-		Principal user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userName, password);
+		Principal user = AuthHelper.getPrincipalForPassword(Person.email, emailOrUsername, password);
+		
+		if (user == null) {
+			
+			// try again with name
+			user = AuthHelper.getPrincipalForPassword(AbstractNode.name, emailOrUsername, password);
+			
+		}
 
 		if (user != null) {
 
 			securityContext.setUser(user);
 			
-			String sessionIdFromRequest = request.getSession(false).getId();
+			String sessionIdFromRequest = request.getRequestedSessionId();
 
 			try {
 
@@ -132,19 +152,129 @@ public class HttpAuthenticator implements Authenticator {
 
 	
 	}
-	
-	protected static Principal checkSessionAuthentication(HttpServletRequest request, HttpServletResponse response) {
 
-		HttpSession session = request.getSession(false);
+	protected static Principal checkExternalAuthentication(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response) {
 		
-		if (session == null) {
+		String path = PathHelper.clean(request.getPathInfo());
+		String[] uriParts = PathHelper.getParts(path);
+		
+		logger.log(Level.INFO, "Checking external authentication ...");
+		
+		if (uriParts == null || uriParts.length != 3 || !("oauth".equals(uriParts[0]))) {
 			
+			logger.log(Level.WARNING, "Incorrect URI parts for OAuth process, need /oauth/<name>/<action>");
 			return null;
 		}
 		
-		String sessionIdFromRequest = request.getSession(false).getId();
+		String name   = uriParts[1];
+		String action = uriParts[2];
+		
+		// Try to get an OAuth2 server for the given name
+		OAuth2Server oauthServer = OAuth2Server.getServer(name);
+		
+		if (oauthServer == null) {
+			
+			logger.log(Level.INFO, "No OAuth2 authentication server configured for {0}", path);
+			return null;
+			
+		}
+		
+		if ("login".equals(action)) {
+		
+			try {
 
-		Principal user = AuthHelper.getUserForSessionId(sessionIdFromRequest);
+				response.sendRedirect(oauthServer.getEndUserAuthorizationRequest(request).getLocationUri());
+				return null;
+
+			} catch (Exception ex) {
+
+				logger.log(Level.SEVERE, "Could not send redirect to authorization server", ex);
+			}
+			
+		} else if ("auth".equals(action)) {
+			
+			String accessToken = oauthServer.getAccessToken(request);
+			
+			if (accessToken != null) {
+				
+				logger.log(Level.INFO, "Got access token {0}", accessToken);
+				//securityContext.setAttribute("OAuthAccessToken", accessToken);
+				
+				String email = oauthServer.getEmail(request);
+				logger.log(Level.INFO, "Got email: {0}", new Object[] { email });
+
+				if (email != null) {
+
+					Principal user = AuthHelper.getPrincipalForEmail(email);
+
+					if (user == null) {
+
+						user = RegistrationResource.createUser(securityContext, email);
+
+					}
+
+					if (user != null) {
+
+						try {
+
+							user.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
+							securityContext.setUser(user);
+							
+							HtmlServlet.setNoCacheHeaders(response);
+							
+							try {
+								
+								logger.log(Level.INFO, "Response status: {0}", response.getStatus());
+								
+								response.sendRedirect(oauthServer.getReturnUri());
+								
+							} catch (Exception ex) {
+								
+								logger.log(Level.SEVERE, "Could not redirect to {0}: {1}", new Object[]{ oauthServer.getReturnUri(), ex });
+								
+							}
+
+							return user;
+
+						} catch (FrameworkException ex) {
+
+							logger.log(Level.SEVERE, "Could not set session id for user {0}", user.toString());
+
+						}
+
+					}
+
+				}
+					
+			}
+			
+		}
+
+		try {
+
+			response.sendRedirect(oauthServer.getErrorUri());
+
+		} catch (Exception ex) {
+
+			logger.log(Level.SEVERE, "Could not redirect to {0}: {1}", new Object[]{ oauthServer.getReturnUri(), ex });
+
+		}
+		
+		return null;
+		
+	}
+		
+	protected static Principal checkSessionAuthentication(HttpServletRequest request, HttpServletResponse response) {
+
+		String sessionIdFromRequest = request.getRequestedSessionId();
+		
+		if (sessionIdFromRequest == null) {
+			
+			return null;
+			
+		}
+
+		Principal user = AuthHelper.getPrincipalForSessionId(sessionIdFromRequest);
 
 		if (user != null) {
 
@@ -187,7 +317,7 @@ public class HttpAuthenticator implements Authenticator {
 					writeUnauthorized(response);
 				}
 
-				user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userAndPass[0], userAndPass[1]);
+				user = AuthHelper.getPrincipalForPassword(Person.email, userAndPass[0], userAndPass[1]);
 
 			} catch (Exception ex) {
 
@@ -209,7 +339,7 @@ public class HttpAuthenticator implements Authenticator {
 
 	}
 
-	public void sendBasicAuthResponse(HttpServletResponse response) {
+	private void sendBasicAuthResponse(HttpServletResponse response) {
 
 		try {
 
@@ -269,25 +399,6 @@ public class HttpAuthenticator implements Authenticator {
 
 	//~--- get methods ----------------------------------------------------
 
-	public static String[] getUsernameAndPassword(final HttpServletRequest request) {
-
-		String auth = request.getHeader("Authorization");
-
-		if (auth == null) {
-
-			return null;
-		}
-
-		String usernameAndPassword = new String(Base64.decodeBase64(auth.substring(6)));
-
-		logger.log(Level.FINE, "Decoded user and pass: {0}", usernameAndPassword);
-
-		String[] userAndPass = StringUtils.split(usernameAndPassword, ":");
-
-		return userAndPass;
-
-	}
-
 	@Override
 	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
 
@@ -309,5 +420,42 @@ public class HttpAuthenticator implements Authenticator {
 		return user;
 
 	}
+	
+	private static String[] getUsernameAndPassword(final HttpServletRequest request) {
 
+		String auth = request.getHeader("Authorization");
+
+		if (auth == null) {
+
+			return null;
+		}
+
+		String usernameAndPassword = new String(Base64.decodeBase64(auth.substring(6)));
+
+		logger.log(Level.FINE, "Decoded user and pass: {0}", usernameAndPassword);
+
+		String[] userAndPass = StringUtils.split(usernameAndPassword, ":");
+
+		return userAndPass;
+
+	}
+
+	private static String getSessionId(final HttpServletRequest request) {
+		
+		String existingSessionId = request.getRequestedSessionId();
+		
+		if (existingSessionId == null) {
+		
+			HttpSession session = request.getSession(true);
+
+			logger.log(Level.INFO, "Created new HTTP session: {0}", session.toString());
+			
+			return session.getId();
+		
+		}
+		
+		return existingSessionId;
+		
+	}
+	
 }

@@ -72,8 +72,6 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 
 			String uuid = node.getProperty(AbstractNode.uuid);
 			Node dbNode = node.getNode();
-			long id     = node.getId();
-
 
 			// Don't touch non-structr node
 			if (uuid == null) {
@@ -94,7 +92,7 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 
 					if (emptyKey) {
 
-						logger.log(Level.SEVERE, "Node {0} has empty, not-null key, removing property", new Object[] { id });
+						logger.log(Level.SEVERE, "Node {0} has empty, not-null key, removing property", new Object[] { uuid });
 						dbNode.removeProperty(key.dbName());
 
 						return;
@@ -103,7 +101,7 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 					Object valueForIndexing = node.getPropertyForIndexing(key);
 					Object value            = node.getProperty(key);
 
-					if ((value == null && key.databaseConverter(securityContext, null) == null) || (value != null && value instanceof String && StringUtils.isEmpty((String) value))) {
+					if ((value == null && key.databaseConverter(securityContext, null) == null) || (value instanceof String && StringUtils.isEmpty((String) value))) {
 						valueForIndexing = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
 					}
 
@@ -160,7 +158,7 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 			
 			t.printStackTrace();
 			
-			logger.log(Level.WARNING, "Unable to index node {0}: {1}", new Object[] { node.getNode().getId(), t.getMessage() } );
+			logger.log(Level.WARNING, "Unable to index node {0}: {1}", new Object[] { node, t.getMessage() } );
 			
 		}
 		

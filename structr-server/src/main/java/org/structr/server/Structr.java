@@ -90,7 +90,7 @@ public class Structr {
 	private String contextPath                                 = System.getProperty("contextPath", "/");
 	private String basePath                                    = "";
 
-	private int restPort                                       = 8082;
+	private int httpPort                                       = 8082;
 	private int httpsPort                                      = 8083;
 	
 	private int jsonDepth                                      = 4;
@@ -137,13 +137,13 @@ public class Structr {
 		this.app = applicationClass;
 		this.applicationName = applicationName;
 		this.httpsPort = httpsPort;
-		this.restPort = httpPort;
+		this.httpPort = httpPort;
 	}
 	
 	private Structr(Class<? extends StructrServer> applicationClass, String applicationName, int httpPort) {
 		this.app = applicationClass;
 		this.applicationName = applicationName;
-		this.restPort = httpPort;
+		this.httpPort = httpPort;
 	}
 	
 	private Structr(Class<? extends StructrServer> applicationClass, String applicationName) {
@@ -208,7 +208,7 @@ public class Structr {
 	}
 	
 	public Structr httpPort(int httpPort) {
-		this.restPort = httpPort;
+		this.httpPort = httpPort;
 		return this;
 	}
 	
@@ -367,7 +367,7 @@ public class Structr {
 
 		checkPrerequisites(configuration);
 		
-		Server server                        = new Server(restPort);
+		Server server                        = new Server(httpPort);
 		ContextHandlerCollection contexts    = new ContextHandlerCollection();
 		contexts.addHandler(new DefaultHandler());
 		
@@ -386,7 +386,7 @@ public class Structr {
 		if (enableGzipCompression) {
 
 			FilterHolder gzipFilter = new FilterHolder(GzipFilter.class);
-			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript");
+			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
 			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 
 		}
@@ -543,12 +543,12 @@ public class Structr {
 			}
 		}
 		
-		if (host != null && !host.isEmpty() && restPort > -1) {
+		if (host != null && !host.isEmpty() && httpPort > -1) {
 
 			SelectChannelConnector httpConnector = new SelectChannelConnector();
 
 			httpConnector.setHost(host);
-			httpConnector.setPort(restPort);
+			httpConnector.setPort(httpPort);
 			httpConnector.setMaxIdleTime(maxIdleTime);
 			httpConnector.setRequestHeaderSize(requestHeaderSize);
 
@@ -575,10 +575,10 @@ public class Structr {
 		if (!quiet) {
 			
 			System.out.println();
-			System.out.println("Starting " + applicationName + " (host=" + host + ":" + restPort + ", maxIdleTime=" + maxIdleTime + ", requestHeaderSize=" + requestHeaderSize + ")");
+			System.out.println("Starting " + applicationName + " (host=" + host + ":" + httpPort + ", maxIdleTime=" + maxIdleTime + ", requestHeaderSize=" + requestHeaderSize + ")");
 			System.out.println("Base path " + basePath);
 			System.out.println();
-			System.out.println(applicationName + " started:        http://" + host + ":" + restPort + restUrl);
+			System.out.println(applicationName + " started:        http://" + host + ":" + httpPort + restUrl);
 			System.out.println();
 		}
 		
@@ -693,7 +693,7 @@ public class Structr {
 			config.add("");
 			config.add("# REST server settings");
 			config.add("application.host = " + host);
-			config.add("application.rest.port = " + restPort);
+			config.add("application.http.port = " + httpPort);
 			config.add("application.rest.path = " + restUrl);
 			config.add("");
 			config.add("application.https.enabled = " + enableHttps);
@@ -801,7 +801,7 @@ public class Structr {
 		
 		host             = configuration.getProperty("application.host", "0.0.0.0");
 		restUrl          = configuration.getProperty("application.rest.path", "/structr/rest");
-		restPort         = parseInt(configuration.getProperty("application.rest.port", "8082"), -1);
+		httpPort         = parseInt(configuration.getProperty("application.http.port", "8082"), -1);
 		httpsPort        = parseInt(configuration.getProperty("application.https.port", "-1"), -1);
 		enableHttps      = parseBoolean(configuration.getProperty("application.https.enabled", "false"), false);
 		

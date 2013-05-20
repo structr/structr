@@ -37,6 +37,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Permission;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -59,6 +60,7 @@ public class UpdateCommand extends AbstractCommand {
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
+		
 
 		GraphObject obj  = getNode(webSocketData.getId());
 		String recString = (String) webSocketData.getNodeData().get("recursive");
@@ -69,6 +71,18 @@ public class UpdateCommand extends AbstractCommand {
 			      ? Boolean.parseBoolean(recString)
 			      : false;
 
+		if (obj != null) {
+
+			if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.write)) {
+
+				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] {getWebSocket().getCurrentUser().toString(), obj.toString()});
+				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
+				return;
+				
+			}
+			
+		}
+		
 //              final Map<String, Object> relData = webSocketData.getRelData();
 		if (obj == null) {
 
@@ -77,7 +91,7 @@ public class UpdateCommand extends AbstractCommand {
 		}
 
 		if (obj != null) {
-
+			
 			try {
 
 				setProperties(obj, PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData()), rec);

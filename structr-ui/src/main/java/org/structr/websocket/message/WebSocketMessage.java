@@ -36,6 +36,7 @@ import org.structr.core.property.PropertyKey;
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class WebSocketMessage {
 
@@ -57,7 +58,7 @@ public class WebSocketMessage {
 	private Set<PropertyKey> removedProperties  = new LinkedHashSet<PropertyKey>();
 	private List<? extends GraphObject> result  = null;
 	private int rawResultCount                  = 0;
-//	private TreeNode resultTree                 = null;
+	private String sessionId                    = null;
 	private boolean sessionValid                = false;
 	private String sortKey                      = null;
 	private String sortOrder                    = null;
@@ -88,7 +89,7 @@ public class WebSocketMessage {
 		newCopy.parent             = this.parent;
 		newCopy.result             = this.result;
 		newCopy.rawResultCount     = this.rawResultCount;
-//		newCopy.resultTree         = this.resultTree;
+		newCopy.sessionId          = this.sessionId;
 		newCopy.sessionValid       = this.sessionValid;
 		newCopy.sortKey            = this.sortKey;
 		newCopy.sortOrder          = this.sortOrder;
@@ -190,10 +191,10 @@ public class WebSocketMessage {
 		return graphObject;
 	}
 
-//	public TreeNode getResultTree() {
-//		return resultTree;
-//	}
-
+	public String getSessionId() {
+		return sessionId;
+	}
+	
 	public boolean isSessionValid() {
 		return sessionValid;
 	}
@@ -256,10 +257,6 @@ public class WebSocketMessage {
 		this.rawResultCount = rawResultCount;
 	}
 
-//	public void setResultTree(final TreeNode resultTree) {
-//		this.resultTree = resultTree;
-//	}
-
 	public void setSortKey(final String sortKey) {
 		this.sortKey = sortKey;
 	}
@@ -280,6 +277,10 @@ public class WebSocketMessage {
 		this.token = token;
 	}
 
+	public void setSessionId(final String sessionId) {
+		this.sessionId = sessionId;
+	}
+	
 	public void setSessionValid(final boolean sessionValid) {
 		this.sessionValid = sessionValid;
 	}

@@ -46,10 +46,10 @@ var StructrModel = {
     },
     
     /**
-     * Create a new object in the model and append a UI element
+     * Create a new object in the model and potentially append a UI element
      * If refId is set, insert before this node
      */
-    create : function(data, refId) {
+    create : function(data, refId, append) {
         
         log("StructrModel.create", data);
         
@@ -107,8 +107,9 @@ var StructrModel = {
 //            return obj;
 //        }
         
-        
-        StructrModel.append(obj, refId);
+        if (refId || append === undefined || append) {
+            StructrModel.append(obj, refId);
+        }
         
         return obj;
     
@@ -185,10 +186,7 @@ var StructrModel = {
             });
         }
         
-        if (data.callback) {
-            //console.log('executing callback with id', data.callback);
-            StructrModel.callbacks[data.callback]();
-        }
+        return obj;
         
     },
 

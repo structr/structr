@@ -20,62 +20,39 @@
 
 package org.structr.websocket.command;
 
-import org.structr.core.property.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.core.entity.AbstractNode;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author Christian Morgner
+ * Websocket heartbeat command
+ * 
  * @author Axel Morgner
  */
-public class GetProperties extends AbstractCommand {
+public class PingCommand extends AbstractCommand {
+	
+	private static final Logger logger = Logger.getLogger(PingCommand.class.getName());
 	
 	static {
 		
-		StructrWebSocket.addCommand(GetProperties.class);
+		StructrWebSocket.addCommand(PingCommand.class);
 		
 	}
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		AbstractNode node = getNode(webSocketData.getId());
-		String view       = webSocketData.getView();
 
-		if (node != null) {
-
-			if (view == null) {
-
-				view = PropertyView.All;
-
-			}
-
-			for (PropertyKey key : node.getPropertyKeys(view)) {
-
-				webSocketData.setNodeData(key.jsonName(), node.getProperty(key));
-
-			}
-
-			// send only over local connection (no broadcast)
-			getWebSocket().send(webSocketData, true);
-
-		} else {
-
-			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
-		}
+		logger.log(Level.INFO, "PING recieved from session {0}", webSocketData.getSessionId());
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
-		return "GET_PROPERTIES";
+		return "PING";
 	}
 }

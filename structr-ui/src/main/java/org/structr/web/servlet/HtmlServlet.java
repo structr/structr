@@ -82,11 +82,11 @@ public class HtmlServlet extends HttpServlet {
 	private static Date lastModified;
 	public static final String REST_RESPONSE = "restResponse";
 	public static final String REDIRECT = "redirect";
-	public static final String LAST_GET_URL = "lastGetUrl";
 	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	
 	public static final String CONFIRM_REGISTRATION_PAGE = "confirm_registration";
+	public static final String GET_SESSION_ID_PAGE = "get_session_id";
 	public static final String CONFIRM_KEY_KEY = "key";
 	public static final String TARGET_PAGE_KEY = "target";
 	
@@ -132,28 +132,23 @@ public class HtmlServlet extends HttpServlet {
 
 			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
 			response.setCharacterEncoding("UTF-8");
+
+			// create session if not already existing
+			request.getSession();
 			
 			boolean dontCache = false;
 			
-//			String resp = (String) request.getSession().getAttribute(REST_RESPONSE);
-//			if (resp != null) {
-//				
-//				request.setAttribute(REST_RESPONSE, resp);
-//				
-//				// empty response content after reading
-//				request.getSession().removeAttribute(REST_RESPONSE);
-//				
-//				// don't allow to show a cached page
-//				dontCache = true;
-//				
-//			}
-
 			String path = PathHelper.clean(request.getPathInfo());
 
 			logger.log(Level.FINE, "Path info {0}", path);
-			
+
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 			securityContext.initializeAndExamineRequest(request, response);
+			
+			// don't continue on redirects
+			if (response.getStatus() == 302) {
+				return;
+			}
 			
 			if (securityContext.getUser(false) != null) {
 				
@@ -172,8 +167,8 @@ public class HtmlServlet extends HttpServlet {
 			AbstractNode dataNode             = null;
 			
 			
-			String[] urlParts = PathHelper.getParts(path);
-			if ((urlParts == null) || (urlParts.length == 0)) {
+			String[] uriParts = PathHelper.getParts(path);
+			if ((uriParts == null) || (uriParts.length == 0)) {
 
 				// try to find a page with position==0
 				rootElement = findIndexPage();
@@ -181,8 +176,13 @@ public class HtmlServlet extends HttpServlet {
 				logger.log(Level.FINE, "No path supplied, trying to find index page");
 
 			} else {
+				
+				// check if request was solely intended to obtain a session id
+				if (checkGetSessionId(request, response, path)) {
+					return;
+				}
 
-				// check for registration first
+				// check for registration
 				if (checkRegistration(securityContext, request, response, path)) {
 					return;
 				}
@@ -213,10 +213,10 @@ public class HtmlServlet extends HttpServlet {
 				Matcher matcher                 = threadLocalUUIDMatcher.get();
 				boolean requestUriContainsUuids = false;
 
-				for (int i = 0; i < urlParts.length; i++) {
+				for (int i = 0; i < uriParts.length; i++) {
 
-					request.setAttribute(urlParts[i], i);
-					matcher.reset(urlParts[i]);
+					request.setAttribute(uriParts[i], i);
+					matcher.reset(uriParts[i]);
 
 					// set to "true" if part matches UUID pattern
 					requestUriContainsUuids |= matcher.matches();
@@ -280,8 +280,8 @@ public class HtmlServlet extends HttpServlet {
 			
 			if (edit || dontCache) {
 
-				response.setHeader("Pragma", "no-cache");
-
+				setNoCacheHeaders(response);
+				
 			} else {
 				
 				lastModified = rootElement.getLastModifiedDate();
@@ -290,8 +290,6 @@ public class HtmlServlet extends HttpServlet {
 
 			if (securityContext.isVisible(rootElement)) {
 				
-				// Store last page GET URL in session
-				request.getSession().setAttribute(LAST_GET_URL, request.getPathInfo());
 				PrintWriter out            = response.getWriter();
 				
 				double setup     = System.nanoTime();
@@ -310,17 +308,11 @@ public class HtmlServlet extends HttpServlet {
 					double end     = System.nanoTime();
 					logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
 
-					// FIXME: where to get content type
 					String contentType = rootElement.getProperty(Page.contentType);
 
-					if (contentType != null) {
+					if (contentType != null && contentType.equals("text/html")) {
 
-						if (contentType.equals("text/html")) {
-
-							contentType = contentType.concat(";charset=UTF-8");
-
-						}
-
+						contentType = contentType.concat(";charset=UTF-8");
 						response.setContentType(contentType);
 
 					} else {
@@ -336,12 +328,14 @@ public class HtmlServlet extends HttpServlet {
 
 			} else {
 
+				response.sendError(HttpServletResponse.SC_NOT_FOUND);
+				
 			}
 
 		} catch (Throwable t) {
 
-			// t.printStackTrace();
-			logger.log(Level.WARNING, "Exception while processing request", t);
+			t.printStackTrace();
+			logger.log(Level.SEVERE, "Exception while processing request", t);
 			HttpAuthenticator.writeInternalServerError(response);
 		}
 	}
@@ -427,40 +421,13 @@ public class HtmlServlet extends HttpServlet {
 		
 		return null;
 	}
-//	
-//	/**
-//	 * Convert parameter map so that after conversion, all map values
-//	 * are a single String instead of an one-element String[]
-//	 *
-//	 * @param parameterMap
-//	 * @return
-//	 */
-//	private Map<String, Object> convert(final Map<String, String[]> parameterMap) {
-//
-//		Map parameters = new HashMap<String, Object>();
-//
-//		for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
-//
-//			String[] values = param.getValue();
-//			Object val;
-//
-//			if (values.length == 1) {
-//
-//				val = values[0];
-//
-//			} else {
-//
-//				val = values;
-//
-//			}
-//
-//			parameters.put(param.getKey(), val);
-//
-//		}
-//
-//		return parameters;
-//	}
 
+	/**
+	 * Find the page with the lowest position value
+	 * 
+	 * @return
+	 * @throws FrameworkException 
+	 */
 	private Page findIndexPage() throws FrameworkException {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
@@ -474,7 +441,7 @@ public class HtmlServlet extends HttpServlet {
 
 		if (!results.isEmpty()) {
 
-			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, AbstractNodeComparator.ASCENDING));
+			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
 			return (Page) results.get(0);
 
@@ -483,6 +450,33 @@ public class HtmlServlet extends HttpServlet {
 		return null;
 	}
 
+	/**
+	 * Check if the request was solely intended to get a session id
+	 * 
+	 * @param request
+	 * @param response
+	 * @param path
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException 
+	 */
+	private boolean checkGetSessionId(final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException {
+		
+		logger.log(Level.INFO, "Checking for {0} ...", GET_SESSION_ID_PAGE);
+		
+		if (GET_SESSION_ID_PAGE.equals(path)) {
+		
+			request.getSession(true);
+			response.setStatus(HttpServletResponse.SC_OK);
+			
+			response.flushBuffer();
+			return true;
+			
+		}
+
+		return false;
+		
+	}
 	
 	/**
 	 * This method checks if the current request is a user registration confirmation,
@@ -501,9 +495,16 @@ public class HtmlServlet extends HttpServlet {
 		logger.log(Level.FINE, "Checking registration ...");
 		
 		String key        = request.getParameter(CONFIRM_KEY_KEY);
+		
+		if (StringUtils.isEmpty(key)) {
+			
+			return false;
+			
+		}
+		
 		String targetPage = request.getParameter(TARGET_PAGE_KEY);
 
-		if (path.equals(CONFIRM_REGISTRATION_PAGE)) {
+		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 		
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 			searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
@@ -516,7 +517,7 @@ public class HtmlServlet extends HttpServlet {
 				User user = (User) results.get(0);
 				
 				// Clear confirmation key and set session id
-				user.setConfirmationKey(null);
+				user.setProperty(User.confirmationKey, null);
 				user.setProperty(Principal.sessionId, request.getSession().getId());
 				
 				// Login user without password
@@ -530,14 +531,6 @@ public class HtmlServlet extends HttpServlet {
 					return true;
 					
 				}
-				
-//				try {
-//					request.authenticate(response);
-//					//response.addCookie(new Cookie());
-//				} catch (ServletException ex) {
-//					Logger.getLogger(HtmlServlet.class.getName()).log(Level.SEVERE, null, ex);
-//				}
-				
 				
 			}
 			
@@ -643,6 +636,14 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- set methods ----------------------------------------------------
 
+	public static void setNoCacheHeaders(final HttpServletResponse response) {
+		
+		response.setHeader("Cache-Control", "private, max-age=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
+		response.setDateHeader("Expires", 0);
+		
+	}
+	
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
 
 		boolean notModified = false;
@@ -708,55 +709,59 @@ public class HtmlServlet extends HttpServlet {
 
 	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-		if (securityContext.isVisible(file)) {
+		if (!securityContext.isVisible(file)) {
+			
+			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			return;
+			
+		}
 
-			OutputStream out = response.getOutputStream();
+		OutputStream out = response.getOutputStream();
 
-			if (!edit && notModifiedSince(request, response, file)) {
+		if (!edit && notModifiedSince(request, response, file)) {
 
-				out.flush();
-				out.close();
+			out.flush();
+			out.close();
+
+		} else {
+
+			// 2b: stream file to response
+			InputStream in     = file.getInputStream();
+			String contentType = file.getContentType();
+
+			if (contentType != null) {
+
+				response.setContentType(contentType);
 
 			} else {
 
-				// 2b: stream file to response
-				InputStream in     = file.getInputStream();
-				String contentType = file.getContentType();
+				// Default
+				response.setContentType("application/octet-stream");
+			}
 
-				if (contentType != null) {
+			try {
 
-					response.setContentType(contentType);
+				IOUtils.copy(in, out);
 
-				} else {
+			} catch (Throwable t) {
 
-					// Default
-					response.setContentType("application/octet-stream");
+			} finally {
+
+				if (out != null) {
+
+					try {
+						// 3: output content
+						out.flush();
+						out.close();
+
+					} catch(Throwable t) {}
 				}
 
-				try {
-
-					IOUtils.copy(in, out);
-
-				} catch (Throwable t) {
-
-				} finally {
-
-					if (out != null) {
-
-						try {
-							// 3: output content
-							out.flush();
-							out.close();
-
-						} catch(Throwable t) {}
-					}
-
-					if (in != null) {
-						in.close();
-					}
-
-					response.setStatus(HttpServletResponse.SC_OK);
+				if (in != null) {
+					in.close();
 				}
+
+				response.setStatus(HttpServletResponse.SC_OK);
 			}
 		}
 	}

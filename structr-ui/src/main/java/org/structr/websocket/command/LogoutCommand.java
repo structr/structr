@@ -39,7 +39,7 @@ public class LogoutCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		Principal user = getWebSocket().getCurrentUser();
-		if(user != null) {
+		if (user != null) {
 
 			try {
 				user.setProperty(Principal.sessionId, null);
@@ -47,9 +47,6 @@ public class LogoutCommand extends AbstractCommand {
 			} catch(FrameworkException fex) {
 				fex.printStackTrace();
 			}
-
-			// TODO: remove lastAccessedAt property
-			// user.setProperty(Principal.Key.session, null);
 
 			getWebSocket().setAuthenticated(null, null);
 		}

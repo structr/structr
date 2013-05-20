@@ -47,8 +47,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Permission;
+import org.structr.core.GraphObject;
 
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
@@ -184,15 +187,24 @@ public class Content extends DOMNode implements Text {
 		boolean inBody       = renderContext.inBody();
 		StringBuilder buffer = renderContext.getBuffer();
 
-		// In edit mode, add an artificial 'div' tag around content nodes within body
-		// to make them editable
-		if (edit && inBody) {
-
-			buffer.append("<span data-structr_content_id=\"").append(id).append("\">");
-		}
-
 		// fetch content with variable replacement
 		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
+
+		if (edit && inBody && securityContext.isAllowed(this, Permission.write)) {
+
+			if ("text/javascript".equals(getProperty(contentType))) {
+				
+				// Javascript will only be given some local vars
+				// TODO: Is this neccessary?
+				buffer.append("var dataStructrType='").append(getType()).append("', dataStructrId='").append(id).append("';\n\n");
+				
+			} else {
+				
+				// In edit mode, add an artificial 'span' tag around content nodes within body to make them editable
+				buffer.append("<span data-structr-raw-value=\"").append(getProperty(Content.content)).append("\" data-structr-type=\"").append(getType()).append("\" data-structr-id=\"").append(id).append("\">");
+			}
+			
+		}
 
 		// examine content type and apply converter
 		String _contentType = getProperty(Content.contentType);
@@ -229,11 +241,32 @@ public class Content extends DOMNode implements Text {
 			buffer.append(_content);
 		}
 		
-		if (edit && inBody) {
+		if (edit && inBody && !("text/javascript".equals(getProperty(contentType)))) {
 
 			buffer.append("</span>");
 		}
 
+	}
+
+	@Override
+	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
+
+		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
+		
+		if (renderContext.getEdit() && renderContext.inBody() && securityContext.isAllowed((AbstractNode) dataObject, Permission.write) && !referenceKeyProperty.isReadOnlyProperty()) {
+
+			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName() + "\" data-structr-id=\"" + dataObject.getUuid() + "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
+
+			logger.log(Level.INFO, "Edit mode value: {0}", editModeValue);
+
+			return editModeValue;
+			
+		} else {
+
+			return value != null ? value : defaultValue;
+
+		}
+		
 	}
 
 	// ----- interface org.w3c.dom.Text -----
@@ -471,6 +504,26 @@ public class Content extends DOMNode implements Text {
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
 		}
 	}
+
+//	@Override
+//	protected String getEditModeValue(final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object value) {
+//		
+//		String editModeValue;
+//		if ("text/javascript".equals(getProperty(contentType))) {
+//
+//			editModeValue = "var data-structr-type='" + referenceKeyProperty.typeName() + "', data-structr-id='" + dataObject.getUuid() + "', data-structr-key='" + referenceKeyProperty.jsonName() + "'\n" + value;
+//			
+//		} else {
+//
+//			editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName() + "\" data-structr-id=\"" + dataObject.getUuid() + "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
+//		}
+//		
+//		logger.log(Level.INFO, "Edit mode value: {0}", editModeValue);
+//		
+//		return editModeValue;
+//		
+//		
+//	}
 	
 	// ----- interface org.w3c.dom.Node -----
 	@Override

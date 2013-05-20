@@ -47,7 +47,7 @@ public class City extends AbstractNode {
 	static {
 		
 		// register type uniqueness validator
-		EntityContext.registerPropertyValidator(City.class, name, new TypeUniquenessValidator(City.class));
+		City.name.addValidator(new TypeUniquenessValidator(City.class));
 		
 	}
 	

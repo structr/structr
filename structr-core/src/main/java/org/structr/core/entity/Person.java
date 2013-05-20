@@ -39,8 +39,12 @@ import org.structr.core.property.Property;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
+import static org.structr.core.entity.AbstractNode.name;
 import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.validator.TypeUniquenessValidator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,12 +54,14 @@ import org.structr.core.graph.CreateRelationshipCommand;
  *
  */
 public class Person extends AbstractNode implements Principal {
+	
+	private static final Logger logger = Logger.getLogger(Person.class.getName());
 
 	public static final Property<String>  salutation          = new StringProperty("salutation");
 	public static final Property<String>  firstName           = new StringProperty("firstName");
 	public static final Property<String>  middleNameOrInitial = new StringProperty("middleNameOrInitial");
 	public static final Property<String>  lastName            = new StringProperty("lastName");
-	public static final Property<String>  email               = new StringProperty("email");
+	public static final Property<String>  email               = new StringProperty("email").validator(new TypeUniquenessValidator(Person.class));
 	public static final Property<String>  email2              = new StringProperty("email2");
 	public static final Property<String>  password            = new PasswordProperty("password");
 	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1");
@@ -77,10 +83,10 @@ public class Person extends AbstractNode implements Principal {
 	
 	static {
 
-//		EntityContext.registerPropertySet(Person.class, PropertyView.All, Key.values());
-
-		// public properties
-//		EntityContext.registerPropertySet(Person.class, PropertyView.Public, Key.salutation, Key.firstName, Key.middleNameOrInitial, Key.lastName);
+		EntityContext.registerSearchablePropertySet(Person.class, NodeIndex.keyword.name(), name, email);
+		EntityContext.registerSearchablePropertySet(Person.class, NodeIndex.fulltext.name(), name, email, firstName, lastName, street, city, state, country);
+		
+//		Person.name.addValidator(new TypeUniquenessValidator(Person.class));
 
 	}
 
@@ -336,7 +342,7 @@ public class Person extends AbstractNode implements Principal {
 	@Override
 	public void grant(Permission permission, AbstractNode obj) {
 
-		AbstractRelationship secRel = obj.getSecurityRelationship(this);
+		SecurityRelationship secRel = obj.getSecurityRelationship(this);
 
 		if (secRel == null) {
 
@@ -346,7 +352,7 @@ public class Person extends AbstractNode implements Principal {
 
 			} catch (FrameworkException ex) {
 
-				Logger.getLogger(Person.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
+				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
 
 			}
 
@@ -359,29 +365,22 @@ public class Person extends AbstractNode implements Principal {
 	@Override
 	public void revoke(Permission permission, AbstractNode obj) {
 
-		AbstractRelationship secRel = obj.getSecurityRelationship(this);
+		SecurityRelationship secRel = obj.getSecurityRelationship(this);
 
 		if (secRel == null) {
 
-			try {
+			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
 
-				secRel = createSecurityRelationshipTo(obj);
+		} else {
 
-			} catch (FrameworkException ex) {
-
-				Logger.getLogger(Person.class.getName()).log(Level.SEVERE, "Could not create security relationship!", ex);
-
-			}
-
+			secRel.removePermission(permission);
 		}
-
-		secRel.removePermission(permission);
 
 	}
 
-	private AbstractRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
+	private SecurityRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
 
-		return Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
+		return (SecurityRelationship) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
 
 	}
 
