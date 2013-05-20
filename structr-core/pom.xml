@@ -40,10 +40,6 @@
             <id>neo4j-snapshots</id>
             <url>http://m2.neo4j.org/content/repositories/snapshots</url>
         </repository>
-        <repository>
-            <id>wordrak</id>
-            <url>http://wordrak.github.com/repo/</url>
-        </repository>
     </repositories>	
     <dependencies>
         <dependency>

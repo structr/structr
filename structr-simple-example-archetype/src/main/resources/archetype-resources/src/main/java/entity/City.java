@@ -31,6 +31,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.Property;
+import org.structr.core.graph.GraphObject;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -53,6 +54,10 @@ public class City extends AbstractNode {
 	
 	@Override
 	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		// make cities visible for everyone
+		setProperty(GraphObject.visibleToPublicUsers, true);
+		setProperty(GraphObject.visibleToAuthenticatedUsers, true);
 		
 		if (super.beforeCreation(securityContext, errorBuffer)) {
 			

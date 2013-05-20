@@ -251,9 +251,10 @@ public class Content extends DOMNode implements Text {
 	@Override
 	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
 
-		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
+		Object value      = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
+		boolean isAllowed = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
 		
-		if (renderContext.getEdit() && renderContext.inBody() && securityContext.isAllowed((AbstractNode) dataObject, Permission.write) && !referenceKeyProperty.isReadOnlyProperty()) {
+		if (renderContext.getEdit() && renderContext.inBody() && isAllowed && !referenceKeyProperty.isReadOnlyProperty()) {
 
 			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName() + "\" data-structr-id=\"" + dataObject.getUuid() + "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
 

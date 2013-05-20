@@ -35,7 +35,10 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.property.GenericProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -86,26 +89,40 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		for (Map<String, Object> row : result) {
 
-			for (Object o : row.values()) {
+			GraphObjectMap dummyObject = null;
+			
+			for (Entry<String, Object> entry : row.entrySet()) {
+				
+				String key   = entry.getKey();
+				Object value = entry.getValue();
+			
+				if (value instanceof Node) {
 
-				if (o instanceof Node) {
-
-					AbstractNode node = nodeFactory.instantiateNode((Node) o, includeHiddenAndDeleted, publicOnly);
+					AbstractNode node = nodeFactory.instantiateNode((Node) value, includeHiddenAndDeleted, publicOnly);
 
 					if (node != null) {
 
 						resultList.add(node);
 					}
 
-				} else if (o instanceof Relationship) {
+				} else if (value instanceof Relationship) {
 
-					AbstractRelationship rel = relFactory.instantiateRelationship(securityContext, (Relationship) o);
+					AbstractRelationship rel = relFactory.instantiateRelationship(securityContext, (Relationship) value);
 
 					if (rel != null) {
 
 						resultList.add(rel);
 					}
 
+				} else {
+					
+					if (dummyObject == null) {
+						
+						dummyObject = new GraphObjectMap();
+						resultList.add(dummyObject);
+					}
+						
+					dummyObject.setProperty(new GenericProperty(key), value);
 				}
 
 			}
