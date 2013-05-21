@@ -114,7 +114,7 @@ public class AgentService extends Thread implements RunnableService {
 			}
 
 			// let others act
-			try { Thread.yield(); } catch(Throwable ignore) {}
+			try { Thread.sleep(10); } catch(Throwable ignore) {}
 		}
 	}
 
