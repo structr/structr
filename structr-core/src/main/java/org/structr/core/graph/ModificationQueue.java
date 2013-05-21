@@ -1,13 +1,9 @@
 package org.structr.core.graph;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import static org.structr.common.RelType.IS_AT;
 import static org.structr.common.RelType.OWNS;

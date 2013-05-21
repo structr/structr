@@ -83,7 +83,7 @@ public class GitHubAuthServer extends OAuth2Server {
 		}
 		
 		String body = userResponse.getBody();
-		logger.log(Level.INFO, "User response body: {0}", body);
+		logger.log(Level.FINE, "User response body: {0}", body);
 		
 		String[] addresses = StringUtils.stripAll(StringUtils.stripAll(StringUtils.stripEnd(StringUtils.stripStart(body, "["), "]").split(",")), "\"");
 

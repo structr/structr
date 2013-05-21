@@ -107,19 +107,14 @@ public class AgentService extends Thread implements RunnableService {
 
 		while (run) {
 
-			Task nextTask = null;
-
-			synchronized (taskQueue) {
-
-				nextTask = taskQueue.poll();
-
-				if (nextTask != null) {
-					assignNextAgentForTask(nextTask);
-				}
+			Task nextTask = taskQueue.poll();
+			if (nextTask != null) {
+				
+				assignNextAgentForTask(nextTask);
 			}
 
 			// let others act
-			try { Thread.sleep(10); } catch(Throwable ignore) {}
+			try { Thread.yield(); } catch(Throwable ignore) {}
 		}
 	}
 

@@ -162,12 +162,8 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			// This works because structr's DeleteRelationshipCommand creates a tx 
 			deleteRelationshipCommand.execute(rel);
 			
-			try {
-				rel.getUuid();
-				
-				fail("Should have raised an org.neo4j.graphdb.NotFoundException");
-			} catch (org.neo4j.graphdb.NotFoundException e) {}
-				
+			String uuid = rel.getUuid();
+			assertNull("UUID of deleted relationship should be null", uuid);
 			
 		
 		} catch (FrameworkException ex) {

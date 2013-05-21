@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.7-SNAPSHOT</version>
+        <version>0.7</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-server</artifactId>
     <packaging>jar</packaging>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.7</version>
     <name>structr-server</name>
     <url>http://structr.org</url>
     <build>

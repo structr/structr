@@ -111,7 +111,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		String mode          = (String)attributes.get("mode");
 		String fileName      = (String)attributes.get("file");
 		String validate      = (String)attributes.get("validate");
-		boolean doValidation = false;
+		boolean doValidation = true;
 
 		// should we validate imported nodes?
 		if (validate != null) {
