@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -73,7 +74,7 @@ public class RelationshipResource extends WrappingResource {
 
 					if(obj instanceof AbstractNode) {
 
-						List relationships = ((AbstractNode) obj).getRelationships(null, direction);
+						List relationships = Iterables.toList(((AbstractNode) obj).getRelationships(null, direction));
 						if(relationships != null) {
 
 							resultList.addAll(relationships);

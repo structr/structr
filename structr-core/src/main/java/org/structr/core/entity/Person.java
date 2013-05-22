@@ -414,10 +414,9 @@ public class Person extends AbstractNode implements Principal {
 	@Override
 	public List<Principal> getParents() {
 
-		List<Principal> parents               = new LinkedList<Principal>();
-		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CHILDREN);
+		List<Principal> parents = new LinkedList<Principal>();
 
-		for (AbstractRelationship rel : parentRels) {
+		for (AbstractRelationship rel : getIncomingRelationships(RelType.CHILDREN)) {
 
 			AbstractNode node = rel.getStartNode();
 

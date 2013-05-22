@@ -154,7 +154,7 @@ public class Image extends File {
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getThumbnailRelationships() {
+	public Iterable<AbstractRelationship> getThumbnailRelationships() {
 
 		return getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
 
@@ -203,7 +203,7 @@ public class Image extends File {
 	 */
 	public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
-		List<AbstractRelationship> thumbnailRelationships = getThumbnailRelationships();
+		Iterable<AbstractRelationship> thumbnailRelationships = getThumbnailRelationships();
 		final List<Image> oldThumbnails                   = new LinkedList();
 		Image thumbnail                                   = null;
 		final Image originalImage                         = this;
@@ -220,49 +220,38 @@ public class Image extends File {
 			newChecksum = currentChecksum;
 		}
 
-		if ((origWidth != null) && (origHeight != null)) {
+		if ((origWidth != null) && (origHeight != null) && thumbnailRelationships != null) {
 
-			if ((thumbnailRelationships != null) && !(thumbnailRelationships.isEmpty())) {
+			for (final AbstractRelationship r : thumbnailRelationships) {
 
-				for (final AbstractRelationship r : thumbnailRelationships) {
+				Integer w = (Integer) r.getProperty(Image.width);
+				Integer h = (Integer) r.getProperty(Image.height);
 
-					Integer w = (Integer) r.getProperty(Image.width);
-					Integer h = (Integer) r.getProperty(Image.height);
+				if ((w != null) && (h != null)) {
 
-					if ((w != null) && (h != null)) {
+					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight))
+					|| ((origWidth <= w) && (origHeight <= h)))    // orginal image is equal or smaller than requested size
+					{
 
-						if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight))
+						thumbnail = (Image) r.getEndNode();
 
-//                                              || (cropToFit && ((w == maxWidth && h >= maxHeight) || (w >= maxWidth && h == maxHeight)))
-						|| ((origWidth <= w) && (origHeight <= h)))    // orginal image is equal or smaller than requested size
-						{
+						// Use thumbnail only if checksum of original image matches with stored checksum
+						Long storedChecksum = r.getProperty(Image.checksum);
 
-//                                                      if ((w == maxWidth && h <= maxHeight)
-//                                                              || (w <= maxWidth && h == maxHeight)
-//                                                              || (cropToFit && ((w == maxWidth && h >= maxHeight) || (w >= maxWidth && h == maxHeight)))
-//                                                              || (origWidth <= w && origHeight <= h)) // orginal image is equal or smaller than requested size
-//                                                      {
-							thumbnail = (Image) r.getEndNode();
+						if (storedChecksum != null && storedChecksum.equals(newChecksum)) {
 
-							// Use thumbnail only if checksum of original image matches with stored checksum
-							Long storedChecksum = r.getProperty(Image.checksum);
+							return thumbnail;
 
-//                                                      System.out.println("Rel ID: " + r.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", stored checksum: " + storedChecksum + ", current checksum: " + currentChecksum);
-//                                                      if (!(originalImage.getLastModifiedDate().after(thumbnail.getLastModifiedDate()))) {
-							if (storedChecksum != null && storedChecksum.equals(newChecksum)) {
+						} else {
 
-								return thumbnail;
-							} else {
-
-								oldThumbnails.add(thumbnail);
-							}
+							oldThumbnails.add(thumbnail);
 						}
-
 					}
 
 				}
 
 			}
+
 
 		}
 

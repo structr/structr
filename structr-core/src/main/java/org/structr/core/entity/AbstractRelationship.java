@@ -22,7 +22,6 @@ package org.structr.core.entity;
 
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.TransactionCommand;
@@ -31,7 +30,6 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
-import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.*;
 

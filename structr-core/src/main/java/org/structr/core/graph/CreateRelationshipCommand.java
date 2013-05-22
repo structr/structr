@@ -97,9 +97,37 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 
 				if (checkDuplicates) {
 
-					List<AbstractRelationship> incomingRels = toNode.getIncomingRelationships();
 
-					for (AbstractRelationship rel : incomingRels) {
+					int contentHashCode = properties != null ? properties.contentHashCode(null, false) : -1;
+					
+					for (AbstractRelationship rel : toNode.getIncomingRelationships(relType)) {
+
+						Relationship dbRelationship = rel.getRelationship();
+						Node dbRelStartNode         = dbRelationship.getStartNode();
+						Node dbFromNode             = fromNode.getNode();
+
+						// Duplicate check:
+						// First, check if relType and start node are equal
+						if (dbRelStartNode.getId() == dbFromNode.getId()) {
+
+							if (properties != null) {
+								
+								// At least one property of new rel has to be different to the tested existing node
+								if (contentHashCode == rel.getProperties().contentHashCode(properties.keySet(), false)) {
+
+									return null;
+								}
+								
+							} else {
+								
+								// rel. already exists
+								return null;
+							}
+						}
+					}
+
+					/*
+					for (AbstractRelationship rel : toNode.getIncomingRelationships()) {
 
                                                 // Duplicate check:
                                                 // First, check if relType and start node are equal
@@ -135,11 +163,9 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 						}
 
 					}
-
+					*/
 				}
 
-
-				
 				RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
 				Node startNode                             = fromNode.getNode();
 				Node endNode                               = toNode.getNode();
@@ -153,7 +179,7 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 					newRel.unlockReadOnlyPropertiesOnce();
 					newRel.setProperty(AbstractRelationship.createdDate, new Date());
 
-					if (properties != null && !properties.isEmpty()) {
+					if (properties != null) {
 
 						for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 							

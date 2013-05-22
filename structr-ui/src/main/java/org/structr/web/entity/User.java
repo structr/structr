@@ -84,8 +84,8 @@ public class User extends Person implements Principal {
 	@Override
 	public List<Principal> getParents() {
 
-		List<Principal> parents               = new LinkedList<Principal>();
-		List<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
+		List<Principal> parents                   = new LinkedList<Principal>();
+		Iterable<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
 
 		for (AbstractRelationship rel : parentRels) {
 

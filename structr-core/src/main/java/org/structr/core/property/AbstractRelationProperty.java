@@ -196,9 +196,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination combinedType and direction
-							List<AbstractRelationship> rels = sourceNode.getRelationships(getRelType(), getDirection());
-
-							for (AbstractRelationship rel : rels) {
+							for (AbstractRelationship rel : sourceNode.getRelationships(getRelType(), getDirection())) {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
@@ -218,9 +216,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 							
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same combinedType incoming to the target node
-							List<AbstractRelationship> rels = finalTargetNode.getRelationships(getRelType(), Direction.INCOMING);
-
-							for (AbstractRelationship rel : rels) {
+							for (AbstractRelationship rel : finalTargetNode.getRelationships(getRelType(), Direction.INCOMING)) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceType)) {
 
@@ -235,9 +231,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 							// In this case, remove exact the relationship of the given combinedType
 							// between source and target node
-							List<AbstractRelationship> rels = finalTargetNode.getRelationships(getRelType(), Direction.BOTH);
-
-							for (AbstractRelationship rel : rels) {
+							for (AbstractRelationship rel : finalTargetNode.getRelationships(getRelType(), Direction.BOTH)) {
 
 								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
 
@@ -304,8 +298,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 		// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 		// of the same combinedType incoming to the target node
-		List<AbstractRelationship> rels = finalTargetNode.getRelationships(getRelType(), Direction.INCOMING);
-		for (AbstractRelationship rel : rels) {
+		for (AbstractRelationship rel : finalTargetNode.getRelationships(getRelType(), Direction.INCOMING)) {
 
 			if (rel.equals(newRel)) {
 				continue;
@@ -329,8 +322,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 		Class destType             = finalTargetNode.getClass();
 
 		// delete previous relationships to nodes of the same destination combinedType and direction
-		List<AbstractRelationship> rels = finalSourceNode.getRelationships(getRelType(), getDirection());
-		for (AbstractRelationship rel : rels) {
+		for (AbstractRelationship rel : finalSourceNode.getRelationships(getRelType(), getDirection())) {
 
 			if (rel.equals(newRel)) {
 				continue;
