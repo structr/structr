@@ -462,7 +462,7 @@ public class HtmlServlet extends HttpServlet {
 	 */
 	private boolean checkGetSessionId(final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException {
 		
-		logger.log(Level.INFO, "Checking for {0} ...", GET_SESSION_ID_PAGE);
+		logger.log(Level.FINE, "Checking for {0} ...", GET_SESSION_ID_PAGE);
 		
 		if (GET_SESSION_ID_PAGE.equals(path)) {
 		

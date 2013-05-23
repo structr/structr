@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
@@ -194,6 +195,25 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				return ((s != null) && (s.length > 0) && (s[0] != null))
 				       ? StringUtils.capitalize(s[0])
 				       : null;
+
+			}
+
+		});
+		functions.put("titleize", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+				
+				if (s == null || s.length < 2 || s[0] == null || s[1] == null) {
+					return null;
+				}
+
+				String[] in = StringUtils.split(s[0], s[1]);
+				String[] out = new String[in.length];
+				for (int i=0; i<in.length; i++) {
+				    out[i] = StringUtils.capitalize(in[i]);
+				};
+				return StringUtils.join(out, " ");
 
 			}
 
@@ -538,6 +558,19 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				}
 
+				// special keyword "size"
+				if (i > 0 && "size".equals(part.toLowerCase())) {
+					
+					Object val = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), parts[i-1]));
+					
+					if (val instanceof List) {
+						
+						return ((List) val).size();
+						
+					}
+	
+				}
+
 				// special keyword "link", works on deeper levels, too
 				if ("link".equals(part.toLowerCase()) && _data instanceof AbstractNode) {
 
@@ -652,8 +685,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				}
 
-				// special keyword "result_size"
-				if ("result_size".equals(part.toLowerCase())) {
+				// special keyword "search_result_size"
+				if ("search_result_size".equals(part.toLowerCase())) {
 
 					Set<Page> pages = getResultPages(securityContext, (Page) _page);
 
@@ -666,7 +699,14 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				}
 
-//				// special keyword "rest_result"
+				// special keyword "result_size"
+				if ("result_size".equals(part.toLowerCase())) {
+					
+					return IteratorUtils.toArray(renderContext.getListSource().iterator()).length;
+
+				}
+
+				//				// special keyword "rest_result"
 //				if ("rest_result".equals(part.toLowerCase())) {
 //
 //					HttpServletRequest request = securityContext.getRequest();
@@ -685,7 +725,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 
 		if (_data != null) {
-
+			
 			PropertyKey referenceKeyProperty = EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKey);
 			return getEditModeValue(securityContext, renderContext, _data, referenceKeyProperty, defaultValue);
 			

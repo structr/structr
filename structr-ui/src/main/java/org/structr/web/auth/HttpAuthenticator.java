@@ -158,11 +158,11 @@ public class HttpAuthenticator implements Authenticator {
 		String path = PathHelper.clean(request.getPathInfo());
 		String[] uriParts = PathHelper.getParts(path);
 		
-		logger.log(Level.INFO, "Checking external authentication ...");
+		logger.log(Level.FINE, "Checking external authentication ...");
 		
 		if (uriParts == null || uriParts.length != 3 || !("oauth".equals(uriParts[0]))) {
 			
-			logger.log(Level.WARNING, "Incorrect URI parts for OAuth process, need /oauth/<name>/<action>");
+			logger.log(Level.FINE, "Incorrect URI parts for OAuth process, need /oauth/<name>/<action>");
 			return null;
 		}
 		
@@ -174,7 +174,7 @@ public class HttpAuthenticator implements Authenticator {
 		
 		if (oauthServer == null) {
 			
-			logger.log(Level.INFO, "No OAuth2 authentication server configured for {0}", path);
+			logger.log(Level.FINE, "No OAuth2 authentication server configured for {0}", path);
 			return null;
 			
 		}
