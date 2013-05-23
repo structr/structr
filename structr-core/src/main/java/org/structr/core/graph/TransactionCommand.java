@@ -55,7 +55,7 @@ import org.structr.core.property.PropertyKey;
 public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
-	private static final long THRESHOLD                                 = 300;
+	private static final long THRESHOLD                                 = 5000;
 	
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
 	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
@@ -91,6 +91,10 @@ public class TransactionCommand extends NodeServiceCommand {
 			if (topLevel) {
 
 				long t1 = System.currentTimeMillis();
+
+				if (t1-t0 > THRESHOLD) {
+					logger.log(Level.INFO, "Actual StructrTransaction took {0} ms", t1-t0);
+				}
 				
 				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer, transaction.doValidation)) {
 
@@ -129,15 +133,16 @@ public class TransactionCommand extends NodeServiceCommand {
 			if (t4-t3 > THRESHOLD) {
 				logger.log(Level.INFO, "Neo tx took {0} ms", t4-t3);
 			}
-			
-			// cleanup
-			currentCommand.remove();
+
 			transactions.remove();
 			
 			// no error, notify entities
 			if (error == null) {
 				modificationQueue.doOuterCallbacksAndCleanup(securityContext);
 			}
+			
+			// cleanup
+			currentCommand.remove();
 				
 			long t5 = System.currentTimeMillis();
 			if (t5-t4 > THRESHOLD) {

@@ -160,7 +160,7 @@ public class StaticRelationshipResource extends SortableResource {
 					}
 
 					final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-					final List<AbstractRelationship> rels     = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
+					final Iterable<AbstractRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
 					final StructrTransaction transaction      = new StructrTransaction() {
 
 						@Override

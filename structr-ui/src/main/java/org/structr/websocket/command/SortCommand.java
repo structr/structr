@@ -66,10 +66,10 @@ public class SortCommand extends AbstractCommand {
 
 			for (String id : nodeData.keySet()) {
 
-				AbstractNode nodeToSort          = getNode(id);
-				Long pos                         = Long.parseLong((String) nodeData.get(id));
-				List<AbstractRelationship> rels  = nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING);
-				PropertyKey<Long> pageIdProperty = new LongProperty(pageId);
+				AbstractNode nodeToSort             = getNode(id);
+				Long pos                            = Long.parseLong((String) nodeData.get(id));
+				Iterable<AbstractRelationship> rels = nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING);
+				PropertyKey<Long> pageIdProperty    = new LongProperty(pageId);
 
 				for (AbstractRelationship rel : rels) {
 

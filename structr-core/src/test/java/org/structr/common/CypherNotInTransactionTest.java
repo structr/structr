@@ -227,7 +227,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try {
 
-				testNodes.get(0).getRelationships(Direction.BOTH).get(0).getRelationship().delete();
+				testNodes.get(0).getRelationships(Direction.BOTH).iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {
@@ -272,7 +272,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try {
 
-				searchRes.get(0).getRelationships(Direction.BOTH).get(0).getRelationship().delete();
+				searchRes.get(0).getRelationships(Direction.BOTH).iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {

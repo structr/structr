@@ -19,9 +19,11 @@
 package org.structr.core.property;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
@@ -114,6 +116,50 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 		return properties.entrySet();
 	}
 	
+	/**
+	 * Calculates a hash code for the contents of this PropertyMap. 
+	 * 
+	 * @param comparableKeys the set of property keys to use for hash code calculation, or null to use the whole keySet
+	 * @param includeSystemProperties whether to include system properties in the calculatio9n
+	 * @return 
+	 */
+	public int contentHashCode(Set<PropertyKey> comparableKeys, boolean includeSystemProperties) {
+		
+		Map<PropertyKey, Object> sortedMap = new TreeMap<PropertyKey, Object>(new PropertyKeyComparator());
+		int hashCode                       = 42;
+		
+		sortedMap.putAll(properties);
+		
+		if (comparableKeys == null) {
+
+			// calculate hash code for all properties in this map
+			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
+
+				if (includeSystemProperties || !entry.getKey().isSystemProperty()) {
+
+					hashCode ^= entry.hashCode();
+				}
+			}
+
+		} else {
+			
+			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
+
+				PropertyKey key = entry.getKey();
+				
+				if (comparableKeys.contains(key)) {
+
+					if (includeSystemProperties || !key.isSystemProperty()) {
+
+						hashCode ^= entry.hashCode();
+					}
+				}
+			}
+		}
+		
+		
+		return hashCode;
+	}
 	
 	// ----- static methods -----
 	public static PropertyMap javaTypeToDatabaseType(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
@@ -318,5 +364,13 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 		}
 		
 		return map;
+	}
+	
+	private static class PropertyKeyComparator implements Comparator<PropertyKey> {
+
+		@Override
+		public int compare(PropertyKey o1, PropertyKey o2) {
+			return o1.jsonName().compareTo(o2.jsonName());
+		}
 	}
 }

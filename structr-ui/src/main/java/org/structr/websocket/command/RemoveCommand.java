@@ -76,7 +76,7 @@ public class RemoveCommand extends AbstractCommand {
 
 					// Old style: Delete all incoming CONTAINS rels
 					DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-					List<AbstractRelationship> rels     = node.getIncomingRelationships(RelType.CONTAINS);
+					Iterable<AbstractRelationship> rels = node.getIncomingRelationships(RelType.CONTAINS);
 
 					for (AbstractRelationship rel : rels) {
 

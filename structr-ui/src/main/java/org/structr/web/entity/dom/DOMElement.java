@@ -324,14 +324,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			// fetch children
 			List<AbstractRelationship> rels = getChildRelationships();
-			
 			if (rels.isEmpty()) {
 				
 				// No child relationships, maybe this node is in sync with another node
-				List <AbstractRelationship> syncRels = getRelationships(RelType.SYNC, Direction.INCOMING);
-				if (!syncRels.isEmpty()) {
+				Iterable<AbstractRelationship> syncRels = getRelationships(RelType.SYNC, Direction.INCOMING);
+				if (syncRels != null && syncRels.iterator().hasNext()) {
 
-					DOMElement syncedNode = (DOMElement) syncRels.get(0).getStartNode();
+					DOMElement syncedNode = (DOMElement) syncRels.iterator().next().getStartNode();
 					rels = syncedNode.getChildRelationships();
 				}
 				

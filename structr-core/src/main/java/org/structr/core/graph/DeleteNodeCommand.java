@@ -95,9 +95,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 						// Delete all end nodes of outgoing relationships which are connected
 						// by relationships which are marked with DELETE_OUTGOING
-						List<AbstractRelationship> outgoingRels = node.getOutgoingRelationships();
-
-						for (AbstractRelationship rel : outgoingRels) {
+						for (AbstractRelationship rel : node.getOutgoingRelationships()) {
 
 							int cascadeDelete    = rel.cascadeDelete();
 							AbstractNode endNode = rel.getEndNode();
@@ -118,9 +116,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 						// Delete all start nodes of incoming relationships which are connected
 						// by relationships which are marked with DELETE_INCOMING
-						List<AbstractRelationship> incomingRels = node.getIncomingRelationships();
-
-						for (AbstractRelationship rel : incomingRels) {
+						for (AbstractRelationship rel : node.getIncomingRelationships()) {
 
 							int cascadeDelete      = rel.cascadeDelete();
 							AbstractNode startNode = rel.getStartNode();
@@ -144,8 +140,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					node.onNodeDeletion();
 
 					// Delete any relationship (this is PASSIVE DELETION)
-					List<AbstractRelationship> rels = node.getRelationships();
-					for (AbstractRelationship r : rels) {
+					for (AbstractRelationship r : node.getRelationships()) {
 
 						deleteRel.execute(r, true);
 					}

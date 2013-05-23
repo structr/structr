@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import java.util.List;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -50,7 +51,7 @@ public abstract class LinkedListNode extends AbstractNode {
 	 */
 	public LinkedListNode listGetPrevious(final RelationshipType relType, final LinkedListNode currentElement) {
 
-		final List<AbstractRelationship> incomingRelationships = currentElement.getIncomingRelationships(relType);
+		final List<AbstractRelationship> incomingRelationships = Iterables.toList(currentElement.getIncomingRelationships(relType));
 		
 		if (incomingRelationships != null && !incomingRelationships.isEmpty()) {
 
@@ -79,7 +80,7 @@ public abstract class LinkedListNode extends AbstractNode {
 	 */
 	public LinkedListNode listGetNext(final RelationshipType relType, final LinkedListNode currentElement) {
 		
-		List<AbstractRelationship> outgoingRelationships = currentElement.getOutgoingRelationships(relType);
+		List<AbstractRelationship> outgoingRelationships = Iterables.toList(currentElement.getOutgoingRelationships(relType));
 		
 		if (outgoingRelationships != null && !outgoingRelationships.isEmpty()) {
 

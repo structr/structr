@@ -61,6 +61,9 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.structr.core.IterableAdapter;
+import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 
@@ -679,24 +682,29 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Return all relationships of given type and direction
+	 * Return all relationships of given type and direction in lazy way.
 	 *
 	 * @return list with relationships
 	 */
-	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
+	public Iterable<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
 
-		try {
-
-			return (List<AbstractRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to get relationships", fex);
-
+		RelationshipFactory factory = new RelationshipFactory(securityContext);
+		Iterable<Relationship> rels = null;
+		
+		if (type != null && dir != null) {
+			
+			rels = dbNode.getRelationships(type, dir);
+			
+		} else if (type != null) {
+			
+			rels = dbNode.getRelationships(type);
+			
+		} else if (dir != null) {
+			
+			rels = dbNode.getRelationships(dir);
 		}
-
-		return null;
-
+		
+		return new IterableAdapter<Relationship, AbstractRelationship>(rels, factory);
 	}
 
 	/**
@@ -725,7 +733,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getRelationships() {
+	public Iterable<AbstractRelationship> getRelationships() {
 
 		return getRelationships(null, Direction.BOTH);
 
@@ -736,7 +744,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getRelationships(final Direction dir) {
+	public Iterable<AbstractRelationship> getRelationships(final Direction dir) {
 
 		return getRelationships(null, dir);
 
@@ -747,7 +755,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getIncomingRelationships() {
+	public Iterable<AbstractRelationship> getIncomingRelationships() {
 
 		return getRelationships(null, Direction.INCOMING);
 
@@ -758,7 +766,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getOutgoingRelationships() {
+	public Iterable<AbstractRelationship> getOutgoingRelationships() {
 
 		return getRelationships(null, Direction.OUTGOING);
 
@@ -769,7 +777,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getIncomingRelationships(final RelationshipType type) {
+	public Iterable<AbstractRelationship> getIncomingRelationships(final RelationshipType type) {
 
 		return getRelationships(type, Direction.INCOMING);
 
@@ -780,7 +788,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getOutgoingRelationships(final RelationshipType type) {
+	public Iterable<AbstractRelationship> getOutgoingRelationships(final RelationshipType type) {
 
 		return getRelationships(type, Direction.OUTGOING);
 
@@ -865,10 +873,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return
 	 */
 	public boolean hasRelationship(final RelationshipType type, final Direction dir) {
-
-		List<AbstractRelationship> rels = this.getRelationships(type, dir);
-
-		return ((rels != null) && !(rels.isEmpty()));
+		return this.getRelationships(type, dir).iterator().hasNext();
 
 	}
 
