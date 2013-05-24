@@ -258,7 +258,7 @@ public class Content extends DOMNode implements Text {
 
 			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName() + "\" data-structr-id=\"" + dataObject.getUuid() + "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
 
-			logger.log(Level.INFO, "Edit mode value: {0}", editModeValue);
+			logger.log(Level.FINEST, "Edit mode value: {0}", editModeValue);
 
 			return editModeValue;
 			
