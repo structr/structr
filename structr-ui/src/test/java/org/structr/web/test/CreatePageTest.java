@@ -35,6 +35,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.select.Elements;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -157,15 +160,22 @@ public class CreatePageTest extends StructrUiTest {
 
 	}
 	
-	private void makeNodesPublic(Node... nodes) {
+	private void makeNodesPublic(final Node... nodes) {
 		
 		try {
 
-			for (Node node : nodes) {
-			
-				((GraphObject) node).setProperty(GraphObject.visibleToPublicUsers, true);
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-			}
+				@Override
+				public Object execute() throws FrameworkException {
+
+					for (Node node : nodes) {
+						((GraphObject) node).setProperty(GraphObject.visibleToPublicUsers, true);
+					}
+					
+					return null;
+				}
+			});
 			
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);

@@ -40,6 +40,8 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.SecurityRelationship;
 import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -171,20 +173,36 @@ public class Group extends AbstractNode implements Principal {
 	}
 
 	public void addUser(final User user) throws FrameworkException {
-		
-		List<User> _users = getProperty(users);
-		_users.add(user);
-		
-		setProperty(users, _users);
+
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				List<User> _users = getProperty(users);
+				_users.add(user);
+
+				setProperty(users, _users);
+				return null;
+			}
+		});
 		
 	}
 	
 	public void removeUser(final User user) throws FrameworkException {
-		
-		List<User> _users = getProperty(users);
-		_users.remove(user);
-		
-		setProperty(users, _users);
+
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				List<User> _users = getProperty(users);
+				_users.remove(user);
+
+				setProperty(users, _users);
+				return null;
+			}
+		});
 		
 	}
 

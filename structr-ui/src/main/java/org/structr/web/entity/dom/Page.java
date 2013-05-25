@@ -174,16 +174,25 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	public void increaseVersion() throws FrameworkException {
 
-		Integer _version = getProperty(Page.version);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		if (_version == null) {
+			@Override
+			public Object execute() throws FrameworkException {
 
-			setProperty(Page.version, 1);
-			
-		} else {
+				Integer _version = getProperty(Page.version);
 
-			setProperty(Page.version, _version + 1);
-		}
+				if (_version == null) {
+
+					setProperty(Page.version, 1);
+
+				} else {
+
+					setProperty(Page.version, _version + 1);
+				}
+				
+				return null;
+			}
+		});
 
 	}
 

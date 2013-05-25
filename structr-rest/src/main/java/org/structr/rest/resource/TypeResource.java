@@ -49,8 +49,6 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.SearchAttributeGroup;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -82,21 +80,13 @@ public class TypeResource extends SortableResource {
 		this.request         = request;
 		this.rawType         = part;
 
+		// FIXME: what is this block for?
 		if (rawType != null) {
 
 			// test if resource class exists
 			entityClass = EntityContext.getEntityClassForRawType(rawType);
-
-			if (entityClass == null) {
-				
-//				// test if key is a known property
-//				if (!EntityContext.isKnownProperty(new GenericProperty(part))) {
-//
-//					return false;
-//				}
-			}
 		}
-
+		
 		return true;
 
 	}
@@ -157,32 +147,6 @@ public class TypeResource extends SortableResource {
 				}
 			}
 			
-			Integer sortType = null;
-			boolean sortFinalResults = false;
-			
-//			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
-			
-			if (sortKey != null) {
-				
-				PropertyConverter converter = sortKey.inputConverter(securityContext);
-				if (converter != null) {
-					
-					sortType = converter.getSortType();
-					sortFinalResults = converter.sortFinalResults();
-
-					/*
-					if (converter instanceof IntConverter) {
-						sortType = SortField.INT;
-					} else if (converter instanceof DateConverter) {
-						sortType = SortField.LONG;
-					} else if (converter instanceof ResultCountConverter) {
-						sortFinalResults = true;
-					}
-					*/
-
-				}
-			}
-			
 			// do search
 			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
 				includeDeletedAndHidden,
@@ -192,16 +156,8 @@ public class TypeResource extends SortableResource {
 				sortDescending,
 				pageSize,
 				page,
-				offsetId,
-				sortType
+				offsetId
 			);
-			
-			if (sortFinalResults) {
-				// sort by result count
-				Collections.sort(results.getResults(), new GraphObjectComparator(sortKey, sortDescending ? GraphObjectComparator.DESCENDING : GraphObjectComparator.ASCENDING));
-			}
-			
-			
 			
 			return results;
 			

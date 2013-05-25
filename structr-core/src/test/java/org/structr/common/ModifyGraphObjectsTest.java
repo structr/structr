@@ -30,10 +30,13 @@ import org.structr.common.error.FrameworkException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Relationship;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 
@@ -64,15 +67,14 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 		try {
 
-			AbstractNode node;
 			final PropertyMap props = new PropertyMap();
-			String type             = "UnknownTestType";
-			String name             = "GenericNode-name";
+			final String type       = "UnknownTestType";
+			final String name       = "GenericNode-name";
 
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
-			node = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
+			final AbstractNode node = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
@@ -91,22 +93,28 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			assertTrue(!node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
 			assertTrue(!node.getProperty(AbstractNode.visibleToPublicUsers));
 
-			name = "GenericNode-name-äöüß";
+			final String name2 = "GenericNode-name-äöüß";
 
-			// Modify values
-			node.setProperty(AbstractNode.name, name);
-			assertTrue(node.getProperty(AbstractNode.name).equals(name));
-			node.setProperty(AbstractNode.hidden, true);
+			transactionCommand.execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					// Modify values
+					node.setProperty(AbstractNode.name, name2);
+					node.setProperty(AbstractNode.hidden, true);
+					node.setProperty(AbstractNode.deleted, true);
+					node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+					node.setProperty(AbstractNode.visibleToPublicUsers, true);
+					
+					return null;
+				}
+			});
+
+			assertTrue(node.getProperty(AbstractNode.name).equals(name2));
 			assertTrue(node.getProperty(AbstractNode.hidden));
-			node.setProperty(AbstractNode.hidden, false);
-			assertFalse(node.getProperty(AbstractNode.hidden));
-			node.setProperty(AbstractNode.deleted, true);
 			assertTrue(node.getProperty(AbstractNode.deleted));
-			node.setProperty(AbstractNode.deleted, false);
-			assertFalse(node.getProperty(AbstractNode.deleted));
-			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
 			assertTrue(node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-			node.setProperty(AbstractNode.visibleToPublicUsers, true);
 			assertTrue(node.getProperty(AbstractNode.visibleToPublicUsers));
 
 		} catch (FrameworkException ex) {
@@ -125,13 +133,21 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 		try {
 
-			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.IS_AT, 1)).get(0);
+			final AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.IS_AT, 1)).get(0);
+			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
+			final String val1              = "54354354546806849870";
 
-			PropertyKey key1 = new StringProperty("jghsdkhgshdhgsdjkfgh");
-			String val1      = "54354354546806849870";
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-			// Modify values
-			rel.setProperty(key1, val1);
+				@Override
+				public Object execute() throws FrameworkException {
+			
+					// Modify values
+					rel.setProperty(key1, val1);
+					
+					return null;
+				}
+			});
 			
 			assertTrue("Expected relationship to have a value for key '" + key1.dbName() + "'", rel.getRelationship().hasProperty(key1.dbName()));
 			
@@ -140,10 +156,21 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			Object vrfy1 = rel.getProperty(key1);
 			assertEquals(val1, vrfy1);
 			
-			val1 = "öljkhöohü8osdfhoödhi";
-			rel.setProperty(key1, val1);
+			final String val2 = "öljkhöohü8osdfhoödhi";
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+			
+					rel.setProperty(key1, val2);
+					
+					return null;
+				}
+			});
+			
 			Object vrfy2 = rel.getProperty(key1);
-			assertEquals(val1, vrfy2);
+			assertEquals(val2, vrfy2);
 			
 
 		} catch (FrameworkException ex) {

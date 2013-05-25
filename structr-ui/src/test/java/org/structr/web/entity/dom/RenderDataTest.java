@@ -34,6 +34,8 @@ import org.structr.web.common.DOMTest;
 import org.structr.web.common.RenderContext;
 import org.w3c.dom.Element;
 import static org.mockito.Mockito.*;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.User;
 
 /**
@@ -90,32 +92,45 @@ public class RenderDataTest extends DOMTest {
 			// create dom tree
 			Element html = doc.createElement("html"); doc.appendChild(html);
 			Element body = doc.createElement("body"); html.appendChild(body);
-			Element div  = doc.createElement("div"); body.appendChild(div);
+			
+			final Element div  = doc.createElement("div"); body.appendChild(div);
 			div.appendChild(doc.createTextNode("${root.name}"));
-			Element ul1  = doc.createElement("ul"); div.appendChild(ul1);
-			Element li1  = doc.createElement("li"); ul1.appendChild(li1);
+
+			final Element ul1  = doc.createElement("ul"); div.appendChild(ul1);
+			
+			final Element li1  = doc.createElement("li"); ul1.appendChild(li1);
 			li1.appendChild(doc.createTextNode("${folders.name}"));
-			Element li2  = doc.createElement("li"); ul1.appendChild(li2);
+			
+			final Element li2  = doc.createElement("li"); ul1.appendChild(li2);
 			li2.appendChild(doc.createTextNode("${files.name}"));
 
-			Element ul2  = doc.createElement("ul"); li1.appendChild(ul2);
-			Element li3  = doc.createElement("li"); ul2.appendChild(li3);
+			final Element ul2  = doc.createElement("ul"); li1.appendChild(ul2);
+			
+			final Element li3  = doc.createElement("li"); ul2.appendChild(li3);
 			li3.appendChild(doc.createTextNode("${files.name}"));
-			Element li4  = doc.createElement("li"); ul2.appendChild(li4);
+			
+			final Element li4  = doc.createElement("li"); ul2.appendChild(li4);
 			li4.appendChild(doc.createTextNode("${folders.name}"));
 			
 			// create RENDER_NODE relationship between first ul and rootNode
 			PropertyMap properties = new PropertyMap();
 			//properties.put(LinkedListNode.keyProperty, key);
 			Services.command(securityContext, CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RelType.RENDER_NODE, properties, false);
-			
-			((DOMElement) div).setProperty(DOMElement.dataKey, "root");
-			
-			((DOMElement) li1).setProperty(DOMElement.dataKey, "folders");
-			((DOMElement) li2).setProperty(DOMElement.dataKey, "files");
-			((DOMElement) li3).setProperty(DOMElement.dataKey, "files");
-			((DOMElement) li4).setProperty(DOMElement.dataKey, "folders");
-			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					((DOMElement) div).setProperty(DOMElement.dataKey, "root");
+
+					((DOMElement) li1).setProperty(DOMElement.dataKey, "folders");
+					((DOMElement) li2).setProperty(DOMElement.dataKey, "files");
+					((DOMElement) li3).setProperty(DOMElement.dataKey, "files");
+					((DOMElement) li4).setProperty(DOMElement.dataKey, "folders");
+
+					return null;
+				}
+			});
 			
 			RenderContext ctx = new RenderContext(null, null, false, Locale.GERMAN);
 			doc.render(securityContext, ctx, 0);
@@ -174,19 +189,40 @@ public class RenderDataTest extends DOMTest {
 			File nodeF    = files.get(5); nodeF.setName("fileF");
 			
 			// create dom tree
-			Element html = doc.createElement("html");
-			Element body = doc.createElement("body");
-			Element b  = doc.createElement("b");
-			Element p1   = doc.createElement("p");
-			((DOMElement) p1).setProperty(DOMElement.restQuery, "users?sort=name");
-			((DOMElement) p1).setProperty(DOMElement.dataKey, "user");
+			Element html     = doc.createElement("html");
+			Element body     = doc.createElement("body");
+			Element b        = doc.createElement("b");
+			final Element p1 = doc.createElement("p");
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					((DOMElement) p1).setProperty(DOMElement.restQuery, "users?sort=name");
+					((DOMElement) p1).setProperty(DOMElement.dataKey, "user");
+
+					return null;
+				}
+			});
 			
 			p1.appendChild(doc.createTextNode("${user.name}"));
 			
-			Element div  = doc.createElement("div");
-			Element p2   = doc.createElement("p");
-			((DOMElement) p2).setProperty(DOMElement.restQuery, "files?sort=name");
-			((DOMElement) p2).setProperty(DOMElement.dataKey, "file");
+			Element div      = doc.createElement("div");
+			final Element p2 = doc.createElement("p");
+
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					((DOMElement) p2).setProperty(DOMElement.restQuery, "files?sort=name");
+					((DOMElement) p2).setProperty(DOMElement.dataKey, "file");
+
+					return null;
+				}
+			});
 			
 			p2.appendChild(doc.createTextNode("${file.name}"));
 			

@@ -366,13 +366,22 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void setData(String data) throws DOMException {
+	public void setData(final String data) throws DOMException {
 		
 		checkWriteAccess();
 		
 		try {
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
 			
-			setProperty(content, data);
+					setProperty(content, data);
+					
+					return null;
+				}
+			});
 			
 		} catch (FrameworkException fex) {
 			
@@ -416,16 +425,24 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void appendData(String data) throws DOMException {
+	public void appendData(final String data) throws DOMException {
 		
 		checkWriteAccess();
-		
-		String text = getProperty(content);
 		
 		// set content to concatenated text and data
 		try {
 			
-			setProperty(content, text.concat(data));
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+			
+					String text = getProperty(content);
+					setProperty(content, text.concat(data));
+					
+					return null;
+				}
+			});
 			
 		} catch (FrameworkException fex) {
 			
@@ -434,24 +451,33 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void insertData(int offset, String data) throws DOMException {
+	public void insertData(final int offset, final String data) throws DOMException {
 		
 		checkWriteAccess();
 		
-		String text = getProperty(content);
-
-		String leftPart  = text.substring(0, offset);
-		String rightPart = text.substring(offset);
-
-		StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
-		buf.append(leftPart);
-		buf.append(data);
-		buf.append(rightPart);
-		
-		// finally, set content to concatenated left, data and right parts
 		try {
-			
-			setProperty(content, buf.toString());
+						
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					String text = getProperty(content);
+
+					String leftPart  = text.substring(0, offset);
+					String rightPart = text.substring(offset);
+
+					StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
+					buf.append(leftPart);
+					buf.append(data);
+					buf.append(rightPart);
+
+					// finally, set content to concatenated left, data and right parts
+					setProperty(content, buf.toString());
+					
+					return null;
+				}
+			});
 			
 		} catch (FrameworkException fex) {
 			
@@ -460,19 +486,28 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void deleteData(int offset, int count) throws DOMException {
+	public void deleteData(final int offset, final int count) throws DOMException {
 		
 		checkWriteAccess();
 		
-		String text = getProperty(content);
-		
-		String leftPart  = text.substring(0, offset);
-		String rightPart = text.substring(offset + count);
-		
 		// finally, set content to concatenated left and right parts
 		try {
+						
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					String text = getProperty(content);
+
+					String leftPart  = text.substring(0, offset);
+					String rightPart = text.substring(offset + count);
 			
-			setProperty(content, leftPart.concat(rightPart));
+					setProperty(content, leftPart.concat(rightPart));
+					
+					return null;
+				}
+			});
 			
 		} catch (FrameworkException fex) {
 			
@@ -481,50 +516,39 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void replaceData(int offset, int count, String data) throws DOMException {
+	public void replaceData(final int offset, final int count, final String data) throws DOMException {
 		
 		checkWriteAccess();
-		
-		String text = getProperty(content);
-		
-		String leftPart  = text.substring(0, offset);
-		String rightPart = text.substring(offset + count);
-		
-		StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
-		buf.append(leftPart);
-		buf.append(data);
-		buf.append(rightPart);
 
 		// finally, set content to concatenated left and right parts
 		try {
-			
-			setProperty(content, buf.toString());
+						
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					String text = getProperty(content);
+
+					String leftPart  = text.substring(0, offset);
+					String rightPart = text.substring(offset + count);
+
+					StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
+					buf.append(leftPart);
+					buf.append(data);
+					buf.append(rightPart);
+					
+					setProperty(content, buf.toString());
+					
+					return null;
+				}
+			});
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
 		}
 	}
-
-//	@Override
-//	protected String getEditModeValue(final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object value) {
-//		
-//		String editModeValue;
-//		if ("text/javascript".equals(getProperty(contentType))) {
-//
-//			editModeValue = "var data-structr-type='" + referenceKeyProperty.typeName() + "', data-structr-id='" + dataObject.getUuid() + "', data-structr-key='" + referenceKeyProperty.jsonName() + "'\n" + value;
-//			
-//		} else {
-//
-//			editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName() + "\" data-structr-id=\"" + dataObject.getUuid() + "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
-//		}
-//		
-//		logger.log(Level.INFO, "Edit mode value: {0}", editModeValue);
-//		
-//		return editModeValue;
-//		
-//		
-//	}
 	
 	// ----- interface org.w3c.dom.Node -----
 	@Override

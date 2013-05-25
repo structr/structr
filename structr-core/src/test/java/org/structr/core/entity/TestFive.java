@@ -26,7 +26,10 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import org.structr.core.Services;
 import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -73,8 +76,18 @@ public class TestFive extends AbstractNode {
 	public void afterCreation(SecurityContext securityContext) {
 		
 		try {
-			int value = getIncreasedValue(modifiedInAfterCreation);
-			setProperty(modifiedInAfterCreation, value);
+			final int value = getIncreasedValue(modifiedInAfterCreation);
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					setProperty(modifiedInAfterCreation, value);
+					return null;
+				}
+				
+			});
 			
 		} catch (Throwable t) {
 			
@@ -86,8 +99,18 @@ public class TestFive extends AbstractNode {
 	public void afterModification(SecurityContext securityContext) {
 		
 		try {
-			int value = getIncreasedValue(modifiedInAfterModification);
-			setProperty(modifiedInAfterModification, value);
+			final int value = getIncreasedValue(modifiedInAfterModification);
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					setProperty(modifiedInAfterModification, value);
+					return null;
+				}
+				
+			});
 			
 		} catch (Throwable t) {
 			

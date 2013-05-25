@@ -130,15 +130,8 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
 			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
-		
-		return search(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, offsetId, null);
-	}
 
-	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId,
-			      final Integer sortType) throws FrameworkException {
-		
-		return search(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, offsetId, sortType);
+		return search(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, offsetId);
 	}
 	
 	/**
@@ -157,10 +150,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 	 * @param sortType                      The entity type to sort the results (needed for lucene)
 	 * @return
 	 */
-	private Result<T> search(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId,
-			      final Integer sortType)
-		throws FrameworkException {
+	private Result<T> search(final boolean includeDeletedAndHidden, final boolean publicOnly, final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		if (page == 0 || pageSize <= 0) {
 
@@ -177,7 +167,6 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 		if (graphDb != null) {
 
 			// At this point, all search attributes are ready
-			// BooleanQuery query                             = new BooleanQuery();
 			List<FilterSearchAttribute> filters            = new ArrayList<FilterSearchAttribute>();
 			List<TextualSearchAttribute> textualAttributes = new ArrayList<TextualSearchAttribute>();
 			StringBuilder queryString                      = new StringBuilder();
@@ -229,30 +218,21 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 			if (searchAttrs.isEmpty() && StringUtils.isBlank(queryString.toString())) {
 
-//                              if (topNode != null) {
-//
-//                                      intermediateResult = topNode.getAllChildren();
-//
-//                              } else {
 				intermediateResult = new Result(new ArrayList<AbstractNode>(), null, false, false);
 
-//                              }
 			} else {
 
-				long t0 = System.nanoTime();
-
-				logger.log(Level.FINEST, "Textual Query String: {0}", queryString);
-
-				String query = queryString.toString();
-				
+				String query              = queryString.toString();
 				QueryContext queryContext = new QueryContext(query);
 				IndexHits hits            = null;
 
 				if (sortKey != null) {
 
+					Integer sortType = sortKey.getSortType();
 					if (sortType != null) {
 
 						queryContext.sort(new Sort(new SortField(sortKey.dbName(), sortType, sortDescending)));
+						
 					} else {
 
 						queryContext.sort(new Sort(new SortField(sortKey.dbName(), Locale.getDefault(), sortDescending)));
@@ -288,10 +268,8 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 						hits = index.get(AbstractNode.uuid.dbName(), decodeExactMatch(textualAttributes.get(0).getValue()));
 					}
 					
-				} else if ( /* (textualAttributes.size() > 1) && */allExactMatch) {
+				} else if (allExactMatch) {
 
-//                                      } else if ((textualAttributes.size() > 1) && allExactMatch) {
-					// Only exact machtes: Use keyword index
 					index = (Index<Node>) arguments.get(NodeIndex.keyword.name());
 
 					synchronized (index) {
@@ -320,27 +298,14 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 					}
 				}
 
-				long t1 = System.nanoTime();
-
-				logger.log(Level.FINE, "Querying index took {0} ns, size() says {1} results.", new Object[] { t1 - t0, (hits != null)
-					? hits.size()
-					: 0 });
-
-//                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
 				intermediateResult = nodeFactory.instantiateNodes(hits);
 
 				if (hits != null) {
 					hits.close();
 				}
-
-				long t2 = System.nanoTime();
-
-				logger.log(Level.FINE, "Creating structr nodes took {0} ns, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.getResults().size() });
-
 			}
 
 			List<? extends GraphObject> intermediateResultList = intermediateResult.getResults();
-			long t2                                            = System.nanoTime();
 
 			if (!filters.isEmpty()) {
 
@@ -401,24 +366,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 				}
 			}
 
-			// eventually filter by distance from a given point
-			if (coords != null) {}
-
 			finalResult = intermediateResult;
-
-			long t3 = System.nanoTime();
-
-			logger.log(Level.FINE, "Filtering nodes took {0} ns. Result size now {1}.", new Object[] { t3 - t2, finalResult.getResults().size() });
-
-//                      if (sortKey != null) {
-//                              
-//                              Collections.sort(finalResult.getResults(), new GraphObjectComparator(sortKey, sortDescending ? GraphObjectComparator.DESCENDING : GraphObjectComparator.ASCENDING));
-//
-//                              long t4 = System.nanoTime();
-//                      
-//                              logger.log(Level.FINE, "Sorting nodes took {0} ns.", new Object[] { t4 - t3 });
-//                      
-//                      }
 		}
 
 		return finalResult;

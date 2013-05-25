@@ -81,4 +81,9 @@ public interface PropertyKey<T> {
 
 	public boolean isCollection();
 
+	/**
+	 * Returns the (lucene) sort type of this property.
+	 * @return 
+	 */
+	public Integer getSortType();
 }

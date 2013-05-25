@@ -77,4 +77,8 @@ public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	}
 
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 }

@@ -20,10 +20,8 @@ package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.util.NumericUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
@@ -52,6 +50,11 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	@Override
 	public String typeName() {
 		return "Date";
+	}
+
+	@Override
+	public Integer getSortType() {
+		return SortField.LONG;
 	}
 	
 	@Override
@@ -165,28 +168,5 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			return null;
 		}
 		
-		@Override
-		public Integer getSortType() {
-			return SortField.LONG;
-		}
-		
 	}
-	
-	
-//	@Override
-//	public Object getSearchValue(Date source) {
-//
-//		return source;// == null ? null : source.getTime();
-////		if (source == null) {
-////			return "";
-////		}
-////		
-////		long t = source.getTime();
-////		
-////		String prefixCoded = NumericUtils.longToPrefixCoded(t);
-////		
-////		logger.log(Level.INFO, "Search value for date {0}: {1}, prefixCoded: {2}", new Object[]{source, t, prefixCoded});
-////		
-////		return prefixCoded;
-//	}
 }

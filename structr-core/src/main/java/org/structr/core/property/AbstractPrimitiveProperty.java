@@ -145,12 +145,21 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 		if (propertyContainer != null) {
 
-			// Commit value directly to database
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
+//			// Commit value directly to database
+//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//
+//				@Override
+//				public Object execute() throws FrameworkException {
+//
+					if (!TransactionCommand.inTransaction()) {
+						
+						logger.log(Level.SEVERE, "setProperty outside of transaction, dumping stack.");
+						Thread.dumpStack();
+						
+						return;
+					}
+				
+			
 					try {
 
 						// notify only non-system properties
@@ -202,12 +211,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						t.printStackTrace();
 
 					} finally {}
-
-					return null;
-
-				}
-
-			});
+//
+//					return null;
+//
+//				}
+//
+//			});
 		}
 		
 	}

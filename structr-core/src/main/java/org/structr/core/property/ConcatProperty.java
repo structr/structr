@@ -65,4 +65,9 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	public boolean isCollection() {
 		return false;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 }

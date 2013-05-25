@@ -99,4 +99,9 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	public boolean isCollection() {
 		return true;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 }

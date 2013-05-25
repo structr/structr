@@ -18,9 +18,13 @@
  */
 package org.structr.core.property;
 
+import static junit.framework.Assert.assertEquals;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.entity.TestFour;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -30,31 +34,31 @@ public class StringPropertyTest extends StructrTest {
 	
 	public void test() {
 		
-		Property<String> instance = TestFour.stringProperty;
-		TestFour testEntity        = null;
-		
 		try {
-			testEntity = createTestNode(TestFour.class);
+			final Property<String> instance = TestFour.stringProperty;
+			final TestFour testEntity        = createTestNode(TestFour.class);
 			
-		} catch (FrameworkException fex) {
-			
-			fail("Unable to create test node.");
-		}
-		
-		assertNotNull(testEntity);
-		
-		// store string in the test entitiy
-		String value = "This is a test!";
-		
-		try {
-			instance.setProperty(securityContext, testEntity, value);
+			assertNotNull(testEntity);
+
+			// store string in the test entitiy
+			final String value = "This is a test!";
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					instance.setProperty(securityContext, testEntity, value);
+					return null;
+				}
+			});
+
+			// check value from database
+			assertEquals(value, instance.getProperty(securityContext, testEntity, true));
 			
 		} catch (FrameworkException fex) {
 			
 			fail("Unable to store array");
 		}
-
-		// check value from database
-		assertEquals(value, instance.getProperty(securityContext, testEntity, true));
 	}
 }

@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.SortField;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
@@ -154,16 +153,6 @@ public class ISO8601DateProperty extends DateProperty {
 			return null;
 
 		}
-
-		//~--- get methods --------------------------------------------
-
-		@Override
-		public Integer getSortType() {
-
-			return SortField.LONG;
-
-		}
-
 	}
 
 }

@@ -61,6 +61,11 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 	}
 
 	@Override
+	public Integer getSortType() {
+		return null;
+	}
+	
+	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}

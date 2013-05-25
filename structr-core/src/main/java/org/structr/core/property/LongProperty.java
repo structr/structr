@@ -44,6 +44,11 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	public String typeName() {
 		return "Long";
 	}
+
+	@Override
+	public Integer getSortType() {
+		return SortField.LONG;
+	}
 	
 	@Override
 	public PropertyConverter<Long, Long> databaseConverter(SecurityContext securityContext) {
@@ -57,25 +62,13 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 
 	@Override
 	public PropertyConverter<?, Long> inputConverter(SecurityContext securityContext) {
-		return new InputConverter(securityContext, SortField.LONG);
+		return new InputConverter(securityContext);
 	}
 	
 	protected class InputConverter extends PropertyConverter<Object, Long> {
 
 		public InputConverter(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, null, sortKey, sortFinalResults);
+			super(securityContext);
 		}
 		
 		@Override

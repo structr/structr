@@ -112,6 +112,11 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 	}
 
 	@Override
+	public Integer getSortType() {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		
 		Notion notion = traverserInterface.getNotion();

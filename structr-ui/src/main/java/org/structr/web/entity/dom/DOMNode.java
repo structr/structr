@@ -1533,10 +1533,19 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	public Node doAdopt(final Page _page) throws DOMException {
 		
 		if (_page != null) {
-			
+
 			try {
-				
-				setProperty(ownerDocument, _page);
+
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						setProperty(ownerDocument, _page);
+
+						return null;
+					}
+				});
 				
 			} catch (FrameworkException fex) {
 				

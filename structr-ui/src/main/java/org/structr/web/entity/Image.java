@@ -377,94 +377,30 @@ public class Image extends File {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setWidth(Integer width) throws FrameworkException {
+	public void setWidth(final Integer width) throws FrameworkException {
 
-		setProperty(Image.width, width);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Image.width, width);
+				return null;
+			}
+		});
 	}
 
-	public void setHeight(Integer height) throws FrameworkException {
+	public void setHeight(final Integer height) throws FrameworkException {
 
-		setProperty(Image.height, height);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Image.height, height);
+				return null;
+			}
+		});
 
 	}
-//
-//	/** Copy public flag to all thumbnails */
-//	@Override
-//	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
-//
-//		super.setVisibleToPublicUsers(publicFlag);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
-//		}
-//
-//	}
-//
-//	/** Copy visible for authenticated users flag to all thumbnails */
-//	@Override
-//	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
-//
-//		super.setVisibleToAuthenticatedUsers(flag);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
-//		}
-//
-//	}
-//
-//	/** Copy hidden flag to all thumbnails */
-//	@Override
-//	public void setHidden(final boolean hidden) throws FrameworkException {
-//
-//		super.setHidden(hidden);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.hidden, hidden);
-//		}
-//
-//	}
-//
-//	/** Copy deleted flag to all thumbnails */
-//	@Override
-//	public void setDeleted(final boolean deleted) throws FrameworkException {
-//
-//		super.setDeleted(deleted);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.deleted, deleted);
-//		}
-//
-//	}
-//
-//	/** Copy visibility start date to all thumbnails */
-//	@Override
-//	public void setVisibilityStartDate(final Date date) throws FrameworkException {
-//
-//		super.setVisibilityStartDate(date);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.visibilityStartDate, date);
-//		}
-//
-//	}
-//
-//	/** Copy visibility end date to all thumbnails */
-//	@Override
-//	public void setVisibilityEndDate(final Date date) throws FrameworkException {
-//
-//		super.setVisibilityEndDate(date);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.visibilityEndDate, date);
-//		}
-//
-//	}
-
 }

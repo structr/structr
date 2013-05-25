@@ -49,6 +49,11 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 	public String typeName() {
 		return ""; // read-only
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 	
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {

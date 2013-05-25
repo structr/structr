@@ -73,6 +73,11 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
+	public Integer getSortType() {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}

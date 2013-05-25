@@ -288,6 +288,10 @@ public class TransactionCommand extends NodeServiceCommand {
 			logger.log(Level.SEVERE, "Relationship deleted while outside of transaction!");
 		}
 	}
+	
+	public static boolean inTransaction() {
+		return currentCommand.get() != null;
+	}
 
 	private ModificationQueue getModificationQueue() {
 		return modificationQueue;
