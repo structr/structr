@@ -424,15 +424,8 @@ public class EntityContext {
 
 	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
 
-		StringBuilder buf = new StringBuilder();
+		return sourceType.concat(COMBINED_RELATIONSHIP_KEY_SEP).concat(relType).concat(COMBINED_RELATIONSHIP_KEY_SEP).concat(destType);
 
-		buf.append(sourceType);
-		buf.append(COMBINED_RELATIONSHIP_KEY_SEP);
-		buf.append(relType);
-		buf.append(COMBINED_RELATIONSHIP_KEY_SEP);
-		buf.append(destType);
-
-		return buf.toString();
 	}
 	
 	public static void registerConvertedProperty(PropertyKey propertyKey) {
