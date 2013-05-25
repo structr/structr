@@ -253,6 +253,16 @@ public class SecurityContext {
 			return null;
 			
 		}
+		
+		if (authenticator.hasExaminedRequest()) {
+			
+			// If the authenticator has already examined the request,
+			// we assume that we will not get new information.
+			// Otherwise, the cachedUser would have been != null
+			// and we would not land here.
+			return null;
+			
+		}
 
 		try {
 

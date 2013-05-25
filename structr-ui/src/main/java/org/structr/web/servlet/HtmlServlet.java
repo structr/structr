@@ -145,6 +145,8 @@ public class HtmlServlet extends HttpServlet {
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 			securityContext.initializeAndExamineRequest(request, response);
 			
+			logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
+			
 			// don't continue on redirects
 			if (response.getStatus() == 302) {
 				return;

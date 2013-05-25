@@ -620,22 +620,34 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
-		HttpServletRequest request = securityContext.getRequest();
-		
 		renderContext.setPage(this);
 		
 		renderContext.getBuffer().append("<!DOCTYPE html>");
-
-		// recursively render children
-		for (AbstractRelationship rel : getChildRelationships()) {
-
-			DOMNode subNode = (DOMNode)rel.getEndNode();
-
+		
+		// Skip DOCTYPE node
+		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();
+		
+		while (subNode != null) {
+			
 			if (subNode.isNotDeleted() && securityContext.isVisible(subNode)) {
 
 				subNode.render(securityContext, renderContext, depth);
 			}
+			
+			subNode = (DOMNode) subNode.getNextSibling();
+			
 		}
+
+//		// recursively render children
+//		for (AbstractRelationship rel : getChildRelationships()) {
+//
+//			DOMNode subNode = (DOMNode)rel.getEndNode();
+//
+//			if (subNode.isNotDeleted() && securityContext.isVisible(subNode)) {
+//
+//				subNode.render(securityContext, renderContext, depth);
+//			}
+//		}
 	}
 
 	@Override

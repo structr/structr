@@ -107,28 +107,20 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		try {
 
-			// 1st: Try combined type
 			if (relClass == null && relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
-				
+
+				// Relationship has a combined type
 				String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
+				newRel = instantiateRelationship(securityContext, combinedRelType);
 
-				relClass = EntityContext.getNamedRelationClass(combinedRelType);
-
-				if (relClass != null) {
-
-					newRel = instantiateRelationship(securityContext, combinedRelType);
-
-				}
-
-			}
+			} else {
 			
-			// 2nd: Create combined relationship type on the fly
-			if (relClass == null) {
+				// Create combined relationship type on the fly
 				relClass = findNamedRelation(relationship);
 			}
 
 			// 3rd: Try security relationship directly
-			if (relClass == null && SECURITY.name().equals(relationship.getType().name())) {
+			if (newRel == null && relClass == null && SECURITY.name().equals(relationship.getType().name())) {
 				
 				relClass = (Class) SecurityRelationship.class;
 

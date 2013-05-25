@@ -57,12 +57,27 @@ import org.structr.web.servlet.HtmlServlet;
 public class HttpAuthenticator implements Authenticator {
 
 	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
+	
+	private boolean examined = false;
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
+	public boolean hasExaminedRequest() {
+		
+		return examined;
+		
+	}
+
+	@Override
 	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 	
+		if (examined) {
+			
+			return;
+			
+		}
+		
 		Principal user = checkSessionAuthentication(request, response);
 		
 		if (user != null) {
@@ -80,6 +95,8 @@ public class HttpAuthenticator implements Authenticator {
 
 		}
 		
+		// mark that this request was checked
+		examined = true;
 	
 	}
 
@@ -457,5 +474,5 @@ public class HttpAuthenticator implements Authenticator {
 		return existingSessionId;
 		
 	}
-	
+
 }

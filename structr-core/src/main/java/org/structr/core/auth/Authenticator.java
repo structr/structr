@@ -34,6 +34,11 @@ import org.structr.core.entity.ResourceAccess;
  * @author Axel Morgner
  */
 public interface Authenticator {
+	
+	/*
+	 * Indicate that the authenticator has already examined the request
+	 */
+	public boolean hasExaminedRequest();
 
 	/**
 	 * 

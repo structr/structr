@@ -58,6 +58,8 @@ public class StructrAuthenticator implements Authenticator {
 
 	// public static final String USER_NODE_KEY = "userNode";
 	private static final Logger logger = Logger.getLogger(StructrAuthenticator.class.getName());
+	
+	private boolean examined = false;
 
 	//~--- methods --------------------------------------------------------
 
@@ -85,6 +87,8 @@ public class StructrAuthenticator implements Authenticator {
 
 		}
 
+		examined = true;
+		
 		return user;
 
 	}
@@ -118,6 +122,13 @@ public class StructrAuthenticator implements Authenticator {
 
 		return user;
 
+	}
+
+	@Override
+	public boolean hasExaminedRequest() {
+		
+		return examined;
+		
 	}
 
 }

@@ -58,4 +58,9 @@ public class DefaultAuthenticator implements Authenticator {
 	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
 		return superUser;
 	}
+
+	@Override
+	public boolean hasExaminedRequest() {
+		return false;
+	}
 }

@@ -44,7 +44,7 @@ import org.structr.core.entity.ResourceAccess;
  * @author Christian Morgner
  */
 public class RestAuthenticator implements Authenticator {
-
+	
 	@Override
 	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
@@ -83,7 +83,14 @@ public class RestAuthenticator implements Authenticator {
 			}
 
 		} catch (Throwable t) {}
-
+		
 		return user;
+	}
+
+	@Override
+	public boolean hasExaminedRequest() {
+		
+		return false;
+		
 	}
 }
