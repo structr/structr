@@ -31,7 +31,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractNode;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 
@@ -81,7 +84,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			}
 
-			File file = (File) getNode(uuid);
+			final File file = (File) getNode(uuid);
 			
 			if (!getWebSocket().getSecurityContext().isAllowed(file, Permission.write)) {
 
@@ -91,19 +94,29 @@ public class ChunkCommand extends AbstractCommand {
 				
 			}
 			
-			long size = (long)(sequenceNumber * chunkSize) + data.length;
-			
+			final long size = (long)(sequenceNumber * chunkSize) + data.length;
+
 			// Set proper size
-			file.setProperty(File.size, size);
-			
-			//long partSize = (long)(sequenceNumber * chunkSize) + chunkSize;
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					file.setProperty(File.size, size);
+					
+					// FIXME: moved this from marker [1] to here!
+					file.setChecksum(0L);
+					
+					return null;
+				}
+				
+			});
 			
 			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
 			
-			// This should trigger setting of lastModifiedDate in any case
-			file.setChecksum(0L);
-//			file.getChecksum();
+			// marker [1]
 			
+			// This should trigger setting of lastModifiedDate in any case
 			getWebSocket().send(MessageBuilder.status().code(200).message(size + " bytes of " + file.getName() + " successfully saved.").build(), true);
 
 		} catch (Throwable t) {

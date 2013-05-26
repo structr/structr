@@ -30,7 +30,10 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,14 +70,23 @@ public class ThumbnailConverter extends PropertyConverter {
 			return null;
 		}
 		
-		Image thumbnail = ((Image) currentObject).getScaledImage(parameters.getMaxWidth(), parameters.getMaxHeight(), parameters.getCropToFit());
+		final Image thumbnail = ((Image) currentObject).getScaledImage(parameters.getMaxWidth(), parameters.getMaxHeight(), parameters.getCropToFit());
 
 		if (thumbnail == null) {
 			logger.log(Level.WARNING, "Could not create thumbnail for {0}", source);
 			return null;
 		}
 		try {
-			thumbnail.setProperty(Image.isThumbnail, true);
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					thumbnail.setProperty(Image.isThumbnail, true);
+					return null;
+				}
+			});
+			
 		} catch (FrameworkException ex) {
 			logger.log(Level.WARNING, "Could not set isThumbnail property on {0}", thumbnail);
 		}

@@ -62,6 +62,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.GetNodeByIdCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -505,7 +507,7 @@ public class HtmlServlet extends HttpServlet {
 	 * @throws FrameworkException
 	 * @throws IOException 
 	 */
-	private boolean checkRegistration(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final String path) throws FrameworkException, IOException {
+	private boolean checkRegistration(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
 		logger.log(Level.FINE, "Checking registration ...");
 		
@@ -529,11 +531,21 @@ public class HtmlServlet extends HttpServlet {
 			
 			if (!results.isEmpty()) {
 				
-				User user = (User) results.get(0);
+				final User user = (User) results.get(0);
 				
-				// Clear confirmation key and set session id
-				user.setProperty(User.confirmationKey, null);
-				user.setProperty(Principal.sessionId, request.getSession().getId());
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+						
+						// Clear confirmation key and set session id
+						user.setProperty(User.confirmationKey, null);
+						user.setProperty(Principal.sessionId, request.getSession().getId());
+						
+						return null;
+					}
+					
+				});
 				
 				// Login user without password
 				securityContext.setUser(user);

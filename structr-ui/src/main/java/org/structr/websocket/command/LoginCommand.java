@@ -36,6 +36,8 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -73,8 +75,7 @@ public class LoginCommand extends AbstractCommand {
 
 				if (user != null) {
 
-					String sessionId = webSocketData.getSessionId();
-					
+					final String sessionId = webSocketData.getSessionId();
 					if (sessionId == null) {
 						
 						logger.log(Level.INFO, "Could not login {0}: No sessionId found", new Object[] { username, password });
@@ -82,8 +83,18 @@ public class LoginCommand extends AbstractCommand {
 						
 					}
 
-					// store token in user
-					user.setProperty(Principal.sessionId, sessionId);
+					final Principal principal = user;
+					
+					Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+						@Override
+						public Object execute() throws FrameworkException {
+							
+							// store token in user
+							principal.setProperty(Principal.sessionId, sessionId);
+							return null;
+						}
+					});
 
 					// store token in response data
 					webSocketData.getNodeData().clear();

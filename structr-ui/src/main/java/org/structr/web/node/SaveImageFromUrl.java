@@ -44,6 +44,8 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -120,21 +122,32 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 		if (imageNode != null) {
 
 			refreshImageFromUrl(imageNode);
+			
 		} else if (user != null && urlString != null && parentNode != null) {
 
-			// Create new image node first
-			Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(
-						     new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
-						     new NodeAttribute(org.structr.web.entity.File.url, urlString),
-						     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true),
-						     new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+			final AbstractNode finalParentNode = parentNode;
+			final String finalUrlString        = urlString;
 
-			Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+				
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					// Create new image node first
+					Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(
+								     new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
+								     new NodeAttribute(org.structr.web.entity.File.url, finalUrlString),
+								     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true),
+								     new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
-			// Then save image from URL
-			refreshImageFromUrl(newImageNode);
+					Services.command(securityContext, CreateRelationshipCommand.class).execute(finalParentNode, newImageNode, RelType.CONTAINS);
 
-			return newImageNode;
+					// Then save image from URL
+					refreshImageFromUrl(newImageNode);
+
+					return newImageNode;
+				}
+			});
 		}
 
 		return null;
@@ -148,44 +161,51 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 	 */
 	private void refreshImageFromUrl(final Image imageNode) throws FrameworkException {
 
-		if (imageNode != null) {
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-			String url              = imageNode.getUrl();
-			String relativeFilePath = imageNode.getRelativeFilePath();
-			String imageName        = url.substring(url.lastIndexOf("/") + 1);
+			@Override
+			public Object execute() throws FrameworkException {
 
-			imageNode.setProperty(AbstractNode.name, imageName);
+				if (imageNode != null) {
 
-			if (relativeFilePath == null) {
+					String url              = imageNode.getUrl();
+					String relativeFilePath = imageNode.getRelativeFilePath();
+					String imageName        = url.substring(url.lastIndexOf("/") + 1);
 
-				relativeFilePath = imageNode.getId() + "_" + System.currentTimeMillis();
-			}
+					imageNode.setProperty(AbstractNode.name, imageName);
 
-			String path = Services.getFilePath(Path.Files, relativeFilePath);
+					if (relativeFilePath == null) {
 
-			if (StringUtils.isNotBlank(url)) {
+						relativeFilePath = imageNode.getId() + "_" + System.currentTimeMillis();
+					}
 
-				try {
+					String path = Services.getFilePath(Path.Files, relativeFilePath);
 
-					File imageFile = new File(path);
-					URL imageUrl   = new URL(url);
+					if (StringUtils.isNotBlank(url)) {
 
-					// copy url to file
-					FileUtils.copyURLToFile(imageUrl, imageFile);
-					imageNode.setRelativeFilePath(relativeFilePath);
-					logger.log(Level.INFO, "Image {0} ({1}) saved from URL {2}", new Object[] { imageNode.getName(), imageNode.getId(), url });
+						try {
 
-				} catch (Throwable t) {
+							File imageFile = new File(path);
+							URL imageUrl   = new URL(url);
 
-					logger.log(Level.SEVERE, "Error while saving image from URL {0}", url);
-					t.printStackTrace(System.err);
+							// copy url to file
+							FileUtils.copyURLToFile(imageUrl, imageFile);
+							imageNode.setRelativeFilePath(relativeFilePath);
+							logger.log(Level.INFO, "Image {0} ({1}) saved from URL {2}", new Object[] { imageNode.getName(), imageNode.getId(), url });
 
+						} catch (Throwable t) {
+
+							logger.log(Level.SEVERE, "Error while saving image from URL {0}", url);
+							t.printStackTrace(System.err);
+
+						}
+
+					}
 				}
 
+				return null;
 			}
 
-		}
-
+		});
 	}
-
 }
