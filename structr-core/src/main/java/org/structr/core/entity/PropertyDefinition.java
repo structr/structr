@@ -214,6 +214,12 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
+	public Integer getSortType() {
+		// TODO: make sorting of dynamic properties possible!
+		return null;
+	}
+
+	@Override
 	public Class relatedType() {
 		
 		if (delegate != null) {

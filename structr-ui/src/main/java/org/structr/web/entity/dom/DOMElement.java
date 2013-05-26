@@ -74,6 +74,8 @@ import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;
@@ -609,34 +611,54 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	@Override
-	public void setAttribute(String name, String value) throws DOMException {
+	public void setAttribute(final String name, final String value) throws DOMException {
 
-		HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-		if (htmlProperty != null) {
-			
-			try {
-				htmlProperty.setProperty(securityContext, this, value);
-				
-			} catch (FrameworkException fex) {
-				
-				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-			}
+		try {
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
+					if (htmlProperty != null) {
+
+						htmlProperty.setProperty(securityContext, DOMElement.this, value);
+					}
+					
+					return null;
+				}
+			});
+
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
 		}
 	}
 
 	@Override
-	public void removeAttribute(String name) throws DOMException {
+	public void removeAttribute(final String name) throws DOMException {
 
-		HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-		if (htmlProperty != null) {
-			
-			try {
-				htmlProperty.setProperty(securityContext, this, null);
-				
-			} catch (FrameworkException fex) {
-				
-				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-			}
+		try {
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
+					if (htmlProperty != null) {
+
+						htmlProperty.setProperty(securityContext, DOMElement.this, null);
+					}
+					
+					return null;
+				}
+			});
+
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
 		}
 	}
 
@@ -744,12 +766,22 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	@Override
-	public void setIdAttribute(String idString, boolean isId) throws DOMException {
+	public void setIdAttribute(final String idString, boolean isId) throws DOMException {
 
 		checkWriteAccess();
 
 		try {
-			setProperty(DOMElement._id, idString);
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					setProperty(DOMElement._id, idString);
+			
+					return null;
+				}
+			});
 			
 		} catch (FrameworkException fex) {
 
@@ -1175,7 +1207,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		for (AbstractRelationship rel : getRelationships(RelType.SYNC, Direction.OUTGOING)) {
 			
@@ -1183,18 +1215,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 			// sync HTML properties only
 			for (Property htmlProp : syncedNode.getHtmlAttributes()) {
-				
-				try {
 					
-					syncedNode.setProperty(htmlProp, getProperty(htmlProp));
-					
-				} catch (FrameworkException ex) {
-					logger.log(Level.SEVERE, "Could not sync property", ex);
-				}
-			
+				syncedNode.setProperty(htmlProp, getProperty(htmlProp));
 			}
-			
-			
 		}
 		
 		return true;

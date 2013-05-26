@@ -60,6 +60,11 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 	}
 
 	@Override
+	public Integer getSortType() {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}

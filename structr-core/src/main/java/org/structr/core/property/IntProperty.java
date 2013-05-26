@@ -48,7 +48,12 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	public String typeName() {
 		return "Integer";
 	}
-	
+		
+	@Override
+	public Integer getSortType() {
+		return SortField.INT;
+	}
+
 	@Override
 	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext) {
 		return null;
@@ -61,25 +66,13 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
 	@Override
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return new InputConverter(securityContext, SortField.INT);
+		return new InputConverter(securityContext);
 	}
 	
 	protected class InputConverter extends PropertyConverter<Object, Integer> {
 
 		public InputConverter(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, null, sortKey, sortFinalResults);
+			super(securityContext, null);
 		}
 		
 		@Override

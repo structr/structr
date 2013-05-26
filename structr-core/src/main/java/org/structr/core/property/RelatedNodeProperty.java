@@ -71,4 +71,9 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return targetKey.getSortType();
+	}
 }

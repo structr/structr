@@ -6,6 +6,7 @@ import org.structr.core.GraphObject;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.lucene.search.SortField;
 
 /**
  *
@@ -25,6 +26,11 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	@Override
 	public Class relatedType() {
 		return null;
+	}
+
+	@Override
+	public Integer getSortType() {
+		return SortField.INT;
 	}
 
 	@Override

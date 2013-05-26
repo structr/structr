@@ -34,7 +34,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -66,7 +65,6 @@ public class InheritingTypeResource extends TypeResource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		final AbstractNode topNode                   = null;
 		final boolean includeDeletedAndHidden        = false;
 		final boolean publicOnly                     = false;
 
@@ -83,6 +81,7 @@ public class InheritingTypeResource extends TypeResource {
 
 				try {
 
+					// FIXME: this is potentially slow..
 					final GraphObject templateEntity  = (GraphObject)entityClass.newInstance();
 					final PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
 					sortDescending                    = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
@@ -98,17 +97,6 @@ public class InheritingTypeResource extends TypeResource {
 				}
 			}
 
-			Integer sortType = null;
-			if (sortKey != null) {
-				
-				final PropertyConverter converter = sortKey.inputConverter(securityContext);
-				if (converter != null) {
-					
-					sortType = converter.getSortType();
-
-				}
-			}
-
 			// do search
 			final Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
 				includeDeletedAndHidden,
@@ -118,12 +106,8 @@ public class InheritingTypeResource extends TypeResource {
 				sortDescending,
 				pageSize,
 				page,
-				offsetId,
-				sortType
+				offsetId
 			);
-
-			// TODO: SORTING: remove default sorting below
-			//applyDefaultSorting(results.getResults());
 
 			return results;
 

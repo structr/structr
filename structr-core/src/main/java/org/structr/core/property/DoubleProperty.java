@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.util.NumericUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -40,6 +39,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	public String typeName() {
 		return "Double";
 	}
+
+	@Override
+	public Integer getSortType() {
+		return SortField.DOUBLE;
+	}
 	
 	@Override
 	public PropertyConverter<Double, ?> databaseConverter(SecurityContext securityContext) {
@@ -53,25 +57,13 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 
 	@Override
 	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext) {
-		return new InputConverter(securityContext, SortField.DOUBLE);
+		return new InputConverter(securityContext);
 	}
 	
 	protected class InputConverter extends PropertyConverter<Object, Double> {
 
 		public InputConverter(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, null, sortKey, sortFinalResults);
+			super(securityContext);
 		}
 		
 		@Override
@@ -126,9 +118,4 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 		
 		return null;
 	}
-	
-//	@Override
-//	public Object getSearchValue(Double source) {
-//		return source != null ? NumericUtils.doubleToPrefixCoded(source) : "";
-//	}
 }

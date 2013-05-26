@@ -99,7 +99,18 @@ public class CallbackTest extends StructrTest {
 		
 		// 2nd part of the test: modify node
 		try {
-			entity.setProperty(TestFive.intProperty, 123);
+			final TestFive finalEntity = entity;
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					finalEntity.setProperty(TestFive.intProperty, 123);
+					
+					return null;
+				}
+			});
 			
 		} catch (Throwable t) {
 			t.printStackTrace();

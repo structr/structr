@@ -57,4 +57,9 @@ public class StartNodeGroup extends GroupProperty {
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 }

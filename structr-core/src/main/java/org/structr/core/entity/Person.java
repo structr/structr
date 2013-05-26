@@ -44,6 +44,8 @@ import org.structr.core.Services;
 import static org.structr.core.entity.AbstractNode.name;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.validator.TypeUniquenessValidator;
 
 //~--- classes ----------------------------------------------------------------
@@ -206,130 +208,297 @@ public class Person extends AbstractNode implements Principal {
 	//~--- set methods ----------------------------------------------------
 
 	public void setFirstName(final String firstName) throws FrameworkException {
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		setProperty(Person.firstName, firstName);
+			@Override
+			public Object execute() throws FrameworkException {
 
-		String lastName = ((getLastName() != null) &&!(getLastName().isEmpty()))
-				  ? getLastName()
-				  : "";
 
-		setName(lastName + ", " + firstName);
+				setProperty(Person.firstName, firstName);
+
+				String lastName = ((getLastName() != null) &&!(getLastName().isEmpty()))
+						  ? getLastName()
+						  : "";
+
+				setName(lastName + ", " + firstName);
+				
+				return null;
+			}
+		});
 
 	}
 
 	public void setLastName(final String lastName) throws FrameworkException {
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		setProperty(Person.lastName, lastName);
+			@Override
+			public Object execute() throws FrameworkException {
 
-		String firstName = ((getFirstName() != null) &&!(getFirstName().isEmpty()))
-				   ? getFirstName()
-				   : "";
 
-		setProperty(AbstractNode.name, lastName + ", " + firstName);
+				setProperty(Person.lastName, lastName);
+
+				String firstName = ((getFirstName() != null) &&!(getFirstName().isEmpty()))
+						   ? getFirstName()
+						   : "";
+
+				setProperty(AbstractNode.name, lastName + ", " + firstName);
+				
+				return null;
+			}
+		});
 
 	}
 
 	@Override
 	public void setName(final String name) throws FrameworkException {
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		setProperty(AbstractNode.name, name);
+			@Override
+			public Object execute() throws FrameworkException {
 
+				setProperty(AbstractNode.name, name);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setSalutation(final String salutation) throws FrameworkException {
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		setProperty(Person.salutation, salutation);
+			@Override
+			public Object execute() throws FrameworkException {
 
+				setProperty(Person.salutation, salutation);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setMiddleNameOrInitial(final String middleNameOrInitial) throws FrameworkException {
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		setProperty(Person.middleNameOrInitial, middleNameOrInitial);
+			@Override
+			public Object execute() throws FrameworkException {
 
+				setProperty(Person.middleNameOrInitial, middleNameOrInitial);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setEmail(final String email) throws FrameworkException {
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		setProperty(Person.email, email);
+			@Override
+			public Object execute() throws FrameworkException {
 
+				setProperty(Person.email, email);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setEmail2(final String email2) throws FrameworkException {
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		setProperty(Person.email2, email2);
+			@Override
+			public Object execute() throws FrameworkException {
 
+				setProperty(Person.email2, email2);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setPhoneNumber1(final String value) throws FrameworkException {
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		setProperty(Person.phoneNumber1, value);
+			@Override
+			public Object execute() throws FrameworkException {
 
+				setProperty(Person.phoneNumber1, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setPhoneNumber2(final String value) throws FrameworkException {
 
-		setProperty(Person.phoneNumber2, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.phoneNumber2, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setFaxNumber1(final String value) throws FrameworkException {
 
-		setProperty(Person.faxNumber1, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.faxNumber1, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setFaxNumber2(final String value) throws FrameworkException {
 
-		setProperty(Person.faxNumber2, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.faxNumber2, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setStreet(final String value) throws FrameworkException {
 
-		setProperty(Person.street, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.street, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setZipCode(final String value) throws FrameworkException {
 
-		setProperty(Person.zipCode, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.zipCode, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setState(final String value) throws FrameworkException {
 
-		setProperty(Person.state, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.state, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setCountry(final String value) throws FrameworkException {
 
-		setProperty(Person.country, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.country, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setCity(final String value) throws FrameworkException {
 
-		setProperty(Person.city, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.city, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setNewsletter(final boolean value) throws FrameworkException {
 
-		setProperty(Person.newsletter, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.newsletter, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setBirthday(final Date value) throws FrameworkException {
 
-		setProperty(Person.birthday, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.birthday, value);
+				
+				return null;
+			}
+		});
 	}
 
 	public void setGender(final String value) throws FrameworkException {
 
-		setProperty(Person.gender, value);
+			
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(Person.gender, value);
+				
+				return null;
+			}
+		});
 	}
 
 	@Override

@@ -4,6 +4,8 @@ import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import static org.structr.common.RelType.IS_AT;
 import static org.structr.common.RelType.OWNS;
@@ -22,6 +24,8 @@ import org.structr.core.property.PropertyKey;
 	
 public class ModificationQueue {
 
+	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
+	
 	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<String, GraphObjectModificationState>();
 	private Set<String> alreadyPropagated                                             = new LinkedHashSet<String>();
 	
@@ -32,9 +36,9 @@ public class ModificationQueue {
 
 		// collect all modified nodes
 		while (hasModifications) {
-			
+
 			hasModifications = false;
-			
+
 			for (GraphObjectModificationState state : modifications.values()) {
 
 				if (state.wasModified()) {
@@ -45,14 +49,14 @@ public class ModificationQueue {
 				}
 			}
 		}
-		
+
 		// do validation and indexing
 		for (Entry<String, GraphObjectModificationState> entry : modifications.entrySet()) {
 
 			// do callback according to entry state
 			valid &= entry.getValue().doValidationAndIndexing(this, securityContext, errorBuffer, doValidation);
 		}
-
+		
 		return valid;
 	}
 

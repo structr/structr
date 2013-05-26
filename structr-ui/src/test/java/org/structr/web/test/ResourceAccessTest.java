@@ -147,11 +147,21 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 			
-			String name = "testuser-01";
-			String password = "testpassword-01";
-			User	testUser	= createTestNodes(User.class, 1).get(0);
+			final String name        = "testuser-01";
+			final String password    = "testpassword-01";
+			final User	testUser = createTestNodes(User.class, 1).get(0);
 			testUser.setName(name);
-			testUser.setProperty(User.password, password);
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					testUser.setProperty(User.password, password);
+					
+					return null;
+				}
+			});
 			
 			// test user has no specific rights on the object => still 403
 			RestAssured.given()
@@ -201,11 +211,21 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 			
-			String name = "testuser-01";
-			String password = "testpassword-01";
-			User	testUser	= createTestNodes(User.class, 1).get(0);
+			final String name        = "testuser-01";
+			final String password    = "testpassword-01";
+			final User	testUser = createTestNodes(User.class, 1).get(0);
 			testUser.setName(name);
-			testUser.setProperty(User.password, password);
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					testUser.setProperty(User.password, password);
+					
+					return null;
+				}
+			});
 			
 			// test user has no specific rights on the object => still 403
 			RestAssured.given()

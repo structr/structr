@@ -102,6 +102,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Integer getSortType() {
+		return propertyKey.getSortType();
+	}
+
+	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}

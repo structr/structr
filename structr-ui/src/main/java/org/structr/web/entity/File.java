@@ -44,6 +44,8 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -103,8 +105,17 @@ public class File extends AbstractFile implements Linkable {
 
 		try {
 
-			setProperty(checksum,	FileHelper.getChecksum(this));
-			setProperty(size,	FileHelper.getSize(this));
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					setProperty(checksum,	FileHelper.getChecksum(File.this));
+					setProperty(size,	FileHelper.getSize(File.this));
+					
+					return null;
+				}
+			});
 
 		} catch (FrameworkException ex) {
 
@@ -119,8 +130,17 @@ public class File extends AbstractFile implements Linkable {
 
 		try {
 
-			setProperty(checksum,	FileHelper.getChecksum(this));
-			setProperty(size,	FileHelper.getSize(this));
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					setProperty(checksum,	FileHelper.getChecksum(File.this));
+					setProperty(size,	FileHelper.getSize(File.this));
+					
+					return null;
+				}
+			});
 
 		} catch (FrameworkException ex) {
 
@@ -229,32 +249,75 @@ public class File extends AbstractFile implements Linkable {
 
 	public void setRelativeFilePath(final String filePath) throws FrameworkException {
 
-		setProperty(File.relativeFilePath, filePath);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(File.relativeFilePath, filePath);
+
+				return null;
+			}
+		});
 
 	}
 
 	public void setUrl(final String url) throws FrameworkException {
 
-		setProperty(File.url, url);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				setProperty(File.url, url);
+
+				return null;
+			}
+		});
 
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
 
-		setProperty(File.contentType, contentType);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				setProperty(File.contentType, contentType);
+
+				return null;
+			}
+		});
 
 	}
 
 	public void setSize(final Long size) throws FrameworkException {
 
-		setProperty(File.size, size);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				setProperty(File.size, size);
+
+				return null;
+			}
+		});
 
 	}
 
 	public void setChecksum(final Long checksum) throws FrameworkException {
 
-		setProperty(File.checksum, checksum);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				setProperty(File.checksum, checksum);
+
+				return null;
+			}
+		});
 	}
-
 }

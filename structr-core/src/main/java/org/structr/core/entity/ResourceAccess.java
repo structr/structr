@@ -38,6 +38,8 @@ import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -107,22 +109,40 @@ public class ResourceAccess extends AbstractNode {
 		return (getFlags() & flag) == flag;
 	}
 	
-	public void setFlag(long flag) throws FrameworkException {
-		
-		// reset cached field
-		cachedFlags = null;
+	public void setFlag(final long flag) throws FrameworkException {
 
-		// set modified property
-		setProperty(ResourceAccess.flags, getFlags() | flag);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				// reset cached field
+				cachedFlags = null;
+
+				// set modified property
+				setProperty(ResourceAccess.flags, getFlags() | flag);
+				
+				return null;
+			}
+		});
 	}
 	
-	public void clearFlag(long flag) throws FrameworkException {
-		
-		// reset cached field
-		cachedFlags = null;
+	public void clearFlag(final long flag) throws FrameworkException {
 
-		// set modified property
-		setProperty(ResourceAccess.flags, getFlags() & ~flag);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				// reset cached field
+				cachedFlags = null;
+
+				// set modified property
+				setProperty(ResourceAccess.flags, getFlags() & ~flag);
+				
+				return null;
+			}
+		});
 	}
 	
 	public long getFlags() {

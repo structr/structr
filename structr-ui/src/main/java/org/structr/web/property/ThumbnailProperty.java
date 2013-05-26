@@ -78,4 +78,9 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	public boolean isCollection() {
 		return false;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 }

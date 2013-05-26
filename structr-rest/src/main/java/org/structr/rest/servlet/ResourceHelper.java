@@ -247,17 +247,22 @@ public class ResourceHelper {
 
 		if (resourceChain.size() == 1) {
 
-			Resource finalConstraint = resourceChain.get(0);
+			Resource finalResource = resourceChain.get(0);
 
 			if (view != null) {
 
-				finalConstraint = finalConstraint.tryCombineWith(view);
+				finalResource = finalResource.tryCombineWith(view);
+			}
+			
+			if (finalResource == null) {
+				// fall back to original resource
+				finalResource = resourceChain.get(0);
 			}
 
 			// inform final constraint about the configured ID property
-			finalConstraint.configureIdProperty(defaultIdProperty);
+			finalResource.configureIdProperty(defaultIdProperty);
 
-			return finalConstraint;
+			return finalResource;
 
 		}
 

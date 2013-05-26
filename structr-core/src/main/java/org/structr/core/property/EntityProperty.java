@@ -192,6 +192,11 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	}
 
 	@Override
+	public Integer getSortType() {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}

@@ -108,6 +108,11 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 	}
 
 	@Override
+	public Integer getSortType() {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
 		
 		Notion notion = traverserInterface.getNotion();

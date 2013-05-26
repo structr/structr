@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.Collection;
+import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
@@ -76,5 +77,10 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	@Override
 	public boolean isCollection() {
 		return false;
+	}
+
+	@Override
+	public Integer getSortType() {
+		return SortField.INT;
 	}
 }

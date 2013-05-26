@@ -107,4 +107,9 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 	public boolean isCollection() {
 		return false;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 }

@@ -1,6 +1,7 @@
 package org.structr.core.graph;
 
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -352,7 +353,7 @@ public class GraphObjectModificationState {
 	 * @param errorBuffer
 	 * @return 
 	 */
-	private synchronized boolean validate(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	private boolean validate(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 	
 		boolean valid = true;
 				
@@ -362,7 +363,7 @@ public class GraphObjectModificationState {
 			for (PropertyValidator validator : validators) {
 				
 				Object value = object.getProperty(key);
-				
+
 				valid &= validator.isValid(securityContext, object, key, value, errorBuffer);
 			}
 		}
@@ -375,7 +376,7 @@ public class GraphObjectModificationState {
 		if (object instanceof AbstractNode) {
 
 			Services.command(SecurityContext.getSuperUserInstance(), NewIndexNodeCommand.class).addNode((AbstractNode)object);
-
+			
 		} else if (object instanceof AbstractRelationship) {
 
 			Services.command(SecurityContext.getSuperUserInstance(), IndexRelationshipCommand.class).execute((AbstractRelationship)object);

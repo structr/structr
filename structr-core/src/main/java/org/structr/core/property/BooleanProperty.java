@@ -48,6 +48,11 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	public String typeName() {
 		return "Boolean";
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 	
 	@Override
 	public PropertyConverter<Boolean, Boolean> databaseConverter(SecurityContext securityContext) {
@@ -85,19 +90,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	protected class DatabaseConverter extends PropertyConverter<Boolean, Boolean> {
 
 		public DatabaseConverter(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public DatabaseConverter(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public DatabaseConverter(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public DatabaseConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, null, sortKey, sortFinalResults);
+			super(securityContext);
 		}
 		
 		@Override
@@ -124,19 +117,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	protected class InputConverter extends PropertyConverter<Object, Boolean> {
 
 		public InputConverter(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, null, sortKey, sortFinalResults);
+			super(securityContext);
 		}
 		
 		@Override

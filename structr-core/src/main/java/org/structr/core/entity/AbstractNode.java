@@ -49,7 +49,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
-import org.structr.core.graph.NodeRelationshipsCommand;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -1061,63 +1060,162 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	public void setCreatedBy(final String createdBy) throws FrameworkException {
 
-		setProperty(AbstractNode.createdBy, createdBy);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+			setProperty(AbstractNode.createdBy, createdBy);
+				
+				return null;
+			}
+			
+		});
 
 	}
 
 	public void setCreatedDate(final Date date) throws FrameworkException {
 
-		setProperty(AbstractNode.createdDate, date);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+			setProperty(AbstractNode.createdDate, date);
+				
+				return null;
+			}
+			
+		});
 
 	}
 
 	public void setVisibilityStartDate(final Date date) throws FrameworkException {
 
-		setProperty(AbstractNode.visibilityStartDate, date);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+			setProperty(AbstractNode.visibilityStartDate, date);
+				
+				return null;
+			}
+			
+		});
 
 	}
 
 	public void setVisibilityEndDate(final Date date) throws FrameworkException {
 
-		setProperty(AbstractNode.visibilityEndDate, date);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+			setProperty(AbstractNode.visibilityEndDate, date);
+				
+				return null;
+			}
+			
+		});
 
 	}
 
 	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
 
-		setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+			setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
+				
+				return null;
+			}
+			
+		});
 
 	}
 
 	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
 
-		setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+			setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
+				
+				return null;
+			}
+			
+		});
 
 	}
 
 //
 	public void setHidden(final boolean hidden) throws FrameworkException {
 
-		setProperty(AbstractNode.hidden, hidden);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+			setProperty(AbstractNode.hidden, hidden);
+				
+				return null;
+			}
+			
+		});
 
 	}
 
 	public void setDeleted(final boolean deleted) throws FrameworkException {
 
-		setProperty(AbstractNode.deleted, deleted);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(AbstractNode.deleted, deleted);
+				
+				return null;
+			}
+			
+		});
 
 	}
 
 	public void setType(final String type) throws FrameworkException {
 
-		setProperty(AbstractNode.type, type);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(AbstractNode.type, type);
+				
+				return null;
+			}
+			
+		});
 
 	}
 
 	public void setName(final String name) throws FrameworkException {
 
-		setProperty(AbstractNode.name, name);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(AbstractNode.name, name);
+				
+				return null;
+			}
+			
+		});
 	}
 
 	/**
@@ -1154,11 +1252,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Set a property in database backend
-	 *
-	 * Set property only if value has changed
-	 *
-	 * Update index only if updateIndex is true
+	 * Set a property in database backend. This method needs to be wrappend into
+	 * a StructrTransaction, otherwise Neo4j will throw a NotInTransactionException!
+	 * Set property only if value has changed.
 	 *
 	 * @param key
 	 * @param convertedValue

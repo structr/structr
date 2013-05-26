@@ -33,31 +33,15 @@ public abstract class PropertyConverter<S, T> {
 
 	protected SecurityContext securityContext = null;
 	protected GraphObject currentObject       = null;
-	protected boolean sortFinalResults        = false;
 	protected boolean rawMode                 = false;
-	protected Integer sortType                = null;
 
 	public PropertyConverter(SecurityContext securityContext) {
-		this(securityContext, null, null);
+		this(securityContext, null);
 	}
 
 	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject) {
-		this(securityContext, currentObject, null);
-	}
-
-	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, boolean sortFinalResults) {
-		this(securityContext, currentObject, null, sortFinalResults);
-	}
-
-	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, Integer sortType) {
-		this(securityContext, currentObject, sortType, false);
-	}
-
-	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, Integer sortType, boolean sortFinalResults) {
 		this.securityContext = securityContext;
 		this.currentObject = currentObject;
-		this.sortType = sortType;
-		this.sortFinalResults = sortFinalResults;
 	}
 	
 	/**
@@ -109,13 +93,5 @@ public abstract class PropertyConverter<S, T> {
 	
 	public boolean getRawMode() {
 		return rawMode;
-	}
-	
-	public Integer getSortType() {
-		return sortType;
-	}
-	
-	public boolean sortFinalResults() {
-		return sortFinalResults;
 	}
 }

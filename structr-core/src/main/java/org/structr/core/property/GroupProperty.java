@@ -298,6 +298,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public boolean isCollection() {
 		return false;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 	
 	/**
 	 * Acts as a wrapper for property keys to prefix their name with
@@ -405,6 +410,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		@Override
 		public boolean isCollection() {
 			return false;
+		}
+
+		@Override
+		public Integer getSortType() {
+			return wrappedKey.getSortType();
 		}
 	}
 }

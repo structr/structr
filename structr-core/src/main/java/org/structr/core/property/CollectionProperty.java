@@ -175,6 +175,11 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	}
 
 	@Override
+	public Integer getSortType() {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
