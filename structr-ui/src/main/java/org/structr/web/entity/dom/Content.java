@@ -241,10 +241,10 @@ public class Content extends DOMNode implements Text {
 			buffer.append(_content);
 		}
 		
-		if (edit && inBody && !("text/javascript".equals(getProperty(contentType)))) {
-
-			buffer.append("</span>");
-		}
+//		if (edit && inBody && !("text/javascript".equals(getProperty(contentType)))) {
+//
+//			buffer.append("</span>");
+//		}
 
 	}
 
