@@ -56,8 +56,6 @@ import org.structr.core.property.PropertyKey;
 public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
-	private static final long THRESHOLD                                 = 5000;
-	
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
 	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
 	private static final Semaphore semaphore                            = new Semaphore(1, true);
@@ -72,7 +70,6 @@ public class TransactionCommand extends NodeServiceCommand {
 		boolean topLevel             = (tx == null);
 		FrameworkException error     = null;
 		T result                     = null;
-		long t0                      = System.currentTimeMillis();
 		
 		if (topLevel) {
 		
@@ -92,12 +89,6 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			if (topLevel) {
 
-				long t1 = System.currentTimeMillis();
-
-				if (t1-t0 > THRESHOLD) {
-					logger.log(Level.INFO, "Actual StructrTransaction took {0} ms", t1-t0);
-				}
-				
 				// we need to protect the validation and indexing part of every transaction
 				// from being entered multiple times in the presence of validators
 				try { semaphore.acquire(); } catch (InterruptedException iex) { return null; }
@@ -106,11 +97,6 @@ public class TransactionCommand extends NodeServiceCommand {
 
 					// create error
 					throw new FrameworkException(422, errorBuffer);
-				}
-
-				long t2 = System.currentTimeMillis();
-				if (t2-t1 > THRESHOLD) {
-					logger.log(Level.INFO, "Inner callbacks took {0} ms", t2-t1);
 				}
 			}
 			
@@ -130,18 +116,11 @@ public class TransactionCommand extends NodeServiceCommand {
 		// finish toplevel transaction
 		if (topLevel) {
 				
-			long t3 = System.currentTimeMillis();
-			
 			tx.success();
 			tx.finish();
 
 			// release semaphore as the transaction is now finished
 			semaphore.release();
-
-			long t4 = System.currentTimeMillis();
-			if (t4-t3 > THRESHOLD) {
-				logger.log(Level.INFO, "Neo tx took {0} ms", t4-t3);
-			}
 
 			transactions.remove();
 			
@@ -152,16 +131,6 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			// cleanup
 			currentCommand.remove();
-				
-			long t5 = System.currentTimeMillis();
-			if (t5-t4 > THRESHOLD) {
-				logger.log(Level.INFO, "Outer callbacks took {0} ms", t5-t4);
-			}
-
-			if (t5-t0 > THRESHOLD) {
-				logger.log(Level.INFO, "Transaction took {0} ms", t5-t0);
-			}
-			
 		}
 		
 		// throw actual error

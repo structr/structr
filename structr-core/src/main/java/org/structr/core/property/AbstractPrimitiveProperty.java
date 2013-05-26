@@ -133,90 +133,67 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			convertedValue = value;
 		}
 
-//		final Object oldValue = getProperty(securityContext, obj, true);
-//		// don't make any changes if
-//		// - old and new value both are null
-//		// - old and new value are not null but equal
-//		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
-//
-//			return;
-//		}
-
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 		if (propertyContainer != null) {
 
-//			// Commit value directly to database
-//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-//
-//				@Override
-//				public Object execute() throws FrameworkException {
-//
-					if (!TransactionCommand.inTransaction()) {
-						
-						logger.log(Level.SEVERE, "setProperty outside of transaction, dumping stack.");
-						Thread.dumpStack();
-						
-						return;
+			if (!TransactionCommand.inTransaction()) {
+
+				logger.log(Level.SEVERE, "setProperty outside of transaction");
+				return;
+			}
+
+
+			try {
+
+				// notify only non-system properties
+				if (!isSystemProperty) {
+
+					// collect modified properties
+					if (obj instanceof AbstractNode) {
+
+						TransactionCommand.nodeModified(
+							(AbstractNode)obj,
+							AbstractPrimitiveProperty.this,
+							propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+						);
+
+					} else if (obj instanceof AbstractRelationship) {
+
+						TransactionCommand.relationshipModified(
+							(AbstractRelationship)obj,
+							AbstractPrimitiveProperty.this,
+							propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+						);
 					}
-				
-			
-					try {
+				}
 
-						// notify only non-system properties
-						if (!isSystemProperty) {
-							
-							// collect modified properties
-							if (obj instanceof AbstractNode) {
+				// save space
+				if (convertedValue == null) {
 
-								TransactionCommand.nodeModified(
-									(AbstractNode)obj,
-									AbstractPrimitiveProperty.this,
-									propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
-								);
+					propertyContainer.removeProperty(dbName());
 
-							} else if (obj instanceof AbstractRelationship) {
+				} else {
 
-								TransactionCommand.relationshipModified(
-									(AbstractRelationship)obj,
-									AbstractPrimitiveProperty.this,
-									propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
-								);
-							}
-						}
-						
-						// save space
-						if (convertedValue == null) {
+					// Setting last modified date explicetely is not allowed
+					if (!AbstractPrimitiveProperty.this.equals(AbstractNode.lastModifiedDate)) {
 
-							propertyContainer.removeProperty(dbName());
+						propertyContainer.setProperty(dbName(), convertedValue);
 
-						} else {
+						// set last modified date if not already happened
+						propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
 
-							// Setting last modified date explicetely is not allowed
-							if (!AbstractPrimitiveProperty.this.equals(AbstractNode.lastModifiedDate)) {
+					} else {
 
-								propertyContainer.setProperty(dbName(), convertedValue);
+						logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
 
-								// set last modified date if not already happened
-								propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
+					}
+				}
 
-							} else {
+			} catch (Throwable t) {
 
-								logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
+				t.printStackTrace();
 
-							}
-						}
-						
-					} catch (Throwable t) {
-						
-						t.printStackTrace();
-
-					} finally {}
-//
-//					return null;
-//
-//				}
-//
-//			});
+			} finally {}
 		}
 		
 	}
