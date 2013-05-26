@@ -172,8 +172,8 @@ public class HtmlServlet extends HttpServlet {
 			String[] uriParts = PathHelper.getParts(path);
 			if ((uriParts == null) || (uriParts.length == 0)) {
 
-				// try to find a page with position==0
-				rootElement = findIndexPage();
+				// find a visible page with position==0
+				rootElement = findIndexPage(securityContext);
 
 				logger.log(Level.FINE, "No path supplied, trying to find index page");
 
@@ -425,12 +425,14 @@ public class HtmlServlet extends HttpServlet {
 	}
 
 	/**
-	 * Find the page with the lowest position value
+	 * Find the page with the lowest position value which is visible in the
+	 * current securit context
 	 * 
+	 * @param securityContext
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	private Page findIndexPage() throws FrameworkException {
+	private Page findIndexPage(final SecurityContext securityContext) throws FrameworkException {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
 
@@ -445,7 +447,18 @@ public class HtmlServlet extends HttpServlet {
 
 			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
-			return (Page) results.get(0);
+			// Find first visible page
+			
+			int i=0;
+			Page page = null;
+			
+			while (page == null || (i<results.size() && !securityContext.isVisible(page))) {
+				
+				page = (Page) results.get(i++);
+				
+			}
+			
+			return page;
 
 		}
 
