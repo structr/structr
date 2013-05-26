@@ -192,7 +192,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 			if (session != null) {
 			
 				final String sessionIdFromRequest = session.getId();
-				final Principal principal         = useR;
+				final Principal principal         = user;
 
 				try {
 					
