@@ -38,6 +38,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Path;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,15 +66,20 @@ public class FileHelper {
 	public static void writeToFile(final org.structr.web.entity.File fileNode, final byte[] data) throws FrameworkException, IOException {
 
 		String uuid = fileNode.getProperty(AbstractNode.uuid);
-
 		if (uuid == null) {
 
-			synchronized (fileNode) {
+			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+			uuid                 s= newUuid;
+			
+			Services.command(fileNode.getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
 
-				uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-				
-				fileNode.setProperty(AbstractNode.uuid, uuid);
-			}
+				@Override
+				public Object execute() throws FrameworkException {
+
+					fileNode.setProperty(AbstractNode.uuid, newUuid);
+					return null;
+				}
+			});
 
 		}
 

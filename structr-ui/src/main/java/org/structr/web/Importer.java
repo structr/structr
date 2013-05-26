@@ -235,7 +235,6 @@ public class Importer {
 	public void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 
 		List<Node> children = startNode.childNodes();
-		int localIndex      = 0;
 
 		for (Node node : children) {
 
@@ -347,112 +346,7 @@ public class Importer {
 			// linkNodes(parent, newNode, page, localIndex);
 			// Step down and process child nodes
 			createChildNodes(node, newNode, page, baseUrl);
-
-			// Count up position index
-			localIndex++;
-
 		}
-
-	}
-
-	/**
-	 * Find an existing node where the following matches:
-	 *
-	 * <ul>
-	 * <li>attributes
-	 * <li>parent node id
-	 * </ul>
-	 *
-	 * @param attrs
-	 * @param parentNodeId
-	 * @return
-	 * @throws FrameworkException
-	 */
-	private DOMNode findExistingNode(final List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
-
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-		for (NodeAttribute attr : attrs) {
-
-			PropertyKey key = attr.getKey();
-			String value    = attr.getValue().toString();
-
-			// Exclude data attribute because it may contain code with special characters, too
-			if (!key.equals(DOMElement._data)) {
-
-				searchAttrs.add(Search.andExactProperty(key, value));
-			}
-
-		}
-
-		Result<DOMNode> result = searchNode.execute(searchAttrs);
-
-		if (result.size() > 1) {
-
-			logger.log(Level.WARNING, "More than one node found.");
-		}
-
-		if (result.isEmpty()) {
-
-			return null;
-		}
-
-		for (DOMNode foundNode : result.getResults()) {
-
-			String foundNodePath = foundNode.getProperty(DOMElement.path);
-
-			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
-
-			if (foundNodePath != null && foundNodePath.equals(nodePath)) {
-
-				logger.log(Level.INFO, "MATCH!");
-
-				// First match wins
-				return foundNode;
-
-			}
-
-		}
-
-		logger.log(Level.INFO, "Does not match expected path {0}", nodePath);
-
-		return null;
-
-	}
-
-	private DOMNode findOrCreateNode(final List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
-
-		DOMNode node = findExistingNode(attributes, nodePath);
-
-		if (node != null) {
-
-			return node;
-		}
-
-		node = (DOMNode) createNode.execute(attributes);
-
-		node.setProperty(DOMElement.path, nodePath);
-
-		if (node != null) {
-
-			logger.log(Level.INFO, "Created node with name {0}, type {1}", new Object[] { node.getName(), node.getType() });
-		} else {
-
-			logger.log(Level.WARNING, "Could not create node");
-		}
-
-		return node;
-
-	}
-
-	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String pageId, int index) throws FrameworkException {
-
-		AbstractRelationship rel   = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
-		PropertyKey pageIdProperty = new GenericProperty(pageId);
-
-		rel.setProperty(pageIdProperty, index);
-
-		return rel;
 
 	}
 

@@ -36,10 +36,13 @@ import org.structr.core.entity.ResourceAccess;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.structr.core.Services;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -188,11 +191,20 @@ public class UiAuthenticator extends HttpAuthenticator {
 			// Websocket connects don't have a session
 			if (session != null) {
 			
-				String sessionIdFromRequest = session.getId();
+				final String sessionIdFromRequest = session.getId();
+				final Principal principal         = useR;
 
 				try {
-					// store session id in user object
-					user.setProperty(Principal.sessionId, sessionIdFromRequest);
+					
+					Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+						@Override
+						public Object execute() throws FrameworkException {
+							// store session id in user object
+							principal.setProperty(Principal.sessionId, sessionIdFromRequest);
+							return null;
+						}
+					});
 
 				} catch (Exception ex) {
 

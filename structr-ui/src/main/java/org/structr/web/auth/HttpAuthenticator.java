@@ -43,8 +43,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.structr.common.PathHelper;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -125,12 +128,21 @@ public class HttpAuthenticator implements Authenticator {
 
 			securityContext.setUser(user);
 			
-			String sessionIdFromRequest = request.getRequestedSessionId();
+			final String sessionIdFromRequest = request.getRequestedSessionId();
+			final Principal principal         = user;
 
 			try {
 
-				// store session id in user object
-				user.setProperty(Principal.sessionId, sessionIdFromRequest);
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						// store session id in user object
+						principal.setProperty(Principal.sessionId, sessionIdFromRequest);
+						return null;
+					}
+				});
 
 			} catch (Exception ex) {
 
@@ -150,11 +162,19 @@ public class HttpAuthenticator implements Authenticator {
 		try {
 
 			Principal user = securityContext.getUser(false);
-			
 			if (user != null) {
-				
-				user.setProperty(Principal.sessionId, null);
 
+				final Principal principal = user;
+				
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						principal.setProperty(Principal.sessionId, null);
+						return null;
+					}
+				});
 			}
 
 			request.getSession(false).invalidate();
@@ -232,9 +252,19 @@ public class HttpAuthenticator implements Authenticator {
 
 					if (user != null) {
 
+						final Principal principal = user;
+						
 						try {
 
-							user.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
+							Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+								@Override
+								public Object execute() throws FrameworkException {
+									principal.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
+									return null;
+								}
+							});
+									
 							securityContext.setUser(user);
 							
 							HtmlServlet.setNoCacheHeaders(response);
