@@ -69,7 +69,7 @@ public class FileHelper {
 		if (uuid == null) {
 
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-			uuid                 s= newUuid;
+			uuid                 = newUuid;
 			
 			Services.command(fileNode.getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
 

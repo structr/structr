@@ -34,6 +34,10 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,7 +59,7 @@ public class PatchCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		AbstractNode node              = getNode(webSocketData.getId());
+		final AbstractNode node        = getNode(webSocketData.getId());
 		Map<String, Object> properties = webSocketData.getNodeData();
 		String patch                   = (String) properties.get("patch");
 
@@ -64,12 +68,23 @@ public class PatchCommand extends AbstractCommand {
 			diff_match_patch dmp      = new diff_match_patch();
 			String oldText            = node.getProperty(Content.content);
 			LinkedList<Patch> patches = (LinkedList<Patch>) dmp.patch_fromText(patch);
-			Object[] results          = dmp.patch_apply(patches, oldText);
+			final Object[] results    = dmp.patch_apply(patches, oldText);
 
 			try {
 
-				node.setProperty(Content.content, results[0].toString());
+				Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
 
+					@Override
+					public Object execute() throws FrameworkException {
+
+						node.setProperty(Content.content, results[0].toString());
+
+						return null;
+					}
+
+				});
+				
+				
 			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, "Could not apply patch {0}", patch);
