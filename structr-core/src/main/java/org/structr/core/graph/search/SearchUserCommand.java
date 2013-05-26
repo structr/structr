@@ -77,9 +77,15 @@ public class SearchUserCommand extends NodeServiceCommand {
 				final PropertyKey key = (PropertyKey) parameters[1];
 				final NodeIndex idx = (NodeIndex) parameters[2];
 				final Index<Node> index = getIndexFromArguments(idx, arguments);
+				IndexHits<Node> indexHits = null;
 
-				// see: http://docs.neo4j.org/chunked/milestone/indexing-create-advanced.html
-				final IndexHits<Node> indexHits = index.query( key.dbName(), "\"" + userNickName + "\"" );
+				synchronized (index) {
+
+					// see: http://docs.neo4j.org/chunked/milestone/indexing-create-advanced.html
+					indexHits = index.query( key.dbName(), "\"" + userNickName + "\"" );
+					
+				}
+				
 				try {
 					for (final Node n : indexHits) {
 						final Object u = nodeFactory.instantiateNode(n);

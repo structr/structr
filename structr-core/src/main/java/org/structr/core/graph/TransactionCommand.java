@@ -21,6 +21,7 @@
 package org.structr.core.graph;
 
 
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -59,6 +60,7 @@ public class TransactionCommand extends NodeServiceCommand {
 	
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
 	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
+	private static final Semaphore semaphore                            = new Semaphore(1, true);
 	
 	private ModificationQueue modificationQueue = null;
 	private ErrorBuffer errorBuffer             = null;
@@ -96,6 +98,10 @@ public class TransactionCommand extends NodeServiceCommand {
 					logger.log(Level.INFO, "Actual StructrTransaction took {0} ms", t1-t0);
 				}
 				
+				// we need to protect the validation and indexing part of every transaction
+				// from being entered multiple times in the presence of validators
+				try { semaphore.acquire(); } catch (InterruptedException iex) { return null; }
+				
 				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer, transaction.doValidation)) {
 
 					// create error
@@ -128,6 +134,9 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			tx.success();
 			tx.finish();
+
+			// release semaphore as the transaction is now finished
+			semaphore.release();
 
 			long t4 = System.currentTimeMillis();
 			if (t4-t3 > THRESHOLD) {
