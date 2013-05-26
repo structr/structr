@@ -284,7 +284,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			@Override
 			public String apply(String[] s) {
 
-				int result = 0;
+				Double result = 0.0d;
 
 				if (s != null) {
 
@@ -292,7 +292,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 						try {
 
-							result += Integer.parseInt(s[i]);
+							result += Double.parseDouble(s[i]);
 
 						} catch (Throwable t) {}
 
@@ -300,7 +300,109 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				}
 
-				return new Integer(result).toString();
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("subt", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				Double result = 0.0d;
+
+				if (s != null) {
+
+					for (int i = 0; i < s.length; i++) {
+
+						try {
+
+							result -= Double.parseDouble(s[i]);
+
+						} catch (Throwable t) {}
+
+					}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("mult", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				Double result = 1.0d;
+
+				if (s != null) {
+
+					for (int i = 0; i < s.length; i++) {
+
+						try {
+
+							result *= Double.parseDouble(s[i]);
+
+						} catch (Throwable t) {}
+
+					}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("quot", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				Double result = 0.0d;
+
+				if (s != null && s.length == 2) {
+
+
+					try {
+
+						result = Double.parseDouble(s[0]) / Double.parseDouble(s[1]);
+
+					} catch (Throwable t) {}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("round", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				Double result = 0.0d;
+
+				if (s != null && s.length == 2) {
+
+
+					try {
+
+						Double f1 = Double.parseDouble(s[0]);
+						double f2 = Math.pow(10, (Integer.parseInt(s[1])));
+						long r = Math.round(f1*f2);
+						
+						result = (double)r/f2;
+
+					} catch (Throwable t) {}
+
+				}
+
+				return new Double(result).toString();
 
 			}
 
