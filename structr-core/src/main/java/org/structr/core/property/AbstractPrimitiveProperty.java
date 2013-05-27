@@ -25,11 +25,9 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
 
@@ -184,7 +182,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					} else {
 
-						logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
+						logger.log(Level.FINE, "Tried to set lastModifiedDate explicitly (action was denied)");
 
 					}
 				}

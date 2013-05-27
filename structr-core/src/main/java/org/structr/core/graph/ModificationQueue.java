@@ -4,7 +4,6 @@ import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import static org.structr.common.RelType.IS_AT;
@@ -28,8 +27,19 @@ public class ModificationQueue {
 	
 	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<String, GraphObjectModificationState>();
 	private Set<String> alreadyPropagated                                             = new LinkedHashSet<String>();
+	private Set<String> types                                                         = new LinkedHashSet<String>();
 	
-	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
+	/**
+	 * Returns a set containing the different entity types of
+	 * nodes modified in this queue.
+	 * 
+	 * @return the types
+	 */
+	public Set<String> getTypes() {
+		return types;
+	}
+	
+	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		boolean hasModifications = true;
 		boolean valid = true;
@@ -50,6 +60,13 @@ public class ModificationQueue {
 			}
 		}
 
+		return valid;
+	}
+	
+	public boolean doValidation(SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
+		
+		boolean valid = true;
+		
 		// do validation and indexing
 		for (Entry<String, GraphObjectModificationState> entry : modifications.entrySet()) {
 
@@ -77,6 +94,7 @@ public class ModificationQueue {
 
 	public void create(AbstractNode node) {
 		getState(node).create();
+		types.add(node.getType());
 	}
 
 	public void create(AbstractRelationship relationship) {
@@ -84,26 +102,33 @@ public class ModificationQueue {
 		getState(relationship).create();
 
 		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
+		
+		types.add(relationship.getType());
 	}
 
 	public void modifyOwner(AbstractNode node) {
 		getState(node).modifyOwner();
+		types.add(node.getType());
 	}
 	
 	public void modifySecurity(AbstractNode node) {
 		getState(node).modifySecurity();
+		types.add(node.getType());
 	}
 	
 	public void modifyLocation(AbstractNode node) {
 		getState(node).modifyLocation();
+		types.add(node.getType());
 	}
 	
 	public void modify(AbstractNode node, PropertyKey key, Object previousValue) {
 		getState(node).modify(key, previousValue);
+		types.add(node.getType());
 	}
 
 	public void modify(AbstractRelationship relationship, PropertyKey key, Object previousValue) {
 		getState(relationship).modify(key, previousValue);
+		types.add(relationship.getType());
 	}
 	
 	public void propagatedModification(AbstractNode node) {

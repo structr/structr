@@ -111,11 +111,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected PropertyMap cachedConvertedProperties  = new PropertyMap();
 	protected PropertyMap cachedRawProperties        = new PropertyMap();
 	protected Principal cachedOwnerNode              = null;
-	protected Class entityType                      = getClass();
+	protected Class entityType                       = getClass();
 
 	// request parameters
-	protected SecurityContext securityContext                     = null;
-	private boolean readOnlyPropertiesUnlocked                    = false;
+	protected SecurityContext securityContext        = null;
+	private boolean readOnlyPropertiesUnlocked       = false;
 
 	// reference to database node
 	protected String cachedUuid = null;

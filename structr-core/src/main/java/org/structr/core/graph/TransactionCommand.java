@@ -21,7 +21,7 @@
 package org.structr.core.graph;
 
 
-import java.util.concurrent.Semaphore;
+import java.util.Set;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -58,7 +58,7 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
 	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
-	private static final Semaphore semaphore                            = new Semaphore(1, true);
+	private static final TypeSemaphore                   semaphore      = new TypeSemaphore();
 	
 	private ModificationQueue modificationQueue = null;
 	private ErrorBuffer errorBuffer             = null;
@@ -69,6 +69,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		Transaction tx               = transactions.get();
 		boolean topLevel             = (tx == null);
 		FrameworkException error     = null;
+		Set<String> types            = null;
 		T result                     = null;
 		
 		if (topLevel) {
@@ -89,11 +90,23 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			if (topLevel) {
 
+				// 1. do inner callbacks (may cause transaction to fail)
+				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
+
+					// create error
+					throw new FrameworkException(422, errorBuffer);
+				}
+				
+				// 2. fetch all types of entities modified in this tx
+				types = modificationQueue.getTypes();
+				
 				// we need to protect the validation and indexing part of every transaction
 				// from being entered multiple times in the presence of validators
-				try { semaphore.acquire(); } catch (InterruptedException iex) { return null; }
-				
-				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer, transaction.doValidation)) {
+				// 3. acquire semaphores for each modified type
+				try { semaphore.acquire(types); } catch (InterruptedException iex) { return null; }
+
+				// finally, do validation under the protection of the semaphores for each type
+				if (!modificationQueue.doValidation(securityContext, errorBuffer, transaction.doValidation)) {
 
 					// create error
 					throw new FrameworkException(422, errorBuffer);
@@ -119,8 +132,8 @@ public class TransactionCommand extends NodeServiceCommand {
 			tx.success();
 			tx.finish();
 
-			// release semaphore as the transaction is now finished
-			semaphore.release();
+			// release semaphores as the transaction is now finished
+			semaphore.release(types);	// careful: "types" can be null here!
 
 			transactions.remove();
 			
