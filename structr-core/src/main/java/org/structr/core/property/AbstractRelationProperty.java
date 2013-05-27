@@ -297,7 +297,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 		Class sourceType           = finalSourceNode.getClass();
 
 		// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
-		// of the same combinedType incoming to the target node
+		// of the same type incoming to the target node
 		for (AbstractRelationship rel : finalTargetNode.getRelationships(getRelType(), Direction.INCOMING)) {
 
 			if (rel.equals(newRel)) {
@@ -319,9 +319,8 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 	private void ensureManyToOne(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
 		
 		Class newRelationshipClass = newRel.getClass();
-		Class destType             = finalTargetNode.getClass();
 
-		// delete previous relationships to nodes of the same destination combinedType and direction
+		// delete previous relationships to nodes of the same destination type and direction
 		for (AbstractRelationship rel : finalSourceNode.getRelationships(getRelType(), getDirection())) {
 
 			if (rel.equals(newRel)) {
@@ -330,7 +329,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 			Class relationshipClass = rel.getClass();
 			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
-
+			
 			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass) || destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass()))) {
 
 				deleteRel.execute(rel);

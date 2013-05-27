@@ -180,6 +180,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 		
 		super(name, destType, relType, direction, manyToOne ? Cardinality.ManyToOne : Cardinality.OneToOne, cascadeDelete);
 
+		this.manyToOne = manyToOne;
 		this.notion = notion;
 		this.notion.setType(destType);
 		

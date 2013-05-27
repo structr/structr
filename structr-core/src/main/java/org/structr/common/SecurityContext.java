@@ -358,12 +358,14 @@ public class SecurityContext {
 			return false;
 		}
 
+		Principal owner = node.getOwnerNode();
+		
 		// owner is always allowed to do anything with its nodes
-		if (user.equals(node) || user.equals(node.getOwnerNode())) {
+		if (user.equals(node) || user.equals(owner) || user.getParents().contains(owner)) {
 
 			return true;
 		}
-
+		
 		boolean isAllowed = false;
 
 		switch (accessMode) {
