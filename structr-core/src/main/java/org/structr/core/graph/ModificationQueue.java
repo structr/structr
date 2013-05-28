@@ -6,9 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
-import static org.structr.common.RelType.IS_AT;
-import static org.structr.common.RelType.OWNS;
-import static org.structr.common.RelType.SECURITY;
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -156,21 +154,21 @@ public class ModificationQueue {
 
 	private void modifyEndNodes(AbstractNode startNode, AbstractNode endNode, RelationshipType relType) {
 
-		if (OWNS.equals(relType)) {
+		if (RelType.OWNS.equals(relType)) {
 
 			modifyOwner(startNode);
 			modifyOwner(endNode);
 			return;
 		}
 
-		if (SECURITY.equals(relType)) {
+		if (RelType.SECURITY.equals(relType)) {
 
 			modifySecurity(startNode);
 			modifySecurity(endNode);
 			return;
 		}
 
-		if (IS_AT.equals(relType)) {
+		if (RelType.IS_AT.equals(relType)) {
 
 			modifyLocation(startNode);
 			modifyLocation(endNode);

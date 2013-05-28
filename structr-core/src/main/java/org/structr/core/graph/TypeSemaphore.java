@@ -21,7 +21,7 @@ public class TypeSemaphore {
 	
 		if (types != null && !types.isEmpty()) {
 			
-			logger.log(Level.INFO, "Acquiring permit(s) for {0}", types);
+//			logger.log(Level.INFO, "Acquiring permit(s) for {0}", types);
 
 			for (Semaphore semaphore : getSemaphores(types)) {
 				semaphore.acquire();
@@ -33,7 +33,7 @@ public class TypeSemaphore {
 
 		if (types != null && !types.isEmpty()) {
 			
-			logger.log(Level.INFO, "Releasing permit(s) for {0}", types);
+//			logger.log(Level.INFO, "Releasing permit(s) for {0}", types);
 
 			for (Semaphore semaphore : getSemaphores(types)) {
 				semaphore.release();
