@@ -72,4 +72,9 @@ public class LowercaseTypeUniquenessValidator implements PropertyValidator<Strin
 		}
 		return null;
 	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return true;
+	}
 }

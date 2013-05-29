@@ -116,5 +116,9 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 		return false;
 
 	}
-
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return true;
+	}
 }

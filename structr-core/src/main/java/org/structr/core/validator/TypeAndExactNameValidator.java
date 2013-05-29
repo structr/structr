@@ -86,5 +86,9 @@ public class TypeAndExactNameValidator implements PropertyValidator<String> {
 
 		return false;
 	}
-
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return true;
+	}
 }

@@ -53,6 +53,8 @@ public interface PropertyKey<T> {
 
 	public void addValidator(PropertyValidator<T> validator);
 	public List<PropertyValidator<T>> getValidators();
+	public boolean requiresSynchronization();
+	public String getSynchronizationKey();
 	
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass);
 	public Class<? extends GraphObject> getDeclaringClass();

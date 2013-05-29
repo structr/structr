@@ -103,5 +103,9 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 		return false;
 
 	}
-
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return true;
+	}
 }

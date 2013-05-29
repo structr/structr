@@ -3,6 +3,7 @@ package org.structr.core.graph;
 import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
@@ -25,7 +26,7 @@ public class ModificationQueue {
 	
 	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<String, GraphObjectModificationState>();
 	private Set<String> alreadyPropagated                                             = new LinkedHashSet<String>();
-	private Set<String> types                                                         = new LinkedHashSet<String>();
+	private Set<String> synchronizationKeys                                           = new TreeSet<String>();
 	
 	/**
 	 * Returns a set containing the different entity types of
@@ -33,8 +34,8 @@ public class ModificationQueue {
 	 * 
 	 * @return the types
 	 */
-	public Set<String> getTypes() {
-		return types;
+	public Set<String> getSynchronizationKeys() {
+		return synchronizationKeys;
 	}
 	
 	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
@@ -92,7 +93,8 @@ public class ModificationQueue {
 
 	public void create(AbstractNode node) {
 		getState(node).create();
-		types.add(node.getType());
+		
+//		synchronizationKeys.add(node.getType());
 	}
 
 	public void create(AbstractRelationship relationship) {
@@ -101,32 +103,38 @@ public class ModificationQueue {
 
 		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
 		
-		types.add(relationship.getType());
+		String combinedType = relationship.getProperty(AbstractRelationship.combinedType);
+		if (combinedType != null) {
+			synchronizationKeys.add(combinedType);
+		}
 	}
 
 	public void modifyOwner(AbstractNode node) {
 		getState(node).modifyOwner();
-		types.add(node.getType());
 	}
 	
 	public void modifySecurity(AbstractNode node) {
 		getState(node).modifySecurity();
-		types.add(node.getType());
 	}
 	
 	public void modifyLocation(AbstractNode node) {
 		getState(node).modifyLocation();
-		types.add(node.getType());
 	}
 	
 	public void modify(AbstractNode node, PropertyKey key, Object previousValue) {
 		getState(node).modify(key, previousValue);
-		types.add(node.getType());
+		
+		if (key != null&& key.requiresSynchronization()) {
+			synchronizationKeys.add(key.getSynchronizationKey());
+		}
 	}
 
 	public void modify(AbstractRelationship relationship, PropertyKey key, Object previousValue) {
 		getState(relationship).modify(key, previousValue);
-		types.add(relationship.getType());
+		
+		if (key != null && key.requiresSynchronization()) {
+			synchronizationKeys.add(key.getSynchronizationKey());
+		}
 	}
 	
 	public void propagatedModification(AbstractNode node) {
@@ -153,6 +161,8 @@ public class ModificationQueue {
 	}
 
 	private void modifyEndNodes(AbstractNode startNode, AbstractNode endNode, RelationshipType relType) {
+		
+//		synchronizationKeys.add(relType.name());
 
 		if (RelType.OWNS.equals(relType)) {
 

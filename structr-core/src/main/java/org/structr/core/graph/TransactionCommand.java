@@ -29,6 +29,7 @@ import org.neo4j.graphdb.Transaction;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -58,7 +59,7 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
 	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
-	private static final TypeSemaphore                   semaphore      = new TypeSemaphore();
+	private static final MultiSemaphore                   semaphore      = new MultiSemaphore();
 	
 	private ModificationQueue modificationQueue = null;
 	private ErrorBuffer errorBuffer             = null;
@@ -69,7 +70,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		Transaction tx               = transactions.get();
 		boolean topLevel             = (tx == null);
 		FrameworkException error     = null;
-		Set<String> types            = null;
+		Set<String> synchronizationKeys            = null;
 		T result                     = null;
 		
 		if (topLevel) {
@@ -98,12 +99,12 @@ public class TransactionCommand extends NodeServiceCommand {
 				}
 				
 				// 2. fetch all types of entities modified in this tx
-				types = modificationQueue.getTypes();
+				synchronizationKeys = modificationQueue.getSynchronizationKeys();
 				
 				// we need to protect the validation and indexing part of every transaction
 				// from being entered multiple times in the presence of validators
 				// 3. acquire semaphores for each modified type
-				try { semaphore.acquire(types); } catch (InterruptedException iex) { return null; }
+				try { semaphore.acquire(synchronizationKeys); } catch (InterruptedException iex) { return null; }
 
 				// finally, do validation under the protection of the semaphores for each type
 				if (!modificationQueue.doValidation(securityContext, errorBuffer, transaction.doValidation)) {
@@ -133,7 +134,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			tx.finish();
 
 			// release semaphores as the transaction is now finished
-			semaphore.release(types);	// careful: "types" can be null here!
+			semaphore.release(synchronizationKeys);	// careful: this can be null
 
 			transactions.remove();
 			

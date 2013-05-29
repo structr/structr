@@ -67,4 +67,9 @@ public class EnumValidator<T> implements PropertyValidator<T> {
 
 		return false;
 	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
 }

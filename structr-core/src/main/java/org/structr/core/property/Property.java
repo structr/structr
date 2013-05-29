@@ -50,6 +50,9 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	
+	private boolean requiresSynchronization                = false;
+	private String synchronizationKey                      = null;
+	
 	protected Property(String name) {
 		this(name, name);
 	}
@@ -83,7 +86,13 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	@Override
 	public void addValidator(PropertyValidator<T> validator) {
+		
 		validators.add(validator);
+		
+		// fetch synchronization requirement from validator
+		if (validator.requiresSynchronization()) {
+			this.requiresSynchronization = true;
+		}
 	}
 	
 	public Property<T> validator(PropertyValidator<T> validator) {
@@ -95,6 +104,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public List<PropertyValidator<T>> getValidators() {
 		return validators;
 	}
+
+	@Override
+	public boolean requiresSynchronization() {
+		return requiresSynchronization;
+	}
+	
+	@Override
+	public String getSynchronizationKey() {
+		return synchronizationKey;
+	}
 	
 	@Override
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
@@ -103,6 +122,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	
 	@Override
 	public void registrationCallback(Class type) {
+		this.synchronizationKey = type.getSimpleName().concat(".").concat(dbName);
 	}
 	
 	@Override

@@ -45,4 +45,9 @@ public class BooleanValidator implements PropertyValidator {
 		
 		return valid;
 	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
 }

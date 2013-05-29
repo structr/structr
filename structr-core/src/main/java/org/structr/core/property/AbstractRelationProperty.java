@@ -104,7 +104,8 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 						String tripleKey = EntityContext.createCombinedRelationshipType(declaringClass.getSimpleName(), relType.name(), destType.getSimpleName());
 						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
 
-						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, true);
+						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, false);
+//						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, true);
 
 					} else {
 
@@ -112,7 +113,8 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 						String tripleKey = EntityContext.createCombinedRelationshipType(destType.getSimpleName(), relType.name(), declaringClass.getSimpleName());
 						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
 
-						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, true);
+						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, false);
+//						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, true);
 
 					}
 

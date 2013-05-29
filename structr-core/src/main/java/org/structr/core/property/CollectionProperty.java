@@ -19,8 +19,10 @@
 package org.structr.core.property;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
@@ -245,33 +247,32 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 		if (obj instanceof AbstractNode) {
 			
+			Set<T> toBeDeleted = new LinkedHashSet<T>(getProperty(securityContext, obj, true));
+			Set<T> toBeCreated = new LinkedHashSet<T>();
 			AbstractNode sourceNode = (AbstractNode)obj;
 
-			if (collection != null && !collection.isEmpty()) {
+			if (collection != null) {
+				toBeCreated.addAll(collection);
+			}
+			
+			// create intersection of both sets
+			Set<T> intersection = new LinkedHashSet<T>(toBeCreated);
+			intersection.retainAll(toBeDeleted);
+			
+			// intersection needs no change
+			toBeCreated.removeAll(intersection);
+			toBeDeleted.removeAll(intersection);
+			
+			// remove existing relationships
+			for (T targetNode : toBeDeleted) {
 
-				// FIXME: how are existing relationships handled if they need to be removed??
-				
-				for (GraphObject targetNode : collection) {
+				removeRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
+			}
+			
+			// create new relationships
+			for (T targetNode : toBeCreated) {
 
-					if (targetNode != null) {
-						createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
-					}
-				}
-
-			} else {
-
-				// new value is null
-				List<T> existingCollection = getProperty(securityContext, obj, true);
-
-				// do nothing if value is already null
-				if (existingCollection == null || (existingCollection != null && existingCollection.isEmpty())) {
-					return;
-				}
-
-				for (GraphObject targetNode : existingCollection) {
-
-					removeRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
-				}
+				createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
 			}
 			
 		} else {

@@ -37,9 +37,9 @@ import org.structr.core.entity.AbstractRelationship;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Direction;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -97,12 +97,13 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 
 				if (checkDuplicates) {
 
-
+					RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
 					int contentHashCode = properties != null ? properties.contentHashCode(null, false) : -1;
+					Node dbToNode       = toNode.getNode();
 					
-					for (AbstractRelationship rel : toNode.getIncomingRelationships(relType)) {
+					// use neo nodes here..
+					for (Relationship dbRelationship : dbToNode.getRelationships(relType, Direction.INCOMING)) {
 
-						Relationship dbRelationship = rel.getRelationship();
 						Node dbRelStartNode         = dbRelationship.getStartNode();
 						Node dbFromNode             = fromNode.getNode();
 
@@ -113,6 +114,7 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 							if (properties != null) {
 								
 								// At least one property of new rel has to be different to the tested existing node
+								AbstractRelationship rel = relationshipFactory.instantiateRelationship(securityContext, dbRelationship);
 								if (contentHashCode == rel.getProperties().contentHashCode(properties.keySet(), false)) {
 
 									return null;

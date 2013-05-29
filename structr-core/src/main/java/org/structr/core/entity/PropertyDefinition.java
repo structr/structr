@@ -462,5 +462,14 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	public List getValidators() {
 		return validators;
 	}
-
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
+	
+	@Override
+	public String getSynchronizationKey() {
+		return null;
+	}
 }

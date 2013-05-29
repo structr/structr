@@ -5,15 +5,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * @author Christian Morgner
  */
-public class TypeSemaphore {
+public class MultiSemaphore {
 
-	private static final Logger logger = Logger.getLogger(TypeSemaphore.class.getName());
+	private static final Logger logger = Logger.getLogger(MultiSemaphore.class.getName());
 	
 	private Map<String, Semaphore> semaphoreMap = new ConcurrentHashMap<String, Semaphore>();
 	

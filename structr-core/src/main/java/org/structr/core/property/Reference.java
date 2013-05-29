@@ -193,4 +193,14 @@ public class Reference<T> implements PropertyKey<T> {
 	public List<PropertyValidator<T>> getValidators() {
 		return propertyKey.getValidators();
 	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
+	
+	@Override
+	public String getSynchronizationKey() {
+		return null;
+	}
 }
