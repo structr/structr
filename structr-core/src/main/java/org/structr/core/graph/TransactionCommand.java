@@ -95,7 +95,9 @@ public class TransactionCommand extends NodeServiceCommand {
 				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
 					// create error
-					throw new FrameworkException(422, errorBuffer);
+					if (transaction.doValidation) {
+						throw new FrameworkException(422, errorBuffer);
+					}
 				}
 				
 				// 2. fetch all types of entities modified in this tx

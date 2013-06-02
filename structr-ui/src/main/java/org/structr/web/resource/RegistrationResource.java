@@ -132,7 +132,19 @@ public class RegistrationResource extends Resource {
 			if (!result.isEmpty()) {
 				
 				user = (User) result.get(0);
-				user.setProperty(User.confirmationKey, confKey);
+				
+				// meh..
+				final User finalUser = user;
+			
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+				
+						finalUser.setProperty(User.confirmationKey, confKey);
+						return null;
+					}
+				});
 				
 			} else {
 

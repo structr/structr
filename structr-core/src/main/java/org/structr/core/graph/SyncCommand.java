@@ -293,7 +293,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	
 		try {
 			
-			double t0                  = System.nanoTime();
 			ZipOutputStream zos        = new ZipOutputStream(new FileOutputStream(fileName));
 			PrintWriter writer         = new PrintWriter(new BufferedWriter(new OutputStreamWriter(zos)));
 
@@ -312,9 +311,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			// close stream
 			writer.close();
 
-			double t1   = System.nanoTime();
-			double time = ((t1 - t0) / 1000000000.0);
-			
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
