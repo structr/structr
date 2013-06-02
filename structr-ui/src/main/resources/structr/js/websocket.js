@@ -122,7 +122,7 @@ function connect() {
             var sessionValid = data.sessionValid;
             var code = data.code;
             
-            console.log('####################################### ', command, ' #########################################');
+            log('####################################### ', command, ' #########################################');
             
             rawResultCount[type] = data.rawResultCount;
             pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
@@ -195,7 +195,7 @@ function connect() {
                 log('GET_PROPERTY', data.data['key']);
                 StructrModel.updateKey(id, key, val);
                 
-            } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET_PROPERTIES / UPDATE ************************/
+            } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET / UPDATE ************************/
                 
                 log(command, data);
                 var id = data.id;
@@ -209,7 +209,7 @@ function connect() {
                     StructrModel.callbacks[data.callback](obj);
                 }
                 
-            } else if (command.endsWith('GET_BY_TYPE')) { /*********************** CHILDREN ************************/
+            } else if (command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
                 
                 log('GET_BY_TYPE', data);
                 

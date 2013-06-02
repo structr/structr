@@ -102,10 +102,9 @@ var StructrModel = {
         StructrModel.objects[data.id] = obj;
         
         // Check if the object is already contained in page
-//        var el = $('#id_' + obj.id);
-//        if (el && el.length) {
-//            return obj;
-//        }
+        if (Structr.node(obj.id)) {
+            return obj;
+        }
         
         if (refId || append === undefined || append) {
             StructrModel.append(obj, refId);
@@ -159,6 +158,7 @@ var StructrModel = {
     del : function(id) {
         
         Structr.node(id).remove();
+        removeExpandedNode(id);
         $('#show_' + id, previews).remove();
         _Pages.reloadPreviews();
         if (graph) {

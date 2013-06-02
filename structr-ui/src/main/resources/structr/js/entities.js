@@ -226,8 +226,7 @@ var _Entities = {
 
             var headers = {};
             headers['X-StructrSessionToken'] = token;
-            log('headers', headers);
-            console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
+            log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
 
             $.ajax({
                 url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
@@ -356,16 +355,36 @@ var _Entities = {
                                     log(keyInput);
                                     if (keyInput && keyInput.length) {
 
+                                        var newKey = keyInput.val();
+                                        var val    = input.val();
+
                                         // new key
-                                        log('new key: Command.setProperty(', objId, keyInput.val(), input.val());
-                                        Command.setProperty(objId, keyInput.val(), input.val());
+                                        log('new key: Command.setProperty(', objId, newKey, val);
+                                        Command.setProperty(objId, newKey, val, false, function() {
+                                            blinkGreen(input);
+                                            dialogMsg.html('<div class="infoBox success">New property "' + newKey + '" saved with value "' + val + '".</div>');
+                                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                                        });
 
 
                                     } else {
 
-                                        // existing key
-                                        log('existing key: Command.setProperty(', objId, input.prop('name'), input.val());
-                                        Command.setProperty(objId, input.prop('name'), input.val());
+                                        var key = input.prop('name');
+                                        var val    = input.val();
+
+                                        if (input.data('changed')) {
+                                            
+                                            input.data('changed', false);
+
+                                            // existing key
+                                            log('existing key: Command.setProperty(', objId, key, val);
+                                            Command.setProperty(objId, key, val, false, function() {
+                                                blinkGreen(input);
+                                                dialogMsg.html('<div class="infoBox success">Updated property "' + key + '" with value "' + val + '".</div>');
+                                                $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+
+                                            });
+                                        }
 
                                     }
 
@@ -702,9 +721,9 @@ var _Entities = {
         var b;
         var src = el.prop('src');
 
-        var id = getId(element);
+        var id = getId(el);
 
-        log('ensureExpanded: ', el, id);
+        //console.log('ensureExpanded: ', el, id);
         addExpandedNode(id);
 
         b = el.children('.expand_icon').first();
@@ -716,10 +735,9 @@ var _Entities = {
         if (src.endsWith('icon/tree_arrow_down.png')) {
             return;
         } else {
-
+            log('ensureExpanded: fetch children', el);
             Command.children(id);
             b.prop('src', 'icon/tree_arrow_down.png');
-
         }
     },
     toggleElement: function(element, expanded) {
@@ -751,8 +769,11 @@ var _Entities = {
             removeExpandedNode(id);
         } else {
 
-            if (!expanded)
+            if (!expanded) {
+                log('toggleElement: fetch children');
                 Command.children(id);
+                
+            }
             b.prop('src', 'icon/tree_arrow_down.png');
 
             addExpandedNode(id);
