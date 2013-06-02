@@ -82,43 +82,6 @@ var Command = {
         log('list()', obj, callback);
         return sendObj(obj, callback);
     },
-//    /**
-//     * Send a LIST_DATA_NODES command to the server.
-//     * 
-//     * The server will return a result set containing all items of the given
-//     * type to the sending client (no broadcast).
-//     */
-//    listDataNodes: function(type, pageSize, page, sort, order, key) {
-//        var obj = {};
-//        obj.command = 'LIST_DATA_NODES';
-//        var data = {};
-//        data.type = type;
-//        data.key = key;
-//        obj.pageSize = pageSize;
-//        obj.page = page;
-//        obj.sort = sort;
-//        obj.order = order;
-//        obj.data = data;
-//        //console.log('listDataNodes()', obj);
-//        return sendObj(obj);
-//    },
-//    /**
-//     * Send a DATA_NODE_PARENT command to the server.
-//     * 
-//     * The server will return a result set containing the parent node
-//     * of the data node with the given id in the tree with the
-//     * given key.
-//     */
-//    dataNodeParent: function(id, key, callback) {
-//        var obj = {};
-//        obj.command = 'DATA_NODE_PARENT';
-//        obj.id = id;
-//        var data = {};
-//        data.key = key;
-//        obj.data = data;
-//        log('dataNodeParent()', obj, callback);
-//        return sendObj(obj, callback);
-//    },
     /**
      * Send a CHILDREN command to the server.
      * 
@@ -131,7 +94,7 @@ var Command = {
         var data = {};
 
         var structrObj = StructrModel.obj(id);
-        if (structrObj instanceof StructrElement || structrObj instanceof StructrContent) {
+        if (structrObj instanceof StructrElement) {
             obj.command = 'DOM_NODE_CHILDREN';
             log('children of DOM node requested', structrObj);
         } else {
@@ -670,24 +633,5 @@ var Command = {
         obj.data = data;
         log('addDataTree()', obj);
         return sendObj(obj);
-    },
-    /**
-     * Send a WRAP command to the server.
-     * 
-     * The server will wrap the node with the given id into an
-     * additional component node.
-     * 
-     * The server will broadcast CREATE and ADD notifications.
-     */
-    wrap: function(id, nodeData, relData) {
-        var obj = {};
-        obj.command = 'WRAP';
-        obj.id = id;
-        obj.data = nodeData;
-        obj.relData = relData;
-        log('wrap()', obj);
-        return sendObj(obj);
-
     }
-
 }

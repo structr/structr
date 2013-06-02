@@ -580,6 +580,8 @@ var _Files = {
                 
                 dialogBtn.append('<button id="saveFile"> Save </button>');
                 dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+                
+                
                 $('button#saveFile', dialogBtn).on('click', function(e) {
                     e.stopPropagation();
                     _Files.updateTextFile(file, editor.getValue());
@@ -591,6 +593,7 @@ var _Files = {
                         dialogCancelButton.click();
                     }, 100);
                 });
+
             },
             error : function(xhr, statusText, error) {
                 console.log(xhr, statusText, error);

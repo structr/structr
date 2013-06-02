@@ -796,6 +796,12 @@ function addExpandedNode(id) {
     log('addExpandedNode', id);
 
     if (!id) return;
+    
+    var alreadyStored = getExpanded()[id];
+    
+    if (alreadyStored !== undefined) {
+        return;
+    }
 
     getExpanded()[id] = true;
     $.cookie(expandedIdsCookieName, $.toJSON(Structr.expanded), {
