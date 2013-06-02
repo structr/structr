@@ -403,7 +403,7 @@ public class OAuth2Server {
 		
 	protected String getAbsoluteRedirectUri(final HttpServletRequest request, final String redirectUri) {
 		
-		return !(redirectUri.startsWith("http")) ? "http" + (request.isSecure() ? "s" : "") + "://" + Services.getApplicationHost() + ":" + request.getServerPort() + redirectUri : redirectUri;
+		return !(redirectUri.startsWith("http")) ? "http" + (request.isSecure() ? "s" : "") + "://" + request.getServerName() + ":" + request.getServerPort() + redirectUri : redirectUri;
 		
 	}
 	
