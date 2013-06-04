@@ -43,9 +43,9 @@ import org.structr.core.graph.search.SearchNodeCommand;
  */
 public class TypeAndExactNameValidator implements PropertyValidator<String> {
 
-	private String type = null;
+	private Class type = null;
 
-	public TypeAndExactNameValidator(String type) {
+	public TypeAndExactNameValidator(Class type) {
 		this.type = type;
 	}
 
@@ -54,6 +54,12 @@ public class TypeAndExactNameValidator implements PropertyValidator<String> {
 
 		if(key == null) {
 			return false;
+		}
+
+		if (!type.isAssignableFrom(object.getClass())) {
+			
+			// types are different
+			return true;
 		}
 
 		if(StringUtils.isBlank(value)) {
@@ -65,7 +71,7 @@ public class TypeAndExactNameValidator implements PropertyValidator<String> {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 		attrs.add(Search.andExactName(value));
-		attrs.add(Search.andType(type));
+		attrs.add(Search.andType(type.getSimpleName()));
 
 		// just check for existance
 		try {

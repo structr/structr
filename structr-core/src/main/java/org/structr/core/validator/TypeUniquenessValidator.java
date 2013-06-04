@@ -36,6 +36,7 @@ import org.structr.core.graph.search.SearchNodeCommand;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
@@ -53,13 +54,13 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 	//~--- fields ---------------------------------------------------------
 
-	private String type = null;
+	private Class type = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public TypeUniquenessValidator(Class type) {
 
-		this.type = type.getSimpleName();
+		this.type = type;
 
 	}
 
@@ -76,13 +77,19 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 		}
 
+		if (!type.isAssignableFrom(object.getClass())) {
+			
+			// types are different
+			return true;
+		}
+		
 		if (key != null) {
 
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
 			boolean nodeExists               = false;
 			String id                        = null;
 
-			attributes.add(Search.andExactType(type));
+			attributes.add(Search.andExactType(type.getSimpleName()));
 			attributes.add(Search.andExactProperty(key, value));
 
 			Result resultList = null;
