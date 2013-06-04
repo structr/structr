@@ -638,6 +638,12 @@ public class SecurityContext {
 		}
 
 		@Override
+		public boolean isReadable(final AbstractNode node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+		
+			return true;
+		}
+		
+		@Override
 		public boolean isAllowed(AccessControllable node, Permission permission) {
 
 			return true;

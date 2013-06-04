@@ -258,7 +258,7 @@ public class SearchNodeCommand<T extends GraphObject> extends NodeServiceCommand
 
 					}
 
-				} else if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.uuid.dbName())) {
+				} else if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.uuid)) {
 
 					// Search for uuid only: Use UUID index
 					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
