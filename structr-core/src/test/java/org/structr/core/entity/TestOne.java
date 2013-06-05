@@ -29,6 +29,7 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.EntityProperty;
+import org.structr.core.property.StringProperty;
 
 /**
  * A simple entity for the most basic tests.
@@ -42,17 +43,19 @@ public class TestOne extends AbstractNode {
 	public static final Property<Long> aLong    = new LongProperty("aLong");
 	public static final Property<Date> aDate    = new ISO8601DateProperty("aDate");
 	
+	public static final Property<String>  aString = new StringProperty("aString");
+	
 	public static final EntityProperty<TestTwo>   testTwo   = new EntityProperty<TestTwo>("testTwo", TestTwo.class, RelType.IS_AT, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	public static final EntityProperty<TestThree> testThree = new EntityProperty<TestThree>("testThree", TestThree.class, RelType.OWNS, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	public static final EntityProperty<TestFour>  testFour  = new EntityProperty<TestFour>("testFour", TestFour.class, RelType.IS_AT, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
-		anInt, aLong, aDate
+		anInt, aLong, aDate, createdDate, aString
 	);
 	
 	static {
 		
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), anInt, aLong, aDate);
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), anInt, aLong, aDate);
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), anInt, aLong, aDate, createdDate, aString);
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), anInt, aLong, aDate, createdDate, aString);
 	}
 }
