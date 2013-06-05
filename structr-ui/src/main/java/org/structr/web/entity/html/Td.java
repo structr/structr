@@ -20,12 +20,20 @@
 
 package org.structr.web.entity.html;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
 
 import org.structr.web.common.RelType;
 import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
+import static org.structr.web.entity.html.Img.htmlView;
+import static org.structr.web.entity.html.Th._colspan;
+import static org.structr.web.entity.html.Th._rowspan;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -34,6 +42,9 @@ import org.structr.web.entity.dom.Content;
  */
 public class Td extends DOMElement {
 
+	public static final Property<String>             _colspan  = new HtmlProperty("colspan");
+	public static final Property<String>             _rowspan  = new HtmlProperty("rowspan");
+	
 	public static final CollectionProperty<Content>  contents  = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Div>      divs      = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Span>     spans     = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
@@ -59,4 +70,16 @@ public class Td extends DOMElement {
 	public static final CollectionProperty<Form>     forms     = new CollectionProperty<Form>("forms", Form.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Script>   scripts   = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final CollectionProperty<Pre>      pres      = new CollectionProperty<Pre>("pres", Pre.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	public static final View htmlView = new View(Img.class, PropertyView.Html,
+	    _colspan, _rowspan
+	);
+
+	@Override
+	public Property[] getHtmlAttributes() {
+
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+
+	}
+
 }
