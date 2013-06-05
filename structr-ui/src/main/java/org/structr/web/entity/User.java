@@ -109,10 +109,9 @@ public class User extends Person implements Principal {
 
 			return "";
 			
-		} else {
-
-			return super.getPropertyForIndexing(key);
 		}
+
+		return super.getPropertyForIndexing(key);
 
 	}
 
