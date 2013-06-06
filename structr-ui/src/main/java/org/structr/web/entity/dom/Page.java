@@ -19,12 +19,13 @@
 package org.structr.web.entity.dom;
 
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.Linkable;
 import org.structr.core.graph.NodeService;
 import org.structr.core.property.IntProperty;
@@ -53,7 +54,6 @@ import org.w3c.dom.Text;
 //~--- JDK imports ------------------------------------------------------------
 
 
-import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.Predicate;
 import org.structr.core.Services;
@@ -74,6 +74,8 @@ import org.structr.core.property.PropertyMap;
  * @author Christian Morgner
  */
 public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
+	
+	private static final Logger logger                                      = Logger.getLogger(Page.class.getName());
 
 	public static final Property<Integer> version                           = new IntProperty("version");
 	public static final Property<Integer> position                          = new IntProperty("position");
@@ -199,6 +201,17 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public Element createElement(final String tag) throws DOMException {
 
 		final String elementType = EntityContext.normalizeEntityName(tag);
+		
+		String c = Content.class.getSimpleName();
+		
+		// Avoid creating an (invalid) 'Content' DOMElement
+		if (elementType == null || c.equals(elementType)) {
+			
+			logger.log(Level.WARNING, "Blocked attempt to create a DOMElement of type {0}", c);
+			
+			return null;
+			
+		}
 		
 		try {
 			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DOMElement>() {
