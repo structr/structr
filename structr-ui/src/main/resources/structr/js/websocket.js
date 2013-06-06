@@ -281,7 +281,8 @@ function connect() {
 
             } else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
-                StructrModel.obj(data.id).remove();
+                var obj = StructrModel.obj(data.id);
+                if (obj) obj.remove();
                 
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
