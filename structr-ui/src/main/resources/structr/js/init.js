@@ -742,6 +742,7 @@ var Structr = {
             }
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
+            _Pages.clearPreviews();
             Command.list(type, pageSize[type], page[type], sort, order);
         });
         
@@ -753,6 +754,7 @@ var Structr = {
             }
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
+            _Pages.clearPreviews();
             Command.list(type, pageSize[type], page[type], sort, order);
         });
         
