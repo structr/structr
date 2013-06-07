@@ -32,7 +32,6 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.Services;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
@@ -51,6 +50,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.web.property.ThumbnailProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -85,43 +85,30 @@ public class Image extends File {
 
 	//~--- methods --------------------------------------------------------
 
-//	@Override
-//	public void afterDeletion(SecurityContext securityContext) {
-//
-//		removeThumbnails();
-//
-//	}
-	
-	private void removeThumbnails() {
 
-		DeleteNodeCommand deleteNode                 = Services.command(securityContext, DeleteNodeCommand.class);
+	//~--- set methods ----------------------------------------------------
 
-		for (AbstractRelationship s : getThumbnailRelationships()) {
+	@Override
+	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
+		
+		// Copy visibility properties to all thumbnails
+		if (AbstractNode.visibleToPublicUsers.equals(key)
+		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
+		 || AbstractNode.visibilityStartDate.equals(key)
+		 || AbstractNode.visibilityEndDate.equals(key)) {
 
-			AbstractNode thumbnail = s.getEndNode();
-
-			if (((Image) thumbnail).equals(this)) {
-
-				logger.log(Level.SEVERE, "Attempted to remove me as thumbnail!!");
-
-				continue;
-
-			}
-
-			try {
-
-				deleteNode.execute(thumbnail, true);
-
-			} catch (FrameworkException fex) {
-
-				logger.log(Level.WARNING, "Unable to remove thumbnail", fex);
-
+			for (Image tn : getThumbnails()) {
+				
+				tn.setProperty(key, value);
+				
 			}
 
 		}
 
+		super.setProperty(key, value);
+		
 	}
-
+	
 	//~--- get methods ----------------------------------------------------
 
 	public Integer getWidth() {
@@ -312,8 +299,8 @@ public class Image extends File {
 
 							thumbnail.setSize(size);
 							thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
-							thumbnail.setWidth(tnWidth);
-							thumbnail.setHeight(tnHeight);
+							thumbnail.setProperty(Image.width, tnWidth);
+							thumbnail.setProperty(Image.height, tnHeight);
 							
 							thumbnail.setProperty(Image.hidden,				originalImage.getProperty(Image.hidden));
 							thumbnail.setProperty(Image.visibleToAuthenticatedUsers,		originalImage.getProperty(Image.visibleToAuthenticatedUsers));
@@ -375,32 +362,4 @@ public class Image extends File {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
-
-	public void setWidth(final Integer width) throws FrameworkException {
-
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Image.width, width);
-				return null;
-			}
-		});
-	}
-
-	public void setHeight(final Integer height) throws FrameworkException {
-
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Image.height, height);
-				return null;
-			}
-		});
-
-	}
 }
