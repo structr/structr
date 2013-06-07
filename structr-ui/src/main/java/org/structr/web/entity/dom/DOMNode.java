@@ -18,20 +18,15 @@
  */
 package org.structr.web.entity.dom;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
@@ -77,7 +72,7 @@ import org.w3c.dom.UserDataHandler;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
- * 
+ *
  * @author Christian Morgner
  */
 
@@ -86,7 +81,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	private static final Logger logger                                      = Logger.getLogger(DOMNode.class.getName());
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher      = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
 	private static final ThreadLocalMatcher threadLocalFunctionMatcher      = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.+)\\)");
-	
+
 	// ----- error messages for DOMExceptions -----
 	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE           = "Permission denied.";
 	protected static final String INVALID_ACCESS_ERR_MESSAGE                = "Permission denied.";
@@ -102,9 +97,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC      = "Document nodes cannot be imported into another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC       = "Document nodes cannot be adopted by another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME          = "Renaming of nodes is not supported by this implementation.";
-	
+
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
-	
+
 	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<DOMNode>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
 	public static final CollectionIdProperty childrenIds                    = new CollectionIdProperty("childrenIds", children);
 
@@ -118,8 +113,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	public static final EntityIdProperty pageId                             = new EntityIdProperty("pageId", ownerDocument);
 
 	private static Set<Page> resultPages                                    = new HashSet<Page>();
-		
-	
+
+
 	static {
 
 		functions.put("md5", new Function<String, String>() {
@@ -164,23 +159,23 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			public String apply(String[] s) {
 
 				if (s != null && s.length > 1 && s[0] != null && s[1] != null) {
-					
+
 					try {
 						int maxLength = Integer.parseInt(s[1]);
-						
+
 						if (s[0].length() > maxLength) {
-							
+
 							return StringUtils.substringBeforeLast(StringUtils.substring(s[0], 0, maxLength), " ").concat("…");
-							
+
 						} else {
-							
+
 							return s[0];
 						}
-						
+
 					} catch (NumberFormatException nfe) {}
-					
+
 				}
-				
+
 				return "";
 
 			}
@@ -194,6 +189,25 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				return ((s != null) && (s.length > 0) && (s[0] != null))
 				       ? StringUtils.capitalize(s[0])
 				       : null;
+
+			}
+
+		});
+		functions.put("titleize", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				if (s == null || s.length < 2 || s[0] == null || s[1] == null) {
+					return null;
+				}
+
+				String[] in = StringUtils.split(s[0], s[1]);
+				String[] out = new String[in.length];
+				for (int i=0; i<in.length; i++) {
+				    out[i] = StringUtils.capitalize(in[i]);
+				};
+				return StringUtils.join(out, " ");
 
 			}
 
@@ -251,7 +265,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				if (s[0] == null || s[1] == null) {
 					return "false";
 				}
-				
+
 				return s[0].equals(s[1])
 				       ? "true"
 				       : "false";
@@ -264,7 +278,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			@Override
 			public String apply(String[] s) {
 
-				int result = 0;
+				Double result = 0.0d;
 
 				if (s != null) {
 
@@ -272,7 +286,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 						try {
 
-							result += Integer.parseInt(s[i]);
+							result += Double.parseDouble(s[i]);
 
 						} catch (Throwable t) {}
 
@@ -280,7 +294,142 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				}
 
-				return new Integer(result).toString();
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("subt", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				Double result = 0.0d;
+
+				if (s != null) {
+
+					for (int i = 0; i < s.length; i++) {
+
+						try {
+
+							result -= Double.parseDouble(s[i]);
+
+						} catch (Throwable t) {}
+
+					}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("mult", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				Double result = 1.0d;
+
+				if (s != null) {
+
+					for (int i = 0; i < s.length; i++) {
+
+						try {
+
+							result *= Double.parseDouble(s[i]);
+
+						} catch (Throwable t) {}
+
+					}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("quot", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				Double result = 0.0d;
+
+				if (s != null && s.length == 2) {
+
+
+					try {
+
+						result = Double.parseDouble(s[0]) / Double.parseDouble(s[1]);
+
+					} catch (Throwable t) {}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("round", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				Double result = 0.0d;
+
+				if (s != null && s.length == 2) {
+
+
+					try {
+
+						Double f1 = Double.parseDouble(s[0]);
+						double f2 = Math.pow(10, (Integer.parseInt(s[1])));
+						long r = Math.round(f1*f2);
+
+						result = (double)r/f2;
+
+					} catch (Throwable t) {}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("number_format", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+                String errorMsg = "<strong>ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. ex:${number_format(12345.6789, 'en', '#,##0.00')} For more infos about patterns <a href='http://docs.oracle.com/javase/6/docs/api/java/text/DecimalFormat.html'>refer to the documentation</a><strong>";
+
+				if (s != null && s.length == 3) {
+
+					try {
+
+						Double val = Double.parseDouble(s[0]);
+						String langCode = s[1];
+						String pattern = s[2];
+
+                        NumberFormat formatter = DecimalFormat.getInstance(new Locale(langCode));
+                        ((DecimalFormat) formatter).applyLocalizedPattern(pattern);
+                        result = formatter.format(val);
+
+					} catch (Throwable t) {
+                        result = errorMsg;
+                    }
+
+				} else {
+                    result = errorMsg;
+                }
+
+				return result;
 
 			}
 
@@ -289,7 +438,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			@Override
 			public String apply(String[] b) {
-				
+
 				return b[0].equals("true") ? "false" : "true";
 			}
 
@@ -298,17 +447,17 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			@Override
 			public String apply(String[] b) {
-				
+
 				return b[0].equals("true") && b[1].equals("true") ? "true" : "false";
 			}
 
 		});
 	}
-	
+
 	// ----- public methods -----
 	@Override
 	public String toString() {
-		
+
 		return getClass().getSimpleName() + " (" + getTextContent() + ", " + treeGetChildPosition(RelType.CONTAINS, this) + ")";
 	}
 
@@ -316,46 +465,46 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		return treeGetChildRelationships(RelType.CONTAINS);
 	}
 
-	
+
 	public String getPositionPath() {
-		
+
 		String path = "";
-		
+
 		DOMNode currentNode = this;
 		while (currentNode.getParentNode() != null) {
-			
+
 			DOMNode parentNode = (DOMNode) currentNode.getParentNode();
-			
+
 			path = "/" + parentNode.treeGetChildPosition(RelType.CONTAINS, currentNode) + path;
-			
+
 			currentNode = parentNode;
-			
+
 		}
-		
+
 		return path;
-		
+
 	}
 
 	/**
 	 * Get all ancestors of this node
-	 * 
+	 *
 	 * @return list of ancestors
 	 */
 	public List<Node> getAncestors() {
 
 		List<Node> ancestors = new LinkedList();
-		
+
 		Node _parent = getParentNode();
 		while (_parent != null) {
 
 			ancestors.add(_parent);
 			_parent = _parent.getParentNode();
 		}
-		
+
 		return ancestors;
-		
+
 	}
-	
+
 	@Override
 	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -368,13 +517,13 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			logger.log(Level.WARNING, "Updating page version failed", ex);
 
 		}
-		
+
 		return true;
 
 	}
 
 	// ----- private methods -----
-	
+
 	/**
 	 * Do necessary updates on all containing pages
 	 *
@@ -383,101 +532,101 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	private void increasePageVersion(SecurityContext securityContext) throws FrameworkException {
 
 		Page page = (Page) getOwnerDocument();
-		
+
 		if (page != null) {
-		
+
 			page.unlockReadOnlyPropertiesOnce();
 			page.increaseVersion();
-			
+
 		}
 
 	}
 
-	
+
 	// ----- protected methods -----
-	
+
 	protected void checkIsChild(Node otherNode) throws DOMException {
-		
+
 		if (otherNode instanceof DOMNode) {
 
 			Node _parent = otherNode.getParentNode();
-			
+
 			if (!isSameNode(_parent)) {
-				
+
 				throw new DOMException(DOMException.NOT_FOUND_ERR, NOT_FOUND_ERR_MESSAGE);
 			}
-			
+
 			// validation successful
 			return;
 		}
 
 		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
 	}
-	
+
 	protected void checkHierarchy(Node otherNode) throws DOMException {
-		
+
 		// we can only check DOMNodes
 		if (otherNode instanceof DOMNode) {
-	
+
 			// verify that the other node is not this node
 			if (isSameNode(otherNode)) {
-				throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE);		
+				throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE);
 			}
-			
+
 			// verify that otherNode is not one of the
 			// the ancestors of this node
 			// (prevent circular relationships)
 			Node _parent = getParentNode();
 			while (_parent != null) {
-				
+
 				if (_parent.isSameNode(otherNode)) {
 					throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR);
 				}
-				
+
 				_parent = _parent.getParentNode();
 			}
-			
+
 			// TODO: check hierarchy constraints imposed by the schema
 
-			
+
 			// validation sucessful
 			return;
 		}
 
 		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
 	}
-	
+
 	protected void checkSameDocument(Node otherNode) throws DOMException {
-		
+
 		Document doc = getOwnerDocument();
 
 		if (doc != null) {
 
 			Document otherDoc = otherNode.getOwnerDocument();
-			
+
 			if (otherDoc != null && !doc.equals(otherDoc)) {
 
 				throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, WRONG_DOCUMENT_ERR_MESSAGE);
 			}
 		}
 	}
-	
+
 	protected void checkWriteAccess() throws DOMException {
-		
+
 		if (!securityContext.isAllowed(this, Permission.write)) {
-			
+
 			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
 		}
 	}
-	
+
 	protected void checkReadAccess() throws DOMException {
-		
+
 		if (!securityContext.isAllowed(this, Permission.read)) {
-			
+
 			throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
 		}
 	}
-	
+
 	protected String indent(final int depth, final boolean newline) {
 
 		StringBuilder indent = new StringBuilder();
@@ -505,7 +654,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		String[] parts                   = refKey.split("[\\.]+");
 		String referenceKey              = parts[parts.length - 1];
 		String defaultValue              = null;
-		
+
 		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
 			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
 			referenceKey = ref[0];
@@ -515,9 +664,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				defaultValue         = "";
 			}
 		}
-		
-		
-		
+
+
+
 		Page _page                       = renderContext.getPage();
 		GraphObject _data                = null;
 
@@ -526,7 +675,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			String part = parts[i];
 
-			
+
 			if (_data != null) {
 
 				Object value = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), part));
@@ -535,6 +684,19 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					_data = (GraphObject) value;
 
 					continue;
+
+				}
+
+				// special keyword "size"
+				if (i > 0 && "size".equals(part.toLowerCase())) {
+
+					Object val = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), parts[i-1]));
+
+					if (val instanceof List) {
+
+						return ((List) val).size();
+
+					}
 
 				}
 
@@ -552,15 +714,15 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					continue;
 
 				}
-			
-			
+
+
 			}
-			
+
 			// data objects from parent elements
 			if (renderContext.hasDataForKey(part.toLowerCase())) {
-				
+
 				_data = renderContext.getDataNode(part.toLowerCase());
-				
+
 				continue;
 			}
 
@@ -571,15 +733,15 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				HttpServletRequest request = renderContext.getRequest(); //securityContext.getRequest();
 
 				if (request != null) {
-					
-					
+
+
 					if (StringUtils.contains(referenceKey, "!")) {
-						
+
 						String[] ref = StringUtils.split(referenceKey, "!");
 						return StringUtils.defaultString(request.getParameter(ref[0]), ref.length > 1 ? ref[1] : "");
-						
+
 					} else {
-						
+
 						return StringUtils.defaultString(request.getParameter(referenceKey));
 					}
 				}
@@ -592,9 +754,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				User me = (User) securityContext.getUser(false);
 
 				if (me != null) {
-		
+
 					_data = me;
-					
+
 					continue;
 				}
 
@@ -603,7 +765,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			// the following keywords work only on root level
 			// so that they can be used as property keys for data objects
 			if (_data == null) {
-			
+
 				// special keyword "ownerDocument", works only on root level
 				if ("page".equals(part.toLowerCase())) {
 
@@ -652,8 +814,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				}
 
-				// special keyword "result_size"
-				if ("result_size".equals(part.toLowerCase())) {
+				// special keyword "search_result_size"
+				if ("search_result_size".equals(part.toLowerCase())) {
 
 					Set<Page> pages = getResultPages(securityContext, (Page) _page);
 
@@ -666,7 +828,14 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				}
 
-//				// special keyword "rest_result"
+				// special keyword "result_size"
+				if ("result_size".equals(part.toLowerCase())) {
+
+					return IteratorUtils.toArray(renderContext.getListSource().iterator()).length;
+
+				}
+
+				//				// special keyword "rest_result"
 //				if ("rest_result".equals(part.toLowerCase())) {
 //
 //					HttpServletRequest request = securityContext.getRequest();
@@ -679,7 +848,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 //					return 0;
 //
 //				}
-//				
+//
 			}
 
 		}
@@ -688,7 +857,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			PropertyKey referenceKeyProperty = EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKey);
 			return getEditModeValue(securityContext, renderContext, _data, referenceKeyProperty, defaultValue);
-			
+
 		}
 
 		return null;
@@ -698,11 +867,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
 
 		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
-		
+
 		return value != null ? value : defaultValue;
-		
+
 	}
-	
+
 	protected String getPropertyWithVariableReplacement(SecurityContext securityContext, RenderContext renderContext, PropertyKey<String> key) throws FrameworkException {
 
 		return replaceVariables(securityContext, renderContext, super.getProperty(key));
@@ -712,11 +881,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	/**
 	 * @deprecated This method uses the security context of instantiation
 	 * which is a bad idea. Use {@link DOMNode#getPropertyWithVariableReplacement} instead
-	 * 
+	 *
 	 * @param renderContext
 	 * @param key
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	protected String getPropertyWithVariableReplacement(RenderContext renderContext, PropertyKey<String> key) throws FrameworkException {
 
@@ -765,14 +934,14 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 
 //		if (value != null && renderContext.getEdit() && renderContext.inBody()) {
-//			
+//
 //			GraphObject data = renderContext.getDataObject();
 //			if (data != null) {
 //				return "<span data-structr-raw-value=\"" + rawValue + "\" data-structr-data-id=\"" + data.getUuid() + "\">" + value + "</span>";
 //			}
-//			
+//
 //		}
-		
+
 		return value;
 
 	}
@@ -781,7 +950,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		throws FrameworkException {
 
 		String pageId     = renderContext.getPageId();
-		
+
 		// re-use matcher from previous calls
 		Matcher functionMatcher = threadLocalFunctionMatcher.get();
 
@@ -1001,7 +1170,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	}
 
 	protected void collectNodesByPredicate(Node startNode, DOMNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
-		
+
 		if (predicate.evaluate(securityContext, startNode)) {
 
 			results.add(startNode);
@@ -1014,7 +1183,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		NodeList _children = startNode.getChildNodes();
 		if (_children != null) {
-			
+
 			int len = _children.getLength();
 			for (int i=0; i<len; i++) {
 
@@ -1031,9 +1200,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		final DOMNodeList results     = new DOMNodeList();
 		final TextCollector textCollector = new TextCollector();
-		
+
 		collectNodesByPredicate(this, results, textCollector, 0, false);
-		
+
 		return textCollector.getText();
 	}
 
@@ -1041,7 +1210,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	public void setTextContent(String textContent) throws DOMException {
 		// TODO: implement?
 	}
-	
+
 	@Override
 	public Node getParentNode() {
 		return getProperty(parent);
@@ -1049,9 +1218,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	@Override
 	public NodeList getChildNodes() {
-		
+
 		checkReadAccess();
-		
+
 		return new DOMNodeList(treeGetChildren(RelType.CONTAINS));
 	}
 
@@ -1085,34 +1254,34 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		// according to DOM spec, insertBefore with null refChild equals appendChild
 		if (refChild == null) {
-			
+
 			return appendChild(newChild);
 		}
-		
+
 		checkWriteAccess();
-		
+
 		checkSameDocument(newChild);
 		checkSameDocument(refChild);
-		
+
 		checkHierarchy(newChild);
 		checkHierarchy(refChild);
-		
+
 		try {
-			
+
 			if (newChild instanceof DocumentFragment) {
-	
+
 				// When inserting document fragments, we must take
 				// care of the special case that the nodes already
 				// have a NEXT_LIST_ENTRY relationship coming from
 				// the document fragment, so we must first remove
 				// the node from the document fragment and then
 				// add it to the new parent.
-				
+
 				DocumentFragment fragment = (DocumentFragment)newChild;
 				Node currentChild         = fragment.getFirstChild();
-				
+
 				while (currentChild != null) {
-			
+
 					// save next child in fragment list for later use
 					Node savedNextChild = currentChild.getNextSibling();
 
@@ -1120,28 +1289,28 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					fragment.removeChild(currentChild);
 
 					// insert child into new parent
-					insertBefore(currentChild, refChild);					
+					insertBefore(currentChild, refChild);
 
 					// next
 					currentChild = savedNextChild;
 				}
-				
+
 			} else {
-			
+
 				Node _parent = newChild.getParentNode();
 				if (_parent != null) {
-					
+
 					_parent.removeChild(newChild);
 				}
 
 				treeInsertBefore(RelType.CONTAINS, (DOMNode)newChild, (DOMNode)refChild);
-				
+
 			}
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
-		}					
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
 
 		return refChild;
 	}
@@ -1150,13 +1319,13 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	public Node replaceChild(final Node newChild, final Node oldChild) throws DOMException {
 
 		checkWriteAccess();
-		
+
 		checkSameDocument(newChild);
 		checkSameDocument(oldChild);
-		
+
 		checkHierarchy(newChild);
 		checkHierarchy(oldChild);
-		
+
 		try {
 
 			if (newChild instanceof DocumentFragment) {
@@ -1167,34 +1336,34 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// the document fragment, so we must first remove
 				// the node from the document fragment and then
 				// add it to the new parent.
-				
+
 				// replace indirectly using insertBefore and remove
 				DocumentFragment fragment = (DocumentFragment)newChild;
 				Node currentChild         = fragment.getFirstChild();
-				
+
 				while (currentChild != null) {
-			
+
 					// save next child in fragment list for later use
 					Node savedNextChild = currentChild.getNextSibling();
-					
+
 					// remove child from document fragment
 					fragment.removeChild(currentChild);
-					
+
 					// add child to new parent
 					insertBefore(currentChild, oldChild);
-					
+
 					// next
 					currentChild = savedNextChild;
 				}
-				
+
 				// finally, remove reference element
 				removeChild(oldChild);
-				
+
 			} else {
-			
+
 				Node _parent = newChild.getParentNode();
 				if (_parent != null && _parent instanceof DOMNode) {
-					
+
 					_parent.removeChild(newChild);
 				}
 
@@ -1204,8 +1373,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
-		}					
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
 
 		return oldChild;
 	}
@@ -1216,15 +1385,15 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		checkWriteAccess();
 		checkSameDocument(node);
 		checkIsChild(node);
-		
+
 		try {
-			
+
 			treeRemoveChild(RelType.CONTAINS, (DOMNode)node);
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
-		}					
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
 
 		return node;
 	}
@@ -1237,7 +1406,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		checkHierarchy(newChild);
 
 		try {
-			
+
 			if (newChild instanceof DocumentFragment) {
 
 				// When inserting document fragments, we must take
@@ -1246,17 +1415,17 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// the document fragment, so we must first remove
 				// the node from the document fragment and then
 				// add it to the new parent.
-				
+
 
 				// replace indirectly using insertBefore and remove
 				DocumentFragment fragment = (DocumentFragment)newChild;
 				Node currentChild         = fragment.getFirstChild();
-				
+
 				while (currentChild != null) {
-			
+
 					// save next child in fragment list for later use
 					Node savedNextChild = currentChild.getNextSibling();
-					
+
 					// remove child from document fragment
 					fragment.removeChild(currentChild);
 
@@ -1266,7 +1435,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					// next
 					currentChild = savedNextChild;
 				}
-				
+
 			} else {
 
 				Node _parent = newChild.getParentNode();
@@ -1274,14 +1443,14 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				if (_parent != null && _parent instanceof DOMNode) {
 					_parent.removeChild(newChild);
 				}
-			
+
 				treeAppendChild(RelType.CONTAINS, (DOMNode)newChild);
 			}
-			
+
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
-		}					
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
 
 		return newChild;
 	}
@@ -1293,31 +1462,31 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	@Override
 	public Node cloneNode(boolean deep) {
-		
+
 		if (deep) {
-		
+
 			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
-			
+
 		} else {
-			
+
 			final PropertyMap properties = new PropertyMap();
-			
+
 			for (Iterator<PropertyKey> it = getPropertyKeys(uiView.name()).iterator(); it.hasNext();) {
-				
+
 				PropertyKey key = it.next();
-				
+
 				// omit system properties (except type), parent/children and page relationships
 				if (key.equals(GraphObject.type) || (!key.isSystemProperty()
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
-					
+
 					properties.put(key, getProperty(key));
 				}
 			}
-			
+
 			try {
-				
+
 				return (DOMNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DOMNode>() {
 
 					@Override
@@ -1327,13 +1496,13 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					}
 
 				});
-				
+
 			} catch (FrameworkException ex) {
-				
+
 				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
-				
+
 			}
-			
+
 		}
 	}
 
@@ -1373,7 +1542,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			String otherId = ((DOMNode)node).getProperty(GraphObject.uuid);
 			String ourId   = getProperty(GraphObject.uuid);
-			
+
 			if (ourId != null && otherId != null && ourId.equals(otherId)) {
 				return true;
 			}
@@ -1416,10 +1585,10 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	public Object getUserData(String string) {
 		return null;
 	}
-	
+
 	@Override
 	public final void normalize() {
-		
+
 		try {
 
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
@@ -1476,14 +1645,14 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 							}
 						}
 					}
-					
+
 					return null;
 				}
-				
+
 			});
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
 		}
 	}
@@ -1491,25 +1660,34 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	// ----- interface DOMAdoptable -----
 	@Override
 	public Node doAdopt(final Page _page) throws DOMException {
-		
+
 		if (_page != null) {
-			
+
 			try {
-				
-				setProperty(ownerDocument, _page);
-				
+
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						setProperty(ownerDocument, _page);
+
+						return null;
+					}
+				});
+
 			} catch (FrameworkException fex) {
-				
+
 				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
 			}
 		}
-		
+
 		return this;
 	}
 
 	// ----- nested classes -----
 	protected static class TextCollector implements Predicate<Node> {
-		
+
 		private StringBuilder textBuffer = new StringBuilder(200);
 
 		@Override
@@ -1521,20 +1699,20 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			return false;
 		}
-		
+
 		public String getText() {
 			return textBuffer.toString();
 		}
 	}
-	
+
 	protected static class TagPredicate implements Predicate<Node> {
 
 		private String tagName = null;
-		
+
 		public TagPredicate(String tagName) {
 			this.tagName = tagName;
 		}
-		
+
 		@Override
 		public boolean evaluate(SecurityContext securityContext, Node... obj) {
 
@@ -1542,7 +1720,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				DOMElement elem = (DOMElement)obj[0];
 
-				if (tagName.equals(elem.getProperty(DOMElement.tag))) {					
+				if (tagName.equals(elem.getProperty(DOMElement.tag))) {
 					return true;
 				}
 			}
@@ -1550,5 +1728,5 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			return false;
 		}
 	}
-	
+
 }
