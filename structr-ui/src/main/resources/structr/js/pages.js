@@ -835,7 +835,7 @@ var _Pages = {
                         
                         if (name.endsWith('.css')) {
                             
-                            console.log('CSS file dropped in <head>, creating <link>');
+                            //console.log('CSS file dropped in <head>, creating <link>');
                             
                             tag = 'link';
                             nodeData._html_href = '/${link.name}';
