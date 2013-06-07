@@ -18,6 +18,8 @@
  */
 package org.structr.web.entity.dom;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -214,6 +216,18 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				    out[i] = StringUtils.capitalize(in[i]);
 				};
 				return StringUtils.join(out, " ");
+
+			}
+
+		});
+		functions.put("urlencode", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+				       ? encodeURL(s[0])
+				       : null;
 
 			}
 
@@ -514,9 +528,23 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 
 	}
-
+	
 	
 	// ----- protected methods -----
+
+	protected static String encodeURL(String source) {
+		
+		try {
+			return URLEncoder.encode(source, "UTF-8");
+			
+		} catch (UnsupportedEncodingException ex) {
+
+			logger.log(Level.WARNING, "Unsupported Encoding", ex);
+		}
+		
+		// fallback, unencoded
+		return source;
+	}
 	
 	protected void checkIsChild(Node otherNode) throws DOMException {
 		
