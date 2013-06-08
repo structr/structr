@@ -18,10 +18,8 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.util.NumericUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;

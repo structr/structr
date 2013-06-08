@@ -22,6 +22,7 @@ package org.structr.core;
 
 import org.structr.core.graph.NodeService;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.RelationshipType;
@@ -125,40 +126,50 @@ public class EntityContext {
 
 			}
 		}
-	}
-
-	public static void scanEntity(Object entity) {
 		
-		Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, entity);
-		Map<Field, View> views                = getFieldValuesOfType(View.class, entity);
-		Class entityType                      = entity.getClass();
-
-		for (Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
-
-			PropertyKey propertyKey = entry.getValue();
-			Field field             = entry.getKey();
-			Class declaringClass    = field.getDeclaringClass();
+		// moved here from scanEntity, no reason to have this in a separate
+		// method requiring two different calls instead of one
+		int modifiers = type.getModifiers();
+		if (!Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers)) {
 			
-			if (declaringClass != null) {
+			try {
 				
-				propertyKey.setDeclaringClass(declaringClass);
-				registerProperty(declaringClass, propertyKey);
+				Object entity                         = type.newInstance();
+				Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, entity);
+				Map<Field, View> views                = getFieldValuesOfType(View.class, entity);
+				Class entityType                      = entity.getClass();
+
+				for (Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
+
+					PropertyKey propertyKey = entry.getValue();
+					Field field             = entry.getKey();
+					Class declaringClass    = field.getDeclaringClass();
+
+					if (declaringClass != null) {
+
+						propertyKey.setDeclaringClass(declaringClass);
+						registerProperty(declaringClass, propertyKey);
+
+					}
+
+					registerProperty(entityType, propertyKey);
+				}
+
+				for (Entry<Field, View> entry : views.entrySet()) {
+
+					Field field = entry.getKey();
+					View view   = entry.getValue();
+
+					for (PropertyKey propertyKey : view.properties()) {
+
+						// register field in view for entity class and declaring superclass
+						registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
+						registerPropertySet(entityType, view.name(), propertyKey);
+					}
+				}
 				
-			}
-			
-			registerProperty(entityType, propertyKey);
-		}
-		
-		for (Entry<Field, View> entry : views.entrySet()) {
-			
-			Field field = entry.getKey();
-			View view   = entry.getValue();
-
-			for (PropertyKey propertyKey : view.properties()) {
-
-				// register field in view for entity class and declaring superclass
-				registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
-				registerPropertySet(entityType, view.name(), propertyKey);
+			} catch (Throwable t) {
+				logger.log(Level.WARNING, "Unable to instantiate {0}: {1}", new Object[] { type, t.getMessage() } );
 			}
 		}
 	}

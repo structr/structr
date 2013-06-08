@@ -101,7 +101,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	//~--- constructors ---------------------------------------------------
 
 //      public enum Permission implements PropertyKey {
-//              allowed, denied, scanEntity, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
+//              allowed, denied, read, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
 //      }
 	public AbstractRelationship() {
 
@@ -692,7 +692,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			if (readOnlyPropertiesUnlocked) {
 
 				// permit write operation once and
-				// lock scanEntity-only properties again
+				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
 				
 			} else {

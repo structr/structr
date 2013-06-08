@@ -246,7 +246,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * Can be used to permit the setting of a read-only
 	 * property once. The lock will be restored automatically
 	 * after the next setProperty operation. This method exists
-	 * to prevent automatic set methods from setting a scanEntity-only
+	 * to prevent automatic set methods from setting a read-only
 	 * property while allowing a manual set method to override this
 	 * default behaviour.
 	 */
@@ -277,7 +277,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
 					// permit write operation once and
-					// lock scanEntity-only properties again
+					// lock read-only properties again
 					readOnlyPropertiesUnlocked = false;
 				} else {
 

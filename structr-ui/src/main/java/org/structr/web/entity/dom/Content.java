@@ -175,7 +175,7 @@ public class Content extends DOMNode implements Text {
 
 		}
 
-		return getProperty(key);
+		return super.getPropertyForIndexing(key);
 
 	}
 
