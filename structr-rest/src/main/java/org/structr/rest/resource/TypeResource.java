@@ -80,7 +80,6 @@ public class TypeResource extends SortableResource {
 		this.request         = request;
 		this.rawType         = part;
 
-		// FIXME: what is this block for?
 		if (rawType != null) {
 
 			// test if resource class exists

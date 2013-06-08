@@ -22,6 +22,7 @@ package org.structr.core;
 
 import org.structr.core.graph.NodeService;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import org.apache.commons.lang.StringUtils;
 
@@ -78,6 +79,7 @@ public class EntityContext {
 	private static final Map<String, String> normalizedEntityNameCache                            = new LinkedHashMap<String, String>();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap               = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                            = new LinkedHashMap<String, Class>();
+	private static final Map<Class, Set<Method>> exportedMethodMap                               = new LinkedHashMap<Class, Set<Method>>();
 	private static final Map<Class, Set<Class>> interfaceMap                                      = new LinkedHashMap<Class, Set<Class>>();
 	private static final Map<String, Class> reverseInterfaceMap                                   = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                              = new LinkedHashMap<String, Class>();
@@ -172,6 +174,14 @@ public class EntityContext {
 				logger.log(Level.WARNING, "Unable to instantiate {0}: {1}", new Object[] { type, t.getMessage() } );
 			}
 		}
+		
+		Set<Method> typeMethods = exportedMethodMap.get(type);
+		if (typeMethods == null) {
+			typeMethods = new LinkedHashSet<Method>();
+			exportedMethodMap.put(type, typeMethods);
+		}
+		
+		typeMethods.addAll(getAnnotatedMethods(type, Export.class));
 	}
 	
 	public static void registerProperty(Class type, PropertyKey propertyKey) {
@@ -890,6 +900,10 @@ public class EntityContext {
 		return interfaces;
 	}
 	
+	public static Set<Method> getExportedMethodsForType(Class type) {
+		return exportedMethodMap.get(type);
+	}
+	
 	public static boolean isKnownProperty(final PropertyKey key) {
 		return globalKnownPropertyKeys.contains(key);
 	}
@@ -907,6 +921,25 @@ public class EntityContext {
 	
 	public static void registerFactoryDefinition(FactoryDefinition factory) {
 		factoryDefinition = factory;
+	}
+	
+	public static Set<Method> getAnnotatedMethods(Class entityType, Class annotationType) {
+		
+		Set<Method> methods    = new LinkedHashSet<Method>();
+		Set<Class<?>> allTypes = getAllTypes(entityType);
+		
+		for (Class<?> type : allTypes) {
+			
+			for (Method method : type.getDeclaredMethods()) {
+				
+				if (method.getAnnotation(annotationType) != null) {
+				
+					methods.add(method);
+				}
+			}
+		}
+		
+		return methods;
 	}
 	
 	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> entityType, Object entity) {
