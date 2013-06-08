@@ -475,7 +475,7 @@ public abstract class Resource {
 						
 						return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, SearchOperator.AND);
 						
-					} catch(Throwable t) {
+					} catch (Throwable t) {
 						
 						t.printStackTrace();
 					}
@@ -562,7 +562,12 @@ public abstract class Resource {
 						searchAttributes.add(Search.andProperty(key, searchValue));
 					} else {
 
-						searchAttributes.add(determineSearchType(securityContext, key, searchValue));
+						SearchAttribute attr = determineSearchType(securityContext, key, searchValue);
+						
+						if (attr != null) {
+							
+							searchAttributes.add(attr);
+						}
 
 					}
 

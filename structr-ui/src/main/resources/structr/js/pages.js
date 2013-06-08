@@ -47,9 +47,6 @@ var _Pages = {
 
     init : function() {
         
-        pageSize['Page'] = 10;
-        page['Page'] = 1;
-        
         //console.log('_Pages.init()');
         _Pages.resize();
 
@@ -124,6 +121,13 @@ var _Pages = {
         
         window.setTimeout('_Pages.resize()', 1000);
 
+    },
+
+    clearPreviews : function() {
+
+        //console.log(previewTabs, $('.page', previewTabs));
+        $('.page', previewTabs).remove();
+        
     },
 
     refresh : function() {
@@ -831,7 +835,7 @@ var _Pages = {
                         
                         if (name.endsWith('.css')) {
                             
-                            console.log('CSS file dropped in <head>, creating <link>');
+                            //console.log('CSS file dropped in <head>, creating <link>');
                             
                             tag = 'link';
                             nodeData._html_href = '/${link.name}';
@@ -972,7 +976,7 @@ var _Pages = {
                 var self = $(this);
                 var pageId = self.prop('id').substring('preview_'.length);
 
-                if (pageId == activeTab) {
+                if (pageId === activeTab) {
                     var doc = this.contentDocument;
                     doc.location.reload(true);
                 }
@@ -1030,5 +1034,4 @@ var _Pages = {
         
         $('#pages_').removeClass('nodeHover').droppable('enable');
     }
-
 };

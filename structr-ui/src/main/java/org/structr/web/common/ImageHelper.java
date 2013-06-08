@@ -180,8 +180,8 @@ public abstract class ImageHelper {
 				int sourceHeight = source.getHeight();
 
 				// Update image dimensions
-				originalImage.setWidth(sourceWidth);
-				originalImage.setHeight(sourceHeight);
+				originalImage.setProperty(Image.width, sourceWidth);
+				originalImage.setProperty(Image.height, sourceHeight);
 
 				// float aspectRatio = sourceWidth/sourceHeight;
 				float scaleX = 1.0f * sourceWidth / maxWidth;

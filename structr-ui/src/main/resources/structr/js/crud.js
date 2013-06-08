@@ -561,32 +561,6 @@ var _Crud = {
         });
     },
 
-//    addResource : function() {
-//        _Crud.dialog('Add another Type', function() {
-//            }, function() {
-//            });
-//        dialogText.append('Select Types');
-//        $.each(_Crud.allTypes, function(i, type) {
-//            dialogText.append('<div id="add-resource-' + type + '" class="button">' + type + '</div>');
-//            $('#add-resource-' + type, dialogText).on('click', function() {
-//                $.ajax({
-//                    url: rootUrl + 'resource_access?signature=' + type,
-//                    headers: headers,
-//                    data : '{visibleToAuthenticatedUsers:true}',
-//                    dataType: 'json',
-//                    contentType: 'application/json; charset=utf-8',
-//                    method: 'PUT',
-//                    success: function(data) {
-//                        console.log('success');
-//                    },
-//                    error : function(a,b,c) {
-//                        console.log(a,b,c);
-//                    }
-//                });                
-//            });
-//        });
-//    },
-
     crudExport : function(type) {
         var url  = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
         //console.log(b);
@@ -911,7 +885,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                console.log('reset', id, key, data.result[key]);
+                //console.log('reset', id, key, data.result[key]);
                 _Crud.resetCell(id, key, data.result[key]);
             }
         });
@@ -1058,39 +1032,12 @@ var _Crud = {
                     }
                 }
             }
-        //            success: function() {
-        //                console.log('crudUpdate success', url, headers, json);
-        //                if (onSuccess) {
-        //                    onSuccess();
-        //                } else {
-        //                    _Crud.crudRefresh(id, key);
-        //                }
-        //            },
-        //            error: function(data, status, xhr) {
-        //                console.log('crudUpdate error', url, headers, json, data, status, xhr);
-        //                // since jQuery 1.9, an empty response body is regarded as an error
-        //                // we have to react on this here
-        //                if (data.status == 200) {
-        //                } else {
-        //                    if (onError) {
-        //                        onError();
-        //                    } else {
-        //                        _Crud.crudReset(id, key);
-        //                    }
-        //                }
-        //            //alert(data.responseText);
-        //            // TODO: Overlay with error info
-        //            }
         });
     },
     
     crudRemoveProperty : function(id, key, onSuccess, onError) {
-        
         var url = rootUrl + id;
         var json = '{"' + key + '":null}';
-        
-        //console.log('crudRemoveProperty', headers, url, json);
-        
         $.ajax({
             url: url,
             headers: headers,
@@ -1131,7 +1078,6 @@ var _Crud = {
                     }
                 },
                 403 : function(data, status, xhr) {
-                    console.log(data, status, xhr);
                     _Crud.error('Forbidden: ' + data.responseText, true);
                     if (onError) {
                         onError();
@@ -1393,7 +1339,7 @@ var _Crud = {
     },
 
     getAndAppendNode : function(parentType, parentId, key, obj, cell) {
-        //console.log('headers', headers);
+        //console.log(parentType, parentId, key, obj, cell);
         if (!obj) return;
         var id;
         if ((typeof obj) === 'object') {
@@ -1507,10 +1453,7 @@ var _Crud = {
         var types = type ? [ type ] : _Crud.types;
         
         $.each(types, function(t, type) {
-            
             var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', pageSize, 1) + '&name=' + searchString + '&loose=1';
-            console.log(url);
-            
             $.ajax({
                 url: url,
                 headers: headers,
@@ -1552,7 +1495,8 @@ var _Crud = {
     displayName : function(node) {
         var displayName;
         if (node.type === 'Content') {
-            displayName = node.content.substring(0, 100);
+            //displayName = $(node.content).text().substring(0, 100);
+            displayName = escapeTags(node.content.substring(0, 100));
         } else {
             displayName = node.name ? node.name : node.id;
         }
@@ -1619,7 +1563,6 @@ var _Crud = {
         var view = _Crud.view[_Crud.type];
         var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
         var url = rootUrl + urlType + '/' + id + '/' + view;
-        console.log(url);
         if (_Crud.isCollection(key, type)) {
             var objects = [];
             $.ajax({
@@ -1635,7 +1578,7 @@ var _Crud = {
                         //console.log(obj, ' equals ', relatedObj);
                         if (!_Crud.equal(obj, relatedObj)) {
                             //console.log('not equal');
-                            objects.push(obj);
+                            objects.push(obj.id);
                         }
                     });
                     
@@ -1667,9 +1610,9 @@ var _Crud = {
                                     //async: false,
                                     statusCode : {
                                         200 : function(data) {
-                                            var rowEl = $('#' + id);
-                                            var nodeEl = $('.' + _Crud.id(relatedObj) + '_', rowEl);
-                                            console.log(rowEl, nodeEl);
+                                            //var rowEl = $('#' + id);
+                                            var nodeEl = $('.' + _Crud.id(relatedObj) + '_');
+                                            //console.log(rowEl, nodeEl);
                                             nodeEl.remove();
                                         },
                                         error: function(a,b,c) {
@@ -1719,11 +1662,11 @@ var _Crud = {
                 success: function(data) {
                     //console.log(data.result[key]);
                     $.each(data.result[key], function(i, node) {
-                        objects.push(node); 
+                        objects.push(node.id); 
                     });
 
-                    if (!isIn(relatedObj, objects)) {
-                        objects.push(relatedObj);
+                    if (!isIn(relatedObj.id, objects)) {
+                        objects.push(relatedObj.id);
                     }
                     var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
                     //console.log(headers, url, json);
@@ -2062,7 +2005,7 @@ var _Crud = {
 if (typeof module === 'object') {
     var $ = require('jquery');
     var token = '';
-    var rootUrl = 'http://localhost:8180/structr/rest/';
+    var rootUrl = '/structr/rest/';
     module.exports = _Crud;
     
     function nvl(value, defaultValue) {

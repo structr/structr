@@ -27,7 +27,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.core.EntityContext;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.DoubleProperty;
-import org.structr.core.validator.TypeUniquenessValidator;
 
 /**
  * A simple entity with lat,lon coordinates

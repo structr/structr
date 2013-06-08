@@ -1066,7 +1066,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			@Override
 			public Object execute() throws FrameworkException {
 
-			setProperty(AbstractNode.createdBy, createdBy);
+				setProperty(AbstractNode.createdBy, createdBy);
 				
 				return null;
 			}
@@ -1082,7 +1082,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			@Override
 			public Object execute() throws FrameworkException {
 
-			setProperty(AbstractNode.createdDate, date);
+				setProperty(AbstractNode.createdDate, date);
 				
 				return null;
 			}
@@ -1098,7 +1098,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			@Override
 			public Object execute() throws FrameworkException {
 
-			setProperty(AbstractNode.visibilityStartDate, date);
+				setProperty(AbstractNode.visibilityStartDate, date);
 				
 				return null;
 			}
@@ -1114,7 +1114,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			@Override
 			public Object execute() throws FrameworkException {
 
-			setProperty(AbstractNode.visibilityEndDate, date);
+				setProperty(AbstractNode.visibilityEndDate, date);
 				
 				return null;
 			}
@@ -1130,7 +1130,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			@Override
 			public Object execute() throws FrameworkException {
 
-			setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
+				setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
 				
 				return null;
 			}
@@ -1146,7 +1146,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			@Override
 			public Object execute() throws FrameworkException {
 
-			setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
+				setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
 				
 				return null;
 			}
@@ -1163,7 +1163,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			@Override
 			public Object execute() throws FrameworkException {
 
-			setProperty(AbstractNode.hidden, hidden);
+				setProperty(AbstractNode.hidden, hidden);
 				
 				return null;
 			}

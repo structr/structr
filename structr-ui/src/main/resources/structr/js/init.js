@@ -713,6 +713,7 @@ var Structr = {
                 $('.pageSize', pager).val(pageSize[type]);
                 $('.pageCount', pager).val(pageCount[type]);
                 $('.node', el).remove();
+                _Pages.clearPreviews();
                 Command.list(type, pageSize[type], page[type], sort, order);
             }
         });
@@ -722,6 +723,7 @@ var Structr = {
                 page[type] = $(this).val();
                 $('.page', pager).val(page[type]);
                 $('.node', el).remove();
+                _Pages.clearPreviews();
                 Command.list(type, pageSize[type], page[type], sort, order);
             }
         });
@@ -742,6 +744,7 @@ var Structr = {
             }
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
+            _Pages.clearPreviews();
             Command.list(type, pageSize[type], page[type], sort, order);
         });
         
@@ -753,6 +756,7 @@ var Structr = {
             }
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
+            _Pages.clearPreviews();
             Command.list(type, pageSize[type], page[type], sort, order);
         });
         

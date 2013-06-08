@@ -58,6 +58,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.graph.DeleteRelationshipCommand;
 
@@ -160,7 +161,7 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
+	protected List<AbstractNode> createTestNodes(final String type, final int number, final long delay) throws FrameworkException {
 
 		final PropertyMap props = new PropertyMap();
 		props.put(AbstractNode.type, type);
@@ -175,6 +176,9 @@ public class StructrTest extends TestCase {
 				for (int i = 0; i < number; i++) {
 
 					nodes.add(createNodeCommand.execute(props));
+					try {
+						Thread.sleep(delay);
+					} catch (InterruptedException ex) {}
 				}
 
 				return nodes;
@@ -182,6 +186,12 @@ public class StructrTest extends TestCase {
 			}
 
 		});
+
+	}
+
+	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
+		
+		return createTestNodes(type, number, 0);
 
 	}
 

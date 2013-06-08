@@ -18,8 +18,11 @@
  */
 package org.structr.web.entity.dom;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -55,7 +58,6 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CreateNodeCommand;
@@ -214,6 +216,18 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				    out[i] = StringUtils.capitalize(in[i]);
 				};
 				return StringUtils.join(out, " ");
+
+			}
+
+		});
+		functions.put("urlencode", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+				       ? encodeURL(s[0])
+				       : null;
 
 			}
 
@@ -514,9 +528,23 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 
 	}
-
+	
 	
 	// ----- protected methods -----
+
+	protected static String encodeURL(String source) {
+		
+		try {
+			return URLEncoder.encode(source, "UTF-8");
+			
+		} catch (UnsupportedEncodingException ex) {
+
+			logger.log(Level.WARNING, "Unsupported Encoding", ex);
+		}
+		
+		// fallback, unencoded
+		return source;
+	}
 	
 	protected void checkIsChild(Node otherNode) throws DOMException {
 		
@@ -718,6 +746,15 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 						return StringUtils.defaultString(request.getParameter(referenceKey));
 					}
 				}
+
+			}
+
+			// special keyword "now":
+			if ("now".equals(part.toLowerCase())) {
+
+				// Return current date converted in format
+				// Note: We use "createdDate" here only as an arbitrary property key to get the database converter
+				return AbstractNode.createdDate.inputConverter(securityContext).revert(new Date());
 
 			}
 

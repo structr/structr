@@ -40,7 +40,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
@@ -53,8 +52,6 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -316,36 +313,40 @@ public class Importer {
 
 				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
 			}
+			
+			if (newNode != null) {
 
-			// "id" attribute: Put it into the "_html_id" field
-			if (StringUtils.isNotBlank(id)) {
+				// "id" attribute: Put it into the "_html_id" field
+				if (StringUtils.isNotBlank(id)) {
 
-				newNode.setProperty(DOMElement._id, id);
-			}
-
-			if (StringUtils.isNotBlank(classString.toString())) {
-
-				newNode.setProperty(DOMElement._class, StringUtils.trim(classString.toString()));
-			}
-
-			for (Attribute nodeAttr : node.attributes()) {
-
-				String key = nodeAttr.getKey();
-
-				// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
-				if (!key.equals("text")) {
-
-					newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+					newNode.setProperty(DOMElement._id, id);
 				}
 
+				if (StringUtils.isNotBlank(classString.toString())) {
+
+					newNode.setProperty(DOMElement._class, StringUtils.trim(classString.toString()));
+				}
+
+				for (Attribute nodeAttr : node.attributes()) {
+
+					String key = nodeAttr.getKey();
+
+					// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
+					if (!key.equals("text")) {
+
+						newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+					}
+
+				}
+
+				parent.appendChild(newNode);
+
+				// Link new node to its parent node
+				// linkNodes(parent, newNode, page, localIndex);
+				// Step down and process child nodes
+				createChildNodes(node, newNode, page, baseUrl);
+			
 			}
-
-			parent.appendChild(newNode);
-
-			// Link new node to its parent node
-			// linkNodes(parent, newNode, page, localIndex);
-			// Step down and process child nodes
-			createChildNodes(node, newNode, page, baseUrl);
 		}
 
 	}
