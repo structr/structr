@@ -428,7 +428,7 @@ var _Entities = {
 
                 dialogText.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
 
-                if (lastMenuEntry === 'pages' && !entity.type === 'Content') {
+                if (lastMenuEntry === 'pages' && !(entity.type === 'Content')) {
                     dialogText.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
                 }
 
