@@ -444,7 +444,6 @@ var _Entities = {
                     e.stopPropagation();
                     entity.setProperty('visibleToPublicUsers', publicSwitch.hasClass('disabled'), $('#recursive', dialogText).is(':checked'), function() {
                         _Entities.changeBooleanAttribute(publicSwitch, entity.visibleToPublicUsers);
-                        StructrModel.refresh(entity.id);
                     });
                 });
 
@@ -452,7 +451,6 @@ var _Entities = {
                     e.stopPropagation();
                     entity.setProperty('visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'), $('#recursive', dialogText).is(':checked'), function() {
                         _Entities.changeBooleanAttribute(authSwitch, entity.visibleToAuthenticatedUsers);
-                        StructrModel.refresh(entity.id);
                     });
                 });
 

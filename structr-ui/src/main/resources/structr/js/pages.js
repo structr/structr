@@ -259,7 +259,6 @@ var _Pages = {
 		
         });
 
-        _Entities.appendAccessControlIcon(tab, entity, true);
         
         return tab;
     },
@@ -383,6 +382,8 @@ var _Pages = {
     appendPageElement : function(entity) {
         
         var hasChildren = true;
+        
+        var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
         log('appendPageElement', entity, hasChildren);
 
@@ -397,6 +398,7 @@ var _Pages = {
             + '<b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
+        _Entities.appendAccessControlIcon(div, entity, protected);
 
         div.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
@@ -411,7 +413,6 @@ var _Pages = {
 //        });
 
         _Entities.appendEditPropertiesIcon(div, entity);
-        _Entities.appendAccessControlIcon(div, entity);
         _Entities.setMouseOver(div);
 
         var tab = _Pages.addTab(entity);
