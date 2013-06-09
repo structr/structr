@@ -182,6 +182,8 @@ var _Elements = {
     appendElementElement : function(entity, refNode) {
         log('_Elements.appendElementElement', entity);
         
+        var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
+        
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
         
         var parent = entity.parent.id ? Structr.node(entity.parent.id) : undefined;
@@ -208,11 +210,11 @@ var _Elements = {
         if (!div) return;
         
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
-
+        
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
             + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
             + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
-            + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class : '</span>')
+            + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
             + '</div>');
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
@@ -221,6 +223,7 @@ var _Elements = {
             e.stopPropagation();
         });
 
+        _Entities.appendAccessControlIcon(div, entity, protected);
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
@@ -230,9 +233,8 @@ var _Elements = {
         _Entities.setMouseOver(div);
         _Entities.appendEditPropertiesIcon(div, entity);
         _Entities.appendDataIcon(div, entity);
-        _Entities.appendAccessControlIcon(div, entity);
         
-        if (entity.tag == 'a' || entity.tag == 'link') {
+        if (entity.tag === 'a' || entity.tag === 'link') {
             div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + Structr.link_icon + '">');
             $('.link_icon', div).on('click', function(e) {
                 e.stopPropagation();
@@ -322,7 +324,7 @@ var _Elements = {
                             });
                             
                             if (isIn(entity.id, file.linkingElements)) {
-                                console.log(entity.id, file.linkingElements);
+                                //console.log(entity.id, file.linkingElements);
                                 div.addClass('nodeActive');
                             }
                             

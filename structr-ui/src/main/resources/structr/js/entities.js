@@ -406,15 +406,17 @@ var _Entities = {
         });
 
     },
-    appendAccessControlIcon: function(parent, entity, hide) {
+    appendAccessControlIcon: function(parent, entity, show) {
 
         var keyIcon = $('.key_icon', parent);
         var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">';
         if (!(keyIcon && keyIcon.length)) {
             parent.append(newKeyIcon);
             keyIcon = $('.key_icon', parent)
-            if (hide)
-                keyIcon.hide();
+            if (show) {
+                keyIcon.show();
+                keyIcon.addClass('donthide');
+            }
 
             keyIcon.on('click', function(e) {
                 e.stopPropagation();
@@ -426,7 +428,7 @@ var _Entities = {
 
                 dialogText.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
 
-                if (lastMenuEntry === 'pages') {
+                if (lastMenuEntry === 'pages' && !entity.type === 'Content') {
                     dialogText.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
                 }
 
@@ -442,6 +444,7 @@ var _Entities = {
                     e.stopPropagation();
                     entity.setProperty('visibleToPublicUsers', publicSwitch.hasClass('disabled'), $('#recursive', dialogText).is(':checked'), function() {
                         _Entities.changeBooleanAttribute(publicSwitch, entity.visibleToPublicUsers);
+                        StructrModel.refresh(entity.id);
                     });
                 });
 
@@ -449,6 +452,7 @@ var _Entities = {
                     e.stopPropagation();
                     entity.setProperty('visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'), $('#recursive', dialogText).is(':checked'), function() {
                         _Entities.changeBooleanAttribute(authSwitch, entity.visibleToAuthenticatedUsers);
+                        StructrModel.refresh(entity.id);
                     });
                 });
 
@@ -507,12 +511,6 @@ var _Entities = {
                         });
                     }
                 });
-
-            });
-
-            keyIcon.on('mouseover', function(e) {
-                var self = $(this);
-                self.show();
 
             });
         }
@@ -698,7 +696,7 @@ var _Entities = {
         var node = el.closest('.node')
         if (node) {
             node.removeClass('nodeHover');
-            node.find('img.button').hide();
+            node.find('img.button').not('.donthide').hide();
         }
         var page = node.closest('.page');
         if (page.length) {

@@ -712,8 +712,8 @@ var _Pages = {
         var div = _Elements.appendElementElement(entity, refNode);
         if (!div) return false;
         if (parentId) {
-            $('.delete_icon', div).replaceWith('<img title="Remove ' + entity.type + ' \'' + entity.name + '\' from parent ' + parentId + '" '
-                + 'alt="Remove ' + entity.type + ' ' + entity.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
+            $('.delete_icon', div).replaceWith('<img title="Remove" '
+                + 'alt="Remove" class="delete_icon button" src="icon/brick_delete.png">');
             $('.button', div).on('mousedown', function(e) {
                 e.stopPropagation();
             });
@@ -891,7 +891,7 @@ var _Pages = {
                 }
                 log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
             }
-        });
+        }); 
         return div;
     },
 
@@ -913,8 +913,8 @@ var _Pages = {
                 e.stopPropagation();
             });
             
-            $('.delete_icon', div).replaceWith('<img title="Remove content \'' + content.name + '\' from parent ' + parentId + '" '
-                + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
+            $('.delete_icon', div).replaceWith('<img title="Remove" '
+                + 'alt="Remove" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
                 Command.removeChild(content.id);

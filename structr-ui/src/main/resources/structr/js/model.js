@@ -174,16 +174,19 @@ var StructrModel = {
      * and will trigger a UI refresh.
      **/
     update : function(data) {
-        log('StructrModel.update', data);
         var obj = StructrModel.obj(data.id);
         
         if (obj) {
+
             $.each(Object.keys(data.data), function(i, key) {
                 log('update model', key, data.data[key]);
                 obj[key] = data.data[key];
                 //console.log('object ', obj, 'updated with key', key, '=', obj[key]);
                 StructrModel.refreshKey(obj.id, key);
             });
+            
+            StructrModel.refresh(obj.id);
+            
         }
         
         return obj;
@@ -239,16 +242,10 @@ var StructrModel = {
             _Entities.changeBooleanAttribute(attrElement, newValue);
             
         } else {
+            
+            blinkGreen(attrElement);
                 
-            attrElement.animate({
-                color: '#81ce25'
-            }, 100, function() {
-                $(this).animate({
-                    color: '#333333'
-                }, 200);
-            });
-                
-            if (attrElement && tag == 'select') {
+            if (attrElement && tag === 'select') {
                 attrElement.val(newValue);
             } else {
                 log(key, newValue);
@@ -283,14 +280,8 @@ var StructrModel = {
 
             // update tab and reload iframe
             var tabNameElement = $('#show_' + id).children('.name_');
-                                        
-            tabNameElement.animate({
-                color: '#81ce25'
-            }, 100, function() {
-                $(this).animate({
-                    color: '#333333'
-                }, 200);
-            });
+            
+            blinkGreen(tabNameElement);
                     
             tabNameElement.html(fitStringToSize(newValue, 200));
             tabNameElement.attr('title', newValue);
@@ -311,8 +302,6 @@ var StructrModel = {
         
         var obj = StructrModel.obj(id);
         
-        log('StructrModel.refresh', id, obj);
-        
         if (obj) {
             var element = Structr.node(id);
             
@@ -322,10 +311,43 @@ var StructrModel = {
         
             // update values with given key
             $.each(Object.keys(obj), function(i, key) {
-                
                 StructrModel.refreshKey(id, key);
-                
             });
+            
+            // check display of HTML 'class' and 'id' attribute
+            var id = obj._html_id;
+            var cl = obj._html_class;
+
+            var idEl = $(element).children('._html_id_');
+            if (id) {
+                if (!idEl.length) {
+                    $('<span class="_html_id_"></span>').insertAfter($(element).children('b'));
+                    clEl = $(element).children('._html_id_');
+                }
+                idEl.text('#' + id);
+            } else {
+                idEl.empty();
+            }
+            
+            var clEl = $(element).children('._html_class_');
+            if (cl) {
+                if (!clEl.length) {
+                    $('<span class="_html_class_"></span>').insertAfter(idEl.length ? idEl : $(element).children('b'));
+                    clEl = $(element).children('._html_class_');
+                }
+                clEl.text('.' + $.trim(cl).replace(/ /g, '.'));
+            } else {
+                clEl.empty();
+            }
+            
+            // check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
+            var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
+            var keyIcon = $(element).children('.key_icon');
+            if (protected) {
+                keyIcon.show();
+            } else {
+                keyIcon.hide();
+            }
         
         }
     
