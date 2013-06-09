@@ -109,6 +109,11 @@ public class TypedIdResource extends FilterableResource {
 		throw new NotFoundException();
 	}
 	
+	@Override
+	public Class getEntityClass() {
+		return typeResource.getEntityClass();
+	}
+
 	public TypeResource getTypeResource() {
 		return typeResource;
 	}

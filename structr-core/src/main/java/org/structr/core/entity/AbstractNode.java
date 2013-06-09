@@ -61,6 +61,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
+import org.structr.core.Export;
 import org.structr.core.IterableAdapter;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.property.EntityIdProperty;
@@ -246,7 +247,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * Can be used to permit the setting of a read-only
 	 * property once. The lock will be restored automatically
 	 * after the next setProperty operation. This method exists
-	 * to prevent automatic set methods from setting a scanEntity-only
+	 * to prevent automatic set methods from setting a read-only
 	 * property while allowing a manual set method to override this
 	 * default behaviour.
 	 */
@@ -277,7 +278,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
 					// permit write operation once and
-					// lock scanEntity-only properties again
+					// lock read-only properties again
 					readOnlyPropertiesUnlocked = false;
 				} else {
 

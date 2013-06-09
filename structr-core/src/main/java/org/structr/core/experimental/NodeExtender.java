@@ -63,11 +63,7 @@ public class NodeExtender<T extends AbstractNode> {
 				EntityContext.init(dynamicClass);
 				Services.getService(ModuleService.class).getCachedNodeEntities().put(simpleName, dynamicClass);
 				
-				Object newEntity = dynamicClass.newInstance();
-				EntityContext.scanEntity(newEntity);
-				
 			} catch (Throwable ignore) {
-				
 				
 				ignore.printStackTrace();
 			}

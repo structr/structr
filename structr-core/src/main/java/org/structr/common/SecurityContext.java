@@ -471,7 +471,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		// users with scanEntity permissions may see the node
+		// users with read permissions may see the node
 		if (isAllowedInBackend(node, Permission.read)) {
 
 			return true;
@@ -545,7 +545,7 @@ public class SecurityContext {
 		switch (permission) {
 
 			case read :
-				return isVisibleInFrontend(node);    // scanEntity permission in frontend is equivalent to visibility here
+				return isVisibleInFrontend(node);    // read permission in frontend is equivalent to visibility here
 
 			default :
 				return node.isGranted(permission, user);

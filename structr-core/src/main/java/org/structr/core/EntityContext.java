@@ -22,6 +22,8 @@ package org.structr.core;
 
 import org.structr.core.graph.NodeService;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.RelationshipType;
@@ -77,6 +79,7 @@ public class EntityContext {
 	private static final Map<String, String> normalizedEntityNameCache                            = new LinkedHashMap<String, String>();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap               = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                            = new LinkedHashMap<String, Class>();
+	private static final Map<Class, Set<Method>> exportedMethodMap                               = new LinkedHashMap<Class, Set<Method>>();
 	private static final Map<Class, Set<Class>> interfaceMap                                      = new LinkedHashMap<Class, Set<Class>>();
 	private static final Map<String, Class> reverseInterfaceMap                                   = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                              = new LinkedHashMap<String, Class>();
@@ -125,42 +128,60 @@ public class EntityContext {
 
 			}
 		}
-	}
-
-	public static void scanEntity(Object entity) {
 		
-		Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, entity);
-		Map<Field, View> views                = getFieldValuesOfType(View.class, entity);
-		Class entityType                      = entity.getClass();
-
-		for (Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
-
-			PropertyKey propertyKey = entry.getValue();
-			Field field             = entry.getKey();
-			Class declaringClass    = field.getDeclaringClass();
+		// moved here from scanEntity, no reason to have this in a separate
+		// method requiring two different calls instead of one
+		int modifiers = type.getModifiers();
+		if (!Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers)) {
 			
-			if (declaringClass != null) {
+			try {
 				
-				propertyKey.setDeclaringClass(declaringClass);
-				registerProperty(declaringClass, propertyKey);
+				Object entity                         = type.newInstance();
+				Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, entity);
+				Map<Field, View> views                = getFieldValuesOfType(View.class, entity);
+				Class entityType                      = entity.getClass();
+
+				for (Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
+
+					PropertyKey propertyKey = entry.getValue();
+					Field field             = entry.getKey();
+					Class declaringClass    = field.getDeclaringClass();
+
+					if (declaringClass != null) {
+
+						propertyKey.setDeclaringClass(declaringClass);
+						registerProperty(declaringClass, propertyKey);
+
+					}
+
+					registerProperty(entityType, propertyKey);
+				}
+
+				for (Entry<Field, View> entry : views.entrySet()) {
+
+					Field field = entry.getKey();
+					View view   = entry.getValue();
+
+					for (PropertyKey propertyKey : view.properties()) {
+
+						// register field in view for entity class and declaring superclass
+						registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
+						registerPropertySet(entityType, view.name(), propertyKey);
+					}
+				}
 				
+			} catch (Throwable t) {
+				logger.log(Level.WARNING, "Unable to instantiate {0}: {1}", new Object[] { type, t.getMessage() } );
 			}
-			
-			registerProperty(entityType, propertyKey);
 		}
 		
-		for (Entry<Field, View> entry : views.entrySet()) {
-			
-			Field field = entry.getKey();
-			View view   = entry.getValue();
-
-			for (PropertyKey propertyKey : view.properties()) {
-
-				// register field in view for entity class and declaring superclass
-				registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
-				registerPropertySet(entityType, view.name(), propertyKey);
-			}
+		Set<Method> typeMethods = exportedMethodMap.get(type);
+		if (typeMethods == null) {
+			typeMethods = new LinkedHashSet<Method>();
+			exportedMethodMap.put(type, typeMethods);
 		}
+		
+		typeMethods.addAll(getAnnotatedMethods(type, Export.class));
 	}
 	
 	public static void registerProperty(Class type, PropertyKey propertyKey) {
@@ -879,6 +900,10 @@ public class EntityContext {
 		return interfaces;
 	}
 	
+	public static Set<Method> getExportedMethodsForType(Class type) {
+		return exportedMethodMap.get(type);
+	}
+	
 	public static boolean isKnownProperty(final PropertyKey key) {
 		return globalKnownPropertyKeys.contains(key);
 	}
@@ -896,6 +921,25 @@ public class EntityContext {
 	
 	public static void registerFactoryDefinition(FactoryDefinition factory) {
 		factoryDefinition = factory;
+	}
+	
+	public static Set<Method> getAnnotatedMethods(Class entityType, Class annotationType) {
+		
+		Set<Method> methods    = new LinkedHashSet<Method>();
+		Set<Class<?>> allTypes = getAllTypes(entityType);
+		
+		for (Class<?> type : allTypes) {
+			
+			for (Method method : type.getDeclaredMethods()) {
+				
+				if (method.getAnnotation(annotationType) != null) {
+				
+					methods.add(method);
+				}
+			}
+		}
+		
+		return methods;
 	}
 	
 	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> entityType, Object entity) {
