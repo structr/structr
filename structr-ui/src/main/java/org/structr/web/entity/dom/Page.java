@@ -285,8 +285,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					// create new content element
 					Content content = (Content)Services.command(securityContext, CreateNodeCommand.class).execute(
 						new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
-						new NodeAttribute(Content.content,   text),
-						new NodeAttribute(AbstractNode.visibleToPublicUsers, true)
+						new NodeAttribute(Content.content,   text)
 					);
 					
 					// create relationship from ownerDocument to new text element

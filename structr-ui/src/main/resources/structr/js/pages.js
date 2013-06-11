@@ -259,7 +259,6 @@ var _Pages = {
 		
         });
 
-        _Entities.appendAccessControlIcon(tab, entity, true);
         
         return tab;
     },
@@ -383,6 +382,8 @@ var _Pages = {
     appendPageElement : function(entity) {
         
         var hasChildren = true;
+        
+        var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
         log('appendPageElement', entity, hasChildren);
 
@@ -397,6 +398,7 @@ var _Pages = {
             + '<b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
+        _Entities.appendAccessControlIcon(div, entity, protected);
 
         div.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
@@ -411,7 +413,6 @@ var _Pages = {
 //        });
 
         _Entities.appendEditPropertiesIcon(div, entity);
-        _Entities.appendAccessControlIcon(div, entity);
         _Entities.setMouseOver(div);
 
         var tab = _Pages.addTab(entity);
@@ -712,8 +713,8 @@ var _Pages = {
         var div = _Elements.appendElementElement(entity, refNode);
         if (!div) return false;
         if (parentId) {
-            $('.delete_icon', div).replaceWith('<img title="Remove ' + entity.type + ' \'' + entity.name + '\' from parent ' + parentId + '" '
-                + 'alt="Remove ' + entity.type + ' ' + entity.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
+            $('.delete_icon', div).replaceWith('<img title="Remove" '
+                + 'alt="Remove" class="delete_icon button" src="icon/brick_delete.png">');
             $('.button', div).on('mousedown', function(e) {
                 e.stopPropagation();
             });
@@ -891,7 +892,7 @@ var _Pages = {
                 }
                 log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
             }
-        });
+        }); 
         return div;
     },
 
@@ -913,8 +914,8 @@ var _Pages = {
                 e.stopPropagation();
             });
             
-            $('.delete_icon', div).replaceWith('<img title="Remove content \'' + content.name + '\' from parent ' + parentId + '" '
-                + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
+            $('.delete_icon', div).replaceWith('<img title="Remove" '
+                + 'alt="Remove" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
                 Command.removeChild(content.id);

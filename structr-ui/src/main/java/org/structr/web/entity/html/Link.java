@@ -105,7 +105,11 @@ public class Link extends DOMElement {
 				
 			}
 			
-			setProperty(_href, "/${link.name}");
+			if (getProperty(_href) == null) {
+				
+				setProperty(_href, "/${link.name}");
+				
+			}
 			
 		}
 		
