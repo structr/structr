@@ -1487,6 +1487,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				
 				// omit system properties (except type), parent/children and page relationships
 				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
+					&& !key.equals(GraphObject.uuid)
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
