@@ -61,7 +61,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
-import org.structr.core.Export;
 import org.structr.core.IterableAdapter;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.property.EntityIdProperty;
@@ -81,7 +80,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	// properties
 	public static final Property<String>          name                        = new StringProperty("name");
-	public static final Property<String>          createdBy                   = new StringProperty("createdBy").systemProperty().readOnly().writeOnce();
+	public static final Property<String>          createdBy                   = new StringProperty("createdBy").readOnly().writeOnce();
 	public static final Property<Boolean>         deleted                     = new BooleanProperty("deleted");
 	public static final Property<Boolean>         hidden                      = new BooleanProperty("hidden");
 
@@ -613,33 +612,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	/**
 	 * Returns a list of related nodes for which a modification propagation is configured
-	 * via the relationship.
+	 * via the relationship. Override this method to return a set of nodes that should
+	 * receive propagated modifications.
 	 * 
-	 * @return a list of nodes to which modifications should be propagated
+	 * @return a set of nodes to which modifications should be propagated
 	 */
 	public Set<AbstractNode> getNodesForModificationPropagation() {
-		
-		Set<AbstractNode> propagationNodes = new LinkedHashSet<AbstractNode>();
-		
-		// iterate over incoming relationships
-		for (AbstractRelationship rel : getIncomingRelationships()) {
-			
-			if (rel.propagatesModifications(Direction.INCOMING)) {
-				
-				propagationNodes.add(rel.getStartNode());
-			}
-		}
-		
-		// iterate over outgoing relationships
-		for (AbstractRelationship rel : getOutgoingRelationships()) {
-			
-			if (rel.propagatesModifications(Direction.OUTGOING)) {
-				
-				propagationNodes.add(rel.getEndNode());
-			}
-		}
-		
-		return propagationNodes;
+		return null;
 	}
 
 	/**
@@ -1332,3 +1311,29 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 }
+
+
+/*
+		Set<AbstractNode> propagationNodes = new LinkedHashSet<AbstractNode>();
+		
+		// iterate over incoming relationships
+		for (AbstractRelationship rel : getIncomingRelationships()) {
+			
+			if (rel.propagatesModifications(Direction.INCOMING)) {
+				
+				propagationNodes.add(rel.getStartNode());
+			}
+		}
+		
+		// iterate over outgoing relationships
+		for (AbstractRelationship rel : getOutgoingRelationships()) {
+			
+			if (rel.propagatesModifications(Direction.OUTGOING)) {
+				
+				propagationNodes.add(rel.getEndNode());
+			}
+		}
+		
+		return propagationNodes;
+
+ */

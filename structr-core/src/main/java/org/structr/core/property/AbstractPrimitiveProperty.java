@@ -144,7 +144,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			try {
 
 				// notify only non-system properties
-				if (!isSystemProperty) {
+				if (!unvalidated) {
 
 					// collect modified properties
 					if (obj instanceof AbstractNode) {

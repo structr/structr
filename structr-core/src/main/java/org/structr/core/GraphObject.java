@@ -31,6 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.StringProperty;
+import org.structr.core.validator.GlobalPropertyUniquenessValidator;
 import org.structr.core.validator.SimpleRegexValidator;
 
 /**
@@ -41,11 +42,11 @@ import org.structr.core.validator.SimpleRegexValidator;
 public interface GraphObject {
 
 	public static final Property<String>  base                        = new StringProperty("base");
-	public static final Property<String>  uuid                        = new StringProperty("uuid", new SimpleRegexValidator("[a-zA-Z0-9]{32}")).systemProperty().readOnly().writeOnce();
-	public static final Property<String>  type                        = new StringProperty("type").systemProperty().readOnly().writeOnce();
+	public static final Property<String>  uuid                        = new StringProperty("uuid", new GlobalPropertyUniquenessValidator(), new SimpleRegexValidator("[a-zA-Z0-9]{32}")).readOnly().writeOnce();
+	public static final Property<String>  type                        = new StringProperty("type").readOnly().writeOnce();
 
-	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().readOnly().writeOnce();
-	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemProperty().readOnly();
+	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").unvalidated().readOnly().writeOnce();
+	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").unvalidated().readOnly();
 	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
 	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");

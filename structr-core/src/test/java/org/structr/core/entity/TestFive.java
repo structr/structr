@@ -38,10 +38,10 @@ import org.structr.core.graph.TransactionCommand;
 public class TestFive extends AbstractNode {
 	
 	public static final Property<Integer> intProperty                  = new IntProperty("integerProperty");
-	public static final Property<Integer> modifiedInBeforeCreation     = new IntProperty("modifiedInBeforeCreation", 0).systemProperty();
-	public static final Property<Integer> modifiedInBeforeModification = new IntProperty("modifiedInBeforeModification", 0).systemProperty();
-	public static final Property<Integer> modifiedInAfterCreation      = new IntProperty("modifiedInAfterCreation", 0).systemProperty();
-	public static final Property<Integer> modifiedInAfterModification  = new IntProperty("modifiedInAfterModification", 0).systemProperty();
+	public static final Property<Integer> modifiedInBeforeCreation     = new IntProperty("modifiedInBeforeCreation", 0).unvalidated();
+	public static final Property<Integer> modifiedInBeforeModification = new IntProperty("modifiedInBeforeModification", 0).unvalidated();
+	public static final Property<Integer> modifiedInAfterCreation      = new IntProperty("modifiedInAfterCreation", 0).unvalidated();
+	public static final Property<Integer> modifiedInAfterModification  = new IntProperty("modifiedInAfterModification", 0).unvalidated();
 	
 	
 	

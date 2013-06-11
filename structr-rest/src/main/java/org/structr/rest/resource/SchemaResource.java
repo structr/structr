@@ -128,7 +128,7 @@ public class SchemaResource extends Resource {
 							propProperties.put("defaultValue", property.defaultValue());
 
 							propProperties.put("readOnly", property.isReadOnlyProperty());
-							propProperties.put("system", property.isSystemProperty());
+							propProperties.put("system", property.isUnvalidated());
 
 							PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
 							PropertyConverter inputConverter    = property.inputConverter(securityContext);

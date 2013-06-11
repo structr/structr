@@ -127,8 +127,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isSystemProperty() {
-		return propertyKey.isSystemProperty();
+	public boolean isUnvalidated() {
+		return propertyKey.isUnvalidated();
 	}
 
 	@Override

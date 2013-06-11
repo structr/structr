@@ -63,7 +63,7 @@ public class File extends AbstractFile implements Linkable {
 	public static final Property<String>       relativeFilePath = new StringProperty("relativeFilePath");
 	public static final Property<Long>         size             = new LongProperty("size");
 	public static final Property<String>       url              = new StringProperty("url");
-	public static final Property<Long>         checksum         = new LongProperty("checksum").systemProperty();
+	public static final Property<Long>         checksum         = new LongProperty("checksum").unvalidated();
 	public static final Property<Integer>      cacheForSeconds  = new IntProperty("cacheForSeconds");
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);

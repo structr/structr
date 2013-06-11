@@ -383,8 +383,8 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		@Override
-		public boolean isSystemProperty() {
-			return wrappedKey.isSystemProperty();
+		public boolean isUnvalidated() {
+			return wrappedKey.isUnvalidated();
 		}
 
 		@Override

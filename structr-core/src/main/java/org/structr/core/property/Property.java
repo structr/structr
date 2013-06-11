@@ -44,9 +44,9 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected List<PropertyValidator<T>> validators        = new LinkedList<PropertyValidator<T>>();
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
-	protected boolean isReadOnlyProperty                   = false;
-	protected boolean isWriteOnceProperty                  = false;
-	protected boolean isSystemProperty                     = false;
+	protected boolean readOnly                   = false;
+	protected boolean writeOnce                  = false;
+	protected boolean unvalidated                        = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	
@@ -69,18 +69,18 @@ public abstract class Property<T> implements PropertyKey<T> {
 	
 	public abstract Object fixDatabaseProperty(Object value);
 
-	public Property<T> systemProperty() {
-		this.isSystemProperty = true;
+	public Property<T> unvalidated() {
+		this.unvalidated = true;
 		return this;
 	}
 	
 	public Property<T> readOnly() {
-		this.isReadOnlyProperty = true;
+		this.readOnly = true;
 		return this;
 	}
 	
 	public Property<T> writeOnce() {
-		this.isWriteOnceProperty = true;
+		this.writeOnce = true;
 		return this;
 	}
 
@@ -183,18 +183,18 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isSystemProperty() {
-		return isSystemProperty;
+	public boolean isUnvalidated() {
+		return unvalidated;
 	}
 
 	@Override
 	public boolean isReadOnlyProperty() {
-		return isReadOnlyProperty;
+		return readOnly;
 	}
 	
 	@Override
 	public boolean isWriteOnceProperty() {
-		return isWriteOnceProperty;
+		return writeOnce;
 	}
 	
 	@Override

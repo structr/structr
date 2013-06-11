@@ -45,7 +45,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 
 		super(name);
 		
-		this.isSystemProperty = true;
+		this.unvalidated = true;
 		this.tnParams    = tnParams;
 
 	}

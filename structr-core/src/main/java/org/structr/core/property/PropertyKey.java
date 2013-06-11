@@ -75,7 +75,7 @@ public interface PropertyKey<T> {
 	 * 
 	 * @return 
 	 */
-	public boolean isSystemProperty();
+	public boolean isUnvalidated();
 	
 	public boolean isReadOnlyProperty();
 

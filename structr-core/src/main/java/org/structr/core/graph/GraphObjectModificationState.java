@@ -1,7 +1,7 @@
 package org.structr.core.graph;
 
 import java.util.List;
-import java.util.logging.Level;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -162,11 +162,13 @@ public class GraphObjectModificationState {
 		// check for modification propagation along the relationships
 		if ((status & STATE_PROPAGATED_MODIFICATION) == STATE_PROPAGATED_MODIFICATION && object instanceof AbstractNode) {
 			
-			AbstractNode srcNode = (AbstractNode)object;
-			
-			for (AbstractNode node : srcNode.getNodesForModificationPropagation()) {
-				
-				modificationQueue.propagatedModification(node);
+			Set<AbstractNode> nodes = ((AbstractNode)object).getNodesForModificationPropagation();
+			if (nodes != null) {
+
+				for (AbstractNode node : nodes) {
+
+					modificationQueue.propagatedModification(node);
+				}
 			}
 
 		}

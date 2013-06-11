@@ -29,7 +29,6 @@ import org.neo4j.graphdb.Transaction;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;

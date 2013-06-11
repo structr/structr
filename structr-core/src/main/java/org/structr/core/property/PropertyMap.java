@@ -137,7 +137,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 			// calculate hash code for all properties in this map
 			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
 
-				if (includeSystemProperties || !entry.getKey().isSystemProperty()) {
+				if (includeSystemProperties || !entry.getKey().isUnvalidated()) {
 
 					hashCode ^= entry.hashCode();
 				}
@@ -151,7 +151,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 				
 				if (comparableKeys.contains(key)) {
 
-					if (includeSystemProperties || !key.isSystemProperty()) {
+					if (includeSystemProperties || !key.isUnvalidated()) {
 
 						hashCode ^= entry.hashCode();
 					}

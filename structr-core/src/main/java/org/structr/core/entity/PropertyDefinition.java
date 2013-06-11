@@ -322,7 +322,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public boolean isSystemProperty() {
+	public boolean isUnvalidated() {
 		return getProperty(PropertyDefinition.systemProperty);
 	}
 

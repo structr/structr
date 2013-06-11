@@ -37,7 +37,7 @@ public class ImageDataProperty<T> extends StringProperty {
 	
 	public ImageDataProperty(String name, KeyAndClass keyAndClass) {
 		super(name);
-		this.isSystemProperty = true;
+		this.unvalidated = true;
 		this.keyAndClass = keyAndClass;
 	}
 	

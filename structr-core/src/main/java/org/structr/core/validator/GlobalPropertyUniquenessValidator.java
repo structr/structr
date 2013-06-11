@@ -57,7 +57,7 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 	@Override
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, String value, ErrorBuffer errorBuffer) {
 
-		if ((value == null) || ((value != null) && (value.toString().length() == 0))) {
+		if (value == null || (value != null && value.toString().length() == 0)) {
 
 			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 
@@ -65,11 +65,11 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 
 		}
 
-		if ((key != null) && (value != null)) {
+		if (key != null && value != null) {
 
 			// String type = EntityContext.GLOBAL_UNIQUENESS;
-			boolean nodeExists               = false;
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
+			boolean nodeExists               = false;
 			String id                        = null;
 
 			attributes.add(new TextualSearchAttribute(key, value, SearchOperator.AND));

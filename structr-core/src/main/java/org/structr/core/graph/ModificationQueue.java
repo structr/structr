@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
@@ -40,9 +41,10 @@ public class ModificationQueue {
 	
 	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
+		long t0                  = System.currentTimeMillis();
 		boolean hasModifications = true;
 		boolean valid = true;
-
+		
 		// collect all modified nodes
 		while (hasModifications) {
 
@@ -59,11 +61,17 @@ public class ModificationQueue {
 			}
 		}
 
+		long t = System.currentTimeMillis() - t0;
+		if (t > 100) {
+			logger.log(Level.INFO, "{0} ms", t);
+		}
+
 		return valid;
 	}
 	
 	public boolean doValidation(SecurityContext securityContext, ErrorBuffer errorBuffer, boolean doValidation) throws FrameworkException {
 		
+		long t0       = System.currentTimeMillis();
 		boolean valid = true;
 		
 		// do validation and indexing
@@ -72,12 +80,19 @@ public class ModificationQueue {
 			// do callback according to entry state
 			valid &= entry.getValue().doValidationAndIndexing(this, securityContext, errorBuffer, doValidation);
 		}
-		
+
+		long t = System.currentTimeMillis() - t0;
+		if (t > 100) {
+			logger.log(Level.INFO, "{0} ms", t);
+		}
+
 		return valid;
 	}
 
 	public void doOuterCallbacksAndCleanup(SecurityContext securityContext) {
 
+		long t0 = System.currentTimeMillis();
+		
 		// copy modifications, do after transaction callbacks
 		for (GraphObjectModificationState state : modifications.values()) {
 
@@ -86,6 +101,11 @@ public class ModificationQueue {
 			}
 		}
 
+		long t = System.currentTimeMillis() - t0;
+		if (t > 100) {
+			logger.log(Level.INFO, "{0} ms", t);
+		}
+		
 		// clear collections afterwards
 		alreadyPropagated.clear();
 		modifications.clear();
