@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.text.SimpleDateFormat;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.SecurityContext;
@@ -129,7 +130,7 @@ public class ISO8601DateProperty extends DateProperty {
 						source = StringUtils.replace(source, "Z", "+0000");
 					}
 
-					return dateFormat.parse(source);
+					return new SimpleDateFormat(pattern).parse(source);
 					
 				} catch (Throwable t) {
 
@@ -150,7 +151,7 @@ public class ISO8601DateProperty extends DateProperty {
 
 			if (source != null) {
 
-				return dateFormat.format(source);
+				return new SimpleDateFormat(pattern).format(source);
 			}
 
 			return null;

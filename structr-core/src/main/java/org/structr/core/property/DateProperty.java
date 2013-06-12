@@ -39,12 +39,12 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	
 	private static final Logger logger = Logger.getLogger(DateProperty.class.getName());
 	
-	protected SimpleDateFormat dateFormat = null;
+	protected String pattern = null;
 	
 	public DateProperty(String name, String pattern) {
 		super(name);
 		
-		dateFormat = new SimpleDateFormat(pattern);
+		this.pattern = pattern;
 	}
 	
 	@Override
@@ -94,7 +94,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			
 			try {
 				
-				return dateFormat.parse(value.toString()).getTime();
+				return new SimpleDateFormat(pattern).parse(value.toString()).getTime();
 				
 			} catch (Throwable t) {
 			}
@@ -145,7 +145,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			if (source != null) {
 
 				try {
-					return dateFormat.parse(source);
+					return new SimpleDateFormat(pattern).parse(source);
 
 				} catch(Throwable t) {
 
@@ -162,7 +162,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		public String revert(Date source) throws FrameworkException {
 
 			if (source != null) {
-				return dateFormat.format(source);
+				return new SimpleDateFormat(pattern).format(source);
 			}
 			
 			return null;
