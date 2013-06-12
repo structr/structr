@@ -130,8 +130,11 @@ public class ISO8601DateProperty extends DateProperty {
 					}
 
 					return dateFormat.parse(source);
+					
 				} catch (Throwable t) {
 
+					t.printStackTrace();
+					
 					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(ISO8601DateProperty.this));
 
 				}

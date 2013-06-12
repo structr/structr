@@ -29,8 +29,10 @@ import org.neo4j.graphdb.Transaction;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.RetryException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
@@ -58,19 +60,54 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
 	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
-	private static final MultiSemaphore                   semaphore      = new MultiSemaphore();
+	private static final MultiSemaphore                  semaphore      = new MultiSemaphore();
 	
 	private ModificationQueue modificationQueue = null;
 	private ErrorBuffer errorBuffer             = null;
-
+	
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
 		
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Transaction tx               = transactions.get();
-		boolean topLevel             = (tx == null);
-		FrameworkException error     = null;
-		Set<String> synchronizationKeys            = null;
-		T result                     = null;
+		boolean topLevel = (transactions.get() == null);
+		boolean retry    = true;
+		int retryCount   = 0;
+		
+		if (topLevel) {
+			
+			T result = null;
+			
+			while (retry && retryCount++ < 100) {
+
+				// assume success
+				retry = false;
+
+				try {
+					result = executeInternal(transaction);
+
+				} catch (RetryException rex) {
+
+					logger.log(Level.INFO, "Deadlock encountered, retrying transaction, count {0}", retryCount);
+
+					retry = true;
+				}
+			}
+			
+			return result;
+			 
+		} else {
+			
+			return executeInternal(transaction);
+		}
+	}
+
+	private <T> T executeInternal(StructrTransaction<T> transaction) throws FrameworkException {
+		
+		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
+		Transaction tx                  = transactions.get();
+		boolean topLevel                = (tx == null);
+		boolean deadlock                = false;
+		Set<String> synchronizationKeys = null;
+		FrameworkException error        = null;
+		T result                        = null;
 		
 		if (topLevel) {
 		
@@ -118,13 +155,19 @@ public class TransactionCommand extends NodeServiceCommand {
 		} catch (Throwable t) {
 
 			// TODO: add debugging switch!
-			t.printStackTrace();
+			// t.printStackTrace();
 			
 			// catch everything
 			tx.failure();
-			
+
+			// FIXME: ugly..
 			if (t instanceof FrameworkException) {
 				error = (FrameworkException)t;
+			}
+
+			// FIXME: ugly..
+			if (t instanceof DeadlockDetectedException || t instanceof RetryException) {
+				deadlock = true;
 			}
 		}
 
@@ -137,20 +180,23 @@ public class TransactionCommand extends NodeServiceCommand {
 			// release semaphores as the transaction is now finished
 			semaphore.release(synchronizationKeys);	// careful: this can be null
 
+			// cleanup
+			currentCommand.remove();
 			transactions.remove();
 			
 			// no error, notify entities
 			if (error == null) {
 				modificationQueue.doOuterCallbacksAndCleanup(securityContext);
 			}
-			
-			// cleanup
-			currentCommand.remove();
 		}
 		
 		// throw actual error
 		if (error != null) {
 			throw error;
+		}
+		
+		if (deadlock) {
+			throw new RetryException();
 		}
 		
 		return result;

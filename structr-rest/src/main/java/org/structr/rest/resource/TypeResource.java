@@ -28,7 +28,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -49,6 +48,7 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
