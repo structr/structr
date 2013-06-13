@@ -139,7 +139,7 @@ public class TransactionCommand extends NodeServiceCommand {
 				
 				// 2. fetch all types of entities modified in this tx
 				synchronizationKeys = modificationQueue.getSynchronizationKeys();
-				
+
 				// we need to protect the validation and indexing part of every transaction
 				// from being entered multiple times in the presence of validators
 				// 3. acquire semaphores for each modified type

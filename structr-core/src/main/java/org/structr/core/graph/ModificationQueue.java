@@ -145,7 +145,7 @@ public class ModificationQueue {
 		getState(node).modify(key, previousValue);
 		
 		if (key != null&& key.requiresSynchronization()) {
-			synchronizationKeys.add(key.getSynchronizationKey());
+			synchronizationKeys.add(node.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
 		}
 	}
 
@@ -153,7 +153,7 @@ public class ModificationQueue {
 		getState(relationship).modify(key, previousValue);
 		
 		if (key != null && key.requiresSynchronization()) {
-			synchronizationKeys.add(key.getSynchronizationKey());
+			synchronizationKeys.add(relationship.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
 		}
 	}
 	

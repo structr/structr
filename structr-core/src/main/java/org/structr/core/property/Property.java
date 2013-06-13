@@ -44,14 +44,13 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected List<PropertyValidator<T>> validators        = new LinkedList<PropertyValidator<T>>();
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
-	protected boolean readOnly                   = false;
-	protected boolean writeOnce                  = false;
-	protected boolean unvalidated                        = false;
+	protected boolean readOnly                             = false;
+	protected boolean writeOnce                            = false;
+	protected boolean unvalidated                          = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
-	
+
 	private boolean requiresSynchronization                = false;
-	private String synchronizationKey                      = null;
 	
 	protected Property(String name) {
 		this(name, name);
@@ -112,7 +111,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	
 	@Override
 	public String getSynchronizationKey() {
-		return synchronizationKey;
+		return dbName;
 	}
 	
 	@Override
@@ -122,7 +121,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	
 	@Override
 	public void registrationCallback(Class type) {
-		this.synchronizationKey = type.getSimpleName().concat(".").concat(dbName);
 	}
 	
 	@Override
