@@ -50,12 +50,12 @@ public class TestSeven extends AbstractNode {
 	}
 	
 	@Override
-	public boolean beforeCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
 	
 	@Override
-	public boolean beforeModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
 

@@ -82,7 +82,7 @@ public class Link extends DOMElement {
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		Linkable target = getProperty(linkable);
 		

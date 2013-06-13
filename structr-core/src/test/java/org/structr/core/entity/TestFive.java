@@ -55,7 +55,7 @@ public class TestFive extends AbstractNode {
 	}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		int value = getIncreasedValue(modifiedInBeforeCreation);
 		setProperty(modifiedInBeforeCreation, value);
@@ -64,7 +64,7 @@ public class TestFive extends AbstractNode {
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		int value = getIncreasedValue(modifiedInBeforeModification);
 		setProperty(modifiedInBeforeModification, value);

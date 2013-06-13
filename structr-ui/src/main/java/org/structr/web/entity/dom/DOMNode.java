@@ -493,7 +493,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	}
 	
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		try {
 
