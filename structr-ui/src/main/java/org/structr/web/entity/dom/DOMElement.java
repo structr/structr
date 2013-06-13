@@ -1207,7 +1207,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		for (AbstractRelationship rel : getRelationships(RelType.SYNC, Direction.OUTGOING)) {
 			

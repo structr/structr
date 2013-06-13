@@ -133,12 +133,12 @@ public class PropertyAccess extends AbstractNode {
 	}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
 	
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
 	

@@ -163,7 +163,7 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException 
 	 */
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is modified. This method can cause the underlying
@@ -175,7 +175,7 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException 
 	 */
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is deleted. This method can cause the underlying
@@ -187,7 +187,7 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException 
 	 */
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException;
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException;
 
 	/**
 	 * Called when an entity was successfully created. Please note that this method

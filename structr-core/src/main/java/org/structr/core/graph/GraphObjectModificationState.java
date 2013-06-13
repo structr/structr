@@ -191,26 +191,26 @@ public class GraphObjectModificationState {
 				break;
 
 			case 6: // created, modified => only creation callback will be called
-				valid &= object.beforeCreation(securityContext, errorBuffer);
+				valid &= object.onCreation(securityContext, errorBuffer);
 				break;
 
 			case 5: // created, deleted => no callback
 				break;
 
 			case 4: // created => creation callback
-				valid &= object.beforeCreation(securityContext, errorBuffer);
+				valid &= object.onCreation(securityContext, errorBuffer);
 				break;
 
 			case 3: // modified, deleted => deletion callback
-				valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+				valid &= object.onDeletion(securityContext, errorBuffer, removedProperties);
 				break;
 
 			case 2: // modified => modification callback
-				valid &= object.beforeModification(securityContext, errorBuffer);
+				valid &= object.onModification(securityContext, errorBuffer);
 				break;
 
 			case 1: // deleted => deletion callback
-				valid &= object.beforeDeletion(securityContext, errorBuffer, removedProperties);
+				valid &= object.onDeletion(securityContext, errorBuffer, removedProperties);
 				break;
 
 			case 0:	// no action, no callback

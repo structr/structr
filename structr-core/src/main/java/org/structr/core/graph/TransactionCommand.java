@@ -104,9 +104,10 @@ public class TransactionCommand extends NodeServiceCommand {
 		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
 		Transaction tx                  = transactions.get();
 		boolean topLevel                = (tx == null);
+		boolean error                   = false;
 		boolean deadlock                = false;
 		Set<String> synchronizationKeys = null;
-		FrameworkException error        = null;
+		FrameworkException exception    = null;
 		T result                        = null;
 		
 		if (topLevel) {
@@ -152,51 +153,76 @@ public class TransactionCommand extends NodeServiceCommand {
 				}
 			}
 			
-		} catch (Throwable t) {
-
-			// TODO: add debugging switch!
-			// t.printStackTrace();
+		} catch (DeadlockDetectedException ddex) {
 			
-			// catch everything
+			tx.failure();
+			
+			// this block is entered when we first
+			// encounter a DeadlockDetectedException
+			// => pass on to parent transaction
+			deadlock = true;
+			error = true;
+			
+		} catch (RetryException rex) {
+			
 			tx.failure();
 
-			// FIXME: ugly..
-			if (t instanceof FrameworkException) {
-				error = (FrameworkException)t;
-			}
+			// this block is entered when we catch the
+			// RetryException from a nested transaction
+			// => pass on to parent transaction
+			deadlock = true;
+			error = true;
 
-			// FIXME: ugly..
-			if (t instanceof DeadlockDetectedException || t instanceof RetryException) {
-				deadlock = true;
-			}
-		}
-
-		// finish toplevel transaction
-		if (topLevel) {
-				
-			tx.success();
-			tx.finish();
-
-			// release semaphores as the transaction is now finished
-			semaphore.release(synchronizationKeys);	// careful: this can be null
-
-			// cleanup
-			currentCommand.remove();
-			transactions.remove();
+		} catch (FrameworkException fex) {
 			
-			// no error, notify entities
-			if (error == null) {
-				modificationQueue.doOuterCallbacksAndCleanup(securityContext);
+			tx.failure();
+			
+			exception = fex;
+			error = true;
+			
+		} catch (Throwable t) {
+			
+			tx.failure();
+
+			// TODO: add debugging switch!
+			t.printStackTrace();
+			
+			error = true;
+
+			
+		} finally {
+
+			// finish toplevel transaction
+			if (topLevel) {
+
+				try {
+					tx.success();
+					tx.finish();
+					
+				} finally {
+
+					// release semaphores as the transaction is now finished
+					semaphore.release(synchronizationKeys);	// careful: this can be null
+
+					// cleanup
+					currentCommand.remove();
+					transactions.remove();
+				}
+
+				// no error, notify entities
+				if (!error) {
+					modificationQueue.doOuterCallbacksAndCleanup(securityContext);
+				}
 			}
-		}
-		
-		// throw actual error
-		if (error != null) {
-			throw error;
 		}
 		
 		if (deadlock) {
 			throw new RetryException();
+		}
+		
+		// throw actual exception
+		if (exception != null && error) {
+			throw exception;
 		}
 		
 		return result;
