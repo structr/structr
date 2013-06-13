@@ -526,6 +526,11 @@ public class SecurityContext {
 				return true;
 			}
 		}
+		
+		if (isAllowedInFrontend(node, Permission.read)) {
+
+			return true;
+		}
 
 		return false;
 
@@ -542,15 +547,8 @@ public class SecurityContext {
 	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
 
                 Principal user = getUser(false);
-		switch (permission) {
 
-			case read :
-				return isVisibleInFrontend(node);    // read permission in frontend is equivalent to visibility here
-
-			default :
-				return node.isGranted(permission, user);
-
-		}
+		return node.isGranted(permission, user);
 	}
 
 	//~--- set methods ----------------------------------------------------
