@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------
@@ -104,6 +105,19 @@ public class UuidResource extends FilterableResource {
 
 		return true;
 
+	}
+
+	@Override
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
+
+		// do not allow nesting of "bare" uuid resource with type resource
+		// as this will not do what the user expects to do. 
+		if(next instanceof TypeResource) {
+			
+			throw new IllegalPathException();
+		}
+
+		return super.tryCombineWith(next);
 	}
 
 	//~--- get methods ----------------------------------------------------

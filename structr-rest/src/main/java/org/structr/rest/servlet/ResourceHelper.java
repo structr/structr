@@ -179,14 +179,9 @@ public class ResourceHelper {
 
 		do {
 
-			StringBuilder chain = new StringBuilder();
-
 			for (Iterator<Resource> it = resourceChain.iterator(); it.hasNext(); ) {
 
 				Resource constr = it.next();
-
-				chain.append(constr.getClass().getSimpleName());
-				chain.append(", ");
 
 				if (constr instanceof ViewFilterResource) {
 
@@ -235,15 +230,6 @@ public class ResourceHelper {
 			}
 
 		} while (found);
-
-		StringBuilder chain = new StringBuilder();
-
-		for (Resource constr : resourceChain) {
-
-			chain.append(constr.getClass().getSimpleName());
-			chain.append(", ");
-
-		}
 
 		if (resourceChain.size() == 1) {
 
