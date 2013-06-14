@@ -18,13 +18,20 @@
  */
 package org.structr.common;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
+import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
@@ -52,6 +59,41 @@ public class CallbackTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			
 			fex.printStackTrace();
+		}
+	}
+	
+	public void testCallbackOrder() {
+		
+		try {
+
+			TestEight test = (TestEight)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					return (TestEight)Services.command(securityContext, CreateNodeCommand.class).execute(
+						new NodeAttribute(AbstractNode.type, TestEight.class.getSimpleName())
+					);
+				}
+				
+			});
+			
+			// only the creation methods should have been called now!
+			assertTrue("onCreationTimestamp should be != 0", test.getOnCreationTimestamp() != 0L);
+			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
+			assertEquals("onDeletionTimestamp should be == 0", 0L, test.getOnDeletionTimestamp());
+			
+			// only the creation methods should have been called now!
+			assertTrue("afterCreationTimestamp should be != 0", test.getAfterCreationTimestamp() != 0L);
+			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
+			assertEquals("afterDeletionTimestamp should be == 0", 0L, test.getAfterDeletionTimestamp());
+
+			
+			
+			
+		} catch (FrameworkException ex) {
+			
+			Logger.getLogger(CallbackTest.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
 	
