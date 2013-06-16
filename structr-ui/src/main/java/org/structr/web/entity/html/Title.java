@@ -37,10 +37,4 @@ public class Title extends DOMElement {
 	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
-	@Override
-	public boolean avoidWhitespace() {
-
-		return true;
-
-	}
 }
