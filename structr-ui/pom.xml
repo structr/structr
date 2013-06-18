@@ -38,10 +38,6 @@
             <url>http://maven.structr.org/artifactory/release</url>
         </repository> 
         <repository>
-            <id>jboss</id>
-            <url>https://repository.jboss.org/nexus/content/repositories/releases</url>
-        </repository>
-        <repository>
             <id>google-diff-patch-match</id>
             <name>google-diff-patch-match</name>
             <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
