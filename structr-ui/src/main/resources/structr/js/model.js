@@ -674,7 +674,7 @@ StructrElement.prototype.remove = function() {
     if (element)
         element.remove();
 
-    console.log(this, element, parent, Structr.containsNodes(parent));
+    log(this, element, parent, Structr.containsNodes(parent));
 
     if (element && parent && !Structr.containsNodes(parent)) {
         _Entities.removeExpandIcon(parent);

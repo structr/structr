@@ -158,8 +158,10 @@ function nvl(value, defaultValue) {
         returnValue = defaultValue;
     } else if (value === false) {
         returnValue = 'false';
+    } else if (value === 0) {
+        returnValue = '0';
     } else if (!value) {
-        returnValue = '';
+        returnValue = defaultValue;
     } else {
         returnValue = value;
     }
@@ -239,40 +241,34 @@ function hideAjaxLoader() {
 }
 
 function formatValue(value) {
-
+    
+    //console.log('formatValue: ', value);
+    
     if (value === null) {
         return '';
-    } else if (value.constructor === String) {
-        
-        return value;
-        
-    } else if (value.constructor === Object) {
+    }
+    
+    //console.log('is String? ', value.constructor === String);
+    //console.log('is Object? ', value.constructor === Object);
+    //console.log('is Array? ', value.constructor === Array);
 
-        //return JSON.stringify(obj);
+    if (value.constructor === Object) {
+
         var out = '';
         $(Object.keys(value)).each(function(i, k) {
-            //console.log(v);
-            //out += JSON.stringify(v);
             out += k + ': ' + formatValue(value[k]) + '\n' ;
         });
         return out;
 
     } else if (value.constructor === Array) {
-        //var out = '<table>';
         var out = '';
         $(value).each(function(i, v) {
-            //console.log(v);
             out += JSON.stringify(v);
-        //out += '<tr><td>' + key + '</td><td>' + formatValue(obj[key]) + '</td></tr>' ;
         });
-        
-        //out += '</table>';
-
         return out;
 
     } else {
         return value;
-
     }
 }
 

@@ -1274,9 +1274,7 @@ var _Crud = {
         }
         
         if (!relatedType) {
-            
-            //console.log(key, value, typeof value);
-            
+
             if (typeof value === 'boolean') {
                 cell.append('<input ' + (readOnly ? 'class="readonly" readonly ' : '') + 'type="checkbox" ' + (value?'checked="checked"':'') + '>');
                 if (!readOnly) {
@@ -1998,34 +1996,5 @@ var _Crud = {
         // default
         return false;
     }
-    
-}
-
-// Hook for nodejs
-if (typeof module === 'object') {
-    var $ = require('jquery');
-    var token = '';
-    var rootUrl = '/structr/rest/';
-    module.exports = _Crud;
-    
-    function nvl(value, defaultValue) {
-        var returnValue;
-        if (value === undefined) {
-            returnValue = defaultValue;
-        } else if (value === false) {
-            returnValue = 'false';
-        } else if (!value) {
-            returnValue = '';
-        }
-        else {
-            returnValue = value;
-        }
-        return returnValue;
-    }
-    
-    function isIn(id, ids) {
-        return ($.inArray(id, ids) > -1);
-    }
-
     
 }
