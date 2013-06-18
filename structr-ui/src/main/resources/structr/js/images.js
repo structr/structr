@@ -45,10 +45,7 @@ var _Images = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-
-        pageSize['Image'] = 25;
-        page['Image'] = 1;
-        
+        Structr.initPager('Image', 1, 100);
     },
     resize : function() {
 
