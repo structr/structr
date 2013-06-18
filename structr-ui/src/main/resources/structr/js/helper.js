@@ -283,12 +283,20 @@ function getTypeFromResourceSignature(signature) {
 }
 
 function blinkGreen(element) {
-    var oldFg = element.css('color');
-    var oldBg = element.css('backgroundColor');
-    //console.log('old colors' , oldFg, oldBg);
+    var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
+    var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
+    
+    if (!fg) {
+        element.prop('data-fg-color', oldFg);
+    }
+    
+    if (!bg) {
+        element.prop('data-bg-color', oldBg);
+    }
+
     element.animate({
         color: '#81ce25',
-        backgroundColor: '#efe'
+        backgroundColor: (oldBg === '#fff' ? '#efe' : oldBg)
     }, 100, function() {
         $(this).animate({
             color: oldFg,
@@ -298,9 +306,17 @@ function blinkGreen(element) {
 }
 
 function blinkRed(element) {
-    var oldFg = element.css('color');
-    var oldBg = element.css('backgroundColor');
-    //console.log('old colors' , oldFg, oldBg);
+    var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
+    var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
+    
+    if (!fg) {
+        element.prop('data-fg-color', oldFg);
+    }
+    
+    if (!bg) {
+        element.prop('data-bg-color', oldBg);
+    }
+
     element.animate({
         color: '#f00',
         backgroundColor: '#fbb'

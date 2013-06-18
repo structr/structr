@@ -207,8 +207,6 @@ function connect() {
                 if (data.callback && StructrModel.callbacks[data.callback]) {
                     log('executing callback with id', data.callback, StructrModel.callbacks[data.callback]);
                     StructrModel.callbacks[data.callback](obj);
-                    // remove callback
-                    delete StructrModel.callbacks[data.callback];
                 }
                 
             } else if (command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/

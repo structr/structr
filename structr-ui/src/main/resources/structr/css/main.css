@@ -888,6 +888,7 @@ button img {
 }
 
 button.switch {
+    color: #444;
     font-weight: normal;
     border-radius: 5px;
     border: 1px solid #999;
@@ -898,7 +899,8 @@ button.switch {
 }
 
 button.enabled {
-    background-color: #fefefe;
+    color: #222;
+    font-weight: bold;
     border: 1px solid #bbb;
     border-radius: 5px;
     border: 1px solid #999;
