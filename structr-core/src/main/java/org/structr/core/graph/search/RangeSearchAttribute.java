@@ -100,7 +100,7 @@ public class RangeSearchAttribute extends SearchAttribute {
 			q = new TermRangeQuery(searchKey.dbName(), rangeStart == null ? null : rangeStart.toString(), rangeEnd == null ? null : rangeEnd.toString(), true, true);
 			
 		}
-		logger.log(Level.INFO, "Range query: {0}", q);
+		logger.log(Level.FINE, "Range query: {0}", q);
 		
 		return q.toString();
 		
