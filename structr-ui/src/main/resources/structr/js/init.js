@@ -32,11 +32,11 @@ var editorCursor;
 var dialog;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, loginButton;
 var dialogId;
-var page = [];
-var pageSize = [];
-var expandedIdsCookieName = 'structrTreeExpandedIds_' + port;
-var lastMenuEntryCookieName = 'structrLastMenuEntry_' + port;
-var pagerDataCookieName = 'structrPagerData_' + port + '_';
+var page = {};
+var pageSize = {};
+var expandedIdsKey = 'structrTreeExpandedIds_' + port;
+var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
+var pagerDataKey = 'structrPagerData_' + port + '_';
 
 $(document).ready(function() {
     
@@ -212,9 +212,8 @@ var Structr = {
         log('token', token);
         log('user', user);
 
-        Structr.expanded = $.parseJSON($.cookie(expandedIdsCookieName));
+        Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
-        log('expanded ids', $.cookie(expandedIdsCookieName));
 
         // make a dummy request to get a sessionId
         if (!sessionId) {
@@ -269,9 +268,9 @@ var Structr = {
     doLogout : function(text) {
         log('doLogout ' + user);
         //Structr.saveSession();
-        $.cookie(tokenCookieName, null);
+        localStorage.setItem(tokenCookieName, null);
         $.cookie('JSESSIONID', null);
-        $.cookie(userCookieName, null);
+        localStorage.setItem(userCookieName, null);
         if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
             Structr.clearMain();
             Structr.login(text);
@@ -285,7 +284,7 @@ var Structr = {
         var anchor = getAnchorFromUrl(browserUrl);
         log('anchor', anchor);
 
-        lastMenuEntry = ((anchor && anchor !== 'logout') ? anchor : $.cookie(lastMenuEntryCookieName));
+        lastMenuEntry = ((anchor && anchor !== 'logout') ? anchor : localStorage.getItem(lastMenuEntryKey));
         if (!lastMenuEntry) {
             lastMenuEntry = 'dashboard';
         } else {
@@ -531,9 +530,7 @@ var Structr = {
         
         if (lastMenuEntry && lastMenuEntry !== 'logout') {
 
-            $.cookie(lastMenuEntryCookieName, lastMenuEntry, {
-                expires: 7
-            });
+            localStorage.setItem(lastMenuEntryKey, lastMenuEntry);
         }
     },
 	
@@ -620,9 +617,20 @@ var Structr = {
         
         return entity;
     },
-    
+            
+    initPager : function(type, p, ps) {
+        var pagerData = localStorage.getItem(pagerDataKey + type);
+        if (!pagerData) {
+            page[type]      = p;
+            pageSize[type]  = ps;
+            Structr.storePagerData(type, p, ps);
+        } else {
+            Structr.restorePagerData(type);
+        }
+    },
+
     updatePager : function(type) {
-        
+
         if (!type) return;
         
         var pager = $('#pager' + type);
@@ -631,36 +639,40 @@ var Structr = {
             
             var pageLeft = $('.pageLeft', pager);
             var pageRight = $('.pageRight', pager);
+            var pageNo = $('.page', pager);
+            
             if (page[type] === 1) {
                 pageLeft.attr('disabled', 'disabled').addClass('disabled');
             } else {
                 pageLeft.removeAttr('disabled', 'disabled').removeClass('disabled');
             }
 
-            if (page[type] === pageCount[type]) {
+            if (pageCount[type] === 1 || (page[type] === pageCount[type])) {
                 pageRight.attr('disabled', 'disabled').addClass('disabled');
             } else {
                 pageRight.removeAttr('disabled', 'disabled').removeClass('disabled');
             }
+            
+            if (pageCount[type] === 1) {
+                pageNo.attr('disabled', 'disabled').addClass('disabled');
+            } else {
+                pageNo.removeAttr('disabled', 'disabled').removeClass('disabled');
+            }
 
-            //var urlData = '?pageSize=' + pageSize[type] + '&page=' + page[type] + '#' + lastMenuEntry;
-            //console.log(urlData);
-            //window.history.pushState('', '', urlData);
-            Structr.storePagerDataInCookie(type);
+            Structr.storePagerData(type, page[type], pageSize[type]);
         }
     },
     
-    storePagerDataInCookie : function(type) {
-        $.cookie(pagerDataCookieName + type, page[type] + ',' + pageSize[type]);
+    storePagerData : function(type, page, pageSize) {
+        localStorage.setItem(pagerDataKey + type, page + ',' + pageSize);
     },
     
-    restorePagerDataFromCookie : function(type) {
-        var cookie = $.cookie(pagerDataCookieName + type);
-        if (cookie) {
-            var pagerData = cookie.split(',');
-            log('Pager Data from Cookie', pagerData);
-            page[type]      = pagerData[0];
-            pageSize[type]  = pagerData[1];
+    restorePagerData : function(type) {
+        var pagerData = localStorage.getItem(pagerDataKey + type);
+        if (pagerData) {
+            var pagerData = pagerData.split(',');
+            page[type]      = parseInt(pagerData[0]);
+            pageSize[type]  = parseInt(pagerData[1]);
         }
     },
     
@@ -672,25 +684,25 @@ var Structr = {
      */
     addPager : function(el, type) {
 
-        // Priority of stored pager data:
-        // JS variables -> URL -> Cookie
-        
-        var pageFromUrl     = urlParam('page');
-        var pageSizeFromUrl = urlParam('pageSize');
-        
-        if (!page[type] && !pageSize[type]) {
-            page[type]      =  pageFromUrl;
-            pageSize[type]  = pageSizeFromUrl;
-        }
-        
-        if (!page[type] && !pageSize[type]) {
-            Structr.restorePagerDataFromCookie(type);
-        }
-        
-        if (!page[type] && !pageSize[type]) {
-            page[type]      = defaultPage;
-            pageSize[type]  = defaultPageSize;
-        }
+//        var pageFromUrl     = urlParam('page');
+//        var pageSizeFromUrl = urlParam('pageSize');
+//        
+//        if (!page[type] && !pageSize[type]) {
+//            page[type]      =  pageFromUrl;
+//            pageSize[type]  = pageSizeFromUrl;
+//        }
+//        if (!page[type] && !pageSize[type]) {
+//            Structr.restorePagerData(type);
+//        }
+//        
+//        if (!page[type] && !pageSize[type]) {
+//            page[type]      = defaultPage;
+//            pageSize[type]  = defaultPageSize;
+//        }
+// 
+//        if (!pageCount[type]) {
+//            pageCount[type] = 1;
+//        }
  
         el.append('<div class="pager" id="pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
             + ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
@@ -707,7 +719,7 @@ var Structr = {
         pageSizeForm.on('keypress', function(e) {
             if (e.keyCode === 13) {
                 pageSize[type] = $(this).val();
-                pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
+                pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
                 page[type] = 1;
                 $('.page', pager).val(page[type]);
                 $('.pageSize', pager).val(pageSize[type]);
@@ -728,20 +740,20 @@ var Structr = {
             }
         });
 
-        if (page[type] === 1) {
-            pageLeft.attr('disabled', 'disabled').addClass('disabled');
-        }
-
-        if (page[type] === pageCount[type]) {
-            pageRight.attr('disabled', 'disabled').addClass('disabled');
-        }
+//        if (page[type] === 1) {
+//            pageLeft.attr('disabled', 'disabled').addClass('disabled');
+//        }
+//
+//        if (page[type] === pageCount[type]) {
+//            pageRight.attr('disabled', 'disabled').addClass('disabled');
+//        }
 
         pageLeft.on('click', function() {
             pageRight.removeAttr('disabled').removeClass('disabled');
             page[type]--;
-            if (page[type] === 1) {
-                pageLeft.attr('disabled', 'disabled').addClass('disabled');
-            }
+//            if (page[type] === 1) {
+//                pageLeft.attr('disabled', 'disabled').addClass('disabled');
+//            }
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
             _Pages.clearPreviews();
@@ -751,15 +763,14 @@ var Structr = {
         pageRight.on('click', function() {
             pageLeft.removeAttr('disabled').removeClass('disabled');
             page[type]++;
-            if (page[type] === pageCount[type]) {
-                pageRight.attr('disabled', 'disabled').addClass('disabled');
-            }
+//            if (page[type] === pageCount[type]) {
+//                pageRight.attr('disabled', 'disabled').addClass('disabled');
+//            }
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
             _Pages.clearPreviews();
             Command.list(type, pageSize[type], page[type], sort, order);
         });
-        
         return Command.list(type, pageSize[type], page[type], sort, order);
     }
 };
@@ -808,9 +819,7 @@ function addExpandedNode(id) {
     }
 
     getExpanded()[id] = true;
-    $.cookie(expandedIdsCookieName, $.toJSON(Structr.expanded), {
-        expires: 7
-    });
+    localStorage.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
 
 }
 
@@ -820,9 +829,7 @@ function removeExpandedNode(id) {
     if (!id) return;
     
     delete getExpanded()[id];
-    $.cookie(expandedIdsCookieName, $.toJSON(Structr.expanded), {
-        expires: 7
-    });
+    localStorage.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
 }
 
 function isExpanded(id) {
@@ -839,7 +846,7 @@ function isExpanded(id) {
 
 function getExpanded() {
     if (!Structr.expanded) {
-        Structr.expanded = $.parseJSON($.cookie(expandedIdsCookieName));
+        Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
     }
 
     if (!Structr.expanded) {

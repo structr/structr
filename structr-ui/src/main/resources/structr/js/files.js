@@ -45,12 +45,9 @@ var _Files = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-        
-        pageSize['Folder'] = 25;
-        pageSize['File'] = 25;
-        
-        page['Folder'] = 1;
-        page['File'] = 1;
+
+        Structr.initPager('Folder', 1, 25);
+        Structr.initPager('File', 1, 25);
         
     },
 
@@ -87,13 +84,9 @@ var _Files = {
         main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
-        //        images = $('#images');
         
         _Files.refreshFolders();
         _Files.refreshFiles();
-    //        _Files.refreshImages();
-
-    //	_Files.resize();
     },
 
     unload : function() {
@@ -185,16 +178,12 @@ var _Files = {
             });
         }
         Structr.addPager(files, 'File');
-        //Command.list('File', pageSize, page, sort, order);
         _Files.resize();
     },
 	
     refreshFolders : function() {
         folders.empty();
         folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
-        
-        //Command.list(type, pageSize[type], page[type], sort, order);
-        Command.list('Folder', 1000, 1, 'name', 'asc');
 
         $('.add_folder_icon', main).on('click', function(e) {
             e.stopPropagation();

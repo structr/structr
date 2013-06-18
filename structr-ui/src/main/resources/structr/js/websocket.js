@@ -125,7 +125,7 @@ function connect() {
             log('####################################### ', command, ' #########################################');
             
             rawResultCount[type] = data.rawResultCount;
-            pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
+            pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
             Structr.updatePager(type);
 
             if (command === 'LOGIN') { /*********************** LOGIN ************************/

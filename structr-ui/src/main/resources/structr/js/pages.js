@@ -23,7 +23,7 @@ var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
-var activeTabCookieName = 'structrActiveTab_' + port;
+var activeTabKey = 'structrActiveTab_' + port;
 var win = $(window);
 var copy = false;
 
@@ -47,10 +47,8 @@ var _Pages = {
 
     init : function() {
         
-        pageSize['Page'] = 25;
-        page['Page'] = 1;
-        
-         //console.log('_Pages.init()');
+        Structr.initPager('Page', 1, 25);
+        Structr.initPager('File', 1, 25);
         _Pages.resize();
 
     },
@@ -104,8 +102,8 @@ var _Pages = {
         
         _Pages.init();
         
-        activeTab = $.cookie(activeTabCookieName);
-        log('value read from cookie', activeTab);
+        activeTab = localStorage.getItem(activeTabKey);
+        log('value read from local storage', activeTab);
 
         log('onload');
         
@@ -128,8 +126,9 @@ var _Pages = {
 
     clearPreviews : function() {
 
-        //console.log(previewTabs, $('.page', previewTabs));
-        $('.page', previewTabs).remove();
+        if (previewTabs && previewTabs.length) {
+            previewTabs.children('.page').remove();
+        }
         
     },
 
@@ -323,10 +322,8 @@ var _Pages = {
 
         element.addClass('active');
 
-        log('set cookie for active tab', activeTab);
-        $.cookie(activeTabCookieName, activeTab, {
-            expires: 7
-        });
+        log('store active tab', activeTab);
+        localStorage.setItem(activeTabKey, activeTab);
 
     },
     
@@ -877,7 +874,7 @@ var _Pages = {
                         addExpandedNode(contentId);
                             
                     }
-                    Command.createAndAppendDOMNode(getId(page), elementId, (tag != 'content' ? tag : ''), nodeData);
+                    Command.createAndAppendDOMNode(getId(page), elementId, (tag !== 'content' ? tag : ''), nodeData);
                     return;
                         
                 } else {
@@ -885,7 +882,7 @@ var _Pages = {
                     Command.appendChild(contentId, elementId);
                     return;
                 }
-                log('drop event in appendElementElement', getId(page), getId(self), (tag != 'content' ? tag : ''));
+                log('drop event in appendElementElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
             }
         }); 
         return div;
@@ -932,7 +929,7 @@ var _Pages = {
         }
         var numberOfComponents = $('.component', page).size();
         log(numberOfComponents);
-        if (numberOfComponents == 0) {
+        if (numberOfComponents === 0) {
             enable($('.delete_icon', page)[0]);
         }
     },
@@ -952,7 +949,7 @@ var _Pages = {
                     async: false,
                     headers: headers,
                     success: function(data) {
-                        if (!data || data.length == 0 || !data.result) return;
+                        if (!data || data.length === 0 || !data.result) return;
                         var result = data.result;
                         //                    console.log(result);
                         _Pages.appendElement(result, entity, pageId);
@@ -1020,7 +1017,7 @@ var _Pages = {
                 log('over is off');
             
                 Structr.activateMenuEntry('pages');
-                document.location = '/structr/#pages'
+                window.location.href = '/structr/#pages';
                 Structr.modules['pages'].onload();
             
                 _Pages.resize();

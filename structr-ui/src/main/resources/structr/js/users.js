@@ -28,14 +28,8 @@ $(document).ready(function() {
 var _UsersAndGroups = {
 
     init : function() {
-        //Structr.classes.push('user');
-        //Structr.classes.push('group');
-        pageSize['Group'] = 25;
-        pageSize['User'] = 25;
-        
-        page['Group'] = 1;
-        page['User'] = 1;
-    
+        Structr.initPager('User', 1, 25);
+        Structr.initPager('Group', 1, 25);
     },
 
     onload : function() {

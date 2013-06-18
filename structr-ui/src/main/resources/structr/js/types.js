@@ -29,8 +29,7 @@ var _PropertyDefinitions = {
     type_icon : 'icon/database_table.png',
 
     init : function() {
-        pageSize['PropertyDefinition'] = 100;
-        page['PropertyDefinition'] = 1;
+        Structr.initPager('PropertyDefinition', 1, 100);
     },
 	
     onload : function() {
