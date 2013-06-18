@@ -628,21 +628,15 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 	}
 	
-	protected String indent(final int depth, final boolean newline) {
+	protected String indent(final int depth) {
 
-		StringBuilder indent = new StringBuilder();
+		StringBuilder indent = new StringBuilder("\n");
 
-		if (newline) {
+        for (int d = 0; d < depth; d++) {
 
-			indent.append("\n");
+            indent.append("  ");
 
-
-			for (int d = 0; d < depth; d++) {
-
-				indent.append("  ");
-
-			}
-		}
+        }
 
 		return indent.toString();
 	}
