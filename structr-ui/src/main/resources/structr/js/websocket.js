@@ -205,7 +205,7 @@ function connect() {
                 var obj = StructrModel.update(data);
                 
                 if (data.callback && StructrModel.callbacks[data.callback]) {
-                    //console.log('executing callback with id', data.callback);
+                    log('executing callback with id', data.callback, StructrModel.callbacks[data.callback]);
                     StructrModel.callbacks[data.callback](obj);
                     // remove callback
                     delete StructrModel.callbacks[data.callback];

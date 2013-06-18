@@ -27,7 +27,7 @@ var _Entities = {
     readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
     changeBooleanAttribute: function(attrElement, value) {
 
-        //console.log('Change boolean attribute ', attrElement, ' to ', value);
+        log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value === true) {
             attrElement.removeClass('disabled').addClass('enabled').prop('checked', true);
