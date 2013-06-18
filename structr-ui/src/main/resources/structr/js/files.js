@@ -226,9 +226,6 @@ var _Files = {
 
         log('Files.appendFileElement', file);
         
-        var protected = !file.visibleToPublicUsers || !file.visibleToAuthenticatedUsers;
-        //if (file.parent) return false;
-
         var icon = _Files.getIcon(file);
         var folderId = file.parent ? file.parent.id : null;
         
@@ -245,10 +242,6 @@ var _Files = {
         if (div && div.length) {
             
             var formerParent = div.parent();
-            //            parent.append(div.css({
-            //                top: 0,
-            //                left: 0
-            //            }));
             
             if (!Structr.containsNodes(formerParent)) {
                 _Entities.removeExpandIcon(formerParent);
@@ -265,7 +258,7 @@ var _Files = {
             
         }
 
-        _Entities.appendAccessControlIcon(div, file, protected);
+        _Entities.appendAccessControlIcon(div, file);
 
         div.children('.typeIcon').on('click', function(e) {
             e.stopPropagation();
@@ -327,7 +320,6 @@ var _Files = {
         
         log('appendFolderElement', folder, folder.parent);
 
-        var protected = !folder.visibleToPublicUsers || !folder.visibleToAuthenticatedUsers;
         var hasParent = folder.parent && folder.parent.id;
         
         log(folder.name, 'has parent?', hasParent);
@@ -347,7 +339,7 @@ var _Files = {
         
         var div = Structr.node(folder.id);
 
-        _Entities.appendAccessControlIcon(div, folder, protected);
+        _Entities.appendAccessControlIcon(div, folder);
         
         var delIcon = div.children('.delete_icon');
         

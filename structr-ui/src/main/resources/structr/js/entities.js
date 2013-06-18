@@ -406,14 +406,16 @@ var _Entities = {
         });
 
     },
-    appendAccessControlIcon: function(parent, entity, show) {
+    appendAccessControlIcon: function(parent, entity) {
+        
+        var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
         var keyIcon = $('.key_icon', parent);
         var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">';
         if (!(keyIcon && keyIcon.length)) {
             parent.append(newKeyIcon);
             keyIcon = $('.key_icon', parent)
-            if (show) {
+            if (protected) {
                 keyIcon.show();
                 keyIcon.addClass('donthide');
             }

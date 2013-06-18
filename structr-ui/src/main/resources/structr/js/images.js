@@ -228,6 +228,7 @@ var _Images = {
             + '<b title="' + img.name + '" class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
             + '<div class="icons"></div></div>');
         div = Structr.node(img.id);
+
             
         var tnSmall = img.tnSmall;
         if (tnSmall) {
@@ -237,6 +238,8 @@ var _Images = {
         }
         
         var iconArea = $('.icons', div);
+
+        _Entities.appendAccessControlIcon(iconArea, img);
 
         delIcon = $('.delete_icon', div);
 
@@ -262,7 +265,6 @@ var _Images = {
             }
         });
 
-        _Entities.appendAccessControlIcon(iconArea, img);
         _Entities.appendEditPropertiesIcon(iconArea, img);
         _Images.appendEditFileIcon(iconArea, img);      
 

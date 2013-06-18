@@ -182,8 +182,6 @@ var _Elements = {
     appendElementElement : function(entity, refNode) {
         log('_Elements.appendElementElement', entity);
         
-        var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
-        
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
         
         var parent = entity.parent.id ? Structr.node(entity.parent.id) : undefined;
@@ -223,7 +221,7 @@ var _Elements = {
             e.stopPropagation();
         });
 
-        _Entities.appendAccessControlIcon(div, entity, protected);
+        _Entities.appendAccessControlIcon(div, entity);
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();

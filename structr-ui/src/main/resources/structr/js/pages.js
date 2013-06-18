@@ -386,8 +386,6 @@ var _Pages = {
         
         var hasChildren = true;
         
-        var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
-
         log('appendPageElement', entity, hasChildren);
 
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
@@ -401,19 +399,13 @@ var _Pages = {
             + '<b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
-        _Entities.appendAccessControlIcon(div, entity, protected);
+        _Entities.appendAccessControlIcon(div, entity);
 
         div.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
             _Entities.deleteNode(this, entity);
         });
-
-//        div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="' + _Pages.clone_icon + '">');
-//        $('.clone_icon', div).on('click', function(e) {
-//            e.stopPropagation();
-//            Command.clonePage(entity.id);
-//        });
 
         _Entities.appendEditPropertiesIcon(div, entity);
         _Entities.setMouseOver(div);

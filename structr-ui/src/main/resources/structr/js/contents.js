@@ -78,8 +78,6 @@ var _Contents = {
     appendContentElement : function(content, refNode) {
         log('Contents.appendContentElement', content, refNode);
 
-        var protected = !content.visibleToPublicUsers || !content.visibleToAuthenticatedUsers;
-        
         var parent;
         if (content.parent && content.parent.id) {
             parent = Structr.node(content.parent.id);
@@ -100,7 +98,7 @@ var _Contents = {
         
         var div = Structr.node(content.id);
         
-        _Entities.appendAccessControlIcon(div, content, protected);
+        _Entities.appendAccessControlIcon(div, content);
 
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
