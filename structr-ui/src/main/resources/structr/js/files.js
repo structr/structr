@@ -45,6 +45,13 @@ var _Files = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
+        
+        pageSize['Folder'] = 25;
+        pageSize['File'] = 25;
+        
+        page['Folder'] = 1;
+        page['File'] = 1;
+        
     },
 
     resize : function() {
@@ -188,8 +195,6 @@ var _Files = {
         
         //Command.list(type, pageSize[type], page[type], sort, order);
         Command.list('Folder', 1000, 1, 'name', 'asc');
-        
-        //if (Structr.addPager(folders, 'Folder')) {
 
         $('.add_folder_icon', main).on('click', function(e) {
             e.stopPropagation();
@@ -197,7 +202,8 @@ var _Files = {
             entity.type = 'Folder';
             Command.create(entity);
         });
-    //}
+
+        Structr.addPager(folders, 'Folder');
     },
 
     getIcon : function(file) {
@@ -220,6 +226,7 @@ var _Files = {
 
         log('Files.appendFileElement', file);
         
+        var protected = !file.visibleToPublicUsers || !file.visibleToAuthenticatedUsers;
         //if (file.parent) return false;
 
         var icon = _Files.getIcon(file);
@@ -257,6 +264,8 @@ var _Files = {
             div = Structr.node(file.id);
             
         }
+
+        _Entities.appendAccessControlIcon(div, file, protected);
 
         div.children('.typeIcon').on('click', function(e) {
             e.stopPropagation();
@@ -308,7 +317,6 @@ var _Files = {
 
         _Files.appendEditFileIcon(div, file);      
         _Entities.appendEditPropertiesIcon(div, file);
-        _Entities.appendAccessControlIcon(div, file);
 
         _Entities.setMouseOver(div);
         
@@ -319,6 +327,7 @@ var _Files = {
         
         log('appendFolderElement', folder, folder.parent);
 
+        var protected = !folder.visibleToPublicUsers || !folder.visibleToAuthenticatedUsers;
         var hasParent = folder.parent && folder.parent.id;
         
         log(folder.name, 'has parent?', hasParent);
@@ -337,10 +346,12 @@ var _Files = {
             + '</div>');
         
         var div = Structr.node(folder.id);
+
+        _Entities.appendAccessControlIcon(div, folder, protected);
         
         var delIcon = div.children('.delete_icon');
         
-        if (parent != folders) {
+        if (parent !== folders) {
             var newDelIcon = '<img title="Remove folder ' + folder.name + '\' from folder ' + folder.parent.id + '" alt="Remove folder ' + folder.name + '\' from folder ' + folder.parent.id + '" class="delete_icon button" src="' + _Files.delete_folder_icon + '">';
             if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
@@ -391,7 +402,7 @@ var _Files = {
                 var fileId = getId(ui.draggable);
                 var folderId = getId(self);
                 log('fileId, folderId', fileId, folderId);
-                if (!(fileId == folderId)) {
+                if (!(fileId === folderId)) {
                     var nodeData = {};
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
@@ -404,7 +415,6 @@ var _Files = {
         });
 
         _Entities.appendEditPropertiesIcon(div, folder);
-        _Entities.appendAccessControlIcon(div, folder);
         _Entities.setMouseOver(div);
 		
         return div;

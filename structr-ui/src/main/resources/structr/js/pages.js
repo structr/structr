@@ -47,7 +47,10 @@ var _Pages = {
 
     init : function() {
         
-        //console.log('_Pages.init()');
+        pageSize['Page'] = 25;
+        page['Page'] = 1;
+        
+         //console.log('_Pages.init()');
         _Pages.resize();
 
     },

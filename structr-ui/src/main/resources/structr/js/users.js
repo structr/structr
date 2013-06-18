@@ -121,6 +121,7 @@ var _UsersAndGroups = {
                 addExpandedNode(groupId);
                 Command.appendUser(userId, groupId);
                 //Command.createAndAdd(groupId, nodeData);
+                $(ui.draggable).remove();
             }
         });
         
