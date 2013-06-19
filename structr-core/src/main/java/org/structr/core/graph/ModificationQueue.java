@@ -96,9 +96,7 @@ public class ModificationQueue {
 		// copy modifications, do after transaction callbacks
 		for (GraphObjectModificationState state : modifications.values()) {
 
-			if (!state.isDeleted()) {
-				state.doOuterCallback(securityContext);
-			}
+			state.doOuterCallback(securityContext);
 		}
 
 		long t = System.currentTimeMillis() - t0;

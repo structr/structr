@@ -276,20 +276,23 @@ public class GraphObjectModificationState {
 	 */
 	public void doOuterCallback(SecurityContext securityContext) {
 
-		if ((status & STATE_PROPAGATED_MODIFICATION) == STATE_PROPAGATED_MODIFICATION) {
-			object.propagatedModification(securityContext);
-		}
+		if ((status & (STATE_DELETED | STATE_DELETED_PASSIVELY)) == 0) {
 
-		if ((status & STATE_LOCATION_MODIFIED) == STATE_LOCATION_MODIFIED) {
-			object.locationModified(securityContext);
-		}
-		
-		if ((status & STATE_SECURITY_MODIFIED) == STATE_SECURITY_MODIFIED) {
-			object.securityModified(securityContext);
-		}
-		
-		if ((status & STATE_OWNER_MODIFIED) == STATE_OWNER_MODIFIED) {
-			object.ownerModified(securityContext);
+			if ((status & STATE_PROPAGATED_MODIFICATION) == STATE_PROPAGATED_MODIFICATION) {
+				object.propagatedModification(securityContext);
+			}
+
+			if ((status & STATE_LOCATION_MODIFIED) == STATE_LOCATION_MODIFIED) {
+				object.locationModified(securityContext);
+			}
+
+			if ((status & STATE_SECURITY_MODIFIED) == STATE_SECURITY_MODIFIED) {
+				object.securityModified(securityContext);
+			}
+
+			if ((status & STATE_OWNER_MODIFIED) == STATE_OWNER_MODIFIED) {
+				object.ownerModified(securityContext);
+			}
 		}
 		
 		// examine only the last 4 bits here
@@ -320,16 +323,14 @@ public class GraphObjectModificationState {
 				object.afterCreation(securityContext);
 				break;
 
-			case  3: // modified, deleted => deletion callback
-				object.afterDeletion(securityContext);
+			case  3: // modified, deleted => no callback as node/rel is gone
 				break;
 
 			case  2: // modified => modification callback
 				object.afterModification(securityContext);
 				break;
 
-			case  1: // deleted => deletion callback
-				object.afterDeletion(securityContext);
+			case  1: // deleted => no callback as node/rel is gone
 				break;
 
 			case  0: // no action, no callback

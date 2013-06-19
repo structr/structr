@@ -46,6 +46,7 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.TypeUniquenessValidator;
 
@@ -191,6 +192,12 @@ public class ResourceAccess extends AbstractNode {
 	}
 	
 	@Override
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) {
+		grantCache.clear();
+		return true;
+	}
+	
+	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
@@ -209,11 +216,6 @@ public class ResourceAccess extends AbstractNode {
 	
 	@Override
 	public void afterModification(SecurityContext securityContext) {
-		grantCache.clear();
-	}
-	
-	@Override
-	public void afterDeletion(SecurityContext securityContext) {
 		grantCache.clear();
 	}
 	

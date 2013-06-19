@@ -191,7 +191,7 @@ public interface GraphObject {
 
 	/**
 	 * Called when an entity was successfully created. Please note that this method
-	 * will run in its own toplevel transaction and can NOT cause the creation
+	 * will need to create its own toplevel transaction and can NOT cause the creation
 	 * transaction to be rolled back.
 	 * 
 	 * @param securityContext the context in which the creation took place
@@ -200,22 +200,13 @@ public interface GraphObject {
 
 	/**
 	 * Called when an entity was successfully modified. Please note that this method
-	 * will run in its own toplevel transaction and can NOT cause the modification
+	 * will need to create its own toplevel transaction and can NOT cause the modification
 	 * transaction to be rolled back.
 	 * 
 	 * @param securityContext the context in which the modification took place
 	 */
 	public void afterModification(SecurityContext securityContext);
 
-	/**
-	 * Called when an entity was successfully deleted. Please note that this method
-	 * will run in its own toplevel transaction and can NOT cause the deletion
-	 * transaction to be rolled back.
-	 * 
-	 * @param securityContext the context in which the deletion took place
-	 */
-	public void afterDeletion(SecurityContext securityContext);
-	
 	/**
 	 * Called when the owner of this entity was successfully modified. Please note
 	 * that this method will run in its own toplevel transaction and can NOT prevent

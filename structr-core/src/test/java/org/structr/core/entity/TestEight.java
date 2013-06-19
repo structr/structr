@@ -1,8 +1,12 @@
 package org.structr.core.entity;
 
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 
 /**
@@ -11,12 +15,15 @@ import org.structr.core.property.PropertyMap;
  */
 public class TestEight extends AbstractNode {
 
+	public static final Property<Integer> testProperty = new IntProperty("testProperty");
+	
+	public static final View defaultView = new View(TestEight.class, PropertyView.Public, testProperty);
+	
 	private long onCreationTimestamp        = 0L;
 	private long onModificationTimestamp    = 0L;
 	private long onDeletionTimestamp        = 0L;
 	private long afterCreationTimestamp     = 0L;
 	private long afterModificationTimestamp = 0L;
-	private long afterDeletionTimestamp     = 0L;
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext1, ErrorBuffer errorBuffer) throws FrameworkException {
@@ -51,12 +58,6 @@ public class TestEight extends AbstractNode {
 		this.afterModificationTimestamp = System.currentTimeMillis();
 	}
 	
-	@Override
-	public void afterDeletion(SecurityContext securityContext1) {
-		
-		this.afterDeletionTimestamp = System.currentTimeMillis();
-	}
-	
 	public void resetTimestamps() {
 		
 		onCreationTimestamp        = 0L;
@@ -64,7 +65,6 @@ public class TestEight extends AbstractNode {
 		onDeletionTimestamp        = 0L;
 		afterCreationTimestamp     = 0L;
 		afterModificationTimestamp = 0L;
-		afterDeletionTimestamp     = 0L;
 	}
 
 	public long getOnCreationTimestamp() {
@@ -85,9 +85,5 @@ public class TestEight extends AbstractNode {
 
 	public long getAfterModificationTimestamp() {
 		return afterModificationTimestamp;
-	}
-
-	public long getAfterDeletionTimestamp() {
-		return afterDeletionTimestamp;
 	}
 }

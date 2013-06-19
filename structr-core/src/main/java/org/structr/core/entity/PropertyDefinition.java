@@ -40,6 +40,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 
 /**
@@ -154,18 +155,24 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 	
 	@Override
-	public void afterCreation(SecurityContext securityContext) {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
 		clearPropertyDefinitions();
+		return true;
 	}
 
 	@Override
-	public void afterModification(SecurityContext securityContext) {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
 		clearPropertyDefinitions();
+		return true;
 	}
 
 	@Override
-	public void afterDeletion(SecurityContext securityContext) {
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap removedProperties) throws FrameworkException{
+
 		clearPropertyDefinitions();
+		return true;
 	}
 	
 	@Override

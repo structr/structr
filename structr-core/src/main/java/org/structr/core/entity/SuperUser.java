@@ -91,9 +91,6 @@ public class SuperUser implements Principal {
 	public void afterModification(SecurityContext securityContext) {}
 
 	@Override
-	public void afterDeletion(SecurityContext securityContext) {}
-
-	@Override
 	public void ownerModified(SecurityContext securityContext) {}
 
 	@Override

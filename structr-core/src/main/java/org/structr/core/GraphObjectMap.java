@@ -112,10 +112,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public void afterDeletion(SecurityContext securityContext) {
-	}
-
-	@Override
 	public void ownerModified(SecurityContext securityContext) {
 	}
 
