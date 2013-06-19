@@ -31,6 +31,7 @@ import org.structr.core.entity.Person;
 import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -66,13 +67,16 @@ public class CallbackTest extends StructrTest {
 		
 		try {
 
-			TestEight test = (TestEight)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+// ##################################### test creation callbacks
+			
+			final TestEight test = (TestEight)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
 					return (TestEight)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, TestEight.class.getSimpleName())
+						new NodeAttribute(AbstractNode.type, TestEight.class.getSimpleName()),
+						new NodeAttribute(TestEight.testProperty, 123)
 					);
 				}
 				
@@ -86,8 +90,89 @@ public class CallbackTest extends StructrTest {
 			// only the creation methods should have been called now!
 			assertTrue("afterCreationTimestamp should be != 0", test.getAfterCreationTimestamp() != 0L);
 			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
-			assertEquals("afterDeletionTimestamp should be == 0", 0L, test.getAfterDeletionTimestamp());
 
+
+// ##################################### test modification callbacks
+			
+			
+			// reset timestamps
+			test.resetTimestamps();
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					test.setProperty(TestEight.testProperty, 234);
+					
+					return null;
+				}
+				
+			});
+			
+			// only the modification methods should have been called now!
+			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
+			assertTrue("onModificationTimestamp should be != 0", test.getOnModificationTimestamp() != 0L);
+			assertEquals("onDeletionTimestamp should be == 0", 0L, test.getOnDeletionTimestamp());
+			
+			// only the modification methods should have been called now!
+			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
+			assertTrue("afterModificationTimestamp should be != 0", test.getAfterModificationTimestamp() != 0L);
+
+			
+// ##################################### test non-modifying set operation
+			
+			// reset timestamps
+			test.resetTimestamps();
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					test.setProperty(TestEight.testProperty, 234);
+					
+					return null;
+				}
+				
+			});
+			
+			// only the creation methods should have been called now!
+			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
+			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
+			assertEquals("onDeletionTimestamp should be == 0", 0L, test.getOnDeletionTimestamp());
+			
+			// only the creation methods should have been called now!
+			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
+			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
+
+			
+			
+// ##################################### test deletion
+			
+			// reset timestamps
+			test.resetTimestamps();
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					Services.command(securityContext, DeleteNodeCommand.class).execute(test);
+					
+					return null;
+				}
+				
+			});
+			
+			// only the creation methods should have been called now!
+			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
+			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
+			assertTrue("onDeletionTimestamp should be != 0", test.getOnDeletionTimestamp() != 0L);
+			
+			// only the creation methods should have been called now!
+			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
+			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
 			
 			
 			
