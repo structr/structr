@@ -274,13 +274,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		//String pageId        = renderContext.getPageId();
 		String id            = getUuid();
 		String tag           = getProperty(DOMElement.tag);
-        boolean anyChildNodeCreatesNewLine  = false;
+		
+		boolean anyChildNodeCreatesNewLine  = false;
 
-        if (!avoidWhitespace()) {
+		if (!avoidWhitespace()) {
 
-            buffer.append(indent(depth));
+			buffer.append(indent(depth));
 
-        }
+		}
 		
 		if (StringUtils.isNotBlank(tag)) {
 
@@ -358,10 +359,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					continue;
 				}
 
-                if (subNode instanceof DOMElement) {
-                    // Determine the "newline-situation" for the closing tag of this element
-                    anyChildNodeCreatesNewLine = ( anyChildNodeCreatesNewLine || !((DOMElement) subNode).avoidWhitespace() );
-                }
+				if (subNode instanceof DOMElement) {
+					// Determine the "newline-situation" for the closing tag of this element
+					anyChildNodeCreatesNewLine = ( anyChildNodeCreatesNewLine || !((DOMElement) subNode).avoidWhitespace() );
+				}
                                 
 				String subKey = subNode.getProperty(dataKey);
 				if (StringUtils.isNotBlank(subKey)) {
@@ -447,12 +448,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			// render end tag, if needed (= if not singleton tags)
 			if (StringUtils.isNotBlank(tag) && (!isVoid)) {
 				
-                // only insert a newline + indentation before the closing tag if any child-element used a newline
-                if (anyChildNodeCreatesNewLine) {
+				// only insert a newline + indentation before the closing tag if any child-element used a newline
+				if (anyChildNodeCreatesNewLine) {
 
-                    buffer.append(indent(depth));
-                    
-                }
+					buffer.append(indent(depth));
+
+				}
 
 				buffer.append("</").append(tag).append(">");
 			}
