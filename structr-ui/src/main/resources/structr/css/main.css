@@ -178,11 +178,16 @@ img.disabled {
     margin-top: 0px ! important;
 }
 
-#palette {
+#components {
+	display: none;
+}
+
+#palette, #components {
     font-size: 1.25em;
     line-height: 2em;
     padding: 0;
-    margin: 16px 0 0 0;
+    margin: 0;
+	border-top: 1px solid #a5a5a5;
 }
 
 #palette .elementGroup {
@@ -325,22 +330,25 @@ img.disabled {
     position: absolute;
 }
 
-ul#previewTabs {
+ul#previewTabs, ul#compTabs {
     margin: 0;
     padding: 0;
     border: none;
-    width: 900px;
     height: 25px;
 }
 
-#tabs, #tabs ul {
+ul#previewTabs {
+    width: 900px;
+}
+
+#tabs, #tabs ul, #compTabs, #compTabs ul {
     background: none;
     border: none;
     padding: 0;
     margin: 0;
 }
 
-#previewTabs li, #tabs li {
+#previewTabs li, #tabs li, #compTabs li {
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -356,7 +364,7 @@ ul#previewTabs {
     border-bottom: none ! important;
     border-bottom-left-radius: 0 ! important;
     border-bottom-right-radius: 0 ! important;
-    margin: 6px 4px 0 0 ! important;
+    margin: 0 4px 0 0 ! important;
     padding: 3px 6px 0 6px ! important;
     color: #333;
     font-size: 1.2em;
@@ -381,7 +389,7 @@ ul#previewTabs {
     margin: 0;
 }
 
-#previewTabs li:hover, #tabs li:hover {
+#previewTabs li:hover, #tabs li:hover, #compTabs li:hover {
     color: #333 ! important;
     background-color: #e3e3e3;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
@@ -389,7 +397,7 @@ ul#previewTabs {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-#previewTabs li.active, #tabs li.active {
+#previewTabs li.active, #tabs li.active, #compTabs li.active {
     color: #333 ! important;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
@@ -399,6 +407,10 @@ ul#previewTabs {
 
 #previews {
     overflow: hidden ! important;
+}
+
+#compTabs li {
+	margin: 8px 2px 0 0 ! important
 }
 
 .previewBox {
@@ -479,7 +491,7 @@ span.id {
     color: #999;
 }
 
-#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #propertyDefinitions .node, #graph .node, .dialogText .node
+#pages .node, #files .node, #folders .node, #images .node, #users .node,  #groups .node, #propertyDefinitions .node, #graph .node, .dialogText .node, #components .node
 /*#pages .page, #files .page, #users .page,  #groups .page, #types .page,
 #pages .type, #files .type, #users .type,  #groups .type, #types .type,
 #pages .component, #files .component, #users .component,  #groups .component, #types .component,

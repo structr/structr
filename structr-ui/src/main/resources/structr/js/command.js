@@ -184,23 +184,6 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send a REMOVE command to the server.
-     * 
-     * The server will remove the node from the
-     * tree with the given key and broadcast a removal notification.
-     */
-    removeDataNode: function(id, key) {
-        log('Remove ' + id);
-        var obj = {};
-        obj.command = 'REMOVE';
-        obj.id = id;
-        var data = {};
-        data.key = key;
-        obj.data = data;
-        log('removeDataNode()', obj);
-        return sendObj(obj);
-    },
-    /**
      * Send an UPDATE command to the server.
      * 
      * The server will set the given value as new value of the property with
@@ -389,7 +372,7 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send an SYNC_MODE command to the server.
+     * Send a SYNC_MODE command to the server.
      * 
      * The server set the mode for synchronization
      * between source and target node to the
@@ -616,22 +599,23 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send a ADD_DATA_NODE_REL command to the server.
+     * Send a LIST_COMPONENTS command to the server.
      * 
-     * The server will establish a RENDER_NODE relationship from the node
-     * with the given id to the data node with the given node id.
+     * The server will return a result set containing all element nodes
+     * which are used in more than one page to the sending client (no broadcast).
      * 
-     * The server gives no feedback on a LINK command.
+     * The optional callback function will be executed for each node in the result set.
      */
-    addDataTree: function(id, dataNodeId, key) {
+    listComponents: function(pageSize, page, sort, order, callback) {
         var obj = {};
-        obj.command = 'ADD_DATA_NODE_REL';
-        obj.id = id;
+        obj.command = 'LIST_COMPONENTS';
         var data = {};
-        data.dataNodeId = dataNodeId;
-        data.key = key;
+        obj.pageSize = pageSize;
+        obj.page = page;
+        obj.sort = sort;
+        obj.order = order;
         obj.data = data;
-        log('addDataTree()', obj);
-        return sendObj(obj);
+        console.log('list()', obj, callback);
+        return sendObj(obj, callback);
     }
 }

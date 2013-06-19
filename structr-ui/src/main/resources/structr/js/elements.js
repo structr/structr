@@ -128,7 +128,9 @@ var _Elements = {
     //        _Elements.showPalette();
     },
 
-    showPalette : function() {
+    refreshPalette : function() {
+
+        palette.empty();
         $(_Elements.elementGroups).each(function(i,group) {
             log(group);
             palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
@@ -147,6 +149,38 @@ var _Elements = {
         });
     },
     
+    refreshComponents : function() {
+
+        components.empty();
+        
+        Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
+            
+            var id = entity.id;
+            
+            components.append('<div id="componentId_' + id + '" class="node element"></div>');
+            
+            var div = $($('#componentId_' + id)[0]);
+            log('Component appended', div);
+
+            if (!div) return;
+
+            var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
+
+            div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
+                + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
+                + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
+                + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
+                + '</div>');
+
+            $('.typeIcon', div).on('mousedown', function(e) {
+                e.stopPropagation();
+            });
+            
+            
+        });
+
+    },
+
     refresh : function() {
         elements.empty();
 

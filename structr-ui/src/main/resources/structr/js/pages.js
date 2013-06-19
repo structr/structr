@@ -18,7 +18,7 @@
  */
 
 var pages;
-var previews, previewTabs, controls, palette, activeTab;
+var previews, previewTabs, controls, palette, activeTab, components;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -57,9 +57,10 @@ var _Pages = {
         
         var windowWidth = win.width();
         var windowHeight = win.height();
-        var headerOffsetHeight = 76;
-        var previewOffset = 27;
+        var headerOffsetHeight = 100;
+        var previewOffset = 22;
 	
+        var compTabsHeight = $('#compTabs').height();
         //console.log(pages, palette, previews);
         
         if (pages && palette) {
@@ -73,7 +74,12 @@ var _Pages = {
 
             palette.css({
                 width: Math.min(300, Math.max(360, windowWidth/4)) + 'px',
-                height: windowHeight - (headerOffsetHeight+10) + 'px'
+                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
+            });
+
+            components.css({
+                width: Math.min(300, Math.max(360, windowWidth/4)) + 'px',
+                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
             });
 
             var pw = palette.width() + 60;
@@ -106,19 +112,41 @@ var _Pages = {
         log('value read from local storage', activeTab);
 
         log('onload');
-        
-        main.prepend('<div id="pages"></div><div id="previews"></div><div id="palette"></div>');
+
+        main.prepend('<div id="pages"></div><div id="previews"></div><ul id="compTabs"><li class="active" id="paletteTab">HTML Palette</li><li id="componentsTab">Components</li></ul><div id="palette"></div><div id="components"></div>');
 
         pages = $('#pages');
         previews = $('#previews');
         palette = $('#palette');
+        components = $('#components');
+        
         //main.before('<div id="hoverStatus">Hover status</div>');
+        
+        $('#componentsTab').on('click', function() {
+            $(this).addClass('active');
+            $('#paletteTab').removeClass('active');
+            palette.hide();
+            components.show();
+            _Elements.refreshComponents();
+        });
+
+        $('#paletteTab').on('click', function() {
+            $(this).addClass('active');
+            $('#componentsTab').removeClass('active');
+            components.hide();
+            palette.show();
+            _Elements.refreshPalette();
+
+        });
+        
         $('#controls', main).remove();
 
         previews.append('<ul id="previewTabs"></ul>');
         previewTabs = $('#previewTabs', previews);
 
         _Pages.refresh();
+        _Elements.refreshPalette();
+        //_Elements.refreshComponents();
         
         window.setTimeout('_Pages.resize()', 1000);
 
@@ -140,8 +168,6 @@ var _Pages = {
         
         Structr.addPager(pages, 'Page');
         
-        _Elements.showPalette();
-
         previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
@@ -204,32 +230,6 @@ var _Pages = {
             Command.createSimplePage();
         });        
         
-    },
-
-    refreshComponents : function() {
-        components.empty();
-        if (Command.list('Component')) {
-            components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
-            $('.add_component_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Component';
-                Command.create(entity);
-            });
-        }
-    },
-
-    refreshElements : function() {
-        elements.empty();
-        if (Command.list('Element')) {
-            elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
-            $('.add_element_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Element';
-                Command.create(entity);
-            });
-        }
     },
 
     addTab : function(entity) {
