@@ -43,6 +43,7 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -69,8 +70,9 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-		// Search for all DOM elements
-		searchAttributes.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
+		// Search for all DOM elements and Contents
+		searchAttributes.add(Search.orExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
+		searchAttributes.add(Search.orExactType(Content.class.getSimpleName()));
 
 		final String sortOrder   = webSocketData.getSortOrder();
 		final String sortKey     = webSocketData.getSortKey();
