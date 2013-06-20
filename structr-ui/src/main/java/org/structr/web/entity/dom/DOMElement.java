@@ -76,10 +76,9 @@ import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.EntityProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.rest.ResourceProvider;
@@ -113,8 +112,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final Logger logger                            = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength                     = PropertyView.Html.length();
 	
-	public static final EntityProperty<AbstractNode> dataNode     = new EntityProperty("dataNode", AbstractNode.class, RelType.RENDER_NODE, Direction.OUTGOING, false);
-	public static final Property<String> dataNodeId               = new EntityIdProperty("dataNodeId", dataNode);
+	public static final  Property<List<DOMElement>> syncedNodes   = new CollectionProperty("syncedNodes", DOMElement.class, RelType.SYNC, Direction.OUTGOING, new PropertyNotion(uuid), false);
 	
 	private static final Map<String, HtmlProperty> htmlProperties              = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources  = new LinkedList<GraphDataSource<List<GraphObject>>>();
@@ -209,11 +207,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _accesskey               = new HtmlProperty("accesskey");
 	
 	public static final org.structr.common.View publicView        = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-										name, tag, pageId, path, parent, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId
+										name, tag, pageId, path, parent, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes
 	);
 	
 	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds, owner,
-										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, dataNodeId, renderDetails, hideOnIndex, hideOnDetail,
+										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, renderDetails, hideOnIndex, hideOnDetail,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,

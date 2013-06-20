@@ -22,9 +22,12 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 import org.structr.web.common.RelType;
 import org.structr.core.property.CollectionProperty;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -36,5 +39,19 @@ public class Title extends DOMElement {
 
 	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+
+	@Override
+	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+		
+		super.render(securityContext, renderContext, depth);
+
+		if (renderContext.getEdit()) {
+			
+			renderContext.getBuffer().append("\n    <script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.9.1.js\"></script>\n    <script type=\"text/javascript\" src=\"/structr/js/structr-edit.js\"></script>");
+			
+		}
+	
+	}
+	
 
 }

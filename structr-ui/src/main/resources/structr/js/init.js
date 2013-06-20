@@ -621,8 +621,8 @@ var Structr = {
     initPager : function(type, p, ps) {
         var pagerData = localStorage.getItem(pagerDataKey + type);
         if (!pagerData) {
-            page[type]      = p;
-            pageSize[type]  = ps;
+            page[type]      = parseInt(p);
+            pageSize[type]  = parseInt(ps);
             Structr.storePagerData(type, p, ps);
         } else {
             Structr.restorePagerData(type);
@@ -684,26 +684,6 @@ var Structr = {
      */
     addPager : function(el, type) {
 
-//        var pageFromUrl     = urlParam('page');
-//        var pageSizeFromUrl = urlParam('pageSize');
-//        
-//        if (!page[type] && !pageSize[type]) {
-//            page[type]      =  pageFromUrl;
-//            pageSize[type]  = pageSizeFromUrl;
-//        }
-//        if (!page[type] && !pageSize[type]) {
-//            Structr.restorePagerData(type);
-//        }
-//        
-//        if (!page[type] && !pageSize[type]) {
-//            page[type]      = defaultPage;
-//            pageSize[type]  = defaultPageSize;
-//        }
-// 
-//        if (!pageCount[type]) {
-//            pageCount[type] = 1;
-//        }
- 
         el.append('<div class="pager" id="pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
             + ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
             + ' of <input class="readonly pageCount" readonly="readonly" size="3">'

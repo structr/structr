@@ -596,8 +596,7 @@ var _Entities = {
 
             typeIcon.css({
                 paddingRight: 0 + 'px'
-            })
-                    .after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
+            }).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
 
             button = $(el.children('.expand_icon').first());
 

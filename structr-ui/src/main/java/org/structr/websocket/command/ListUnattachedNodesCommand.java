@@ -44,22 +44,22 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket command to retrieve nodes which are in use on more than
- * one page.
+ * Websocket command to retrieve DOM nodes which are not attached to a parent element
  * 
  * @author Axel Morgner
  */
-public class ListComponentsCommand extends AbstractCommand {
+public class ListUnattachedNodesCommand extends AbstractCommand {
 	
-	private static final Logger logger = Logger.getLogger(ListComponentsCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(ListUnattachedNodesCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(ListComponentsCommand.class);
+		StructrWebSocket.addCommand(ListUnattachedNodesCommand.class);
 
 	}
 
@@ -76,7 +76,7 @@ public class ListComponentsCommand extends AbstractCommand {
 		final String sortKey     = webSocketData.getSortKey();
 		final int pageSize       = webSocketData.getPageSize();
 		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = EntityContext.getPropertyKeyForJSONName(DOMElement.class, sortKey);
+		PropertyKey sortProperty = EntityContext.getPropertyKeyForJSONName(DOMNode.class, sortKey);
 
 		try {
 
@@ -85,14 +85,14 @@ public class ListComponentsCommand extends AbstractCommand {
 			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
 			List<? extends GraphObject> resultList = result.getResults();
 
-			// determine which of the nodes have SYNC relationships
+			// determine which of the nodes have incoming CONTAINS relationships
 			for (GraphObject obj : resultList) {
 
 				if (obj instanceof AbstractNode) {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (node.hasRelationship(RelType.SYNC, Direction.OUTGOING) && node.hasRelationship(RelType.CONTAINS, Direction.OUTGOING)) {
+					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
 
 						filteredResults.add(node);
 					}
@@ -125,7 +125,7 @@ public class ListComponentsCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 
-		return "GET_COMPONENTS";
+		return "LIST_UNATTACHED_NODES";
 
 	}
 

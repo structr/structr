@@ -18,7 +18,7 @@
  */
 
 var pages;
-var previews, previewTabs, controls, palette, activeTab, components;
+var previews, previewTabs, controls, palette, activeTab, components, elements;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -82,6 +82,11 @@ var _Pages = {
                 height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
             });
 
+            elements.css({
+                width: Math.min(300, Math.max(360, windowWidth/4)) + 'px',
+                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
+            });
+
             var pw = palette.width() + 60;
 
             if (previews) previews.css({
@@ -113,32 +118,48 @@ var _Pages = {
 
         log('onload');
 
-        main.prepend('<div id="pages"></div><div id="previews"></div><ul id="compTabs"><li class="active" id="paletteTab">HTML Palette</li><li id="componentsTab">Components</li></ul><div id="palette"></div><div id="components"></div>');
+        main.prepend('<div id="pages"></div><div id="previews"></div>'
+                + '<ul id="compTabs"><li class="active" id="paletteTab">HTML Palette</li><li id="componentsTab">Components</li><li id="elementsTab">Elements</li></ul>'
+                + '<div id="palette"></div><div id="components"></div><div id="elements"></div>');
 
         pages = $('#pages');
         previews = $('#previews');
         palette = $('#palette');
         components = $('#components');
+        elements = $('#elements');
         
         //main.before('<div id="hoverStatus">Hover status</div>');
         
-        $('#componentsTab').on('click', function() {
-            $(this).addClass('active');
-            $('#paletteTab').removeClass('active');
-            palette.hide();
-            components.show();
-            _Elements.refreshComponents();
-        });
-
         $('#paletteTab').on('click', function() {
             $(this).addClass('active');
             $('#componentsTab').removeClass('active');
+            $('#elementsTab').removeClass('active');
             components.hide();
+            elements.hide();
             palette.show();
             _Elements.refreshPalette();
 
         });
         
+        $('#elementsTab').on('click', function() {
+            $(this).addClass('active');
+            $('#paletteTab').removeClass('active');
+            $('#componentsTab').removeClass('active');
+            palette.hide();
+            components.hide();
+            elements.show();
+            _Elements.refreshElements();
+        });
+
+        $('#componentsTab').on('click', function() {
+            $(this).addClass('active');
+            $('#paletteTab').removeClass('active');
+            $('#elementsTab').removeClass('active');
+            palette.hide();
+            components.show();
+            _Elements.refreshComponents();
+        });
+
         $('#controls', main).remove();
 
         previews.append('<ul id="previewTabs"></ul>');
@@ -701,9 +722,11 @@ var _Pages = {
     },
 
     appendElementElement : function(entity, refNode) {
-        var parentId = entity.parent.id;
+        
         var div = _Elements.appendElementElement(entity, refNode);
         if (!div) return false;
+
+        var parentId = entity.parent && entity.parent.id;
         if (parentId) {
             $('.delete_icon', div).replaceWith('<img title="Remove" '
                 + 'alt="Remove" class="delete_icon button" src="icon/brick_delete.png">');

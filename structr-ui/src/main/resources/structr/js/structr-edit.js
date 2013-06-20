@@ -20,8 +20,6 @@
 $(function() {
     var s = new StructrPage('/structr/rest/');
 
-    console.log('StructrPage initialized', s);
-
     if (urlParam('edit')) {
         s.editable(true);
 

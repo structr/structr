@@ -27,6 +27,7 @@ $(document).ready(function() {
 var _Elements = {
 
     icon : 'icon/brick.png',
+    icon_comp : 'icon/package.png',
     add_icon : 'icon/brick_add.png',
     delete_icon : 'icon/brick_delete.png',
 
@@ -149,38 +150,6 @@ var _Elements = {
         });
     },
     
-    refreshComponents : function() {
-
-        components.empty();
-        
-        Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
-            
-            var id = entity.id;
-            
-            components.append('<div id="componentId_' + id + '" class="node element"></div>');
-            
-            var div = $($('#componentId_' + id)[0]);
-            log('Component appended', div);
-
-            if (!div) return;
-
-            var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
-
-            div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
-                + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
-                + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
-                + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
-                + '</div>');
-
-            $('.typeIcon', div).on('mousedown', function(e) {
-                e.stopPropagation();
-            });
-            
-            
-        });
-
-    },
-
     refresh : function() {
         elements.empty();
 
@@ -213,12 +182,91 @@ var _Elements = {
         }
     },
 
+    refreshComponents : function() {
+
+        components.empty();
+        
+        Command.getComponents(1000, 1, 'name', 'asc', function(entity) {
+            
+//            _Elements.appendElementElement(entity);
+            
+            var id = entity.id;
+            
+            components.append('<div id="id_' + id + '" class="node element"></div>');
+            
+            var div = Structr.node(id);
+            console.log('Component appended', div);
+
+            if (!div) return;
+
+            var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
+
+            div.append('<img class="typeIcon" src="'+ _Elements.icon_comp + '">'
+                + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
+                + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
+                + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
+                + '</div>');
+
+            $('.typeIcon', div).on('mousedown', function(e) {
+                e.stopPropagation();
+            });
+            
+            _Entities.appendExpandIcon(div, entity, true);
+            
+            
+        });
+
+    },
+    
+    refreshElements : function() {
+
+        elements.empty();
+        
+        Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
+            
+////            _Elements.appendElementElement(entity);
+//            
+//            var id = entity.id;
+//            
+//            elements.append('<div id="id_' + id + '" class="node element"></div>');
+//            
+//            var div = Structr.node(id);
+//            console.log('Unattached element appended', div);
+//
+//            if (!div) return;
+//
+//            var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
+//
+//            div.append('<img class="typeIcon" src="'+ _Elements.icon_comp + '">'
+//                + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
+//                + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
+//                + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
+//                + '</div>');
+//
+//            $('.typeIcon', div).on('mousedown', function(e) {
+//                e.stopPropagation();
+//            });
+//            
+//            _Entities.appendExpandIcon(div, entity, true);
+            
+            
+        });
+
+    },
+
+    componentNode : function(id) {
+        return $($('#componentId_' + id)[0]);
+    },
+
     appendElementElement : function(entity, refNode) {
         log('_Elements.appendElementElement', entity);
         
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
+        var isComponent = entity.syncedNodes.length;
         
-        var parent = entity.parent.id ? Structr.node(entity.parent.id) : undefined;
+        var isMasterComponent = (isComponent && hasChildren);
+        
+        var parent = entity.parent && entity.parent.id ? Structr.node(entity.parent.id) : elements;
         
         log('appendElementElement parent', parent);
         if (!parent) return false;
@@ -227,7 +275,7 @@ var _Elements = {
         
         var id = entity.id;
         
-        var html = '<div id="id_' + id + '" class="node element"></div>';
+        var html = '<div id="' + (isMasterComponent ? 'componentId_' : 'id_') + id + '" class="node element"></div>';
         
         if (refNode) {
             refNode.before(html);
@@ -235,21 +283,26 @@ var _Elements = {
             parent.append(html);
         }
 
-        //var div = Structr.node(entity.id, parentId, componentId, pageId, pos);
-        var div = Structr.node(id);
+        var div = (isMasterComponent ? _Elements.componentNode(id) : Structr.node(id));
+        
         log('Element appended (div, parent)', div, parent);
         
         if (!div) return;
         
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
         
-        div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
+        
+        var icon = isComponent ? _Elements.icon_comp : _Elements.icon;
+        
+        div.append('<img class="typeIcon" src="'+ icon + '">'
             + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
             + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
             + '</div>');
 
-        _Entities.appendExpandIcon(div, entity, hasChildren);
+        if (!isComponent) {
+            _Entities.appendExpandIcon(div, entity, hasChildren);
+        }
 
         $('.typeIcon', div).on('mousedown', function(e) {
             e.stopPropagation();

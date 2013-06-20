@@ -28,6 +28,7 @@ $(document).ready(function() {
 var _UsersAndGroups = {
 
     init : function() {
+        console.log('init pager for users and groups');
         Structr.initPager('User', 1, 25);
         Structr.initPager('Group', 1, 25);
     },

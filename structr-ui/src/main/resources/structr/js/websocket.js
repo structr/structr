@@ -262,6 +262,20 @@ function connect() {
                     
                 });
 
+            } else if (command.startsWith('GET_COMPONENTS')) { /*********************** GET_COMPONENTS ************************/
+                
+                log('GET_COMPONENTS', result, data);
+                
+                $(result).each(function(i, entity) {
+                    
+                    var obj = StructrModel.obj(entity.id);
+                    
+                    if (data.callback) {
+                        StructrModel.callbacks[data.callback](obj);
+                    }
+                    
+                });
+
                 
             } else if (command === 'DELETE') { /*********************** DELETE ************************/
                 

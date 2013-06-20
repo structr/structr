@@ -599,23 +599,43 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send a LIST_COMPONENTS command to the server.
+     * Send a GET_COMPONENTS command to the server.
      * 
      * The server will return a result set containing all element nodes
      * which are used in more than one page to the sending client (no broadcast).
      * 
      * The optional callback function will be executed for each node in the result set.
      */
-    listComponents: function(pageSize, page, sort, order, callback) {
+    getComponents: function(pageSize, page, sort, order, callback) {
         var obj = {};
-        obj.command = 'LIST_COMPONENTS';
+        obj.command = 'GET_COMPONENTS';
         var data = {};
         obj.pageSize = pageSize;
         obj.page = page;
         obj.sort = sort;
         obj.order = order;
         obj.data = data;
-        console.log('list()', obj, callback);
+        log('getComponents()', obj, callback);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a LIST_UNATTACHED_NODES command to the server.
+     * 
+     * The server will return a result set containing all DOM nodes
+     * which are not connected to a parent node to the sending client (no broadcast).
+     * 
+     * The optional callback function will be executed for each node in the result set.
+     */
+    listUnattachedNodes: function(pageSize, page, sort, order, callback) {
+        var obj = {};
+        obj.command = 'LIST_UNATTACHED_NODES';
+        var data = {};
+        obj.pageSize = pageSize;
+        obj.page = page;
+        obj.sort = sort;
+        obj.order = order;
+        obj.data = data;
+        log('listUnattachedNodes()', obj, callback);
         return sendObj(obj, callback);
     }
 }
