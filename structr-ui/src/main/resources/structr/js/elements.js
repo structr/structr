@@ -300,9 +300,9 @@ var _Elements = {
             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
             + '</div>');
 
-        if (!isComponent) {
-            _Entities.appendExpandIcon(div, entity, hasChildren);
-        }
+        //if (!isComponent) {
+            _Entities.appendExpandIcon(div, entity, !isComponent && hasChildren);
+        //}
 
         $('.typeIcon', div).on('mousedown', function(e) {
             e.stopPropagation();

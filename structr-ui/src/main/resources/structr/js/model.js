@@ -676,8 +676,15 @@ StructrElement.prototype.remove = function() {
         var parent = Structr.node(this.parent.id);
     }
 
-    if (element)
-        element.remove();
+    if (element) {
+        
+        if (element.closest('#pages').length) {
+            elements.append(element);
+        } else {
+            element.remove();
+        }
+    }
+        
 
     log(this, element, parent, Structr.containsNodes(parent));
 

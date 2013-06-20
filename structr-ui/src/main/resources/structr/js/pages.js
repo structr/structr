@@ -743,7 +743,7 @@ var _Pages = {
         if (!page && pages) {
             div.draggable({
                 revert: 'invalid',
-                containment: '#pages',
+                //containment: '#pages',
                 stack: 'div',
                 //helper: 'clone',
                 start: function(event, ui) {
@@ -785,7 +785,7 @@ var _Pages = {
             accept: '.element, .content, .component, .image, .file',
             greedy: true,
             hoverClass: 'nodeHover',
-            //tolerance: 'pointer',
+            tolerance: 'pointer',
             drop: function(event, ui) {
                 var self = $(this);
 
@@ -794,6 +794,9 @@ var _Pages = {
                 if (sorting && !copy) {
                     return;
                 }
+                
+                $(ui.draggable).remove();
+                
                 var nodeData = {};
 				
                 var page = self.closest('.page')[0];
@@ -903,6 +906,7 @@ var _Pages = {
                 } else {
                     tag = cls;
                     Command.appendChild(contentId, elementId);
+                    
                     return;
                 }
                 log('drop event in appendElementElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
