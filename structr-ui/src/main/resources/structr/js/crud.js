@@ -964,8 +964,8 @@ var _Crud = {
 
     crudUpdate : function(id, key, newValue, onSuccess, onError) {
         var url = rootUrl + id;
-        var json = '{"' + key + '":"' + newValue + '"}';
-        //console.log('crudUpdate', headers, url, json);
+        var json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
+        console.log('crudUpdate', headers, url, json);
         $.ajax({
             url: url,
             headers: headers,
@@ -1291,8 +1291,10 @@ var _Crud = {
                         var self = $(this);
                         var oldValue = self.text();
                         self.off('mouseup');
-                        self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
-                        _Crud.activateTextInputField($('input', self), id, key);
+                        self.html('<input class="value" type="text" size="40">');
+                        var input = $('input', self);
+                        input.val(oldValue);
+                        _Crud.activateTextInputField(input, id, key);
                     });
                 }
             }
