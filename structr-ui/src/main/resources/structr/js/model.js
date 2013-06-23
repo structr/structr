@@ -98,8 +98,13 @@ var StructrModel = {
         StructrModel.objects[data.id] = obj;
 
         // Check if the object is already contained in page
-        if (Structr.node(obj.id)) {
-            return obj;
+        if (obj) {
+                
+            if (obj.exists && obj.exists()) {
+                console.log('obj exists');
+                return obj;
+            }
+            
         }
 
         if (refId || append === undefined || append) {
@@ -124,10 +129,12 @@ var StructrModel = {
      * Check expand status
      */
     expand: function(element, obj) {
+        
+        log('StructrModel.expand', element, obj);
+        
         if (element) {
 
             if (isExpanded(obj.id)) {
-                log('model, _Entities.ensureExpanded', element);
                 _Entities.ensureExpanded(element);
             }
 
@@ -677,14 +684,12 @@ StructrElement.prototype.remove = function() {
     }
 
     if (element) {
-        
+        // If element is removed from page tree, reload elements area
         if (element.closest('#pages').length) {
-            elements.append(element);
-        } else {
-            element.remove();
+            _Elements.reloadUnattachedNodes();
         }
+        element.remove();
     }
-        
 
     log(this, element, parent, Structr.containsNodes(parent));
 
@@ -696,6 +701,18 @@ StructrElement.prototype.remove = function() {
 
 StructrElement.prototype.append = function(refNode) {
     StructrModel.expand(_Pages.appendElementElement(this, refNode), this);
+}
+
+StructrElement.prototype.exists = function() {
+    
+    var obj = this;
+
+    var hasChildren = obj.childrenIds && obj.childrenIds.length;
+    var isComponent = obj.syncedNodes.length;
+
+    var isMasterComponent = (isComponent && hasChildren);
+
+    return !isMasterComponent && Structr.node(obj.id);
 }
 
 
@@ -738,10 +755,13 @@ StructrContent.prototype.remove = function() {
         var parent = Structr.node(this.parent.id);
     }
 
-    if (element)
+    if (element) {
+        // If element is removed from page tree, reload elements area
+        if (element.closest('#pages').length) {
+            _Elements.reloadUnattachedNodes();
+        }
         element.remove();
-
-    //console.log(this, element, parent, Structr.containsNodes(parent));
+    }
 
     if (parent && !Structr.containsNodes(parent)) {
         _Entities.removeExpandIcon(parent);
@@ -766,6 +786,8 @@ StructrContent.prototype.append = function(refNode) {
 
     log('appendContentElement div', div);
 
+    StructrModel.expand(div, this);
+
     if (parent) {
 
         $('.button', div).on('mousedown', function(e) {
@@ -782,8 +804,10 @@ StructrContent.prototype.append = function(refNode) {
 
     _Entities.setMouseOver(div);
 
-    StructrModel.expand(div, this);
-
+}
+StructrContent.prototype.exists = function() {
+    
+    return Structr.node(this.id);
 }
 
 /**************************************

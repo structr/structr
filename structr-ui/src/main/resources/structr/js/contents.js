@@ -19,68 +19,22 @@
 
 var contents, editor, contentType;
 
-$(document).ready(function() {
-    Structr.registerModule('contents', _Contents);
-    Structr.classes.push('content');
-});
-
 var _Contents = {
 
     icon : 'icon/page_white.png',
     add_icon : 'icon/page_white_add.png',
     delete_icon : 'icon/page_white_delete.png',
 	
-    init : function() {
-    //Structr.classes.push('content');
-    },
-
-    onload : function() {
-        
-        _Contents.init();
-        
-        log('onload');
-        if (palette) palette.remove();
-        main.append('<div id="contents"></div>');
-
-        contents = $('#contents');
-        _Contents.refresh();
-        contents.show();
-    },
-
-    refresh : function() {
-        contents.empty();
-        if (_Contents.show()) {
-            contents.append('<button class="add_content_icon button"><img title="Add Content" alt="Add Content" src="' + _Contents.add_icon + '"> Add Content</button>');
-            $('.add_content_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Content';
-                Command.create(entity);
-            });
-        }
-    },
-
-    show : function() {
-        if (palette) {
-            palette.children().first().before('<div class="elementGroup"><h3>Content</h3><div class="draggable content" id="add_content">content</div></div>');
-            $('#add_content', palette).draggable({
-                iframeFix: true,
-                revert: 'invalid',
-                containment: 'body',
-                zIndex: 1,
-                helper: 'clone'
-            });
-        }
-
-        return Command.list('Content');
-    },
-
     appendContentElement : function(content, refNode) {
         log('Contents.appendContentElement', content, refNode);
 
         var parent;
+        
         if (content.parent && content.parent.id) {
             parent = Structr.node(content.parent.id);
+            _Entities.ensureExpanded(parent);
+        } else {
+            parent = elements;
         }
         
         if (!parent) return false;
@@ -97,6 +51,19 @@ var _Contents = {
         }
         
         var div = Structr.node(content.id);
+    
+        var page = div.closest( '.page')[0];
+        if (!page && pages) {
+            div.draggable({
+                revert: 'invalid',
+                //containment: '#pages',
+                stack: 'div',
+                //helper: 'clone',
+                start: function(event, ui) {
+                    $(this).draggable(disable);
+                }
+            });
+        }
         
         _Entities.appendAccessControlIcon(div, content);
 
@@ -150,32 +117,6 @@ var _Contents = {
             lineNumbers: true
         });
         editor.focus();
-//        if (false) {
-//        
-//            editor.on('change', function(cm, changes) {
-//                
-//                window.clearTimeout(timer);
-//                
-//                var contentNode = Structr.node(entity.id)[0];
-//                
-//                text1 = $(contentNode).children('.content_').text();
-//                text2 = editor.getValue();
-//                
-//                if (!text1) text1 = '';
-//                if (!text2) text2 = '';
-////            
-//                if (text1 === text2) return;
-//                //editorCursor = cm.getCursor();
-//
-//                timer = window.setTimeout(function() {
-//                    Command.patch(entity.id, text1, text2, function() {
-//                        _Pages.reloadPreviews();
-//                    });
-//                }, 250);
-//				
-//            });
-//        }
-        
         element.append('<button id="editorSave">Save</button>');
         $('#editorSave', element).on('click', function() {
      

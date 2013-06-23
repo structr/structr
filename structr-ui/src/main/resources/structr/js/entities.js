@@ -590,6 +590,8 @@ var _Entities = {
         }
 
         if (hasChildren) {
+            
+            log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand)
 
             var typeIcon = $(el.children('.typeIcon').first());
             var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
@@ -642,8 +644,9 @@ var _Entities = {
     },
     setMouseOver: function(el, allowClick) {
         var node = $(el).closest('.node');
-        if (!node || !node.children)
+        if (!node || !node.children) {
             return;
+        }
 
         if (!allowClick) {
             node.on('click', function(e) {
@@ -656,22 +659,15 @@ var _Entities = {
             _Entities.makeNameEditable(node);
         });
 
+        var nodeId = getId(el);
+
         node.on({
             mouseover: function(e) {
                 e.stopPropagation();
                 var self = $(this);
-                var nodeId = getId(el);
                 var page = $(el).closest('.page');
                 if (page.length) {
-                    var pageId = getId(page);
-                    var previewNodes = $('#preview_' + pageId).contents().find('[structr_element_id]');
-                    previewNodes.each(function(i, v) {
-                        var self = $(v);
-                        var sid = self.attr('structr_element_id');
-                        if (sid === nodeId) {
-                            self.addClass('nodeHover');
-                        }
-                    });
+                    $('#preview_' + getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
                 }
                 self.addClass('nodeHover').children('img.button').show();
                 self.children('.icons').children('img.button').show();
@@ -691,17 +687,7 @@ var _Entities = {
         }
         var page = node.closest('.page');
         if (page.length) {
-            var resId = getId(page);
-            var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
-            previewNodes.each(function(i, v) {
-                var self = $(v);
-                var sid = self.attr('structr_element_id');
-                if (sid === nodeId) {
-                    log(sid);
-                    self.removeClass('nodeHover');
-                    log(self);
-                }
-            });
+            $('#preview_' + getId(page)).contents().find('[data-structr-id=' + getId(node) + ']').removeClass('nodeHover');
         }
     },
     ensureExpanded: function(element) {
@@ -759,7 +745,7 @@ var _Entities = {
         } else {
 
             if (!expanded) {
-                log('toggleElement: fetch children');
+                log('toggleElement: fetch children', id);
                 Command.children(id);
                 
             }

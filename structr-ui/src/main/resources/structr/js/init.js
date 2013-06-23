@@ -565,7 +565,7 @@ var Structr = {
     },
     
     parent : function(id) {
-        return Structr.node(id).parent().closest('.node');
+        return Structr.node(id) && Structr.node(id).parent().closest('.node');
     },
     
     node : function(id) {
@@ -793,7 +793,7 @@ function addExpandedNode(id) {
     if (!id) return;
     
     var alreadyStored = getExpanded()[id];
-    
+
     if (alreadyStored !== undefined) {
         return;
     }
@@ -918,11 +918,6 @@ function setPosition(parentId, nodeUrl, pos) {
     });
 }
 
-function refresh(parentId, id) {
-    $('.' + parentId + '_ ' + id + '_ > div.nested').remove();
-    showSubEntities(parentId, id);
-}
-
 var keyEventBlocked = true;
 var keyEventTimeout;
 
@@ -935,46 +930,11 @@ function getId(element) {
     return getIdFromIdString($(element).prop('id')) || undefined;
 }
 
-function followIds(pageId, entity) {
-    var resId = pageId.toString();
-    var entityId = (entity ? entity.id : pageId);
-    var url = rootUrl + entityId + '/' + 'out';
-    //console.log(url);
-    var headers = {
-        'X-StructrSessionToken' : token
-    };
-    var ids = [];
-    $.ajax({
-        url: url,
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        async: false,
-        headers: headers,
-        success: function(data) {
-            //console.log(data);
-            if (!data || data.length === 0 || !data.result) return;
-            var out = data.result;
-            if ($.isArray(out)) {
-                //for (var i=0; i<out.length; i++) {
-                $(out).each(function(i, rel) {
-                    var pos = rel[resId];
-                    if (pos) {
-                        //console.log('pos: ' + pos);
-                        ids[pos] = rel.endNodeId;
-                    //console.log('ids[' + pos + ']: ' + ids[pos]);
-                    }
-                });
-            } else {
+function getComponentIdFromIdString(idString) {
+    if (!idString || !idString.startsWith('componentId_')) return false;
+    return idString.substring(12);
+}
 
-                if (out[resId]) {
-                    //console.log('out[resId]: ' + out[resId]);
-                    ids[out[resId]] = out.endNodeId;
-                //console.log('ids[' + out[resId] + ']: ' + out.endNodeId);
-                }
-            }
-        }
-    });
-    //console.log('pageId: ' + pageId + ', nodeId: ' + pageId);
-    //console.log(ids);
-    return ids;
+function getComponentId(element) {
+    return getComponentIdFromIdString($(element).prop('id')) || undefined;
 }

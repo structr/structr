@@ -268,10 +268,8 @@ function connect() {
                 
                 $(result).each(function(i, entity) {
                     
-                    var obj = StructrModel.obj(entity.id);
-                    
                     if (data.callback) {
-                        StructrModel.callbacks[data.callback](obj);
+                        StructrModel.callbacks[data.callback](entity);
                     }
                     
                 });

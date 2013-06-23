@@ -19,11 +19,6 @@
 
 var elements;
 
-$(document).ready(function() {
-    Structr.registerModule('elements', _Elements);
-    Structr.classes.push('element');
-});
-
 var _Elements = {
 
     icon : 'icon/brick.png',
@@ -116,22 +111,16 @@ var _Elements = {
         'elements' : ['details', 'summary', 'command', 'menu']
     }
     ],
-	
-    init : function() {
-    //Structr.classes.push('element');
-    },
 
-    onload : function() {
-        _Elements.init();
-        log('onload');
-        elements = $('#elements', main);
-        _Elements.refresh();
-    //        _Elements.showPalette();
-    },
-
-    refreshPalette : function() {
+    /**
+     * Reload HTML palette
+     * 
+     * @returns {undefined}
+     */
+    reloadPalette : function() {
 
         palette.empty();
+
         $(_Elements.elementGroups).each(function(i,group) {
             log(group);
             palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
@@ -149,108 +138,36 @@ var _Elements = {
 
         });
     },
-    
-    refresh : function() {
-        elements.empty();
 
-        if (Command.list('Element')) {
-            elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
-
-            $('.add_element_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var button = $(this);
-
-                buttonClicked = button;
-                if (isDisabled(button)) return;
-
-                button.append('<div id="elementNames"></div>');
-                var list = $('#elementNames', button);
-                $(_Elements.elementNames).each(function(i,v) {
-                    //console.log('Element: ', v);
-                    list.append('<div id="add_' + v + '">' + v + '</div>');
-                    $('#add_' + v).on('click', function(e) {
-                        e.stopPropagation();
-                        var entity = {};
-                        entity.type = v.capitalize();
-                        entity.tag = v;
-                        Command.create(entity);
-                        list.remove();
-                    });
-                });
-                _Entities.addElement(this);
-            });
-        }
-    },
-
-    refreshComponents : function() {
+    /**
+     * Reload components in component area
+     */
+    reloadComponents : function() {
 
         components.empty();
         
         Command.getComponents(1000, 1, 'name', 'asc', function(entity) {
             
-//            _Elements.appendElementElement(entity);
-            
-            var id = entity.id;
-            
-            components.append('<div id="id_' + id + '" class="node element"></div>');
-            
-            var div = Structr.node(id);
-            console.log('Component appended', div);
+            var el = _Elements.appendElementElement(entity, components, true);
 
-            if (!div) return;
-
-            var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
-
-            div.append('<img class="typeIcon" src="'+ _Elements.icon_comp + '">'
-                + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
-                + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
-                + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
-                + '</div>');
-
-            $('.typeIcon', div).on('mousedown', function(e) {
-                e.stopPropagation();
-            });
-            
-            _Entities.appendExpandIcon(div, entity, true);
-            
+            // expand
+            if (isExpanded(entity.id)) {
+                _Entities.ensureExpanded(el);
+            }
             
         });
 
     },
     
-    refreshElements : function() {
+    
+    /**
+     * Reload unattached nodes in elements area
+     */
+    reloadUnattachedNodes : function() {
 
         elements.empty();
         
-        Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
-            
-////            _Elements.appendElementElement(entity);
-//            
-//            var id = entity.id;
-//            
-//            elements.append('<div id="id_' + id + '" class="node element"></div>');
-//            
-//            var div = Structr.node(id);
-//            console.log('Unattached element appended', div);
-//
-//            if (!div) return;
-//
-//            var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
-//
-//            div.append('<img class="typeIcon" src="'+ _Elements.icon_comp + '">'
-//                + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
-//                + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
-//                + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
-//                + '</div>');
-//
-//            $('.typeIcon', div).on('mousedown', function(e) {
-//                e.stopPropagation();
-//            });
-//            
-//            _Entities.appendExpandIcon(div, entity, true);
-            
-            
-        });
+        Command.listUnattachedNodes(1000, 1, 'name', 'asc');
 
     },
 
@@ -258,17 +175,25 @@ var _Elements = {
         return $($('#componentId_' + id)[0]);
     },
 
-    appendElementElement : function(entity, refNode) {
+    /**
+     * Create a DOM node and append to the appropriate parent
+     */
+    appendElementElement : function(entity, refNode, refNodeIsParent) {
         log('_Elements.appendElementElement', entity);
         
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
         var isComponent = entity.syncedNodes.length;
         
-        var isMasterComponent = (isComponent && hasChildren);
+        var isMasterComponent = (isComponent && hasChildren && refNode !== components);
+
+        var parent;
+        if (refNodeIsParent) {
+            parent = refNode;
+        } else {
+            parent = entity.parent && entity.parent.id ? Structr.node(entity.parent.id) : elements;
+        }
         
-        var parent = entity.parent && entity.parent.id ? Structr.node(entity.parent.id) : elements;
-        
-        log('appendElementElement parent', parent);
+        log('appendElementElement parent, refNode, redNodeIsParent', parent, refNode, refNodeIsParent);
         if (!parent) return false;
         
         _Entities.ensureExpanded(parent);
@@ -277,7 +202,7 @@ var _Elements = {
         
         var html = '<div id="' + (isMasterComponent ? 'componentId_' : 'id_') + id + '" class="node element"></div>';
         
-        if (refNode) {
+        if (refNode && !refNodeIsParent) {
             refNode.before(html);
         } else {
             parent.append(html);
@@ -287,22 +212,19 @@ var _Elements = {
         
         log('Element appended (div, parent)', div, parent);
         
-        if (!div) return;
+        if (!div) return false;
         
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
-        
         
         var icon = isComponent ? _Elements.icon_comp : _Elements.icon;
         
         div.append('<img class="typeIcon" src="'+ icon + '">'
-            + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b> <span class="id">' + entity.id + '</span>'
+            + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b><span class="id">' + entity.id + '</span>'
             + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
             + '</div>');
 
-        //if (!isComponent) {
-            _Entities.appendExpandIcon(div, entity, !isComponent && hasChildren);
-        //}
+        _Entities.appendExpandIcon(div, entity, !isMasterComponent && hasChildren);
 
         $('.typeIcon', div).on('mousedown', function(e) {
             e.stopPropagation();

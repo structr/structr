@@ -18,14 +18,16 @@
  */
 
 var pages;
-var previews, previewTabs, controls, palette, activeTab, components, elements;
+var previews, previewTabs, controls, palette, activeTab, activeTabRight, components, elements;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
+var activeTabRightKey = 'structrActiveTabRight_' + port;
 var win = $(window);
-var copy = false;
+var copy = false, sorting = false;
+var sortParent;
 
 $(document).ready(function() {
     Structr.registerModule('pages', _Pages);
@@ -114,6 +116,7 @@ var _Pages = {
         _Pages.init();
         
         activeTab = localStorage.getItem(activeTabKey);
+        activeTabRight = localStorage.getItem(activeTabRightKey);
         log('value read from local storage', activeTab);
 
         log('onload');
@@ -137,8 +140,8 @@ var _Pages = {
             components.hide();
             elements.hide();
             palette.show();
-            _Elements.refreshPalette();
-
+            _Elements.reloadPalette();
+            localStorage.setItem(activeTabRightKey, $(this).prop('id'));
         });
         
         $('#elementsTab').on('click', function() {
@@ -148,7 +151,8 @@ var _Pages = {
             palette.hide();
             components.hide();
             elements.show();
-            _Elements.refreshElements();
+            _Elements.reloadUnattachedNodes();
+            localStorage.setItem(activeTabRightKey, $(this).prop('id'));
         });
 
         $('#componentsTab').on('click', function() {
@@ -156,9 +160,15 @@ var _Pages = {
             $('#paletteTab').removeClass('active');
             $('#elementsTab').removeClass('active');
             palette.hide();
+            elements.hide();
             components.show();
-            _Elements.refreshComponents();
+            _Elements.reloadComponents();
+            localStorage.setItem(activeTabRightKey, $(this).prop('id'));
         });
+
+        if (activeTabRight) {
+            $('#' + activeTabRight).click();
+        }
 
         $('#controls', main).remove();
 
@@ -166,8 +176,6 @@ var _Pages = {
         previewTabs = $('#previewTabs', previews);
 
         _Pages.refresh();
-        _Elements.refreshPalette();
-        //_Elements.refreshComponents();
         
         window.setTimeout('_Pages.resize()', 1000);
 
@@ -368,7 +376,6 @@ var _Pages = {
         element.off('hover');
         //var oldName = $.trim(element.children('.name_').text());
         var oldName = $.trim(element.children('b.name_').attr('title'));
-        //console.log('oldName', oldName);
         element.children('b').hide();
         element.find('.button').hide();
         element.append('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
@@ -438,13 +445,11 @@ var _Pages = {
         $('#preview_' + entity.id).hover(function() {
             var self = $(this);
             var elementContainer = self.contents().find('.structr-element-container');
-            //console.log(self, elementContainer);
             elementContainer.addClass('structr-element-container-active');
             elementContainer.removeClass('structr-element-container');
         }, function() {
             var self = $(this);
             var elementContainer = self.contents().find('.structr-element-container-active');
-            //console.log(elementContainer);
             elementContainer.addClass('structr-element-container');
             elementContainer.removeClass('structr-element-container-active');
         //self.find('.structr-element-container-header').remove();
@@ -701,9 +706,6 @@ var _Pages = {
                             var self = $(this);
                             contentSourceId = self.attr('data-structr-id');
                             var text = cleanText(self.contents());
-                            //console.log('blur contentSourceId: ' + contentSourceId, textBeforeEditing, text);
-                            //_Pages.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
-                            //Command.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
                             Command.patch(contentSourceId, textBeforeEditing, text);
                             contentSourceId = null;
                             self.attr('contenteditable', false);
@@ -722,7 +724,7 @@ var _Pages = {
     },
 
     appendElementElement : function(entity, refNode) {
-        
+        log('_Pages.appendElementElement(', entity, refNode,');')
         var div = _Elements.appendElementElement(entity, refNode);
         if (!div) return false;
 
@@ -738,7 +740,7 @@ var _Pages = {
                 Command.removeChild(entity.id);
             });
         }
-        _Entities.setMouseOver(div);
+
         var page = div.closest( '.page')[0];
         if (!page && pages) {
             div.draggable({
@@ -751,52 +753,61 @@ var _Pages = {
                 }
             });
         }
-        var sorting = false;
-        
         div.sortable({
             sortable: '.node',
+            //helper: 'clone',
             //containment: 'parent',
             start: function(event, ui) {
                 sorting = true;
+                sortParent = $(ui.item).parent();
+                //console.log('sortable start', getId(sortParent))
             },
             sort: function(event, ui) {
-                //if (copy) return false;
+                if (copy) return false;
                 copy = false;
             },
             update: function(event, ui) {
-                //console.log('copy?', copy);
-                if (copy) return false;
+        
                 var el = $(ui.item);
+                //console.log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent));
+                if (!sorting) return false;
+                
                 var id = getId(el);
-                var refId = getId(el.next('.node'));
-                var parent = Structr.parent(id);
-                var parentId = getId(parent);
+                if (!id) id = getComponentId(el);
+                
+                var nextNode = el.next('.node');
+                var refId = getId(nextNode);
+                if (!refId) refId = getComponentId(nextNode);
+                
+                var parentId = getId(sortParent);
+                el.remove();
                 Command.insertBefore(parentId, id, refId);
                 sorting = false;
+                sortParent = undefined;
                 _Pages.reloadPreviews();
             },
             stop: function(event, ui) {
+                //$(ui.sortable).remove();
                 sorting = false;
                 _Entities.resetMouseOverState(ui.item);
             }
         });
 
         div.droppable({
-            accept: '.element, .content, .component, .image, .file',
+            accept: '.element, .content, .image, .file',
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
                 var self = $(this);
 
-                _Entities.ensureExpanded(self);
+                if (getId(self) === getId(sortParent)) return false;
 
-                if (sorting && !copy) {
-                    return;
-                }
-                
+                _Entities.ensureExpanded(self);
+                sorting = false; sortParent = undefined;
+
                 $(ui.draggable).remove();
-                
+
                 var nodeData = {};
 				
                 var page = self.closest('.page')[0];
@@ -813,6 +824,7 @@ var _Pages = {
                     event.stopPropagation();
                     Command.copyDOMNode(source.id, target.id);
                     //_Entities.showSyncDialog(source, target);
+                    _Elements.reloadComponents();
                     return;
                 } else {
                     log('not copying node');
@@ -905,6 +917,8 @@ var _Pages = {
                         
                 } else {
                     tag = cls;
+                    log('appendChild', contentId, elementId);
+                    sorting = false;
                     Command.appendChild(contentId, elementId);
                     
                     return;
@@ -912,35 +926,6 @@ var _Pages = {
                 log('drop event in appendElementElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
             }
         }); 
-        return div;
-    },
-
-    appendContentElement : function(content, refNode) {
-        log('Pages.appendContentElement', content, refNode);
-        
-        var parentId = content.parent.id;
-		
-        var div = _Contents.appendContentElement(content, refNode);
-        if (!div) return false;
-
-        log('appendContentElement div', div);
-        var pos = Structr.numberOfNodes($(div).parent())-1;
-        log('pos', content.id, pos);
-
-        if (parentId) {
-            
-            $('.button', div).on('mousedown', function(e) {
-                e.stopPropagation();
-            });
-            
-            $('.delete_icon', div).replaceWith('<img title="Remove" '
-                + 'alt="Remove" class="delete_icon button" src="' + _Contents.delete_icon + '">');
-            $('.delete_icon', div).on('click', function(e) {
-                e.stopPropagation();
-                Command.removeChild(content.id);
-            });
-        }
-        _Entities.setMouseOver(div);
         return div;
     },
 
@@ -959,32 +944,6 @@ var _Pages = {
         if (numberOfComponents === 0) {
             enable($('.delete_icon', page)[0]);
         }
-    },
-
-    showSubEntities : function(pageId, entity) {
-        var headers = {
-            'X-StructrSessionToken' : token
-        };
-        var follow = followIds(pageId, entity);
-        $(follow).each(function(i, nodeId) {
-            if (nodeId) {
-                //            console.log(rootUrl + nodeId);
-                $.ajax({
-                    url: rootUrl + nodeId,
-                    dataType: 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    async: false,
-                    headers: headers,
-                    success: function(data) {
-                        if (!data || data.length === 0 || !data.result) return;
-                        var result = data.result;
-                        //                    console.log(result);
-                        _Pages.appendElement(result, entity, pageId);
-                        _Pages.showSubEntities(pageId, result);
-                    }
-                });
-            }
-        });
     },
 
     reloadPreviews : function() {
