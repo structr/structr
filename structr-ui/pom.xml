@@ -36,12 +36,12 @@
         <repository>
             <id>releases.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/release</url>
-        </repository> 
+        </repository>
         <repository>
             <id>google-diff-patch-match</id>
             <name>google-diff-patch-match</name>
             <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
-        </repository>		
+        </repository>
         <repository>
             <id>apache</id>
             <url>https://repository.apache.org/content/groups/public/</url>
@@ -153,7 +153,7 @@
                         <argument>org.structr.Ui</argument>
                     </arguments>
                 </configuration>
-            </plugin>            
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -214,6 +214,37 @@
             </plugin>
         </plugins>
         <finalName>${project.artifactId}-${project.version}</finalName>
+        <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
+        <pluginManagement>
+            <plugins>
+                <!-- Ignore/Execute plugin execution -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <!-- copy-dependency plugin -->
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-dependency-plugin</artifactId>
+                                        <versionRange>[1.0.0,)</versionRange>
+                                        <goals>
+                                            <goal>copy-dependencies</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore />
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
     <licenses>
