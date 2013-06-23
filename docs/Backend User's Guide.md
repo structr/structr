@@ -16,21 +16,22 @@ structr extends the Neo4j property graph, adding type safety, validation, automa
 ### Creating a new project
 structr has several Maven archetypes available for you to start you project with. As we want to create a backend project from scratch, we will use the archetype named `structr-base-archetype`. So the first step would be to let Maven create a new project from the base archetype:
 
-        mvn archetype:generate \
-            -DarchetypeRepository=http://maven.structr.org/artifactory/snapshot \
-            -DarchetypeGroupId=org.structr \
-            -DarchetypeArtifactId=structr-base-archetype \
-            -DarchetypeVersion=0.8-SNAPSHOT \
-            -DgroupId=org.structr \
-            -DartifactId=example-backend \
-            -Dversion=0.1 \
-            -Dpackage=org.structr.example
+    mvn archetype:generate \
+        -DarchetypeRepository=http://maven.structr.org/artifactory/snapshot \
+        -DarchetypeGroupId=org.structr \
+        -DarchetypeArtifactId=structr-base-archetype \
+        -DarchetypeVersion=0.8-SNAPSHOT \
+        -DgroupId=org.structr \
+        -DartifactId=example-backend \
+        -Dversion=0.1 \
+        -Dpackage=org.structr.example
 
 When you execute this command, Maven will ask you to confirm the choices you made and will create a project named `example-backend` in the current directory. We assume you are already familiar with the layout of a Maven project, so let's jump directly into the code.
 
 ### Server.java
 The Server class is the main class of every structr project. It is responsible for both configuration and startup of the REST backend. The following code fragment shows the how a typical Server.java looks like when it is first created from the base archetype.
 
+```java
     public class Server implements StructrServer {
 
         public static void main(String[] args) {
@@ -47,7 +48,8 @@ The Server class is the main class of every structr project. It is responsible f
                         ex.printStackTrace();
                 }
         }
-}
+    }
+```
 
 We use the builder pattern here to allow easy configuration, as you can simply add more configuration elements beween the `createServer()` and the `start()` lines. Let's say we want to modify the IP address and port the server binds to, and the REST base path, so we modify the code to look like this:
 
@@ -85,7 +87,7 @@ Please note that the values in the structr.conf configuration file will override
 
 ### Starting the server
 #### Compiling
-To start the server, you must of course first compile the project. Use Maven to run the `install` target, and do a `clean` before that when you compile it repeatedly.
+To start the server, you must of course first compile the project. Use Maven to run the `install` target, and do a `clean` before that when you compile repeatedly.
 
     mvn clean install
     
