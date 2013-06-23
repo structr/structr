@@ -29,7 +29,7 @@
             <id>neo4j-snapshots</id>
             <url>http://m2.neo4j.org/content/repositories/snapshots</url>
         </repository>
-        <repository>
+<!--         <repository>
             <id>snapshots.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/snapshot</url>
         </repository>
@@ -37,7 +37,7 @@
             <id>releases.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/release</url>
         </repository>
-        <repository>
+ -->        <repository>
             <id>jboss</id>
             <url>https://repository.jboss.org/nexus/content/repositories/releases</url>
         </repository>
