@@ -40,9 +40,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.RetryException;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -346,7 +343,8 @@ public class Services {
 		}
 	}
 
-	public static Object getConfigurationValue(String key) {
+	public static String getConfigurationValue(String key) {
+		
 		if(context != null) {
 			return context.get(key);
 		}
@@ -355,12 +353,12 @@ public class Services {
 	
 	public static String getConfigurationValue(String key, String defaultValue) {
 		
-		Object value = getConfigurationValue(key);
+		String value = getConfigurationValue(key);
 		if(value == null) {
 			return defaultValue;
 		}
 
-		return value.toString();
+		return value;
 	}
 	
 	/**

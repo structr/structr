@@ -89,7 +89,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 				
 				// try to determine external node
 				// type name from configuration
-				externalNodeTypeName = (String)Services.getConfigurationValue(Services.FOREIGN_TYPE);
+				externalNodeTypeName = Services.getConfigurationValue(Services.FOREIGN_TYPE);
 			}
 			
 			if (externalNodeTypeName != null && node.hasProperty(externalNodeTypeName)) {
