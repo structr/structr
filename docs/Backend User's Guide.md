@@ -32,52 +32,58 @@ When you execute this command, Maven will ask you to confirm the choices you mad
 The Server class is the main class of every structr project. It is responsible for both configuration and startup of the REST backend. The following code fragment shows the how a typical Server.java looks like when it is first created from the base archetype.
 
 ```java
-    public class Server implements StructrServer {
+public class Server implements StructrServer {
 
-        public static void main(String[] args) {
+    public static void main(String[] args) {
 
-                try {
+            try {
 
-                        Structr.createServer(Server.class, "example-backend 0.1")
+                    Structr.createServer(Server.class, "example-backend 0.1")
 
-                                .start(true);
+                            .start(true);
 
 
-                } catch(Exception ex) {
+            } catch(Exception ex) {
 
-                        ex.printStackTrace();
-                }
-        }
+                    ex.printStackTrace();
+            }
     }
+}
 ```
 
 We use the builder pattern here to allow easy configuration, as you can simply add more configuration elements beween the `createServer()` and the `start()` lines. Let's say we want to modify the IP address and port the server binds to, and the REST base path, so we modify the code to look like this:
 
-    Structr.createServer(Server.class, "example-backend 0.1")
-    
-            .host("127.0.0.1")
-            .port("8080)
-            .restUrl("/api")
-    
-            .start(true);
+```java
+Structr.createServer(Server.class, "example-backend 0.1")
+
+        .host("127.0.0.1")
+        .port("8080)
+        .restUrl("/api")
+
+        .start(true);
+```
 
 #### Adding custom configuration elements
 The server class provides an easy method to add your own, custom configuration elements that you can later access from within your application code. Just use the `addCustomConfig()` method to bring your custom configuration element into the structr configuration.
 
-    Structr.createServer(Server.class, "example-backend 0.1")
-    
-            .host("127.0.0.1")
-            .port("8080)
-            .restUrl("/api")
-    
-            .addCustomConfig("my.configuration.option = myConfigurationValue")
-    
-            .start(true);
+```java
+Structr.createServer(Server.class, "example-backend 0.1")
+
+        .host("127.0.0.1")
+        .port("8080)
+        .restUrl("/api")
+
+        .addCustomConfig("my.configuration.option = myConfigurationValue")
+
+        .start(true);
+```
 
 and retrieve the value later using one of the two lines below.
 
+```java
 	String value          = Services.getConfigurationValue("my.configuration.value");
 	String valueOrDefault = Services.getConfigurationValue("my.configuration.value", "myDefaultConfigurationValue");
+```
 
 #### The configuration file (structr.conf)
 When structr is started for the first time, it creates a new configuration file from the values that are encoded in the server class. (*this behaviour needs to be discussed further as it might lead to confusion*)
