@@ -57,7 +57,7 @@ We use the builder pattern here to allow easy configuration, as you can simply a
 Structr.createServer(Server.class, "example-backend 0.1")
 
         .host("127.0.0.1")
-        .port("8080)
+        .port(8080)
         .restUrl("/api")
 
         .start(true);
@@ -70,7 +70,7 @@ The server class provides an easy method to add your own, custom configuration e
 Structr.createServer(Server.class, "example-backend 0.1")
 
         .host("127.0.0.1")
-        .port("8080)
+        .port(8080)
         .restUrl("/api")
 
         .addCustomConfig("my.configuration.option = myConfigurationValue")
