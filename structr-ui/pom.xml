@@ -22,6 +22,10 @@
     </properties>
     <repositories>
         <repository>
+            <id>apache</id>
+            <url>https://repository.apache.org/content/groups/public/</url>
+        </repository>
+        <repository>
             <id>neo4j-releases</id>
             <url>http://m2.neo4j.org/content/repositories/releases</url>
         </repository>
@@ -45,10 +49,6 @@
             <id>google-diff-patch-match</id>
             <name>google-diff-patch-match</name>
             <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
-        </repository>
-        <repository>
-            <id>apache</id>
-            <url>https://repository.apache.org/content/groups/public/</url>
         </repository>
     </repositories>
     <dependencies>
