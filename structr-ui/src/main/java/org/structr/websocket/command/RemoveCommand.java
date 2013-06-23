@@ -33,6 +33,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -71,6 +72,17 @@ public class RemoveCommand extends AbstractCommand {
 					DOMNode domNode = (DOMNode) node;
 
 					domNode.getParentNode().removeChild(domNode);
+					
+					try {
+
+						// Remove node from page
+						domNode.setProperty(DOMNode.pageId, null);
+
+					} catch (FrameworkException ex) {
+
+						logger.log(Level.SEVERE, "Could not remove node from page " + domNode, ex);
+
+					}
 					
 				} else {
 

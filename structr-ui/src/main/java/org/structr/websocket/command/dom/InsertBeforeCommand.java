@@ -50,7 +50,7 @@ public class InsertBeforeCommand extends AbstractCommand {
 		// check node to append
 		if (id == null) {
 
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot no node to append").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("No node to append").build(), true);
 
 			return;
 

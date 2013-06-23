@@ -213,6 +213,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			
 		}
 		
+		final Page _page = this;
+		
 		try {
 			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DOMElement>() {
 
@@ -224,9 +226,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						new NodeAttribute(AbstractNode.type, elementType),
 						new NodeAttribute(DOMElement.tag, tag)
 					);
+
+					element.doAdopt(_page);
 					
-					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, element);
+					// create relationship from ownerDocument to new element
+					//Page.elements.createRelationship(securityContext, Page.this, element);
 					
 					return element;
 				}
