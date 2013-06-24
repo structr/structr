@@ -14,6 +14,17 @@
     <packaging>jar</packaging>
     <version>0.8-SNAPSHOT</version>
     <name>structr-ui</name>
+    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
+    <developers>
+        <developer>
+            <name>Axel Morgner</name>
+            <email>am@structr.org</email>
+        </developer>
+        <developer>
+            <name>Christian Morgner</name>
+            <email>cm@structr.org</email>
+        </developer>
+    </developers>
     <url>http://structr.org</url>
 
     <properties>
@@ -273,6 +284,7 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/structr/structr/tree/master/structr/structr-ui</url>
+        <url>https://github.com/structr/structr</url>
+        <connection>scm:git:git@github.com:structr/structr.git</connection>
     </scm>
 </project>

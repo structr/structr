@@ -7,6 +7,17 @@
     <version>0.8-SNAPSHOT</version>
     <name>structr</name>
     <url>http://structr.org</url>
+    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
+    <developers>
+        <developer>
+            <name>Axel Morgner</name>
+            <email>am@structr.org</email>
+        </developer>
+        <developer>
+            <name>Christian Morgner</name>
+            <email>cm@structr.org</email>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -94,7 +105,8 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/structr/structr/tree/master/structr</url>
+        <url>https://github.com/structr/structr</url>
+        <connection>scm:git:git@github.com:structr/structr.git</connection>
     </scm>
     <distributionManagement>
         <repository>
