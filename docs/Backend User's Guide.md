@@ -39,7 +39,7 @@ You should already know what a REST server is, and why you want to use such a se
     - [Pattern matching](#pattern-matching)
     - [Semantic error messages](#semantic-error-messages)
     - [Note](#note)
-- [Appendix A - List of available property types](#appendix---a-list-of-available-property-types)
+- [Appendix A - List of available property types](#appendix-a---list-of-available-property-types)
     - [StringProperty](#stringproperty)
     - [IntProperty](#intproperty)
     - [LongProperty](#longproperty)
