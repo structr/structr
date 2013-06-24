@@ -81,8 +81,8 @@ Structr.createServer(Server.class, "example-backend 0.1")
 and retrieve the value later using one of the two lines below.
 
 ```java
-	String value          = Services.getConfigurationValue("my.configuration.value");
-	String valueOrDefault = Services.getConfigurationValue("my.configuration.value", "myDefaultConfigurationValue");
+String value          = Services.getConfigurationValue("my.configuration.value");
+String valueOrDefault = Services.getConfigurationValue("my.configuration.value", "myDefault");
 ```
 
 #### The configuration file (structr.conf)
@@ -121,6 +121,8 @@ Replace the port 5005 in the example above by your preferred debugging port
 
 # Things to include in this document
 - @Export annotation for REST RPC
+- seed.zip
+- Import/Export via SyncCommand
 
 
 
