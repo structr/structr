@@ -37,7 +37,7 @@ import org.structr.core.property.StringProperty;
  * 
  * @author Christian Morgner
  */
-public abstract class LinkedListNode extends AbstractNode {
+public abstract class LinkedListNode extends ValidatedNode {
 	
 	// this is not used for the node itself but for the relationship(s) this node maintains
 	public static final PropertyKey<String> keyProperty = new StringProperty("key");
