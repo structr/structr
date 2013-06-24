@@ -11,7 +11,7 @@ Data in a Neo4j database is stored in what is called a property graph. This grap
 
 ## The first steps
 ### Creating a new project
-structr has several Maven archetypes available for you to start you project with. As we want to create a backend project from scratch, we will use the archetype named `structr-base-archetype`. So the first step would be to let Maven create a new project from the base archetype:
+structr has several Maven archetypes available for you to start your project with. As we want to create a backend project from scratch, we will use the archetype named `structr-base-archetype`. So the first step would be to let Maven create a new project from the base archetype:
 
     mvn archetype:generate \
         -DarchetypeRepository=http://maven.structr.org/artifactory/snapshot \
@@ -120,7 +120,7 @@ When you move the structr working directory to another directory, make sure you 
 structr extends the Neo4j property graph, adding type safety, validation, automatic indexing and transparent relationship creation. The basic building block of a structr REST application is the class `AbstractNode`. All node entities must inherit from this class in order to be available in structr. 
 
 ### Entities
-For our previoulsy mentioned fictitious use case, we want to model the anatomy of structr's source code, so we can later create visualizations and statistics on top of that. This brings us to the first few node entities and relationship types.
+For our previously mentioned fictitious use case, we want to model the anatomy of structr's source code, so we can later create visualizations and statistics on top of that. This brings us to the first few node entities and relationship types.
 
 #### Node entities
 - Author
@@ -149,6 +149,9 @@ structr has a pre-defined set of views, including the default view which will be
 - PropertyView.All
 
 **Note:** you can set the default property view in the configuration builder of the Server class.
+
+##### Inheritance
+Property views are inherited from the superclass.
 
 #### Properties
 In order to populate the default view of our newly created Author entity, we need to define the properties an Author can have. To do this, we specify one or more public members of type `Property` like in the following lines. See Appendix A for the full list of available property types.
@@ -184,19 +187,18 @@ Using `curl`, we can now access the REST server for the first time. Of course th
 
 ```
 dev:~$ curl -i http://localhost:1234/api/authors
-HTTP/1.1 200 OK                                                                                                                                                                                                                                                                                                                       
-Content-Type: application/json; charset=utf-8                                                                                                                                                                                                                                                                                         
-Vary: Accept-Encoding, User-Agent                                                                                                                                                                                                                                                                                                     
-Transfer-Encoding: chunked                                                                                                                                                                                                                                                                                                            
-Server: Jetty(8.1.10.v20130312)                                                                                                                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                                                                                                      
-{                                                                                                                                                                                                                                                                                                                                     
-   "query_time": "0.001438173",                                                                                                                                                                                                                                                                                                       
-   "result_count": 0,                                                                                                                                                                                                                                                                                                                 
-   "result": [],                                                                                                                                                                                                                                                                                                                      
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Vary: Accept-Encoding, User-Agent
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+
+{
+   "query_time": "0.001438173",
+   "result_count": 0,
+   "result": [],
    "serialization_time": "0.000117178"
 }
-
 ```
 
 #### POST
@@ -205,10 +207,10 @@ Now its time to create the first Author entity in the database. Using REST, this
 ```
 dev:~$ curl -i http://localhost:1234/api/authors -XPOST -d '
 {
-    "name":"Christian Morgner",
-    "email":"christian@morgner.de",
-    "birthday":"30.11.1981",
-    "cakeday":"2013-06-04T17:16:00+0200"
+    "name": "Christian Morgner",
+    "email": "christian@morgner.de",
+    "birthday": "01.01.1970",
+    "cakeday": "2013-06-04T17:16:00+0200"
 }'
 ```
 
@@ -239,7 +241,7 @@ Server: Jetty(8.1.10.v20130312)
       {
          "name": "Christian Morgner",
          "email": "christian@morgner.de",
-         "birthday": "30.11.1981",
+         "birthday": "01.01.1970",
          "cakeday": "2013-06-04T17:16:00+0200",
          "id": "168eb522cfdb460f87616cccac46d9bb",
          "type": "Author"
@@ -248,6 +250,8 @@ Server: Jetty(8.1.10.v20130312)
    "serialization_time": "0.000771747"
 }
 ```
+
+As you can see, the JSON document contains all the properties we put into the default view earlier, including the `id`, `type` and `name` properties from the superclass.
 
 #### PUT
 Now we can of course modify the entity as well, using the PUT verb on the element resource that contains the newly created author.
@@ -284,7 +288,7 @@ Server: Jetty(8.1.10.v20130312)
    "result": {
       "name": "Christian Morgner",
       "email": "christian@morgner.de",
-      "birthday": "30.11.1981",
+      "birthday": "01.01.1970",
       "cakeday": "2014-06-24T17:16:00+0200",
       "id": "168eb522cfdb460f87616cccac46d9bb",
       "type": "Author"
@@ -334,11 +338,57 @@ Server: Jetty(8.1.10.v20130312)
 }
 ```
 
-### Validation
-Now that we have our first basic node entity in place, we can move on to the next step, which is data validation. In a typical business application, you will have to enforce business rules on your data, e.g. there can only be one instance of a certain type, e-mail addresses need to conform to a given pattern, some strings have a minimum length etc.
+### Validation and semantic error messages
+Now that we have our first basic node entity in place, we can move on to the next step, which is data validation. In a typical business application, you will have to enforce business rules on your data, e.g. there can only be one instance of a certain type, e-mail addresses need to match given pattern, some strings have a minimum length etc.
+
+#### Validation callbacks
+There are two different ways to ensure validation of entities in structr. The first and more powerful way is *callback-based validation*, which means that you can override a certain method to implement validation of your nodes in a global context. The following code illustrates how a validation callback can be used to enforce non-emptyness of the `name` property of Author entities.
+
+```java
+public class Author extends AbstractNode {
+
+	public static final Property<String> email = new StringProperty("email",
+		new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"),
+		new TypeUniquenessValidator(Author.class)
+	);
+
+	public static final Property<Date>   birthday = new DateProperty("birthday", "dd.MM.yyyy");
+	public static final Property<Date>   cakeday  = new ISO8601DateProperty("cakeday");
+
+	public static final View defaultView = new View(Author.class, PropertyView.Public,
+		name, email, birthday, cakeday
+	);
+
+	static {
+
+		// register a uniqueness validator on the 'name' property of the type 'Author'
+		Author.name.addValidator(new TypeUniquenessValidator(Author.class));
+	}
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		if (getProperty(name) == null) {
+			
+			errorBuffer.add("Author", new EmptyPropertyToken(name));
+			
+			valid = false;
+		}
+		
+		return valid && super.isValid(errorBuffer);
+	}
+}
+```
+
+Note that the implementation of the `isValid` method as shown above can serve as a 'best practice' approach to global validation in structr. 
+
+#### Validators
+The second validation method is *validator-based validation*, which means that you can register validator instances for each property key, so that the validation takes place when the value of a given property key is changed. It is important to understand the difference to the callback-based validation above. A validator that is registered on a certain property key will **never** be evaluated if no value for the given property key is set. That means validators can not be used to enforce non-emptyness of property values, and you will have to rely on callback-based validation to ensure non-emtpyness of property values.
 
 #### Uniqueness
-In our particular case, we want to be sure that only one author with a given name can exist in the database, to avoid confusion and data inconsistency. Uniqueness can be enforced by registering a `TypeUniquenessValidator` on the `name` property of the Author entity. Since the `name` property is declared in the superclass of Author, we need to register the validator in the static constructor of our entity. The following code illustrates how that can be done.
+However, validators can be used to enforce database-global constraints like uniqueness, that would otherwise have to be implemented manually by the user. In our particular case, we want to be sure that only one author with a given name can exist in the database, to avoid confusion and data inconsistency. Uniqueness can be enforced by registering a `TypeUniquenessValidator` on the `name` property of the Author entity. Since the `name` property is declared in the superclass of Author, we need to register the validator in the static constructor of our entity. The following code illustrates how that can be done.
 
 ```java
 public class Author extends AbstractNode {
@@ -352,14 +402,30 @@ public class Author extends AbstractNode {
 	);
 
 	static {
+
 		// register a uniqueness validator on the 'name' property of the type 'Author'
 		Author.name.addValidator(new TypeUniquenessValidator(Author.class));
+	}
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		if (getProperty(name) == null) {
+			
+			errorBuffer.add("Author", new EmptyPropertyToken(name));
+			
+			valid = false;
+		}
+		
+		return valid && super.isValid(errorBuffer);
 	}
 }
 ```
 
 #### Pattern matching
-Another real-life example for the use of a validator is the validation of an e-mail address using pattern matching. The following code illustrates how to register a regular expression validator and a TypeUniquenessValidator on the `email` property of our Author entity.
+Another example for the use of a validator is the validation of an e-mail address using pattern matching. The following code illustrates how to register a regular expression validator and a TypeUniquenessValidator on the `email` property of our Author entity.
 
 ```java
 public class Author extends AbstractNode {
@@ -381,15 +447,120 @@ public class Author extends AbstractNode {
 		// register a uniqueness validator on the 'name' property of the type 'Author'
 		Author.name.addValidator(new TypeUniquenessValidator(Author.class));
 	}
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		if (getProperty(name) == null) {
+			
+			errorBuffer.add("Author", new EmptyPropertyToken(name));
+			
+			valid = false;
+		}
+		
+		return valid && super.isValid(errorBuffer);
+	}
 }
 ```
 
 Note the difference in the registration of the two TypeUniquenessValidators. This is due to the fact that the `name` property is not declared in the Author entity, but in its superclass AbstractNode, so we need to add the validator afterwards.
 
-### View configuration
+#### Semantic error messages
+With the above validators in place, the REST server now behaves differently than before. We can not for example create an author without a name.
 
+```
+dev:~$ curl -i http://localhost:1234/api/authors -XPOST
+```
 
+with a result of
 
+```
+HTTP/1.1 422 Unprocessable Entity
+Content-Type: application/json; charset=UTF-8
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+
+{
+  "code": 422,
+  "errors": {
+    "Author": {
+      "name": [
+        "must_not_be_empty"
+      ]
+    }
+  }
+}
+```
+
+Likewise, we can not create an author with an invalid e-mail address:
+
+```
+dev:~$ curl -i http://localhost:1234/api/authors -XPOST -d '
+{
+    "name": "Christian Morgner",
+    "email": "test"
+}'
+```
+
+which will result in
+
+```
+HTTP/1.1 422 Unprocessable Entity
+Content-Type: application/json; charset=UTF-8
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+
+{
+  "code": 422,
+  "errors": {
+    "Author": {
+      "email": [
+        {
+          "must_match": "[A-Za-z0-9!#$%\u0026\u0027*+-/\u003d?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"
+        }
+      ]
+    }
+  }
+}
+```
+
+and finally, when an author with the given name or e-mail address already exists:
+
+```
+dev:~$ curl -i http://localhost:1234/api/authors -XPOST -d '
+{
+    "name": "Christian Morgner",
+    "email": "christan@morgner.de"
+}'
+```
+
+the result is
+
+```
+HTTP/1.1 422 Unprocessable Entity
+Content-Type: application/json; charset=UTF-8
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+
+{
+  "code": 422,
+  "errors": {
+    "Author": {
+      "name": [
+        {
+          "already_taken": "Christian Morgner",
+          "id": "9548cc4837eb4d36a112b59a80b8d5d6"
+        }
+      ]
+    }
+  }
+}
+```
+
+#### Note
+We are aware of the redundancy that comes from having two different approaches to validation, but this is due to historical reasons and will be addressed in future releases.
 
 
 
@@ -418,7 +589,8 @@ Note the difference in the registration of the two TypeUniquenessValidators. Thi
 ### ElementCounter
 
 
-
+## Appendix B - List of error tokens
+### EmptyPropertyToken
 
 
 
