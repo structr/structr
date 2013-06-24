@@ -3,6 +3,18 @@ This document contains a step-by-step guide to the structr backend. We will star
 
 You should already know what a REST server is, and why you want to use such a server on top of a graph database, which has its own advantages and disadvantages compared to a relational database. You should also be familiar with Java, Apache Maven and git, as structr is hosted on github and we rely on Maven to manage dependencies and builds etc.
 
+### Table of contents
+- [About structr](#about-structr)
+- [The Neo4j property graph](#the-neo4j-property-graph)
+- [The first steps](#the-first-steps)
+    - [Creating a new project](#creating-a-new-project)
+    - [Server.java](#serverjava)
+    - [Adding custom configuration elements](#adding-custom-configuration-elements)
+    - [The configuration file (structr.conf)](#the-configuration-file-structrconf)
+    - [Caution](#caution)
+- [Starting the server](#starting-the-server)
+    - [Compiling](#compiling)
+
 ### About structr
 The structr REST server essentially is a graph-based JSON document store, where documents are automatically transformed into graph structures and back, according to a pre-defined schema. This schema consists of node and relationship entities, property definitions and configurable views which will be described in detail in the following chapters.
 
