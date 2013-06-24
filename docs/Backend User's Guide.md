@@ -3,43 +3,44 @@ This document contains a step-by-step guide to the structr backend. We will star
 
 You should already know what a REST server is, and why you want to use such a server on top of a graph database, which has its own advantages and disadvantages compared to a relational database. You should also be familiar with Java, Apache Maven and git, as structr is hosted on github and we rely on Maven to manage dependencies and builds etc.
 
-### Table of contents
+## Table of contents
 - [About structr](#about-structr)
 - [The Neo4j property graph](#the-neo4j-property-graph)
 - [The first steps](#the-first-steps)
     - [Creating a new project](#creating-a-new-project)
-    - [Server.java](#serverjava)
-    - [Adding custom configuration elements](#adding-custom-configuration-elements)
-    - [The configuration file (structr.conf)](#the-configuration-file-structrconf)
-    - [Caution](#caution)
-- [Starting the server](#starting-the-server)
-    - [Compiling](#compiling)
-    - [Using Maven to start the server](#using-maven-to-start-the-server)
-    - [Starting the server from the command line (or a script)](#starting-the-server-from-the-command-line-or-a-script)    
-    - [Debugging](#debugging)
-    - [Tips](#tips)
-- [Building the data model](#building-the-data-model)
-    - [Entities](#entities)
-    - [Node entities](#node-entities)
-    - [Relationship types](#relationship-types)
-    - [Author.java](#authorjava)
-    - [Properties and Views](#properties-and-views)
-        - [Pre-defined views](#pre-defined-views)
-        - [Inheritance](#inheritance)
-    - [Properties](#properties)
-- [REST access](#rest-access)
-    - [GET](#get)
-    - [POST](#post)
-    - [PUT](#put) 
-    - [DELETE](#delete)
-- [Validation and semantic error messages](#validation-and-semantic-error-messages)
-    - [Validation callbacks](#validation-callbacks)
-    - [Validators](#validators)
-    - [Uniqueness](#uniqueness)
-    - [Pattern matching](#pattern-matching)
-    - [Semantic error messages](#semantic-error-messages)
-    - [Note](#note)
-- [Appendix A - List of available property types](#appendix---a-list-of-available-property-types)
+        - [Server.java](#serverjava)
+        - [Adding custom configuration elements](#adding-custom-configuration-elements)
+        - [The configuration file (structr.conf)](#the-configuration-file-structrconf)
+        - [Caution](#caution)
+    - [Starting the server](#starting-the-server)
+        - [Compiling](#compiling)
+        - [Using Maven to start the server](#using-maven-to-start-the-server)
+        - [Starting the server from the command line (or a script)](#starting-the-server-from-the-command-line-or-a-script)    
+        - [Debugging](#debugging)
+        - [Tips](#tips)
+    - [Building the data model](#building-the-data-model)
+        - [Entities](#entities)
+        - [Node entities](#node-entities)
+        - [Relationship types](#relationship-types)
+        - [Author.java](#authorjava)
+        - [Properties and Views](#properties-and-views)
+            - [Pre-defined views](#pre-defined-views)
+            - [Inheritance](#inheritance)
+        - [Properties](#properties)
+    - [REST access](#rest-access)
+        - [GET](#get)
+        - [POST](#post)
+        - [PUT](#put) 
+        - [DELETE](#delete)
+    - [Validation and semantic error messages](#validation-and-semantic-error-messages)
+        - [Validation callbacks](#validation-callbacks)
+        - [Validators](#validators)
+        - [Uniqueness](#uniqueness)
+        - [Pattern matching](#pattern-matching)
+        - [Semantic error messages](#semantic-error-messages)
+        - [Note](#note)
+- [Adding relationships](#adding-relationships)
+- [Appendix A - List of available property types](#appendix-a---list-of-available-property-types)
     - [StringProperty](#stringproperty)
     - [IntProperty](#intproperty)
     - [LongProperty](#longproperty)
@@ -65,10 +66,10 @@ You should already know what a REST server is, and why you want to use such a se
     - [EmptyPropertyToken](#emptypropertytoken)
 - [Things to include in this document](#-things-to-include-in-this-document)
 
-### About structr
+## About structr
 The structr REST server essentially is a graph-based JSON document store, where documents are automatically transformed into graph structures and back, according to a pre-defined schema. This schema consists of node and relationship entities, property definitions and configurable views which will be described in detail in the following chapters.
 
-### The Neo4j property graph
+## The Neo4j property graph
 Data in a Neo4j database is stored in what is called a property graph. This graph consists of nodes and relationships, which both can have an arbitrary number of primitive properties, including arrays. Properties are stored and retrieved using a String key, so you can think of such a property container as a kind of persistent map. Nodes are the basic building blocks of a property graph and can be connected to other nodes using relationships.
 
 ## The first steps
@@ -87,7 +88,7 @@ structr has several Maven archetypes available for you to start your project wit
 
 When you execute this command, Maven will ask you to confirm the choices you made and will create a project named `example-backend` in the current directory. We assume you are already familiar with the layout of a Maven project, so let's jump directly into the code.
 
-### Server.java
+#### Server.java
 The Server class is the main class of every structr project. It is responsible for both configuration and startup of the REST backend. The following code fragment shows the how a typical Server.java looks like when it is first created from the base archetype.
 
 ```java
@@ -624,6 +625,9 @@ Server: Jetty(8.1.10.v20130312)
 #### Note
 We are aware of the redundancy that comes from having two different approaches to validation, but this is due to historical reasons and will be addressed in future releases.
 
+## Adding relationships
+*todo*
+
 
 
 
@@ -664,6 +668,7 @@ We are aware of the redundancy that comes from having two different approaches t
 - seed.zip
 - Import/Export via SyncCommand
 - Authentication, principals and the SecurityContext
+- Notions
 
 
 
