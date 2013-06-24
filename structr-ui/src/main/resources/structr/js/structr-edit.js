@@ -17,6 +17,13 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * JS library to enable in-page data editing in structr
+ * 
+ * The script tag to activate this file is automatically inserted into the
+ * rendered page in edit mode (URL parameter 'edit=1')
+ * 
+ */
 $(function() {
     var s = new StructrPage('/structr/rest/');
 
@@ -26,18 +33,25 @@ $(function() {
         $('.editButton').text('Stop editing').on('click', function() {
             window.location.href = window.location.href.split('?')[0];
         });
+
     } else {
         $('.editButton').on('click', function() {
-            var btn = $(this);
             if (!urlParam('edit')) {
                 window.location.href = '?edit=1';
             }
         });
     }
 
+    $('.createButton').on('click', function() {
+        var btn = $(this);
+        var type = btn.attr('data-structr-type');
+        console.log('create button clicked', type);
+        s.create(btn, type);
+    });
+
     $('.deleteButton').on('click', function() {
         var btn = $(this);
-        var id = btn.prop('id').substring(7);
+        var id = btn.attr('data-structr-id');
         console.log('Delete', id);
         s.delete(id);
     });
@@ -61,14 +75,43 @@ function StructrPage(baseUrl) {
         }
         return {'id': id, 'type': type, 'key': key, 'val': val};
     };
-    this.create = function(type, data) {
+    this.create = function(btn, type, data) {
         console.log('Create', type, data, '/structr/rest/' + type.toLowerCase());
         $.ajax({
             url: '/structr/rest/' + type.toLowerCase(), method: 'POST', contentType: 'application/json',
-            data: data,
-            statusCode: {201: function() {
+            data: JSON.stringify(data),
+            statusCode: {
+                201: function() {
                     window.location.reload();
-                }}
+                },
+                400: function(xhr) {
+                    console.log(xhr);
+                },
+                422: function(xhr) {
+                    btn.parent().children('.structr-label').remove();
+                    btn.parent().children('.structr-input').remove();
+                    var errors = JSON.parse(xhr.responseText).errors[type];
+                    console.log(btn, type, errors);
+                    var data = {};
+                    $.each(Object.keys(errors), function(i, key) {
+                        var label = key.splitAndTitleize('_');
+                        var msg = errors[key].join(',').splitAndTitleize('_');
+                        $('<label class="structr-label">' + label + '</label> <input class="structr-input" type="text" data-structr-prop="' + key + '" placeholder="' + msg + '">').insertBefore(btn);
+                    });
+
+                    btn.on('click', function() {
+                        $.each(btn.parent().children('.structr-input'), function() {
+                            var inp = $(this);
+                            var key = inp.attr('data-structr-prop');
+                            var val = inp.val();
+                            console.log('collecting data', inp, key, val);
+                            data[key] = val;
+                        });
+                        s.create(btn, type, data);
+                    });
+
+                }
+            }
         });
     };
     this.delete = function(id) {
@@ -164,11 +207,29 @@ function StructrPage(baseUrl) {
         return s.edit;
     };
 }
-;
+
 function urlParam(name) {
     name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
     var regexS = "[\\?&]" + name + "=([^&#]*)";
     var regex = new RegExp(regexS);
     var res = regex.exec(window.location.href);
     return (res && res.length ? res[1] : '');
+}
+
+if (typeof String.prototype.capitalize !== 'function') {
+    String.prototype.capitalize = function() {
+        return this.charAt(0).toUpperCase() + this.slice(1);
+    };
+}
+
+if (typeof String.prototype.splitAndTitleize !== 'function') {
+    String.prototype.splitAndTitleize = function(sep) {
+
+        var res = new Array();
+        var parts = this.split(sep);
+        parts.forEach(function(part) {
+            res.push(part.capitalize());
+        })
+        return res.join(" ");
+    };
 }
