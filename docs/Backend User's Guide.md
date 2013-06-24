@@ -1,5 +1,5 @@
 # Backend User's Guide
-This document contains a step-by-step guide to the structr backend. We will start with some information about the concepts and technologies and iteratively build a fully functional backend for a fictional use case.
+This document contains a step-by-step guide to the structr backend. We will start with some information about the concepts and technologies and incrementally build a fully functional backend for a fictitious use case.
 
 You should already know what a REST server is, and why you want to use such a server on top of a graph database, which has its own advantages and disadvantages compared to a relational database. You should also be familiar with Java, Apache Maven and git, as structr is hosted on github and we rely on Maven to manage dependencies and builds etc.
 
@@ -8,9 +8,6 @@ The structr REST server essentially is a graph-based JSON document store, where 
 
 ### The Neo4j property graph
 Data in a Neo4j database is stored in what is called a property graph. This graph consists of nodes and relationships, which both can have an arbitrary number of primitive properties, including arrays. Properties are stored and retrieved using a String key, so you can think of such a property container as a kind of persistent map. Nodes are the basic building blocks of a property graph and can be connected to other nodes using relationships.
-
-### structr’s data model
-structr extends the Neo4j property graph, adding type safety, validation, automatic indexing and transparent relationship creation. When you access structr entities using Java code, you can use `setProperty()` and `getProperty()` to work with collections of nodes and structr will automatically create relationships for the defined relation.
 
 ## The first steps
 ### Creating a new project
@@ -116,6 +113,315 @@ To be able to attach a debugger to a running structr REST server, you can use th
     
 Replace the port 5005 in the example above by your preferred debugging port
 
+#### Tips
+When you move the structr working directory to another directory, make sure you delete the structr.conf because there are absolute paths stored in this file. We are currently working on improving the configuration, so this will hopefully be fixed soon.
+
+## Building the data model
+structr extends the Neo4j property graph, adding type safety, validation, automatic indexing and transparent relationship creation. The basic building block of a structr REST application is the class `AbstractNode`. All node entities must inherit from this class in order to be available in structr. 
+
+### Entities
+For our previoulsy mentioned fictitious use case, we want to model the anatomy of structr's source code, so we can later create visualizations and statistics on top of that. This brings us to the first few node entities and relationship types.
+
+#### Node entities
+- Author
+- Interface
+- Class
+
+#### Relationship types
+- WROTE
+
+### Author.java
+The Author entity is the first entity we examine, because it illustrates some of the most basic features of structr. As mentioned before, all node entities must inherit from `AbstractNode` to be available to the structr REST server. So the simplest case of a class looks like this.
+
+```java
+public class Author extends AbstractNode {}
+```
+
+#### Properties and Views
+A node like this of course if of very little use, because it has no properties and no output representation. A structr entity can have many output representations, depending on the REST path it is accessed from, the position in the JSON output document or the relationship over which it is accessed. Output representations in structr are called *Views* and must be specified explicitly for each entity. A view is a collection of properties that belong together semantically in the context of the current view.
+
+##### Pre-defined views
+structr has a pre-defined set of views, including the default view which will be used if no view was specified explicitly in the REST path. The following views are defined in structr core and can be used freely in any project.
+
+- **PropertyView.Public (this is the default view)**
+- PropertyView.Protected
+- PropertyView.Private
+- PropertyView.All
+
+**Note:** you can set the default property view in the configuration builder of the Server class.
+
+#### Properties
+In order to populate the default view of our newly created Author entity, we need to define the properties an Author can have. To do this, we specify one or more public members of type `Property` like in the following lines. See Appendix A for the full list of available property types.
+
+```java
+public static final Property<String>  name     = new StringProperty("name");
+public static final Property<String>  email    = new StringProperty("email");
+public static final Property<Integer> age      = new IntProperty("age");
+public static final Property<Date>    birthday = new DateProperty("birthday", "dd.MM.yyyy");
+public static final Property<Date>    cakeday  = new ISO8601DateProperty("cakeday");
+```
+
+The set of default properties that each structr node inherits from `AbstractNode` includes a `name` property, so we do not need to declare it by ourselves. This leads us to the first version of our Author entity.
+
+```java
+public class Author extends AbstractNode {
+
+    public static final Property<String>  email    = new StringProperty("email");
+    public static final Property<Date>    birthday = new DateProperty("birthday", "dd.MM.yyyy");
+    public static final Property<Date>    cakeday  = new ISO8601DateProperty("cakeday");
+    
+    public static final View defaultView = new View(Author.class, PropertyView.Public,
+        name, email, birthday, cakeday
+    );
+}
+```
+
+### REST access
+Now that we finished the first entity, we can compile the project and start the server (see the previous chapter on how to do that). When the server is up and running, we can run the first REST queries. For each node type, structr automatically creates a nestable REST collection resource, so that we can manage our newly created Author entities.
+
+#### GET
+Using `curl`, we can now access the REST server for the first time. Of course the resource is initially empty, but the HTTP response code 200 tells us that the resource exists.
+
+```
+dev:~$ curl -i http://localhost:1234/api/authors
+HTTP/1.1 200 OK                                                                                                                                                                                                                                                                                                                       
+Content-Type: application/json; charset=utf-8                                                                                                                                                                                                                                                                                         
+Vary: Accept-Encoding, User-Agent                                                                                                                                                                                                                                                                                                     
+Transfer-Encoding: chunked                                                                                                                                                                                                                                                                                                            
+Server: Jetty(8.1.10.v20130312)                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                      
+{                                                                                                                                                                                                                                                                                                                                     
+   "query_time": "0.001438173",                                                                                                                                                                                                                                                                                                       
+   "result_count": 0,                                                                                                                                                                                                                                                                                                                 
+   "result": [],                                                                                                                                                                                                                                                                                                                      
+   "serialization_time": "0.000117178"
+}
+
+```
+
+#### POST
+Now its time to create the first Author entity in the database. Using REST, this translates to a POST request to the collection resource `/authors`, so we execute the following curl call.
+
+```
+dev:~$ curl -i http://localhost:1234/api/authors -XPOST -d '
+{
+    "name":"Christian Morgner",
+    "email":"christian@morgner.de",
+    "birthday":"30.11.1981",
+    "cakeday":"2013-06-04T17:16:00+0200"
+}'
+```
+
+and the server will respond with something like this:
+
+```
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=UTF-8
+Location: http://localhost:1234/api/authors/168eb522cfdb460f87616cccac46d9bb
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+```
+
+Issuing a GET request again, we can now see that the authors collection resource contains one element.
+
+```
+dev:~$ curl -i http://localhost:1234/api/authors
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Vary: Accept-Encoding, User-Agent
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+
+{
+   "query_time": "0.004049202",
+   "result_count": 1,
+   "result": [
+      {
+         "name": "Christian Morgner",
+         "email": "christian@morgner.de",
+         "birthday": "30.11.1981",
+         "cakeday": "2013-06-04T17:16:00+0200",
+         "id": "168eb522cfdb460f87616cccac46d9bb",
+         "type": "Author"
+      }
+   ],
+   "serialization_time": "0.000771747"
+}
+```
+
+#### PUT
+Now we can of course modify the entity as well, using the PUT verb on the element resource that contains the newly created author.
+
+```
+dev:~$ curl -i http://localhost:1234/api/authors/168eb522cfdb460f87616cccac46d9bb -XPUT -d '
+{
+    "cakeday":"2014-06-24T17:16:00+0200"
+}'
+```
+
+and the server responds with
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=UTF-8
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+```
+
+Now we access the **element resource** that contains only the modified element by addressing the nested resource directly.
+
+```
+dev:~$ curl -i http://localhost:1234/api/authors/168eb522cfdb460f87616cccac46d9bb
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Vary: Accept-Encoding, User-Agent
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+
+{
+   "query_time": "0.001245593",
+   "result_count": 1,
+   "result": {
+      "name": "Christian Morgner",
+      "email": "christian@morgner.de",
+      "birthday": "30.11.1981",
+      "cakeday": "2014-06-24T17:16:00+0200",
+      "id": "168eb522cfdb460f87616cccac46d9bb",
+      "type": "Author"
+   },
+   "serialization_time": "0.000734344"
+}
+```
+
+Note that the result in the JSON document is of type 'Object' now, whereas the result object in the collection resource  is of type 'Array'.
+
+#### DELETE
+And finally, to complete this tiny REST introduction, we use the DELETE verb to remove entity we just created.
+
+```
+dev:~$ curl -i http://localhost:1234/api/authors/168eb522cfdb460f87616cccac46d9bb -XDELETE
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+```
+
+And we can see that the collection resource again contains 0 elements, and direct access to the element resource results in a 404 Not Found error.
+
+```
+dev:~$ curl -i http://localhost:1234/api/authors
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Vary: Accept-Encoding, User-Agent
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+
+{
+   "query_time": "0.002759945",
+   "result_count": 0,
+   "result": [],
+   "serialization_time": "0.000121890"
+}
+
+dev:~$ curl -i http://localhost:1234/api/authors/168eb522cfdb460f87616cccac46d9bb
+HTTP/1.1 404 Not Found
+Content-Type: application/json; charset=utf-8
+Transfer-Encoding: chunked
+Server: Jetty(8.1.10.v20130312)
+
+{
+  "code": 404
+}
+```
+
+### Validation
+Now that we have our first basic node entity in place, we can move on to the next step, which is data validation. In a typical business application, you will have to enforce business rules on your data, e.g. there can only be one instance of a certain type, e-mail addresses need to conform to a given pattern, some strings have a minimum length etc.
+
+#### Uniqueness
+In our particular case, we want to be sure that only one author with a given name can exist in the database, to avoid confusion and data inconsistency. Uniqueness can be enforced by registering a `TypeUniquenessValidator` on the `name` property of the Author entity. Since the `name` property is declared in the superclass of Author, we need to register the validator in the static constructor of our entity. The following code illustrates how that can be done.
+
+```java
+public class Author extends AbstractNode {
+
+	public static final Property<String> email    = new StringProperty("email");
+	public static final Property<Date>   birthday = new DateProperty("birthday", "dd.MM.yyyy");
+	public static final Property<Date>   cakeday  = new ISO8601DateProperty("cakeday");
+
+	public static final View defaultView = new View(Author.class, PropertyView.Public,
+		name, email, birthday, cakeday
+	);
+
+	static {
+		// register a uniqueness validator on the 'name' property of the type 'Author'
+		Author.name.addValidator(new TypeUniquenessValidator(Author.class));
+	}
+}
+```
+
+#### Pattern matching
+Another real-life example for the use of a validator is the validation of an e-mail address using pattern matching. The following code illustrates how to register a regular expression validator and a TypeUniquenessValidator on the `email` property of our Author entity.
+
+```java
+public class Author extends AbstractNode {
+
+	public static final Property<String> email    = new StringProperty("email",
+		new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"),
+		new TypeUniquenessValidator(Author.class)
+	);
+
+	public static final Property<Date>   birthday = new DateProperty("birthday", "dd.MM.yyyy");
+	public static final Property<Date>   cakeday  = new ISO8601DateProperty("cakeday");
+
+	public static final View defaultView = new View(Author.class, PropertyView.Public,
+		name, email, birthday, cakeday
+	);
+
+	static {
+
+		// register a uniqueness validator on the 'name' property of the type 'Author'
+		Author.name.addValidator(new TypeUniquenessValidator(Author.class));
+	}
+}
+```
+
+Note the difference in the registration of the two TypeUniquenessValidators. This is due to the fact that the `name` property is not declared in the Author entity, but in its superclass AbstractNode, so we need to add the validator afterwards.
+
+### View configuration
+
+
+
+
+
+
+
+## Appendix A - List of available property types
+### StringProperty
+### IntProperty
+### LongProperty
+### DoubleProperty
+### FloatProperty
+### BooleanProperty
+### ArrayProperty
+### DateProperty
+### ISO8601DateProperty
+### EnumProperty
+### EntityProperty
+### EntityIdProperty
+### EntityNotionProperty
+### CollectionProperty
+### CollectionIdProperty
+### CollectionNotionProperty
+### AbstractReadOnlyProperty
+### AbstractPrimitiveProperty
+### GroupProperty
+### CypherProperty
+### ElementCounter
+
+
+
+
+
+
 
 
 
@@ -123,6 +429,7 @@ Replace the port 5005 in the example above by your preferred debugging port
 - @Export annotation for REST RPC
 - seed.zip
 - Import/Export via SyncCommand
+- Authentication, principals and the SecurityContext
 
 
 
