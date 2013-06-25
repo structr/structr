@@ -358,6 +358,8 @@ public class StructrUiTest extends TestCase {
 
 				for (int i = 0; i < number; i++) {
 
+					props.put(AbstractNode.name, type.getSimpleName() + i);
+
 					nodes.add((T) createNodeCommand.execute(props));
 				}
 

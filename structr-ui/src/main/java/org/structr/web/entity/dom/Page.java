@@ -55,6 +55,7 @@ import org.w3c.dom.Text;
 
 
 import org.neo4j.graphdb.Direction;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Predicate;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -103,6 +104,17 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 	
 	//~--- methods --------------------------------------------------------
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		valid &= nonEmpty(AbstractNode.name, errorBuffer);
+		valid &= super.isValid(errorBuffer);
+		
+		return valid;
+	}
 
 	/**
 	 * Creates a new Page entity with the given name in the database.

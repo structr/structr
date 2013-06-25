@@ -62,6 +62,7 @@ import org.apache.commons.collections.iterators.IteratorEnumeration;
 
 import org.apache.commons.collections.map.LRUMap;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.Permission;
 import org.structr.web.common.RelType;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
@@ -433,6 +434,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							renderContext.setListSource(listData);
 							((DOMElement) subNode).renderNodeList(securityContext, renderContext, depth, subKey);
 
+							// In edit mode, render a create button
+							if (edit && !listData.isEmpty()) {
+								String t = listData.get(0).getType();
+								buffer.append("\n<button class=\"createButton\" data-structr-type=\"").append(t).append("\">Create ").append(t).append("</button>\n");
+							}
 						}
 						
 					}
@@ -490,6 +496,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				renderContext.putDataObject(dataKey, dataObject);
 
 				render(securityContext, renderContext, depth + 1);
+				
+				if (renderContext.getEdit()) {
+					
+					boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
+					
+					if (canWrite) {
+						renderContext.getBuffer().append("\n<button class=\"deleteButton\" data-structr-id=\"").append(dataObject.getUuid()).append("\">Delete</button>\n");
+					}
+				}
+
 
 			}
 			renderContext.clearDataObject(dataKey);
