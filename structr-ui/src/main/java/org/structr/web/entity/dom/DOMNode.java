@@ -20,6 +20,8 @@ package org.structr.web.entity.dom;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.NumberFormat;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -28,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -421,6 +424,38 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				return new Double(result).toString();
 
+			}
+
+		});
+		functions.put("number_format", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+				String errorMsg = "<strong>ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. ex:${number_format(12345.6789, 'en', '#,##0.00')} For more infos about patterns <a href='http://docs.oracle.com/javase/6/docs/api/java/text/DecimalFormat.html'>refer to the documentation</a><strong>";
+
+				if (s != null && s.length == 3) {
+
+					try {
+
+						Double val = Double.parseDouble(s[0]);
+						String langCode = s[1];
+						String pattern = s[2];
+
+						NumberFormat formatter = DecimalFormat.getInstance(new Locale(langCode));
+						((DecimalFormat) formatter).applyLocalizedPattern(pattern);
+						result = formatter.format(val);
+
+					} catch (Throwable t) {
+						result = errorMsg;
+					}
+
+				} else {
+					result = errorMsg;
+				}
+
+				return result;
 			}
 
 		});
