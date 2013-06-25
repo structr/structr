@@ -892,6 +892,7 @@ var _Crud = {
     },
 
     crudUpdateObj : function(id, json, onSuccess, onError) {
+        //console.log('crudUpdateObj URL:', rootUrl + id, headers);
         //console.log('crudUpdateObj JSON:', json);
         $.ajax({
             url: rootUrl + id,
@@ -1578,7 +1579,7 @@ var _Crud = {
                         //console.log(obj, ' equals ', relatedObj);
                         if (!_Crud.equal(obj, relatedObj)) {
                             //console.log('not equal');
-                            objects.push(obj.id);
+                            objects.push({'id':obj.id});
                         }
                     });
                     
@@ -1662,11 +1663,11 @@ var _Crud = {
                 success: function(data) {
                     //console.log(data.result[key]);
                     $.each(data.result[key], function(i, node) {
-                        objects.push(node.id); 
+                        objects.push({'id':node.id}); 
                     });
 
                     if (!isIn(relatedObj.id, objects)) {
-                        objects.push(relatedObj.id);
+                        objects.push({'id':relatedObj.id});
                     }
                     var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
                     //console.log(headers, url, json);

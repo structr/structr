@@ -24,6 +24,9 @@
  * rendered page in edit mode (URL parameter 'edit=1')
  * 
  */
+
+//var altKey, ctrlKey, shiftKey, eKey;
+
 $(function() {
     var s = new StructrPage('/structr/rest/');
 
@@ -55,6 +58,22 @@ $(function() {
         console.log('Delete', id);
         s.delete(id);
     });
+
+//    $(window).on('keydown', function(e) {
+//        var k = e.which;
+//        if (k === 17) altKey = true;
+//        if (k === 18) ctrlKey = true;
+//        if (k === 16) shiftKey = true;
+//        if (k === 69) eKey = true;
+//    });
+//
+//    $(window).on('keyup', function(e) {
+//        var k = e.which;
+//        if (k === 17) altKey = false;
+//        if (k === 18) ctrlKey = false;
+//        if (k === 16) shiftKey = false;
+//        if (k === 69) eKey = false;
+//    });
 
 });
 

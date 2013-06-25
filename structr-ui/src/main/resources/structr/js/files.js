@@ -321,6 +321,8 @@ var _Files = {
 
         var parent = parentFolderElement ? parentFolderElement : folders;
 
+        if (!parent) return false;
+
         parent.append('<div id="id_' + folder.id + '" structr_type="folder" class="node folder">'
             + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
             + '<b title="' + folder.name + '" class="name_">' + fitStringToSize(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
