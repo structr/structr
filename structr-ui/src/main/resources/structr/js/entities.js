@@ -117,6 +117,17 @@ var _Entities = {
             });
         });
 
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnEdit_">Hide element in edit mode</button></div>');
+        var hideOnEditSwitch = $('.hideOnEdit_');
+        _Entities.changeBooleanAttribute(hideOnEditSwitch, entity.hideOnEdit);
+        hideOnEditSwitch.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty('hideOnEdit', hideOnEditSwitch.hasClass('disabled'), false, function() {
+                _Entities.changeBooleanAttribute(hideOnEditSwitch, entity.hideOnEdit);
+                blinkGreen(hideOnEditSwitch);
+            });
+        });
+
         dialog.append('<div><h3>Data Key</h3><p>Query results are mapped to this key and can be accessed by ${dataKey.propertyKey}</p><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
         $('#saveDataKey', dialog).on('click', function() {
             entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {
