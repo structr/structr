@@ -39,7 +39,13 @@ You should already know what a REST server is, and why you want to use such a se
         - [Pattern matching](#pattern-matching)
         - [Semantic error messages](#semantic-error-messages)
         - [Note](#note)
-- [Indexing and search](#indexing-and-search)
+- [Indexing and search](#indexing-searching-and-sorting)
+    - [Fulltext and keyword index](#fulltext-and-keyword-index)
+    - [Setup](#setup)
+    - [Ordinary search](#ordinary-search)
+    - [Loose search](#loose-search)
+    - [Range queries](#range-queries)
+    - [Sorting](#sorting)
 - [Adding relationships](#adding-relationships)
 - [Appendix A - List of available property types](#appendix-a---list-of-available-property-types)
     - [StringProperty](#stringproperty)
@@ -681,7 +687,7 @@ public class Author extends AbstractNode {
     	EntityContext.registerSearchablePropertySet(Author.class, NodeService.NodeIndex.keyword.name(),
     	   name, email, birthday, cakeday
     	);
-    	}
+    }
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
