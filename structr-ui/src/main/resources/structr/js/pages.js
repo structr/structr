@@ -168,6 +168,8 @@ var _Pages = {
 
         if (activeTabRight) {
             $('#' + activeTabRight).click();
+        } else {
+            $('#paletteTab').click();
         }
 
         $('#controls', main).remove();
@@ -806,8 +808,6 @@ var _Pages = {
                 _Entities.ensureExpanded(self);
                 sorting = false; sortParent = undefined;
 
-                $(ui.draggable).remove();
-
                 var nodeData = {};
 				
                 var page = self.closest('.page')[0];
@@ -920,6 +920,8 @@ var _Pages = {
                     log('appendChild', contentId, elementId);
                     sorting = false;
                     Command.appendChild(contentId, elementId);
+                    $(ui.draggable).remove();
+
                     
                     return;
                 }
