@@ -1451,7 +1451,20 @@ var _Crud = {
         
         var view = _Crud.view[_Crud.type];
         
-        var types = type ? [ type ] : _Crud.types;
+        //var types = type ? [ type ] : _Crud.types;
+        var types;
+        var posOfColon = searchString.indexOf(':');
+        if (posOfColon > -1) {
+            var type = searchString.substring(0, posOfColon);
+            if (!type.endsWith('s')) {
+                type = type + 's';
+            }
+            types = [ type.capitalize() ];
+            searchString = searchString.substring(posOfColon+1, searchString.length); 
+            //console.log('filter search type', types, searchString);
+        } else {
+            types = type ? [ type ] : _Crud.types;
+        }
         
         $.each(types, function(t, type) {
             var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', pageSize, 1) + '&name=' + searchString + '&loose=1';
