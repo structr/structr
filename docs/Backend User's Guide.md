@@ -1,5 +1,5 @@
 # Backend User's Guide
-This document contains a step-by-step guide to the structr backend. We will start with some information about the concepts and technologies and incrementally build a fully functional backend for a fictitious use case.
+This document contains a step-by-step guide to the structr backend. We will start with some information about the concepts and technologies and incrementally build a fully functional backend for a real-life use case.
 
 You should already know what a REST server is, and why you want to use such a server on top of a graph database, which has its own advantages and disadvantages compared to a relational database. You should also be familiar with Java, Apache Maven and git, as structr is hosted on github and we rely on Maven to manage dependencies and builds etc.
 
@@ -39,6 +39,7 @@ You should already know what a REST server is, and why you want to use such a se
         - [Pattern matching](#pattern-matching)
         - [Semantic error messages](#semantic-error-messages)
         - [Note](#note)
+- [Indexing and search](#indexing-and-search)
 - [Adding relationships](#adding-relationships)
 - [Appendix A - List of available property types](#appendix-a---list-of-available-property-types)
     - [StringProperty](#stringproperty)
@@ -183,7 +184,7 @@ When you move the structr working directory to another directory, make sure you 
 structr extends the Neo4j property graph, adding type safety, validation, automatic indexing and transparent relationship creation. The basic building block of a structr REST application is the class `AbstractNode`. All node entities must inherit from this class in order to be available in structr. 
 
 ### Entities
-For our previously mentioned fictitious use case, we want to model the anatomy of structr's source code, so we can later create visualizations and statistics on top of that. This brings us to the first few node entities and relationship types.
+For our previously mentioned use case, we want to model the anatomy of structr's source code, so we can later create visualizations and statistics on top of that. This brings us to the first few node entities and relationship types.
 
 #### Node entities
 - Author
@@ -625,8 +626,91 @@ Server: Jetty(8.1.10.v20130312)
 #### Note
 We are aware of the redundancy that comes from having two different approaches to validation, but this is due to historical reasons and will be addressed in future releases.
 
+## Indexing, searching and sorting
+Before we advance to related entities and relationships, there is one feature that can be illustrated with the current project setup. structr provides automatic indexing, sorting and sophisticated query abilities using the Lucene search engine. In order to use these abilities, we must register properties in an entity to be *searchable*.
+
+### Fulltext and keyword index
+The Neo4j implementation of the Lucene index provider supports fulltext and keyword indexing, which differ in the Analyzer implementation that is used to analyze the values that are indexed for a given entity. Since it is possible to combine more than one search field and sorting in a single REST query, we recommend registration of searchable properties in both the *fulltext* and the *keyword* index. **Lucene queries will only work correctly if the properties used for searching and sorting are stored in the same index.**
+
+### Setup
+The following code shows how this is done in the current version of structr, though it is likely to change before the 1.0 release, because we plan to move it to the Property class. Right now, the `EntityContext` handles searchable properties, so the properties need to be registered in the static constructor of an entity class like in the example below.
+
+```java
+static {
+
+	// register searchable properties in fulltext index
+	EntityContext.registerSearchablePropertySet(Author.class, NodeService.NodeIndex.fulltext.name(),
+	   name, email, birthday, cakeday
+	);
+	
+	// register searchable properties in keyword index
+	EntityContext.registerSearchablePropertySet(Author.class, NodeService.NodeIndex.keyword.name(),
+	   name, email, birthday, cakeday
+	);
+}
+```
+
+Now with all the properties, views, validation and indexing in place, the final Author entity looks like this.
+
+```java
+public class Author extends AbstractNode {
+
+	public static final Property<String> email    = new StringProperty("email",
+		new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"),
+		new TypeUniquenessValidator(Author.class)
+	);
+
+	public static final Property<Date>   birthday = new DateProperty("birthday", "dd.MM.yyyy");
+	public static final Property<Date>   cakeday  = new ISO8601DateProperty("cakeday");
+
+	public static final View defaultView = new View(Author.class, PropertyView.Public,
+		name, email, birthday, cakeday
+	);
+
+	static {
+
+		// register a uniqueness validator on the 'name' property of the type 'Author'
+		Author.name.addValidator(new TypeUniquenessValidator(Author.class));
+    
+    	// register searchable properties in fulltext index
+    	EntityContext.registerSearchablePropertySet(Author.class, NodeService.NodeIndex.fulltext.name(),
+    	   name, email, birthday, cakeday
+    	);
+    	
+    	// register searchable properties in keyword index
+    	EntityContext.registerSearchablePropertySet(Author.class, NodeService.NodeIndex.keyword.name(),
+    	   name, email, birthday, cakeday
+    	);
+    	}
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		if (getProperty(name) == null) {
+			
+			errorBuffer.add("Author", new EmptyPropertyToken(name));
+			
+			valid = false;
+		}
+		
+		return valid && super.isValid(errorBuffer);
+	}
+}
+```
+
+### Ordinary search
+
+
+### Loose search
+
+### Range queries
+
+### Sorting
+
 ## Adding relationships
-*todo*
+The next step in our use case is to add the two additional classes that we need to model the source code of structr. So 
 
 
 
