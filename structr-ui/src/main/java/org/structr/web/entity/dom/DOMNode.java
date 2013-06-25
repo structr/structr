@@ -324,11 +324,12 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			@Override
 			public String apply(String[] s) {
 
-				Double result = 0.0d;
 
-				if (s != null) {
+				if (s != null && s.length > 0) {
 
-					for (int i = 0; i < s.length; i++) {
+					Double result = Double.parseDouble(s[0]);
+
+					for (int i = 1; i < s.length; i++) {
 
 						try {
 
@@ -338,9 +339,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 					}
 
+					return new Double(result).toString();
 				}
+				
+				return "";
 
-				return new Double(result).toString();
 
 			}
 
