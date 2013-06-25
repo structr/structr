@@ -60,6 +60,7 @@ import org.structr.core.property.EntityProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.graph.search.TextualSearchAttribute;
@@ -69,7 +70,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.User;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -761,7 +761,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			// special keyword "me"
 			if ("me".equals(part.toLowerCase())) {
 
-				User me = (User) securityContext.getUser(false);
+				Principal me = (Principal) securityContext.getUser(false);
 
 				if (me != null) {
 		
