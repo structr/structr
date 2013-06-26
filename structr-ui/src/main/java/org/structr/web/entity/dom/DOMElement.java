@@ -132,6 +132,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<Boolean> hideOnIndex             = new BooleanProperty("hideOnIndex");
 	public static final Property<Boolean> hideOnDetail            = new BooleanProperty("hideOnDetail");
 	public static final Property<Boolean> hideOnEdit              = new BooleanProperty("hideOnEdit");
+	public static final Property<Boolean> hideOnNonEdit           = new BooleanProperty("hideOnNonEdit");
 
 	public static final Property<String> _title                   = new HtmlProperty("title");
 	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
@@ -356,6 +357,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				boolean detailMode = details != null;
 
 				if (edit && subNode.getProperty(hideOnEdit)) {
+					continue;
+				}
+
+				if (!edit && subNode.getProperty(hideOnNonEdit)) {
 					continue;
 				}
 
