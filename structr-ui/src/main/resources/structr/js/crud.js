@@ -965,7 +965,12 @@ var _Crud = {
 
     crudUpdate : function(id, key, newValue, onSuccess, onError) {
         var url = rootUrl + id;
-        var json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
+        var json;
+        if (!newValue || newValue === '') {
+            json = '{"' + key + '":null}';
+        } else {
+            json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
+        }
         console.log('crudUpdate', headers, url, json);
         $.ajax({
             url: url,
@@ -1508,7 +1513,7 @@ var _Crud = {
 
     displayName : function(node) {
         var displayName;
-        if (node.type === 'Content') {
+        if (node.type === 'Content' && node.content) {
             //displayName = $(node.content).text().substring(0, 100);
             displayName = escapeTags(node.content.substring(0, 100));
         } else {
