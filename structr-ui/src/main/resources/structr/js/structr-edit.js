@@ -116,8 +116,8 @@ function StructrPage(baseUrl) {
                             url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
                             statusCode: {
                                 200: function(data) {
-                                    
-                                    if (data.result && data.result.length) {
+                                    console.log(data.result);
+                                    if (data.result && data.result[relatedProperty].length) {
                                         $.each(data.result[relatedProperty], function(i, obj) {
                                             d[relatedProperty].push({'id':obj.id});
                                         });
