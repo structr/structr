@@ -117,9 +117,12 @@ function StructrPage(baseUrl) {
                             statusCode: {
                                 200: function(data) {
                                     
-                                    $.each(data.result[relatedProperty], function(i, obj) {
-                                        d[relatedProperty].push({'id':obj.id});
-                                    });
+                                    if (data.result && data.result.length) {
+                                        $.each(data.result[relatedProperty], function(i, obj) {
+                                            d[relatedProperty].push({'id':obj.id});
+                                        });
+                                    }
+
                                     $.ajax({
                                         url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
                                         data: JSON.stringify(d),

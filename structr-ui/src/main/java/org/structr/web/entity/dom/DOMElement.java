@@ -476,9 +476,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 						}
 						
 						// In edit mode, render a create button
-						if (typeForCreateButton != null) {
+						if (edit && typeForCreateButton != null) {
 
-							buffer.append("\n<button class=\"createButton\")");
+							buffer.append("\n<button class=\"createButton\"");
 							
 							if (sourceId != null) {
 								buffer.append(" data-structr-source-id=\"").append(sourceId).append("\"");
