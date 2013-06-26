@@ -388,6 +388,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
 					
 					PropertyKey propertyKey = null;
+	
+					String typeForCreateButton = null;
+					String sourceId = null;
+					String sourceType = null;
+					String relatedProperty = null;
 					
 					if (subNode.getProperty(renderDetails) && detailMode) {
 						
@@ -408,10 +413,19 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							if (elements != null) {
 								
 								if (elements instanceof Iterable) {
+									
+									int i=0;
 
 									for (Object o : (Iterable)elements) {
 
 										if (o instanceof GraphObject) {
+											
+											// In edit mode, render a create button
+											if (i==0 && edit && o instanceof AbstractNode) {
+												typeForCreateButton = ((AbstractNode) o).getType();
+											}
+											
+											i++;
 
 											GraphObject graphObject = (GraphObject)o;
 											renderContext.putDataObject(subKey, graphObject);
@@ -419,7 +433,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 										}
 									}
+									
 								}
+
 								
 							} else {
 
@@ -435,6 +451,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 										subNode.render(securityContext, renderContext, depth + 1);
 
 									}
+									
+									typeForCreateButton = collectionProperty.getDestType().getSimpleName();
+									sourceId = currentDataNode.getUuid();
+									sourceType = currentDataNode.getType();
+									relatedProperty = collectionProperty.jsonName();
 
 								}
 							
@@ -444,15 +465,31 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							renderContext.setDataObject(currentDataNode);
 						
 						} else {
+							
+							if (!listData.isEmpty()) {
+								typeForCreateButton = listData.get(0).getType();
+							}
 
 							renderContext.setListSource(listData);
 							((DOMElement) subNode).renderNodeList(securityContext, renderContext, depth, subKey);
 
-							// In edit mode, render a create button
-							if (edit && !listData.isEmpty()) {
-								String t = listData.get(0).getType();
-								buffer.append("\n<button class=\"createButton\" data-structr-type=\"").append(t).append("\">Create ").append(t).append("</button>\n");
+						}
+						
+						// In edit mode, render a create button
+						if (typeForCreateButton != null) {
+
+							buffer.append("\n<button class=\"createButton\")");
+							
+							if (sourceId != null) {
+								buffer.append(" data-structr-source-id=\"").append(sourceId).append("\"");
+								buffer.append(" data-structr-source-type=\"").append(sourceType).append("\"");
+								buffer.append(" data-structr-related-property=\"").append(relatedProperty).append("\"");
 							}
+								 
+							buffer.append(" data-structr-type=\"")
+								.append(typeForCreateButton).append("\">Create ")
+								.append(typeForCreateButton).append("</button>\n");
+
 						}
 						
 					}

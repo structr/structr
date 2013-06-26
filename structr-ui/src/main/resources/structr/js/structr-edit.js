@@ -48,8 +48,11 @@ $(function() {
     $('.createButton').on('click', function() {
         var btn = $(this);
         var type = btn.attr('data-structr-type');
+        var sourceId = btn.attr('data-structr-source-id');
+        var sourceType = btn.attr('data-structr-source-type');
+        var relatedProperty = btn.attr('data-structr-related-property');
         console.log('create button clicked', type);
-        s.create(btn, type);
+        s.create(btn, type, null, sourceId, sourceType, relatedProperty);
     });
 
     $('.deleteButton').on('click', function() {
@@ -94,22 +97,63 @@ function StructrPage(baseUrl) {
         }
         return {'id': id, 'type': type, 'key': key, 'val': val};
     };
-    this.create = function(btn, type, data) {
-        console.log('Create', type, data, '/structr/rest/' + type.toLowerCase());
+    this.create = function(btn, type, data, sourceId, sourceType, relatedProperty) {
+        console.log('Create', type, data, '/structr/rest/' + type.toUnderscore(), sourceId, relatedProperty);
         $.ajax({
-            url: '/structr/rest/' + type.toLowerCase(), method: 'POST', contentType: 'application/json',
+            url: '/structr/rest/' + type.toUnderscore(), method: 'POST', contentType: 'application/json',
             data: JSON.stringify(data),
             statusCode: {
-                201: function() {
-                    window.location.reload();
+                201: function(x){
+                    
+                    if (sourceId && relatedProperty) {
+                        
+                        var location = x.getResponseHeader('location');
+                        var id = location.substring(location.lastIndexOf('/') + 1);
+                        var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
+                        
+                        
+                        $.ajax({
+                            url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
+                            statusCode: {
+                                200: function(data) {
+                                    
+                                    $.each(data.result[relatedProperty], function(i, obj) {
+                                        d[relatedProperty].push({'id':obj.id});
+                                    });
+                                    $.ajax({
+                                        url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
+                                        data: JSON.stringify(d),
+                                        statusCode: {
+                                            200: function() {
+                                                window.location.reload();
+                                            },
+                                            400: function(xhr) {
+                                                console.log(xhr);
+                                            },
+                                            422: function(xhr) {
+                                                console.log(xhr);
+                                            }
+                                        }
+                                    });
+                                    
+                                }
+                            }
+                        });
+                            
+                        
+                        
+                    } else {
+                        window.location.reload();
+                    }
+                    
                 },
-                400: function(xhr) {
-                    console.log(xhr);
+                400: function(d) {
+                    console.log(d);
                 },
-                422: function(xhr) {
+                422: function(d) {
                     btn.parent().children('.structr-label').remove();
                     btn.parent().children('.structr-input').remove();
-                    var errors = JSON.parse(xhr.responseText).errors[type];
+                    var errors = JSON.parse(d.responseText).errors[type];
                     console.log(btn, type, errors);
                     var data = {};
                     $.each(Object.keys(errors), function(i, key) {
@@ -124,9 +168,9 @@ function StructrPage(baseUrl) {
                             var key = inp.attr('data-structr-prop');
                             var val = inp.val();
                             console.log('collecting data', inp, key, val);
-                            data[key] = val;
+                            d[key] = val;
                         });
-                        s.create(btn, type, data);
+                        s.create(btn, type, d);
                     });
 
                 }
@@ -188,7 +232,6 @@ function StructrPage(baseUrl) {
                     });
                 } else {
                     $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]').on('keyup', function(e) {
-                        console.log('keyup');
                         var k = e.which, b = $('#save_' + f.id + '_' + f.key);
                         if (k === 13 && b.length) {
                             b.click();
@@ -252,3 +295,9 @@ if (typeof String.prototype.splitAndTitleize !== 'function') {
         return res.join(" ");
     };
 }
+
+String.prototype.toUnderscore = function() {
+    return this.replace(/([A-Z])/g, function(m, a, offset) {
+        return (offset>0?'_':'') + m.toLowerCase();
+    });
+};
