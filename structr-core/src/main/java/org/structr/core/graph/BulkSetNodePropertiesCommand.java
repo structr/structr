@@ -87,7 +87,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 			} else {
 
-				nodes = nodeFactory.instantiateAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+				nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 			}
 
 			final Class cls = Services.getService(ModuleService.class).getNodeEntityClass(type);

@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.graph.search.FilterSearchAttribute;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
@@ -44,6 +43,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -114,7 +114,7 @@ public class TypeResource extends SortableResource {
 			if (distanceSearch != null) {
 
 				searchAttributes.add(distanceSearch);
-				searchAttributes.add(new FilterSearchAttribute(AbstractNode.type, EntityContext.normalizeEntityName(rawType), SearchOperator.AND));
+				searchAttributes.add(new FilterSearchAttribute(AbstractNode.type, EntityContext.normalizeEntityName(rawType), Occur.MUST));
 				searchAttributes.addAll(toFilters(validAttributes));
 
 			} else {
@@ -291,7 +291,7 @@ public class TypeResource extends SortableResource {
 		List<FilterSearchAttribute> filters = new LinkedList();
 		
 		for (SearchAttribute attr : attrs) {
-			filters.add(new FilterSearchAttribute(attr.getKey(), attr.getValue(), attr.getSearchOperator()));
+			filters.add(new FilterSearchAttribute(attr.getKey(), attr.getValue(), attr.getOccur()));
 		}
 		
 		return filters;

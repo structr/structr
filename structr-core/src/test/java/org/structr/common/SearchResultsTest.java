@@ -51,8 +51,6 @@ import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.FilterSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -64,8 +62,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.Services;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.StringSearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,7 +95,7 @@ public class SearchResultsTest extends StructrTest {
 
 			PropertyMap props     = new PropertyMap();
 			final PropertyKey key = AbstractNode.name;
-			final String name     = "89w3hklsdfghsdkljth";
+			final String name     = "89w3hkl sdfghsdkljth";
 
 			props.put(key, name);
 
@@ -104,7 +104,7 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new TextualSearchAttribute(key, name, SearchOperator.AND));
+			searchAttributes.add(new StringSearchAttribute(key, name, Occur.MUST, true));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -112,7 +112,7 @@ public class SearchResultsTest extends StructrTest {
 			assertTrue(result.get(0).equals(node));
 
 			// Change name attribute and search again
-			final String name2 = "klppptzoehigösoiutzüw0e9hg";
+			final String name2 = "klppptzoehi gösoiu tzüw0e9hg";
 
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -125,7 +125,7 @@ public class SearchResultsTest extends StructrTest {
 			});
 			
 			searchAttributes.clear();
-			searchAttributes.add(new TextualSearchAttribute(key, name2, SearchOperator.AND));
+			searchAttributes.add(new StringSearchAttribute(key, name2, Occur.MUST, true));
 
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -157,8 +157,8 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
-			searchAttributes.add(new FilterSearchAttribute(key, date, SearchOperator.AND));
+			searchAttributes.add(new StringSearchAttribute(AbstractNode.type, type, Occur.MUST, true));
+			searchAttributes.add(new FilterSearchAttribute(key, date, Occur.MUST));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -198,7 +198,7 @@ public class SearchResultsTest extends StructrTest {
 
 			searchAttributes.add(Search.andExactProperty(key1, val1));
 
-			List<AbstractRelationship> result = (List<AbstractRelationship>) searchRelationshipCommand.execute(searchAttributes);
+			Result<AbstractRelationship> result = searchRelationshipCommand.execute(searchAttributes);
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
@@ -248,9 +248,9 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
-			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, SearchOperator.AND));
-//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+			searchAttributes.add(new StringSearchAttribute(AbstractNode.type, type, Occur.MUST, true));
+			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, Occur.MUST));
+//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -307,8 +307,8 @@ public class SearchResultsTest extends StructrTest {
 //						boolean publicOnly                     = false;
 //						List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 //
-//						searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
-//						searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+//						searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, Occur.MUST));
+//						searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
 //
 //						Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 //
@@ -346,8 +346,8 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, SearchOperator.AND));
-//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, Occur.MUST));
+//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 

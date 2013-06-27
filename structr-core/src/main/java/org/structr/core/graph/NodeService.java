@@ -34,7 +34,6 @@ import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 import org.structr.core.Command;
-import org.structr.core.EntityContext;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
@@ -65,17 +64,19 @@ public class NodeService implements SingletonService {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Index<Node> fulltextIndex               = null;
 	private GraphDatabaseService graphDb            = null;
+	
+	private Index<Node> caseInsensitiveUserIndex    = null;
+	private Index<Node> fulltextIndex               = null;
 	private Index<Node> keywordIndex                = null;
 	private Index<Node> layerIndex                  = null;
+	private Index<Node> userIndex                   = null;
+	private Index<Node> uuidIndex                   = null;
+	
 	private Index<Relationship> relFulltextIndex    = null;
 	private Index<Relationship> relKeywordIndex     = null;
 	private Index<Relationship> relUuidIndex        = null;
-	private RelationshipFactory relationshipFactory = null;
-	private Index<Node> userIndex                   = null;
-	private Index<Node> caseInsensitiveUserIndex               = null;
-	private Index<Node> uuidIndex                   = null;
+
 	private ExecutionEngine cypherExecutionEngine   = null;
 
 	/** Dependent services */
@@ -103,24 +104,25 @@ public class NodeService implements SingletonService {
 		if (command != null) {
 
 			command.setArgument("graphDb", graphDb);
+			
 			command.setArgument(NodeIndex.uuid.name(), uuidIndex);
 			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
 			command.setArgument(NodeIndex.user.name(), userIndex);
 			command.setArgument(NodeIndex.caseInsensitiveUser.name(), caseInsensitiveUserIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
 			command.setArgument(NodeIndex.layer.name(), layerIndex);
+			
 			command.setArgument(RelationshipIndex.rel_uuid.name(), relUuidIndex);
 			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
 			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
-			//command.setArgument("nodeFactory", nodeFactory);
-			command.setArgument("relationshipFactory", relationshipFactory);
+
 			command.setArgument("filesPath", Services.getFilesPath());
+			
 			command.setArgument("indices", NodeIndex.values());
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
+			
 			command.setArgument("cypherExecutionEngine", cypherExecutionEngine);
-
 		}
-
 	}
 
 	@Override
@@ -228,8 +230,6 @@ public class NodeService implements SingletonService {
 
 		logger.log(Level.FINE, "Relationship numeric index ready.");
 		logger.log(Level.FINE, "Initializing relationship factory...");
-
-		relationshipFactory = new RelationshipFactory();
 
 		logger.log(Level.FINE, "Relationship factory ready.");
 		cypherExecutionEngine = new ExecutionEngine(graphDb);

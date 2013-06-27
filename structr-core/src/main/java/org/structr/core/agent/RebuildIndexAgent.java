@@ -116,7 +116,7 @@ public class RebuildIndexAgent extends Agent {
 
 							if (dbNode.hasProperty(GraphObject.uuid.dbName())) {
 
-								indexer.updateNode(nodeFactory.instantiateNode(dbNode));
+								indexer.updateNode(nodeFactory.instantiate(dbNode));
 
 								// restart transaction after 2000 iterations
 								if (++count == 2000) {
@@ -169,7 +169,7 @@ public class RebuildIndexAgent extends Agent {
 
 							if (dbRelationship.hasProperty(GraphObject.uuid.dbName())) {
 
-								indexer.execute(relFactory.instantiateRelationship(securityContext, dbRelationship));
+								indexer.execute(relFactory.instantiate(dbRelationship));
 
 								// restart transaction after 2000 iterations
 								if (++count == 2000) {

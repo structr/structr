@@ -50,7 +50,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 	public void execute(final Map<String, Object> map) throws FrameworkException {
 
 		final GraphDatabaseService graphDb   = (GraphDatabaseService)arguments.get("graphDb");
-		final RelationshipFactory relFactory = (RelationshipFactory)arguments.get("relationshipFactory");
+		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 
 		final String sourceKey = (String)map.get("sourceKey");
 		final String destKey   = (String)map.get("destKey");
@@ -63,7 +63,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 		
 		if(graphDb != null) {
 
-			List<AbstractRelationship> rels = relFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+			List<AbstractRelationship> rels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
 
 			long count = bulkGraphOperation(securityContext, rels, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 

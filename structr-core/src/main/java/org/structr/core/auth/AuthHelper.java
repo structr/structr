@@ -39,11 +39,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -122,7 +122,7 @@ public class AuthHelper {
 				List<SearchAttribute> attrs  = new LinkedList<SearchAttribute>();
 
 				attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
-				SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+				SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 				group.add(Search.orExactProperty(key, value));
 				group.add(Search.orExactProperty(AbstractNode.name, value));
 				attrs.add(group);

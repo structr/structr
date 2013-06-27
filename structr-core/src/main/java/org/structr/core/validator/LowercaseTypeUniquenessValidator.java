@@ -72,8 +72,7 @@ public class LowercaseTypeUniquenessValidator implements PropertyValidator<Strin
 
 	private static AbstractNode lookup(final NodeIndex index, final PropertyKey key, final String value) {
 		try {
-			return
-				(AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), SearchUserCommand.class).execute(value, key, index);
+			return (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), SearchUserCommand.class).execute(value, key, index);
 
 		} catch (final FrameworkException fex) {
 			fex.printStackTrace();

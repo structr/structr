@@ -24,7 +24,6 @@ import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Adapter;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -35,7 +34,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.index.IndexHits;
 import static org.structr.common.RelType.SECURITY;
+import org.structr.core.Result;
 import org.structr.core.entity.SecurityRelationship;
 import org.structr.core.property.PropertyMap;
 
@@ -48,26 +49,18 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Axel Morgner
  */
-public class RelationshipFactory<T extends AbstractRelationship> implements Adapter<Relationship, T> {
+public class RelationshipFactory<T extends AbstractRelationship> extends Factory<Relationship, T> {
 
 	private static final Logger logger = Logger.getLogger(RelationshipFactory.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
-	private SecurityContext securityContext = null;
-
-	//~--- constructors ---------------------------------------------------
-
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
-	public RelationshipFactory() {}
-
 	public RelationshipFactory(SecurityContext securityContext) {
-		this.securityContext = securityContext;
+		super(securityContext);
 	}
 
 	//~--- methods --------------------------------------------------------
 
-	public T instantiateRelationship(final SecurityContext securityContext, final String combinedRelType) throws FrameworkException {
+	public T instantiate(final String combinedRelType) throws FrameworkException {
 
 		Class<T> relClass = EntityContext.getNamedRelationClass(combinedRelType);
 		T newRel          = null;
@@ -90,18 +83,20 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		return newRel;
 	}
 
-	public T instantiateRelationship(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+	public T instantiate(final PropertyMap properties) throws FrameworkException {
 
 		String combinedRelType = (String) properties.get(AbstractRelationship.combinedType);
-		T newRel               = instantiateRelationship(securityContext, combinedRelType);
+		T newRel               = instantiate(combinedRelType);
 
 		newRel.setProperties(properties);
 
 		return newRel;
 	}
 
-	public T instantiateRelationship(final SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
+	@Override
+	public T instantiate(final Relationship relationship) throws FrameworkException {
 
+		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		Class<T> relClass = null;
 		T newRel          = null;
 
@@ -111,7 +106,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 				// Relationship has a combined type
 				String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
-				newRel = instantiateRelationship(securityContext, combinedRelType);
+				newRel = instantiate(combinedRelType);
 
 			} else {
 			
@@ -151,7 +146,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 	public T adapt(Relationship s) {
 
 		try {
-			return instantiateRelationship(securityContext, s);
+			return instantiate(s);
 			
 		} catch (FrameworkException fex) {
 			
@@ -167,7 +162,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 	 * @param input
 	 * @return
 	 */
-	public List<T> instantiateRelationships(final SecurityContext securityContext, final Iterable<Relationship> input) throws FrameworkException {
+	public List<T> instantiate(final Iterable<Relationship> input) throws FrameworkException {
 
 		List<T> rels = new LinkedList<T>();
 
@@ -175,7 +170,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 			for (Relationship rel : input) {
 
-				T n = instantiateRelationship(securityContext, rel);
+				T n = instantiate(rel);
 
 				rels.add(n);
 
@@ -197,52 +192,18 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		
 		return EntityContext.getNamedRelationClass(sourceType, destType, relationship.getType());
 	}
+
+	@Override
+	public T instantiateWithType(Relationship obj, String nodeType, boolean isCreation) throws FrameworkException {
+		return instantiate(obj);
+	}
+
+	@Override
+	public T instantiate(Relationship obj, boolean includeDeletedAndHidden, boolean publicOnly) throws FrameworkException {
+
+		factoryProfile.setIncludeDeletedAndHidden(includeDeletedAndHidden);
+		factoryProfile.setPublicOnly(publicOnly);
+
+		return instantiate(obj);
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

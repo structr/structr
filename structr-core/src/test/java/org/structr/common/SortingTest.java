@@ -200,7 +200,7 @@ public class SortingTest extends StructrTest {
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andType(type));
+			searchAttributes.add(Search.andExactType(type));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -284,7 +284,7 @@ public class SortingTest extends StructrTest {
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andType(type));
+			searchAttributes.add(Search.andExactType(type));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -364,7 +364,7 @@ public class SortingTest extends StructrTest {
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andType(type));
+			searchAttributes.add(Search.andExactType(type));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -437,7 +437,7 @@ public class SortingTest extends StructrTest {
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andType(type));
+			searchAttributes.add(Search.andExactType(type));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 

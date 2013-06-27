@@ -70,7 +70,7 @@ public class InheritingTypeResource extends TypeResource {
 
 		if (rawType != null) {
 
-			// searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
+			// searchAttributes.add(new TextualSearchAttribute("type", type, Occur.SHOULD));
 			searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 			// searchable attributes from EntityContext

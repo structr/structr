@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.eclipse.jetty.util.URIUtil;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
@@ -59,7 +60,6 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -222,7 +222,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		
 			// Find all DOMElements which render data of the type of the obj
 			attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
-			SearchAttributeGroup g = new SearchAttributeGroup(SearchOperator.AND);
+			SearchAttributeGroup g = new SearchAttributeGroup(Occur.MUST);
 
 			for (Class type : types) {
 
@@ -782,7 +782,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 			if (!data.isDeleted(node)) {
 
-				AbstractNode modifiedNode = nodeFactory.instantiateNode(node, true, false);
+				AbstractNode modifiedNode = nodeFactory.instantiate(node, true, false);
 				if (modifiedNode != null) {
 
 					PropertyKey key = getPropertyKeyForDatabaseName(modifiedNode.getClass(), entry.key());
@@ -813,7 +813,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 			if (!data.isDeleted(rel)) {
 
-				AbstractRelationship modifiedRel = relFactory.instantiateRelationship(securityContext, rel);
+				AbstractRelationship modifiedRel = relFactory.instantiate(rel);
 				if (modifiedRel != null) {
 
 					PropertyKey key = getPropertyKeyForDatabaseName(modifiedRel.getClass(), entry.key());
@@ -828,7 +828,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (org.neo4j.graphdb.Node node : sortNodes(data.createdNodes())) {
 
-			AbstractNode entity = nodeFactory.instantiateNode(node, true, false);
+			AbstractNode entity = nodeFactory.instantiate(node, true, false);
 			if (entity != null) {
 
 				graphObjectCreated(securityContext, transactionKey, entity);
@@ -843,7 +843,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (Relationship rel : sortRelationships(data.createdRelationships())) {
 
-			AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
+			AbstractRelationship entity = relFactory.instantiate(rel);
 			if (entity != null) {
 
 				// notify registered listeners
@@ -860,7 +860,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (Relationship rel : data.deletedRelationships()) {
 
-			AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
+			AbstractRelationship entity = relFactory.instantiate(rel);
 			if (entity != null) {
 
 				// convertFromInput properties
@@ -876,7 +876,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		for (org.neo4j.graphdb.Node node : data.deletedNodes()) {
 
 			String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
-			AbstractNode entity = nodeFactory.instantiateDummyNode(type);
+			AbstractNode entity = nodeFactory.instantiateDummy(type);
 
 			if (entity != null) {
 
@@ -890,7 +890,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (PropertyEntry<org.neo4j.graphdb.Node> entry : data.assignedNodeProperties()) {
 
-			AbstractNode nodeEntity = nodeFactory.instantiateNode(entry.entity(), true, false);
+			AbstractNode nodeEntity = nodeFactory.instantiate(entry.entity(), true, false);
 			if (nodeEntity != null) {
 
 				PropertyKey key  = getPropertyKeyForDatabaseName(nodeEntity.getClass(), entry.key());
@@ -905,7 +905,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
 
-			AbstractRelationship relEntity    = relFactory.instantiateRelationship(securityContext, entry.entity());
+			AbstractRelationship relEntity    = relFactory.instantiate(entry.entity());
 			if (relEntity != null) {
 
 				PropertyKey key = getPropertyKeyForDatabaseName(relEntity.getClass(), entry.key());

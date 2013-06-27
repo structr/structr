@@ -25,10 +25,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.document.NumericField;
+import org.apache.lucene.util.NumericUtils;
 import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
@@ -208,7 +211,16 @@ public class NewIndexNodeCommand extends NodeServiceCommand {
 		Index<Node> index = indices.get(indexName);
 		synchronized(index) {
 				
-			index.add(node, key.dbName(), value);
+			if (value instanceof Number) {
+				
+				// new NumericField(key.dbName()).setLongValue(((Number)value).longValue())
+				
+				index.add(node, key.dbName(), ValueContext.numeric((Number)value));
+				
+			} else {
+			
+				index.add(node, key.dbName(), value);
+			}
 		}
 	}
 }

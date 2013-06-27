@@ -3,24 +3,17 @@
  *
  * This file is part of structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
+ * structr is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License along with structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.resource;
 
 //~--- JDK imports ------------------------------------------------------------
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.RangeSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.Search;
@@ -33,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -43,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
@@ -60,7 +53,6 @@ import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
@@ -74,23 +66,19 @@ import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
- * Base class for all resource constraints. Constraints can be
- * combined with succeeding constraints to avoid unneccesary
- * evaluation.
+ * Base class for all resource constraints. Constraints can be combined with succeeding constraints to avoid unneccesary evaluation.
  *
  *
  * @author Christian Morgner
  */
 public abstract class Resource {
 
-	private static final Logger logger                        = Logger.getLogger(Resource.class.getName());
-	private static final Set<String> NON_SEARCH_FIELDS        = new LinkedHashSet<String>();
-	private static final Pattern rangeQueryPattern            = Pattern.compile("\\[(.+) TO (.+)\\]");
+	private static final Logger logger = Logger.getLogger(Resource.class.getName());
+	private static final Set<String> NON_SEARCH_FIELDS = new LinkedHashSet<String>();
+	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 
 	//~--- static initializers --------------------------------------------
-
 	static {
 
 		// create static Set with non-searchable request parameters
@@ -106,17 +94,13 @@ public abstract class Resource {
 		NON_SEARCH_FIELDS.add(Search.LOCATION_SEARCH_KEYWORD);
 
 	}
-
 	//~--- fields ---------------------------------------------------------
-
-	protected PropertyKey idProperty          = null;
+	protected PropertyKey idProperty = null;
 	protected SecurityContext securityContext = null;
 
 	//~--- methods --------------------------------------------------------
-
 	/**
-	 * Check and configure this instance with the given values. Please note that you need to
-	 * set the security context of your class in this method.
+	 * Check and configure this instance with the given values. Please note that you need to set the security context of your class in this method.
 	 *
 	 * @param part the uri part that matched this resource
 	 * @param securityContext the security context of the current request
@@ -139,9 +123,9 @@ public abstract class Resource {
 	// ----- methods -----
 	public RestMethodResult doDelete() throws FrameworkException {
 
-		final DeleteNodeCommand deleteNode        = Services.command(securityContext, DeleteNodeCommand.class);
+		final DeleteNodeCommand deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
 		final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-		Iterable<? extends GraphObject> results   = null;
+		Iterable<? extends GraphObject> results = null;
 
 		// catch 204, DELETE must return 200 if resource is empty
 		try {
@@ -155,7 +139,6 @@ public abstract class Resource {
 			final Iterable<? extends GraphObject> finalResults = results;
 
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
 				@Override
 				public Object execute() throws FrameworkException {
 
@@ -167,9 +150,9 @@ public abstract class Resource {
 
 						} else if (obj instanceof AbstractNode) {
 
-							if (!securityContext.isAllowed((AbstractNode) obj, Permission.delete)) {
+							if (!securityContext.isAllowed((AbstractNode)obj, Permission.delete)) {
 
-								logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{ obj, securityContext.getUser(true) });
+								logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
 								throw new NotAllowedException();
 
 							}
@@ -182,7 +165,6 @@ public abstract class Resource {
 
 					return null;
 				}
-
 			});
 
 		}
@@ -194,18 +176,17 @@ public abstract class Resource {
 
 		final Result<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null);
 		final List<GraphObject> results = result.getResults();
-		
+
 		if (results != null && !results.isEmpty()) {
 
 			final Class type = results.get(0).getClass();
-			
-			final StructrTransaction transaction = new StructrTransaction() {
 
+			final StructrTransaction transaction = new StructrTransaction() {
 				@Override
 				public Object execute() throws FrameworkException {
 
 					PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
-					
+
 					for (final GraphObject obj : results) {
 
 						for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
@@ -234,27 +215,29 @@ public abstract class Resource {
 	 *
 	 * @param propertyView
 	 */
-	public void configurePropertyView(final Value<String> propertyView) {}
+	public void configurePropertyView(final Value<String> propertyView) {
+	}
 
 	public void configureIdProperty(PropertyKey idProperty) {
 		this.idProperty = idProperty;
 	}
 
-	public void postProcessResultSet(final Result result) {}
+	public void postProcessResultSet(final Result result) {
+	}
 
 	// ----- protected methods -----
 	protected PropertyKey findPropertyKey(final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
 		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
-		String rawName       = typeResource.getRawType();
-		PropertyKey key      = EntityContext.getPropertyKeyForJSONName(sourceNodeType, rawName, false);
-		
+		String rawName = typeResource.getRawType();
+		PropertyKey key = EntityContext.getPropertyKeyForJSONName(sourceNodeType, rawName, false);
+
 		if (key == null) {
-			
+
 			// try to convert raw name into lower-case variable name
 			key = EntityContext.getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
 		}
-		
+
 		return key;
 	}
 
@@ -287,8 +270,8 @@ public abstract class Resource {
 		if (!list.isEmpty()) {
 
 			PropertyKey finalSortKey = sortKey;
-			String finalSortOrder    = sortDescending ? "desc" : "asc";
-			
+			String finalSortOrder = sortDescending ? "desc" : "asc";
+
 			if (finalSortKey == null) {
 
 				// Apply default sorting, if defined
@@ -298,7 +281,7 @@ public abstract class Resource {
 
 				if (defaultSort != null) {
 
-					finalSortKey   = defaultSort;
+					finalSortKey = defaultSort;
 					finalSortOrder = obj.getDefaultSortOrder();
 				}
 			}
@@ -314,7 +297,8 @@ public abstract class Resource {
 
 		try {
 			return Integer.parseInt(source.toString());
-		} catch (final Throwable t) {}
+		} catch (final Throwable t) {
+		}
 
 		return -1;
 	}
@@ -324,10 +308,10 @@ public abstract class Resource {
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
 		// try to identify invalid search properties and throw an exception
-		for (final Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
+		for (final Enumeration<String> e = request.getParameterNames(); e.hasMoreElements();) {
 
-			final String requestParameterName  = e.nextElement();
-			
+			final String requestParameterName = e.nextElement();
+
 			final PropertyKey requestParameterKey = EntityContext.getPropertyKeyForJSONName(type, requestParameterName);
 
 			if (!searchableProperties.contains(requestParameterKey) && !NON_SEARCH_FIELDS.contains(requestParameterName)) {
@@ -350,7 +334,6 @@ public abstract class Resource {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	public abstract String getUriPart();
 
 	public abstract Class<? extends GraphObject> getEntityClass();
@@ -360,20 +343,20 @@ public abstract class Resource {
 	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request, final Set<String> validAttrs) {
 
 		if (request != null) {
-			
+
 			final String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
 
 			if (!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-				final Double dist       = Double.parseDouble(distance);
-				final String location   = request.getParameter(Search.LOCATION_SEARCH_KEYWORD);
+				final Double dist = Double.parseDouble(distance);
+				final String location = request.getParameter(Search.LOCATION_SEARCH_KEYWORD);
 
-				String street     = request.getParameter(Search.STREET_SEARCH_KEYWORD);
-				String house      = request.getParameter(Search.HOUSE_SEARCH_KEYWORD);
+				String street = request.getParameter(Search.STREET_SEARCH_KEYWORD);
+				String house = request.getParameter(Search.HOUSE_SEARCH_KEYWORD);
 				String postalCode = request.getParameter(Search.POSTAL_CODE_SEARCH_KEYWORD);
-				String city       = request.getParameter(Search.CITY_SEARCH_KEYWORD);
-				String state      = request.getParameter(Search.STATE_SEARCH_KEYWORD);
-				String country    = request.getParameter(Search.COUNTRY_SEARCH_KEYWORD);
+				String city = request.getParameter(Search.CITY_SEARCH_KEYWORD);
+				String state = request.getParameter(Search.STATE_SEARCH_KEYWORD);
+				String country = request.getParameter(Search.COUNTRY_SEARCH_KEYWORD);
 
 				// if location, use city and street, else use all fields that are there!
 				if (location != null) {
@@ -396,13 +379,12 @@ public abstract class Resource {
 					}
 				}
 
-				return new DistanceSearchAttribute(street, house, postalCode, city, state, country, dist, SearchOperator.AND);
+				return new DistanceSearchAttribute(street, house, postalCode, city, state, country, dist, Occur.MUST);
 			}
 		}
 
 		return null;
 	}
-
 
 	protected List<SearchAttribute> extractSearchableAttributesForNodes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
 		return extractSearchableAttributes(securityContext, type, request, NodeService.NodeIndex.fulltext.name(), NodeService.NodeIndex.keyword.name());
@@ -413,19 +395,19 @@ public abstract class Resource {
 	}
 
 	private static List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request, final String fulltextIndex, final String keywordIndex) throws FrameworkException {
-		
+
 		List<SearchAttribute> searchAttributes = Collections.emptyList();
 
 		// searchable attributes
-		if (type != null && request != null &&!request.getParameterMap().isEmpty()) {
+		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			final boolean looseSearch                   = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
+			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 			final Set<PropertyKey> searchableProperties = getSearchableProperties(type, looseSearch, fulltextIndex, keywordIndex);
 
 			searchAttributes = checkAndAssembleSearchAttributes(securityContext, request, type, looseSearch, searchableProperties);
 
 		}
-		
+
 		return searchAttributes;
 	}
 
@@ -443,7 +425,6 @@ public abstract class Resource {
 		return resultStr;
 	}
 
-
 	private static SearchAttribute determineSearchType(final SecurityContext securityContext, final PropertyKey key, final String searchValue) {
 
 		if (StringUtils.startsWith(searchValue, "[") && StringUtils.endsWith(searchValue, "]")) {
@@ -453,70 +434,70 @@ public abstract class Resource {
 			if (matcher.matches()) {
 
 				if (matcher.groupCount() == 2) {
-					
+
 					String rangeStart = matcher.group(1);
-					String rangeEnd   = matcher.group(2);
-					
+					String rangeEnd = matcher.group(2);
+
 					try {
-					
+
 						PropertyConverter inputConverter = key.inputConverter(securityContext);
-						Object rangeStartConverted       = rangeStart;
-						Object rangeEndConverted         = rangeEnd;
-						
+						Object rangeStartConverted = rangeStart;
+						Object rangeEndConverted = rangeEnd;
+
 						if (inputConverter != null) {
-							
+
 							rangeStartConverted = inputConverter.convert(rangeStartConverted);
-							rangeEndConverted   = inputConverter.convert(rangeEndConverted);
+							rangeEndConverted = inputConverter.convert(rangeEndConverted);
 						}
-						
+
 						// let property key determine exact search value (might be a numeric value..)
 						rangeStartConverted = key.getSearchValue(rangeStartConverted);
-						rangeEndConverted   = key.getSearchValue(rangeEndConverted);
-						
-						return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, SearchOperator.AND);
-						
+						rangeEndConverted = key.getSearchValue(rangeEndConverted);
+
+						return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, Occur.SHOULD);
+
 					} catch (Throwable t) {
-						
+
 						t.printStackTrace();
 					}
 				}
-				
+
 				return null;
-				
+
 			} else {
 
 				final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
-				return Search.andMatchExactValues(key, strippedValue, SearchOperator.OR);
+				return Search.andMatchExactValues(key, strippedValue, Occur.SHOULD);
 
 			}
 
 		} else if (StringUtils.startsWith(searchValue, "(") && StringUtils.endsWith(searchValue, ")")) {
 
 			final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "("), ")");
-			return Search.andMatchExactValues(key, strippedValue, SearchOperator.AND);
+			return Search.andMatchExactValues(key, strippedValue, Occur.MUST);
 
 		} else {
-			
+
 			PropertyConverter inputConverter = key.inputConverter(securityContext);
-			Object convertedSearchValue      = searchValue;
-			
+			Object convertedSearchValue = searchValue;
+
 			if (inputConverter != null) {
-			
+
 				try {
 					convertedSearchValue = inputConverter.convert(searchValue);
-					
+
 				} catch (Throwable t) {
-					
+
 					logger.log(Level.WARNING, "Unable to convert search value for key {0}", key);
 				}
 			}
-			
+
 			return Search.andExactProperty(key, convertedSearchValue);
 		}
 	}
 
 	private static Set<PropertyKey> getSearchableProperties(final Class type, final boolean loose,
-	                                                        final String looseIndexName, final String exactIndexName) {
+		final String looseIndexName, final String exactIndexName) {
 		Set<PropertyKey> searchableProperties;
 
 		if (loose) {
@@ -531,14 +512,12 @@ public abstract class Resource {
 		return searchableProperties;
 	}
 
-
-
 	private static List<SearchAttribute> checkAndAssembleSearchAttributes(final SecurityContext securityContext,
-	                                                                      final HttpServletRequest request,
-									      final Class type,
-	                                                                      final boolean looseSearch,
-	                                                                      final Set<PropertyKey> searchableProperties)
-	                                                                    				  throws FrameworkException {
+		final HttpServletRequest request,
+		final Class type,
+		final boolean looseSearch,
+		final Set<PropertyKey> searchableProperties)
+		throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = Collections.emptyList();
 
@@ -563,9 +542,9 @@ public abstract class Resource {
 					} else {
 
 						SearchAttribute attr = determineSearchType(securityContext, key, searchValue);
-						
+
 						if (attr != null) {
-							
+
 							searchAttributes.add(attr);
 						}
 
@@ -579,16 +558,13 @@ public abstract class Resource {
 		return searchAttributes;
 	}
 
-
 	public abstract boolean isCollectionResource() throws FrameworkException;
-
 
 	public boolean isPrimitiveArray() {
 		return false;
 	}
 
 	//~--- set methods ----------------------------------------------------
-
 	public void setSecurityContext(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}

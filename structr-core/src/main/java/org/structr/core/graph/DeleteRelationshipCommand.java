@@ -53,7 +53,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 		RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 		
 		// default is active deletion!
-		return execute(relFactory.instantiateRelationship(securityContext, rel), false);
+		return execute(relFactory.instantiate(rel), false);
 	}
 	
 	public Object execute(final AbstractRelationship rel) throws FrameworkException {

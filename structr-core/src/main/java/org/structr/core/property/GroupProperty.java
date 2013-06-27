@@ -20,14 +20,12 @@ package org.structr.core.property;
 
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
@@ -35,6 +33,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.StringSearchAttribute;
 
 /**
  * A property that combines other properties in a nested object.
@@ -87,16 +86,16 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, PropertyMap searchValues, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(Occur occur, PropertyMap searchValues, boolean exactMatch) {
 		
-		SearchAttributeGroup group = new SearchAttributeGroup(op);
+		SearchAttributeGroup group = new SearchAttributeGroup(occur);
 		
 		for (PropertyKey key : propertyKeys.values()) {
 			
 			Object value = searchValues.get(key);
 			if (value != null) {
 				
-				group.add( new TextualSearchAttribute(new GroupPropertyWrapper(key), value.toString(), SearchOperator.AND) );
+				group.add( new StringSearchAttribute(new GroupPropertyWrapper(key), value.toString(), Occur.MUST, exactMatch) );
 			}
 		}
 		
@@ -368,13 +367,12 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		@Override
-		public SearchAttribute getSearchAttribute(SearchOperator op, Object searchValue, boolean exactMatch) {
+		public SearchAttribute getSearchAttribute(Occur occur, Object searchValue, boolean exactMatch) {
 		
 			// return empty string on null value here to enable searching for empty values
 			String searchString = searchValue != null ? searchValue.toString() : "";
-			String search       = exactMatch ? Search.exactMatch(searchString) : searchString;
 
-			return new TextualSearchAttribute(this, search, op);
+			return new StringSearchAttribute(this, searchString, occur, exactMatch);
 		}
 
 		@Override

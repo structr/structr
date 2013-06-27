@@ -177,8 +177,7 @@ public abstract class AbstractCommand {
 
 				attrs.add(Search.andExactProperty(idProperty, id));
 
-				List<AbstractRelationship> results = (List<AbstractRelationship>) Services.command(securityContext,
-									     SearchRelationshipCommand.class).execute(attrs);
+				List<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs).getResults();
 
 				if (!results.isEmpty()) {
 
@@ -188,7 +187,8 @@ public abstract class AbstractCommand {
 
 			} else {
 
-				List<AbstractRelationship> results = (List<AbstractRelationship>) Services.command(securityContext,
+				// FIXME: does this ever get called?
+				List<AbstractRelationship> results = (List<AbstractRelationship>)Services.command(securityContext,
 									     FindRelationshipCommand.class).execute(id);
 
 				if (!results.isEmpty()) {

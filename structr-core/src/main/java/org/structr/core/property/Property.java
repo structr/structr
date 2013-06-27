@@ -23,14 +23,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
+import org.structr.core.graph.search.StringSearchAttribute;
 
 /**
  * Abstract base class for all property types.
@@ -196,21 +195,13 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(Occur occur, T searchValue, boolean exactMatch) {
 		
-		// return empty string on null value here to enable searching for empty values
+		Object convertedValue = getSearchValue(searchValue);
+		String value          = convertedValue != null ? convertedValue.toString() : "";
 		
-		String search = "";
 		
-		if (searchValue != null) {
-		
-			Object convertedValue = getSearchValue(searchValue);
-			String searchString = convertedValue == null ? "" : convertedValue.toString();
-			search       = exactMatch ? Search.exactMatch(searchString) : searchString;
-
-		}
-		
-		return new TextualSearchAttribute(this, search, op);
+		return new StringSearchAttribute(this, value, occur, exactMatch);
 	}
 
 	@Override
@@ -222,7 +213,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Object getSearchValue(T source) {
 		
 		PropertyConverter databaseConverter = databaseConverter(SecurityContext.getSuperUserInstance());
-		Object convertedSearchValue      = source;
+		Object convertedSearchValue         = source;
 
 		if (databaseConverter != null) {
 

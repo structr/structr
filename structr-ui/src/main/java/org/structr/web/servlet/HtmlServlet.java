@@ -41,7 +41,6 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.File;
@@ -60,6 +59,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.graph.StructrTransaction;
@@ -525,7 +525,7 @@ public class HtmlServlet extends HttpServlet {
 		
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 			searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
-			searchAttrs.add(Search.andMatchValues(User.confirmationKey, key, SearchOperator.AND));
+			searchAttrs.add(Search.andMatchValues(User.confirmationKey, key, Occur.MUST));
 
 			Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
 			
@@ -583,7 +583,7 @@ public class HtmlServlet extends HttpServlet {
 
 			searchAttrs.add(Search.andExactUuid(uuid));
 
-			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+			SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 
 			group.add(Search.orExactType(Page.class.getSimpleName()));
 			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
@@ -618,7 +618,7 @@ public class HtmlServlet extends HttpServlet {
 
 			searchAttrs.add(Search.andExactName(name));
 
-			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+			SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 
 			group.add(Search.orExactType(Page.class.getSimpleName()));
 			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));

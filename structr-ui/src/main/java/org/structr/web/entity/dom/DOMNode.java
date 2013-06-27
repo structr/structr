@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
 import org.structr.web.common.RelType;
@@ -61,8 +62,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
+import org.structr.core.graph.search.StringSearchAttribute;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.PropertyMap;
@@ -1055,7 +1055,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-		searchAttributes.add(new TextualSearchAttribute(Content.content, search, SearchOperator.AND));
+		searchAttributes.add(new StringSearchAttribute(Content.content, search, Occur.MUST, false));
 		searchAttributes.add(Search.andExactType(Content.class.getSimpleName()));
 
 		try {

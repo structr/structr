@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.List;
 import java.util.Set;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -27,7 +28,6 @@ import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchOperator;
 
 /**
  * Contains information about a related node property. This class can be used together
@@ -166,8 +166,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
-		return propertyKey.getSearchAttribute(op, searchValue, exactMatch);
+	public SearchAttribute getSearchAttribute(Occur occur, T searchValue, boolean exactMatch) {
+		return propertyKey.getSearchAttribute(occur, searchValue, exactMatch);
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
@@ -27,7 +28,6 @@ import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.AbstractRelationProperty;
@@ -279,10 +279,10 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, Object searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(Occur occur, Object searchValue, boolean exactMatch) {
 		
 		if (delegate != null) {
-			return delegate.getSearchAttribute(op, searchValue, exactMatch);
+			return delegate.getSearchAttribute(occur, searchValue, exactMatch);
 		}
 		
 		return null;

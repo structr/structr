@@ -711,11 +711,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				NodeFactory nodeFactory            = new NodeFactory(securityContext);
 				
 				for (Node node : nodes) {
-					TransactionCommand.nodeCreated(nodeFactory.instantiateNode(node));
+					TransactionCommand.nodeCreated(nodeFactory.instantiate(node));
 				}
 				
 				for (Relationship rel : rels) {
-					TransactionCommand.relationshipCreated(relFactory.instantiateRelationship(securityContext, rel));
+					TransactionCommand.relationshipCreated(relFactory.instantiate(rel));
 				}
 				
 				return null;

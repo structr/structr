@@ -114,7 +114,7 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 							if (properties != null) {
 								
 								// At least one property of new rel has to be different to the tested existing node
-								AbstractRelationship rel = relationshipFactory.instantiateRelationship(securityContext, dbRelationship);
+								AbstractRelationship rel = relationshipFactory.instantiate(dbRelationship);
 								if (contentHashCode == rel.getProperties().contentHashCode(properties.keySet(), false)) {
 
 									return null;
@@ -127,52 +127,13 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 							}
 						}
 					}
-
-					/*
-					for (AbstractRelationship rel : toNode.getIncomingRelationships()) {
-
-                                                // Duplicate check:
-                                                // First, check if relType and start node are equal
-						if (rel.getRelType().equals(relType) && rel.getStartNode().equals(fromNode)) {
-
-                                                        // At least one property of new rel has to be different to the tested existing node
-							PropertyMap relProps = rel.getProperties();
-							boolean propsEqual   = true;
-
-							for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
-
-								PropertyKey key = entry.getKey();
-								Object val      = entry.getValue();
-
-								if (!relProps.containsKey(key) || !relProps.get(key).equals(val)) {
-
-									propsEqual = false;
-
-									break;
-
-								}
-
-							}
-
-							if (propsEqual) {
-
-								// logger.log(Level.WARNING, "Creation of duplicate relationship was blocked");
-
-								return null;
-
-							}
-
-						}
-
-					}
-					*/
 				}
 
 				RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
 				Node startNode                             = fromNode.getNode();
 				Node endNode                               = toNode.getNode();
 				Relationship rel                           = startNode.createRelationshipTo(endNode, relType);
-				T newRel                                   = relationshipFactory.instantiateRelationship(securityContext, rel);
+				T newRel                                   = relationshipFactory.instantiate(rel);
 
 				if (newRel != null) {
 

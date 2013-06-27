@@ -20,13 +20,13 @@ package org.structr.core.property;
 
 import java.util.List;
 import java.util.Set;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchOperator;
 
 /**
  * Base interface for typed property keys.
@@ -59,7 +59,7 @@ public interface PropertyKey<T> {
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass);
 	public Class<? extends GraphObject> getDeclaringClass();
 
-	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch);
+	public SearchAttribute getSearchAttribute(Occur occur, T searchValue, boolean exactMatch);
 	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
 	public Object getSearchValue(T source);
 	

@@ -164,12 +164,8 @@ public class UuidResource extends FilterableResource {
 
 	public AbstractRelationship getRelationship() throws FrameworkException {
 
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		attrs.add(Search.andExactUuid(uuid));
-
-		List<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs);
-		int size                           = results.size();
+		Result<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(Search.andExactUuid(uuid));
+		int size                             = results.size();
 
 		switch (size) {
 

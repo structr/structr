@@ -53,7 +53,7 @@ public class FindRelationshipCommand<T extends AbstractRelationship> extends Nod
 
 		if (graphDb != null) {
 
-			return relationshipFactory.instantiateRelationship(securityContext, relationship);
+			return relationshipFactory.instantiate(relationship);
 		}
 
 		return (null);
@@ -68,7 +68,7 @@ public class FindRelationshipCommand<T extends AbstractRelationship> extends Nod
 
 			try {
 
-				return relationshipFactory.instantiateRelationship(securityContext, graphDb.getRelationshipById(id));
+				return relationshipFactory.instantiate(graphDb.getRelationshipById(id));
 
 			} catch (NotFoundException nfe) {
 
@@ -91,7 +91,7 @@ public class FindRelationshipCommand<T extends AbstractRelationship> extends Nod
 			// single string value, try to parse to long
 			try {
 
-				return relationshipFactory.instantiateRelationship(securityContext, graphDb.getRelationshipById(Long.parseLong(idString)));
+				return relationshipFactory.instantiate(graphDb.getRelationshipById(Long.parseLong(idString)));
 
 			} catch (NumberFormatException ex) {
 

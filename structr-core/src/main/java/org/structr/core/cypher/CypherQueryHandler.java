@@ -46,8 +46,8 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 
 	private static final Logger logger = Logger.getLogger(CypherQueryHandler.class.getName());
 	
-	protected RelationshipFactory relFactory  = new RelationshipFactory();
-	protected NodeFactory nodeFactory;
+	protected RelationshipFactory relFactory  = null;
+	protected NodeFactory nodeFactory         = null;
 	protected SecurityContext securityContext = null;
 	protected String query                    = null;
 	
@@ -71,6 +71,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 		this.nodeFactory     = new NodeFactory(securityContext);
+		this.relFactory      = new RelationshipFactory(securityContext);
 	}
 	
 	// ----- interface Value<CypherQueryHandler> -----
@@ -105,11 +106,11 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 	}
 	
 	protected AbstractNode getAsAbstractNode(Map<String, Object> row, String columnName) throws FrameworkException {
-		return nodeFactory.instantiateNode((Node)row.get(columnName));
+		return nodeFactory.instantiate((Node)row.get(columnName));
 	}
 	
 	protected AbstractRelationship getAsAbstractRelationship(Map<String, Object> row, String columnName) throws FrameworkException {
-		return relFactory.instantiateRelationship(securityContext, (Relationship)row.get(columnName));
+		return relFactory.instantiate((Relationship)row.get(columnName));
 	}
 	
 	protected GraphObject getAsGraphObject(Map<String, Object> row, String columnName) {
@@ -120,12 +121,12 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 			
 			if (obj instanceof Node) {
 				
-				return nodeFactory.instantiateNode((Node)obj);
+				return nodeFactory.instantiate((Node)obj);
 			}
 			
 			if (obj instanceof Relationship) {
 				
-				return relFactory.instantiateRelationship(securityContext, (Relationship)obj);
+				return relFactory.instantiate((Relationship)obj);
 			}
 
 		} catch(Throwable ignore) {

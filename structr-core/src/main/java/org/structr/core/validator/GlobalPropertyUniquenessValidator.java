@@ -29,16 +29,16 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
+import org.structr.core.graph.search.StringSearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,7 +72,7 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 			boolean nodeExists               = false;
 			String id                        = null;
 
-			attributes.add(new TextualSearchAttribute(key, value, SearchOperator.AND));
+			attributes.add(new StringSearchAttribute(key, value, Occur.MUST, true));
 
 			Result resultList = null;
 

@@ -18,11 +18,15 @@
  */
 package org.structr.core.property;
 
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.util.NumericUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.StringSearchAttribute;
 
 /**
 * A property that stores and retrieves a simple Double value.
@@ -117,5 +121,18 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public SearchAttribute getSearchAttribute(BooleanClause.Occur occur, Double searchValue, boolean exactMatch) {
+		
+		String value = "";
+		
+		if (searchValue != null) {
+			
+			value = NumericUtils.doubleToPrefixCoded(searchValue);
+		}
+		
+		return new StringSearchAttribute(this, value, occur, exactMatch);
 	}
 }

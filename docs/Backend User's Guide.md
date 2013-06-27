@@ -39,13 +39,14 @@ You should already know what a REST server is, and why you want to use such a se
         - [Pattern matching](#pattern-matching)
         - [Semantic error messages](#semantic-error-messages)
         - [Note](#note)
-- [Indexing and search](#indexing-searching-and-sorting)
+- [Indexing, searching, sorting and paging](#indexing-searching-sorting-and-paging)
     - [Fulltext and keyword index](#fulltext-and-keyword-index)
     - [Setup](#setup)
-    - [Ordinary search](#ordinary-search)
+    - [Exact search](#ordinary-search)
     - [Loose search](#loose-search)
     - [Range queries](#range-queries)
     - [Sorting](#sorting)
+    - [Paging](#paging)
 - [Adding relationships](#adding-relationships)
 - [Appendix A - List of available property types](#appendix-a---list-of-available-property-types)
     - [StringProperty](#stringproperty)
@@ -632,7 +633,7 @@ Server: Jetty(8.1.10.v20130312)
 #### Note
 We are aware of the redundancy that comes from having two different approaches to validation, but this is due to historical reasons and will be addressed in future releases.
 
-## Indexing, searching and sorting
+## Indexing, searching, sorting and paging
 Before we advance to related entities and relationships, there is one feature that can be illustrated with the current project setup. structr provides automatic indexing, sorting and sophisticated query abilities using the Lucene search engine. In order to use these abilities, we must register properties in an entity to be *searchable*.
 
 ### Fulltext and keyword index
@@ -706,14 +707,104 @@ public class Author extends AbstractNode {
 }
 ```
 
-### Ordinary search
+For the following examples, we created a list of authors in the database so we can search, query, sort and page the list.
 
+### Exact search
+Searching the structr REST server is done by appending the desired search key and the value to the REST URL like in the following examples. Please note that you need to encode the search value according to RFC3986 ("percent-encoding"), which is the standard for URL encoding.
 
-### Loose search
+#### Search for an author by name
+```
+dev:~$ curl -i "http://localhost:1234/api/authors?name=Author%20A"
+```
+
+#### Result
+```
+{
+   "query_time": "0.002369081",
+   "result_count": 1,
+   "result": [
+      {
+         "name": "Author A",
+         "email": "z@structr.org",
+         "birthday": "01.01.1970",
+         "cakeday": "2020-01-01T10:00:00+0100",
+         "id": "cf4a535ad7d64080b2fb8df06cde1251",
+         "type": "Author"
+      }
+   ],
+   "serialization_time": "0.000307762"
+}
+```
+
+#### Search for an author by birthday
+```
+dev:~$ curl -i "http://localhost:1234/api/authors?birthday=01.01.1989"
+```
+
+#### Result
+```
+{
+   "query_time": "0.003930407",
+   "result_count": 1,
+   "result": [
+      {
+         "name": "Author T",
+         "email": "g@structr.org",
+         "birthday": "01.01.1989",
+         "cakeday": "2001-01-01T10:00:00+0100",
+         "id": "b5277e7d012843b1b2c6ed4120b46699",
+         "type": "Author"
+      }
+   ],
+   "serialization_time": "0.000698022"
+}
+```
+
+### Fulltext search
+If you want to do a fulltext search on the given fields, you can enable it with the request parameter **loose=1**. The result set is the intersection of the results for each search field, so it is the same as combining the single queries using *AND*.
+
+#### Query
+```
+dev:~$ curl -i "http://localhost:1234/api/authors?loose=1&name=z&email=a"
+```
+
+#### Result
+```
+{
+   "query_time": "0.009421869",
+   "result_count": 1,
+   "result": [
+      {
+         "name": "Author Z",
+         "email": "a@structr.org",
+         "birthday": "01.01.1995",
+         "cakeday": "1995-01-01T10:00:00+0100",
+         "id": "ea13aaaacfd040f2ade339e0f7b69183",
+         "type": "Author"
+      }
+   ],
+   "serialization_time": "0.001392529"
+}
+```
 
 ### Range queries
+structr supports range queries for both numeric and text fields. The syntax is the same as the one that is used by Lucene, the only difference is that you have to encode the square brackets and spaces in URL encoding.
+
+#### Example range query term
+```
+[01.01.1980 TO 01.01.1990]
+```
+
+#### REST query
+```
+```
+
+
 
 ### Sorting
+
+### Paging
+
 
 ## Adding relationships
 The next step in our use case is to add the two additional classes that we need to model the source code of structr. So 
