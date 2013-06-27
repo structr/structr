@@ -25,7 +25,7 @@
  * 
  */
 
-//var altKey, ctrlKey, shiftKey, eKey;
+var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
     var s = new StructrPage('/structr/rest/');
@@ -51,32 +51,44 @@ $(function() {
         var sourceId = btn.attr('data-structr-source-id');
         var sourceType = btn.attr('data-structr-source-type');
         var relatedProperty = btn.attr('data-structr-related-property');
-        console.log('create button clicked', type);
+        //console.log('create button clicked', type);
         s.create(btn, type, null, sourceId, sourceType, relatedProperty);
     });
 
     $('.deleteButton').on('click', function() {
         var btn = $(this);
         var id = btn.attr('data-structr-id');
-        console.log('Delete', id);
+        //console.log('Delete', id);
         s.delete(id);
     });
 
-//    $(window).on('keydown', function(e) {
-//        var k = e.which;
-//        if (k === 17) altKey = true;
-//        if (k === 18) ctrlKey = true;
-//        if (k === 16) shiftKey = true;
-//        if (k === 69) eKey = true;
-//    });
-//
-//    $(window).on('keyup', function(e) {
-//        var k = e.which;
-//        if (k === 17) altKey = false;
-//        if (k === 18) ctrlKey = false;
-//        if (k === 16) shiftKey = false;
-//        if (k === 69) eKey = false;
-//    });
+    $(window).on('keydown', function(e) {
+        var k = e.which;
+        //console.log('before down', k, altKey, ctrlKey, shiftKey, eKey)
+        if (k === 16)
+            shiftKey = true;
+        if (k === 17)
+            altKey = true;
+        if (k === 18)
+            ctrlKey = true;
+        if (k === 69)
+            eKey = true;
+        //console.log('after down', k, altKey, ctrlKey, shiftKey, eKey)
+    });
+
+    $(window).on('keyup', function(e) {
+        var k = e.which;
+        //console.log('before up', k, altKey, ctrlKey, shiftKey, eKey)
+        if (k === 16)
+            shiftKey = false;
+        if (k === 17)
+            altKey = false;
+        if (k === 18)
+            ctrlKey = false;
+        if (k === 69)
+            eKey = false;
+        //console.log('after up', k, altKey, ctrlKey, shiftKey, eKey)
+    });
 
 });
 
@@ -93,7 +105,7 @@ function StructrPage(baseUrl) {
                 val = el.text() === 'true';
             }
         } else {
-            val = el.val() ? el.val() : el.text();
+            val = el.val() ? el.val() : el.html().replace(/<br>/gi, '\n');
         }
         return {'id': id, 'type': type, 'key': key, 'val': val};
     };
@@ -103,23 +115,23 @@ function StructrPage(baseUrl) {
             url: '/structr/rest/' + type.toUnderscore(), method: 'POST', contentType: 'application/json',
             data: JSON.stringify(data),
             statusCode: {
-                201: function(x){
-                    
+                201: function(x) {
+
                     if (sourceId && relatedProperty) {
-                        
+
                         var location = x.getResponseHeader('location');
                         var id = location.substring(location.lastIndexOf('/') + 1);
                         var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
-                        
-                        
+
+
                         $.ajax({
                             url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
                             statusCode: {
                                 200: function(data) {
-                                    console.log(data.result);
+                                    //console.log(data.result);
                                     if (data.result && data.result[relatedProperty].length) {
                                         $.each(data.result[relatedProperty], function(i, obj) {
-                                            d[relatedProperty].push({'id':obj.id});
+                                            d[relatedProperty].push({'id': obj.id});
                                         });
                                     }
 
@@ -138,17 +150,17 @@ function StructrPage(baseUrl) {
                                             }
                                         }
                                     });
-                                    
+
                                 }
                             }
                         });
-                            
-                        
-                        
+
+
+
                     } else {
                         window.location.reload();
                     }
-                    
+
                 },
                 400: function(d) {
                     console.log(d);
@@ -157,7 +169,7 @@ function StructrPage(baseUrl) {
                     btn.parent().children('.structr-label').remove();
                     btn.parent().children('.structr-input').remove();
                     var errors = JSON.parse(d.responseText).errors[type];
-                    console.log(btn, type, errors);
+                    //console.log(btn, type, errors);
                     var data = {};
                     $.each(Object.keys(errors), function(i, key) {
                         var label = key.splitAndTitleize('_');
@@ -171,9 +183,9 @@ function StructrPage(baseUrl) {
                             var key = inp.attr('data-structr-prop');
                             var val = inp.val();
                             console.log('collecting data', inp, key, val);
-                            d[key] = val;
+                            data[key] = val;
                         });
-                        s.create(btn, type, d);
+                        s.create(btn, type, data);
                     });
 
                 }
@@ -181,7 +193,7 @@ function StructrPage(baseUrl) {
         });
     };
     this.delete = function(id) {
-        console.log('Delete', '/structr/rest/' + id);
+        //console.log('Delete', '/structr/rest/' + id);
         $.ajax({
             url: '/structr/rest/' + id, method: 'DELETE', contentType: 'application/json',
             statusCode: {200: function() {
@@ -190,26 +202,26 @@ function StructrPage(baseUrl) {
         });
     };
     this.save = function(f, b) {
+        //console.log(f, b);
         var obj = {};
         obj[f.key] = f.val;
         if (b)
             b.html('<img src="/structr/img/al.gif"> Saving');
         $.ajax({url: baseUrl + f.id, method: 'PUT', contentType: 'application/json', data: JSON.stringify(obj),
-            statusCode: {200: function() {
-                    if (b)
+            statusCode: {
+                200: function() {
+                    if (b) {
                         b.text('Success!').remove();
-                    //window.setTimeout(function() {
-                    //  window.history.pushState(null, null, window.location.href.split('?')[0]);
-                    //  s.editable(false);
-                    //}, 1500);
-                }}});
+                    }
+                }
+            }
+        });
     };
     this.editable = function(enable) {
         if (enable === undefined)
             return s.edit;
         s.edit = enable;
         if (enable) {
-            console.log('enabling editable mode');
             $('.createButton').show();
             $('.deleteButton').show();
             $('[data-structr-type="Date"],[data-structr-type="String"],[data-structr-type="Integer"],[data-structr-type="Boolean"]').each(function() {
@@ -226,31 +238,24 @@ function StructrPage(baseUrl) {
                     i = '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-key="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '">';
                 }
                 else {
-                    i = '<input class="editField" type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-key="' + f.key + '" value="' + (f.val === 'null' ? '' : f.val) + '" size="' + f.val.length + ' ">';
+                    if (f.val.indexOf('\n') === -1) {
+                        i = '<input class="editField" type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-key="' + f.key + '" value="' + (f.val === 'null' ? '' : f.val) + '" size="' + f.val.length + ' ">';
+                    } else {
+                        i = '<textarea data-structr-id="' + f.id + '" data-structr-key="' + f.key + '">' + (f.val === 'null' ? '' : f.val) + '\n' + '</textarea>';
+                    }
                 }
+
                 sp.replaceWith(i);
+                var input = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]')
+                input.css({fontFamily: 'sans-serif'});
+
                 if (f.type === 'Boolean') {
-                    $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]').on('change', function(e) {
+                    input.on('change', function(e) {
                         s.save(s.field($(this)));
                     });
                 } else {
-                    $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]').on('keyup', function(e) {
-                        var k = e.which, b = $('#save_' + f.id + '_' + f.key);
-                        if (k === 13 && b.length) {
-                            b.click();
-                            return;
-                        }
-                        if ((k < 46 && k > 32) || (k > 9 && k < 32))
-                            return false;
-                        var inp = $(this), p = inp.parent('a');
-                        inp.prop('size', inp.val().length);
-                        if (!b.length) {
-                            (p.length ? p : inp).after(' <button class="saveButton" id="save_' + f.id + '_' + f.key + '">Save</button>');
-                            $('#save_' + f.id + '_' + f.key).on('click', function() {
-                                var btn = $(this), inp = btn.prev();
-                                s.save(s.field(inp), btn);
-                            });
-                        }
+                    input.on('keyup', function(e) {
+                        s.checkInput(e, f, $(this));
                     });
                 }
             });
@@ -259,7 +264,7 @@ function StructrPage(baseUrl) {
             $('.deleteButton').hide();
             $('[data-structr-type="Date"],[data-structr-type="String"],[data-structr-type="Integer"],[data-structr-type="Boolean"]').each(function() {
                 var inp = $(this), f = s.field(inp), p = inp.parent('a');
-                console.log(inp, f, p);
+                //console.log(inp, f, p);
                 inp.next('button').remove();
                 if (p) {
                     p.attr('href', f.val).css({textDecoration: ''}).on('click', function() {
@@ -271,6 +276,72 @@ function StructrPage(baseUrl) {
         }
         return s.edit;
     };
+    this.checkInput = function(e, f, inp) {
+        var k = e.which, b = $('#save_' + f.id + '_' + f.key);
+        var p = inp.parent('a');
+
+        if (isTextarea(inp[0])) {
+
+            // Check for line break
+            if (inp.val().indexOf('\n') === -1) {
+
+                inp.replaceWith('<input class="editField" type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-key="' + f.key + '" value="' + (inp.val() === 'null' ? '' : inp.val()) + '" size="' + inp.val().length + ' ">');
+                inp = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]');
+                inp.on('keyup', function(e) {
+                    s.checkInput(e, f, $(this));
+                });
+
+                setCaretToEnd(inp[0]);
+            }
+
+        } else {
+
+            // Normal input field here
+            if (k === 13) {
+
+                if (shiftKey === true) {
+
+                    // Shift-return in input field => make textarea and append line break
+
+                    inp.replaceWith('<textarea data-structr-id="' + f.id + '" data-structr-key="' + f.key + '">' + inp.val() + '\n' + '</textarea>');
+                    inp = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]');
+                    inp.on('keyup', function(e) {
+                        s.checkInput(e, f, $(this));
+                    });
+
+                    inp.css({fontFamily: 'sans-serif'});
+
+                    setCaretToEnd(inp[0]);
+
+                } else {
+
+                    // Return without shift => submit button if visible
+
+                    if (b && b.length) {
+                        b.click();
+                        return true;
+                    }
+
+                }
+            }
+        }
+
+        if (!(k === 13 && shiftKey) && ((k < 46 && k > 32) || (k > 9 && k < 32))) {
+            //console.log('keyup', k, 'return')
+            return true;
+        }
+
+        inp.prop('size', inp.val() ? inp.val().length : inp.text().length);
+
+        if (!b.length) {
+            (p.length ? p : inp).after(' <button class="saveButton" id="save_' + f.id + '_' + f.key + '">Save</button>');
+            $('#save_' + f.id + '_' + f.key).on('click', function() {
+                var btn = $(this), inp = btn.prev();
+                s.save(s.field(inp), btn);
+            });
+        }
+
+    }
 }
 
 function urlParam(name) {
@@ -301,6 +372,32 @@ if (typeof String.prototype.splitAndTitleize !== 'function') {
 
 String.prototype.toUnderscore = function() {
     return this.replace(/([A-Z])/g, function(m, a, offset) {
-        return (offset>0?'_':'') + m.toLowerCase();
+        return (offset > 0 ? '_' : '') + m.toLowerCase();
     });
 };
+
+function setCaretToEnd(el) {
+    var l = el.value.length;
+    if (document.selection) {
+        el.focus();
+        var o = document.selection.createRange();
+        o.moveStart('character', -l);
+        o.moveStart('character', l);
+        o.moveEnd('character', 0);
+        o.select();
+    } else if (el.selectionStart || el.selectionStart === 0 || el.selectionStart === '0') {
+        el.selectionStart = l;
+        el.selectionEnd = l;
+        el.focus();
+    }
+}
+
+function escapeTags(str) {
+    if (!str)
+        return str;
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function isTextarea(el) {
+    return el.nodeName.toLowerCase() === 'textarea';
+}
